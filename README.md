@@ -23,35 +23,35 @@ Usage
 
 To start using, just import the module:
 
-'''powershell
+```powershell
 Import-Module PSReadLine
-'''
+```
 
 To use Emacs key bindings, you can use:
 
-'''powershell
+```powershell
 Set-PSReadlineOption -EditMode Emacs
-'''
+```
 
 There are many configuration options, see the options to Set-PSReadlineOption.  At some point I'll actually write some documentation.
 
 To set your own custom keybindings, use the cmdlet Set-PSReadlineKeyHandler.  For example, for a better history experience, try:
 
-'''powershell
+```powershell
 Set-PSReadlineKeyHandler -Key ([PSConsoleUtilities.Keys]::UpArrow) -Handler { 
     [PSConsoleUtilities.PSConsoleReadLine]::HistorySearchBackward() }
 Set-PSReadlineKeyHandler -Key ([PSConsoleUtilities.Keys]::DownArrow) -Handler { 
     [PSConsoleUtilities.PSConsoleReadLine]::HistorySearchForward() }
-'''
+```
 
 With these bindings, up arrow/down arrow will work like PowerShell/cmd if the current command line is blank.  If you've entered some text though, it will search the history for commands that start with the currently entered text.
 
 To enable bash style completion without using Emacs mode, you can use:
 
-'''powershell
+```powershell
 Set-PSReadlineKeyHandler -Key ([PSConsoleUtilities.Keys]::Tab) -Handler { 
     [PSConsoleUtilities.PSConsoleReadLine]::Complete() }
-'''
+```
 
 See the public methods of [PSConsoleUtilities.PSConsoleReadLine] to see what other built-in functionality you can modify.
 
