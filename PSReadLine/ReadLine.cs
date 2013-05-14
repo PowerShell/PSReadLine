@@ -218,7 +218,7 @@ namespace PSConsoleUtilities
                 var searchHistoryCommandCount = _searchHistoryCommandCount;
 
                 var key = ReadKey();
-                ProcessOneKey(key, _dispatchTable);
+                ProcessOneKey(key, _dispatchTable, ignoreIfNoAction: false);
                 if (_inputAccepted)
                 {
                     return MaybeAddToHistory();
@@ -254,14 +254,16 @@ namespace PSConsoleUtilities
         {
         }
 
-        void ProcessOneKey(ConsoleKeyInfo key, Dictionary<ConsoleKeyInfo, Action> dispatchTable)
+        void ProcessOneKey(ConsoleKeyInfo key, Dictionary<ConsoleKeyInfo, Action> dispatchTable, bool ignoreIfNoAction)
         {
             Action action;
             if (dispatchTable.TryGetValue(key, out action))
             {
                 action();
             }
-            else if ((key.Modifiers & (ConsoleModifiers.Alt | ConsoleModifiers.Control)) == 0)
+            else if (!ignoreIfNoAction
+                && key.KeyChar != 0
+                && (key.Modifiers & (ConsoleModifiers.Alt | ConsoleModifiers.Control)) == 0)
             {
                 Insert(key.KeyChar);
             }
@@ -467,13 +469,13 @@ namespace PSConsoleUtilities
         private static void EmacsMeta()
         {
             var key = ReadKey();
-            _singleton.ProcessOneKey(key, _emacsMetaMap);
+            _singleton.ProcessOneKey(key, _emacsMetaMap, ignoreIfNoAction: true);
         }
 
         private static void EmacsCtrlX()
         {
             var key = ReadKey();
-            _singleton.ProcessOneKey(key, _emacsCtrlXMap);
+            _singleton.ProcessOneKey(key, _emacsCtrlXMap, ignoreIfNoAction: true);
         }
 
         private static void Ignore()
