@@ -927,8 +927,9 @@ namespace PSConsoleUtilities
 
             // Don't overwrite any of the line - so move to first line after the end of our buffer.
             var coords = _singleton.ConvertOffsetToCoordinates(_singleton._buffer.Length);
-            Console.CursorLeft = 0;
-            Console.CursorTop = coords.Y + 1;
+            Console.CursorLeft = coords.X;
+            Console.CursorTop = coords.Y;
+            MoveCursorToNextLine();
 
             var sb = new StringBuilder();
             var minColWidth = completions.CompletionMatches.Max(c => c.ListItemText.Length);
@@ -1396,20 +1397,20 @@ namespace PSConsoleUtilities
             int bufferWidth = Console.BufferWidth;
             int bufferLineCount = _consoleBuffer.Length / bufferWidth;
             var bufferSize = new COORD
-                             {
-                                 X = (short) bufferWidth,
-                                 Y = (short) bufferLineCount
-                             };
+            {
+                X = (short) bufferWidth,
+                Y = (short) bufferLineCount
+            };
             var bufferCoord = new COORD {X = 0, Y = 0};
             var writeRegion = new SMALL_RECT
-                              {
-                                  Top = (short) _initialY,
-                                  Left = 0,
-                                  Bottom = (short) (_initialY + bufferLineCount - 1),
-                                  Right = (short) bufferWidth
-                              };
+            {
+                Top = (short) _initialY,
+                Left = 0,
+                Bottom = (short) (_initialY + bufferLineCount - 1),
+                Right = (short) bufferWidth
+            };
             NativeMethods.WriteConsoleOutput(handle, _consoleBuffer,
-                                                        bufferSize, bufferCoord, ref writeRegion);
+                                             bufferSize, bufferCoord, ref writeRegion);
         }
 
         private TokenClassification GetTokenClassification(Token token)
@@ -1530,7 +1531,14 @@ namespace PSConsoleUtilities
             NativeMethods.WriteConsoleOutput(handle, buffer, bufferSize, bufferCoord, ref writeRegion);
 
             Console.CursorLeft = 0;
-            Console.CursorTop += 1;
+            MoveCursorToNextLine();
+        }
+
+        static void MoveCursorToNextLine()
+        {
+            // Can't set to Console.CursorTop + 1 because that might be out of bounds, so write a newline to force the console to scroll.
+            uint unused;
+            NativeMethods.WriteConsole(NativeMethods.GetStdHandle((uint)StandardHandleId.Output), "\n", 1, out unused, IntPtr.Zero);
         }
 
 #endregion Rendering

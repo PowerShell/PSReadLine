@@ -12,6 +12,9 @@ namespace PSConsoleUtilities
         public static extern IntPtr GetStdHandle(uint handleId);
 
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        public static extern bool WriteConsole(IntPtr hConsoleOutput, string lpBuffer, uint nNumberOfCharsToWrite, out uint lpNumberOfCharsWritten, IntPtr lpReserved);
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         public static extern bool SetConsoleCtrlHandler(BreakHandler handlerRoutine, bool add);
 
         [DllImport("KERNEL32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
