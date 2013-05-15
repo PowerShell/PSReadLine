@@ -812,7 +812,14 @@ namespace PSConsoleUtilities
 
             if (_singleton._tabCommandCount > 0)
             {
-                PossibleCompletions();
+                if (completions.CompletionMatches.Count == 1)
+                {
+                    _singleton.Ding();
+                }
+                else
+                {
+                    PossibleCompletions();
+                }
                 return;
             }
 
@@ -836,7 +843,8 @@ namespace PSConsoleUtilities
                 var matchText = GetUnquotedText(match.CompletionText, consistentQuoting);
                 for (int i = 0; i < replacementText.Length; i++)
                 {
-                    if (char.ToLowerInvariant(replacementText[i]) != char.ToLowerInvariant(matchText[i]))
+                    if (i == matchText.Length
+                        || char.ToLowerInvariant(replacementText[i]) != char.ToLowerInvariant(matchText[i]))
                     {
                         ambiguous = true;
                         replacementText = replacementText.Substring(0, i);
