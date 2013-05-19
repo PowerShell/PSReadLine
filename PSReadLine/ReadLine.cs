@@ -441,29 +441,11 @@ namespace PSConsoleUtilities
             _initialForegroundColor = Console.ForegroundColor;
             _space = new CHAR_INFO(' ', _initialForegroundColor, _initialBackgroundColor);
             _bufferWidth = Console.BufferWidth;
-            // Most command lines will be about 1 line - we'll reallocate this buffer
-            // later if necessary.
-            _consoleBuffer = new CHAR_INFO[_bufferWidth * (1 + _extraPromptLineCount)];
             _killCommandCount = 0;
             _yankCommandCount = 0;
             _tabCommandCount = 0;
 
-            var handle = NativeMethods.GetStdHandle((uint) StandardHandleId.Output);
-
-            // Read the prompt into the buffer just once - so we can avoid re-reading
-            // it later.
-            var widthToRead = _extraPromptLineCount > 0 ? _bufferWidth : _initialX;
-            var readBufferSize = new COORD {X = (short)widthToRead, Y = (short)(1 + _extraPromptLineCount)};
-            var readBufferCoord = new COORD {X = 0, Y = 0};
-            var readRegion = new SMALL_RECT
-            {
-                Top = (short)_initialY,
-                Left = 0,
-                Bottom = (short)(_initialY + _extraPromptLineCount),
-                Right = (short)(widthToRead - 1)
-            };
-            NativeMethods.ReadConsoleOutput(handle, _consoleBuffer,
-                readBufferSize, readBufferCoord, ref readRegion);
+            _consoleBuffer = ReadBufferLines(_initialY, 1 + _extraPromptLineCount);
         }
 
         private static void EmacsMeta()
@@ -935,9 +917,7 @@ namespace PSConsoleUtilities
 
             // Don't overwrite any of the line - so move to first line after the end of our buffer.
             var coords = _singleton.ConvertOffsetToCoordinates(_singleton._buffer.Length);
-            Console.CursorLeft = coords.X;
-            Console.CursorTop = coords.Y;
-            MoveCursorToNextLine();
+            PlaceCursor(0, coords.Y + 1);
 
             var sb = new StringBuilder();
             var minColWidth = completions.CompletionMatches.Max(c => c.ListItemText.Length);
@@ -1279,7 +1259,7 @@ namespace PSConsoleUtilities
                     {
                         _consoleBuffer[i] = _space;
                     }
-                    RenderBufferToConsole();
+                    WriteBufferLines(_consoleBuffer, ref _initialY);
                 }
                 _consoleBuffer = newBuffer;
             }
@@ -1381,7 +1361,7 @@ namespace PSConsoleUtilities
                     {
                         ConsoleColor prevColor = _consoleBuffer[promptChar].ForegroundColor;
                         _consoleBuffer[promptChar].ForegroundColor = ConsoleColor.Red;
-                        RenderBufferToConsole();
+                        WriteBufferLines(_consoleBuffer, ref _initialY);
                         rendered = true;
                         _consoleBuffer[promptChar].ForegroundColor = prevColor;
                         break;
@@ -1392,18 +1372,24 @@ namespace PSConsoleUtilities
 
             if (!rendered)
             {
-                RenderBufferToConsole();
+                WriteBufferLines(_consoleBuffer, ref _initialY);
             }
 
             PlaceCursor();
         }
 
-        private void RenderBufferToConsole()
+        private static void WriteBufferLines(CHAR_INFO[] buffer, ref int top)
         {
             var handle = NativeMethods.GetStdHandle((uint) StandardHandleId.Output);
 
             int bufferWidth = Console.BufferWidth;
-            int bufferLineCount = _consoleBuffer.Length / bufferWidth;
+            int bufferLineCount = buffer.Length / bufferWidth;
+            if ((top + bufferLineCount) > Console.BufferHeight)
+            {
+                var scrollCount = (top + bufferLineCount) - Console.BufferHeight;
+                ScrollBuffer(scrollCount);
+                top -= scrollCount;
+            }
             var bufferSize = new COORD
             {
                 X = (short) bufferWidth,
@@ -1412,13 +1398,34 @@ namespace PSConsoleUtilities
             var bufferCoord = new COORD {X = 0, Y = 0};
             var writeRegion = new SMALL_RECT
             {
-                Top = (short) _initialY,
+                Top = (short) top,
                 Left = 0,
-                Bottom = (short) (_initialY + bufferLineCount - 1),
+                Bottom = (short) (top + bufferLineCount - 1),
                 Right = (short) bufferWidth
             };
-            NativeMethods.WriteConsoleOutput(handle, _consoleBuffer,
+            NativeMethods.WriteConsoleOutput(handle, buffer,
                                              bufferSize, bufferCoord, ref writeRegion);
+        }
+
+        private static CHAR_INFO[] ReadBufferLines(int top, int count)
+        {
+            var result = new CHAR_INFO[Console.BufferWidth * count];
+            var handle = NativeMethods.GetStdHandle((uint) StandardHandleId.Output);
+
+            var readBufferSize = new COORD {
+                X = (short)Console.BufferWidth,
+                Y = (short)count};
+            var readBufferCoord = new COORD {X = 0, Y = 0};
+            var readRegion = new SMALL_RECT
+            {
+                Top = (short)top,
+                Left = 0,
+                Bottom = (short)(top + count),
+                Right = (short)(Console.BufferWidth - 1)
+            };
+            NativeMethods.ReadConsoleOutput(handle, result,
+                readBufferSize, readBufferCoord, ref readRegion);
+            return result;
         }
 
         private TokenClassification GetTokenClassification(Token token)
@@ -1456,10 +1463,36 @@ namespace PSConsoleUtilities
             return TokenClassification.None;
         }
 
+        private static void ScrollBuffer(int lines)
+        {
+            var handle = NativeMethods.GetStdHandle((uint) StandardHandleId.Output);
+
+            var scrollRectangle = new SMALL_RECT
+            {
+                Top = (short) lines,
+                Left = 0,
+                Bottom = (short) (lines + Console.BufferHeight - 1),
+                Right = (short)Console.BufferWidth
+            };
+            var destinationOrigin = new COORD {X = 0, Y = 0};
+            var fillChar = new CHAR_INFO(' ', Console.ForegroundColor, Console.BackgroundColor);
+            NativeMethods.ScrollConsoleScreenBuffer(handle, ref scrollRectangle, ref scrollRectangle, destinationOrigin, ref fillChar);
+        }
+
+        private static void PlaceCursor(int x, int y)
+        {
+            if (y >= Console.BufferHeight)
+            {
+                ScrollBuffer(y - Console.BufferHeight + 1);
+                y = Console.BufferHeight - 1;
+            }
+            Console.SetCursorPosition(x, y);
+        }
+
         private void PlaceCursor()
         {
             var coordinates = ConvertOffsetToCoordinates(_current);
-            Console.SetCursorPosition(coordinates.X, coordinates.Y);
+            PlaceCursor(coordinates.X, coordinates.Y);
         }
 
         private COORD ConvertOffsetToCoordinates(int offset)
@@ -1538,15 +1571,7 @@ namespace PSConsoleUtilities
                               };
             NativeMethods.WriteConsoleOutput(handle, buffer, bufferSize, bufferCoord, ref writeRegion);
 
-            Console.CursorLeft = 0;
-            MoveCursorToNextLine();
-        }
-
-        static void MoveCursorToNextLine()
-        {
-            // Can't set to Console.CursorTop + 1 because that might be out of bounds, so write a newline to force the console to scroll.
-            uint unused;
-            NativeMethods.WriteConsole(NativeMethods.GetStdHandle((uint)StandardHandleId.Output), "\n", 1, out unused, IntPtr.Zero);
+            PlaceCursor(0, Console.CursorTop + 1);
         }
 
 #endregion Rendering

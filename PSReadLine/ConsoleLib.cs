@@ -12,6 +12,13 @@ namespace PSConsoleUtilities
         public static extern IntPtr GetStdHandle(uint handleId);
 
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        public static extern bool ScrollConsoleScreenBuffer(IntPtr hConsoleOutput,
+            ref SMALL_RECT lpScrollRectangle,
+            ref SMALL_RECT lpClipRectangle,
+            COORD dwDestinationOrigin,
+            ref CHAR_INFO lpFill);
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         public static extern bool WriteConsole(IntPtr hConsoleOutput, string lpBuffer, uint nNumberOfCharsToWrite, out uint lpNumberOfCharsWritten, IntPtr lpReserved);
 
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
