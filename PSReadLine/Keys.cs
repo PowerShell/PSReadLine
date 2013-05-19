@@ -186,6 +186,31 @@ namespace PSConsoleUtilities
         public static ConsoleKeyInfo ShiftTab   = new ConsoleKeyInfo((char)9, ConsoleKey.Tab, true, false, false);
         public static ConsoleKeyInfo ShiftEnter = new ConsoleKeyInfo((char)13, ConsoleKey.Enter, true, false, false);
 
+        public static ConsoleKeyInfo F1 = new ConsoleKeyInfo((char)0, ConsoleKey.F1, false, false, false);
+        public static ConsoleKeyInfo F2 = new ConsoleKeyInfo((char)0, ConsoleKey.F2, false, false, false);
+        public static ConsoleKeyInfo F3 = new ConsoleKeyInfo((char)0, ConsoleKey.F3, false, false, false);
+        public static ConsoleKeyInfo F4 = new ConsoleKeyInfo((char)0, ConsoleKey.F4, false, false, false);
+        public static ConsoleKeyInfo F5 = new ConsoleKeyInfo((char)0, ConsoleKey.F5, false, false, false);
+        public static ConsoleKeyInfo F6 = new ConsoleKeyInfo((char)0, ConsoleKey.F6, false, false, false);
+        public static ConsoleKeyInfo F7 = new ConsoleKeyInfo((char)0, ConsoleKey.F7, false, false, false);
+        public static ConsoleKeyInfo F8 = new ConsoleKeyInfo((char)0, ConsoleKey.F8, false, false, false);
+        public static ConsoleKeyInfo F9 = new ConsoleKeyInfo((char)0, ConsoleKey.F9, false, false, false);
+        public static ConsoleKeyInfo Fl0 = new ConsoleKeyInfo((char)0, ConsoleKey.F10, false, false, false);
+        public static ConsoleKeyInfo F11 = new ConsoleKeyInfo((char)0, ConsoleKey.F11, false, false, false);
+        public static ConsoleKeyInfo F12 = new ConsoleKeyInfo((char)0, ConsoleKey.F12, false, false, false);
+        public static ConsoleKeyInfo F13 = new ConsoleKeyInfo((char)0, ConsoleKey.F13, false, false, false);
+        public static ConsoleKeyInfo F14 = new ConsoleKeyInfo((char)0, ConsoleKey.F14, false, false, false);
+        public static ConsoleKeyInfo F15 = new ConsoleKeyInfo((char)0, ConsoleKey.F15, false, false, false);
+        public static ConsoleKeyInfo F16 = new ConsoleKeyInfo((char)0, ConsoleKey.F16, false, false, false);
+        public static ConsoleKeyInfo F17 = new ConsoleKeyInfo((char)0, ConsoleKey.F17, false, false, false);
+        public static ConsoleKeyInfo F18 = new ConsoleKeyInfo((char)0, ConsoleKey.F18, false, false, false);
+        public static ConsoleKeyInfo F19 = new ConsoleKeyInfo((char)0, ConsoleKey.F19, false, false, false);
+        public static ConsoleKeyInfo F20 = new ConsoleKeyInfo((char)0, ConsoleKey.F20, false, false, false);
+        public static ConsoleKeyInfo F21 = new ConsoleKeyInfo((char)0, ConsoleKey.F21, false, false, false);
+        public static ConsoleKeyInfo F22 = new ConsoleKeyInfo((char)0, ConsoleKey.F22, false, false, false);
+        public static ConsoleKeyInfo F23 = new ConsoleKeyInfo((char)0, ConsoleKey.F23, false, false, false);
+        public static ConsoleKeyInfo F24 = new ConsoleKeyInfo((char)0, ConsoleKey.F24, false, false, false);
+
         // Keys to ignore
         public static ConsoleKeyInfo VolumeUp   = new ConsoleKeyInfo((char)0, ConsoleKey.VolumeUp, false, false, false);
         public static ConsoleKeyInfo VolumeDown = new ConsoleKeyInfo((char)0, ConsoleKey.VolumeDown, false, false, false);
