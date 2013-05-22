@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -104,8 +106,8 @@ namespace PSConsoleUtilities
         public static ConsoleKeyInfo Underbar    = new ConsoleKeyInfo('_', ConsoleKey.OemMinus, true, false, false);
         public static ConsoleKeyInfo Minus       = new ConsoleKeyInfo('-', ConsoleKey.OemMinus, false, false, false);
         public static ConsoleKeyInfo Plus        = new ConsoleKeyInfo('+', ConsoleKey.OemPlus, true, false, false);
-        new
-        public static ConsoleKeyInfo Equals      = new ConsoleKeyInfo('=', ConsoleKey.OemPlus, false, false, false);
+
+        new public static ConsoleKeyInfo Equals      = new ConsoleKeyInfo('=', ConsoleKey.OemPlus, false, false, false);
 
         public static ConsoleKeyInfo CtrlAt    = new ConsoleKeyInfo((char)0, ConsoleKey.D2, true, false, true);
         public static ConsoleKeyInfo AltEquals = new ConsoleKeyInfo('=', ConsoleKey.OemPlus, false, true, false);

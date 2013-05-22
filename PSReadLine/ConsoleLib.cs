@@ -8,6 +8,16 @@ namespace PSConsoleUtilities
 {
     public static class NativeMethods
     {
+        public const uint MAPVK_VK_TO_VSC   = 0x00;
+        public const uint MAPVK_VSC_TO_VK   = 0x01;
+        public const uint MAPVK_VK_TO_CHAR  = 0x02;
+        
+        public const byte VK_SHIFT          = 0x10;
+        public const byte VK_CONTROL        = 0x11;
+        public const byte VK_ALT            = 0x12;
+        public const uint MENU_IS_ACTIVE    = 0x01;
+        public const uint MENU_IS_INACTIVE  = 0x00; // windows key
+
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         public static extern IntPtr GetStdHandle(uint handleId);
 
@@ -22,6 +32,15 @@ namespace PSConsoleUtilities
 
         [DllImport("KERNEL32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         public static extern bool ReadConsoleOutput(IntPtr consoleOutput, [Out] CHAR_INFO[] buffer, COORD bufferSize, COORD bufferCoord, ref SMALL_RECT readRegion);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern uint MapVirtualKey(uint uCode, uint uMapType);
+
+        [DllImport("user32.dll")]
+        public static extern int ToAscii(uint uVirtKey, uint uScanCode, byte[] lpKeyState, [Out] StringBuilder lpChar, uint uFlags);
+
+        [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        public static extern short VkKeyScan(char @char);
     }
 
     public delegate bool BreakHandler(ConsoleBreakSignal ConsoleBreakSignal);
