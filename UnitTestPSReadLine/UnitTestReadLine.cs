@@ -26,6 +26,39 @@ namespace UnitTestPSReadLine
             var rs = RunspaceFactory.CreateRunspace(iss);
             rs.Open();
             Runspace.DefaultRunspace = rs;
+
+            for (var i = 'a'; i <= 'z'; i++)
+            {
+                CharToKeyInfo[i] = new ConsoleKeyInfo(i, ConsoleKey.A + 'a' - i, false, false, false);
+            }
+            for (var i = 'A'; i <= 'Z'; i++)
+            {
+                CharToKeyInfo[i] = new ConsoleKeyInfo(i, ConsoleKey.A + 'A' - i, true, false, false);
+            }
+            for (var i = '0'; i <= '9'; i++)
+            {
+                CharToKeyInfo[i] = new ConsoleKeyInfo(i, ConsoleKey.D0 + '0' - i, false, false, false);
+            }
+            CharToKeyInfo['{'] = _.LCurly;
+            CharToKeyInfo['}'] = _.RCurly;
+            CharToKeyInfo['('] = _.LParen;
+            CharToKeyInfo[')'] = _.RParen;
+            CharToKeyInfo['['] = _.LBracket;
+            CharToKeyInfo[']'] = _.RBracket;
+            CharToKeyInfo[' '] = _.Space;
+            CharToKeyInfo['$'] = _.Dollar;
+            CharToKeyInfo['#'] = _.Pound;
+            CharToKeyInfo['<'] = _.LessThan;
+            CharToKeyInfo['>'] = _.GreaterThan;
+            CharToKeyInfo['+'] = _.Plus;
+            CharToKeyInfo['-'] = _.Minus;
+            CharToKeyInfo['_'] = _.Underbar;
+            CharToKeyInfo['|'] = _.Pipe;
+            CharToKeyInfo[';'] = _.Semicolon;
+            CharToKeyInfo['"'] = _.DQuote;
+            CharToKeyInfo['\''] = _.SQuote;
+            CharToKeyInfo['\n'] = new ConsoleKeyInfo('\r', ConsoleKey.Enter, false, false, false);
+            CharToKeyInfo['\r'] = new ConsoleKeyInfo('\r', ConsoleKey.Enter, false, false, false);
         }
 
         private enum KeyMode
@@ -67,6 +100,8 @@ namespace UnitTestPSReadLine
         /*Number*/    ConsoleColor.Gray,
         };
 
+        static Dictionary<char, ConsoleKeyInfo> CharToKeyInfo = new Dictionary<char, ConsoleKeyInfo>();
+
         class KeyHandler
         {
             public KeyHandler(ConsoleKeyInfo key, Action handler)
@@ -87,8 +122,8 @@ namespace UnitTestPSReadLine
                 this.Validator = validator;
             }
 
-            public ConsoleKeyInfo Key { get; private set; }
-            public Action Validator { get; private set; }
+            public ConsoleKeyInfo Key { get; set; }
+            public Action Validator { get; set; }
         }
 
         class CancelReadLineException : Exception
@@ -123,11 +158,8 @@ namespace UnitTestPSReadLine
             Assert.AreEqual(expected, input);
         }
 
-        private int Spaces(int count)
-        {
-            // Return something fancier if CreateCharInfoBuffer needs to do more.
-            return count;
-        }
+        private class NextLineToken { }
+        static NextLineToken NextLine = new NextLineToken();
 
         private CHAR_INFO[] CreateCharInfoBuffer(params object[] items)
         {
@@ -143,10 +175,9 @@ namespace UnitTestPSReadLine
                     result.Add(new CHAR_INFO((char)item, fg, bg));
                     continue;
                 }
-                if (item is int)
+                if (item is NextLineToken)
                 {
-                    // Spaces
-                    item = new string(' ', (int)item);
+                    item = new string(' ', Console.BufferWidth - (result.Count % Console.BufferWidth));
                     fg = Console.ForegroundColor;
                     bg = Console.BackgroundColor;
                     // Fallthrough to string case.
@@ -173,10 +204,17 @@ namespace UnitTestPSReadLine
                 throw new ArgumentException("Unexpected type");
             }
 
+            var extraSpacesNeeded = Console.BufferWidth - (result.Count % Console.BufferWidth);
+            if (extraSpacesNeeded != 0)
+            {
+                var space = new CHAR_INFO(' ', Console.ForegroundColor, Console.BackgroundColor);
+                result.AddRange(Enumerable.Repeat(space, extraSpacesNeeded));
+            }
+
             return result.ToArray();
         }
 
-        private KeyWithValidation[] Keys(params object[] input)
+        static private KeyWithValidation[] Keys(params object[] input)
         {
             var list = new List<KeyWithValidation>();
             foreach (var t in input)
@@ -189,9 +227,12 @@ namespace UnitTestPSReadLine
                 {
                     foreach (var c in (string)t)
                     {
-                        list.Add(new KeyWithValidation(
-                                     new ConsoleKeyInfo(c, ConsoleKey.A + c - 'a', false, false, false)));
+                        list.Add(new KeyWithValidation(CharToKeyInfo[c]));
                     }
+                }
+                else if (t is char)
+                {
+                    list.Add(new KeyWithValidation(CharToKeyInfo[(char)t]));
                 }
                 else
                 {
@@ -201,15 +242,75 @@ namespace UnitTestPSReadLine
             return list.ToArray();
         }
 
-        private void AssertScreenIs(int columns, int lines, params object[] items)
+        private static CHAR_INFO[] ReadBufferLines(int top, int count)
         {
-            var readBufferSize = new COORD(columns, lines);
-            var readBufferCoord = new COORD(0, 0);
-            var readRegion = new SMALL_RECT(0, 0, columns, lines);
+            var result = new CHAR_INFO[Console.BufferWidth * count];
             var handle = NativeMethods.GetStdHandle((uint) StandardHandleId.Output);
-            var consoleBuffer = new CHAR_INFO[columns*lines];
-            NativeMethods.ReadConsoleOutput(handle, consoleBuffer,
+
+            var readBufferSize = new COORD {
+                X = (short)Console.BufferWidth,
+                Y = (short)count};
+            var readBufferCoord = new COORD {X = 0, Y = 0};
+            var readRegion = new SMALL_RECT
+            {
+                Top = (short)top,
+                Left = 0,
+                Bottom = (short)(top + count),
+                Right = (short)(Console.BufferWidth - 1)
+            };
+            NativeMethods.ReadConsoleOutput(handle, result,
                 readBufferSize, readBufferCoord, ref readRegion);
+            return result;
+        }
+
+        private static void ScrollBuffer(int lines)
+        {
+            var handle = NativeMethods.GetStdHandle((uint) StandardHandleId.Output);
+
+            var scrollRectangle = new SMALL_RECT
+            {
+                Top = (short) lines,
+                Left = 0,
+                Bottom = (short) (lines + Console.BufferHeight - 1),
+                Right = (short)Console.BufferWidth
+            };
+            var destinationOrigin = new COORD {X = 0, Y = 0};
+            var fillChar = new CHAR_INFO(' ', Console.ForegroundColor, Console.BackgroundColor);
+            NativeMethods.ScrollConsoleScreenBuffer(handle, ref scrollRectangle, ref scrollRectangle, destinationOrigin, ref fillChar);
+        }
+
+        private static void WriteBufferLines(CHAR_INFO[] buffer, ref int top)
+        {
+            var handle = NativeMethods.GetStdHandle((uint) StandardHandleId.Output);
+
+            int bufferWidth = Console.BufferWidth;
+            int bufferLineCount = buffer.Length / bufferWidth;
+            if ((top + bufferLineCount) > Console.BufferHeight)
+            {
+                var scrollCount = (top + bufferLineCount) - Console.BufferHeight;
+                ScrollBuffer(scrollCount);
+                top -= scrollCount;
+            }
+            var bufferSize = new COORD
+            {
+                X = (short) bufferWidth,
+                Y = (short) bufferLineCount
+            };
+            var bufferCoord = new COORD {X = 0, Y = 0};
+            var writeRegion = new SMALL_RECT
+            {
+                Top = (short) top,
+                Left = 0,
+                Bottom = (short) (top + bufferLineCount - 1),
+                Right = (short) bufferWidth
+            };
+            NativeMethods.WriteConsoleOutput(handle, buffer,
+                                             bufferSize, bufferCoord, ref writeRegion);
+        }
+
+        private void AssertScreenIs(int lines, params object[] items)
+        {
+            var consoleBuffer = ReadBufferLines(0, lines);
 
             var expectedBuffer = CreateCharInfoBuffer(items);
             Assert.AreEqual(expectedBuffer.Length, consoleBuffer.Length);
@@ -219,10 +320,21 @@ namespace UnitTestPSReadLine
             }
         }
 
+        static void SetBufferState(string text, int cursor)
+        {
+            var keys = new List<KeyWithValidation>();
+            keys.AddRange(Keys(text));
+            keys.Add(new KeyWithValidation(_.Home));
+            while (cursor-- > 0)
+            {
+                keys.Add(new KeyWithValidation(_.RightArrow));
+            }
+            keys.Last().Validator = CancelReadLineException.Throw;
+            Test(keys.ToArray());
+        }
+
         static void ClearScreen()
         {
-            var handle = NativeMethods.GetStdHandle((uint) StandardHandleId.Output);
-
             int bufferWidth = Console.BufferWidth;
             const int bufferLineCount = 10;
             var consoleBuffer = new CHAR_INFO[bufferWidth * bufferLineCount];
@@ -230,23 +342,11 @@ namespace UnitTestPSReadLine
             {
                 consoleBuffer[i] = new CHAR_INFO(' ', Console.ForegroundColor, Console.BackgroundColor);
             }
-            var bufferSize = new COORD
-                             {
-                                 X = (short) bufferWidth,
-                                 Y = (short) bufferLineCount
-                             };
-            var bufferCoord = new COORD {X = 0, Y = 0};
-            var writeRegion = new SMALL_RECT
-                              {
-                                  Top = (short) 0,
-                                  Left = 0,
-                                  Bottom = (short) (bufferLineCount - 1),
-                                  Right = (short) bufferWidth
-                              };
-            NativeMethods.WriteConsoleOutput(handle, consoleBuffer, bufferSize, bufferCoord, ref writeRegion);
+            int top = 0;
+            WriteBufferLines(consoleBuffer, ref top);
         }
 
-        private void SetPrompt(string prompt)
+        static private void SetPrompt(string prompt)
         {
             if (string.IsNullOrEmpty(prompt))
                 return;
@@ -289,7 +389,7 @@ namespace UnitTestPSReadLine
             var bufferCoord = new COORD {X = 0, Y = 0};
             var writeRegion = new SMALL_RECT
                               {
-                                  Top = (short) 0,
+                                  Top = 0,
                                   Left = 0,
                                   Bottom = (short) (lineCount - 1),
                                   Right = (short) bufferWidth
@@ -297,7 +397,7 @@ namespace UnitTestPSReadLine
             NativeMethods.WriteConsoleOutput(handle, consoleBuffer, bufferSize, bufferCoord, ref writeRegion);
         }
 
-        private string Test(KeyWithValidation[] keys, string prompt = null)
+        static private string Test(KeyWithValidation[] keys, string prompt = null)
         {
             Console.CursorLeft = 0;
             Console.CursorTop = 0;
@@ -345,6 +445,7 @@ namespace UnitTestPSReadLine
 
         private void TestSetup(KeyMode keyMode, params KeyHandler[] keyHandlers)
         {
+            ClearScreen();
             PSConsoleReadLine.ClearHistory();
             PSConsoleReadLine.ClearKillRing();
 
@@ -395,7 +496,7 @@ namespace UnitTestPSReadLine
         {
             TestSetup(KeyMode.Cmd);
 
-            var keys = new [] {_.E, _.X, _.I, _.T, _.Enter};
+            var keys = Keys("exit", _.Enter);
             var result = Test(keys); Assert.AreEqual("exit", result);
             AssertCursorLeftIs(4);
         }
@@ -428,11 +529,10 @@ namespace UnitTestPSReadLine
         {
             TestSetup(KeyMode.Cmd);
 
-            var keys = new []
-            {
+            var keys = Keys(
                 new KeyWithValidation(_.End, () => AssertCursorLeftIs(0)),
                 new KeyWithValidation(_.Enter)
-            };
+            );
             var result = Test(keys); Assert.AreEqual("", result);
 
             TestSetup(KeyMode.Cmd);
@@ -467,19 +567,15 @@ namespace UnitTestPSReadLine
         {
             TestSetup(KeyMode.Cmd);
 
-            var keysWithValidation = new []
-            {
+            var keysWithValidation = Keys(
                 new KeyWithValidation(_.LeftArrow, () => AssertCursorLeftIs(0)),
-                new KeyWithValidation(_.A),
-                new KeyWithValidation(_.C),
-                new KeyWithValidation(_.E),
+                "ace",
                 new KeyWithValidation(_.LeftArrow, () => AssertCursorLeftIs(2)),
-                new KeyWithValidation(_.D),
+                'd',
                 new KeyWithValidation(_.LeftArrow, () => AssertCursorLeftIs(2)),
                 new KeyWithValidation(_.LeftArrow, () => AssertCursorLeftIs(1)),
-                new KeyWithValidation(_.B),
-                new KeyWithValidation(_.Enter),
-            };
+                'b', _.Enter
+            );
             var result = Test(keysWithValidation); Assert.AreEqual("abcde", result);
         }
 
@@ -488,45 +584,39 @@ namespace UnitTestPSReadLine
         {
             TestSetup(KeyMode.Cmd);
 
-            var keysWithValidation = new []
-            {
-                new KeyWithValidation(_.D),
-                new KeyWithValidation(_.Pipe),
+            var keysWithValidation = Keys(
+                "d|",
                 new KeyWithValidation(_.Enter, () => AssertCursorTopIs(1)),
-                new KeyWithValidation(_.D),
-                new KeyWithValidation(_.Enter),
-            };
+                'd', _.Enter
+            );
             var result = Test(keysWithValidation); Assert.AreEqual("d|\nd", result);
 
             // Make sure <ENTER> when input is incomplete actually puts a newline
             // wherever the cursor is.
             var continationPrefixLength = PSConsoleReadLine.DefaultContinuationPrompt.Length;
-            keysWithValidation = new []
-            {
-                new KeyWithValidation(_.LCurly),
+            keysWithValidation = Keys(
+                '{',
                 new KeyWithValidation(_.Enter, () => AssertCursorTopIs(1)),
-                new KeyWithValidation(_.D),
+                'd',
                 new KeyWithValidation(_.Enter, () => AssertCursorTopIs(2)),
                 new KeyWithValidation(_.Home),
                 new KeyWithValidation(_.RightArrow, () => AssertCursorLeftTopIs(1, 0)),
                 new KeyWithValidation(_.Enter, () => AssertCursorLeftTopIs(continationPrefixLength, 1)),
                 new KeyWithValidation(_.End, () => AssertCursorLeftTopIs(continationPrefixLength, 3)),
-                new KeyWithValidation(_.RCurly),
-                new KeyWithValidation(_.Enter),
-            };
+                '}', _.Enter
+            );
             result = Test(keysWithValidation); Assert.AreEqual("{\n\nd\n}", result);
 
             // Make sure <ENTER> when input successfully parses accepts the input regardless
             // of where the cursor is, plus it moves the cursor to the end (so the new prompt
             // doesn't overwrite the end of the previous long/multi-line command line.)
-            keysWithValidation = new[]
-            {
-                new KeyWithValidation(_.LCurly),
+            keysWithValidation = Keys(
+                '{',
                 new KeyWithValidation(_.Enter),
-                new KeyWithValidation(_.RCurly),
+                '}',
                 new KeyWithValidation(_.Home),
-                new KeyWithValidation(_.Enter, () => AssertCursorLeftTopIs(continationPrefixLength + 1, 1)),
-            };
+                new KeyWithValidation(_.Enter, () => AssertCursorLeftTopIs(continationPrefixLength + 1, 1))
+            );
             result = Test(keysWithValidation); Assert.AreEqual("{\n}", result);
         }
 
@@ -536,23 +626,23 @@ namespace UnitTestPSReadLine
             TestSetup(KeyMode.Cmd);
 
             // Empty input (does nothing, but don't crash)
-            var keys = new [] {_.Delete, _.Enter};
+            var keys = Keys(_.Delete, _.Enter);
             var result = Test(keys); Assert.AreEqual("", result);
 
             // At end but input not empty (does nothing, but don't crash)
-            keys = new [] {_.A, _.Delete, _.Enter};
+            keys = Keys('a', _.Delete, _.Enter);
             result = Test(keys); Assert.AreEqual("a", result);
 
             // Delete last character
-            keys = new [] {_.A, _.B, _.LeftArrow, _.Delete, _.Enter};
+            keys = Keys("ab", _.LeftArrow, _.Delete, _.Enter);
             result = Test(keys); Assert.AreEqual("a", result);
 
             // Delete first character
-            keys = new [] {_.A, _.B, _.Home, _.Delete, _.Enter};
+            keys = Keys("ab", _.Home, _.Delete, _.Enter);
             result = Test(keys); Assert.AreEqual("b", result);
 
             // Delete middle character
-            keys = new [] {_.A, _.B, _.C, _.Home, _.RightArrow, _.Delete, _.Enter};
+            keys = Keys("abc", _.Home, _.RightArrow, _.Delete, _.Enter);
             result = Test(keys); Assert.AreEqual("ac", result);
         }
 
@@ -605,7 +695,7 @@ namespace UnitTestPSReadLine
         }
 
         [TestMethod]
-        public void TestCompletion()
+        public void TestTabComplete()
         {
             TestSetup(KeyMode.Cmd);
 
@@ -629,6 +719,17 @@ namespace UnitTestPSReadLine
                 new KeyWithValidation(_.Enter),
             };
             result = Test(keysWithValidation); Assert.AreEqual("$true", result);
+        }
+
+        [TestMethod]
+        public void TestComplete()
+        {
+            TestSetup(KeyMode.Emacs);
+
+            var keys = Keys("ambig",
+                            new KeyWithValidation(_.Tab, () => AssertLineIs("ambiguous")),
+                            "1", _.Enter);
+            var result = Test(keys); Assert.AreEqual("ambiguous1", result);
         }
 
         [TestMethod]
@@ -876,15 +977,17 @@ namespace UnitTestPSReadLine
         public void TestKillAppend()
         {
             TestSetup(KeyMode.Emacs);
-            const string input = " abcdir";
-            PSConsoleReadLine.SetKeyHandler(_.CtrlZ, () => PSConsoleReadLine.SetBufferState(input, 4));
 
-            var keys = new [] {_.CtrlZ, _.CtrlK, _.CtrlU, _.CtrlY, _.Enter};
+            var keys = Keys(" abcdir", _.LeftArrow, _.LeftArrow, _.LeftArrow,
+                _.CtrlK, // Kill 'dir'
+                _.CtrlU, // Kill append ' abc'
+                _.CtrlY, // Yank 'dir abc'
+                _.Enter);
             var result = Test(keys);
             Assert.AreEqual("dir abc", result);
 
             // Test empty kill doesn't affect kill append
-            keys = new [] {_.A, _.B, _.LeftArrow, _.CtrlK, _.CtrlK, _.CtrlU, _.CtrlY, _.Enter};
+            keys = Keys("ab", _.LeftArrow, _.CtrlK, _.CtrlK, _.CtrlU, _.CtrlY, _.Enter);
             result = Test(keys); Assert.AreEqual("ba", result);
         }
 
@@ -892,10 +995,12 @@ namespace UnitTestPSReadLine
         public void TestKillWord()
         {
             TestSetup(KeyMode.Emacs);
-            const string input = "echo abc def";
-            PSConsoleReadLine.SetKeyHandler(_.CtrlZ, () => PSConsoleReadLine.SetBufferState(input, 5));
 
-            var keys = new [] {_.AltD, _.CtrlZ, _.AltD, _.End, _.CtrlY, _.Enter};
+            var keys = Keys(_.AltD,  // Test on empty input
+                "echo abc def", _.LeftArrow, _.LeftArrow, _.LeftArrow, _.LeftArrow, _.LeftArrow, _.LeftArrow, _.LeftArrow,
+                _.AltD,          // Kill 'abc'
+                 _.End, _.CtrlY, // Yank 'abc' at end of line
+                _.Enter);
             var result = Test(keys); Assert.AreEqual("echo  defabc", result);
         }
 
@@ -903,10 +1008,12 @@ namespace UnitTestPSReadLine
         public void TestKillBackwardWord()
         {
             TestSetup(KeyMode.Emacs);
-            const string input = "echo abc def";
-            PSConsoleReadLine.SetKeyHandler(_.CtrlZ, () => PSConsoleReadLine.SetBufferState(input, 9));
 
-            var keys = new [] {_.AltBackspace, _.CtrlZ, _.AltBackspace, _.End, _.CtrlY, _.Enter};
+            var keys = Keys(_.AltBackspace, // Test on empty line
+                "echo abc def", _.LeftArrow, _.LeftArrow, _.LeftArrow,
+                _.AltBackspace,  // Kill 'abc '
+                _.End, _.CtrlY,  // Yank 'abc ' at the end
+                _.Enter);
             var result = Test(keys);
             Assert.AreEqual("echo defabc ", result);
         }
@@ -961,9 +1068,8 @@ namespace UnitTestPSReadLine
             };
             Test(keys);
 
-            string input = "echo \"a $b c $d e\" 42";
-            PSConsoleReadLine.SetKeyHandler(_.CtrlZ, () => PSConsoleReadLine.SetBufferState(input, 5));
-            keys = Keys(_.CtrlZ,
+            keys = Keys("echo \"a $b c $d e\" 42",
+                _.Home, _.RightArrow, _.RightArrow, _.RightArrow, _.RightArrow, _.RightArrow,
                 new KeyWithValidation(_.CtrlRightArrow, () => AssertCursorLeftIs(8)),
                 new KeyWithValidation(_.CtrlRightArrow, () => AssertCursorLeftIs(13)),
                 new KeyWithValidation(_.CtrlRightArrow, () => AssertCursorLeftIs(19)),
@@ -977,20 +1083,16 @@ namespace UnitTestPSReadLine
             TestSetup(KeyMode.Cmd);
 
             const string input = "  aaa  bbb  ccc  ";
-            PSConsoleReadLine.SetKeyHandler(_.CtrlZ, () => PSConsoleReadLine.SetBufferState(input, input.Length));
-
-            var keysWithValidation = new[]
-            {
+            var keysWithValidation = Keys(
                 new KeyWithValidation(_.CtrlLeftArrow, () => AssertCursorLeftIs(0)),
-                new KeyWithValidation(_.CtrlZ),
+                input,
                 new KeyWithValidation(_.CtrlLeftArrow, () => AssertCursorLeftIs(12)),
                 new KeyWithValidation(_.CtrlLeftArrow, () => AssertCursorLeftIs(7)),
                 new KeyWithValidation(_.CtrlLeftArrow, () => AssertCursorLeftIs(2)),
                 new KeyWithValidation(_.CtrlLeftArrow, () => AssertCursorLeftIs(0)),
-                new KeyWithValidation(_.Enter),
-            };
-            var result = Test(keysWithValidation);
-            Assert.AreEqual(input, result);
+                _.Enter
+            );
+            var result = Test(keysWithValidation); Assert.AreEqual(input, result);
         }
 
         [TestMethod]
@@ -999,18 +1101,15 @@ namespace UnitTestPSReadLine
             TestSetup(KeyMode.Emacs);
 
             const string input = "  aaa  bbb  ccc  ";
-            PSConsoleReadLine.SetKeyHandler(_.CtrlZ, () => PSConsoleReadLine.SetBufferState(input, input.Length));
-
-            var keysWithValidation = new[]
-            {
+            var keysWithValidation = Keys(
                 new KeyWithValidation(_.AltB, () => AssertCursorLeftIs(0)),
-                new KeyWithValidation(_.CtrlZ),
+                input,
                 new KeyWithValidation(_.AltB, () => AssertCursorLeftIs(12)),
                 new KeyWithValidation(_.AltB, () => AssertCursorLeftIs(7)),
                 new KeyWithValidation(_.AltB, () => AssertCursorLeftIs(2)),
                 new KeyWithValidation(_.AltB, () => AssertCursorLeftIs(0)),
-                new KeyWithValidation(_.Enter),
-            };
+                _.Enter
+            );
             var result = Test(keysWithValidation);
             Assert.AreEqual(input, result);
         }
@@ -1031,8 +1130,8 @@ namespace UnitTestPSReadLine
             Test(keys);
 
             string input = "echo \"a $b c $d e\" 42";
-            PSConsoleReadLine.SetKeyHandler(_.CtrlZ, () => PSConsoleReadLine.SetBufferState(input, 5));
-            keys = Keys(_.CtrlZ,
+            keys = Keys(
+                input, _.Home, _.RightArrow, _.RightArrow, _.RightArrow, _.RightArrow, _.RightArrow,
                 new KeyWithValidation(_.AltF, () => AssertCursorLeftIs(10)),
                 new KeyWithValidation(_.AltF, () => AssertCursorLeftIs(15)),
                 new KeyWithValidation(_.AltF, () => AssertCursorLeftIs(18)),
@@ -1046,21 +1145,21 @@ namespace UnitTestPSReadLine
             TestSetup(KeyMode.Cmd);
 
             string input = "abc -def <#123#> \"hello $name\"";
-            PSConsoleReadLine.SetBufferState(input, 0);
-            AssertScreenIs(input.Length, 1,
+            SetBufferState(input, 0);
+            AssertScreenIs(1,
                 TokenClassification.Command, "abc",
-                Spaces(1),
+                TokenClassification.None, " ",
                 TokenClassification.Parameter, "-def",
-                Spaces(1),
+                TokenClassification.None, " ",
                 TokenClassification.Comment, "<#123#>",
-                Spaces(1),
+                TokenClassification.None, " ",
                 TokenClassification.String, "\"hello ",
                 TokenClassification.Variable, "$name",
                 TokenClassification.String, "\"");
 
             input = "\"$([int];\"_$(1+2)\")\"";
-            PSConsoleReadLine.SetBufferState(input, input.Length);
-            AssertScreenIs(input.Length, 1,
+            SetBufferState(input, input.Length);
+            AssertScreenIs(1,
                 TokenClassification.String, "\"",
                 TokenClassification.None, "$(",
                 TokenClassification.None, "[",
@@ -1077,24 +1176,33 @@ namespace UnitTestPSReadLine
                 TokenClassification.String, "\"");
 
             input = "\"a $b c $d e\"";
-            PSConsoleReadLine.SetBufferState(input, input.Length);
-            AssertScreenIs(input.Length, 1,
+            SetBufferState(input, input.Length);
+            AssertScreenIs(1,
                 TokenClassification.String, "\"a ",
                 TokenClassification.Variable, "$b",
                 TokenClassification.String, " c ",
                 TokenClassification.Variable, "$d",
                 TokenClassification.String, " e\"");
 
-            var keys = new[]
-            {
-                new KeyWithValidation(_.LCurly),
-                new KeyWithValidation(_.Enter),
-                new KeyWithValidation(_.Backspace, () => AssertScreenIs(5, 2, TokenClassification.None, '{', Spaces(9))),
-                new KeyWithValidation(_.RCurly),
-                new KeyWithValidation(_.Enter),
-            };
-            var result = Test(keys);
-            Assert.AreEqual("{}", result);
+            var keys = Keys(
+                '{', _.Enter,
+                new KeyWithValidation(_.Backspace,
+                    () => AssertScreenIs(2, TokenClassification.None, '{', NextLine)),
+                '}', _.Enter);
+            var result = Test(keys); Assert.AreEqual("{}", result);
+
+            string promptLine = "PS> ";
+            keys = Keys(
+                new KeyWithValidation(_.DQuote,
+                    () => AssertScreenIs(1,
+                        TokenClassification.None, promptLine.Substring(0, promptLine.IndexOf('>')),
+                        Tuple.Create(ConsoleColor.Red, Console.BackgroundColor), ">",
+                        TokenClassification.None, " ",
+                        TokenClassification.String, "\""
+                        )),
+                '"', _.Enter);
+            ClearScreen();
+            result = Test(keys, promptLine); Assert.AreEqual("\"\"", result);
         }
 
         [TestMethod]
@@ -1103,12 +1211,12 @@ namespace UnitTestPSReadLine
             TestSetup(KeyMode.Cmd);
 
             const string input = "{\n}";
-            PSConsoleReadLine.SetBufferState(input, input.Length);
+            SetBufferState(input, input.Length);
             var continuationPrompt = PSConsoleReadLine.DefaultContinuationPrompt;
             var continationPrefixLength = continuationPrompt.Length;
-            AssertScreenIs(continationPrefixLength + 1, 2,
+            AssertScreenIs(2,
                 TokenClassification.None, '{',
-                Spaces(continationPrefixLength),
+                NextLine,
                 Tuple.Create(PSConsoleReadLine.DefaultContinuationPromptForegroundColor,
                              PSConsoleReadLine.DefaultContinuationPromptBackgroundColor),
                 continuationPrompt,
@@ -1116,8 +1224,8 @@ namespace UnitTestPSReadLine
                 );
 
             PSConsoleReadLine.SetOptions(new SetPSReadlineOption{ ContinuationPrompt = ""});
-            PSConsoleReadLine.SetBufferState(input, input.Length);
-            AssertScreenIs(1, 2, TokenClassification.None, "{}" );
+            SetBufferState(input, input.Length);
+            AssertScreenIs(2, TokenClassification.None, '{', NextLine, '}' );
 
             continuationPrompt = "::::: ";
             continationPrefixLength = continuationPrompt.Length;
@@ -1126,10 +1234,10 @@ namespace UnitTestPSReadLine
                 ContinuationPromptForegroundColor = ConsoleColor.Magenta,
                 ContinuationPromptBackgroundColor = ConsoleColor.DarkYellow,
             });
-            PSConsoleReadLine.SetBufferState(input, input.Length);
-            AssertScreenIs(continationPrefixLength + 1, 2,
+            SetBufferState(input, input.Length);
+            AssertScreenIs(2,
                 TokenClassification.None, '{',
-                Spaces(continationPrefixLength),
+                NextLine,
                 Tuple.Create(ConsoleColor.Magenta, ConsoleColor.DarkYellow),
                 continuationPrompt,
                 TokenClassification.None, '}'
@@ -1163,11 +1271,13 @@ namespace UnitTestPSReadLine
             TestSetup(KeyMode.Emacs);
 
             ClearScreen();
+            // Test empty input, make sure line after the cursor is blank and cursor didn't move
             var keys = Keys(
-                new KeyWithValidation(_.AltEquals,
-                    () => AssertScreenIs(Console.BufferWidth, 2,
-                        Console.BufferWidth,
-                        Console.BufferWidth)),
+                new KeyWithValidation(_.AltEquals, () =>
+                {
+                    AssertCursorLeftTopIs(0, 0);
+                    AssertScreenIs(2, NextLine);
+                }),
                 _.Enter);
             Test(keys);
 
@@ -1175,29 +1285,27 @@ namespace UnitTestPSReadLine
             const string promptLine2 = "PS> ";
             keys = Keys("psvar", 
                 new KeyWithValidation(_.AltEquals,
-                    () => AssertScreenIs( Console.BufferWidth, 5,
+                    () => AssertScreenIs(5,
                         TokenClassification.None, promptLine1,
-                        Console.BufferWidth - promptLine1.Length,
+                        NextLine,
                         promptLine2,
                         TokenClassification.Command, "psvar",
-                        Console.BufferWidth - 5 - promptLine2.Length,
+                        NextLine,
                         "$pssomething",
-                        Console.BufferWidth - 12,
+                        NextLine,
                         TokenClassification.None, promptLine1,
-                        Console.BufferWidth - promptLine1.Length,
+                        NextLine,
                         promptLine2,
-                        TokenClassification.Command, "psvar",
-                        Console.BufferWidth - 5 - promptLine2.Length)),
+                        TokenClassification.Command, "psvar")),
                 _.Enter
                 );
             Test(keys, promptLine1 + "\n" + promptLine2);
 
             keys = Keys("none",
                 new KeyWithValidation(_.AltEquals,
-                    () => AssertScreenIs(Console.BufferWidth, 2,
+                    () => AssertScreenIs(2,
                         TokenClassification.Command, "none",
-                        Console.BufferWidth - 4,
-                        Console.BufferWidth)),
+                        NextLine)),
                 _.Enter);
             ClearScreen();
             Test(keys);
@@ -1214,7 +1322,7 @@ namespace UnitTestPSReadLine
             }
         }
 
-        private CommandCompletion MockedCompleteInput(string input, int cursor, Hashtable options, PowerShell powerShell)
+        static private CommandCompletion MockedCompleteInput(string input, int cursor, Hashtable options, PowerShell powerShell)
         {
             var ctor = typeof (CommandCompletion).GetConstructor(
                 BindingFlags.NonPublic | BindingFlags.Instance, null, 
@@ -1241,6 +1349,13 @@ namespace UnitTestPSReadLine
                 replacementIndex = 0;
                 replacementLength = 5;
                 completions.Add(new CompletionResult("$pssomething"));
+                break;
+            case "ambig":
+                replacementIndex = 0;
+                replacementLength = 5;
+                completions.Add(new CompletionResult("ambiguous1"));
+                completions.Add(new CompletionResult("ambiguous2"));
+                completions.Add(new CompletionResult("ambiguous3"));
                 break;
             case "none":
                 break;
