@@ -39,16 +39,54 @@ namespace PSConsoleUtilities
         Number,
     }
 
+    public class KeyHandler
+    {
+        public string Key { get; set; }
+        public string BriefDescription { get; set; }
+        public string LongDescription
+        {
+            get
+            {
+                var result = _longDescription;
+                if (string.IsNullOrWhiteSpace(result))
+                    result = PSReadLineResources.ResourceManager.GetString(BriefDescription + "Description");
+                if (string.IsNullOrWhiteSpace(result))
+                    result = BriefDescription;
+                return result;
+            }
+            set { _longDescription = value; }
+        }
+        private string _longDescription;
+    }
+
     public class PSConsoleReadLine
     {
         private static readonly PSConsoleReadLine _singleton;
 
-        private static readonly Dictionary<ConsoleKeyInfo, Action> _emacsKeyMap; 
-        private static readonly Dictionary<ConsoleKeyInfo, Action> _emacsMetaMap; 
-        private static readonly Dictionary<ConsoleKeyInfo, Action> _emacsCtrlXMap; 
-        private static readonly Dictionary<ConsoleKeyInfo, Action> _cmdKeyMap;
+        class KeyHandler
+        {
+            public Action Action;
+            public string BriefDescription;
+            public string LongDescription;
+        }
+        static KeyHandler MakeKeyHandler(Action action, string briefDescription, string longDescription = null)
+        {
+            return new KeyHandler
+            {
+                Action = action,
+                BriefDescription = briefDescription,
+                LongDescription = longDescription
+            };
+        }
 
-        private Dictionary<ConsoleKeyInfo, Action> _dispatchTable;
+        private static readonly Dictionary<ConsoleKeyInfo, KeyHandler> _emacsKeyMap; 
+        private static readonly Dictionary<ConsoleKeyInfo, KeyHandler> _emacsMetaMap; 
+        private static readonly Dictionary<ConsoleKeyInfo, KeyHandler> _emacsCtrlXMap; 
+        private static readonly Dictionary<ConsoleKeyInfo, KeyHandler> _cmdKeyMap;
+
+        private Dictionary<ConsoleKeyInfo, KeyHandler> _dispatchTable;
+        private Dictionary<ConsoleKeyInfo, KeyHandler> _dispatchCtrlXTable;
+        private Dictionary<ConsoleKeyInfo, KeyHandler> _dispatchMetaTable;
 
         private readonly StringBuilder _buffer;
         private CHAR_INFO[] _consoleBuffer;
@@ -254,12 +292,12 @@ namespace PSConsoleUtilities
         {
         }
 
-        void ProcessOneKey(ConsoleKeyInfo key, Dictionary<ConsoleKeyInfo, Action> dispatchTable, bool ignoreIfNoAction)
+        void ProcessOneKey(ConsoleKeyInfo key, Dictionary<ConsoleKeyInfo, KeyHandler> dispatchTable, bool ignoreIfNoAction)
         {
-            Action action;
-            if (dispatchTable.TryGetValue(key, out action))
+            KeyHandler handler;
+            if (dispatchTable.TryGetValue(key, out handler))
             {
-                action();
+                handler.Action();
             }
             else if (!ignoreIfNoAction
                 && key.KeyChar != 0
@@ -295,81 +333,81 @@ namespace PSConsoleUtilities
 
         static PSConsoleReadLine()
         {
-            _cmdKeyMap = new Dictionary<ConsoleKeyInfo, Action>(new ConsoleKeyInfoComparer())
+            _cmdKeyMap = new Dictionary<ConsoleKeyInfo, KeyHandler>(new ConsoleKeyInfoComparer())
             {
-                { Keys.Enter,           AcceptLine },
-                { Keys.ShiftEnter,      AddLine },
-                { Keys.Escape,          RevertLine },
-                { Keys.LeftArrow,       BackwardChar },
-                { Keys.RightArrow,      ForwardChar },
-                { Keys.CtrlLeftArrow,   BackwardWord },
-                { Keys.CtrlRightArrow,  ForwardWord },
-                { Keys.UpArrow,         PreviousHistory },
-                { Keys.DownArrow,       NextHistory },
-                { Keys.Home,            BeginningOfLine },
-                { Keys.End,             EndOfLine },
-                { Keys.Delete,          DeleteChar },
-                { Keys.Backspace,       BackwardDeleteChar },
-                { Keys.Tab,             TabCompleteNext },
-                { Keys.ShiftTab,        TabCompletePrevious },
-                { Keys.VolumeDown,      Ignore },
-                { Keys.VolumeUp,        Ignore },
-                { Keys.VolumeMute,      Ignore },
+                { Keys.Enter,           MakeKeyHandler(AcceptLine,           "AcceptLine") },
+                { Keys.ShiftEnter,      MakeKeyHandler(AddLine,              "AddLine") },
+                { Keys.Escape,          MakeKeyHandler(RevertLine,           "RevertLine") },
+                { Keys.LeftArrow,       MakeKeyHandler(BackwardChar,         "BackwardChar") },
+                { Keys.RightArrow,      MakeKeyHandler(ForwardChar,          "ForwardChar") },
+                { Keys.CtrlLeftArrow,   MakeKeyHandler(BackwardWord,         "BackwordWord") },
+                { Keys.CtrlRightArrow,  MakeKeyHandler(ForwardWord,          "ForwardWord") },
+                { Keys.UpArrow,         MakeKeyHandler(PreviousHistory,      "PreviousHistory") },
+                { Keys.DownArrow,       MakeKeyHandler(NextHistory,          "NextHistory") },
+                { Keys.Home,            MakeKeyHandler(BeginningOfLine,      "BeginningOfLine") },
+                { Keys.End,             MakeKeyHandler(EndOfLine,            "EndOfLine") },
+                { Keys.Delete,          MakeKeyHandler(DeleteChar,           "DeleteChar") },
+                { Keys.Backspace,       MakeKeyHandler(BackwardDeleteChar,   "BackwardDeleteChar") },
+                { Keys.Tab,             MakeKeyHandler(TabCompleteNext,      "TabCompleteNext") },
+                { Keys.ShiftTab,        MakeKeyHandler(TabCompletePrevious,  "TabCompletePrevious") },
+                { Keys.VolumeDown,      MakeKeyHandler(Ignore,               "Ignore") },
+                { Keys.VolumeUp,        MakeKeyHandler(Ignore,               "Ignore") },
+                { Keys.VolumeMute,      MakeKeyHandler(Ignore,               "Ignore") },
             };
 
-            _emacsKeyMap = new Dictionary<ConsoleKeyInfo, Action>(new ConsoleKeyInfoComparer())
+            _emacsKeyMap = new Dictionary<ConsoleKeyInfo, KeyHandler>(new ConsoleKeyInfoComparer())
             {
-                { Keys.Backspace,       BackwardDeleteChar },
-                { Keys.Enter,           AcceptLine },
-                { Keys.ShiftEnter,      AddLine },
-                { Keys.LeftArrow,       BackwardChar },
-                { Keys.RightArrow,      ForwardChar },
-                { Keys.UpArrow,         PreviousHistory },
-                { Keys.DownArrow,       NextHistory },
-                { Keys.Home,            BeginningOfLine },
-                { Keys.End,             EndOfLine },
-                { Keys.Escape,          EmacsMeta },
-                { Keys.Delete,          DeleteChar },
-                { Keys.Tab,             Complete},
-                { Keys.CtrlA,           BeginningOfLine },
-                { Keys.CtrlB,           BackwardChar },
-                { Keys.CtrlD,           DeleteChar },
-                { Keys.CtrlE,           EndOfLine },
-                { Keys.CtrlF,           ForwardChar },
-                { Keys.CtrlH,           BackwardDeleteChar },
-                { Keys.CtrlK,           KillLine },
-                { Keys.CtrlM,           AcceptLine },
-                { Keys.CtrlU,           BackwardKillLine },
-                { Keys.CtrlX,           EmacsCtrlX },
-                { Keys.CtrlY,           Yank },
-                { Keys.CtrlAt,          SetMark },
-                { Keys.AltB,            EmacsBackwardWord },
-                { Keys.AltD,            KillWord },
-                { Keys.AltF,            EmacsForwardWord },
-                { Keys.AltR,            RevertLine },
-                { Keys.AltY,            YankPop },
-                { Keys.AltBackspace,    KillBackwardWord },
-                { Keys.AltEquals,       PossibleCompletions },
-                { Keys.AltSpace,        SetMark },  // useless entry here for completeness - brings up system menu on Windows
-                { Keys.VolumeDown,      Ignore },
-                { Keys.VolumeUp,        Ignore },
-                { Keys.VolumeMute,      Ignore },
+                { Keys.Backspace,       MakeKeyHandler(BackwardDeleteChar,   "BackwardDeleteChar") },
+                { Keys.Enter,           MakeKeyHandler(AcceptLine,           "AcceptLine") },
+                { Keys.ShiftEnter,      MakeKeyHandler(AddLine,              "AddLine") },
+                { Keys.LeftArrow,       MakeKeyHandler(BackwardChar,         "BackwardChar") },
+                { Keys.RightArrow,      MakeKeyHandler(ForwardChar,          "ForwardChar") },
+                { Keys.UpArrow,         MakeKeyHandler(PreviousHistory,      "PreviousHistory") },
+                { Keys.DownArrow,       MakeKeyHandler(NextHistory,          "NextHistory") },
+                { Keys.Home,            MakeKeyHandler(BeginningOfLine,      "BeginningOfLine") },
+                { Keys.End,             MakeKeyHandler(EndOfLine,            "EndOfLine") },
+                { Keys.Escape,          MakeKeyHandler(EmacsMeta,            "EmacsMeta") },
+                { Keys.Delete,          MakeKeyHandler(DeleteChar,           "DeleteChar") },
+                { Keys.Tab,             MakeKeyHandler(Complete,             "Complete") },
+                { Keys.CtrlA,           MakeKeyHandler(BeginningOfLine,      "BeginningOfLine") },
+                { Keys.CtrlB,           MakeKeyHandler(BackwardChar,         "BackwardChar") },
+                { Keys.CtrlD,           MakeKeyHandler(DeleteChar,           "DeleteChar") },
+                { Keys.CtrlE,           MakeKeyHandler(EndOfLine,            "EndOfLine") },
+                { Keys.CtrlF,           MakeKeyHandler(ForwardChar,          "ForwardChar") },
+                { Keys.CtrlH,           MakeKeyHandler(BackwardDeleteChar,   "BackwardDeleteChar") },
+                { Keys.CtrlK,           MakeKeyHandler(KillLine,             "KillLine") },
+                { Keys.CtrlM,           MakeKeyHandler(AcceptLine,           "AcceptLine") },
+                { Keys.CtrlU,           MakeKeyHandler(BackwardKillLine,     "BackwardKillLine") },
+                { Keys.CtrlX,           MakeKeyHandler(EmacsCtrlX,           "EmacsCtrlX") },
+                { Keys.CtrlY,           MakeKeyHandler(Yank,                 "Yank") },
+                { Keys.CtrlAt,          MakeKeyHandler(SetMark,              "SetMark") },
+                { Keys.AltB,            MakeKeyHandler(EmacsBackwardWord,    "EmacsBackwardWord") },
+                { Keys.AltD,            MakeKeyHandler(KillWord,             "KillWord") },
+                { Keys.AltF,            MakeKeyHandler(EmacsForwardWord,     "EmacsForwardWord") },
+                { Keys.AltR,            MakeKeyHandler(RevertLine,           "RevertLine") },
+                { Keys.AltY,            MakeKeyHandler(YankPop,              "YankPop") },
+                { Keys.AltBackspace,    MakeKeyHandler(KillBackwardWord,     "KillBackwardWord") },
+                { Keys.AltEquals,       MakeKeyHandler(PossibleCompletions,  "PossibleCompletions") },
+                { Keys.AltSpace,        MakeKeyHandler(SetMark,              "SetMark") },  // useless entry here for completeness - brings up system menu on Windows
+                { Keys.VolumeDown,      MakeKeyHandler(Ignore,               "Ignore") },
+                { Keys.VolumeUp,        MakeKeyHandler(Ignore,               "Ignore") },
+                { Keys.VolumeMute,      MakeKeyHandler(Ignore,               "Ignore") },
             };
 
-            _emacsMetaMap = new Dictionary<ConsoleKeyInfo, Action>(new ConsoleKeyInfoComparer())
+            _emacsMetaMap = new Dictionary<ConsoleKeyInfo, KeyHandler>(new ConsoleKeyInfoComparer())
             {
-                { Keys.B,               EmacsBackwardWord },
-                { Keys.D,               KillWord },
-                { Keys.F,               EmacsForwardWord },
-                { Keys.R,               RevertLine },
-                { Keys.Y,               YankPop },
-                { Keys.Backspace,       KillBackwardWord },
+                { Keys.B,               MakeKeyHandler(EmacsBackwardWord,    "EmacsBackwardWord") },
+                { Keys.D,               MakeKeyHandler(KillWord,             "KillWord") },
+                { Keys.F,               MakeKeyHandler(EmacsForwardWord,     "EmacsForwardWord") },
+                { Keys.R,               MakeKeyHandler(RevertLine,           "RevertLine") },
+                { Keys.Y,               MakeKeyHandler(YankPop,              "YankPop") },
+                { Keys.Backspace,       MakeKeyHandler(KillBackwardWord,     "KillBackwardWord") },
             };
 
-            _emacsCtrlXMap = new Dictionary<ConsoleKeyInfo, Action>(new ConsoleKeyInfoComparer())
+            _emacsCtrlXMap = new Dictionary<ConsoleKeyInfo, KeyHandler>(new ConsoleKeyInfoComparer())
             {
-                { Keys.Backspace,       BackwardKillLine },
-                { Keys.CtrlX,           ExchangePointAndMark },
+                { Keys.Backspace,       MakeKeyHandler(BackwardKillLine,     "BackwardKillLine") },
+                { Keys.CtrlX,           MakeKeyHandler(ExchangePointAndMark, "ExchangePointAndMark") },
             };
 
             _singleton = new PSConsoleReadLine();
@@ -377,7 +415,7 @@ namespace PSConsoleUtilities
 
         private PSConsoleReadLine()
         {
-            _dispatchTable = new Dictionary<ConsoleKeyInfo, Action>(_cmdKeyMap);
+            _dispatchTable = new Dictionary<ConsoleKeyInfo, KeyHandler>(_cmdKeyMap);
 
             _buffer = new StringBuilder();
 
@@ -451,13 +489,13 @@ namespace PSConsoleUtilities
         private static void EmacsMeta()
         {
             var key = ReadKey();
-            _singleton.ProcessOneKey(key, _emacsMetaMap, ignoreIfNoAction: true);
+            _singleton.ProcessOneKey(key, _singleton._dispatchMetaTable, ignoreIfNoAction: true);
         }
 
         private static void EmacsCtrlX()
         {
             var key = ReadKey();
-            _singleton.ProcessOneKey(key, _emacsCtrlXMap, ignoreIfNoAction: true);
+            _singleton.ProcessOneKey(key, _singleton._dispatchCtrlXTable, ignoreIfNoAction: true);
         }
 
         private static void Ignore()
@@ -1658,7 +1696,9 @@ namespace PSConsoleUtilities
                 switch (options._editMode)
                 {
                 case EditMode.Emacs:
-                    _dispatchTable = new Dictionary<ConsoleKeyInfo, Action>(_emacsKeyMap);
+                    _dispatchTable = new Dictionary<ConsoleKeyInfo, KeyHandler>(_emacsKeyMap);
+                    _dispatchCtrlXTable = new Dictionary<ConsoleKeyInfo, KeyHandler>(_emacsCtrlXMap);
+                    _dispatchMetaTable = new Dictionary<ConsoleKeyInfo, KeyHandler>(_emacsMetaMap);
                     break;
 #if FALSE
                 case EditMode.Vi:
@@ -1666,7 +1706,7 @@ namespace PSConsoleUtilities
                     break;
 #endif
                 case EditMode.Windows:
-                    _dispatchTable = new Dictionary<ConsoleKeyInfo, Action>(_cmdKeyMap);
+                    _dispatchTable = new Dictionary<ConsoleKeyInfo, KeyHandler>(_cmdKeyMap);
                     break;
                 }
             }
@@ -1707,9 +1747,10 @@ namespace PSConsoleUtilities
             }
         }
 
-        private void SetKeyHandlerInternal(ConsoleKeyInfo key, Action handler)
+        private void SetKeyHandlerInternal(ConsoleKeyInfo key, bool ctrlX, Action handler, string briefDescription, string longDescription)
         {
-            _dispatchTable[key] = handler;
+            var table = ctrlX ? _dispatchCtrlXTable : _dispatchTable;
+            table[key] = MakeKeyHandler(handler, briefDescription, longDescription);
         }
 
         public static void SetOptions(SetPSReadlineOption options)
@@ -1717,9 +1758,41 @@ namespace PSConsoleUtilities
             _singleton.SetOptionsInternal(options);
         }
 
-        public static void SetKeyHandler(ConsoleKeyInfo key, Action handler)
+        public static void SetKeyHandler(ConsoleKeyInfo key, bool ctrlX, Action handler, string briefDescription, string longDescription)
         {
-            _singleton.SetKeyHandlerInternal(key, handler);
+            _singleton.SetKeyHandlerInternal(key, ctrlX, handler, briefDescription, longDescription);
+        }
+
+        public static IEnumerable<PSConsoleUtilities.KeyHandler> GetKeyHandlers()
+        {
+            foreach (var entry in _singleton._dispatchTable)
+            {
+                if (entry.Value.BriefDescription == "Ignore" || entry.Value.BriefDescription == "EmacsMeta")
+                {
+                    continue;
+                }
+                if (entry.Value.BriefDescription == "EmacsCtrlX")
+                {
+                    foreach (var xEntry in _singleton._dispatchCtrlXTable)
+                    {
+                        yield return new PSConsoleUtilities.KeyHandler
+                        {
+                            Key = "Ctrl+X," + xEntry.Key.ToGestureString(),
+                            BriefDescription = xEntry.Value.BriefDescription,
+                            LongDescription = xEntry.Value.LongDescription,
+                        };
+                    }
+                }
+                else
+                {
+                    yield return new PSConsoleUtilities.KeyHandler
+                    {
+                        Key = entry.Key.ToGestureString(),
+                        BriefDescription = entry.Value.BriefDescription,
+                        LongDescription = entry.Value.LongDescription,
+                    };
+                }
+            }
         }
 
         public static void GetBufferState(out string input, out int cursor)

@@ -144,5 +144,66 @@ namespace PSConsoleUtilities
         {
             return UnicodeChar.GetHashCode() + Attributes.GetHashCode();
         }
+
+    }
+
+    public static class ConsoleKeyInfoExtension 
+    {
+        public static string ToGestureString(this ConsoleKeyInfo key)
+        {
+            var sb = new StringBuilder();
+            if (key.Modifiers.HasFlag(ConsoleModifiers.Control))
+            {
+                sb.Append("Ctrl");
+            }
+            if (key.Modifiers.HasFlag(ConsoleModifiers.Alt))
+            {
+                if (sb.Length > 0)
+                    sb.Append("+");
+                sb.Append("Alt");
+            }
+            if (key.Modifiers.HasFlag(ConsoleModifiers.Shift))
+            {
+                if (sb.Length > 0)
+                    sb.Append("+");
+                sb.Append("Shift");
+            }
+            if (sb.Length > 0)
+                sb.Append("+");
+            if (key.Key >= ConsoleKey.A && key.Key <= ConsoleKey.Z)
+            {
+                sb.Append((char)('A' + key.Key - ConsoleKey.A));
+            }
+            else if (key.Key >= ConsoleKey.D0 && key.Key <= ConsoleKey.D9)
+            {
+                sb.Append((char)('0' + key.Key - ConsoleKey.D0));
+            }
+            else switch (key.Key)
+            {
+            case ConsoleKey.Escape:      sb.Append("Esc"); break;
+            case ConsoleKey.PageUp:      sb.Append("PgUp"); break;
+            case ConsoleKey.PageDown:    sb.Append("PgDn"); break;
+            case ConsoleKey.Delete:      sb.Append("Del"); break;
+            case ConsoleKey.Insert:      sb.Append("Ins"); break;
+            case ConsoleKey.PrintScreen: sb.Append("PrtSc"); break;
+            case ConsoleKey.Backspace:   sb.Append("BS"); break;
+            case ConsoleKey.Oem1:        sb.Append("Semicolon"); break;
+            case ConsoleKey.OemPlus:     sb.Append("Plus"); break;
+            case ConsoleKey.OemComma:    sb.Append("Comma"); break;
+            case ConsoleKey.OemMinus:    sb.Append("Minus"); break;
+            case ConsoleKey.OemPeriod:   sb.Append("Period"); break;
+            case ConsoleKey.Oem2:        sb.Append("Question"); break;
+            case ConsoleKey.Oem3:        sb.Append("Tilde"); break;
+            case ConsoleKey.Oem4:        sb.Append("Openbrackets"); break;
+            case ConsoleKey.Oem5:        sb.Append("Pipe"); break;
+            case ConsoleKey.Oem6:        sb.Append("Closebrackets"); break;
+            case ConsoleKey.Oem7:        sb.Append("Quotes"); break;
+            case ConsoleKey.Oem102:      sb.Append("Backslash"); break;
+            default:
+                sb.Append(key.Key);
+                break;
+            }
+            return sb.ToString();
+        }
     }
 }

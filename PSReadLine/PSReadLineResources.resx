@@ -1,0 +1,222 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="AcceptLineDescription" xml:space="preserve">
+    <value>Accept the input or move to the next line if input is missing a closing token.</value>
+  </data>
+  <data name="AddLineDescription" xml:space="preserve">
+    <value>Move the cursor to the next line without attempting to execute the input</value>
+  </data>
+  <data name="BackwardCharDescription" xml:space="preserve">
+    <value>Move the cursor back one character</value>
+  </data>
+  <data name="BackwardDeleteCharDescription" xml:space="preserve">
+    <value>Delete the charcter before the cursor</value>
+  </data>
+  <data name="BackwardKillLineDescription" xml:space="preserve">
+    <value>Move the text from the cursor to the beginning of the line to the kill ring</value>
+  </data>
+  <data name="BackwordWordDescription" xml:space="preserve">
+    <value>Move the cursor to the beginning of the current or previous token or start of the line</value>
+  </data>
+  <data name="BeginningOfLineDescription" xml:space="preserve">
+    <value>Move the cursor to the beginning of the line</value>
+  </data>
+  <data name="ClearKillRingDescription" xml:space="preserve">
+    <value>Remove all items from the kill ring</value>
+  </data>
+  <data name="ClearyHistoryDescription" xml:space="preserve">
+    <value>Remove all items from the command line history (not PowerShell history)</value>
+  </data>
+  <data name="CompleteDescription" xml:space="preserve">
+    <value>Complete the input if there is a single completion, otherwise complete the input with common prefix for all completions.  Show possible completions if pressed a second time.</value>
+  </data>
+  <data name="DeleteCharDescription" xml:space="preserve">
+    <value>Delete the character under the cusor</value>
+  </data>
+  <data name="EmacsBackwardWordDescription" xml:space="preserve">
+    <value>Move the cursor to the beginning of the current or previous token or start of the line</value>
+  </data>
+  <data name="EmacsCtrlXDescription" xml:space="preserve">
+    <value>String is not used in the UI</value>
+  </data>
+  <data name="EmacsForwardWordDescription" xml:space="preserve">
+    <value>Move the cursor to the end of the current or next token</value>
+  </data>
+  <data name="EmacsMetaDescription" xml:space="preserve">
+    <value>String is not used in the UI</value>
+  </data>
+  <data name="EndOfLineDescription" xml:space="preserve">
+    <value>Move the cursor to the end of the line</value>
+  </data>
+  <data name="ExchangePointAndMarkDescription" xml:space="preserve">
+    <value>Mark the location of the cursor and move the cursor to the position of the previous mark</value>
+  </data>
+  <data name="ForwardCharDescription" xml:space="preserve">
+    <value>Move the cursor forward one character</value>
+  </data>
+  <data name="ForwardWordDescription" xml:space="preserve">
+    <value>Move the cursor to the beginning of the next token or end of line</value>
+  </data>
+  <data name="HistorySearchBackwardsDescription" xml:space="preserve">
+    <value>Search for the previous item in the history that starts with the current input - like PreviousHistory if the input is empty</value>
+  </data>
+  <data name="HistorySearchForwardsDescription" xml:space="preserve">
+    <value>Search for the next item in the history that starts with the current input - like NextHistory if the input is empty</value>
+  </data>
+  <data name="IgnoreDescription" xml:space="preserve">
+    <value>String is not used in the UI</value>
+  </data>
+  <data name="KillBackwardWordDescription" xml:space="preserve">
+    <value>Move the text from the cursor to the start of the current or previous token to the kill ring</value>
+  </data>
+  <data name="KillLineDescription" xml:space="preserve">
+    <value>Move the text from the cursor to the end of the input to the kill ring</value>
+  </data>
+  <data name="KillWordDescription" xml:space="preserve">
+    <value>Move the text from the cursor to the end of the current or next token to the kill ring</value>
+  </data>
+  <data name="NextHistoryDescription" xml:space="preserve">
+    <value>Replace the input with the next item in the history</value>
+  </data>
+  <data name="PossibleCompletionsDescription" xml:space="preserve">
+    <value>Display the possible completions without changing the input</value>
+  </data>
+  <data name="PreviousHistoryDescription" xml:space="preserve">
+    <value>Replace the input with the previous item in the history</value>
+  </data>
+  <data name="RevertLineDescription" xml:space="preserve">
+    <value>Clear the current input</value>
+  </data>
+  <data name="SetMarkDescription" xml:space="preserve">
+    <value>Mark the location of the cursor</value>
+  </data>
+  <data name="TabCompleteNextDescription" xml:space="preserve">
+    <value>Complete the input using the next completion</value>
+  </data>
+  <data name="TabCompletePreviousDescription" xml:space="preserve">
+    <value>Complete the input using the previous completion</value>
+  </data>
+  <data name="YankDescription" xml:space="preserve">
+    <value>Copy the text from the current kill ring position to the input</value>
+  </data>
+  <data name="YankPopDescription" xml:space="preserve">
+    <value>Replace the previously yanked text with the text from the next kill ring position</value>
+  </data>
+</root>

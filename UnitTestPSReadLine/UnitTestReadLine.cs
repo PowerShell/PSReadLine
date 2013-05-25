@@ -478,7 +478,7 @@ namespace UnitTestPSReadLine
 
             foreach (var keyHandler in keyHandlers)
             {
-                PSConsoleReadLine.SetKeyHandler(keyHandler.Key, keyHandler.Handler);
+                PSConsoleReadLine.SetKeyHandler(keyHandler.Key, false, keyHandler.Handler, "", "");
             }
 
             var colorOptions = new SetPSReadlineOption();

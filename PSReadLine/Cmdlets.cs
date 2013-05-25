@@ -217,10 +217,29 @@ function global:PSConsoleHostReadline
         [Parameter(Mandatory = true)]
         public Action Handler { get; set; }
 
+        [Parameter(Mandatory = true)]
+        public string BriefDescription { get; set; }
+
+        [Parameter]
+        public string LongDescription { get; set; }
+
+        [Parameter]
+        public SwitchParameter CtrlXPrefix { get; set; }
+
         [ExcludeFromCodeCoverage]
         protected override void EndProcessing()
         {
-            PSConsoleReadLine.SetKeyHandler(Key, Handler);
+            PSConsoleReadLine.SetKeyHandler(Key, CtrlXPrefix.IsPresent, Handler, BriefDescription, LongDescription);
+        }
+    }
+
+    [Cmdlet("Get", "PSReadlineKeyHandler")]
+    public class GetKeyHandlerCommand : PSCmdlet
+    {
+        [ExcludeFromCodeCoverage]
+        protected override void EndProcessing()
+        {
+            WriteObject(PSConsoleReadLine.GetKeyHandlers(), true);
         }
     }
 }

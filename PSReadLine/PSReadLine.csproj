@@ -50,10 +50,22 @@
     <Compile Include="ConsoleLib.cs" />
     <Compile Include="HistoryQueue.cs" />
     <Compile Include="Keys.cs" />
+    <Compile Include="PSReadLineResources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>PSReadLineResources.resx</DependentUpon>
+    </Compile>
     <Compile Include="ReadLine.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="PSReadLineResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>PSReadLineResources.Designer.cs</LastGenOutput>
+      <CustomToolNamespace>PSConsoleUtilities</CustomToolNamespace>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
