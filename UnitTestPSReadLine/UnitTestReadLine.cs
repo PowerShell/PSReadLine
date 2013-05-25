@@ -1413,5 +1413,123 @@ namespace UnitTestPSReadLine
                 AssertCursorLeftIs(1);
             }
         }
+
+        [TestMethod]
+        public void TestKeyInfoConverterSimpleCharLiteral()
+        {
+            var converter = new ConsoleKeyInfoConverterAttribute();
+            
+            object result = converter.Transform(null, "x");
+            Assert.IsNotNull(result);            
+            Assert.IsInstanceOfType(result, typeof(ConsoleKeyInfo));
+
+            var key = (ConsoleKeyInfo) result;
+            
+            Assert.AreEqual(key.KeyChar, 'x');
+            Assert.AreEqual(key.Key, ConsoleKey.X);
+            Assert.AreEqual(key.Modifiers, (ConsoleModifiers)0);            
+        }
+
+        [TestMethod]
+        public void TestKeyInfoConverterSimpleCharLiteralWithModifiers()
+        {
+            var converter = new ConsoleKeyInfoConverterAttribute();
+
+            object result = converter.Transform(null, "alt+shift+x");
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result, typeof(ConsoleKeyInfo));
+
+            var key = (ConsoleKeyInfo) result;
+
+            Assert.AreEqual(key.KeyChar, 'X');
+            Assert.AreEqual(key.Key, ConsoleKey.X);
+            Assert.AreEqual(key.Modifiers, ConsoleModifiers.Shift | ConsoleModifiers.Alt);
+        }
+
+        [TestMethod]
+        public void TestKeyInfoConverterSymbolLiteral()
+        {
+            var converter = new ConsoleKeyInfoConverterAttribute();
+
+            object result = converter.Transform(null, "}");
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result, typeof(ConsoleKeyInfo));
+
+            var key = (ConsoleKeyInfo)result;
+
+            Assert.AreEqual(key.KeyChar, '}');
+            Assert.AreEqual(key.Key, ConsoleKey.Oem6);
+            Assert.AreEqual(key.Modifiers, ConsoleModifiers.Shift);
+        }
+
+        [TestMethod]
+        public void TestKeyInfoConverterShiftedSymbolLiteral()
+        {
+            // } => shift+]  / shift+oem6
+            var converter = new ConsoleKeyInfoConverterAttribute();
+
+            object result = converter.Transform(null, "shift+]");
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result, typeof(ConsoleKeyInfo));
+
+            var key = (ConsoleKeyInfo)result;
+
+            Assert.AreEqual(key.KeyChar, '}');
+            Assert.AreEqual(key.Key, ConsoleKey.Oem6);
+            Assert.AreEqual(key.Modifiers, ConsoleModifiers.Shift);
+        }
+
+        [TestMethod]
+        public void TestKeyInfoConverterWellKnownConsoleKey()
+        {
+            // oem6
+            var converter = new ConsoleKeyInfoConverterAttribute();
+
+            object result = converter.Transform(null, "shift+oem6");
+            Assert.IsNotNull(result);
+            Assert.IsInstanceOfType(result, typeof(ConsoleKeyInfo));
+
+            var key = (ConsoleKeyInfo)result;
+
+            Assert.AreEqual(key.KeyChar, '}');
+            Assert.AreEqual(key.Key, ConsoleKey.Oem6);
+            Assert.AreEqual(key.Modifiers, ConsoleModifiers.Shift);
+        }
+
+        [TestMethod]
+        public void TestKeyInfoConverterPassThrough()
+        {
+            // pass through consolekeyinfo            
+            var converter = new ConsoleKeyInfoConverterAttribute();
+
+            var key = new ConsoleKeyInfo('x', ConsoleKey.X, true, false, false);
+            object result = converter.Transform(null, key);
+            
+            Assert.AreEqual(key, result);
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentException))]        
+        public void TestKeyInfoConverterInvalidKey()
+        {
+            var converter = new ConsoleKeyInfoConverterAttribute();
+            object result = converter.Transform(null, "escrape");
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentException))]
+        public void TestKeyInfoConverterInvalidModifierTypo()
+        {
+            var converter = new ConsoleKeyInfoConverterAttribute();
+            object result = converter.Transform(null, "alt+shuft+x");
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(ArgumentException))]
+        public void TestKeyInfoConverterInvalidModifierInapplicable()
+        {
+            var converter = new ConsoleKeyInfoConverterAttribute();
+            object result = converter.Transform(null, "shift+}");
+        }
     }
 }

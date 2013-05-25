@@ -1,6 +1,10 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Management.Automation;
+using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Security.AccessControl;
+using System.Security.Policy;
 
 namespace PSConsoleUtilities
 {
@@ -210,11 +214,13 @@ function global:PSConsoleHostReadline
     [Cmdlet("Set", "PSReadlineKeyHandler")]
     public class SetKeyHandlerCommand : PSCmdlet
     {
-        [Parameter(Mandatory = true)]
-        //[ConsoleKeyInfoConverter]
+        [Parameter(Position = 0, Mandatory = true)]
+        [ValidateNotNull]
+        [ConsoleKeyInfoConverter]
         public ConsoleKeyInfo Key { get; set; }
 
-        [Parameter(Mandatory = true)]
+        [Parameter(Position = 1, Mandatory = true)]
+        [ValidateNotNull]
         public Action Handler { get; set; }
 
         [Parameter(Mandatory = true)]
@@ -241,5 +247,7 @@ function global:PSConsoleHostReadline
         {
             WriteObject(PSConsoleReadLine.GetKeyHandlers(), true);
         }
+        
+        
     }
 }
