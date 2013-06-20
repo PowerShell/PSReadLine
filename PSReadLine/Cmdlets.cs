@@ -1,10 +1,6 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Management.Automation;
-using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Security.AccessControl;
-using System.Security.Policy;
 
 namespace PSConsoleUtilities
 {
@@ -188,29 +184,6 @@ function global:PSConsoleHostReadline
         }
     }
 
-#if FALSE
-    [AttributeUsage(AttributeTargets.Property | AttributeTargets.Field)]
-    public class ConsoleKeyInfoConverterAttribute : ArgumentTransformationAttribute
-    {
-        public override object Transform(EngineIntrinsics engineIntrinsics, object inputData)
-        {
-            if (inputData is ConsoleKey)
-            {
-                return inputData;
-            }
-
-            var str = inputData as string;
-            if (str == null)
-            {
-                return null;
-            }
-
-            // TODO: parse string
-            return Keys.CtrlA;
-        }
-    }
-#endif
-
     [Cmdlet("Set", "PSReadlineKeyHandler")]
     public class SetKeyHandlerCommand : PSCmdlet
     {
@@ -247,7 +220,5 @@ function global:PSConsoleHostReadline
         {
             WriteObject(PSConsoleReadLine.GetKeyHandlers(), true);
         }
-        
-        
     }
 }

@@ -117,8 +117,9 @@ namespace PSConsoleUtilities
         private int _tabCommandCount;
         private CommandCompletion _tabCompletions;
 
-        // Tokens
+        // Tokens etc.
         private Token[] _tokens;
+        private Ast _ast;
         private ParseError[] _parseErrors;
 
 #region Configuration options
@@ -1273,7 +1274,7 @@ namespace PSConsoleUtilities
         private string ParseInput()
         {
             var text = _buffer.ToString();
-            Parser.ParseInput(text, out _tokens, out _parseErrors);
+            _ast = Parser.ParseInput(text, out _tokens, out _parseErrors);
             return text;
         }
 
@@ -1799,6 +1800,14 @@ namespace PSConsoleUtilities
         {
             input = _singleton._buffer.ToString();
             cursor = _singleton._current;
+        }
+
+        public static void GetBufferState(out Ast ast, out Token[] tokens, out ParseError[] parseErrors)
+        {
+            _singleton.ParseInput();
+            ast = _singleton._ast;
+            tokens = _singleton._tokens;
+            parseErrors = _singleton._parseErrors;
         }
 
         public static void SetBufferState(string input, int cursor)
