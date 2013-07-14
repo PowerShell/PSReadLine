@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<Configuration>
+    <ViewDefinitions>
+        <View>
+            <Name>PSConsoleUtilities.KeyHandler</Name>
+            <ViewSelectedBy>
+                <TypeName>PSConsoleUtilities.KeyHandler</TypeName>
+            </ViewSelectedBy>
+
+            <TableControl>
+                <TableHeaders>
+                    <TableColumnHeader>
+                        <Label>Key</Label>
+                        <Width>20</Width>
+                    </TableColumnHeader>
+                    <TableColumnHeader>
+                        <Label>BriefDescription</Label>
+                        <Width>22</Width>
+                    </TableColumnHeader>
+                    <TableColumnHeader/>
+                </TableHeaders>
+                <TableRowEntries>
+                    <TableRowEntry>
+                        <TableColumnItems>
+                            <TableColumnItem>
+                                <PropertyName>Key</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>BriefDescription</PropertyName>
+                            </TableColumnItem>
+                            <TableColumnItem>
+                                <PropertyName>LongDescription</PropertyName>
+                            </TableColumnItem>
+                        </TableColumnItems>
+                    </TableRowEntry>
+                 </TableRowEntries>
+            </TableControl>
+        </View>        
+    </ViewDefinitions>
+</Configuration>
