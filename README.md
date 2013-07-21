@@ -33,15 +33,22 @@ To use Emacs key bindings, you can use:
 Set-PSReadlineOption -EditMode Emacs
 ```
 
+To view the current key bindings:
+```powershell
+Get-PSReadlineKeyHandler
+```
+
 There are many configuration options, see the options to Set-PSReadlineOption.  At some point I'll actually write some documentation.
 
 To set your own custom keybindings, use the cmdlet Set-PSReadlineKeyHandler.  For example, for a better history experience, try:
 
 ```powershell
-Set-PSReadlineKeyHandler -Key ([PSConsoleUtilities.Keys]::UpArrow) -Handler { 
-    [PSConsoleUtilities.PSConsoleReadLine]::HistorySearchBackward() }
-Set-PSReadlineKeyHandler -Key ([PSConsoleUtilities.Keys]::DownArrow) -Handler { 
-    [PSConsoleUtilities.PSConsoleReadLine]::HistorySearchForward() }
+Set-PSReadlineKeyHandler -Key UpArrow -BriefDescription HistorySearchBackward -Handler { 
+    [PSConsoleUtilities.PSConsoleReadLine]::HistorySearchBackward()
+}
+Set-PSReadlineKeyHandler -Key DownArrow -BriefDescription HistorySearchForward -Handler { 
+    [PSConsoleUtilities.PSConsoleReadLine]::HistorySearchForward()
+}
 ```
 
 With these bindings, up arrow/down arrow will work like PowerShell/cmd if the current command line is blank.  If you've entered some text though, it will search the history for commands that start with the currently entered text.
@@ -49,14 +56,16 @@ With these bindings, up arrow/down arrow will work like PowerShell/cmd if the cu
 To enable bash style completion without using Emacs mode, you can use:
 
 ```powershell
-Set-PSReadlineKeyHandler -Key ([PSConsoleUtilities.Keys]::Tab) -Handler { 
-    [PSConsoleUtilities.PSConsoleReadLine]::Complete() }
+Set-PSReadlineKeyHandler -Key Tab -BriefDescription Complete -Handler { 
+    [PSConsoleUtilities.PSConsoleReadLine]::Complete()
+}
 ```
 
 See the public methods of [PSConsoleUtilities.PSConsoleReadLine] to see what other built-in functionality you can modify.
 
 If you want to change the command line in some unimplmented way in your custom key binding, you can use the methods:
 
-* [PSConsoleUtilities.PSConsoleReadLine]::GetBufferState
-* [PSConsoleUtilities.PSConsoleReadLine]::SetBufferState
-
+```powershell
+[PSConsoleUtilities.PSConsoleReadLine]::GetBufferState
+[PSConsoleUtilities.PSConsoleReadLine]::SetBufferState
+```

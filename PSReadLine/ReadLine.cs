@@ -1838,12 +1838,13 @@ namespace PSConsoleUtilities
             cursor = _singleton._current;
         }
 
-        public static void GetBufferState(out Ast ast, out Token[] tokens, out ParseError[] parseErrors)
+        public static void GetBufferState(out Ast ast, out Token[] tokens, out ParseError[] parseErrors, out int cursor)
         {
             _singleton.ParseInput();
             ast = _singleton._ast;
             tokens = _singleton._tokens;
             parseErrors = _singleton._parseErrors;
+            cursor = _singleton._current;
         }
 
         private static void EnsureIsInitialized()
