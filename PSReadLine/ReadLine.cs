@@ -349,6 +349,7 @@ namespace PSConsoleUtilities
                 { Keys.End,             MakeKeyHandler(EndOfLine,            "EndOfLine") },
                 { Keys.Delete,          MakeKeyHandler(DeleteChar,           "DeleteChar") },
                 { Keys.Backspace,       MakeKeyHandler(BackwardDeleteChar,   "BackwardDeleteChar") },
+                { Keys.CtrlSpace,       MakeKeyHandler(PossibleCompletions,  "PossibleCompletions") },
                 { Keys.Tab,             MakeKeyHandler(TabCompleteNext,      "TabCompleteNext") },
                 { Keys.ShiftTab,        MakeKeyHandler(TabCompletePrevious,  "TabCompletePrevious") },
                 { Keys.VolumeDown,      MakeKeyHandler(Ignore,               "Ignore") },
@@ -511,8 +512,7 @@ namespace PSConsoleUtilities
         }
 
         /// <summary>
-        /// Undo all changes made to this line. This is like executing the undo command enough
-        /// times to get back to the beginning.
+        /// Reverts all of the input to the current input.
         /// </summary>
         public static void RevertLine()
         {
@@ -520,8 +520,7 @@ namespace PSConsoleUtilities
         }
 
         /// <summary>
-        /// Delete the character behind the cursor. A numeric argument means to kill the
-        /// characters instead of deleting them.
+        /// Delete the character before the cursor.
         /// </summary>
         public static void BackwardDeleteChar()
         {
@@ -534,9 +533,7 @@ namespace PSConsoleUtilities
         }
 
         /// <summary>
-        /// Delete the character at point. If point is at the beginning of the line, there are
-        /// no characters in the line, and the last character typed was not bound to delete-char,
-        /// then return EOF.
+        /// Delete the character under the cursor.
         /// </summary>
         public static void DeleteChar()
         {
@@ -548,8 +545,10 @@ namespace PSConsoleUtilities
         }
 
         /// <summary>
-        /// Attempt to commit the input.  If the input is incomplete (according to the PowerShell
-        /// parser), then just add a newline and keep accepting more input.
+        /// Attempt to execute the current input.  If the current input is incomplete (for
+        /// example there is a missing closing parenthesis, bracket, or quote, then the
+        /// continuation prompt is displayed on the next line and PSReadline waits for
+        /// keys to edit the current input.
         /// </summary>
         public static void AcceptLine()
         {
@@ -567,7 +566,9 @@ namespace PSConsoleUtilities
         }
 
         /// <summary>
-        /// Add a newline without attempting to accept the input.
+        /// The continuation prompt is displayed on the next line and PSReadline waits for
+        /// keys to edit the current input.  This is useful to enter multi-line input as
+        /// a single command even when a single line is complete input by itself.
         /// </summary>
         public static void AddLine()
         {
@@ -577,7 +578,7 @@ namespace PSConsoleUtilities
 #region Movement
 
         /// <summary>
-        /// Move to the end of the line.
+        /// Move the cursor to the end of the input.
         /// </summary>
         public static void EndOfLine()
         {
@@ -585,7 +586,7 @@ namespace PSConsoleUtilities
         }
 
         /// <summary>
-        /// Move to the start of the current line.
+        /// Move the cursor to the end of the input.
         /// </summary>
         public static void BeginningOfLine()
         {
@@ -593,7 +594,8 @@ namespace PSConsoleUtilities
         }
 
         /// <summary>
-        /// Move forward a character.
+        /// Move the cursor one character to the right.  This may move the cursor to the next
+        /// line of multi-line input.
         /// </summary>
         public static void ForwardChar()
         {
@@ -605,7 +607,8 @@ namespace PSConsoleUtilities
         }
 
         /// <summary>
-        /// Move back a character.
+        /// Move the cursor one character to the left.  This may move the cursor to the previous
+        /// line of multi-line input.
         /// </summary>
         public static void BackwardChar()
         {
@@ -642,7 +645,8 @@ namespace PSConsoleUtilities
         }
 
         /// <summary>
-        /// Move forward to the end of the next word. Words are composed of letters and digits.
+        /// Move the cursor forward to the end of the current word, or if between words,
+        /// to the end of the next word.
         /// </summary>
         public static void EmacsForwardWord()
         {
@@ -650,7 +654,7 @@ namespace PSConsoleUtilities
         }
 
         /// <summary>
-        /// Move forward to the end of the next word. Words are composed of letters and digits.
+        /// Move the cursor forward to the start of the next word.
         /// </summary>
         public static void ForwardWord()
         {
@@ -666,8 +670,8 @@ namespace PSConsoleUtilities
         }
 
         /// <summary>
-        /// Move back to the start of the current or previous word. Words are composed
-        /// of letters and digits.
+        /// Move the cursor back to the start of the current word, or if between words,
+        /// the start of the previous word.
         /// </summary>
         public static void BackwardWord()
         {
@@ -675,8 +679,8 @@ namespace PSConsoleUtilities
         }
 
         /// <summary>
-        /// Move back to the start of the current or previous word. Words are composed
-        /// of letters and digits.
+        /// Move the cursor back to the start of the current word, or if between words,
+        /// the start of the previous word.
         /// </summary>
         public static void EmacsBackwardWord()
         {
@@ -687,6 +691,9 @@ namespace PSConsoleUtilities
 
 #region History
 
+        /// <summary>
+        /// Clears history in PSReadline.  This does not affect PowerShell history.
+        /// </summary>
         public static void ClearHistory()
         {
             _singleton._history.Clear();
@@ -705,7 +712,7 @@ namespace PSConsoleUtilities
         }
 
         /// <summary>
-        /// Move `back' through the history list, fetching the previous command.
+        /// Replace the current input with the 'previous' item from PSReadline history.
         /// </summary>
         public static void PreviousHistory()
         {
@@ -717,7 +724,7 @@ namespace PSConsoleUtilities
         }
 
         /// <summary>
-        /// Move `forward' through the history list, fetching the next command.
+        /// Replace the current input with the 'next' item from PSReadline history.
         /// </summary>
         public static void NextHistory()
         {
@@ -749,9 +756,8 @@ namespace PSConsoleUtilities
         }
 
         /// <summary>
-        /// Search backward through the history for the string of characters between the start
-        /// of the current line and the point. This is a non-incremental search. By default,
-        /// this command is unbound.
+        /// Replace the current input with the 'previous' item from PSReadline history
+        /// that matches the characters between the start and the input and the cursor.
         /// </summary>
         public static void HistorySearchBackward()
         {
@@ -759,9 +765,8 @@ namespace PSConsoleUtilities
         }
 
         /// <summary>
-        /// Search forward through the history for the string of characters between the start
-        /// of the current line and the point. This is a non-incremental search. By default,
-        /// this command is unbound.
+        /// Replace the current input with the 'next' item from PSReadline history
+        /// that matches the characters between the start and the input and the cursor.
         /// </summary>
         public static void HistorySearchForward()
         {
@@ -769,9 +774,8 @@ namespace PSConsoleUtilities
         }
 
         /// <summary>
-        /// Attempt to perform completion on the text surrounding the cursor.
-        /// Completion is performed like PowerShell or cmd, completing using
-        /// the next completion.
+        /// Attempt to complete the text surrounding the cursor with the next
+        /// available completion.
         /// </summary>
         public static void TabCompleteNext()
         {
@@ -779,9 +783,8 @@ namespace PSConsoleUtilities
         }
 
         /// <summary>
-        /// Attempt to perform completion on the text surrounding the cursor.
-        /// Completion is performed like PowerShell or cmd, completing using
-        /// the previous completion.
+        /// Attempt to complete the text surrounding the cursor with the previous
+        /// available completion.
         /// </summary>
         public static void TabCompletePrevious()
         {
@@ -823,7 +826,9 @@ namespace PSConsoleUtilities
 
         /// <summary>
         /// Attempt to perform completion on the text surrounding the cursor.
-        /// Completion is performed like bash.
+        /// If there are multiple possible completions, the longest unambiguous
+        /// prefix is used for completion.  If trying to complete the longest
+        /// unambiguous completion, a list of possible completions is displayed.
         /// </summary>
         public static void Complete()
         {
@@ -945,6 +950,9 @@ namespace PSConsoleUtilities
             _tabCommandCount += 1;
         }
 
+        /// <summary>
+        /// Display the list of possible completions.
+        /// </summary>
         public static void PossibleCompletions()
         {
             var completions = _singleton.GetCompletions();
@@ -1012,11 +1020,18 @@ namespace PSConsoleUtilities
 
         #region Kill/Yank
 
+        /// <summary>
+        /// Mark the current loction of the cursor for use in a subsequent editing command.
+        /// </summary>
         public static void SetMark()
         {
             _singleton._mark = _singleton._current;
         }
 
+        /// <summary>
+        /// The cursor is placed at the location of the mark and the mark is moved
+        /// to the location of the cursor.
+        /// </summary>
         public static void ExchangePointAndMark()
         {
             var tmp = _singleton._mark;
@@ -1025,6 +1040,9 @@ namespace PSConsoleUtilities
             _singleton.PlaceCursor();
         }
 
+        /// <summary>
+        /// The contents of the kill ring are cleared.
+        /// </summary>
         public static void ClearKillRing()
         {
             _singleton._killRing.Clear();
@@ -1065,8 +1083,8 @@ namespace PSConsoleUtilities
         }
 
         /// <summary>
-        /// (C-k)
-        /// Kill the text from point to the end of the line.
+        /// Clear the input from the cursor to the end of the input.  The cleared text is placed
+        /// in the kill ring.
         /// </summary>
         public static void KillLine()
         {
@@ -1074,8 +1092,8 @@ namespace PSConsoleUtilities
         }
 
         /// <summary>
-        /// (C-x Rubout)
-        /// Kill backward to the beginning of the line.
+        /// Clear the input from the start of the input to the cursor.  The cleared text is placed
+        /// in the kill ring.
         /// </summary>
         public static void BackwardKillLine()
         {
@@ -1083,9 +1101,9 @@ namespace PSConsoleUtilities
         }
 
         /// <summary>
-        /// (M-d)
-        /// Kill from point to the end of the current word, or if between words, to the end
-        /// of the next word. Word boundaries are the same as forward-word.
+        /// Clear the input from the cursor to the end of the current word.  If the cursor
+        /// is between words, the input is cleared from the cursor to the end of the next word.
+        /// The cleared text is placed in the kill ring.
         /// </summary>
         public static void KillWord()
         {
@@ -1097,8 +1115,9 @@ namespace PSConsoleUtilities
         }
 
         /// <summary>
-        /// (M-DEL)
-        /// Kill the word behind point. Word boundaries are the same as backward-word.
+        /// Clear the input from the start of the current word to the cursor.  If the cursor
+        /// is between words, the input is cleared from the start of the previous word to the
+        /// cursor.  The cleared text is placed in the kill ring.
         /// </summary>
         public static void KillBackwardWord()
         {
@@ -1122,6 +1141,9 @@ namespace PSConsoleUtilities
             _yankCommandCount += 1;
         }
 
+        /// <summary>
+        /// Add the most recently killed text to the input.
+        /// </summary>
         public static void Yank()
         {
             _singleton.YankImpl();
@@ -1142,6 +1164,10 @@ namespace PSConsoleUtilities
             _yankCommandCount += 1;
         }
 
+        /// <summary>
+        /// If the previous operation was Yank or YankPop, replace the previously yanked
+        /// text with the next killed text from the kill ring.
+        /// </summary>
         public static void YankPop()
         {
             _singleton.YankPopImpl();
@@ -1754,16 +1780,26 @@ namespace PSConsoleUtilities
             table[key] = MakeKeyHandler(handler, briefDescription, longDescription);
         }
 
+        /// <summary>
+        /// Helper function for the Set-PSReadlineOption cmdlet.
+        /// </summary>
         public static void SetOptions(SetPSReadlineOption options)
         {
             _singleton.SetOptionsInternal(options);
         }
 
+        /// <summary>
+        /// Helper function for the Set-PSReadlineKeyHandler cmdlet.
+        /// </summary>
         public static void SetKeyHandler(ConsoleKeyInfo key, bool ctrlX, Action handler, string briefDescription, string longDescription)
         {
             _singleton.SetKeyHandlerInternal(key, ctrlX, handler, briefDescription, longDescription);
         }
 
+        /// <summary>
+        /// Helper function for the Get-PSReadlineKeyHandler cmdlet.
+        /// </summary>
+        /// <returns></returns>
         public static IEnumerable<PSConsoleUtilities.KeyHandler> GetKeyHandlers()
         {
             foreach (var entry in _singleton._dispatchTable)
@@ -1810,13 +1846,40 @@ namespace PSConsoleUtilities
             parseErrors = _singleton._parseErrors;
         }
 
-        public static void SetBufferState(string input, int cursor)
+        private static void EnsureIsInitialized()
         {
-            // Check ConsoleBuffer is somewhat arbitrary and this check exists
-            // most for unit tests that may execute this function before
+            // The check that ConsoleBuffer is not null exists mostly
+            // for unit tests that may execute this function before
             // the _singleton is initialized.
             if (_singleton.ConsoleBuffer == null)
                 _singleton.Initialize();
+        }
+
+        /// <summary>
+        /// Set the position of the cursor.
+        /// </summary>
+        public static void SetCursorPosition(int cursor)
+        {
+            EnsureIsInitialized();
+
+            if (cursor > _singleton._buffer.Length)
+            {
+                cursor = _singleton._buffer.Length;
+            }
+
+            _singleton._current = cursor;
+            _singleton.PlaceCursor();
+        }
+
+        /// <summary>
+        /// Set the text in the buffer and the position of the cursor.
+        /// </summary>
+        public static void SetBufferState(string input, int cursor)
+        {
+            if (input == null)
+                return;
+
+            EnsureIsInitialized();
 
             if (cursor > input.Length)
                 cursor = input.Length;

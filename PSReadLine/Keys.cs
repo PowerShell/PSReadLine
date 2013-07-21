@@ -112,6 +112,7 @@ namespace PSConsoleUtilities
         public static ConsoleKeyInfo Space     = new ConsoleKeyInfo(' ', ConsoleKey.Spacebar, false, false, false);
         // Useless because it's caught by the console to bring up the system menu.
         public static ConsoleKeyInfo AltSpace  = new ConsoleKeyInfo(' ', ConsoleKey.Spacebar, false, true, false);
+        public static ConsoleKeyInfo CtrlSpace  = new ConsoleKeyInfo(' ', ConsoleKey.Spacebar, false, false, true);
 
         public static ConsoleKeyInfo AltA = new ConsoleKeyInfo((char)97, ConsoleKey.A, false, true, false);
         public static ConsoleKeyInfo AltB = new ConsoleKeyInfo((char)98, ConsoleKey.B, false, true, false);
