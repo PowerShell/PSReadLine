@@ -38,7 +38,7 @@ To view the current key bindings:
 Get-PSReadlineKeyHandler
 ```
 
-There are many configuration options, see the options to Set-PSReadlineOption.  At some point I'll actually write some documentation.
+There are many configuration options, see the options to Set-PSReadlineOption.  PSReadline has help for it's cmdlets as well as an about_PSReadline topic - see those topics for more detailed help.
 
 To set your own custom keybindings, use the cmdlet Set-PSReadlineKeyHandler.  For example, for a better history experience, try:
 
