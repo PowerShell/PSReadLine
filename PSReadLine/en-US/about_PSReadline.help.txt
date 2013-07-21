@@ -1,0 +1,247 @@
+TOPIC
+    about_PSReadline
+
+SHORT DESCRIPTION
+
+    PSReadline provides an improved command line editing experience in
+    the PowerShell console.
+
+LONG DESCRIPTION
+
+    PSReadline provides a powerful command line editing experience for the
+    PowerShell console.  It provides:
+
+      * Syntax coloring of the command line
+      * A visual indication of syntax errors
+      * A better multi-line experience (both editing and history)
+      * Customizable key bindings
+      * Cmd and Emacs modes
+      * Many configuration options
+      * Bash style completion (optional in Cmd mode, default in Emacs mode)
+      * Emacs yank/kill ring
+      * PowerShell token based "word" movement and kill
+    
+    The following functions are available in the class [PSConsoleUtilities.PSConsoleReadLine]:
+
+  Cursor movement
+  ---------------
+
+    EndOfLine                (Cmd: <End>                Emacs: <End> or <Ctrl-E>)
+
+        Move the cursor to the end of the input.
+
+    BeginningOfLine          (Cmd: <Home>               Emacs: <Home> or <Ctrl-A>)
+
+        Move the cursor to the start of the input.
+
+    ForwardChar              (Cmd: <RightArrow>         Emacs: <RightArrow> or <Ctrl-F>)
+
+        Move the cursor one character to the right.  This may move the cursor to the next
+        line of multi-line input.
+
+    BackwardChar             (Cmd: <LeftArrow>          Emacs: <LeftArrow> or <Ctrl-B>)
+
+        Move the cursor one character to the left.  This may move the cursor to the previous
+        line of multi-line input.
+
+    EmacsForwardWord         (Cmd: unbound              Emacs: <Alt-F>)
+
+        Move the cursor forward to the end of the current word, or if between words,
+        to the end of the next word.
+
+    ForwardWord              (Cmd: <Ctrl-RightArrow>    Emacs: unbound)
+
+        Move the cursor forward to the start of the next word.
+
+    BackwardWord             (Cmd: <Ctrl-LeftArrow>     Emacs: unbound)
+
+        Move the cursor back to the start of the current word, or if between words,
+        the start of the previous word.
+
+    EmacsBackwardWord        (Cmd: unbound              Emacs: <Alt-B>)
+
+        Move the cursor back to the start of the current word, or if between words,
+        the start of the previous word.
+
+    AddLine                  (Cmd: <Shift-Enter>        Emacs: <Shift-Enter>)
+
+        The continuation prompt is displayed on the next line and PSReadline waits for
+        keys to edit the current input.  This is useful to enter multi-line input as
+        a single command even when a single line is complete input by itself.
+
+  Basic editing
+  -------------
+
+    RevertLine               (Cmd: <ESC>                Emacs: <Alt-R>)
+
+        Reverts all of the input since the last input was accepted and executed.
+
+    BackwardDeleteChar       (Cmd: <Backspace>          Emacs: <Backspace> or <Ctrl-H>)
+
+        Delete the character before the cursor.
+
+    DeleteChar               (Cmd: <Delete>             Emacs: <Delete>)
+
+        Delete the character under the cursor.
+
+    AcceptLine               (Cmd: <Enter>              Emacs: <Enter> or <Ctrl-M>)
+
+        Attempt to execute the current input.  If the current input is incomplete (for
+        example there is a missing closing parenthesis, bracket, or quote, then the
+        continuation prompt is displayed on the next line and PSReadline waits for
+        keys to edit the current input.
+
+  History
+  -------
+
+    ClearHistory             (Cmd: unbound              Emacs: unbound)
+
+        Clears history in PSReadline.  This does not affect PowerShell history.
+
+    PreviousHistory          (Cmd: <UpArrow>            Emacs: <UpArrow>)
+
+        Replace the current input with the 'previous' item from PSReadline history.
+
+    NextHistory              (Cmd: <DownArrow>          Emacs: <DownArrow>)
+
+        Replace the current input with the 'next' item from PSReadline history.
+
+    HistorySearchBackward    (Cmd: unbound              Emacs: unbound)
+
+        Replace the current input with the 'previous' item from PSReadline history
+        that matches the characters between the start and the input and the cursor.
+
+    HistorySearchForward     (Cmd: unbound              Emacs: unbound)
+
+        Replace the current input with the 'next' item from PSReadline history
+        that matches the characters between the start and the input and the cursor.
+
+  Tab Completion
+  --------------
+
+    TabCompleteNext          (Cmd: <Tab>                Emacs: unbound)
+
+        Attempt to complete the text surrounding the cursor with the next
+        available completion.
+
+    TabCompletePrevious      (Cmd: <Shift-Tab>          Emacs: unbound)
+
+        Attempt to complete the text surrounding the cursor with the next
+        previous completion.
+
+    Complete                 (Cmd: unbound              Emacs: <Tab>)
+
+        Attempt to perform completion on the text surrounding the cursor.
+        If there are multiple possible completions, the longest unambiguous
+        prefix is used for completion.  If trying to complete the longest
+        unambiguous completion, a list of possible completions is displayed.
+
+    PossibleCompletions      (Cmd: <Ctrl-Space>         Emacs: <Alt-Equals>)
+    
+        Display the list of possible completions.
+
+    SetMark                  (Cmd: unbound              Emacs: <Alt-Space>)
+
+        Mark the current loction of the cursor for use in a subsequent editing command.
+
+    ExchangePointAndMark     (Cmd: unbound              Emacs: <Ctrl-X,Ctrl-X>)
+
+        The cursor is placed at the location of the mark and the mark is moved
+        to the location of the cursor.
+
+  Kill/Yank
+  ---------
+
+  Kill and yank operate on a clipboard in the PSReadline module.  There is a ring
+  buffer called the kill ring - killed text will be added to the kill ring up
+  and yank will copy text from the most recent kill.  YankPop will cycle through
+  items in the kill ring.  When the kill ring is full, new items will replace the
+  oldest items.  A kill operation that is immediately preceded by another kill operation
+  will append the previous kill instead of adding a new item or replacing an item
+  in the kill ring.  This is how you can cut a part of a line, say for example with multiple
+  KillWord operations, then yank them back elsewhere as a single yank.
+
+    KillLine                 (Cmd: unbound              Emacs: <Ctrl-K>)
+
+        Clear the input from the cursor to the end of the line.  The cleared text is placed
+        in the kill ring.
+
+    BackwardKillLine         (Cmd: unbound              Emacs: <Ctrl-U> or <Ctrl-X,Backspace>)
+
+        Clear the input from the start of the input to the cursor.  The cleared text is placed
+        in the kill ring.
+
+    KillWord                 (Cmd: unbound              Emacs: <Alt-D>)
+
+        Clear the input from the cursor to the end of the current word.  If the cursor
+        is between words, the input is cleared from the cursor to the end of the next word.
+        The cleared text is placed in the kill ring.
+
+    KillBackwardWord         (Cmd: unbound              Emacs: <Alt-Backspace>)
+
+        Clear the input from the start of the current word to the cursor.  If the cursor
+        is between words, the input is cleared from the start of the previous word to the
+        cursor.  The cleared text is placed in the kill ring.
+
+    Yank                     (Cmd: unbound              Emacs: <Ctrl-Y>)
+
+        Add the most recently killed text to the input.
+
+    YankPop                  (Cmd: unbound              Emacs: <Alt-Y>)
+    
+        If the previous operation was Yank or YankPop, replace the previously yanked
+        text with the next killed text from the kill ring.
+
+    ClearKillRing            (Cmd: unbound              Emacs: unbound)
+
+        The contents of the kill ring are cleared.
+
+  Custom Key Bindings
+  -------------------
+
+  PSReadline supports custom key bindings using the cmdlet Set-PSReadlineKeyHandler.  A
+  typical custom key binding will call one of the above functions, for example:
+
+      Set-PSReadlineKeyHandler -Key UpArrow -BriefDescription HistorySearchBackward -Handler { 
+          [PSConsoleUtilities.PSConsoleReadLine]::HistorySearchBackward()
+      }
+
+  The following functions are useful when writing more advanced handlers for custom key bindings.
+  They allow you to get and change the state of the input buffer.
+
+    GetBufferState
+
+        There are two versions of this function.  One will return the text and cursor position.
+        This is useful if you want to make changes to the text.
+
+        The other returns the Ast, tokens, and any errors.  This information is available
+        by parsing the input returned from the other overload, but this overload is faster
+        because the parsed version of the input is always produced to handle syntax coloring.
+
+    SetBufferState
+
+        This function can be used to set the text in the input buffer and/or move the cursor.
+
+    SetCursorPosition
+
+        This function can be used to move the cursor.
+
+
+POWERSHELL COMPATIBILITY
+    
+    PSReadline requires PowerShell version 3 or greater and the console host.  It
+    will not work in the ISE.
+
+FEEDBACK
+
+    https://github.com/lzybkr/PSReadline
+   
+CONTRIBUTING TO TABEXPANSION++
+
+    Feel free to submit a pull request or submit feedback on the github page.
+
+SEE ALSO
+
+    PSReadline is heavily influenced by the GNU Readline library:
+
+        http://tiswww.case.edu/php/chet/readline/rltop.html
