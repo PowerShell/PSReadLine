@@ -195,6 +195,9 @@
   <data name="NextHistoryDescription" xml:space="preserve">
     <value>Replace the input with the next item in the history</value>
   </data>
+  <data name="PasteDescription" xml:space="preserve">
+    <value>Paste text from the system clipboard</value>
+  </data>
   <data name="PossibleCompletionsDescription" xml:space="preserve">
     <value>Display the possible completions without changing the input</value>
   </data>

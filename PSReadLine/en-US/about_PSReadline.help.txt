@@ -196,6 +196,10 @@ LONG DESCRIPTION
 
         The contents of the kill ring are cleared.
 
+    Paste                    (Cmd: <Ctrl-V>             Emacs: unbound)
+
+        This is similar to Yank, but uses the system clipboard instead of the kill ring.
+
   Custom Key Bindings
   -------------------
 

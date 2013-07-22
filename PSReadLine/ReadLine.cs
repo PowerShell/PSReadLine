@@ -352,6 +352,7 @@ namespace PSConsoleUtilities
                 { Keys.CtrlSpace,       MakeKeyHandler(PossibleCompletions,  "PossibleCompletions") },
                 { Keys.Tab,             MakeKeyHandler(TabCompleteNext,      "TabCompleteNext") },
                 { Keys.ShiftTab,        MakeKeyHandler(TabCompletePrevious,  "TabCompletePrevious") },
+                { Keys.CtrlV,           MakeKeyHandler(Paste,                "Paste") },
                 { Keys.VolumeDown,      MakeKeyHandler(Ignore,               "Ignore") },
                 { Keys.VolumeUp,        MakeKeyHandler(Ignore,               "Ignore") },
                 { Keys.VolumeMute,      MakeKeyHandler(Ignore,               "Ignore") },
@@ -573,6 +574,21 @@ namespace PSConsoleUtilities
         public static void AddLine()
         {
             _singleton.Insert('\n');
+        }
+
+        /// <summary>
+        /// Paste text from the system clipboard.
+        /// </summary>
+        public static void Paste()
+        {
+            if (System.Windows.Clipboard.ContainsText())
+            {
+                string textToPaste = System.Windows.Clipboard.GetText();
+                textToPaste = textToPaste.Replace("\r", "");
+                _singleton._buffer.Insert(_singleton._current, textToPaste);
+                _singleton._current += textToPaste.Length;
+                _singleton.Render();
+            }
         }
 
 #region Movement
