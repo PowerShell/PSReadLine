@@ -66,6 +66,6 @@ See the public methods of [PSConsoleUtilities.PSConsoleReadLine] to see what oth
 If you want to change the command line in some unimplmented way in your custom key binding, you can use the methods:
 
 ```powershell
-[PSConsoleUtilities.PSConsoleReadLine]::GetBufferState
-[PSConsoleUtilities.PSConsoleReadLine]::SetBufferState
+    [PSConsoleUtilities.PSConsoleReadLine]::GetBufferState
+    [PSConsoleUtilities.PSConsoleReadLine]::SetBufferState
 ```
