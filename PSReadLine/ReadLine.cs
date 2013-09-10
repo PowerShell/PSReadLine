@@ -300,9 +300,7 @@ namespace PSConsoleUtilities
             {
                 handler.Action();
             }
-            else if (!ignoreIfNoAction
-                && key.KeyChar != 0
-                && (key.Modifiers & (ConsoleModifiers.Alt | ConsoleModifiers.Control)) == 0)
+            else if (!ignoreIfNoAction && key.KeyChar != 0)
             {
                 Insert(key.KeyChar);
             }
@@ -1419,6 +1417,15 @@ namespace PSConsoleUtilities
                         _consoleBuffer[j].BackgroundColor = _continuationPromptBackgroundColor;
                     }
                 }
+                else if (char.IsControl(text[i]))
+                {
+                    _consoleBuffer[j].UnicodeChar = '^';
+                    _consoleBuffer[j].ForegroundColor = foregroundColor;
+                    _consoleBuffer[j++].BackgroundColor = backgroundColor;
+                    _consoleBuffer[j].UnicodeChar = (char)('@' + text[i]);
+                    _consoleBuffer[j].ForegroundColor = foregroundColor;
+                    _consoleBuffer[j++].BackgroundColor = backgroundColor;
+                }
                 else
                 {
                     _consoleBuffer[j].UnicodeChar = text[i];
@@ -1591,11 +1598,11 @@ namespace PSConsoleUtilities
                 }
                 else
                 {
-                    x += 1;
+                    x += char.IsControl(_buffer[i]) ? 2 : 1;
                     // Wrap?  No prompt when wrapping
-                    if (x == bufferWidth)
+                    if (x >= bufferWidth)
                     {
-                        x = 0;
+                        x -= bufferWidth;
                         y += 1;
                     }
                 }
