@@ -854,7 +854,7 @@ namespace PSConsoleUtilities
             {
                 if (completions.CompletionMatches.Count == 1)
                 {
-                    _singleton.Ding();
+                    Ding();
                 }
                 else
                 {
@@ -904,7 +904,7 @@ namespace PSConsoleUtilities
 
                 if (ambiguous)
                 {
-                    _singleton.Ding();
+                    Ding();
                 }
             }
             else
@@ -972,7 +972,7 @@ namespace PSConsoleUtilities
             var completions = _singleton.GetCompletions();
             if (completions == null || completions.CompletionMatches.Count == 0)
             {
-                _singleton.Ding();
+                Ding();
                 return;
             }
 
@@ -1611,14 +1611,17 @@ namespace PSConsoleUtilities
             return new COORD {X = (short)x, Y = (short)y};
         }
 
-        private void Ding()
+        /// <summary>
+        /// Notify the user based on their preference for notification.
+        /// </summary>
+        public static void Ding()
         {
-            switch (_bellStyle)
+            switch (_singleton._bellStyle)
             {
             case BellStyle.None:
                 break;
             case BellStyle.Audible:
-                Console.Beep(_dingTone, _dingDuration);
+                Console.Beep(_singleton._dingTone, _singleton._dingDuration);
                 break;
             case BellStyle.Visual:
                 // TODO: flash prompt? command line?

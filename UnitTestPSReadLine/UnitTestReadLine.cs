@@ -1313,8 +1313,8 @@ namespace UnitTestPSReadLine
             using (ShimsContext.Create())
             {
                 bool ding = false;
-                PSConsoleUtilities.Fakes.ShimPSConsoleReadLine.AllInstances.Ding =
-                    rl => ding = true;
+                PSConsoleUtilities.Fakes.ShimPSConsoleReadLine.Ding =
+                    () => ding = true;
 
                 ClearScreen();
                 Test(keys);
