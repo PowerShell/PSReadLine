@@ -243,8 +243,20 @@ namespace PSConsoleUtilities
         /// <returns>The complete command line.</returns>
         public static string ReadLine()
         {
-            _singleton.Initialize();
-            return _singleton.InputLoop();
+            uint dwConsoleMode;
+            var handle = NativeMethods.GetStdHandle((uint) StandardHandleId.Input);
+            try
+            {
+                NativeMethods.GetConsoleMode(handle, out dwConsoleMode);
+                NativeMethods.SetConsoleMode(handle, dwConsoleMode & ~NativeMethods.ENABLE_PROCESSED_INPUT);
+
+                _singleton.Initialize();
+                return _singleton.InputLoop();
+            }
+            finally
+            {
+                NativeMethods.GetConsoleMode(handle, out dwConsoleMode);
+            }
         }
 
         private string InputLoop()
@@ -354,6 +366,7 @@ namespace PSConsoleUtilities
                 { Keys.VolumeDown,      MakeKeyHandler(Ignore,               "Ignore") },
                 { Keys.VolumeUp,        MakeKeyHandler(Ignore,               "Ignore") },
                 { Keys.VolumeMute,      MakeKeyHandler(Ignore,               "Ignore") },
+                { Keys.CtrlC,           MakeKeyHandler(CancelLine,           "CancelLine") },
             };
 
             _emacsKeyMap = new Dictionary<ConsoleKeyInfo, KeyHandler>(new ConsoleKeyInfoComparer())
@@ -516,6 +529,18 @@ namespace PSConsoleUtilities
         public static void RevertLine()
         {
             _singleton.RevertLine(supportUndo: true);
+        }
+
+        /// <summary>
+        /// Cancel the current input, leaving the input on the screen,
+        /// but returns back to the host so the prompt is evaluated again.
+        /// </summary>
+        public static void CancelLine()
+        {
+            // Clear out the input so it doesn't get executed, but
+            // don't call render so the screen is left alone.
+            _singleton._buffer.Clear();
+            AcceptLine();
         }
 
         /// <summary>

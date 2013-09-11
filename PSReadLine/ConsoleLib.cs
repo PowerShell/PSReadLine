@@ -18,8 +18,16 @@ namespace PSConsoleUtilities
         public const uint MENU_IS_ACTIVE    = 0x01;
         public const uint MENU_IS_INACTIVE  = 0x00; // windows key
 
+        public const uint ENABLE_PROCESSED_INPUT = 0x0001;
+
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         public static extern IntPtr GetStdHandle(uint handleId);
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        public static extern bool GetConsoleMode(IntPtr hConsoleOutput, out uint dwMode);
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        public static extern bool SetConsoleMode(IntPtr hConsoleOutput, uint dwMode);
 
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         public static extern bool ScrollConsoleScreenBuffer(IntPtr hConsoleOutput,

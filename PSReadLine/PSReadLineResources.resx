@@ -138,6 +138,9 @@
   <data name="BeginningOfLineDescription" xml:space="preserve">
     <value>Move the cursor to the beginning of the line</value>
   </data>
+  <data name="CancelLineDescription" xml:space="preserve">
+    <value>Abort editing the current line and re-evaluate the prompt</value>
+  </data>
   <data name="ClearKillRingDescription" xml:space="preserve">
     <value>Remove all items from the kill ring</value>
   </data>

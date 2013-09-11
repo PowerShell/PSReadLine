@@ -124,6 +124,15 @@ namespace PSConsoleUtilities {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Abort editing the current line and re-evaluate the prompt.
+        /// </summary>
+        internal static string CancelLineDescription {
+            get {
+                return ResourceManager.GetString("CancelLineDescription", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Remove all items from the kill ring.
         /// </summary>
         internal static string ClearKillRingDescription {
