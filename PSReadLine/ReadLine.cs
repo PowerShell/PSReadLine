@@ -385,6 +385,7 @@ namespace PSConsoleUtilities
                 { Keys.Tab,             MakeKeyHandler(Complete,             "Complete") },
                 { Keys.CtrlA,           MakeKeyHandler(BeginningOfLine,      "BeginningOfLine") },
                 { Keys.CtrlB,           MakeKeyHandler(BackwardChar,         "BackwardChar") },
+                { Keys.CtrlC,           MakeKeyHandler(CancelLine,           "CancelLine") },
                 { Keys.CtrlD,           MakeKeyHandler(DeleteChar,           "DeleteChar") },
                 { Keys.CtrlE,           MakeKeyHandler(EndOfLine,            "EndOfLine") },
                 { Keys.CtrlF,           MakeKeyHandler(ForwardChar,          "ForwardChar") },
