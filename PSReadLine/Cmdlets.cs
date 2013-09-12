@@ -190,13 +190,13 @@ function global:PSConsoleHostReadline
     public class SetKeyHandlerCommand : PSCmdlet
     {
         [Parameter(Position = 0, Mandatory = true)]
-        [ValidateNotNull]
-        [ConsoleKeyInfoConverter]
-        public ConsoleKeyInfo Key { get; set; }
+        [Alias("Key")]
+        [ValidateNotNullOrEmpty]
+        public string[] Chord { get; set; }
 
         [Parameter(Position = 1, Mandatory = true)]
         [ValidateNotNull]
-        public Action Handler { get; set; }
+        public Action<ConsoleKeyInfo?, object> Handler { get; set; }
 
         [Parameter(Mandatory = true)]
         public string BriefDescription { get; set; }
@@ -204,13 +204,10 @@ function global:PSConsoleHostReadline
         [Parameter]
         public string LongDescription { get; set; }
 
-        [Parameter]
-        public SwitchParameter CtrlXPrefix { get; set; }
-
         [ExcludeFromCodeCoverage]
         protected override void EndProcessing()
         {
-            PSConsoleReadLine.SetKeyHandler(Key, CtrlXPrefix.IsPresent, Handler, BriefDescription, LongDescription);
+            PSConsoleReadLine.SetKeyHandler(Chord, Handler, BriefDescription, LongDescription);
         }
     }
 

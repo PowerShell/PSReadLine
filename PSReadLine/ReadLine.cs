@@ -65,11 +65,24 @@ namespace PSConsoleUtilities
 
         class KeyHandler
         {
-            public Action Action;
+            // Each key handler will be passed 2 arguments.  Most will ignore these arguments,
+            // but having a consistent signature greatly simplifies dispatch.  Defaults
+            // should be included on all handlers that ignore their parameters so they
+            // can be called from PowerShell without passing anything.
+            //
+            // The first arugment is the key that caused the action to be called
+            // (the second key when it's a 2 key chord).  The default is null (it's nullable)
+            // because PowerShell can't handle default(ConsoleKeyInfo) as a default.
+            // Most actions will ignore this argument.
+            //
+            // The second argument is an arbitrary object.  It will usually be either a number
+            // (e.g. as a repeat count) or a string.  Most actions will ignore this argument.
+            public Action<ConsoleKeyInfo?, object> Action;
             public string BriefDescription;
             public string LongDescription;
         }
-        static KeyHandler MakeKeyHandler(Action action, string briefDescription, string longDescription = null)
+
+        static KeyHandler MakeKeyHandler(Action<ConsoleKeyInfo?, object> action, string briefDescription, string longDescription = null)
         {
             return new KeyHandler
             {
@@ -85,6 +98,7 @@ namespace PSConsoleUtilities
         private static readonly Dictionary<ConsoleKeyInfo, KeyHandler> _cmdKeyMap;
 
         private Dictionary<ConsoleKeyInfo, KeyHandler> _dispatchTable;
+        private Dictionary<ConsoleKeyInfo, Dictionary<ConsoleKeyInfo, KeyHandler>> _chordDispatchTable; 
         private Dictionary<ConsoleKeyInfo, KeyHandler> _dispatchCtrlXTable;
         private Dictionary<ConsoleKeyInfo, KeyHandler> _dispatchMetaTable;
 
@@ -310,7 +324,7 @@ namespace PSConsoleUtilities
             KeyHandler handler;
             if (dispatchTable.TryGetValue(key, out handler))
             {
-                handler.Action();
+                handler.Action(key, 0);
             }
             else if (!ignoreIfNoAction && key.KeyChar != 0)
             {
@@ -380,7 +394,7 @@ namespace PSConsoleUtilities
                 { Keys.DownArrow,       MakeKeyHandler(NextHistory,          "NextHistory") },
                 { Keys.Home,            MakeKeyHandler(BeginningOfLine,      "BeginningOfLine") },
                 { Keys.End,             MakeKeyHandler(EndOfLine,            "EndOfLine") },
-                { Keys.Escape,          MakeKeyHandler(EmacsMeta,            "EmacsMeta") },
+                { Keys.Escape,          MakeKeyHandler(Chord,                "ChordFirstKey") },
                 { Keys.Delete,          MakeKeyHandler(DeleteChar,           "DeleteChar") },
                 { Keys.Tab,             MakeKeyHandler(Complete,             "Complete") },
                 { Keys.CtrlA,           MakeKeyHandler(BeginningOfLine,      "BeginningOfLine") },
@@ -393,7 +407,7 @@ namespace PSConsoleUtilities
                 { Keys.CtrlK,           MakeKeyHandler(KillLine,             "KillLine") },
                 { Keys.CtrlM,           MakeKeyHandler(AcceptLine,           "AcceptLine") },
                 { Keys.CtrlU,           MakeKeyHandler(BackwardKillLine,     "BackwardKillLine") },
-                { Keys.CtrlX,           MakeKeyHandler(EmacsCtrlX,           "EmacsCtrlX") },
+                { Keys.CtrlX,           MakeKeyHandler(Chord,                "ChordFirstKey") },
                 { Keys.CtrlY,           MakeKeyHandler(Yank,                 "Yank") },
                 { Keys.CtrlAt,          MakeKeyHandler(SetMark,              "SetMark") },
                 { Keys.AltB,            MakeKeyHandler(EmacsBackwardWord,    "EmacsBackwardWord") },
@@ -431,6 +445,7 @@ namespace PSConsoleUtilities
         private PSConsoleReadLine()
         {
             _dispatchTable = new Dictionary<ConsoleKeyInfo, KeyHandler>(_cmdKeyMap);
+            _chordDispatchTable = new Dictionary<ConsoleKeyInfo, Dictionary<ConsoleKeyInfo, KeyHandler>>();
 
             _buffer = new StringBuilder();
 
@@ -501,19 +516,21 @@ namespace PSConsoleUtilities
             _consoleBuffer = ReadBufferLines(_initialY, 1 + _extraPromptLineCount);
         }
 
-        private static void EmacsMeta()
+        private static void Chord(ConsoleKeyInfo? key = null, object arg = null)
         {
-            var key = ReadKey();
-            _singleton.ProcessOneKey(key, _singleton._dispatchMetaTable, ignoreIfNoAction: true);
+            if (!key.HasValue)
+            {
+                throw new ArgumentNullException("key");
+            }
+            Dictionary<ConsoleKeyInfo, KeyHandler> secondKeyDispatchTable;
+            if (_singleton._chordDispatchTable.TryGetValue(key.Value, out secondKeyDispatchTable))
+            {
+                var secondKey = ReadKey();
+                _singleton.ProcessOneKey(secondKey, secondKeyDispatchTable, ignoreIfNoAction: true);
+            }
         }
 
-        private static void EmacsCtrlX()
-        {
-            var key = ReadKey();
-            _singleton.ProcessOneKey(key, _singleton._dispatchCtrlXTable, ignoreIfNoAction: true);
-        }
-
-        private static void Ignore()
+        private static void Ignore(ConsoleKeyInfo? key = null, object arg = null)
         {
         }
 
@@ -527,7 +544,7 @@ namespace PSConsoleUtilities
         /// <summary>
         /// Reverts all of the input to the current input.
         /// </summary>
-        public static void RevertLine()
+        public static void RevertLine(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.RevertLine(supportUndo: true);
         }
@@ -536,7 +553,7 @@ namespace PSConsoleUtilities
         /// Cancel the current input, leaving the input on the screen,
         /// but returns back to the host so the prompt is evaluated again.
         /// </summary>
-        public static void CancelLine()
+        public static void CancelLine(ConsoleKeyInfo? key = null, object arg = null)
         {
             // Clear out the input so it doesn't get executed, but
             // don't call render so the screen is left alone.
@@ -547,7 +564,7 @@ namespace PSConsoleUtilities
         /// <summary>
         /// Delete the character before the cursor.
         /// </summary>
-        public static void BackwardDeleteChar()
+        public static void BackwardDeleteChar(ConsoleKeyInfo? key = null, object arg = null)
         {
             if (_singleton._buffer.Length > 0 && _singleton._current > 0)
             {
@@ -560,7 +577,7 @@ namespace PSConsoleUtilities
         /// <summary>
         /// Delete the character under the cursor.
         /// </summary>
-        public static void DeleteChar()
+        public static void DeleteChar(ConsoleKeyInfo? key = null, object arg = null)
         {
             if (_singleton._buffer.Length > 0 && _singleton._current < _singleton._buffer.Length)
             {
@@ -575,7 +592,7 @@ namespace PSConsoleUtilities
         /// continuation prompt is displayed on the next line and PSReadline waits for
         /// keys to edit the current input.
         /// </summary>
-        public static void AcceptLine()
+        public static void AcceptLine(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.ParseInput();
             if (_singleton._parseErrors.Any(e => e.IncompleteInput))
@@ -595,7 +612,7 @@ namespace PSConsoleUtilities
         /// keys to edit the current input.  This is useful to enter multi-line input as
         /// a single command even when a single line is complete input by itself.
         /// </summary>
-        public static void AddLine()
+        public static void AddLine(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.Insert('\n');
         }
@@ -603,7 +620,7 @@ namespace PSConsoleUtilities
         /// <summary>
         /// Paste text from the system clipboard.
         /// </summary>
-        public static void Paste()
+        public static void Paste(ConsoleKeyInfo? key = null, object arg = null)
         {
             if (System.Windows.Clipboard.ContainsText())
             {
@@ -620,7 +637,7 @@ namespace PSConsoleUtilities
         /// <summary>
         /// Move the cursor to the end of the input.
         /// </summary>
-        public static void EndOfLine()
+        public static void EndOfLine(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.MoveCursor(_singleton._buffer.Length);
         }
@@ -628,7 +645,7 @@ namespace PSConsoleUtilities
         /// <summary>
         /// Move the cursor to the end of the input.
         /// </summary>
-        public static void BeginningOfLine()
+        public static void BeginningOfLine(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.MoveCursor(0);
         }
@@ -637,7 +654,7 @@ namespace PSConsoleUtilities
         /// Move the cursor one character to the right.  This may move the cursor to the next
         /// line of multi-line input.
         /// </summary>
-        public static void ForwardChar()
+        public static void ForwardChar(ConsoleKeyInfo? key = null, object arg = null)
         {
             if (_singleton._current < _singleton._buffer.Length)
             {
@@ -650,7 +667,7 @@ namespace PSConsoleUtilities
         /// Move the cursor one character to the left.  This may move the cursor to the previous
         /// line of multi-line input.
         /// </summary>
-        public static void BackwardChar()
+        public static void BackwardChar(ConsoleKeyInfo? key = null, object arg = null)
         {
             if (_singleton._current > 0 && (_singleton._current - 1 < _singleton._buffer.Length))
             {
@@ -688,7 +705,7 @@ namespace PSConsoleUtilities
         /// Move the cursor forward to the end of the current word, or if between words,
         /// to the end of the next word.
         /// </summary>
-        public static void EmacsForwardWord()
+        public static void EmacsForwardWord(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.ForwardWord(EditMode.Emacs);
         }
@@ -696,7 +713,7 @@ namespace PSConsoleUtilities
         /// <summary>
         /// Move the cursor forward to the start of the next word.
         /// </summary>
-        public static void ForwardWord()
+        public static void ForwardWord(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.ForwardWord(EditMode.Windows);
         }
@@ -713,7 +730,7 @@ namespace PSConsoleUtilities
         /// Move the cursor back to the start of the current word, or if between words,
         /// the start of the previous word.
         /// </summary>
-        public static void BackwardWord()
+        public static void BackwardWord(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.BackwardWord(EditMode.Windows);
         }
@@ -722,7 +739,7 @@ namespace PSConsoleUtilities
         /// Move the cursor back to the start of the current word, or if between words,
         /// the start of the previous word.
         /// </summary>
-        public static void EmacsBackwardWord()
+        public static void EmacsBackwardWord(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.BackwardWord(EditMode.Emacs);
         }
@@ -754,7 +771,7 @@ namespace PSConsoleUtilities
         /// <summary>
         /// Replace the current input with the 'previous' item from PSReadline history.
         /// </summary>
-        public static void PreviousHistory()
+        public static void PreviousHistory(ConsoleKeyInfo? key = null, object arg = null)
         {
             if (_singleton._currentHistoryIndex > 0)
             {
@@ -766,7 +783,7 @@ namespace PSConsoleUtilities
         /// <summary>
         /// Replace the current input with the 'next' item from PSReadline history.
         /// </summary>
-        public static void NextHistory()
+        public static void NextHistory(ConsoleKeyInfo? key = null, object arg = null)
         {
             if (_singleton._currentHistoryIndex < (_singleton._history.Count - 1))
             {
@@ -799,7 +816,7 @@ namespace PSConsoleUtilities
         /// Replace the current input with the 'previous' item from PSReadline history
         /// that matches the characters between the start and the input and the cursor.
         /// </summary>
-        public static void HistorySearchBackward()
+        public static void HistorySearchBackward(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.HistorySearch(backward: true);
         }
@@ -808,7 +825,7 @@ namespace PSConsoleUtilities
         /// Replace the current input with the 'next' item from PSReadline history
         /// that matches the characters between the start and the input and the cursor.
         /// </summary>
-        public static void HistorySearchForward()
+        public static void HistorySearchForward(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.HistorySearch(backward: false);
         }
@@ -817,7 +834,7 @@ namespace PSConsoleUtilities
         /// Attempt to complete the text surrounding the cursor with the next
         /// available completion.
         /// </summary>
-        public static void TabCompleteNext()
+        public static void TabCompleteNext(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.Complete(forward: true);
         }
@@ -826,7 +843,7 @@ namespace PSConsoleUtilities
         /// Attempt to complete the text surrounding the cursor with the previous
         /// available completion.
         /// </summary>
-        public static void TabCompletePrevious()
+        public static void TabCompletePrevious(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.Complete(forward: false);
         }
@@ -870,7 +887,7 @@ namespace PSConsoleUtilities
         /// prefix is used for completion.  If trying to complete the longest
         /// unambiguous completion, a list of possible completions is displayed.
         /// </summary>
-        public static void Complete()
+        public static void Complete(ConsoleKeyInfo? key = null, object arg = null)
         {
             var completions = _singleton.GetCompletions();
             if (completions == null || completions.CompletionMatches.Count == 0)
@@ -993,7 +1010,7 @@ namespace PSConsoleUtilities
         /// <summary>
         /// Display the list of possible completions.
         /// </summary>
-        public static void PossibleCompletions()
+        public static void PossibleCompletions(ConsoleKeyInfo? key = null, object arg = null)
         {
             var completions = _singleton.GetCompletions();
             if (completions == null || completions.CompletionMatches.Count == 0)
@@ -1063,7 +1080,7 @@ namespace PSConsoleUtilities
         /// <summary>
         /// Mark the current loction of the cursor for use in a subsequent editing command.
         /// </summary>
-        public static void SetMark()
+        public static void SetMark(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton._mark = _singleton._current;
         }
@@ -1072,7 +1089,7 @@ namespace PSConsoleUtilities
         /// The cursor is placed at the location of the mark and the mark is moved
         /// to the location of the cursor.
         /// </summary>
-        public static void ExchangePointAndMark()
+        public static void ExchangePointAndMark(ConsoleKeyInfo? key = null, object arg = null)
         {
             var tmp = _singleton._mark;
             _singleton._mark = _singleton._current;
@@ -1126,7 +1143,7 @@ namespace PSConsoleUtilities
         /// Clear the input from the cursor to the end of the input.  The cleared text is placed
         /// in the kill ring.
         /// </summary>
-        public static void KillLine()
+        public static void KillLine(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.Kill(_singleton._current, _singleton._buffer.Length - _singleton._current);
         }
@@ -1135,7 +1152,7 @@ namespace PSConsoleUtilities
         /// Clear the input from the start of the input to the cursor.  The cleared text is placed
         /// in the kill ring.
         /// </summary>
-        public static void BackwardKillLine()
+        public static void BackwardKillLine(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.Kill(0, _singleton._current);
         }
@@ -1145,7 +1162,7 @@ namespace PSConsoleUtilities
         /// is between words, the input is cleared from the cursor to the end of the next word.
         /// The cleared text is placed in the kill ring.
         /// </summary>
-        public static void KillWord()
+        public static void KillWord(ConsoleKeyInfo? key = null, object arg = null)
         {
             var token = _singleton.FindToken(_singleton._current, FindTokenMode.CurrentOrNext);
             var end = (token.Kind == TokenKind.EndOfInput)
@@ -1159,7 +1176,7 @@ namespace PSConsoleUtilities
         /// is between words, the input is cleared from the start of the previous word to the
         /// cursor.  The cleared text is placed in the kill ring.
         /// </summary>
-        public static void KillBackwardWord()
+        public static void KillBackwardWord(ConsoleKeyInfo? key = null, object arg = null)
         {
             var token = _singleton.FindToken(_singleton._current, FindTokenMode.Previous);
             var start = token == null 
@@ -1184,7 +1201,7 @@ namespace PSConsoleUtilities
         /// <summary>
         /// Add the most recently killed text to the input.
         /// </summary>
-        public static void Yank()
+        public static void Yank(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.YankImpl();
         }
@@ -1208,7 +1225,7 @@ namespace PSConsoleUtilities
         /// If the previous operation was Yank or YankPop, replace the previously yanked
         /// text with the next killed text from the kill ring.
         /// </summary>
-        public static void YankPop()
+        public static void YankPop(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.YankPopImpl();
         }
@@ -1772,12 +1789,19 @@ namespace PSConsoleUtilities
             }
             if (options._editMode.HasValue)
             {
+                // Switching modes - clear out chord dispatch table
+                _chordDispatchTable.Clear();
+
                 switch (options._editMode)
                 {
                 case EditMode.Emacs:
                     _dispatchTable = new Dictionary<ConsoleKeyInfo, KeyHandler>(_emacsKeyMap);
                     _dispatchCtrlXTable = new Dictionary<ConsoleKeyInfo, KeyHandler>(_emacsCtrlXMap);
                     _dispatchMetaTable = new Dictionary<ConsoleKeyInfo, KeyHandler>(_emacsMetaMap);
+
+                    _chordDispatchTable = new Dictionary<ConsoleKeyInfo, Dictionary<ConsoleKeyInfo, KeyHandler>>();
+                    _chordDispatchTable[Keys.CtrlX] = _dispatchCtrlXTable;
+                    _chordDispatchTable[Keys.Escape] = _dispatchMetaTable;
                     break;
 #if FALSE
                 case EditMode.Vi:
@@ -1786,6 +1810,7 @@ namespace PSConsoleUtilities
 #endif
                 case EditMode.Windows:
                     _dispatchTable = new Dictionary<ConsoleKeyInfo, KeyHandler>(_cmdKeyMap);
+                    _chordDispatchTable = new Dictionary<ConsoleKeyInfo, Dictionary<ConsoleKeyInfo, KeyHandler>>();
                     break;
                 }
             }
@@ -1826,10 +1851,27 @@ namespace PSConsoleUtilities
             }
         }
 
-        private void SetKeyHandlerInternal(ConsoleKeyInfo key, bool ctrlX, Action handler, string briefDescription, string longDescription)
+        private void SetKeyHandlerInternal(string[] keys, Action<ConsoleKeyInfo?, object> handler, string briefDescription, string longDescription)
         {
-            var table = ctrlX ? _dispatchCtrlXTable : _dispatchTable;
-            table[key] = MakeKeyHandler(handler, briefDescription, longDescription);
+            foreach (var key in keys)
+            {
+                var chord = ConsoleKeyChordConverter.Convert(key);
+                if (chord.Length == 1)
+                {
+                    _dispatchTable[chord[0]] = MakeKeyHandler(handler, briefDescription, longDescription);
+                }
+                else
+                {
+                    _dispatchTable[chord[0]] = MakeKeyHandler(Chord, "ChordFirstKey");
+                    Dictionary<ConsoleKeyInfo, KeyHandler> secondDispatchTable;
+                    if (!_chordDispatchTable.TryGetValue(chord[0], out secondDispatchTable))
+                    {
+                        secondDispatchTable = new Dictionary<ConsoleKeyInfo, KeyHandler>();
+                        _chordDispatchTable[chord[0]] = secondDispatchTable;
+                    }
+                    secondDispatchTable[chord[1]] = MakeKeyHandler(handler, briefDescription, longDescription);
+                }
+            }
         }
 
         /// <summary>
@@ -1843,9 +1885,9 @@ namespace PSConsoleUtilities
         /// <summary>
         /// Helper function for the Set-PSReadlineKeyHandler cmdlet.
         /// </summary>
-        public static void SetKeyHandler(ConsoleKeyInfo key, bool ctrlX, Action handler, string briefDescription, string longDescription)
+        public static void SetKeyHandler(string[] key, Action<ConsoleKeyInfo?, object> handler, string briefDescription, string longDescription)
         {
-            _singleton.SetKeyHandlerInternal(key, ctrlX, handler, briefDescription, longDescription);
+            _singleton.SetKeyHandlerInternal(key, handler, briefDescription, longDescription);
         }
 
         /// <summary>
@@ -1856,29 +1898,28 @@ namespace PSConsoleUtilities
         {
             foreach (var entry in _singleton._dispatchTable)
             {
-                if (entry.Value.BriefDescription == "Ignore" || entry.Value.BriefDescription == "EmacsMeta")
+                if (entry.Value.BriefDescription == "Ignore" 
+                    || entry.Value.BriefDescription == "ChordFirstKey")
                 {
                     continue;
                 }
-                if (entry.Value.BriefDescription == "EmacsCtrlX")
+                yield return new PSConsoleUtilities.KeyHandler
                 {
-                    foreach (var xEntry in _singleton._dispatchCtrlXTable)
-                    {
-                        yield return new PSConsoleUtilities.KeyHandler
-                        {
-                            Key = "Ctrl+X," + xEntry.Key.ToGestureString(),
-                            BriefDescription = xEntry.Value.BriefDescription,
-                            LongDescription = xEntry.Value.LongDescription,
-                        };
-                    }
-                }
-                else
+                    Key = entry.Key.ToGestureString(),
+                    BriefDescription = entry.Value.BriefDescription,
+                    LongDescription = entry.Value.LongDescription,
+                };
+            }
+
+            foreach (var entry in _singleton._chordDispatchTable)
+            {
+                foreach (var secondEntry in entry.Value)
                 {
                     yield return new PSConsoleUtilities.KeyHandler
                     {
-                        Key = entry.Key.ToGestureString(),
-                        BriefDescription = entry.Value.BriefDescription,
-                        LongDescription = entry.Value.LongDescription,
+                        Key = entry.Key.ToGestureString() + "," + secondEntry.Key.ToGestureString(),
+                        BriefDescription = secondEntry.Value.BriefDescription,
+                        LongDescription = secondEntry.Value.LongDescription,
                     };
                 }
             }

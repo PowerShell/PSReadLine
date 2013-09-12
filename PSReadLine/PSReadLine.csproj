@@ -49,7 +49,7 @@
   <ItemGroup>
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="Cmdlets.cs" />
-    <Compile Include="ConsoleKeyInfoConverterAttribute.cs" />
+    <Compile Include="ConsoleKeyChordConverter.cs" />
     <Compile Include="ConsoleLib.cs" />
     <Compile Include="HistoryQueue.cs" />
     <Compile Include="Keys.cs" />

@@ -2,25 +2,47 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Management.Automation;
 using System.Runtime.InteropServices;
 using System.Text;
 
 namespace PSConsoleUtilities
 {
-    // $c = new-object PSConsoleUtilities.ConsoleKeyInfoConverterAttribute
-    [AttributeUsage(AttributeTargets.Property)]
-    public class ConsoleKeyInfoConverterAttribute : ArgumentTransformationAttribute
+    public class ConsoleKeyChordConverter
     {
-        public override object Transform(EngineIntrinsics engineIntrinsics, object inputData)
+        /// <summary>
+        /// Converts a string to a sequence of ConsoleKeyInfo.
+        /// Sequences are separated by ','.  Modifiers
+        /// appear before the modified key and are separated by '+'.
+        /// Examples:
+        ///     Ctrl+X
+        ///     Ctrl+D,M
+        ///     Escape,X
+        /// </summary>
+        public static ConsoleKeyInfo[] Convert(string chord)
         {
-            if (!(inputData is string))
+            if (string.IsNullOrEmpty(chord))
             {
-                // pass through
-                return inputData;
+                throw new ArgumentNullException("chord");
             }
-            
-            var sequence = (string)inputData;
+
+            var tokens = chord.Split(new[] {','});
+
+            if (tokens.Length > 2)
+            {
+                throw new ArgumentException("Chord can have at most two keys");
+            }
+
+            var result = new ConsoleKeyInfo[tokens.Length];
+            for (int i = 0; i < tokens.Length; i++)
+            {
+                result[i] = ConvertOneSequence(tokens[i]);
+            }
+
+            return result;
+        }
+
+        private static ConsoleKeyInfo ConvertOneSequence(string sequence)
+        {
             Stack<string> tokens = null;
             ConsoleModifiers modifiers = 0;
             ConsoleKey key = 0;

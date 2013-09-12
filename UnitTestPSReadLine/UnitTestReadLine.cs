@@ -104,14 +104,14 @@ namespace UnitTestPSReadLine
 
         class KeyHandler
         {
-            public KeyHandler(ConsoleKeyInfo key, Action handler)
+            public KeyHandler(string chord, Action<ConsoleKeyInfo?, object> handler)
             {
-                this.Key = key;
+                this.Chord = chord;
                 this.Handler = handler;
             }
 
-            public ConsoleKeyInfo Key { get; private set; }
-            public Action Handler { get; private set; }
+            public string Chord { get; private set; }
+            public Action<ConsoleKeyInfo?, object> Handler { get; private set; }
         }
 
         class KeyWithValidation
@@ -478,7 +478,7 @@ namespace UnitTestPSReadLine
 
             foreach (var keyHandler in keyHandlers)
             {
-                PSConsoleReadLine.SetKeyHandler(keyHandler.Key, false, keyHandler.Handler, "", "");
+                PSConsoleReadLine.SetKeyHandler(new [] {keyHandler.Chord}, keyHandler.Handler, "", "");
             }
 
             var colorOptions = new SetPSReadlineOption();
@@ -758,8 +758,8 @@ namespace UnitTestPSReadLine
         public void TestSearchHistory()
         {
             TestSetup(KeyMode.Cmd,
-                      new KeyHandler(_.UpArrow, PSConsoleReadLine.HistorySearchBackward),
-                      new KeyHandler(_.DownArrow, PSConsoleReadLine.HistorySearchForward));
+                      new KeyHandler("UpArrow", PSConsoleReadLine.HistorySearchBackward),
+                      new KeyHandler("DownArrow", PSConsoleReadLine.HistorySearchForward));
 
             // No history
             var keys = new [] {_.UpArrow, _.DownArrow, _.Enter};
@@ -1021,10 +1021,14 @@ namespace UnitTestPSReadLine
         [TestMethod]
         public void TestRevertLine()
         {
-            TestSetup(KeyMode.Cmd);
+            // Add one test for chords
+            TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+X,Escape", PSConsoleReadLine.RevertLine));
 
             var keys = new [] {_.D, _.I, _.Escape, _.L, _.S, _.Enter};
             var result = Test(keys); Assert.AreEqual("ls", result);
+
+            keys = new [] {_.D, _.I, _.CtrlX, _.Escape, _.L, _.S, _.Enter};
+            result = Test(keys); Assert.AreEqual("ls", result);
 
             TestSetup(KeyMode.Emacs);
             keys = new [] {_.D, _.I, _.Escape, _.R, _.L, _.S, _.Enter};
@@ -1248,7 +1252,7 @@ namespace UnitTestPSReadLine
         public void TestExchangePointAndMark()
         {
             TestSetup(KeyMode.Emacs,
-                      new KeyHandler(_.CtrlZ, PSConsoleReadLine.ExchangePointAndMark));
+                      new KeyHandler("Ctrl+Z", PSConsoleReadLine.ExchangePointAndMark));
 
             var keys = Keys(_.A, _.B, _.C, _.D, _.E,
                 new KeyWithValidation(_.CtrlZ, () => AssertCursorLeftIs(0)),
@@ -1417,13 +1421,11 @@ namespace UnitTestPSReadLine
         [TestMethod]
         public void TestKeyInfoConverterSimpleCharLiteral()
         {
-            var converter = new ConsoleKeyInfoConverterAttribute();
-            
-            object result = converter.Transform(null, "x");
+            var result = ConsoleKeyChordConverter.Convert("x");
             Assert.IsNotNull(result);            
-            Assert.IsInstanceOfType(result, typeof(ConsoleKeyInfo));
+            Assert.AreEqual(result.Length, 1);
 
-            var key = (ConsoleKeyInfo) result;
+            var key = result[0];
             
             Assert.AreEqual(key.KeyChar, 'x');
             Assert.AreEqual(key.Key, ConsoleKey.X);
@@ -1433,13 +1435,11 @@ namespace UnitTestPSReadLine
         [TestMethod]
         public void TestKeyInfoConverterSimpleCharLiteralWithModifiers()
         {
-            var converter = new ConsoleKeyInfoConverterAttribute();
-
-            object result = converter.Transform(null, "alt+shift+x");
+            var result = ConsoleKeyChordConverter.Convert("alt+shift+x");
             Assert.IsNotNull(result);
-            Assert.IsInstanceOfType(result, typeof(ConsoleKeyInfo));
+            Assert.AreEqual(result.Length, 1);
 
-            var key = (ConsoleKeyInfo) result;
+            var key = result[0];
 
             Assert.AreEqual(key.KeyChar, 'X');
             Assert.AreEqual(key.Key, ConsoleKey.X);
@@ -1449,13 +1449,11 @@ namespace UnitTestPSReadLine
         [TestMethod]
         public void TestKeyInfoConverterSymbolLiteral()
         {
-            var converter = new ConsoleKeyInfoConverterAttribute();
-
-            object result = converter.Transform(null, "}");
+            var result = ConsoleKeyChordConverter.Convert("}");
             Assert.IsNotNull(result);
-            Assert.IsInstanceOfType(result, typeof(ConsoleKeyInfo));
+            Assert.AreEqual(result.Length, 1);
 
-            var key = (ConsoleKeyInfo)result;
+            var key = result[0];
 
             Assert.AreEqual(key.KeyChar, '}');
             Assert.AreEqual(key.Key, ConsoleKey.Oem6);
@@ -1466,13 +1464,11 @@ namespace UnitTestPSReadLine
         public void TestKeyInfoConverterShiftedSymbolLiteral()
         {
             // } => shift+]  / shift+oem6
-            var converter = new ConsoleKeyInfoConverterAttribute();
-
-            object result = converter.Transform(null, "shift+]");
+            var result = ConsoleKeyChordConverter.Convert("shift+]");
             Assert.IsNotNull(result);
-            Assert.IsInstanceOfType(result, typeof(ConsoleKeyInfo));
+            Assert.AreEqual(result.Length, 1);
 
-            var key = (ConsoleKeyInfo)result;
+            var key = result[0];
 
             Assert.AreEqual(key.KeyChar, '}');
             Assert.AreEqual(key.Key, ConsoleKey.Oem6);
@@ -1483,13 +1479,11 @@ namespace UnitTestPSReadLine
         public void TestKeyInfoConverterWellKnownConsoleKey()
         {
             // oem6
-            var converter = new ConsoleKeyInfoConverterAttribute();
-
-            object result = converter.Transform(null, "shift+oem6");
+            var result = ConsoleKeyChordConverter.Convert("shift+oem6");
             Assert.IsNotNull(result);
-            Assert.IsInstanceOfType(result, typeof(ConsoleKeyInfo));
+            Assert.AreEqual(result.Length, 1);
 
-            var key = (ConsoleKeyInfo)result;
+            var key = result[0];
 
             Assert.AreEqual(key.KeyChar, '}');
             Assert.AreEqual(key.Key, ConsoleKey.Oem6);
@@ -1497,39 +1491,59 @@ namespace UnitTestPSReadLine
         }
 
         [TestMethod]
-        public void TestKeyInfoConverterPassThrough()
+        public void TestKeyInfoConverterSequence()
         {
-            // pass through consolekeyinfo            
-            var converter = new ConsoleKeyInfoConverterAttribute();
+            // oem6
+            var result = ConsoleKeyChordConverter.Convert("Escape,X");
+            Assert.IsNotNull(result);
+            Assert.AreEqual(result.Length, 2);
 
-            var key = new ConsoleKeyInfo('x', ConsoleKey.X, true, false, false);
-            object result = converter.Transform(null, key);
-            
-            Assert.AreEqual(key, result);
+            var key = result[0];
+
+            Assert.AreEqual(key.KeyChar, (char)27);
+            Assert.AreEqual(key.Key, ConsoleKey.Escape);
+            Assert.AreEqual(key.Modifiers, (ConsoleModifiers)0);
+
+            key = result[1];
+
+            Assert.AreEqual(key.KeyChar, 'x');
+            Assert.AreEqual(key.Key, ConsoleKey.X);
+            Assert.AreEqual(key.Modifiers, (ConsoleModifiers)0);
         }
 
         [TestMethod]
         [ExpectedException(typeof(ArgumentException))]        
         public void TestKeyInfoConverterInvalidKey()
         {
-            var converter = new ConsoleKeyInfoConverterAttribute();
-            object result = converter.Transform(null, "escrape");
+            var result = ConsoleKeyChordConverter.Convert("escrape");
         }
 
         [TestMethod]
         [ExpectedException(typeof(ArgumentException))]
         public void TestKeyInfoConverterInvalidModifierTypo()
         {
-            var converter = new ConsoleKeyInfoConverterAttribute();
-            object result = converter.Transform(null, "alt+shuft+x");
+            var result = ConsoleKeyChordConverter.Convert("alt+shuft+x");
         }
 
         [TestMethod]
         [ExpectedException(typeof(ArgumentException))]
         public void TestKeyInfoConverterInvalidModifierInapplicable()
         {
-            var converter = new ConsoleKeyInfoConverterAttribute();
-            object result = converter.Transform(null, "shift+}");
+            var result = ConsoleKeyChordConverter.Convert("shift+}");
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof (ArgumentException))]
+        public void TestKeyInfoConverterInvalidSubsequence1()
+        {
+            var result = ConsoleKeyChordConverter.Convert("x,");
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof (ArgumentException))]
+        public void TestKeyInfoConverterInvalidSubsequence2()
+        {
+            var result = ConsoleKeyChordConverter.Convert(",x");
         }
     }
 }

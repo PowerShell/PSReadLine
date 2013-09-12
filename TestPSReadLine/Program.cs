@@ -103,8 +103,8 @@ namespace TestPSReadLine
                 HistorySearchCursorMovesToEnd = true,
             //    ExtraPromptLineCount = 1
             });
-            PSConsoleReadLine.SetKeyHandler(Keys.UpArrow, false, PSConsoleReadLine.HistorySearchBackward, "", "");
-            PSConsoleReadLine.SetKeyHandler(Keys.DownArrow, false, PSConsoleReadLine.HistorySearchForward, "", "");
+            PSConsoleReadLine.SetKeyHandler(new[] {"UpArrow"}, PSConsoleReadLine.HistorySearchBackward, "", "");
+            PSConsoleReadLine.SetKeyHandler(new[] {"DownArrow"}, PSConsoleReadLine.HistorySearchForward, "", "");
             while (true)
             {
                 //Console.Write("C:\\Windows\nPS> ");
