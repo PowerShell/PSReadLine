@@ -259,9 +259,9 @@ namespace PSConsoleUtilities
         {
             uint dwConsoleMode;
             var handle = NativeMethods.GetStdHandle((uint) StandardHandleId.Input);
+            NativeMethods.GetConsoleMode(handle, out dwConsoleMode);
             try
             {
-                NativeMethods.GetConsoleMode(handle, out dwConsoleMode);
                 NativeMethods.SetConsoleMode(handle, dwConsoleMode & ~NativeMethods.ENABLE_PROCESSED_INPUT);
 
                 _singleton.Initialize();
@@ -269,7 +269,7 @@ namespace PSConsoleUtilities
             }
             finally
             {
-                NativeMethods.GetConsoleMode(handle, out dwConsoleMode);
+                NativeMethods.SetConsoleMode(handle, dwConsoleMode);
             }
         }
 
