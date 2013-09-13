@@ -453,7 +453,6 @@ namespace UnitTestPSReadLine
             {
                 AddToHistoryHandler         = null,
                 HistoryNoDuplicates         = PSConsoleReadLine.DefaultHistoryNoDuplicates,
-                MinimumHistoryCommandLength = PSConsoleReadLine.DefaultMinimumHistoryCommandLength,
                 MaximumHistoryCount         = PSConsoleReadLine.DefaultMaximumHistoryCount,
                 MaximumKillRingCount        = PSConsoleReadLine.DefaultMaximumKillRingCount,
                 ResetTokenColors            = true,
@@ -884,26 +883,6 @@ namespace UnitTestPSReadLine
             result = Test(keys3); Assert.AreEqual("cccc", result);
             keys5 = new [] {_.UpArrow, _.UpArrow, _.UpArrow, _.Enter};
             result = Test(keys5); Assert.AreEqual("aaaa", result);
-        }
-
-        [TestMethod]
-        public void TestHistoryMinimumCommandLength()
-        {
-            TestSetup(KeyMode.Cmd);
-            PSConsoleReadLine.SetOptions(new SetPSReadlineOption {MinimumHistoryCommandLength = 6});
-
-            var keys = new [] {_.A, _.B, _.C, _.D, _.E, _.F, _.G, _.H, _.Enter};
-            var result = Test(keys); Assert.AreEqual("abcdefgh", result);
-            keys = new [] {_.A, _.B, _.C, _.D, _.E, _.F, _.Enter};
-            result = Test(keys); Assert.AreEqual("abcdef", result);
-            keys = new [] {_.A, _.B, _.C, _.D, _.E, _.Enter};
-            result = Test(keys); Assert.AreEqual("abcde", result);
-            keys = new [] {_.UpArrow, _.Enter};
-            result = Test(keys); Assert.AreEqual("abcdef", result);
-
-            PSConsoleReadLine.SetOptions(new SetPSReadlineOption {MinimumHistoryCommandLength = 7});
-            keys = new [] {_.UpArrow, _.Enter};
-            result = Test(keys); Assert.AreEqual("abcdefgh", result);
         }
 
         [TestMethod]
@@ -1419,7 +1398,6 @@ namespace UnitTestPSReadLine
                           + options.HistorySearchCursorMovesToEnd.GetHashCode()
                           + options.MaximumHistoryCount.GetHashCode()
                           + options.MaximumKillRingCount.GetHashCode()
-                          + options.MinimumHistoryCommandLength.GetHashCode()
                           + options.DingDuration.GetHashCode()
                           + options.DingTone.GetHashCode()
                           + options.BellStyle.GetHashCode()

@@ -84,14 +84,6 @@ function global:PSConsoleHostReadline
         internal SwitchParameter? _historySearchCursorMovesToEnd;
 
         [Parameter(ParameterSetName = "OptionsSet")]
-        public int MinimumHistoryCommandLength
-        {
-            get { return _minimumHistoryCommandLength.GetValueOrDefault(); }
-            set { _minimumHistoryCommandLength = value; }
-        }
-        internal int? _minimumHistoryCommandLength;
-
-        [Parameter(ParameterSetName = "OptionsSet")]
         public int MaximumHistoryCount
         {
             get { return _maximumHistoryCount.GetValueOrDefault(); }

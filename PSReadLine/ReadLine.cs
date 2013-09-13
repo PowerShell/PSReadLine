@@ -176,13 +176,6 @@ namespace PSConsoleUtilities
         private Func<string, bool> _addToHistoryHandler;
 
         /// <summary>
-        /// Commands shorter than MinimumHistoryCommandLength will not be added
-        /// to the history.
-        /// </summary>
-        public const int DefaultMinimumHistoryCommandLength = 4;
-        private int _minimumHistoryCommandLength;
-
-        /// <summary>
         /// When true, duplicates will not be added to the history.
         /// </summary>
         public const bool DefaultHistoryNoDuplicates = false;
@@ -335,11 +328,7 @@ namespace PSConsoleUtilities
 
         private string MaybeAddToHistory(string result)
         {
-            bool addToHistory = (result.Length >= _minimumHistoryCommandLength);
-            if (addToHistory && _addToHistoryHandler != null)
-            {
-                addToHistory = _addToHistoryHandler(result);
-            }
+            bool addToHistory = (_addToHistoryHandler == null) || _addToHistoryHandler(result);
             if (addToHistory && _historyNoDuplicates)
             {
                 // REVIEW: should history be case sensitive - it is now.
@@ -458,7 +447,6 @@ namespace PSConsoleUtilities
             _continuationPromptForegroundColor = DefaultContinuationPromptForegroundColor;
             _continuationPromptBackgroundColor = DefaultContinuationPromptBackgroundColor;
 
-            _minimumHistoryCommandLength = DefaultMinimumHistoryCommandLength;
             _addToHistoryHandler = null;
             _historyNoDuplicates = DefaultHistoryNoDuplicates;
             _maximumHistoryCount = DefaultMaximumHistoryCount;
@@ -1790,21 +1778,6 @@ namespace PSConsoleUtilities
             if (options._addToHistoryHandlerSpecified)
             {
                 _addToHistoryHandler = options.AddToHistoryHandler;
-            }
-            if (options._minimumHistoryCommandLength.HasValue)
-            {
-                _minimumHistoryCommandLength = options.MinimumHistoryCommandLength;
-                var newHistory = new HistoryQueue<string>(_maximumHistoryCount);
-                while (_history.Count > 0)
-                {
-                    var item = _history.Dequeue();
-                    if (item.Length >= _minimumHistoryCommandLength)
-                    {
-                        newHistory.Enqueue(item);
-                    }
-                }
-                _history = newHistory;
-                _currentHistoryIndex = _history.Count;
             }
             if (options._maximumHistoryCount.HasValue)
             {
