@@ -286,7 +286,7 @@ namespace PSConsoleUtilities
                 ProcessOneKey(key, _dispatchTable, ignoreIfNoAction: false);
                 if (_inputAccepted)
                 {
-                    return MaybeAddToHistory();
+                    return MaybeAddToHistory(_buffer.ToString());
                 }
 
                 if (killCommandCount == _killCommandCount)
@@ -333,9 +333,8 @@ namespace PSConsoleUtilities
             PostKeyHandler();
         }
 
-        private string MaybeAddToHistory()
+        private string MaybeAddToHistory(string result)
         {
-            var result = _buffer.ToString();
             bool addToHistory = (result.Length >= _minimumHistoryCommandLength);
             if (addToHistory && _addToHistoryHandler != null)
             {
@@ -778,6 +777,15 @@ namespace PSConsoleUtilities
 #endregion Movement
 
 #region History
+
+        /// <summary>
+        /// Add a command to the history - typically used to restore
+        /// history from a previous session.
+        /// </summary>
+        public static void AddToHistory(string command)
+        {
+            _singleton.MaybeAddToHistory(command);
+        }
 
         /// <summary>
         /// Clears history in PSReadline.  This does not affect PowerShell history.
