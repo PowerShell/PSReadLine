@@ -677,6 +677,40 @@ namespace UnitTestPSReadLine
         }
 
         [TestMethod]
+        public void TestForwardDeleteLine()
+        {
+            TestSetup(KeyMode.Cmd);
+
+            // Empty input (does nothing but don't crash)
+            var keys = Keys(_.CtrlEnd, _.Enter);
+            var result = Test(keys); Assert.AreEqual("", result);
+
+            // at end of input - doesn't change anything
+            keys = Keys("abc", _.CtrlEnd, _.Enter);
+            result = Test(keys); Assert.AreEqual("abc", result);
+
+            keys = Keys("abc", _.LeftArrow, _.LeftArrow, _.CtrlEnd, _.Enter);
+            result = Test(keys); Assert.AreEqual("a", result);
+        }
+
+        [TestMethod]
+        public void TestBackwardDeleteLine()
+        {
+            TestSetup(KeyMode.Cmd);
+
+            // Empty input (does nothing but don't crash)
+            var keys = Keys(_.CtrlHome, _.Enter);
+            var result = Test(keys); Assert.AreEqual("", result);
+
+            // at beginning of input - doesn't change anything
+            keys = Keys("abc", _.Home, _.CtrlHome, _.Enter);
+            result = Test(keys); Assert.AreEqual("abc", result);
+
+            keys = Keys("abc", _.LeftArrow, _.CtrlHome, _.Enter);
+            result = Test(keys); Assert.AreEqual("c", result);
+        }
+
+        [TestMethod]
         public void TestAddLine()
         {
             TestSetup(KeyMode.Cmd);
@@ -1426,7 +1460,7 @@ namespace UnitTestPSReadLine
             Assert.AreEqual(result.Length, 1);
 
             var key = result[0];
-            
+
             Assert.AreEqual(key.KeyChar, 'x');
             Assert.AreEqual(key.Key, ConsoleKey.X);
             Assert.AreEqual(key.Modifiers, (ConsoleModifiers)0);            

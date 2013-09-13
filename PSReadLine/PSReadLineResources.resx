@@ -129,6 +129,9 @@
   <data name="BackwardDeleteCharDescription" xml:space="preserve">
     <value>Delete the charcter before the cursor</value>
   </data>
+  <data name="BackwardDeleteLineDescription" xml:space="preserve">
+    <value>Delete text from the cursor to the start of the line</value>
+  </data>
   <data name="BackwardKillLineDescription" xml:space="preserve">
     <value>Move the text from the cursor to the beginning of the line to the kill ring</value>
   </data>
@@ -173,6 +176,9 @@
   </data>
   <data name="ForwardCharDescription" xml:space="preserve">
     <value>Move the cursor forward one character</value>
+  </data>
+  <data name="ForwardDeleteLineDescription" xml:space="preserve">
+    <value>Delete text from the cursor to the end of the line</value>
   </data>
   <data name="ForwardWordDescription" xml:space="preserve">
     <value>Move the cursor to the beginning of the next token or end of line</value>

@@ -381,6 +381,8 @@ namespace PSConsoleUtilities
                 { Keys.VolumeUp,        MakeKeyHandler(Ignore,               "Ignore") },
                 { Keys.VolumeMute,      MakeKeyHandler(Ignore,               "Ignore") },
                 { Keys.CtrlC,           MakeKeyHandler(CancelLine,           "CancelLine") },
+                { Keys.CtrlEnd,         MakeKeyHandler(ForwardDeleteLine,    "ForwardDeleteLine") },
+                { Keys.CtrlHome,        MakeKeyHandler(BackwardDeleteLine,   "BackwardDeleteLine") },
             };
 
             _emacsKeyMap = new Dictionary<ConsoleKeyInfo, KeyHandler>(new ConsoleKeyInfoComparer())
@@ -559,6 +561,35 @@ namespace PSConsoleUtilities
             // don't call render so the screen is left alone.
             _singleton._buffer.Clear();
             AcceptLine();
+        }
+
+        /// <summary>
+        /// Like ForwardKillLine - deletes text from the point to the end of the line,
+        /// but does not put the deleted text in the kill ring.
+        /// </summary>
+        public static void ForwardDeleteLine(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            var current = _singleton._current;
+            var buffer = _singleton._buffer;
+            if (buffer.Length > 0 && current < buffer.Length)
+            {
+                buffer.Remove(current, buffer.Length - current);
+                _singleton.Render();
+            }
+        }
+
+        /// <summary>
+        /// Like BackwardKillLine - deletes text from the point to the start of the line,
+        /// but does not put the deleted text in the kill ring.
+        /// </summary>
+        public static void BackwardDeleteLine(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            if (_singleton._current > 0)
+            {
+                _singleton._buffer.Remove(0, _singleton._current);
+                _singleton._current = 0;
+                _singleton.Render();
+            }
         }
 
         /// <summary>

@@ -97,6 +97,15 @@ namespace PSConsoleUtilities {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Delete text from the cursor to the start of the line.
+        /// </summary>
+        internal static string BackwardDeleteLineDescription {
+            get {
+                return ResourceManager.GetString("BackwardDeleteLineDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Move the text from the cursor to the beginning of the line to the kill ring.
         /// </summary>
         internal static string BackwardKillLineDescription {
@@ -131,7 +140,7 @@ namespace PSConsoleUtilities {
                 return ResourceManager.GetString("CancelLineDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Remove all items from the kill ring.
         /// </summary>
@@ -228,6 +237,15 @@ namespace PSConsoleUtilities {
         internal static string ForwardCharDescription {
             get {
                 return ResourceManager.GetString("ForwardCharDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Delete text from the cursor to the end of the line.
+        /// </summary>
+        internal static string ForwardDeleteLineDescription {
+            get {
+                return ResourceManager.GetString("ForwardDeleteLineDescription", resourceCulture);
             }
         }
         

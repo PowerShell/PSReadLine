@@ -173,9 +173,11 @@ namespace PSConsoleUtilities
         public static ConsoleKeyInfo Delete       = new ConsoleKeyInfo((char)0, ConsoleKey.Delete, false, false, false);
         public static ConsoleKeyInfo DownArrow    = new ConsoleKeyInfo((char)0, ConsoleKey.DownArrow, false, false, false);
         public static ConsoleKeyInfo End          = new ConsoleKeyInfo((char)0, ConsoleKey.End, false, false, false);
+        public static ConsoleKeyInfo CtrlEnd      = new ConsoleKeyInfo((char)0, ConsoleKey.End, false, false, true);
         public static ConsoleKeyInfo Enter        = new ConsoleKeyInfo((char)13, ConsoleKey.Enter, false, false, false);
         public static ConsoleKeyInfo Escape       = new ConsoleKeyInfo((char)27, ConsoleKey.Escape, false, false, false);
         public static ConsoleKeyInfo Home         = new ConsoleKeyInfo((char)0, ConsoleKey.Home, false, false, false);
+        public static ConsoleKeyInfo CtrlHome     = new ConsoleKeyInfo((char)0, ConsoleKey.Home, false, false, true);
         public static ConsoleKeyInfo LeftArrow    = new ConsoleKeyInfo((char)0, ConsoleKey.LeftArrow, false, false, false);
         public static ConsoleKeyInfo RightArrow   = new ConsoleKeyInfo((char)0, ConsoleKey.RightArrow, false, false, false);
         public static ConsoleKeyInfo Tab          = new ConsoleKeyInfo((char)9, ConsoleKey.Tab, false, false, false);
