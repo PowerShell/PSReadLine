@@ -1,0 +1,21 @@
+### Version 1.0.0.1
+
+New features:
+* History imported when module is loaded
+* Ctrl+End/Ctrl+Home bindings emulate cmd
+* Arbitrary two key chords
+* Key handlers passed the invoking key and an optional argument
+* Made Ding public for custom handlers
+  
+Bugs fixed:
+* Alternate keyboards now supported
+* Ctrl-C now properly emulates cmd
+
+Breaking changes:
+* MinimumHistoryCommandLength parameter removed from Set-PSReadlineOption
+    - Can use this instead:
+        Set-PSReadlineOption -AddToHistoryHandler { $args[0].Length -gt 3 }
+
+### Version 1.0.0.1
+
+Initial release
