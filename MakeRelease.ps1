@@ -1,4 +1,3 @@
-
 param([switch]$Install)
 
 add-type -AssemblyName System.IO.Compression.FileSystem
@@ -46,7 +45,12 @@ del $PSScriptRoot\PSReadline.zip -ea Ignore
 
 if ($Install)
 {
-    $InstallDir = "${env:HOME}\Documents\WIndowsPowerShell\Modules"
+    if ($PSVersionTable.PSVersion.Major) {
+        $InstallDir = "$HOME\Documents\WIndowsPowerShell\Modules"
+    } else {
+        $InstallDir = "${env:HOME}\Documents\WIndowsPowerShell\Modules"
+    }
+    
 
     if (!(Test-Path $InstallDir))
     {
