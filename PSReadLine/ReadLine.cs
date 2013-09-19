@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.Tracing;
 using System.Linq;
 using System.Management.Automation;
 using System.Management.Automation.Language;
@@ -62,6 +63,13 @@ namespace PSConsoleUtilities
     public class PSConsoleReadLine
     {
         private static readonly PSConsoleReadLine _singleton;
+
+        private readonly ReadlineEventSource _log;
+        private readonly ReadlineEventListener _logListener;
+        private readonly HistoryQueue<string> _demoStrings;
+        private bool _demoMode;
+        private int _demoWindowLineCount;
+        private bool _renderForDemoNeeded;
 
         class KeyHandler
         {
@@ -240,7 +248,9 @@ namespace PSConsoleUtilities
         [ExcludeFromCodeCoverage]
         private static ConsoleKeyInfo ReadKey()
         {
-            return Console.ReadKey(true);
+            var key = Console.ReadKey(true);
+            _singleton._log.Key(key.KeyChar, key.Key, key.Modifiers);
+            return key;
         }
 
         /// <summary>
@@ -317,7 +327,14 @@ namespace PSConsoleUtilities
             KeyHandler handler;
             if (dispatchTable.TryGetValue(key, out handler))
             {
+                _renderForDemoNeeded = _demoMode;
+
                 handler.Action(key, 0);
+
+                if (_renderForDemoNeeded)
+                {
+                    Render();
+                }
             }
             else if (!ignoreIfNoAction && key.KeyChar != 0)
             {
@@ -340,6 +357,10 @@ namespace PSConsoleUtilities
             {
                 _history.Enqueue(result);
                 _currentHistoryIndex = _history.Count;
+            }
+            if (_demoMode)
+            {
+                ClearDemoWindow();
             }
             return result;
         }
@@ -434,6 +455,11 @@ namespace PSConsoleUtilities
 
         private PSConsoleReadLine()
         {
+            _log = new ReadlineEventSource();
+            _logListener = new ReadlineEventListener();
+            _demoStrings = new HistoryQueue<string>(100);
+            _demoMode = false;
+
             _dispatchTable = new Dictionary<ConsoleKeyInfo, KeyHandler>(_cmdKeyMap);
             _chordDispatchTable = new Dictionary<ConsoleKeyInfo, Dictionary<ConsoleKeyInfo, KeyHandler>>();
 
@@ -514,6 +540,11 @@ namespace PSConsoleUtilities
             Dictionary<ConsoleKeyInfo, KeyHandler> secondKeyDispatchTable;
             if (_singleton._chordDispatchTable.TryGetValue(key.Value, out secondKeyDispatchTable))
             {
+                if (_singleton._demoMode)
+                {
+                    // Render so the first key of the chord appears in the demo window
+                    _singleton.Render();
+                }
                 var secondKey = ReadKey();
                 _singleton.ProcessOneKey(secondKey, secondKeyDispatchTable, ignoreIfNoAction: true);
             }
@@ -618,6 +649,9 @@ namespace PSConsoleUtilities
                 _singleton.Insert('\n');
                 return;
             }
+
+            _singleton._renderForDemoNeeded = false;
+
             // Make sure cursor is at the end before writing the line
             _singleton._current = _singleton._buffer.Length;
             _singleton.PlaceCursor();
@@ -1048,7 +1082,7 @@ namespace PSConsoleUtilities
 
             // Don't overwrite any of the line - so move to first line after the end of our buffer.
             var coords = _singleton.ConvertOffsetToCoordinates(_singleton._buffer.Length);
-            PlaceCursor(0, coords.Y + 1);
+            _singleton.PlaceCursor(0, coords.Y + 1);
 
             var sb = new StringBuilder();
             var minColWidth = completions.CompletionMatches.Max(c => c.ListItemText.Length);
@@ -1393,9 +1427,11 @@ namespace PSConsoleUtilities
             // This function is not very effecient when pasting large chunks of text
             // into the console.
 
+            _renderForDemoNeeded = false;
+
             var text = ParseInput();
 
-            int bufferLineCount = ConvertOffsetToCoordinates(text.Length).Y - _initialY + 1;
+            int bufferLineCount = ConvertOffsetToCoordinates(text.Length).Y - _initialY + 1 + _demoWindowLineCount;
             int bufferWidth = Console.BufferWidth;
             if (_consoleBuffer.Length != bufferLineCount * bufferWidth)
             {
@@ -1503,9 +1539,14 @@ namespace PSConsoleUtilities
                     _consoleBuffer[j++].BackgroundColor = backgroundColor;
                 }
             }
-            for (; j < _consoleBuffer.Length; j++)
+            for (; j < (_consoleBuffer.Length - (_demoWindowLineCount * _bufferWidth)); j++)
             {
                 _consoleBuffer[j] = _space;
+            }
+
+            if (_demoMode)
+            {
+                RenderDemoWindow(j);
             }
 
             bool rendered = false;
@@ -1534,6 +1575,11 @@ namespace PSConsoleUtilities
             }
 
             PlaceCursor();
+
+            if (_demoMode && (_initialY + bufferLineCount + 1) > (Console.WindowTop + Console.WindowHeight))
+            {
+                Console.WindowTop = _initialY + bufferLineCount + 1 - Console.WindowHeight;
+            }
         }
 
         private static void WriteBufferLines(CHAR_INFO[] buffer, ref int top)
@@ -1637,11 +1683,11 @@ namespace PSConsoleUtilities
             NativeMethods.ScrollConsoleScreenBuffer(handle, ref scrollRectangle, ref scrollRectangle, destinationOrigin, ref fillChar);
         }
 
-        private static void PlaceCursor(int x, int y)
+        private void PlaceCursor(int x, int y)
         {
-            if (y >= Console.BufferHeight)
+            if ((y + _demoWindowLineCount) >= Console.BufferHeight)
             {
-                ScrollBuffer(y - Console.BufferHeight + 1);
+                ScrollBuffer((y + _demoWindowLineCount) - Console.BufferHeight + 1);
                 y = Console.BufferHeight - 1;
             }
             Console.SetCursorPosition(x, y);
@@ -1732,10 +1778,137 @@ namespace PSConsoleUtilities
                               };
             NativeMethods.WriteConsoleOutput(handle, buffer, bufferSize, bufferCoord, ref writeRegion);
 
-            PlaceCursor(0, Console.CursorTop + 1);
+            _singleton.PlaceCursor(0, Console.CursorTop + 1);
+        }
+
+        private void RenderDemoWindow(int windowStart)
+        {
+            int i;
+
+            Action<int, char> setChar = (index, c) =>
+            {
+                _consoleBuffer[index].UnicodeChar = c;
+                _consoleBuffer[index].ForegroundColor = ConsoleColor.DarkCyan;
+                _consoleBuffer[index].BackgroundColor = ConsoleColor.White;
+            };
+
+            for (i = 0; i < _bufferWidth; i++)
+            {
+                _consoleBuffer[windowStart + i].UnicodeChar = ' ';
+                _consoleBuffer[windowStart + i].ForegroundColor = _initialForegroundColor;
+                _consoleBuffer[windowStart + i].BackgroundColor = _initialBackgroundColor;
+            }
+            windowStart += _bufferWidth;
+
+            const int extraSpace = 2;
+            // Draw the box
+            setChar(windowStart + extraSpace, (char)9484); // upper left
+            setChar(windowStart + _bufferWidth * 2 + extraSpace, (char)9492); // lower left
+            setChar(windowStart + _bufferWidth - 1 - extraSpace, (char)9488); // upper right
+            setChar(windowStart + _bufferWidth * 3 - 1 - extraSpace, (char)9496); // lower right
+            setChar(windowStart + _bufferWidth + extraSpace, (char)9474); // side
+            setChar(windowStart + _bufferWidth * 2 - 1 - extraSpace, (char)9474); // side
+
+            for (i = 1 + extraSpace; i < _bufferWidth - 1 - extraSpace; i++)
+            {
+                setChar(windowStart + i, (char)9472);
+                setChar(windowStart + i + 2 * _bufferWidth, (char)9472);
+            }
+
+            string eventString;
+            while (_logListener.TryGetEvent(out eventString))
+            {
+                _demoStrings.Enqueue(eventString);
+            }
+
+            int charsToDisplay = _bufferWidth - 2 - (2 * extraSpace);
+            i = windowStart + _bufferWidth + 1 + extraSpace;
+            bool first = true;
+            for (int j = _demoStrings.Count; j > 0; j--)
+            {
+                eventString = _demoStrings[j - 1];
+                if ((eventString.Length + (first ? 0 : 1)) > charsToDisplay)
+                    break;
+
+                if (!first)
+                {
+                    setChar(i++, ' ');
+                    charsToDisplay--;
+                }
+
+                foreach (char c in eventString)
+                {
+                    setChar(i, c);
+                    if (first)
+                    {
+                        // Invert the first word to highlight it
+                        var color = _consoleBuffer[i].ForegroundColor;
+                        _consoleBuffer[i].ForegroundColor = _consoleBuffer[i].BackgroundColor;
+                        _consoleBuffer[i].BackgroundColor = color;
+                    }
+                    i++;
+                    charsToDisplay--;
+                }
+
+                first = false;
+            }
+            while (charsToDisplay-- > 0)
+            {
+                setChar(i++, ' ');
+            }
+        }
+
+        private void ClearDemoWindow()
+        {
+            int bufferWidth = Console.BufferWidth;
+            var charInfoBuffer = new CHAR_INFO[bufferWidth * 3];
+
+            for (int i = 0; i < charInfoBuffer.Length; i++)
+            {
+                charInfoBuffer[i].UnicodeChar = ' ';
+                charInfoBuffer[i].ForegroundColor = _initialForegroundColor;
+                charInfoBuffer[i].BackgroundColor= _initialBackgroundColor;
+            }
+
+            int bufferLineCount = ConvertOffsetToCoordinates(_buffer.Length).Y - _initialY + 1;
+            int y = _initialY + bufferLineCount + 1;
+            WriteBufferLines(charInfoBuffer, ref y);
         }
 
 #endregion Rendering
+
+        /// <summary>
+        /// Turn on demo mode (display events like keys pressed)
+        /// </summary>
+        public static void EnableDemoMode(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            const int windowLineCount = 4;  // 1 blank line, 2 border lines, 1 line of info
+            _singleton._logListener.EnableEvents(_singleton._log, EventLevel.LogAlways);
+            _singleton._demoMode = true;
+            _singleton._demoWindowLineCount = windowLineCount;
+            var newBuffer = new CHAR_INFO[_singleton._consoleBuffer.Length + (windowLineCount * _singleton._bufferWidth)];
+            Array.Copy(_singleton._consoleBuffer, newBuffer,
+                _singleton._initialX + (_singleton._extraPromptLineCount * _singleton._bufferWidth));
+            _singleton._consoleBuffer = newBuffer;
+            _singleton.Render();
+        }
+
+        /// <summary>
+        /// Turn off demo mode (display events like keys pressed)
+        /// </summary>
+        public static void DisableDemoMode(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            _singleton._logListener.DisableEvents(_singleton._log);
+            string eventString;
+            // Drain the queued events
+            while (_singleton._logListener.TryGetEvent(out eventString))
+            {
+            }
+            _singleton._demoMode = false;
+            _singleton._demoStrings.Clear();
+            _singleton._demoWindowLineCount = 0;
+            _singleton.ClearDemoWindow();
+        }
 
         private void SetOptionsInternal(SetPSReadlineOption options)
         {
