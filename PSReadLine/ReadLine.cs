@@ -38,6 +38,7 @@ namespace PSConsoleUtilities
         Parameter,
         Type,
         Number,
+        Member,
     }
 
     public class KeyHandler
@@ -161,6 +162,7 @@ namespace PSConsoleUtilities
         public const ConsoleColor DefaultParameterForegroundColor = ConsoleColor.DarkGray;
         public const ConsoleColor DefaultTypeForegroundColor      = ConsoleColor.Gray;
         public const ConsoleColor DefaultNumberForegroundColor    = ConsoleColor.White;
+        public const ConsoleColor DefaultMemberForegroundColor    = ConsoleColor.Gray;
 
         private string _continuationPrompt;
         public const string DefaultContinuationPrompt = ">>> ";
@@ -465,7 +467,7 @@ namespace PSConsoleUtilities
 
             _buffer = new StringBuilder();
 
-            _tokenForegroundColors = new ConsoleColor[(int)TokenClassification.Number + 1];
+            _tokenForegroundColors = new ConsoleColor[(int)TokenClassification.Member + 1];
             _tokenBackgroundColors = new ConsoleColor[_tokenForegroundColors.Length];
             ResetColors();
 
@@ -504,6 +506,7 @@ namespace PSConsoleUtilities
             _tokenForegroundColors[(int)TokenClassification.Parameter] = DefaultParameterForegroundColor;
             _tokenForegroundColors[(int)TokenClassification.Type]      = DefaultTypeForegroundColor;
             _tokenForegroundColors[(int)TokenClassification.Number]    = DefaultNumberForegroundColor;
+            _tokenForegroundColors[(int)TokenClassification.Member]    = DefaultMemberForegroundColor;
             for (int i = 0; i < _tokenBackgroundColors.Length; i++)
             {
                 _tokenBackgroundColors[i] = DefaultTokenBackgroundColor;
@@ -1667,6 +1670,9 @@ namespace PSConsoleUtilities
 
             if ((token.TokenFlags & TokenFlags.TypeName) != 0)
                 return TokenClassification.Type;
+
+            if ((token.TokenFlags & TokenFlags.MemberName) != 0)
+                return TokenClassification.Member;
 
             return TokenClassification.None;
         }
