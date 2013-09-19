@@ -1,4 +1,3 @@
-
 param([switch]$Install)
 
 add-type -AssemblyName System.IO.Compression.FileSystem
