@@ -46,7 +46,7 @@ del $PSScriptRoot\PSReadline.zip -ea Ignore
 
 if ($Install)
 {
-    $InstallDir = "${env:HOME}\Documents\WIndowsPowerShell\Modules"
+    $InstallDir = "$HOME\Documents\WIndowsPowerShell\Modules"
 
     if (!(Test-Path $InstallDir))
     {
