@@ -575,10 +575,14 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void CancelLine(ConsoleKeyInfo? key = null, object arg = null)
         {
-            // Clear out the input so it doesn't get executed, but
-            // don't call render so the screen is left alone.
-            _singleton._buffer.Clear();
-            AcceptLine();
+            // Append the key that canceled input and display it so we have some visual
+            // hint that the command didn't run.
+            _singleton._current = _singleton._buffer.Length;
+            _singleton._buffer.Append(key.HasValue ? key.Value.KeyChar : Keys.CtrlC.KeyChar);
+            _singleton.Render();
+            Console.Out.Write("\n");
+            _singleton._buffer.Clear(); // Clear so we don't actually run the input
+            _singleton._inputAccepted = true;
         }
 
         /// <summary>
