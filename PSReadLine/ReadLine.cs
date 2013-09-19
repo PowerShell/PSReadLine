@@ -1490,10 +1490,10 @@ namespace PSConsoleUtilities
                     foregroundColor = _tokenForegroundColors[(int)GetTokenClassification(token)];
                     backgroundColor = _tokenBackgroundColors[(int)GetTokenClassification(token)];
 
-                    if (token.Kind == TokenKind.StringExpandable || token.Kind == TokenKind.HereStringExpandable)
+                    var stringToken = token as StringExpandableToken;
+                    if (stringToken != null)
                     {
                         // We might have nested tokens.
-                        var stringToken = (StringExpandableToken)token;
                         if (stringToken.NestedTokens != null && stringToken.NestedTokens.Any())
                         {
                             var tokens = new Token[stringToken.NestedTokens.Count + 1];
