@@ -345,7 +345,7 @@ namespace PSConsoleUtilities
 
         private string MaybeAddToHistory(string result)
         {
-            bool addToHistory = (_addToHistoryHandler == null) || _addToHistoryHandler(result);
+            bool addToHistory = !string.IsNullOrWhiteSpace(result) && ((_addToHistoryHandler == null) || _addToHistoryHandler(result));
             if (addToHistory && _historyNoDuplicates)
             {
                 // REVIEW: should history be case sensitive - it is now.
