@@ -1662,7 +1662,7 @@ namespace PSConsoleUtilities
             if ((token.TokenFlags & TokenFlags.Keyword) != 0)
                 return TokenClassification.Keyword;
 
-            if ((token.TokenFlags & (TokenFlags.BinaryOperator | TokenFlags.UnaryOperator)) != 0)
+            if ((token.TokenFlags & (TokenFlags.BinaryOperator | TokenFlags.UnaryOperator | TokenFlags.AssignmentOperator)) != 0)
                 return TokenClassification.Operator;
 
             if ((token.TokenFlags & TokenFlags.TypeName) != 0)
