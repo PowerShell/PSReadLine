@@ -16,6 +16,6 @@ Breaking changes:
     - Can use this instead:
         Set-PSReadlineOption -AddToHistoryHandler { $args[0].Length -gt 3 }
 
-### Version 1.0.0.1
+### Version 1.0.0.0
 
 Initial release
