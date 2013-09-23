@@ -84,6 +84,7 @@ namespace UnitTestPSReadLine
         /*Parameter*/ ConsoleColor.White,
         /*Type*/      ConsoleColor.Yellow,
         /*Number*/    ConsoleColor.DarkBlue,
+        /*Member*/    ConsoleColor.DarkMagenta,
         };
 
         private static readonly ConsoleColor[] BackgroundColors = new[]
@@ -98,6 +99,7 @@ namespace UnitTestPSReadLine
         /*Parameter*/ ConsoleColor.DarkYellow,
         /*Type*/      ConsoleColor.Black,
         /*Number*/    ConsoleColor.Gray,
+        /*Member*/    ConsoleColor.Yellow,
         };
 
         static Dictionary<char, ConsoleKeyInfo> CharToKeyInfo = new Dictionary<char, ConsoleKeyInfo>();
