@@ -1,14 +1,33 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
 namespace PSConsoleUtilities
 {
+    internal sealed class QueueDebugView<T>
+    {
+        private readonly HistoryQueue<T> _queue;
+
+        [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
+        public T[] Items
+        {
+            get { return this._queue.ToArray(); }
+        }
+
+        public QueueDebugView(HistoryQueue<T> queue)
+        {
+            if (queue == null)
+                throw new ArgumentNullException("queue");
+            this._queue = queue;
+        }
+    }
+
+    [DebuggerDisplay("Count = {Count}")]
+    [DebuggerTypeProxy(typeof(QueueDebugView<>))]
     internal class HistoryQueue<T>
     {
-        private T[] _array;
+        private readonly T[] _array;
         private int _head;
         private int _tail;
 
@@ -70,6 +89,24 @@ namespace PSConsoleUtilities
             _head = (_head + 1) % _array.Length;
             Count -= 1;
             return obj;
+        }
+
+        public T[] ToArray()
+        {
+            var result = new T[Count];
+            if (Count > 0)
+            {
+                if (_head < _tail)
+                {
+                    Array.Copy(_array, _head, result, 0, Count);
+                }
+                else
+                {
+                    Array.Copy(_array, _head, result, 0, _array.Length - _head);
+                    Array.Copy(_array, 0, result, _array.Length - _head, _tail);
+                }
+            }
+            return result;
         }
 
         [ExcludeFromCodeCoverage]
