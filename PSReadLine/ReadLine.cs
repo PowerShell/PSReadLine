@@ -91,6 +91,12 @@ namespace PSConsoleUtilities
             public string LongDescription;
         }
 
+        [DebuggerDisplay("{_buffer}")]
+        class HistoryItem
+        {
+            public StringBuilder _buffer;
+        }
+
         static KeyHandler MakeKeyHandler(Action<ConsoleKeyInfo?, object> action, string briefDescription, string longDescription = null)
         {
             return new KeyHandler
@@ -124,7 +130,8 @@ namespace PSConsoleUtilities
         private CHAR_INFO _space;
 
         // History state
-        private HistoryQueue<string> _history;
+        private HistoryQueue<HistoryItem> _history;
+        private readonly HashSet<string> _hashedHistory; 
         private int _currentHistoryIndex;
         private int _searchHistoryCommandCount;
         private string _searchHistoryPrefix;
@@ -353,11 +360,11 @@ namespace PSConsoleUtilities
                 // REVIEW: should history be case sensitive - it is now.
                 // A smart comparer could use the ast to ignore case on commands, parameters,
                 // operators and keywords while remaining case sensitive on command arguments.
-                addToHistory = !_history.Contains(result);
+                addToHistory = !_hashedHistory.Contains(result);
             }
             if (addToHistory)
             {
-                _history.Enqueue(result);
+                _history.Enqueue(new HistoryItem { _buffer = new StringBuilder(_buffer.ToString()) });
                 _currentHistoryIndex = _history.Count;
             }
             if (_demoMode)
@@ -365,6 +372,22 @@ namespace PSConsoleUtilities
                 ClearDemoWindow();
             }
             return result;
+        }
+
+        private void HistoryOnEnqueueHandler(HistoryItem obj)
+        {
+            if (_historyNoDuplicates)
+            {
+                _hashedHistory.Add(obj._buffer.ToString());
+            }
+        }
+
+        private void HistoryOnDequeueHandler(HistoryItem obj)
+        {
+            if (_historyNoDuplicates)
+            {
+                _hashedHistory.Remove(obj._buffer.ToString());
+            }
         }
 
         static PSConsoleReadLine()
@@ -478,9 +501,14 @@ namespace PSConsoleUtilities
             _addToHistoryHandler = null;
             _historyNoDuplicates = DefaultHistoryNoDuplicates;
             _maximumHistoryCount = DefaultMaximumHistoryCount;
-            _history = new HistoryQueue<string>(_maximumHistoryCount);
+            _history = new HistoryQueue<HistoryItem>(_maximumHistoryCount)
+            {
+                OnDequeue = HistoryOnDequeueHandler,
+                OnEnqueue = HistoryOnEnqueueHandler
+            };
             _currentHistoryIndex = 0;
             _historySearchCursorMovesToEnd = DefaultHistorySearchCursorMovesToEnd;
+            _hashedHistory = new HashSet<string>();
 
             _maximumKillRingCount = DefaultMaximumKillRingCount;
             _killIndex = -1;    // So first add indexes 0.
@@ -822,13 +850,14 @@ namespace PSConsoleUtilities
         public static void ClearHistory()
         {
             _singleton._history.Clear();
+            _singleton._hashedHistory.Clear();
             _singleton._currentHistoryIndex = 0;
         }
 
         private void UpdateFromHistory(bool moveCursor)
         {
             _buffer.Clear();
-            _buffer.Append(_history[_currentHistoryIndex]);
+            _buffer.Append(_history[_currentHistoryIndex]._buffer);
             if (moveCursor)
             {
                 _current = _buffer.Length;
@@ -871,7 +900,7 @@ namespace PSConsoleUtilities
             int incr = backward ? -1 : +1;
             for (int i = _currentHistoryIndex + incr; i >=0 && i < _history.Count; i += incr)
             {
-                if (_history[i].StartsWith(_searchHistoryPrefix))
+                if (_history[i]._buffer.ToString().StartsWith(_searchHistoryPrefix))
                 {
                     _currentHistoryIndex = i;
                     UpdateFromHistory(moveCursor: _historySearchCursorMovesToEnd);
@@ -1939,18 +1968,23 @@ namespace PSConsoleUtilities
                 _historyNoDuplicates = options.HistoryNoDuplicates;
                 if (_historyNoDuplicates)
                 {
-                    var historyItems = new HashSet<string>();
-                    var newHistory = new HistoryQueue<string>(_maximumHistoryCount);
+                    _hashedHistory.Clear();
+                    _history.OnEnqueue = null;
+                    _history.OnDequeue = null;
+                    var newHistory = new HistoryQueue<HistoryItem>(_maximumHistoryCount);
                     while (_history.Count > 0)
                     {
                         var item = _history.Dequeue();
-                        if (!historyItems.Contains(item))
+                        var itemStr = item._buffer.ToString();
+                        if (!_hashedHistory.Contains(itemStr))
                         {
                             newHistory.Enqueue(item);
-                            historyItems.Add(item);
+                            _hashedHistory.Add(itemStr);
                         }
                     }
                     _history = newHistory;
+                    _history.OnEnqueue = HistoryOnEnqueueHandler;
+                    _history.OnDequeue = HistoryOnDequeueHandler;
                     _currentHistoryIndex = _history.Count;
                 }
             }
@@ -1965,16 +1999,20 @@ namespace PSConsoleUtilities
             if (options._maximumHistoryCount.HasValue)
             {
                 _maximumHistoryCount = options.MaximumHistoryCount;
-                var newHistory = new HistoryQueue<string>(_maximumHistoryCount);
+                var newHistory = new HistoryQueue<HistoryItem>(_maximumHistoryCount);
                 while (_history.Count > _maximumHistoryCount)
                 {
                     _history.Dequeue();
                 }
+                _history.OnEnqueue = null;
+                _history.OnDequeue = null;
                 while (_history.Count > 0)
                 {
                     newHistory.Enqueue(_history.Dequeue());
                 }
                 _history = newHistory;
+                _history.OnEnqueue = HistoryOnEnqueueHandler;
+                _history.OnDequeue = HistoryOnDequeueHandler;
                 _currentHistoryIndex = _history.Count;
             }
             if (options._maximumKillRingCount.HasValue)

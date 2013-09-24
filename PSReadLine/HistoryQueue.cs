@@ -54,6 +54,9 @@ namespace PSConsoleUtilities
 
         public int Count { get; private set; }
 
+        public Action<T> OnDequeue { get; set; }
+        public Action<T> OnEnqueue { get; set; }
+
         public int IndexOf(T item)
         {
             // REVIEW: should we use case insensitive here?
@@ -78,6 +81,11 @@ namespace PSConsoleUtilities
             _array[_tail] = item;
             _tail = (_tail + 1) % _array.Length;
             Count += 1;
+
+            if (OnEnqueue != null)
+            {
+                OnEnqueue(item);
+            }
         }
 
         public T Dequeue()
@@ -88,6 +96,10 @@ namespace PSConsoleUtilities
             _array[_head] = default(T);
             _head = (_head + 1) % _array.Length;
             Count -= 1;
+            if (OnDequeue != null)
+            {
+                OnDequeue(obj);
+            }
             return obj;
         }
 
