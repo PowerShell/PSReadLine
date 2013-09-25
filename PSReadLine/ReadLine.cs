@@ -91,10 +91,10 @@ namespace PSConsoleUtilities
             public string LongDescription;
         }
 
-        [DebuggerDisplay("{_buffer}")]
+        [DebuggerDisplay("{_line}")]
         class HistoryItem
         {
-            public StringBuilder _buffer;
+            public string _line;
         }
 
         static KeyHandler MakeKeyHandler(Action<ConsoleKeyInfo?, object> action, string briefDescription, string longDescription = null)
@@ -367,7 +367,7 @@ namespace PSConsoleUtilities
             }
             if (addToHistory)
             {
-                _history.Enqueue(new HistoryItem { _buffer = new StringBuilder(_buffer.ToString()) });
+                _history.Enqueue(new HistoryItem { _line = _buffer.ToString() });
                 _currentHistoryIndex = _history.Count;
             }
             if (_demoMode)
@@ -381,7 +381,7 @@ namespace PSConsoleUtilities
         {
             if (_historyNoDuplicates)
             {
-                _hashedHistory.Add(obj._buffer.ToString());
+                _hashedHistory.Add(obj._line);
             }
         }
 
@@ -389,7 +389,7 @@ namespace PSConsoleUtilities
         {
             if (_historyNoDuplicates)
             {
-                _hashedHistory.Remove(obj._buffer.ToString());
+                _hashedHistory.Remove(obj._line);
             }
         }
 
@@ -492,7 +492,7 @@ namespace PSConsoleUtilities
             _chordDispatchTable = new Dictionary<ConsoleKeyInfo, Dictionary<ConsoleKeyInfo, KeyHandler>>();
 
             _buffer = new StringBuilder();
-            _savedCurrentLine = new HistoryItem {_buffer = new StringBuilder()};
+            _savedCurrentLine = new HistoryItem();
 
             _tokenForegroundColors = new ConsoleColor[(int)TokenClassification.Member + 1];
             _tokenBackgroundColors = new ConsoleColor[_tokenForegroundColors.Length];
@@ -860,11 +860,11 @@ namespace PSConsoleUtilities
 
         private void UpdateFromHistory(bool moveCursor)
         {
-            var buffer = (_currentHistoryIndex == _history.Count)
-                             ? _savedCurrentLine._buffer
-                             : _history[_currentHistoryIndex]._buffer;
+            var line = (_currentHistoryIndex == _history.Count)
+                           ? _savedCurrentLine._line
+                           : _history[_currentHistoryIndex]._line;
             _buffer.Clear();
-            _buffer.Append(buffer);
+            _buffer.Append(line);
             if (moveCursor)
             {
                 _current = _buffer.Length;
@@ -876,8 +876,7 @@ namespace PSConsoleUtilities
         {
             if (_singleton._currentHistoryIndex == _history.Count)
             {
-                _savedCurrentLine._buffer.Clear();
-                _savedCurrentLine._buffer.Append(_buffer.ToString());
+                _savedCurrentLine._line = _buffer.ToString();
             }
         }
 
@@ -918,7 +917,7 @@ namespace PSConsoleUtilities
             int incr = backward ? -1 : +1;
             for (int i = _currentHistoryIndex + incr; i >=0 && i < _history.Count; i += incr)
             {
-                if (_history[i]._buffer.ToString().StartsWith(_searchHistoryPrefix))
+                if (_history[i]._line.StartsWith(_searchHistoryPrefix))
                 {
                     _currentHistoryIndex = i;
                     UpdateFromHistory(moveCursor: _historySearchCursorMovesToEnd);
@@ -1995,7 +1994,7 @@ namespace PSConsoleUtilities
                     while (_history.Count > 0)
                     {
                         var item = _history.Dequeue();
-                        var itemStr = item._buffer.ToString();
+                        var itemStr = item._line;
                         if (!_hashedHistory.Contains(itemStr))
                         {
                             newHistory.Enqueue(item);
