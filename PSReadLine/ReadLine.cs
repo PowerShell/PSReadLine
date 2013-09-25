@@ -135,6 +135,9 @@ namespace PSConsoleUtilities
         private int _currentHistoryIndex;
         private int _searchHistoryCommandCount;
         private string _searchHistoryPrefix;
+        // When cycling through history, the current line (not yet added to history)
+        // is saved here so it can be restored.
+        private HistoryItem _savedCurrentLine;
 
         // Yank/Kill state
         private readonly List<string> _killRing;
@@ -489,6 +492,7 @@ namespace PSConsoleUtilities
             _chordDispatchTable = new Dictionary<ConsoleKeyInfo, Dictionary<ConsoleKeyInfo, KeyHandler>>();
 
             _buffer = new StringBuilder();
+            _savedCurrentLine = new HistoryItem {_buffer = new StringBuilder()};
 
             _tokenForegroundColors = new ConsoleColor[(int)TokenClassification.Member + 1];
             _tokenBackgroundColors = new ConsoleColor[_tokenForegroundColors.Length];
@@ -856,8 +860,11 @@ namespace PSConsoleUtilities
 
         private void UpdateFromHistory(bool moveCursor)
         {
+            var buffer = (_currentHistoryIndex == _history.Count)
+                             ? _savedCurrentLine._buffer
+                             : _history[_currentHistoryIndex]._buffer;
             _buffer.Clear();
-            _buffer.Append(_history[_currentHistoryIndex]._buffer);
+            _buffer.Append(buffer);
             if (moveCursor)
             {
                 _current = _buffer.Length;
@@ -865,11 +872,21 @@ namespace PSConsoleUtilities
             Render();
         }
 
+        private void SaveCurrentLine()
+        {
+            if (_singleton._currentHistoryIndex == _history.Count)
+            {
+                _savedCurrentLine._buffer.Clear();
+                _savedCurrentLine._buffer.Append(_buffer.ToString());
+            }
+        }
+
         /// <summary>
         /// Replace the current input with the 'previous' item from PSReadline history.
         /// </summary>
         public static void PreviousHistory(ConsoleKeyInfo? key = null, object arg = null)
         {
+            _singleton.SaveCurrentLine();
             if (_singleton._currentHistoryIndex > 0)
             {
                 _singleton._currentHistoryIndex -= 1;
@@ -882,7 +899,8 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void NextHistory(ConsoleKeyInfo? key = null, object arg = null)
         {
-            if (_singleton._currentHistoryIndex < (_singleton._history.Count - 1))
+            _singleton.SaveCurrentLine();
+            if (_singleton._currentHistoryIndex < _singleton._history.Count)
             {
                 _singleton._currentHistoryIndex += 1;
                 _singleton.UpdateFromHistory(moveCursor: true);
@@ -915,6 +933,7 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void HistorySearchBackward(ConsoleKeyInfo? key = null, object arg = null)
         {
+            _singleton.SaveCurrentLine();
             _singleton.HistorySearch(backward: true);
         }
 
@@ -924,6 +943,7 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void HistorySearchForward(ConsoleKeyInfo? key = null, object arg = null)
         {
+            _singleton.SaveCurrentLine();
             _singleton.HistorySearch(backward: false);
         }
 
