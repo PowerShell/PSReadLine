@@ -138,6 +138,9 @@
   <data name="BackwordWordDescription" xml:space="preserve">
     <value>Move the cursor to the beginning of the current or previous token or start of the line</value>
   </data>
+  <data name="BeginningOfHistoryDescription" xml:space="preserve">
+    <value>Move to the first item in the history</value>
+  </data>
   <data name="BeginningOfLineDescription" xml:space="preserve">
     <value>Move the cursor to the beginning of the line</value>
   </data>
@@ -167,6 +170,9 @@
   </data>
   <data name="EmacsMetaDescription" xml:space="preserve">
     <value>String is not used in the UI</value>
+  </data>
+  <data name="EndOfHistoryDescription" xml:space="preserve">
+    <value>Move to the last item (the current input) in the history</value>
   </data>
   <data name="EndOfLineDescription" xml:space="preserve">
     <value>Move the cursor to the end of the line</value>

@@ -124,6 +124,15 @@ namespace PSConsoleUtilities {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Move to the first item in the history.
+        /// </summary>
+        internal static string BeginningOfHistoryDescription {
+            get {
+                return ResourceManager.GetString("BeginningOfHistoryDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Move the cursor to the beginning of the line.
         /// </summary>
         internal static string BeginningOfLineDescription {
@@ -210,6 +219,15 @@ namespace PSConsoleUtilities {
         internal static string EmacsMetaDescription {
             get {
                 return ResourceManager.GetString("EmacsMetaDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Move to the last item (the current input) in the history.
+        /// </summary>
+        internal static string EndOfHistoryDescription {
+            get {
+                return ResourceManager.GetString("EndOfHistoryDescription", resourceCulture);
             }
         }
         

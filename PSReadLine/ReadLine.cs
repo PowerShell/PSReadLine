@@ -444,6 +444,8 @@ namespace PSConsoleUtilities
                 { Keys.RightArrow,      MakeKeyHandler(ForwardChar,          "ForwardChar") },
                 { Keys.UpArrow,         MakeKeyHandler(PreviousHistory,      "PreviousHistory") },
                 { Keys.DownArrow,       MakeKeyHandler(NextHistory,          "NextHistory") },
+                { Keys.AltLess,         MakeKeyHandler(BeginningOfHistory,   "BeginningOfHistory") },
+                { Keys.AltGreater,      MakeKeyHandler(EndOfHistory,         "EndOfHistory") },
                 { Keys.Home,            MakeKeyHandler(BeginningOfLine,      "BeginningOfLine") },
                 { Keys.End,             MakeKeyHandler(EndOfLine,            "EndOfLine") },
                 { Keys.Escape,          MakeKeyHandler(Chord,                "ChordFirstKey") },
@@ -968,6 +970,25 @@ namespace PSConsoleUtilities
         }
 
         /// <summary>
+        /// Move to the first item in the history.
+        /// </summary>
+        public static void BeginningOfHistory(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            _singleton.SaveCurrentLine();
+            _singleton._currentHistoryIndex = 0;
+            _singleton.UpdateFromHistory(moveCursor: _singleton._historySearchCursorMovesToEnd);
+        }
+
+        /// <summary>
+        /// Move to the last item (the current input) in the history.
+        /// </summary>
+        public static void EndOfHistory(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            _singleton._currentHistoryIndex = _singleton._history.Count;
+            _singleton.UpdateFromHistory(moveCursor: _singleton._historySearchCursorMovesToEnd);
+        }
+
+        /// <summary>
         /// Replace the current input with the 'previous' item from PSReadline history
         /// that matches the characters between the start and the input and the cursor.
         /// </summary>
@@ -986,6 +1007,10 @@ namespace PSConsoleUtilities
             _singleton.SaveCurrentLine();
             _singleton.HistorySearch(backward: false);
         }
+
+#endregion History
+
+#region Completion
 
         /// <summary>
         /// Attempt to complete the text surrounding the cursor with the next
@@ -1230,7 +1255,7 @@ namespace PSConsoleUtilities
             _singleton.Render();
         }
 
-#endregion History
+#endregion Completion
 
         #region Kill/Yank
 
