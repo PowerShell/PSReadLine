@@ -213,8 +213,11 @@
   <data name="PreviousHistoryDescription" xml:space="preserve">
     <value>Replace the input with the previous item in the history</value>
   </data>
+  <data name="RedoDescription" xml:space="preserve">
+    <value>Redo an undo</value>
+  </data>
   <data name="RevertLineDescription" xml:space="preserve">
-    <value>Clear the current input</value>
+    <value>Equivalent to undo all edits (clears the line except lines imported from history)</value>
   </data>
   <data name="SetMarkDescription" xml:space="preserve">
     <value>Mark the location of the cursor</value>
@@ -224,6 +227,9 @@
   </data>
   <data name="TabCompletePreviousDescription" xml:space="preserve">
     <value>Complete the input using the previous completion</value>
+  </data>
+  <data name="UndoDescription" xml:space="preserve">
+    <value>Undo a previous edit</value>
   </data>
   <data name="YankDescription" xml:space="preserve">
     <value>Copy the text from the current kill ring position to the input</value>

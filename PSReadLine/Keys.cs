@@ -107,9 +107,10 @@ namespace PSConsoleUtilities
         new
         public static ConsoleKeyInfo Equals      = new ConsoleKeyInfo('=', ConsoleKey.OemPlus, false, false, false);
 
-        public static ConsoleKeyInfo CtrlAt    = new ConsoleKeyInfo((char)0, ConsoleKey.D2, true, false, true);
-        public static ConsoleKeyInfo AltEquals = new ConsoleKeyInfo('=', ConsoleKey.OemPlus, false, true, false);
-        public static ConsoleKeyInfo Space     = new ConsoleKeyInfo(' ', ConsoleKey.Spacebar, false, false, false);
+        public static ConsoleKeyInfo CtrlAt       = new ConsoleKeyInfo((char)0, ConsoleKey.D2, true, false, true);
+        public static ConsoleKeyInfo CtrlUnderbar = new ConsoleKeyInfo((char)31, ConsoleKey.OemMinus, true, false, true);
+        public static ConsoleKeyInfo AltEquals    = new ConsoleKeyInfo('=', ConsoleKey.OemPlus, false, true, false);
+        public static ConsoleKeyInfo Space        = new ConsoleKeyInfo(' ', ConsoleKey.Spacebar, false, false, false);
         // Useless because it's caught by the console to bring up the system menu.
         public static ConsoleKeyInfo AltSpace  = new ConsoleKeyInfo(' ', ConsoleKey.Spacebar, false, true, false);
         public static ConsoleKeyInfo CtrlSpace  = new ConsoleKeyInfo(' ', ConsoleKey.Spacebar, false, false, true);

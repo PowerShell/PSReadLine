@@ -95,6 +95,8 @@ namespace PSConsoleUtilities
         class HistoryItem
         {
             public string _line;
+            public List<EditItem> _edits;
+            public int _undoEditIndex;
         }
 
         static KeyHandler MakeKeyHandler(Action<ConsoleKeyInfo?, object> action, string briefDescription, string longDescription = null)
@@ -118,6 +120,10 @@ namespace PSConsoleUtilities
         private Dictionary<ConsoleKeyInfo, KeyHandler> _dispatchMetaTable;
 
         private readonly StringBuilder _buffer;
+        private List<EditItem> _edits;
+        private int _editGroupCount;
+        private readonly Stack<int> _pushedEditGroupCount;
+        private int _undoEditIndex;
         private CHAR_INFO[] _consoleBuffer;
         private int _current;
         private int _mark;
@@ -367,7 +373,12 @@ namespace PSConsoleUtilities
             }
             if (addToHistory)
             {
-                _history.Enqueue(new HistoryItem { _line = _buffer.ToString() });
+                _history.Enqueue(new HistoryItem
+                {
+                    _line = _buffer.ToString(),
+                    _edits = _edits,
+                    _undoEditIndex = _undoEditIndex
+                });
                 _currentHistoryIndex = _history.Count;
             }
             if (_demoMode)
@@ -418,6 +429,8 @@ namespace PSConsoleUtilities
                 { Keys.VolumeUp,        MakeKeyHandler(Ignore,               "Ignore") },
                 { Keys.VolumeMute,      MakeKeyHandler(Ignore,               "Ignore") },
                 { Keys.CtrlC,           MakeKeyHandler(CancelLine,           "CancelLine") },
+                { Keys.CtrlY,           MakeKeyHandler(Redo,                 "Redo") },
+                { Keys.CtrlZ,           MakeKeyHandler(Undo,                 "Undo") },
                 { Keys.CtrlEnd,         MakeKeyHandler(ForwardDeleteLine,    "ForwardDeleteLine") },
                 { Keys.CtrlHome,        MakeKeyHandler(BackwardDeleteLine,   "BackwardDeleteLine") },
             };
@@ -449,6 +462,7 @@ namespace PSConsoleUtilities
                 { Keys.CtrlX,           MakeKeyHandler(Chord,                "ChordFirstKey") },
                 { Keys.CtrlY,           MakeKeyHandler(Yank,                 "Yank") },
                 { Keys.CtrlAt,          MakeKeyHandler(SetMark,              "SetMark") },
+                { Keys.CtrlUnderbar,    MakeKeyHandler(Undo,                 "Undo") },
                 { Keys.AltB,            MakeKeyHandler(EmacsBackwardWord,    "EmacsBackwardWord") },
                 { Keys.AltD,            MakeKeyHandler(KillWord,             "KillWord") },
                 { Keys.AltF,            MakeKeyHandler(EmacsForwardWord,     "EmacsForwardWord") },
@@ -475,6 +489,7 @@ namespace PSConsoleUtilities
             _emacsCtrlXMap = new Dictionary<ConsoleKeyInfo, KeyHandler>(new ConsoleKeyInfoComparer())
             {
                 { Keys.Backspace,       MakeKeyHandler(BackwardKillLine,     "BackwardKillLine") },
+                { Keys.CtrlU,           MakeKeyHandler(Undo,                 "Undo") },
                 { Keys.CtrlX,           MakeKeyHandler(ExchangePointAndMark, "ExchangePointAndMark") },
             };
 
@@ -493,6 +508,8 @@ namespace PSConsoleUtilities
 
             _buffer = new StringBuilder();
             _savedCurrentLine = new HistoryItem();
+
+            _pushedEditGroupCount = new Stack<int>();
 
             _tokenForegroundColors = new ConsoleColor[(int)TokenClassification.Member + 1];
             _tokenBackgroundColors = new ConsoleColor[_tokenForegroundColors.Length];
@@ -548,6 +565,10 @@ namespace PSConsoleUtilities
         private void Initialize()
         {
             _buffer.Clear();
+            _edits = new List<EditItem>();
+            _undoEditIndex = 0;
+            _editGroupCount = 0;
+            _pushedEditGroupCount.Clear();
             _current = 0;
             _mark = 0;
             _tokens = null;
@@ -589,19 +610,17 @@ namespace PSConsoleUtilities
         {
         }
 
-        private void RevertLine(bool supportUndo)
-        {
-            _buffer.Clear();
-            _current = 0;
-            Render();
-        }
-
         /// <summary>
         /// Reverts all of the input to the current input.
         /// </summary>
         public static void RevertLine(ConsoleKeyInfo? key = null, object arg = null)
         {
-            _singleton.RevertLine(supportUndo: true);
+            while (_singleton._undoEditIndex > 0)
+            {
+                _singleton._edits[_singleton._undoEditIndex - 1].Undo(_singleton);
+                _singleton._undoEditIndex--;
+            }
+            _singleton.Render();
         }
 
         /// <summary>
@@ -630,7 +649,10 @@ namespace PSConsoleUtilities
             var buffer = _singleton._buffer;
             if (buffer.Length > 0 && current < buffer.Length)
             {
-                buffer.Remove(current, buffer.Length - current);
+                int length = buffer.Length - current;
+                var str = buffer.ToString(current, length);
+                _singleton.SaveEditItem(EditItemDelete.Create(str, current));
+                buffer.Remove(current, length);
                 _singleton.Render();
             }
         }
@@ -643,6 +665,8 @@ namespace PSConsoleUtilities
         {
             if (_singleton._current > 0)
             {
+                var str = _singleton._buffer.ToString(0, _singleton._current);
+                _singleton.SaveEditItem(EditItemDelete.Create(str, 0));
                 _singleton._buffer.Remove(0, _singleton._current);
                 _singleton._current = 0;
                 _singleton.Render();
@@ -656,7 +680,10 @@ namespace PSConsoleUtilities
         {
             if (_singleton._buffer.Length > 0 && _singleton._current > 0)
             {
-                _singleton._buffer.Remove(_singleton._current - 1, 1);
+                int startDeleteIndex = _singleton._current - 1;
+                _singleton.SaveEditItem(
+                    EditItemDelete.Create(new string(_singleton._buffer[startDeleteIndex], 1), startDeleteIndex));
+                _singleton._buffer.Remove(startDeleteIndex, 1);
                 _singleton._current--;
                 _singleton.Render();
             }
@@ -669,6 +696,8 @@ namespace PSConsoleUtilities
         {
             if (_singleton._buffer.Length > 0 && _singleton._current < _singleton._buffer.Length)
             {
+                _singleton.SaveEditItem(
+                    EditItemDelete.Create(new string(_singleton._buffer[_singleton._current], 1), _singleton._current));
                 _singleton._buffer.Remove(_singleton._current, 1);
                 _singleton.Render();
             }
@@ -860,9 +889,19 @@ namespace PSConsoleUtilities
 
         private void UpdateFromHistory(bool moveCursor)
         {
-            var line = (_currentHistoryIndex == _history.Count)
-                           ? _savedCurrentLine._line
-                           : _history[_currentHistoryIndex]._line;
+            string line;
+            if (_currentHistoryIndex == _history.Count)
+            {
+                line = _savedCurrentLine._line;
+                _edits = _savedCurrentLine._edits;
+                _undoEditIndex = _savedCurrentLine._undoEditIndex;
+            }
+            else
+            {
+                line = _history[_currentHistoryIndex]._line;
+                _edits = _history[_currentHistoryIndex]._edits;
+                _undoEditIndex = _history[_currentHistoryIndex]._undoEditIndex;
+            }
             _buffer.Clear();
             _buffer.Append(line);
             if (moveCursor)
@@ -877,6 +916,8 @@ namespace PSConsoleUtilities
             if (_singleton._currentHistoryIndex == _history.Count)
             {
                 _savedCurrentLine._line = _buffer.ToString();
+                _savedCurrentLine._edits = _edits;
+                _savedCurrentLine._undoEditIndex = _undoEditIndex;
             }
         }
 
@@ -1227,6 +1268,7 @@ namespace PSConsoleUtilities
             if (length > 0)
             {
                 var killText = _buffer.ToString(start, length);
+                SaveEditItem(EditItemDelete.Create(killText, start));
                 _buffer.Remove(start, length);
                 _current = start;
                 Render();
@@ -1440,6 +1482,7 @@ namespace PSConsoleUtilities
 
         private void Insert(char c)
         {
+            SaveEditItem(EditItemInsertChar.Create(c, _current));
             _buffer.Insert(_current, c);
             _current += 1;
             Render();
@@ -1447,6 +1490,7 @@ namespace PSConsoleUtilities
 
         private void Insert(string s)
         {
+            SaveEditItem(EditItemInsertString.Create(s, _current));
             _buffer.Insert(_current, s);
             _current += s.Length;
             Render();
@@ -1454,11 +1498,205 @@ namespace PSConsoleUtilities
 
         private void Replace(int start, int length, string replacement)
         {
+            StartEditGroup();
+            var str = _buffer.ToString(start, length);
+            SaveEditItem(EditItemDelete.Create(str, start));
             _buffer.Remove(start, length);
+            SaveEditItem(EditItemInsertString.Create(replacement, start));
             _buffer.Insert(start, replacement);
             _current = start + replacement.Length;
+            EndEditGroup();
             Render();
         }
+
+#region Undo
+        private void SaveEditItem(EditItem editItem)
+        {
+            // If there is some sort of edit after an undo, forget
+            // the
+            int removeCount = _edits.Count - _undoEditIndex;
+            if (removeCount > 0)
+            {
+                _edits.RemoveRange(_undoEditIndex, removeCount);
+            }
+            _edits.Add(editItem);
+            _undoEditIndex = _edits.Count;
+            _editGroupCount++;
+        }
+
+        private void StartEditGroup()
+        {
+            _pushedEditGroupCount.Push(_editGroupCount);
+            _editGroupCount = 0;
+        }
+
+        private void EndEditGroup()
+        {
+            // The last _editGroupCount edits are treated as a single item for undo
+            var start = _edits.Count - _editGroupCount;
+            var groupedEditItems = _edits.GetRange(start, _editGroupCount);
+            _edits.RemoveRange(start, _editGroupCount);
+            SaveEditItem(GroupedEdit.Create(groupedEditItems));
+            _editGroupCount = _pushedEditGroupCount.Pop();
+        }
+
+        /// <summary>
+        /// Undo a previous edit.
+        /// </summary>
+        public static void Undo(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            if (_singleton._undoEditIndex > 0)
+            {
+                _singleton._edits[_singleton._undoEditIndex - 1].Undo(_singleton);
+                _singleton._undoEditIndex--;
+                _singleton.Render();
+            }
+            else
+            {
+                Ding();
+            }
+        }
+
+        /// <summary>
+        /// Undo an undo.
+        /// </summary>
+        public static void Redo(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            if (_singleton._undoEditIndex < _singleton._edits.Count)
+            {
+                _singleton._edits[_singleton._undoEditIndex].Redo(_singleton);
+                _singleton._undoEditIndex++;
+                _singleton.Render();
+            }
+            else
+            {
+                Ding();
+            }
+        }
+
+        abstract class EditItem
+        {
+            public abstract void Undo(PSConsoleReadLine singleton);
+            public abstract void Redo(PSConsoleReadLine singleton);
+        }
+
+        [DebuggerDisplay("Insert '{_insertedCharacter}' ({_insertStartPosition})")]
+        class EditItemInsertChar : EditItem
+        {
+            // The character inserted is not needed for undo, only for redo
+            private char _insertedCharacter;
+            private int _insertStartPosition;
+
+            public static EditItem Create(char character, int position)
+            {
+                return new EditItemInsertChar
+                {
+                    _insertedCharacter = character,
+                    _insertStartPosition = position
+                };
+            }
+
+            public override void Undo(PSConsoleReadLine singleton)
+            {
+                Debug.Assert(singleton._buffer[_insertStartPosition] == _insertedCharacter, "Character to undo is not what it should be");
+                _singleton._buffer.Remove(_insertStartPosition, 1);
+                _singleton._current = _insertStartPosition;
+            }
+
+            public override void Redo(PSConsoleReadLine singleton)
+            {
+                _singleton._buffer.Insert(_insertStartPosition, _insertedCharacter);
+                _singleton._current++;
+            }
+        }
+
+        [DebuggerDisplay("Insert '{_insertedString}' ({_insertStartPosition})")]
+        class EditItemInsertString : EditItem
+        {
+            // The string inserted tells us the length to delete on undo.
+            // The contents of the string are only needed for redo.
+            private string _insertedString;
+            private int _insertStartPosition;
+
+            public static EditItem Create(string str, int position)
+            {
+                return new EditItemInsertString
+                {
+                    _insertedString = str,
+                    _insertStartPosition = position
+                };
+            }
+
+            public override void Undo(PSConsoleReadLine singleton)
+            {
+                Debug.Assert(singleton._buffer.ToString(_insertStartPosition, _insertedString.Length).Equals(_insertedString),
+                    "Character to undo is not what it should be");
+                _singleton._buffer.Remove(_insertStartPosition, _insertedString.Length);
+                _singleton._current = _insertStartPosition;
+            }
+
+            public override void Redo(PSConsoleReadLine singleton)
+            {
+                _singleton._buffer.Insert(_insertStartPosition, _insertedString);
+                _singleton._current += _insertedString.Length;
+            }
+        }
+
+        [DebuggerDisplay("Delete '{_deletedString}' ({_deleteStartPosition})")]
+        class EditItemDelete : EditItem
+        {
+            private string _deletedString;
+            private int _deleteStartPosition;
+
+            public static EditItem Create(string str, int position)
+            {
+                return new EditItemDelete
+                {
+                    _deletedString = str,
+                    _deleteStartPosition = position
+                };
+            }
+
+            public override void Undo(PSConsoleReadLine singleton)
+            {
+                _singleton._buffer.Insert(_deleteStartPosition, _deletedString);
+                _singleton._current = _deleteStartPosition + _deletedString.Length;
+            }
+
+            public override void Redo(PSConsoleReadLine singleton)
+            {
+                _singleton._buffer.Remove(_deleteStartPosition, _deletedString.Length);
+                _singleton._current = _deleteStartPosition;
+            }
+        }
+
+        class GroupedEdit : EditItem
+        {
+            private List<EditItem> _groupedEditItems;
+
+            public static EditItem Create(List<EditItem> groupedEditItems)
+            {
+                return new GroupedEdit {_groupedEditItems = groupedEditItems};
+            }
+
+            public override void Undo(PSConsoleReadLine singleton)
+            {
+                for (int i = _groupedEditItems.Count - 1; i >= 0; i--)
+                {
+                    _groupedEditItems[i].Undo(singleton);
+                }
+            }
+
+            public override void Redo(PSConsoleReadLine singleton)
+            {
+                foreach (var editItem in _groupedEditItems)
+                {
+                    editItem.Redo(singleton);
+                }
+            }
+        }
+
+#endregion Undo
 
 #region Rendering
 

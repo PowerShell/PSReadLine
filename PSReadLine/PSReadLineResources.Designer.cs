@@ -349,7 +349,16 @@ namespace PSConsoleUtilities {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Clear the current input.
+        ///   Looks up a localized string similar to Redo an undo.
+        /// </summary>
+        internal static string RedoDescription {
+            get {
+                return ResourceManager.GetString("RedoDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Equivalent to undo all edits (clears the line except lines imported from history).
         /// </summary>
         internal static string RevertLineDescription {
             get {
@@ -381,6 +390,15 @@ namespace PSConsoleUtilities {
         internal static string TabCompletePreviousDescription {
             get {
                 return ResourceManager.GetString("TabCompletePreviousDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Undo a previous edit.
+        /// </summary>
+        internal static string UndoDescription {
+            get {
+                return ResourceManager.GetString("UndoDescription", resourceCulture);
             }
         }
         
