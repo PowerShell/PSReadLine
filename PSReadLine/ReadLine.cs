@@ -163,94 +163,7 @@ namespace PSConsoleUtilities
 
 #region Configuration options
 
-        private readonly ConsoleColor[] _tokenForegroundColors;
-        private readonly ConsoleColor[] _tokenBackgroundColors;
-
-        public static readonly ConsoleColor DefaultTokenForegroundColor     = Console.ForegroundColor;
-        public static readonly ConsoleColor DefaultTokenBackgroundColor     = Console.BackgroundColor;
-
-        public const ConsoleColor DefaultCommentForegroundColor   = ConsoleColor.DarkGreen;
-        public const ConsoleColor DefaultKeywordForegroundColor   = ConsoleColor.Green;
-        public const ConsoleColor DefaultStringForegroundColor    = ConsoleColor.DarkCyan;
-        public const ConsoleColor DefaultOperatorForegroundColor  = ConsoleColor.DarkGray;
-        public const ConsoleColor DefaultVariableForegroundColor  = ConsoleColor.Green;
-        public const ConsoleColor DefaultCommandForegroundColor   = ConsoleColor.Yellow;
-        public const ConsoleColor DefaultParameterForegroundColor = ConsoleColor.DarkGray;
-        public const ConsoleColor DefaultTypeForegroundColor      = ConsoleColor.Gray;
-        public const ConsoleColor DefaultNumberForegroundColor    = ConsoleColor.White;
-        public const ConsoleColor DefaultMemberForegroundColor    = ConsoleColor.Gray;
-
-        private string _continuationPrompt;
-        public const string DefaultContinuationPrompt = ">>> ";
-        public static readonly ConsoleColor DefaultContinuationPromptForegroundColor = Console.ForegroundColor;
-        public static readonly ConsoleColor DefaultContinuationPromptBackgroundColor = Console.BackgroundColor;
-        private ConsoleColor _continuationPromptForegroundColor;
-        private ConsoleColor _continuationPromptBackgroundColor;
-
-        /// <summary>
-        /// Prompts are typically 1 line, but sometimes they may span lines.  This
-        /// count is used to make sure we can display the full prompt after showing
-        /// ambiguous completions
-        /// </summary>
-        public const int DefaultExtraPromptLineCount = 0;
-        private int _extraPromptLineCount;
-
-        /// <summary>
-        /// This delegate is called before adding a command line to the history.
-        /// The command line is not added to the history if this delegate returns false.
-        /// </summary>
-        private Func<string, bool> _addToHistoryHandler;
-
-        /// <summary>
-        /// When true, duplicates will not be added to the history.
-        /// </summary>
-        public const bool DefaultHistoryNoDuplicates = false;
-        private bool _historyNoDuplicates;
-
-        /// <summary>
-        /// The maximum number of commands to store in the history.
-        /// </summary>
-        public const int DefaultMaximumHistoryCount = 1024;
-        private int _maximumHistoryCount;
-
-        /// <summary>
-        /// The maximum number of items to store in the kill ring.
-        /// </summary>
-        public const int DefaultMaximumKillRingCount = 10;
-        private int _maximumKillRingCount;
-
-        /// <summary>
-        /// In Emacs, when searching history, the cursor doesn't move.
-        /// In 4NT, the cursor moves to the end.  This option allows
-        /// for either behavior.
-        /// </summary>
-        public const bool DefaultHistorySearchCursorMovesToEnd = false;
-        private bool _historySearchCursorMovesToEnd;
-
-        /// <summary>
-        /// When displaying possible completions, either display
-        /// tooltips or dipslay just the completions.
-        /// </summary>
-        public const bool DefaultShowToolTips = false;
-        private bool _showToolTips;
-
-        /// <summary>
-        /// When ringing the bell, what frequency do we use?
-        /// </summary>
-        public const int DefaultDingTone = 1221;
-        private int _dingTone;
-
-        /// <summary>
-        /// When ringing the bell, how long (in ms)?
-        /// </summary>
-        public const int DefaultDingDuration = 50;
-        private int _dingDuration;
-
-        /// <summary>
-        /// When ringing the bell, what should be done?
-        /// </summary>
-        public const BellStyle DefaultBellStyle = BellStyle.Audible;
-        private BellStyle _bellStyle;
+        private readonly PSConsoleReadlineOptions _options;
 
         #endregion Configuration options
 
@@ -260,6 +173,11 @@ namespace PSConsoleUtilities
         // that can be used to access the private bits here.  It's annoying
         // to be so close to 100% coverage and not have 100% coverage!
         private CHAR_INFO[] ConsoleBuffer { get { return _consoleBuffer; } }
+
+        public PSConsoleReadlineOptions Options
+        {
+            get { return _options; }
+        }
 
         #endregion Unit test only properties
 
@@ -363,8 +281,8 @@ namespace PSConsoleUtilities
 
         private string MaybeAddToHistory(string result, List<EditItem> edits, int undoEditIndex)
         {
-            bool addToHistory = !string.IsNullOrWhiteSpace(result) && ((_addToHistoryHandler == null) || _addToHistoryHandler(result));
-            if (addToHistory && _historyNoDuplicates)
+            bool addToHistory = !string.IsNullOrWhiteSpace(result) && ((Options.AddToHistoryHandler == null) || Options.AddToHistoryHandler(result));
+            if (addToHistory && Options.HistoryNoDuplicates)
             {
                 // REVIEW: should history be case sensitive - it is now.
                 // A smart comparer could use the ast to ignore case on commands, parameters,
@@ -390,7 +308,7 @@ namespace PSConsoleUtilities
 
         private void HistoryOnEnqueueHandler(HistoryItem obj)
         {
-            if (_historyNoDuplicates)
+            if (Options.HistoryNoDuplicates)
             {
                 _hashedHistory.Add(obj._line);
             }
@@ -398,7 +316,7 @@ namespace PSConsoleUtilities
 
         private void HistoryOnDequeueHandler(HistoryItem obj)
         {
-            if (_historyNoDuplicates)
+            if (Options.HistoryNoDuplicates)
             {
                 _hashedHistory.Remove(obj._line);
             }
@@ -513,55 +431,18 @@ namespace PSConsoleUtilities
 
             _pushedEditGroupCount = new Stack<int>();
 
-            _tokenForegroundColors = new ConsoleColor[(int)TokenClassification.Member + 1];
-            _tokenBackgroundColors = new ConsoleColor[_tokenForegroundColors.Length];
-            ResetColors();
+            _options = new PSConsoleReadlineOptions();
 
-            _continuationPrompt = DefaultContinuationPrompt;
-            _continuationPromptForegroundColor = DefaultContinuationPromptForegroundColor;
-            _continuationPromptBackgroundColor = DefaultContinuationPromptBackgroundColor;
-
-            _addToHistoryHandler = null;
-            _historyNoDuplicates = DefaultHistoryNoDuplicates;
-            _maximumHistoryCount = DefaultMaximumHistoryCount;
-            _history = new HistoryQueue<HistoryItem>(_maximumHistoryCount)
+            _history = new HistoryQueue<HistoryItem>(Options.MaximumHistoryCount)
             {
                 OnDequeue = HistoryOnDequeueHandler,
                 OnEnqueue = HistoryOnEnqueueHandler
             };
             _currentHistoryIndex = 0;
-            _historySearchCursorMovesToEnd = DefaultHistorySearchCursorMovesToEnd;
             _hashedHistory = new HashSet<string>();
 
-            _maximumKillRingCount = DefaultMaximumKillRingCount;
             _killIndex = -1;    // So first add indexes 0.
-            _killRing = new List<string>(_maximumKillRingCount);
-
-            _extraPromptLineCount = DefaultExtraPromptLineCount;
-            _showToolTips = DefaultShowToolTips;
-
-            _dingTone = DefaultDingTone;
-            _dingDuration = DefaultDingDuration;
-            _bellStyle = DefaultBellStyle;
-        }
-
-        private void ResetColors()
-        {
-            _tokenForegroundColors[(int)TokenClassification.None]      = DefaultTokenForegroundColor;
-            _tokenForegroundColors[(int)TokenClassification.Comment]   = DefaultCommentForegroundColor;
-            _tokenForegroundColors[(int)TokenClassification.Keyword]   = DefaultKeywordForegroundColor;
-            _tokenForegroundColors[(int)TokenClassification.String]    = DefaultStringForegroundColor;
-            _tokenForegroundColors[(int)TokenClassification.Operator]  = DefaultOperatorForegroundColor;
-            _tokenForegroundColors[(int)TokenClassification.Variable]  = DefaultVariableForegroundColor;
-            _tokenForegroundColors[(int)TokenClassification.Command]   = DefaultCommandForegroundColor;
-            _tokenForegroundColors[(int)TokenClassification.Parameter] = DefaultParameterForegroundColor;
-            _tokenForegroundColors[(int)TokenClassification.Type]      = DefaultTypeForegroundColor;
-            _tokenForegroundColors[(int)TokenClassification.Number]    = DefaultNumberForegroundColor;
-            _tokenForegroundColors[(int)TokenClassification.Member]    = DefaultMemberForegroundColor;
-            for (int i = 0; i < _tokenBackgroundColors.Length; i++)
-            {
-                _tokenBackgroundColors[i] = DefaultTokenBackgroundColor;
-            }
+            _killRing = new List<string>(Options.MaximumKillRingCount);
         }
 
         private void Initialize()
@@ -577,7 +458,7 @@ namespace PSConsoleUtilities
             _parseErrors = null;
             _inputAccepted = false;
             _initialX = Console.CursorLeft;
-            _initialY = Console.CursorTop - _extraPromptLineCount;
+            _initialY = Console.CursorTop - Options.ExtraPromptLineCount;
             _initialBackgroundColor = Console.BackgroundColor;
             _initialForegroundColor = Console.ForegroundColor;
             _space = new CHAR_INFO(' ', _initialForegroundColor, _initialBackgroundColor);
@@ -586,7 +467,7 @@ namespace PSConsoleUtilities
             _yankCommandCount = 0;
             _tabCommandCount = 0;
 
-            _consoleBuffer = ReadBufferLines(_initialY, 1 + _extraPromptLineCount);
+            _consoleBuffer = ReadBufferLines(_initialY, 1 + Options.ExtraPromptLineCount);
         }
 
         private static void Chord(ConsoleKeyInfo? key = null, object arg = null)
@@ -964,7 +845,7 @@ namespace PSConsoleUtilities
                 if (_history[i]._line.StartsWith(_searchHistoryPrefix))
                 {
                     _currentHistoryIndex = i;
-                    UpdateFromHistory(moveCursor: _historySearchCursorMovesToEnd);
+                    UpdateFromHistory(moveCursor: Options.HistorySearchCursorMovesToEnd);
                     break;
                 }
             }
@@ -977,7 +858,7 @@ namespace PSConsoleUtilities
         {
             _singleton.SaveCurrentLine();
             _singleton._currentHistoryIndex = 0;
-            _singleton.UpdateFromHistory(moveCursor: _singleton._historySearchCursorMovesToEnd);
+            _singleton.UpdateFromHistory(moveCursor: _singleton.Options.HistorySearchCursorMovesToEnd);
         }
 
         /// <summary>
@@ -986,7 +867,7 @@ namespace PSConsoleUtilities
         public static void EndOfHistory(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton._currentHistoryIndex = _singleton._history.Count;
-            _singleton.UpdateFromHistory(moveCursor: _singleton._historySearchCursorMovesToEnd);
+            _singleton.UpdateFromHistory(moveCursor: _singleton.Options.HistorySearchCursorMovesToEnd);
         }
 
         /// <summary>
@@ -1210,7 +1091,7 @@ namespace PSConsoleUtilities
             var minColWidth = completions.CompletionMatches.Max(c => c.ListItemText.Length);
             minColWidth += 2;
 
-            if (_singleton._showToolTips)
+            if (_singleton.Options.ShowToolTips)
             {
                 const string seperator = "- ";
                 var maxTooltipWidth = Console.BufferWidth - minColWidth - seperator.Length;
@@ -1304,7 +1185,7 @@ namespace PSConsoleUtilities
                 }
                 else
                 {
-                    if (_killRing.Count < _maximumKillRingCount)
+                    if (_killRing.Count < Options.MaximumKillRingCount)
                     {
                         _killRing.Add(killText);
                         _killIndex = _killRing.Count - 1;
@@ -1781,7 +1662,7 @@ namespace PSConsoleUtilities
             if (_consoleBuffer.Length != bufferLineCount * bufferWidth)
             {
                 var newBuffer = new CHAR_INFO[bufferLineCount * bufferWidth];
-                Array.Copy(_consoleBuffer, newBuffer, _initialX + (_extraPromptLineCount * _bufferWidth));
+                Array.Copy(_consoleBuffer, newBuffer, _initialX + (Options.ExtraPromptLineCount * _bufferWidth));
                 if (_consoleBuffer.Length > bufferLineCount * bufferWidth)
                 {
                     // Need to erase the extra lines that we won't draw again
@@ -1803,7 +1684,7 @@ namespace PSConsoleUtilities
                 ForegroundColor = _initialForegroundColor
             });
 
-            int j               = _initialX + (_bufferWidth * _extraPromptLineCount);
+            int j               = _initialX + (_bufferWidth * Options.ExtraPromptLineCount);
             var backgroundColor = _initialBackgroundColor;
             var foregroundColor = _initialForegroundColor;
 
@@ -1828,8 +1709,7 @@ namespace PSConsoleUtilities
 
                 if (i == token.Extent.StartOffset)
                 {
-                    foregroundColor = _tokenForegroundColors[(int)GetTokenClassification(token)];
-                    backgroundColor = _tokenBackgroundColors[(int)GetTokenClassification(token)];
+                    GetTokenColors(token, ref foregroundColor, ref backgroundColor);
 
                     var stringToken = token as StringExpandableToken;
                     if (stringToken != null)
@@ -1861,11 +1741,11 @@ namespace PSConsoleUtilities
                         _consoleBuffer[j++] = _space;
                     }
 
-                    for (int k = 0; k < _continuationPrompt.Length; k++, j++)
+                    for (int k = 0; k < Options.ContinuationPrompt.Length; k++, j++)
                     {
-                        _consoleBuffer[j].UnicodeChar = _continuationPrompt[k];
-                        _consoleBuffer[j].ForegroundColor = _continuationPromptForegroundColor;
-                        _consoleBuffer[j].BackgroundColor = _continuationPromptBackgroundColor;
+                        _consoleBuffer[j].UnicodeChar = Options.ContinuationPrompt[k];
+                        _consoleBuffer[j].ForegroundColor = Options.ContinuationPromptForegroundColor;
+                        _consoleBuffer[j].BackgroundColor = Options.ContinuationPromptBackgroundColor;
                     }
                 }
                 else if (char.IsControl(text[i]))
@@ -1897,7 +1777,7 @@ namespace PSConsoleUtilities
             bool rendered = false;
             if (_parseErrors.Length > 0)
             {
-                int promptChar = _initialX - 1 + (_bufferWidth * _extraPromptLineCount);
+                int promptChar = _initialX - 1 + (_bufferWidth * Options.ExtraPromptLineCount);
 
                 while (promptChar >= 0)
                 {
@@ -1977,42 +1857,77 @@ namespace PSConsoleUtilities
             return result;
         }
 
-        private TokenClassification GetTokenClassification(Token token)
+        private void GetTokenColors(Token token, ref ConsoleColor foregroundColor, ref ConsoleColor backgroundColor)
         {
             switch (token.Kind)
             {
             case TokenKind.Comment:
-                return TokenClassification.Comment;
+                foregroundColor = _options.CommentForegroundColor;
+                backgroundColor = _options.CommentBackgroundColor;
+                return;
+
             case TokenKind.Parameter:
-                return TokenClassification.Parameter;
+                foregroundColor = _options.ParameterForegroundColor;
+                backgroundColor = _options.ParameterBackgroundColor;
+                return;
+
             case TokenKind.Variable:
             case TokenKind.SplattedVariable:
-                return TokenClassification.Variable;
+                foregroundColor = _options.VariableForegroundColor;
+                backgroundColor = _options.VariableBackgroundColor;
+                return;
+
             case TokenKind.StringExpandable:
             case TokenKind.StringLiteral:
             case TokenKind.HereStringExpandable:
             case TokenKind.HereStringLiteral:
-                return TokenClassification.String;
+                foregroundColor = _options.StringForegroundColor;
+                backgroundColor = _options.StringBackgroundColor;
+                return;
+
             case TokenKind.Number:
-                return TokenClassification.Number;
+                foregroundColor = _options.NumberForegroundColor;
+                backgroundColor = _options.NumberBackgroundColor;
+                return;
             }
 
             if ((token.TokenFlags & TokenFlags.CommandName) != 0)
-                return TokenClassification.Command;
+            {
+                foregroundColor = _options.CommandForegroundColor;
+                backgroundColor = _options.CommandBackgroundColor;
+                return;
+            }
 
             if ((token.TokenFlags & TokenFlags.Keyword) != 0)
-                return TokenClassification.Keyword;
+            {
+                foregroundColor = _options.KeywordForegroundColor;
+                backgroundColor = _options.KeywordBackgroundColor;
+                return;
+            }
 
             if ((token.TokenFlags & (TokenFlags.BinaryOperator | TokenFlags.UnaryOperator | TokenFlags.AssignmentOperator)) != 0)
-                return TokenClassification.Operator;
+            {
+                foregroundColor = _options.OperatorForegroundColor;
+                backgroundColor = _options.OperatorBackgroundColor;
+                return;
+            }
 
             if ((token.TokenFlags & TokenFlags.TypeName) != 0)
-                return TokenClassification.Type;
+            {
+                foregroundColor = _options.TypeForegroundColor;
+                backgroundColor = _options.TypeBackgroundColor;
+                return;
+            }
 
             if ((token.TokenFlags & TokenFlags.MemberName) != 0)
-                return TokenClassification.Member;
+            {
+                foregroundColor = _options.MemberForegroundColor;
+                backgroundColor = _options.MemberBackgroundColor;
+                return;
+            }
 
-            return TokenClassification.None;
+            foregroundColor = _options.DefaultTokenForegroundColor;
+            backgroundColor = _options.DefaultTokenBackgroundColor;
         }
 
         private static void ScrollBuffer(int lines)
@@ -2050,7 +1965,7 @@ namespace PSConsoleUtilities
         private COORD ConvertOffsetToCoordinates(int offset)
         {
             int x = _initialX;
-            int y = _initialY + _extraPromptLineCount;
+            int y = _initialY + Options.ExtraPromptLineCount;
 
             int bufferWidth = Console.BufferWidth;
             for (int i = 0; i < offset; i++)
@@ -2058,7 +1973,7 @@ namespace PSConsoleUtilities
                 if (_buffer[i] == '\n')
                 {
                     y += 1;
-                    x = _continuationPrompt.Length;
+                    x = Options.ContinuationPrompt.Length;
                 }
                 else
                 {
@@ -2080,12 +1995,12 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void Ding()
         {
-            switch (_singleton._bellStyle)
+            switch (_singleton.Options.BellStyle)
             {
             case BellStyle.None:
                 break;
             case BellStyle.Audible:
-                Console.Beep(_singleton._dingTone, _singleton._dingDuration);
+                Console.Beep(_singleton.Options.DingTone, _singleton.Options.DingDuration);
                 break;
             case BellStyle.Visual:
                 // TODO: flash prompt? command line?
@@ -2236,7 +2151,7 @@ namespace PSConsoleUtilities
             _singleton._demoWindowLineCount = windowLineCount;
             var newBuffer = new CHAR_INFO[_singleton._consoleBuffer.Length + (windowLineCount * _singleton._bufferWidth)];
             Array.Copy(_singleton._consoleBuffer, newBuffer,
-                _singleton._initialX + (_singleton._extraPromptLineCount * _singleton._bufferWidth));
+                _singleton._initialX + (_singleton.Options.ExtraPromptLineCount * _singleton._bufferWidth));
             _singleton._consoleBuffer = newBuffer;
             _singleton.Render();
         }
@@ -2262,25 +2177,25 @@ namespace PSConsoleUtilities
         {
             if (options.ContinuationPrompt != null)
             {
-                _continuationPrompt = options.ContinuationPrompt;
+                Options.ContinuationPrompt = options.ContinuationPrompt;
             }
             if (options._continuationPromptForegroundColor.HasValue)
             {
-                _continuationPromptForegroundColor = options.ContinuationPromptForegroundColor;
+                Options.ContinuationPromptForegroundColor = options.ContinuationPromptForegroundColor;
             }
             if (options._continuationPromptBackgroundColor.HasValue)
             {
-                _continuationPromptBackgroundColor = options.ContinuationPromptBackgroundColor;
+                Options.ContinuationPromptBackgroundColor = options.ContinuationPromptBackgroundColor;
             }
             if (options._historyNoDuplicates.HasValue)
             {
-                _historyNoDuplicates = options.HistoryNoDuplicates;
-                if (_historyNoDuplicates)
+                Options.HistoryNoDuplicates = options.HistoryNoDuplicates;
+                if (Options.HistoryNoDuplicates)
                 {
                     _hashedHistory.Clear();
                     _history.OnEnqueue = null;
                     _history.OnDequeue = null;
-                    var newHistory = new HistoryQueue<HistoryItem>(_maximumHistoryCount);
+                    var newHistory = new HistoryQueue<HistoryItem>(Options.MaximumHistoryCount);
                     while (_history.Count > 0)
                     {
                         var item = _history.Dequeue();
@@ -2299,17 +2214,17 @@ namespace PSConsoleUtilities
             }
             if (options._historySearchCursorMovesToEnd.HasValue)
             {
-                _historySearchCursorMovesToEnd = options.HistorySearchCursorMovesToEnd;
+                Options.HistorySearchCursorMovesToEnd = options.HistorySearchCursorMovesToEnd;
             }
             if (options._addToHistoryHandlerSpecified)
             {
-                _addToHistoryHandler = options.AddToHistoryHandler;
+                Options.AddToHistoryHandler = options.AddToHistoryHandler;
             }
             if (options._maximumHistoryCount.HasValue)
             {
-                _maximumHistoryCount = options.MaximumHistoryCount;
-                var newHistory = new HistoryQueue<HistoryItem>(_maximumHistoryCount);
-                while (_history.Count > _maximumHistoryCount)
+                Options.MaximumHistoryCount = options.MaximumHistoryCount;
+                var newHistory = new HistoryQueue<HistoryItem>(Options.MaximumHistoryCount);
+                while (_history.Count > Options.MaximumHistoryCount)
                 {
                     _history.Dequeue();
                 }
@@ -2326,7 +2241,7 @@ namespace PSConsoleUtilities
             }
             if (options._maximumKillRingCount.HasValue)
             {
-                _maximumKillRingCount = options.MaximumKillRingCount;
+                Options.MaximumKillRingCount = options.MaximumKillRingCount;
                 // TODO - make _killRing smaller
             }
             if (options._editMode.HasValue)
@@ -2358,37 +2273,37 @@ namespace PSConsoleUtilities
             }
             if (options._showToolTips.HasValue)
             {
-                _showToolTips = options.ShowToolTips;
+                Options.ShowToolTips = options.ShowToolTips;
             }
             if (options._extraPromptLineCount.HasValue)
             {
-                _extraPromptLineCount = options.ExtraPromptLineCount;
+                Options.ExtraPromptLineCount = options.ExtraPromptLineCount;
             }
             if (options._dingTone.HasValue)
             {
-                _dingTone = options.DingTone;
+                Options.DingTone = options.DingTone;
             }
             if (options._dingDuration.HasValue)
             {
-                _dingDuration = options.DingDuration;
+                Options.DingDuration = options.DingDuration;
             }
             if (options._bellStyle.HasValue)
             {
-                _bellStyle = options.BellStyle;
+                Options.BellStyle = options.BellStyle;
             }
             if (options.ResetTokenColors)
             {
-                ResetColors();
+                Options.ResetColors();
             }
             if (options._tokenKind.HasValue)
             {
                 if (options._foregroundColor.HasValue)
                 {
-                    _tokenForegroundColors[(int)options.TokenKind] = options.ForegroundColor;
+                    Options.SetForegroundColor(options.TokenKind, options.ForegroundColor);
                 }
                 if (options._backgroundColor.HasValue)
                 {
-                    _tokenBackgroundColors[(int)options.TokenKind] = options.BackgroundColor;
+                    Options.SetBackgroundColor(options.TokenKind, options.BackgroundColor);
                 }
             }
         }

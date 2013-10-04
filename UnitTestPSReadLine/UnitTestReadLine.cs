@@ -454,9 +454,9 @@ namespace UnitTestPSReadLine
             var options = new SetPSReadlineOption
             {
                 AddToHistoryHandler         = null,
-                HistoryNoDuplicates         = PSConsoleReadLine.DefaultHistoryNoDuplicates,
-                MaximumHistoryCount         = PSConsoleReadLine.DefaultMaximumHistoryCount,
-                MaximumKillRingCount        = PSConsoleReadLine.DefaultMaximumKillRingCount,
+                HistoryNoDuplicates         = PSConsoleReadlineOptions.DefaultHistoryNoDuplicates,
+                MaximumHistoryCount         = PSConsoleReadlineOptions.DefaultMaximumHistoryCount,
+                MaximumKillRingCount        = PSConsoleReadlineOptions.DefaultMaximumKillRingCount,
                 ResetTokenColors            = true,
             };
 
@@ -594,7 +594,7 @@ namespace UnitTestPSReadLine
 
             // Make sure <ENTER> when input is incomplete actually puts a newline
             // wherever the cursor is.
-            var continationPrefixLength = PSConsoleReadLine.DefaultContinuationPrompt.Length;
+            var continationPrefixLength = PSConsoleReadlineOptions.DefaultContinuationPrompt.Length;
             keysWithValidation = Keys(
                 '{',
                 new KeyWithValidation(_.Enter, () => AssertCursorTopIs(1)),
@@ -926,7 +926,7 @@ namespace UnitTestPSReadLine
 
             // Fill the kill ring plus some extra.
             keys = new [] {_.Z, _.Z, _.Z, _.CtrlU, _.Enter};
-            for (int i = 0; i < PSConsoleReadLine.DefaultMaximumKillRingCount + 2; i++)
+            for (int i = 0; i < PSConsoleReadlineOptions.DefaultMaximumKillRingCount + 2; i++)
             {
                 var c = (char)('a' + i);
                 var k = (ConsoleKey)((int)ConsoleKey.A + i);
@@ -947,7 +947,7 @@ namespace UnitTestPSReadLine
             result = Test(keys); Assert.AreEqual(killedText[killRingIndex], result);
 
             // Test wrap around.  We need 1 yank and n-1 yankpop to wrap around once, plus enter.
-            keys = new ConsoleKeyInfo[PSConsoleReadLine.DefaultMaximumKillRingCount + 2];
+            keys = new ConsoleKeyInfo[PSConsoleReadlineOptions.DefaultMaximumKillRingCount + 2];
             keys[0] = _.CtrlY;
             keys[keys.Length - 1] = _.Enter;
             for (int i = 1; i <= keys.Length - 2; i++)
@@ -1231,13 +1231,12 @@ namespace UnitTestPSReadLine
 
             const string input = "{\n}";
             SetBufferState(input, input.Length);
-            var continuationPrompt = PSConsoleReadLine.DefaultContinuationPrompt;
+            var continuationPrompt = PSConsoleReadlineOptions.DefaultContinuationPrompt;
             var continationPrefixLength = continuationPrompt.Length;
             AssertScreenIs(2,
                 TokenClassification.None, '{',
                 NextLine,
-                Tuple.Create(PSConsoleReadLine.DefaultContinuationPromptForegroundColor,
-                             PSConsoleReadLine.DefaultContinuationPromptBackgroundColor),
+                Tuple.Create(Console.ForegroundColor, Console.BackgroundColor),
                 continuationPrompt,
                 TokenClassification.None, '}'
                 );
