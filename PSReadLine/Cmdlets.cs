@@ -4,24 +4,6 @@ using System.Management.Automation;
 
 namespace PSConsoleUtilities
 {
-#if NEVER
-    public class PSConsoleUtilitiesInit : IModuleAssemblyInitializer
-    {
-        [ExcludeFromCodeCoverage]
-        public void OnImport()
-        {
-            var ps = PowerShell.Create(RunspaceMode.CurrentRunspace);
-            ps.AddScript(@"
-function global:PSConsoleHostReadline
-{
-    [PSConsoleUtilities.PSConsoleReadLine]::ReadLine()
-}
-");
-            ps.Invoke();
-        }
-    }
-#endif
-
     [Cmdlet("Set", "PSReadlineOption")]
     public class SetPSReadlineOption : PSCmdlet
     {
