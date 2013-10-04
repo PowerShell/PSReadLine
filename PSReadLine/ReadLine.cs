@@ -716,7 +716,7 @@ namespace PSConsoleUtilities
             _singleton.ParseInput();
             if (_singleton._parseErrors.Any(e => e.IncompleteInput))
             {
-                _singleton.Insert('\n');
+                Insert('\n');
                 return;
             }
 
@@ -736,7 +736,7 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void AddLine(ConsoleKeyInfo? key = null, object arg = null)
         {
-            _singleton.Insert('\n');
+            Insert('\n');
         }
 
         /// <summary>
@@ -1124,7 +1124,7 @@ namespace PSConsoleUtilities
 
             if (replacementText.Length > 0)
             {
-                _singleton.Replace(completions.ReplacementIndex, completions.ReplacementLength, replacementText);
+                Replace(completions.ReplacementIndex, completions.ReplacementLength, replacementText);
                 completions.ReplacementLength = replacementText.Length;
 
                 if (ambiguous)
@@ -1505,33 +1505,59 @@ namespace PSConsoleUtilities
             PlaceCursor();
         }
 
-        private void Insert(char c)
+        /// <summary>
+        /// Insert a character at the current position.  Supports undo.
+        /// </summary>
+        /// <param name="c">Character to insert</param>
+        public static void Insert(char c)
         {
-            SaveEditItem(EditItemInsertChar.Create(c, _current));
-            _buffer.Insert(_current, c);
-            _current += 1;
-            Render();
+            _singleton.SaveEditItem(EditItemInsertChar.Create(c, _singleton._current));
+            _singleton._buffer.Insert(_singleton._current, c);
+            _singleton._current += 1;
+            _singleton.Render();
         }
 
-        private void Insert(string s)
+        /// <summary>
+        /// Insert a string at the current position.  Supports undo.
+        /// </summary>
+        /// <param name="s">String to insert</param>
+        public static void Insert(string s)
         {
-            SaveEditItem(EditItemInsertString.Create(s, _current));
-            _buffer.Insert(_current, s);
-            _current += s.Length;
-            Render();
+            _singleton.SaveEditItem(EditItemInsertString.Create(s, _singleton._current));
+            _singleton._buffer.Insert(_singleton._current, s);
+            _singleton._current += s.Length;
+            _singleton.Render();
         }
 
-        private void Replace(int start, int length, string replacement)
+        /// <summary>
+        /// Replace some text at the given position.  Supports undo.
+        /// </summary>
+        /// <param name="start">The start position to replace</param>
+        /// <param name="length">The length to replace</param>
+        /// <param name="replacement">The replacement text</param>
+        public static void Replace(int start, int length, string replacement)
         {
-            StartEditGroup();
-            var str = _buffer.ToString(start, length);
-            SaveEditItem(EditItemDelete.Create(str, start));
-            _buffer.Remove(start, length);
-            SaveEditItem(EditItemInsertString.Create(replacement, start));
-            _buffer.Insert(start, replacement);
-            _current = start + replacement.Length;
-            EndEditGroup();
-            Render();
+            if (start < 0 || start >= _singleton._buffer.Length)
+            {
+                throw new ArgumentException(PSReadLineResources.StartOutOfRange, "start");
+            }
+            if (length > (_singleton._buffer.Length - start))
+            {
+                throw new ArgumentException(PSReadLineResources.ReplacementLengthTooBig, "length");
+            }
+
+            _singleton.StartEditGroup();
+            var str = _singleton._buffer.ToString(start, length);
+            _singleton.SaveEditItem(EditItemDelete.Create(str, start));
+            _singleton._buffer.Remove(start, length);
+            if (replacement != null)
+            {
+                _singleton.SaveEditItem(EditItemInsertString.Create(replacement, start));
+                _singleton._buffer.Insert(start, replacement);
+                _singleton._current = start + replacement.Length;
+            }
+            _singleton.EndEditGroup();
+            _singleton.Render();
         }
 
 #region Undo

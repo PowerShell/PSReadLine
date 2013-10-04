@@ -243,4 +243,10 @@
   <data name="YankPopDescription" xml:space="preserve">
     <value>Replace the previously yanked text with the text from the next kill ring position</value>
   </data>
+  <data name="StartOutOfRange" xml:space="preserve">
+    <value>'start' cannot be less than zero or greater than the length of the buffer</value>
+  </data>
+  <data name="ReplacementLengthTooBig" xml:space="preserve">
+    <value>length is too big</value>
+  </data>
 </root>

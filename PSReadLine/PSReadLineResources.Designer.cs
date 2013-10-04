@@ -376,6 +376,15 @@ namespace PSConsoleUtilities {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to length is too big.
+        /// </summary>
+        internal static string ReplacementLengthTooBig {
+            get {
+                return ResourceManager.GetString("ReplacementLengthTooBig", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Equivalent to undo all edits (clears the line except lines imported from history).
         /// </summary>
         internal static string RevertLineDescription {
@@ -390,6 +399,15 @@ namespace PSConsoleUtilities {
         internal static string SetMarkDescription {
             get {
                 return ResourceManager.GetString("SetMarkDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;start&apos; cannot be less than zero or greater than the length of the buffer.
+        /// </summary>
+        internal static string StartOutOfRange {
+            get {
+                return ResourceManager.GetString("StartOutOfRange", resourceCulture);
             }
         }
         
