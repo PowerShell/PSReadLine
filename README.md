@@ -43,12 +43,8 @@ There are many configuration options, see the options to Set-PSReadlineOption.  
 To set your own custom keybindings, use the cmdlet Set-PSReadlineKeyHandler.  For example, for a better history experience, try:
 
 ```powershell
-Set-PSReadlineKeyHandler -Key UpArrow -BriefDescription HistorySearchBackward -Handler { 
-    [PSConsoleUtilities.PSConsoleReadLine]::HistorySearchBackward()
-}
-Set-PSReadlineKeyHandler -Key DownArrow -BriefDescription HistorySearchForward -Handler { 
-    [PSConsoleUtilities.PSConsoleReadLine]::HistorySearchForward()
-}
+Set-PSReadlineKeyHandler -Key UpArrow -Function HistorySearchBackward
+Set-PSReadlineKeyHandler -Key DownArrow -Function HistorySearchForward
 ```
 
 With these bindings, up arrow/down arrow will work like PowerShell/cmd if the current command line is blank.  If you've entered some text though, it will search the history for commands that start with the currently entered text.
@@ -56,9 +52,7 @@ With these bindings, up arrow/down arrow will work like PowerShell/cmd if the cu
 To enable bash style completion without using Emacs mode, you can use:
 
 ```powershell
-Set-PSReadlineKeyHandler -Key Tab -BriefDescription Complete -Handler { 
-    [PSConsoleUtilities.PSConsoleReadLine]::Complete()
-}
+Set-PSReadlineKeyHandler -Key Tab -Function Complete
 ```
 
 See the public methods of [PSConsoleUtilities.PSConsoleReadLine] to see what other built-in functionality you can modify.
