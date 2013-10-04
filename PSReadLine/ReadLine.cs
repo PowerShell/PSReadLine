@@ -307,7 +307,7 @@ namespace PSConsoleUtilities
                 ProcessOneKey(key, _dispatchTable, ignoreIfNoAction: false);
                 if (_inputAccepted)
                 {
-                    return MaybeAddToHistory(_buffer.ToString());
+                    return MaybeAddToHistory(_buffer.ToString(), _edits, _undoEditIndex);
                 }
 
                 if (killCommandCount == _killCommandCount)
@@ -361,7 +361,7 @@ namespace PSConsoleUtilities
             PostKeyHandler();
         }
 
-        private string MaybeAddToHistory(string result)
+        private string MaybeAddToHistory(string result, List<EditItem> edits, int undoEditIndex)
         {
             bool addToHistory = !string.IsNullOrWhiteSpace(result) && ((_addToHistoryHandler == null) || _addToHistoryHandler(result));
             if (addToHistory && _historyNoDuplicates)
@@ -375,9 +375,9 @@ namespace PSConsoleUtilities
             {
                 _history.Enqueue(new HistoryItem
                 {
-                    _line = _buffer.ToString(),
-                    _edits = _edits,
-                    _undoEditIndex = _undoEditIndex
+                    _line = result,
+                    _edits = edits,
+                    _undoEditIndex = undoEditIndex
                 });
                 _currentHistoryIndex = _history.Count;
             }
@@ -876,7 +876,8 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void AddToHistory(string command)
         {
-            _singleton.MaybeAddToHistory(command);
+            command = command.Replace("\r\n", "\n");
+            _singleton.MaybeAddToHistory(command, new List<EditItem>(), 0);
         }
 
         /// <summary>
