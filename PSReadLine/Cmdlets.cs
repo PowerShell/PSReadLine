@@ -132,26 +132,28 @@ namespace PSConsoleUtilities
 
         internal void ResetColors()
         {
-            CommentForegroundColor  = DefaultCommandForegroundColor;
-            KeywordForegroundColor   = DefaultKeywordForegroundColor;
-            StringForegroundColor    = DefaultStringForegroundColor;
-            OperatorForegroundColor  = DefaultOperatorForegroundColor;
-            VariableForegroundColor  = DefaultVariableForegroundColor;
-            CommandForegroundColor   = DefaultCommandForegroundColor;
-            ParameterForegroundColor = DefaultParameterForegroundColor;
-            TypeForegroundColor      = DefaultTypeForegroundColor;
-            NumberForegroundColor    = DefaultNumberForegroundColor;
-            MemberForegroundColor    = DefaultNumberForegroundColor;
-            CommentBackgroundColor   = Console.BackgroundColor;
-            KeywordBackgroundColor   = Console.BackgroundColor;
-            StringBackgroundColor    = Console.BackgroundColor;
-            OperatorBackgroundColor  = Console.BackgroundColor;
-            VariableBackgroundColor  = Console.BackgroundColor;
-            CommandBackgroundColor   = Console.BackgroundColor;
-            ParameterBackgroundColor = Console.BackgroundColor;
-            TypeBackgroundColor      = Console.BackgroundColor;
-            NumberBackgroundColor    = Console.BackgroundColor;
-            MemberBackgroundColor    = Console.BackgroundColor;
+            DefaultTokenForegroundColor = Console.ForegroundColor;
+            CommentForegroundColor      = DefaultCommentForegroundColor;
+            KeywordForegroundColor      = DefaultKeywordForegroundColor;
+            StringForegroundColor       = DefaultStringForegroundColor;
+            OperatorForegroundColor     = DefaultOperatorForegroundColor;
+            VariableForegroundColor     = DefaultVariableForegroundColor;
+            CommandForegroundColor      = DefaultCommandForegroundColor;
+            ParameterForegroundColor    = DefaultParameterForegroundColor;
+            TypeForegroundColor         = DefaultTypeForegroundColor;
+            NumberForegroundColor       = DefaultNumberForegroundColor;
+            MemberForegroundColor       = DefaultNumberForegroundColor;
+            DefaultTokenBackgroundColor = Console.BackgroundColor;
+            CommentBackgroundColor      = Console.BackgroundColor;
+            KeywordBackgroundColor      = Console.BackgroundColor;
+            StringBackgroundColor       = Console.BackgroundColor;
+            OperatorBackgroundColor     = Console.BackgroundColor;
+            VariableBackgroundColor     = Console.BackgroundColor;
+            CommandBackgroundColor      = Console.BackgroundColor;
+            ParameterBackgroundColor    = Console.BackgroundColor;
+            TypeBackgroundColor         = Console.BackgroundColor;
+            NumberBackgroundColor       = Console.BackgroundColor;
+            MemberBackgroundColor       = Console.BackgroundColor;
         }
 
         internal void SetForegroundColor(TokenClassification tokenKind, ConsoleColor color)
@@ -188,6 +190,17 @@ namespace PSConsoleUtilities
             case TokenClassification.Number:    NumberBackgroundColor = color; break;
             case TokenClassification.Member:    MemberBackgroundColor = color; break;
             }
+        }
+    }
+
+    [Cmdlet("Get", "PSReadlineOption")]
+    [OutputType(typeof(PSConsoleReadlineOptions))]
+    public class GetPSReadlineOption : PSCmdlet
+    {
+        [ExcludeFromCodeCoverage]
+        protected override void EndProcessing()
+        {
+            WriteObject(PSConsoleReadLine.GetOptions());
         }
     }
 

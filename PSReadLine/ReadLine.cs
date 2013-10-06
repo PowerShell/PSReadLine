@@ -2340,6 +2340,16 @@ namespace PSConsoleUtilities
         }
 
         /// <summary>
+        /// Helper function for the Get-PSReadlineOption cmdlet.
+        /// </summary>
+        public static PSConsoleReadlineOptions GetOptions()
+        {
+            // Should we copy?  It doesn't matter much, everything can be tweaked from
+            // the cmdlet anyway.
+            return _singleton._options;
+        }
+
+        /// <summary>
         /// Helper function for the Set-PSReadlineKeyHandler cmdlet.
         /// </summary>
         public static void SetKeyHandler(string[] key, Action<ConsoleKeyInfo?, object> handler, string briefDescription, string longDescription)
