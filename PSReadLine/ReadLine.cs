@@ -7,6 +7,7 @@ using System.Linq;
 using System.Management.Automation;
 using System.Management.Automation.Language;
 using System.Text;
+using System.Threading;
 
 namespace PSConsoleUtilities
 {
@@ -134,6 +135,8 @@ namespace PSConsoleUtilities
         private ConsoleColor _initialBackgroundColor;
         private ConsoleColor _initialForegroundColor;
         private CHAR_INFO _space;
+        private readonly Queue<ConsoleKeyInfo> _queuedKeys;
+        private DateTime _lastRenderTime;
 
         // History state
         private HistoryQueue<HistoryItem> _history;
@@ -184,7 +187,20 @@ namespace PSConsoleUtilities
         [ExcludeFromCodeCoverage]
         private static ConsoleKeyInfo ReadKey()
         {
-            var key = Console.ReadKey(true);
+            var start = DateTime.Now;
+            while (Console.KeyAvailable)
+            {
+                _singleton._queuedKeys.Enqueue(Console.ReadKey(true));
+                if ((DateTime.Now - start).Milliseconds > 2)
+                {
+                    // Don't spend too long in this loop if there are lots of queued keys
+                    break;
+                }
+            }
+
+            var key = _singleton._queuedKeys.Count > 0
+                ? _singleton._queuedKeys.Dequeue()
+                : Console.ReadKey(true);
             _singleton._log.Key(key.KeyChar, key.Key, key.Modifiers);
             return key;
         }
@@ -426,8 +442,9 @@ namespace PSConsoleUtilities
             _dispatchTable = new Dictionary<ConsoleKeyInfo, KeyHandler>(_cmdKeyMap);
             _chordDispatchTable = new Dictionary<ConsoleKeyInfo, Dictionary<ConsoleKeyInfo, KeyHandler>>();
 
-            _buffer = new StringBuilder();
+            _buffer = new StringBuilder(8 * 1024);
             _savedCurrentLine = new HistoryItem();
+            _queuedKeys = new Queue<ConsoleKeyInfo>();
 
             _pushedEditGroupCount = new Stack<int>();
 
@@ -468,6 +485,7 @@ namespace PSConsoleUtilities
             _tabCommandCount = 0;
 
             _consoleBuffer = ReadBufferLines(_initialY, 1 + Options.ExtraPromptLineCount);
+            _lastRenderTime = DateTime.Now;
         }
 
         private static void Chord(ConsoleKeyInfo? key = null, object arg = null)
@@ -1394,7 +1412,16 @@ namespace PSConsoleUtilities
         public static void Insert(char c)
         {
             _singleton.SaveEditItem(EditItemInsertChar.Create(c, _singleton._current));
-            _singleton._buffer.Insert(_singleton._current, c);
+
+            // Use Append if possible because Insert at end makes StringBuilder quite slow.
+            if (_singleton._current == _singleton._buffer.Length)
+            {
+                _singleton._buffer.Append(c);
+            }
+            else
+            {
+                _singleton._buffer.Insert(_singleton._current, c);
+            }
             _singleton._current += 1;
             _singleton.Render();
         }
@@ -1406,7 +1433,16 @@ namespace PSConsoleUtilities
         public static void Insert(string s)
         {
             _singleton.SaveEditItem(EditItemInsertString.Create(s, _singleton._current));
-            _singleton._buffer.Insert(_singleton._current, s);
+
+            // Use Append if possible because Insert at end makes StringBuilder quite slow.
+            if (_singleton._current == _singleton._buffer.Length)
+            {
+                _singleton._buffer.Append(s);
+            }
+            else
+            {
+                _singleton._buffer.Insert(_singleton._current, s);
+            }
             _singleton._current += s.Length;
             _singleton.Render();
         }
@@ -1650,8 +1686,12 @@ namespace PSConsoleUtilities
 
         private void Render()
         {
-            // This function is not very effecient when pasting large chunks of text
-            // into the console.
+            // If there are a bunch of keys queued up, skip rendering if we've rendered
+            // recently.
+            if (_queuedKeys.Count > 10 && (DateTime.Now - _lastRenderTime).Milliseconds < 50)
+            {
+                return;
+            }
 
             _renderForDemoNeeded = false;
 
@@ -1805,6 +1845,8 @@ namespace PSConsoleUtilities
             {
                 Console.WindowTop = _initialY + bufferLineCount + 1 - Console.WindowHeight;
             }
+
+            _lastRenderTime = DateTime.Now;
         }
 
         private static void WriteBufferLines(CHAR_INFO[] buffer, ref int top)
@@ -1968,16 +2010,18 @@ namespace PSConsoleUtilities
             int y = _initialY + Options.ExtraPromptLineCount;
 
             int bufferWidth = Console.BufferWidth;
+            var continuationPromptLength = Options.ContinuationPrompt.Length;
             for (int i = 0; i < offset; i++)
             {
-                if (_buffer[i] == '\n')
+                char c = _buffer[i];
+                if (c == '\n')
                 {
                     y += 1;
-                    x = Options.ContinuationPrompt.Length;
+                    x = continuationPromptLength;
                 }
                 else
                 {
-                    x += char.IsControl(_buffer[i]) ? 2 : 1;
+                    x += char.IsControl(c) ? 2 : 1;
                     // Wrap?  No prompt when wrapping
                     if (x >= bufferWidth)
                     {
