@@ -2436,12 +2436,18 @@ namespace PSConsoleUtilities
             }
         }
 
+        /// <summary>
+        /// Get the state of the buffer - the current input and the position of the cursor
+        /// </summary>
         public static void GetBufferState(out string input, out int cursor)
         {
             input = _singleton._buffer.ToString();
             cursor = _singleton._current;
         }
 
+        /// <summary>
+        /// Get the state of the buffer - the ast, tokens, errors, and position of the cursor
+        /// </summary>
         public static void GetBufferState(out Ast ast, out Token[] tokens, out ParseError[] parseErrors, out int cursor)
         {
             _singleton.ParseInput();
@@ -2474,27 +2480,6 @@ namespace PSConsoleUtilities
 
             _singleton._current = cursor;
             _singleton.PlaceCursor();
-        }
-
-        /// <summary>
-        /// Set the text in the buffer and the position of the cursor.
-        /// </summary>
-        public static void SetBufferState(string input, int cursor)
-        {
-            if (input == null)
-                return;
-
-            EnsureIsInitialized();
-
-            if (cursor > input.Length)
-                cursor = input.Length;
-            if (cursor < 0)
-                cursor = 0;
-
-            _singleton._buffer.Clear();
-            _singleton._buffer.Append(input);
-            _singleton._current = cursor;
-            _singleton.Render();
         }
     }
 
