@@ -1417,18 +1417,6 @@ namespace UnitTestPSReadLine
                 exception = true;
             }
             Assert.IsTrue(exception, "CreateCharBuffer invalid arugment raised an exception");
-
-            using (ShimsContext.Create())
-            {
-                PSConsoleUtilities.Fakes.ShimPSConsoleReadLine.AllInstances.ConsoleBufferGet = x => null;
-                PSConsoleReadLine.SetBufferState("a", 1);
-                Console.CursorLeft = 0;
-                PSConsoleReadLine.SetBufferState("a", -1);
-                AssertCursorLeftIs(0);
-                Console.CursorLeft = 0;
-                PSConsoleReadLine.SetBufferState("a", 11);
-                AssertCursorLeftIs(1);
-            }
         }
 
         [TestMethod]
