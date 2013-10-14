@@ -1,3 +1,24 @@
+### Version 1.0.0.2
+
+New features:
+* Add a "demo mode" that shows keys pressed
+* Add ETW event source for demo mode, key logger, macro recorder etc.
+* Undo/redo
+* Get-PSReadlineOption cmdlet
+* Make specifying key handlers for builtins simpler
+* Current un-entered line is saved and recalled when cycling through history
+* Support syntax coloring of member names
+
+Bugs fixed:
+* Speed up pasting from the console
+* Fix coloring of some operators
+* Fix coloring in some command arguments
+* Ctrl-C is handled a little better
+
+Breaking changes:
+* CLR 4.5 is now required.
+* SetBufferState is gone because it doesn't support Undo/Redo
+
 ### Version 1.0.0.1
 
 New features:
