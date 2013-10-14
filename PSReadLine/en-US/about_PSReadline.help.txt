@@ -72,9 +72,15 @@ LONG DESCRIPTION
   Basic editing
   -------------
 
+    CancelLine               (Cmd: <Ctrl-C>                Emacs: <Ctrl-C>)
+
+        Cancel all editing to the line, leave the line of input on the screen but
+        return from PSReadline without executing the input.
+
     RevertLine               (Cmd: <ESC>                Emacs: <Alt-R>)
 
         Reverts all of the input since the last input was accepted and executed.
+        This is equivalent to doing Undo until there is nothing left to undo.
 
     BackwardDeleteChar       (Cmd: <Backspace>          Emacs: <Backspace> or <Ctrl-H>)
 
@@ -90,6 +96,22 @@ LONG DESCRIPTION
         example there is a missing closing parenthesis, bracket, or quote, then the
         continuation prompt is displayed on the next line and PSReadline waits for
         keys to edit the current input.
+
+    BackwardDeleteLine       (Cmd: <Ctrl+Home>          Emacs: unbound)
+
+        Delete the text from the start of the input to the cursor.
+
+    ForwardDeleteLine        (Cmd: <Ctrl+End>           Emacs: unbound)
+
+        Delete the text from the cursor to the end of the input.
+
+    Redo                     (Cmd: <Ctrl+Y>             Emacs: unbound)
+
+        Redo an insertion or deletion that was undone by Undo.
+
+    Undo                     (Cmd: <Ctrl+Z>             Emacs: <Ctrl+_>)
+
+        Undo a previous insertion or deletion.
 
   History
   -------
@@ -115,6 +137,15 @@ LONG DESCRIPTION
 
         Replace the current input with the 'next' item from PSReadline history
         that matches the characters between the start and the input and the cursor.
+
+    BeginningOfHistory       (Cmd: unbound              Emacs: <Alt-<>)
+
+        Replace the current input with the last item from PSReadline history.
+
+    EndOfHistory             (Cmd: unbound              Emacs: <Alt->>)
+
+        Replace the current input with the last item in PSReadline history, which
+        is the possibly empty input that was entered before any history commands.
 
   Tab Completion
   --------------
@@ -199,6 +230,19 @@ LONG DESCRIPTION
     Paste                    (Cmd: <Ctrl-V>             Emacs: unbound)
 
         This is similar to Yank, but uses the system clipboard instead of the kill ring.
+
+  Miscellaneous
+  -------------
+
+    DisableDemoMode
+
+        Turn off demo mode.
+
+    EnableDemoMode
+
+        Turn on demo mode.  Displays a window below the input line that shows which
+        keys are typed.
+
 
   Custom Key Bindings
   -------------------
