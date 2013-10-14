@@ -13,6 +13,7 @@ It provides:
 * Bash style completion (optional in Cmd mode, default in Emacs mode)
 * Emacs yank/kill ring
 * PowerShell token based "word" movement and kill
+* Undo/redo
 
 Many planned features are not yet implemented, but in it's current state, the module is very usable.
 
@@ -55,11 +56,43 @@ To enable bash style completion without using Emacs mode, you can use:
 Set-PSReadlineKeyHandler -Key Tab -Function Complete
 ```
 
+Here is a more interesting example of what is possible:
+
+```powershell
+Set-PSReadlineKeyHandler -Chord 'Oem7','Shift+Oem7' `
+                         -BriefDescription SmartInsertQuote `
+                         -LongDescription "Insert paired quotes if not already on a quote" `
+                         -ScriptBlock {
+    param($key, $arg)
+
+    $line = $null
+    $cursor = $null
+    [PSConsoleUtilities.PSConsoleReadline]::GetBufferState([ref]$line, [ref]$cursor)
+
+    if ($line[$cursor] -eq $key.KeyChar) {
+        # Just move the cursor
+        [PSConsoleUtilities.PSConsoleReadline]::SetCursorPosition($cursor + 1)
+    }
+    else {
+        # Insert matching quotes, move cursor to be in between the quotes
+        [PSConsoleUtilities.PSConsoleReadline]::Insert("$($key.KeyChar)" * 2)
+        [PSConsoleUtilities.PSConsoleReadline]::GetBufferState([ref]$line, [ref]$cursor)
+        [PSConsoleUtilities.PSConsoleReadline]::SetCursorPosition($cursor - 1)
+    }
+}
+```
+
+In this example, when you type a single quote or double quote, there are two things that can happen.  If the character following the cursor is not the quote typed, then a matched pair of quotes is inserted and the cursor is placed inside the the matched quotes.  If the character following the cursor is the quote typed, the cursor is simply moved past the quote without inserting anything.  If you use Resharper or another smart editor, this experience will be familiar.
+
+Note that with the handler written this way, it correctly handles Undo - both quotes will be undone with one undo.
+
 See the public methods of [PSConsoleUtilities.PSConsoleReadLine] to see what other built-in functionality you can modify.
 
 If you want to change the command line in some unimplmented way in your custom key binding, you can use the methods:
 
 ```powershell
     [PSConsoleUtilities.PSConsoleReadLine]::GetBufferState
-    [PSConsoleUtilities.PSConsoleReadLine]::SetBufferState
+    [PSConsoleUtilities.PSConsoleReadLine]::Insert
+    [PSConsoleUtilities.PSConsoleReadLine]::Replace
+    [PSConsoleUtilities.PSConsoleReadLine]::SetCursorPosition
 ```
