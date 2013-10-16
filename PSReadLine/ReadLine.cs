@@ -625,6 +625,12 @@ namespace PSConsoleUtilities
 
             // Make sure cursor is at the end before writing the line
             _singleton._current = _singleton._buffer.Length;
+            if (_singleton._queuedKeys.Count > 0)
+            {
+                // If text was pasted, for performance reasons we skip rendering for some time,
+                // but if input is accepted, we won't have another chance to render.
+                _singleton.ReallyRender();
+            }
             _singleton.PlaceCursor();
             Console.Out.Write("\n");
             _singleton._inputAccepted = true;
@@ -1695,6 +1701,11 @@ namespace PSConsoleUtilities
                 return;
             }
 
+            ReallyRender();
+        }
+
+        private void ReallyRender()
+        {
             _renderForDemoNeeded = false;
 
             var text = ParseInput();
