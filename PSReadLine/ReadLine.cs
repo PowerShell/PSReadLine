@@ -2,12 +2,10 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Diagnostics.Tracing;
 using System.Linq;
 using System.Management.Automation;
 using System.Management.Automation.Language;
 using System.Text;
-using System.Threading;
 
 namespace PSConsoleUtilities
 {
@@ -66,8 +64,8 @@ namespace PSConsoleUtilities
     {
         private static readonly PSConsoleReadLine _singleton;
 
-        private readonly ReadlineEventSource _log;
-        private readonly ReadlineEventListener _logListener;
+        private bool _captureKeys;
+        private readonly Queue<ConsoleKeyInfo> _savedKeys; 
         private readonly HistoryQueue<string> _demoStrings;
         private bool _demoMode;
         private int _demoWindowLineCount;
@@ -201,7 +199,11 @@ namespace PSConsoleUtilities
             var key = _singleton._queuedKeys.Count > 0
                 ? _singleton._queuedKeys.Dequeue()
                 : Console.ReadKey(true);
-            _singleton._log.Key(key.KeyChar, key.Key, key.Modifiers);
+            if (_singleton._captureKeys)
+            {
+                _singleton._savedKeys.Enqueue(key);
+
+            }
             return key;
         }
 
@@ -434,8 +436,8 @@ namespace PSConsoleUtilities
 
         private PSConsoleReadLine()
         {
-            _log = new ReadlineEventSource();
-            _logListener = new ReadlineEventListener();
+            _captureKeys = false;
+            _savedKeys = new Queue<ConsoleKeyInfo>();
             _demoStrings = new HistoryQueue<string>(100);
             _demoMode = false;
 
@@ -2122,10 +2124,10 @@ namespace PSConsoleUtilities
                 setChar(windowStart + i + 2 * _bufferWidth, (char)9472);
             }
 
-            string eventString;
-            while (_logListener.TryGetEvent(out eventString))
+            while (_savedKeys.Count > 0)
             {
-                _demoStrings.Enqueue(eventString);
+                var key = _savedKeys.Dequeue();
+                _demoStrings.Enqueue(key.ToGestureString());
             }
 
             int charsToDisplay = _bufferWidth - 2 - (2 * extraSpace);
@@ -2133,7 +2135,7 @@ namespace PSConsoleUtilities
             bool first = true;
             for (int j = _demoStrings.Count; j > 0; j--)
             {
-                eventString = _demoStrings[j - 1];
+                string eventString = _demoStrings[j - 1];
                 if ((eventString.Length + (first ? 0 : 1)) > charsToDisplay)
                     break;
 
@@ -2190,7 +2192,7 @@ namespace PSConsoleUtilities
         public static void EnableDemoMode(ConsoleKeyInfo? key = null, object arg = null)
         {
             const int windowLineCount = 4;  // 1 blank line, 2 border lines, 1 line of info
-            _singleton._logListener.EnableEvents(_singleton._log, EventLevel.LogAlways);
+            _singleton._captureKeys = true;
             _singleton._demoMode = true;
             _singleton._demoWindowLineCount = windowLineCount;
             var newBuffer = new CHAR_INFO[_singleton._consoleBuffer.Length + (windowLineCount * _singleton._bufferWidth)];
@@ -2205,12 +2207,8 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void DisableDemoMode(ConsoleKeyInfo? key = null, object arg = null)
         {
-            _singleton._logListener.DisableEvents(_singleton._log);
-            string eventString;
-            // Drain the queued events
-            while (_singleton._logListener.TryGetEvent(out eventString))
-            {
-            }
+            _singleton._savedKeys.Clear();
+            _singleton._captureKeys = false;
             _singleton._demoMode = false;
             _singleton._demoStrings.Clear();
             _singleton._demoWindowLineCount = 0;
