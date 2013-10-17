@@ -19,6 +19,18 @@ Many planned features are not yet implemented, but in it's current state, the mo
 
 The "out of box" experience is meant to be very familiar to PowerShell.exe users - there should be no need to learn any new key strokes.
 
+Installation
+============
+
+1. Extract the `PSReadline.zip` into your `C:\Users\[User]\Documents\WindowsPowerShell\modules\PSReadline` folder. (You may have to create these directories if they don't exist)
+
+2. Edit your `C:\Users\[User]\Documents\WindowsPowerShell\Microsoft.PowerShell_profile.ps1` file (or create if not exists) and include the commands you want to load:
+
+```
+Import-Module PSReadLine  
+Set-PSReadlineOption -EditMode Emacs
+```
+
 Usage
 =====
 
