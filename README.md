@@ -21,15 +21,32 @@ The "out of box" experience is meant to be very familiar to PowerShell.exe users
 
 Installation
 ============
+First, you need to download the module.  Using PsGet (http://psget.net, very easy to install), you can run:
 
-1. Extract the `PSReadline.zip` into your `C:\Users\[User]\Documents\WindowsPowerShell\modules\PSReadline` folder. (You may have to create these directories if they don't exist)
+```
+psget PSReadline
+```
 
-2. Edit your `C:\Users\[User]\Documents\WindowsPowerShell\Microsoft.PowerShell_profile.ps1` file (or create if not exists) and include the commands you want to load:
+Alternatively, download the file https://github.com/lzybkr/PSReadLine/raw/master/PSReadline.zip and extract the contents into your `C:\Users\[User]\Documents\WindowsPowerShell\modules\PSReadline` folder. (You may have to create these directories if they don't exist)
+
+Next edit your profile to import the module.  There are two common profile files commonly used and the instructions are slightly different for each.
+
+The file `C:\Users\[User]\Documents\WindowsPowerShell\profile.ps1` is used for all hosts (e.g. the ISE and powershell.exe).  If you already have this file, then you should add the following:
+
+```
+if ($host.Name -eq 'ConsoleHost')
+{
+    Import-Module PSReadline
+}
+```
+
+Alternatively, the file `C:\Users\[User]\Documents\WindowsPowerShell\Microsoft.PowerShell_profile.ps1` is for powershell.exe only.  Using this file, you can simply add:
 
 ```
 Import-Module PSReadLine  
-Set-PSReadlineOption -EditMode Emacs
 ```
+
+In either case, you can create the appropriate file if you don't already have one.
 
 Usage
 =====
