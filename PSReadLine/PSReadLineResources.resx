@@ -249,4 +249,7 @@
   <data name="ReplacementLengthTooBig" xml:space="preserve">
     <value>length is too big</value>
   </data>
+  <data name="DisplayAllPossibilities" xml:space="preserve">
+    <value>Display all {0} possibilities? (y or n)</value>
+  </data>
 </root>

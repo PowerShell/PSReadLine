@@ -6,6 +6,7 @@ using System.Linq;
 using System.Management.Automation;
 using System.Management.Automation.Language;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace PSConsoleUtilities
 {
@@ -1113,8 +1114,24 @@ namespace PSConsoleUtilities
             var coords = _singleton.ConvertOffsetToCoordinates(_singleton._buffer.Length);
             _singleton.PlaceCursor(0, coords.Y + 1);
 
+            if (completions.CompletionMatches.Count >= _singleton._options.CompletionQueryItems)
+            {
+                if (!PromptYesOrNo(string.Format(PSReadLineResources.DisplayAllPossibilities, completions.CompletionMatches.Count)))
+                {
+                    _singleton.PlaceCursor(0, coords.Y + 1);
+                    WriteLine("");
+                    _singleton.PlaceCursor(coords.X, coords.Y);
+                    return;
+                }
+            }
+
             var sb = new StringBuilder();
-            var minColWidth = completions.CompletionMatches.Max(c => c.ListItemText.Length);
+            var matches = completions.CompletionMatches.Select(
+                completion =>
+                new {ListItemText = Regex.Replace(completion.ListItemText, "\n.*", "..."),
+                     ToolTip = Regex.Replace(completion.ToolTip, "\n.*", "...")})
+                               .ToArray();
+            var minColWidth = matches.Max(c => c.ListItemText.Length);
             minColWidth += 2;
 
             if (_singleton.Options.ShowToolTips)
@@ -1122,7 +1139,7 @@ namespace PSConsoleUtilities
                 const string seperator = "- ";
                 var maxTooltipWidth = Console.BufferWidth - minColWidth - seperator.Length;
 
-                foreach (var match in completions.CompletionMatches)
+                foreach (var match in matches)
                 {
                     sb.Append(match.ListItemText);
                     var spacesNeeded = minColWidth - match.ListItemText.Length;
@@ -1148,9 +1165,9 @@ namespace PSConsoleUtilities
                     for (var col = 0; col < displayColumns; col++)
                     {
                         var index = row + (displayRows * col);
-                        if (index >= completions.CompletionMatches.Count)
+                        if (index >= matches.Length)
                             break;
-                        var item = completions.CompletionMatches[index].ListItemText;
+                        var item = matches[index].ListItemText;
                         sb.Append(item);
                         sb.Append(' ', minColWidth - item.Length);
                     }
@@ -2070,7 +2087,7 @@ namespace PSConsoleUtilities
         // The unit test framework redirects stdout - so it would see Console.WriteLine calls.
         // Unfortunately, we are testing exact placement of characters on the screen, so redirection
         // doesn't work for us.
-        static private void WriteLine(string s)
+        static private void WriteImpl(string s)
         {
             Debug.Assert(s.Length <= Console.BufferWidth);
 
@@ -2097,8 +2114,35 @@ namespace PSConsoleUtilities
                                   Right = (short) s.Length
                               };
             NativeMethods.WriteConsoleOutput(handle, buffer, bufferSize, bufferCoord, ref writeRegion);
+        }
+
+        static private void WriteLine(string s)
+        {
+            Debug.Assert(s.Length <= Console.BufferWidth);
+
+            var spaces = Console.BufferWidth - s.Length;
+            if (spaces > 0)
+            {
+                s = s + new string(' ', spaces);
+            }
+            WriteImpl(s);
 
             _singleton.PlaceCursor(0, Console.CursorTop + 1);
+        }
+
+        static private void Write(string s)
+        {
+            WriteImpl(s);
+
+            _singleton.PlaceCursor(s.Length, Console.CursorTop);
+        }
+
+        static private bool PromptYesOrNo(string s)
+        {
+            Write(s);
+
+            var key = ReadKey();
+            return key.Key == ConsoleKey.Y;
         }
 
         private void RenderDemoWindow(int windowStart)
@@ -2343,6 +2387,10 @@ namespace PSConsoleUtilities
             if (options._bellStyle.HasValue)
             {
                 Options.BellStyle = options.BellStyle;
+            }
+            if (options._completionQueryItems.HasValue)
+            {
+                Options.CompletionQueryItems = options.CompletionQueryItems;
             }
             if (options.ResetTokenColors)
             {

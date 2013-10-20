@@ -49,6 +49,8 @@ namespace PSConsoleUtilities
 
         public const int DefaultDingDuration = 50;
 
+        public const int DefaultCompletionQueryItems = 100;
+
         /// <summary>
         /// When ringing the bell, what should be done?
         /// </summary>
@@ -70,6 +72,7 @@ namespace PSConsoleUtilities
             DingDuration = DefaultDingDuration;
             DingTone = DefaultDingTone;
             BellStyle = DefaultBellStyle;
+            CompletionQueryItems = DefaultCompletionQueryItems;
         }
 
         public string ContinuationPrompt { get; set; }
@@ -100,6 +103,7 @@ namespace PSConsoleUtilities
         public bool HistorySearchCursorMovesToEnd { get; set; }
         public bool ShowToolTips { get; set; }
         public int DingTone { get; set; }
+        public int CompletionQueryItems { get; set; }
 
         /// <summary>
         /// When ringing the bell, how long (in ms)?
@@ -328,6 +332,14 @@ namespace PSConsoleUtilities
             set { _bellStyle = value; }
         }
         internal BellStyle? _bellStyle;
+
+        [Parameter(ParameterSetName = "OptionsSet")]
+        public int CompletionQueryItems
+        {
+            get { return _completionQueryItems.GetValueOrDefault(); }
+            set { _completionQueryItems = value; }
+        }
+        internal int? _completionQueryItems;
 
         [Parameter(ParameterSetName = "ColorSet", Position = 0, Mandatory = true)]
         public TokenClassification TokenKind
