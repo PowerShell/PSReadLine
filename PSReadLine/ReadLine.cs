@@ -1480,7 +1480,7 @@ namespace PSConsoleUtilities
         /// <param name="replacement">The replacement text</param>
         public static void Replace(int start, int length, string replacement)
         {
-            if (start < 0 || start >= _singleton._buffer.Length)
+            if (start < 0 || start > _singleton._buffer.Length)
             {
                 throw new ArgumentException(PSReadLineResources.StartOutOfRange, "start");
             }
