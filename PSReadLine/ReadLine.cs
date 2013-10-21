@@ -370,6 +370,7 @@ namespace PSConsoleUtilities
                 { Keys.CtrlZ,           MakeKeyHandler(Undo,                 "Undo") },
                 { Keys.CtrlEnd,         MakeKeyHandler(ForwardDeleteLine,    "ForwardDeleteLine") },
                 { Keys.CtrlHome,        MakeKeyHandler(BackwardDeleteLine,   "BackwardDeleteLine") },
+                { Keys.CtrlRBracket,    MakeKeyHandler(GotoBrace,            "GotoBrace") },
             };
 
             _emacsKeyMap = new Dictionary<ConsoleKeyInfo, KeyHandler>(new ConsoleKeyInfoComparer())
@@ -772,6 +773,69 @@ namespace PSConsoleUtilities
         public static void EmacsBackwardWord(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.BackwardWord(EditMode.Emacs);
+        }
+
+        /// <summary>
+        /// Go to the matching brace, paren, or square bracket
+        /// </summary>
+        public static void GotoBrace(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            if (_singleton._current >= _singleton._buffer.Length)
+            {
+                Ding();
+                return;
+            }
+
+            var charAtPoint = _singleton._buffer[_singleton._current];
+
+            Token token = null;
+            var index = 0;
+            for (; index < _singleton._tokens.Length; index++)
+            {
+                token = _singleton._tokens[index];
+                if (token.Extent.StartOffset == _singleton._current)
+                    break;
+            }
+
+            TokenKind toMatch;
+            int direction;
+            switch (token.Kind)
+            {
+            case TokenKind.LParen:   toMatch = TokenKind.RParen; direction = 1; break;
+            case TokenKind.LCurly:   toMatch = TokenKind.RCurly; direction = 1; break;
+            case TokenKind.LBracket: toMatch = TokenKind.RBracket; direction = 1; break;
+
+            case TokenKind.RParen:   toMatch = TokenKind.LParen; direction = -1; break;
+            case TokenKind.RCurly:   toMatch = TokenKind.LCurly; direction = -1; break;
+            case TokenKind.RBracket: toMatch = TokenKind.LBracket; direction = -1; break;
+
+            default:
+                // Nothing to match (don't match inside strings/comments)
+                Ding();
+                return;
+            }
+
+            var matchCount = 0;
+            var limit = (direction > 0) ? _singleton._tokens.Length - 1 : -1;
+            for (; index != limit; index += direction)
+            {
+                var t = _singleton._tokens[index];
+                if (t.Kind == token.Kind)
+                {
+                    matchCount++;
+                }
+                else if (t.Kind == toMatch)
+                {
+                    matchCount--;
+                    if (matchCount == 0)
+                    {
+                        _singleton._current = t.Extent.StartOffset;
+                        _singleton.PlaceCursor();
+                        return;
+                    }
+                }
+            }
+            Ding();
         }
 
 #endregion Movement

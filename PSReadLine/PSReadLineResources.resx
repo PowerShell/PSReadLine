@@ -252,4 +252,7 @@
   <data name="DisplayAllPossibilities" xml:space="preserve">
     <value>Display all {0} possibilities? (y or n)</value>
   </data>
+  <data name="GotoBraceDescription" xml:space="preserve">
+    <value>Go to matching brace</value>
+  </data>
 </root>

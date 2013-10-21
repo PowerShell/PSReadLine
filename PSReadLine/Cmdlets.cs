@@ -395,11 +395,11 @@ namespace PSConsoleUtilities
                      "BackwardDeleteLine", "BackwardKillLine", "BackwardWord", "BeginningOfHistory", "BeginningOfLine",
                      "CancelLine", "Complete", "DeleteChar", "DisableDemoMode", "EmacsBackwardWord",
                      "EmacsForwardWord", "EnableDemoMode", "EndOfHistory", "EndOfLine", "ExchangePointAndMark",
-                     "ForwardChar", "ForwardDeleteLine", "ForwardWord", "HistorySearchBackward", "HistorySearchForward",
-                     "KillBackwardWord", "KillLine", "KillWord", "NextHistory", "Paste",
-                     "PossibleCompletions", "PreviousHistory", "Redo", "RevertLine", "SetKeyHandler",
-                     "SetMark", "TabCompleteNext", "TabCompletePrevious", "Undo", "Yank",
-                     "YankPop")]
+                     "ForwardChar", "ForwardDeleteLine", "ForwardWord", "GotoBrace", "HistorySearchBackward",
+                     "HistorySearchForward", "KillBackwardWord", "KillLine", "KillWord", "NextHistory",
+                     "Paste", "PossibleCompletions", "PreviousHistory", "Redo", "RevertLine",
+                     "SetKeyHandler", "SetMark", "TabCompleteNext", "TabCompletePrevious", "Undo",
+                     "Yank", "YankPop")]
         [Parameter(Position = 1, Mandatory = true, ParameterSetName = "Function")]
         public string Function { get; set; }
 

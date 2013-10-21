@@ -286,6 +286,15 @@ namespace PSConsoleUtilities {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Go to matching brace.
+        /// </summary>
+        internal static string GotoBraceDescription {
+            get {
+                return ResourceManager.GetString("GotoBraceDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Search for the previous item in the history that starts with the current input - like PreviousHistory if the input is empty.
         /// </summary>
         internal static string HistorySearchBackwardsDescription {
