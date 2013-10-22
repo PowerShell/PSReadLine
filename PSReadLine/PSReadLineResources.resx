@@ -252,6 +252,9 @@
   <data name="DisplayAllPossibilities" xml:space="preserve">
     <value>Display all {0} possibilities? (y or n)</value>
   </data>
+  <data name="ClearScreenDescription" xml:space="preserve">
+    <value>Clear the screen and redraw the current line at the top of the screen</value>
+  </data>
   <data name="GotoBraceDescription" xml:space="preserve">
     <value>Go to matching brace</value>
   </data>

@@ -160,6 +160,15 @@ namespace PSConsoleUtilities {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Clear the screen and redraw the current line at the top of the screen.
+        /// </summary>
+        internal static string ClearScreenDescription {
+            get {
+                return ResourceManager.GetString("ClearScreenDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Remove all items from the command line history (not PowerShell history).
         /// </summary>
         internal static string ClearyHistoryDescription {

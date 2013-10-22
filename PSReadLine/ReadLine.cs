@@ -366,6 +366,7 @@ namespace PSConsoleUtilities
                 { Keys.VolumeUp,        MakeKeyHandler(Ignore,               "Ignore") },
                 { Keys.VolumeMute,      MakeKeyHandler(Ignore,               "Ignore") },
                 { Keys.CtrlC,           MakeKeyHandler(CancelLine,           "CancelLine") },
+                { Keys.CtrlL,           MakeKeyHandler(ClearScreen,          "ClearScreen") },
                 { Keys.CtrlY,           MakeKeyHandler(Redo,                 "Redo") },
                 { Keys.CtrlZ,           MakeKeyHandler(Undo,                 "Undo") },
                 { Keys.CtrlEnd,         MakeKeyHandler(ForwardDeleteLine,    "ForwardDeleteLine") },
@@ -396,6 +397,7 @@ namespace PSConsoleUtilities
                 { Keys.CtrlE,           MakeKeyHandler(EndOfLine,            "EndOfLine") },
                 { Keys.CtrlF,           MakeKeyHandler(ForwardChar,          "ForwardChar") },
                 { Keys.CtrlH,           MakeKeyHandler(BackwardDeleteChar,   "BackwardDeleteChar") },
+                { Keys.CtrlL,           MakeKeyHandler(ClearScreen,          "ClearScreen") },
                 { Keys.CtrlK,           MakeKeyHandler(KillLine,             "KillLine") },
                 { Keys.CtrlM,           MakeKeyHandler(AcceptLine,           "AcceptLine") },
                 { Keys.CtrlU,           MakeKeyHandler(BackwardKillLine,     "BackwardKillLine") },
@@ -836,6 +838,16 @@ namespace PSConsoleUtilities
                 }
             }
             Ding();
+        }
+
+        /// <summary>
+        /// Clear the screen and draw the current line at the top of the screen.
+        /// </summary>
+        public static void ClearScreen(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            Console.Clear();
+            _singleton._initialY = 0;
+            _singleton.Render();
         }
 
 #endregion Movement
