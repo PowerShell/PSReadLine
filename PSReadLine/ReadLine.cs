@@ -5,8 +5,10 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Management.Automation;
 using System.Management.Automation.Language;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 
 namespace PSConsoleUtilities
 {
@@ -65,6 +67,12 @@ namespace PSConsoleUtilities
     {
         private static readonly PSConsoleReadLine _singleton;
 
+        private static readonly GCHandle _breakHandlerGcHandle;
+        private Thread _readKeyThread;
+        private AutoResetEvent _readKeyWaitHandle;
+        private AutoResetEvent _keyReadWaitHandle;
+        private AutoResetEvent _closingWaitHandle;
+        private WaitHandle[] _waitHandles;
         private bool _captureKeys;
         private readonly Queue<ConsoleKeyInfo> _savedKeys; 
         private readonly HistoryQueue<string> _demoStrings;
@@ -183,29 +191,77 @@ namespace PSConsoleUtilities
 
         #endregion Unit test only properties
 
+        private void ReadKeyThreadProc()
+        {
+            while (true)
+            {
+                // Wait until ReadKey tells us to read a key.
+                _readKeyWaitHandle.WaitOne();
+
+                var start = DateTime.Now;
+                while (Console.KeyAvailable)
+                {
+                    _queuedKeys.Enqueue(Console.ReadKey(true));
+                    if ((DateTime.Now - start).Milliseconds > 2)
+                    {
+                        // Don't spend too long in this loop if there are lots of queued keys
+                        break;
+                    }
+                }
+
+                var key = _queuedKeys.Count > 0
+                    ? _queuedKeys.Dequeue()
+                    : Console.ReadKey(true);
+                if (_captureKeys)
+                {
+                    _savedKeys.Enqueue(key);
+                }
+
+                _queuedKeys.Enqueue(key);
+
+                // One or more keys were read - let ReadKey know we're done.
+                _keyReadWaitHandle.Set();
+            }
+        }
+
         [ExcludeFromCodeCoverage]
         private static ConsoleKeyInfo ReadKey()
         {
-            var start = DateTime.Now;
-            while (Console.KeyAvailable)
+            // Reading a key is handled on a different thread.  During process shutdown,
+            // PowerShell will wait in it's ConsoleCtrlHandler until the pipeline has completed.
+            // If we're running, we're most likely blocked waiting for user input.
+            // This is a problem for two reasons.  First, exiting takes a long time (5 seconds
+            // on Win8) because PowerShell is waiting forever, but the OS will forcibly terminate
+            // the console.  Also - if there are any event handlers for the engine event
+            // PowerShell.Exiting, those handlers won't get a chance to run.
+            //
+            // By waiting for a key on a different thread, our pipeline execution thread
+            // (the thread Readline is called from) avoid being blocked in code that can't
+            // be unblocked and instead blocks on events we control.
+
+            // First, set an event so the thread to read a key actually attempts to read a key.
+            _singleton._readKeyWaitHandle.Set();
+
+            // Next, wait for one of two things - either a key is pressed on the console is exiting.
+            int handleId = WaitHandle.WaitAny(_singleton._waitHandles);
+            if (handleId == 1)
             {
-                _singleton._queuedKeys.Enqueue(Console.ReadKey(true));
-                if ((DateTime.Now - start).Milliseconds > 2)
-                {
-                    // Don't spend too long in this loop if there are lots of queued keys
-                    break;
-                }
+                // The console is exiting - throw an exception to unwind the stack to the point
+                // where we can return from ReadLine.
+                throw new OperationCanceledException();
+            }
+            return _singleton._queuedKeys.Dequeue();
+        }
+
+        private bool BreakHandler(ConsoleBreakSignal signal)
+        {
+            if (signal == ConsoleBreakSignal.Close || signal == ConsoleBreakSignal.Shutdown)
+            {
+                // Set the event so ReadKey throws an exception to unwind.
+                _singleton._closingWaitHandle.Set();
             }
 
-            var key = _singleton._queuedKeys.Count > 0
-                ? _singleton._queuedKeys.Dequeue()
-                : Console.ReadKey(true);
-            if (_singleton._captureKeys)
-            {
-                _singleton._savedKeys.Enqueue(key);
-
-            }
-            return key;
+            return false;
         }
 
         /// <summary>
@@ -224,6 +280,11 @@ namespace PSConsoleUtilities
 
                 _singleton.Initialize();
                 return _singleton.InputLoop();
+            }
+            catch (OperationCanceledException)
+            {
+                // Console is exiting - return value isn't too critical - null or 'exit' could work equally well.
+                return "";
             }
             finally
             {
@@ -434,6 +495,15 @@ namespace PSConsoleUtilities
             };
 
             _singleton = new PSConsoleReadLine();
+
+            _breakHandlerGcHandle = GCHandle.Alloc(new BreakHandler(_singleton.BreakHandler));
+            NativeMethods.SetConsoleCtrlHandler((BreakHandler) _breakHandlerGcHandle.Target, true);
+            _singleton._readKeyThread = new Thread(_singleton.ReadKeyThreadProc);
+            _singleton._readKeyThread.Start();
+            _singleton._readKeyWaitHandle = new AutoResetEvent(false);
+            _singleton._keyReadWaitHandle = new AutoResetEvent(false);
+            _singleton._closingWaitHandle = new AutoResetEvent(false);
+            _singleton._waitHandles = new WaitHandle[] { _singleton._keyReadWaitHandle, _singleton._closingWaitHandle };
         }
 
         private PSConsoleReadLine()
