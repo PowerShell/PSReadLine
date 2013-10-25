@@ -42,7 +42,8 @@ foreach ($file in $files)
 
 $version = (Get-ChildItem $targetDir\PSReadline.dll).VersionInfo.FileVersion
 
-Update-ModuleManifest $targetDir\PSReadline.psd1 $version
+& $PSScriptRoot\Update-ModuleManifest.ps1 $targetDir\PSReadline.psd1 $version
+
 
 del $PSScriptRoot\PSReadline.zip -ea Ignore
 [System.IO.Compression.ZipFile]::CreateFromDirectory($targetDir, "$PSScriptRoot\PSReadline.zip")

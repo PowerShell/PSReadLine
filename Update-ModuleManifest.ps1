@@ -1,22 +1,19 @@
+param (
+     [Parameter(Mandatory=$TRUE)]
+     [String] $FilePath,
+     [Parameter(Mandatory=$TRUE)]
+     [String] $Version
+)
 
-function Update-ModuleManifest {
-  param (
-         [Parameter(Mandatory=$TRUE)]
-         [String] $FilePath,
-         [Parameter(Mandatory=$TRUE)]
-         [String] $Version
-  )
-
-  if ((Test-Path $FilePath -PathType Leaf) -ne $TRUE) {
+if ((Test-Path $FilePath -PathType Leaf) -ne $TRUE) {
     Write-Error -Message ($FilePath + ' not found.') -Category InvalidArgument;
     exit 1;
-  }
-
-  #normalize path
-  $FilePath = (Resolve-Path $FilePath).Path;
-
-  $moduleVersionPattern = "ModuleVersion = '.*'";
-  $newVersion = "ModuleVersion = '" + $Version + "'";
-
-  (Get-Content $FilePath) | % {$_ -replace $moduleVersionPattern, $newVersion} | Set-Content $FilePath;
 }
+
+#normalize path
+$FilePath = (Resolve-Path $FilePath).Path;
+
+$moduleVersionPattern = "ModuleVersion = '.*'";
+$newVersion = "ModuleVersion = '" + $Version + "'";
+
+(Get-Content $FilePath) | % {$_ -replace $moduleVersionPattern, $newVersion} | Set-Content $FilePath;
