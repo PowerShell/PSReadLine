@@ -209,15 +209,11 @@ namespace PSConsoleUtilities
                     }
                 }
 
-                var key = _queuedKeys.Count > 0
-                    ? _queuedKeys.Dequeue()
-                    : Console.ReadKey(true);
-                if (_captureKeys)
+                if (_queuedKeys.Count == 0)
                 {
-                    _savedKeys.Enqueue(key);
+                    var key = Console.ReadKey(true);
+                    _queuedKeys.Enqueue(key);
                 }
-
-                _queuedKeys.Enqueue(key);
 
                 // One or more keys were read - let ReadKey know we're done.
                 _keyReadWaitHandle.Set();
@@ -250,7 +246,12 @@ namespace PSConsoleUtilities
                 // where we can return from ReadLine.
                 throw new OperationCanceledException();
             }
-            return _singleton._queuedKeys.Dequeue();
+            var key = _singleton._queuedKeys.Dequeue();
+            if (_singleton._captureKeys)
+            {
+                _singleton._savedKeys.Enqueue(key);
+            }
+            return key;
         }
 
         private bool BreakHandler(ConsoleBreakSignal signal)
