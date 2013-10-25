@@ -25,7 +25,6 @@ $files = @('Changes.txt',
            'PSReadline\PSReadline.psd1',
            'PSReadline\PSReadline.psm1',
            'PSReadline\PSReadline.format.ps1xml',
-           'PSReadline\PSReadline.format.ps1xml',
            'PSReadline\bin\Release\PSReadline.dll')
 
 foreach ($file in $files)
@@ -40,6 +39,10 @@ foreach ($file in $files)
 {
     cp $PSScriptRoot\$file $targetDir\en-us
 }
+
+$version = (Get-ChildItem $targetDir\PSReadline.dll).VersionInfo.FileVersion
+
+Update-ModuleManifest $targetDir\PSReadline.psd1 $version
 
 del $PSScriptRoot\PSReadline.zip -ea Ignore
 [System.IO.Compression.ZipFile]::CreateFromDirectory($targetDir, "$PSScriptRoot\PSReadline.zip")
