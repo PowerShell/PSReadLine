@@ -55,12 +55,10 @@ if (gcm cpack -ea Ignore)
     }
 
     & $PSScriptRoot\Update-NuspecVersion.ps1 "$chocolateyDir\PSReadline.nuspec" $version
-    & $PSScriptRoot\Update-NuspecVersion.ps1 "$chocolateyDir\PSReadline.SingleUser.nuspec" $version
 
     cp -r $targetDir $chocolateyDir\PSReadline
 
     cpack "$chocolateyDir\PSReadline.nuspec"
-    cpack "$chocolateyDir\PSReadline.SingleUser.nuspec"
 }
 
 del $PSScriptRoot\PSReadline.zip -ea Ignore
