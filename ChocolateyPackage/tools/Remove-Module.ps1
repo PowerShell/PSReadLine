@@ -3,6 +3,9 @@ param(
     [String] $ModuleName
 )
 
+    $ErrorActionPreference = "Stop"
+
+
     $moduleRoot = "$($env:CommonProgramW6432)\Modules\"
     $dir = "$moduleRoot\$ModuleName\"
 

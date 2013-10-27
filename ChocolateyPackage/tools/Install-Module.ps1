@@ -5,6 +5,8 @@ param(
         [String] $ModuleName
      )
 
+$ErrorActionPreference = "Stop"
+
 if (!(Test-Path -PathType Container $PathToModuleFiles)) {
     Write-Error "$PathToModuleFiles not found or is not a directory. Nothing to install."
     exit
