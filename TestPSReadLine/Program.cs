@@ -116,7 +116,7 @@ namespace TestPSReadLine
                 Console.WriteLine(line);
                 line = line.Trim();
                 if (line.Equals("exit"))
-                    break;
+                    Environment.Exit(0);
                 if (line.Equals("cmd"))
                     PSConsoleReadLine.SetOptions(new SetPSReadlineOption {EditMode = EditMode.Windows});
                 if (line.Equals("emacs"))
