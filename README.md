@@ -48,6 +48,26 @@ Import-Module PSReadLine
 
 In either case, you can create the appropriate file if you don't already have one.
 
+Upgrading
+============
+
+If you installed with `PSGet` you can run `Update-Module PSReadLine`.
+
+
+If you've added it to your `$PROFILE`, when you run `Update-Module PSReadLine` you will get the following error
+
+```
+Remove-Item : Cannot remove item
+C:\Users\{yourName}\Documents\WindowsPowerShell\Modules\PSReadLine\PSReadline.dll: Access to the path
+'C:\Users\{yourName}\Documents\WindowsPowerShell\Modules\PSReadLine\PSReadline.dll' is denied.
+At C:\Users\{yourName}\Documents\WindowsPowerShell\Modules\PsGet\PsGet.psm1:1009 char:52
+```
+
+1. Run `cmd.exe`
+2. `powershell -noprofile`
+3. `Update-Module PSReadLine`
+
+
 Usage
 =====
 
