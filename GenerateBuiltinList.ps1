@@ -24,13 +24,13 @@ function GenerateStrings
     process
     {
         $null = $buffer.Append($comma)
-        $count++
-        if (($count % 5) -eq 0)
+        if ($count -gt 0 -and ($count % 5) -eq 0)
         {
             # Remove the trailing space
             $null = $buffer.Remove($buffer.Length - 1, 1)
             $null = $buffer.Append("`n$indent$(' ' * $prefix.Length)")
         }
+        $count++
         $null = $buffer.Append('"')
         $null = $buffer.Append($Item)
         $null = $buffer.Append('"')

@@ -19,6 +19,7 @@ namespace PSConsoleUtilities
         public const uint MENU_IS_INACTIVE  = 0x00; // windows key
 
         public const uint ENABLE_PROCESSED_INPUT = 0x0001;
+        public const uint ENABLE_LINE_INPUT      = 0x0002;
 
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         public static extern IntPtr GetStdHandle(uint handleId);

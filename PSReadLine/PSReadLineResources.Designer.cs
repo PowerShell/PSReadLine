@@ -61,6 +61,15 @@ namespace PSConsoleUtilities {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Abort the current operation, e.g. incremental history search.
+        /// </summary>
+        internal static string AbortDescription {
+            get {
+                return ResourceManager.GetString("AbortDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Accept the input or move to the next line if input is missing a closing token..
         /// </summary>
         internal static string AcceptLineDescription {
@@ -286,6 +295,15 @@ namespace PSConsoleUtilities {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Search history forward interactively.
+        /// </summary>
+        internal static string ForwardSearchHistoryDescription {
+            get {
+                return ResourceManager.GetString("ForwardSearchHistoryDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Move the cursor to the beginning of the next token or end of line.
         /// </summary>
         internal static string ForwardWordDescription {
@@ -408,6 +426,15 @@ namespace PSConsoleUtilities {
         internal static string ReplacementLengthTooBig {
             get {
                 return ResourceManager.GetString("ReplacementLengthTooBig", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Search history backwards interactively.
+        /// </summary>
+        internal static string ReverseSearchHistoryDescription {
+            get {
+                return ResourceManager.GetString("ReverseSearchHistoryDescription", resourceCulture);
             }
         }
         

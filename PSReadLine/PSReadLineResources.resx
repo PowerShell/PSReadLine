@@ -258,4 +258,13 @@
   <data name="GotoBraceDescription" xml:space="preserve">
     <value>Go to matching brace</value>
   </data>
+  <data name="AbortDescription" xml:space="preserve">
+    <value>Abort the current operation, e.g. incremental history search</value>
+  </data>
+  <data name="ForwardSearchHistoryDescription" xml:space="preserve">
+    <value>Search history forward interactively</value>
+  </data>
+  <data name="ReverseSearchHistoryDescription" xml:space="preserve">
+    <value>Search history backwards interactively</value>
+  </data>
 </root>

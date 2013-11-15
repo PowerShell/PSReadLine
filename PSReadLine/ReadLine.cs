@@ -128,12 +128,21 @@ namespace PSConsoleUtilities
         private Dictionary<ConsoleKeyInfo, KeyHandler> _dispatchMetaTable;
 
         private readonly StringBuilder _buffer;
+        private readonly StringBuilder _statusBuffer;
+        private string _statusLinePrompt;
+        private const string _forwardISearchPrompt = "fwd-i-search: ";
+        private const string _backwardISearchPrompt = "bck-i-search: ";
+        private const string _failedForwardISearchPrompt = "failed-fwd-i-search: ";
+        private const string _failedBackwardISearchPrompt = "failed-bck-i-search: ";
+        private int _statusLineCount;
         private List<EditItem> _edits;
         private int _editGroupCount;
         private readonly Stack<int> _pushedEditGroupCount;
         private int _undoEditIndex;
         private CHAR_INFO[] _consoleBuffer;
         private int _current;
+        private int _emphasisStart;
+        private int _emphasisLength;
         private int _mark;
         private bool _inputAccepted;
         private int _initialX;
@@ -277,7 +286,11 @@ namespace PSConsoleUtilities
             NativeMethods.GetConsoleMode(handle, out dwConsoleMode);
             try
             {
-                NativeMethods.SetConsoleMode(handle, dwConsoleMode & ~NativeMethods.ENABLE_PROCESSED_INPUT);
+                // Clear a couple flags so we can actually receive certain keys:
+                //     ENABLE_PROCESSED_INPUT - enables Ctrl+C
+                //     ENABLE_LINE_INPUT - enables Ctrl+S
+                NativeMethods.SetConsoleMode(handle,
+                    dwConsoleMode & ~(NativeMethods.ENABLE_PROCESSED_INPUT | NativeMethods.ENABLE_LINE_INPUT));
 
                 _singleton.Initialize();
                 return _singleton.InputLoop();
@@ -458,10 +471,13 @@ namespace PSConsoleUtilities
                 { Keys.CtrlD,           MakeKeyHandler(DeleteChar,           "DeleteChar") },
                 { Keys.CtrlE,           MakeKeyHandler(EndOfLine,            "EndOfLine") },
                 { Keys.CtrlF,           MakeKeyHandler(ForwardChar,          "ForwardChar") },
+                { Keys.CtrlG,           MakeKeyHandler(Abort,                "Abort") },
                 { Keys.CtrlH,           MakeKeyHandler(BackwardDeleteChar,   "BackwardDeleteChar") },
                 { Keys.CtrlL,           MakeKeyHandler(ClearScreen,          "ClearScreen") },
                 { Keys.CtrlK,           MakeKeyHandler(KillLine,             "KillLine") },
                 { Keys.CtrlM,           MakeKeyHandler(AcceptLine,           "AcceptLine") },
+                { Keys.CtrlR,           MakeKeyHandler(ReverseSearchHistory, "ReverseSeachHistory") },
+                { Keys.CtrlS,           MakeKeyHandler(ForwardSearchHistory, "ForwardSeachHistory") },
                 { Keys.CtrlU,           MakeKeyHandler(BackwardKillLine,     "BackwardKillLine") },
                 { Keys.CtrlX,           MakeKeyHandler(Chord,                "ChordFirstKey") },
                 { Keys.CtrlY,           MakeKeyHandler(Yank,                 "Yank") },
@@ -520,6 +536,7 @@ namespace PSConsoleUtilities
             _chordDispatchTable = new Dictionary<ConsoleKeyInfo, Dictionary<ConsoleKeyInfo, KeyHandler>>();
 
             _buffer = new StringBuilder(8 * 1024);
+            _statusBuffer = new StringBuilder(256);
             _savedCurrentLine = new HistoryItem();
             _queuedKeys = new Queue<ConsoleKeyInfo>();
 
@@ -548,6 +565,8 @@ namespace PSConsoleUtilities
             _pushedEditGroupCount.Clear();
             _current = 0;
             _mark = 0;
+            _emphasisStart = -1;
+            _emphasisLength = 0;
             _tokens = null;
             _parseErrors = null;
             _inputAccepted = false;
@@ -585,6 +604,13 @@ namespace PSConsoleUtilities
         }
 
         private static void Ignore(ConsoleKeyInfo? key = null, object arg = null)
+        {
+        }
+
+        /// <summary>
+        /// Abort current action, e.g. incremental history search
+        /// </summary>
+        public static void Abort(ConsoleKeyInfo? key = null, object arg = null)
         {
         }
 
@@ -966,6 +992,10 @@ namespace PSConsoleUtilities
             {
                 _current = _buffer.Length;
             }
+            else if (_current > _buffer.Length)
+            {
+                _current = _buffer.Length;
+            }
             Render();
         }
 
@@ -1062,6 +1092,213 @@ namespace PSConsoleUtilities
         {
             _singleton.SaveCurrentLine();
             _singleton.HistorySearch(backward: false);
+        }
+
+        private void UpdateHistoryDuringInteractiveSearch(string toMatch, int direction)
+        {
+            for (int i = _currentHistoryIndex + direction; i >=0 && i < _history.Count; i += direction)
+            {
+                // TODO - support case insensitive search
+                var startIndex = _history[i]._line.IndexOf(toMatch, StringComparison.Ordinal);
+                if (startIndex >= 0)
+                {
+                    _statusLinePrompt = direction > 0 ? _forwardISearchPrompt : _backwardISearchPrompt;
+                    _current = startIndex;
+                    _emphasisStart = startIndex;
+                    _emphasisLength = toMatch.Length;
+                    _currentHistoryIndex = i;
+                    UpdateFromHistory(moveCursor: Options.HistorySearchCursorMovesToEnd);
+                    return;
+                }
+            }
+
+            _statusLinePrompt = direction > 0 ? _failedForwardISearchPrompt : _failedBackwardISearchPrompt;
+            Render();
+        }
+
+        private void InteractiveHistorySearchLoop(int direction, string currentBuffer)
+        {
+            var searchPositions = new Stack<int>();
+            searchPositions.Push(_currentHistoryIndex);
+
+            var toMatch = new StringBuilder(currentBuffer, 64);
+            var initialToMatchLength = currentBuffer.Length;
+            if (initialToMatchLength > 0)
+            {
+                UpdateHistoryDuringInteractiveSearch(currentBuffer, direction);
+            }
+            while (true)
+            {
+                var key = ReadKey();
+                KeyHandler handler;
+                _dispatchTable.TryGetValue(key, out handler);
+                var function = handler != null ? handler.Action : null;
+                if (function == ReverseSearchHistory)
+                {
+                    UpdateHistoryDuringInteractiveSearch(toMatch.ToString(), direction);
+                }
+                else if (function == ForwardSearchHistory)
+                {
+                    UpdateHistoryDuringInteractiveSearch(toMatch.ToString(), -direction);
+                }
+                else if (function == BackwardDeleteChar)
+                {
+                    if (toMatch.Length > initialToMatchLength)
+                    {
+                        toMatch.Remove(toMatch.Length - 1, 1);
+                        _statusBuffer.Remove(_statusBuffer.Length - 2, 1);
+                        searchPositions.Pop();
+                        _currentHistoryIndex = searchPositions.Peek();
+                        UpdateFromHistory(moveCursor: Options.HistorySearchCursorMovesToEnd);
+
+                        // Prompt may need to have 'failed-' removed.
+                        var toMatchStr = toMatch.ToString();
+                        // TODO - support case insensitive search
+                        var startIndex = _buffer.ToString().IndexOf(toMatchStr, StringComparison.Ordinal);
+                        if (startIndex >= 0)
+                        {
+                            _statusLinePrompt = direction > 0 ? _forwardISearchPrompt : _backwardISearchPrompt;
+                            _current = startIndex;
+                            _emphasisStart = startIndex;
+                            _emphasisLength = toMatch.Length;
+                            Render();
+                        }
+                    }
+                    else
+                    {
+                        Ding();
+                    }
+                }
+                else if (key == Keys.Escape)
+                {
+                    // End search
+                    break;
+                }
+                else if (function == Abort)
+                {
+                    // Abort search
+                    EndOfHistory();
+                    break;
+                }
+                else if (EndInteractiveHistorySearch(key, function))
+                {
+                    if (_queuedKeys.Count > 0)
+                    {
+                        // This should almost never happen so being inefficient is fine.
+                        var list = new List<ConsoleKeyInfo>(_queuedKeys);
+                        _queuedKeys.Clear();
+                        _queuedKeys.Enqueue(key);
+                        list.ForEach(k => _queuedKeys.Enqueue(k));
+                    }
+                    else
+                    {
+                        _queuedKeys.Enqueue(key);
+                    }
+                    break;
+                }
+                else
+                {
+                    toMatch.Append(key.KeyChar);
+                    _statusBuffer.Insert(_statusBuffer.Length - 1, key.KeyChar);
+
+                    var toMatchStr = toMatch.ToString();
+                    // TODO - support case insensitive search
+                    var startIndex = _buffer.ToString().IndexOf(toMatchStr, StringComparison.Ordinal);
+                    if (startIndex < 0)
+                    {
+                        UpdateHistoryDuringInteractiveSearch(toMatchStr, direction);
+                    }
+                    else
+                    {
+                        _current = startIndex;
+                        _emphasisStart = startIndex;
+                        _emphasisLength = toMatch.Length;
+                        Render();
+                    }
+                    searchPositions.Push(_currentHistoryIndex);
+                }
+            }
+        }
+
+        private static bool EndInteractiveHistorySearch(ConsoleKeyInfo key, Action<ConsoleKeyInfo?, object> function)
+        {
+            // Keys < ' ' are control characters
+            if (key.KeyChar < ' ')
+            {
+                return true;
+            }
+
+            if ((key.Modifiers & (ConsoleModifiers.Alt | ConsoleModifiers.Control)) != 0)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private void InteractiveHistorySearch(int direction)
+        {
+            SaveCurrentLine();
+
+            var currentBuffer = _buffer.ToString();
+            // Add a status line that will contain the search prompt and string
+            _statusLinePrompt = direction > 0 ? _forwardISearchPrompt : _backwardISearchPrompt;
+            _statusBuffer.Append(currentBuffer);
+            _statusBuffer.Append("_");
+            _statusLineCount = 1;
+
+            Render(); // Render prompt
+            InteractiveHistorySearchLoop(direction, currentBuffer);
+
+            // Remove our status line
+            _statusBuffer.Clear();
+            _statusLineCount = 0;
+            _statusLinePrompt = null;
+            _emphasisStart = -1;
+            _emphasisLength = 0;
+
+#if FALSE
+            int promptStart = _bufferWidth * Options.ExtraPromptLineCount;
+            int promptWidth = _initialX;
+
+            // Copy the prompt (ignoring the possible extra lines which we'll leave alone)
+            var savedPrompt = new CHAR_INFO[promptWidth];
+            Array.Copy(_consoleBuffer, promptStart, savedPrompt, 0, promptWidth);
+
+            string newPrompt = "(reverse-i-search)`': ";
+            _initialX = newPrompt.Length;
+            int i, j;
+            for (i = promptStart, j = 0; j < newPrompt.Length; i++, j++)
+            {
+                _consoleBuffer[i].UnicodeChar = newPrompt[j];
+                _consoleBuffer[i].BackgroundColor = Console.BackgroundColor;
+                _consoleBuffer[i].ForegroundColor = Console.ForegroundColor;
+            }
+
+            InteractiveHistorySearchLoop(direction);
+
+            // Restore the original prompt
+            _initialX = promptWidth;
+            Array.Copy(savedPrompt, 0, _consoleBuffer, promptStart, savedPrompt.Length);
+#endif
+
+            Render();
+        }
+
+        /// <summary>
+        /// Perform an incremental forward search through history
+        /// </summary>
+        public static void ForwardSearchHistory(ConsoleKeyInfo? arg1, object arg2)
+        {
+            _singleton.InteractiveHistorySearch(+1);
+        }
+
+        /// <summary>
+        /// Perform an incremental backward search through history
+        /// </summary>
+        public static void ReverseSearchHistory(ConsoleKeyInfo? arg1, object arg2)
+        {
+            _singleton.InteractiveHistorySearch(-1);
         }
 
 #endregion History
@@ -1874,7 +2111,7 @@ namespace PSConsoleUtilities
 
             var text = ParseInput();
 
-            int bufferLineCount = ConvertOffsetToCoordinates(text.Length).Y - _initialY + 1 + _demoWindowLineCount;
+            int bufferLineCount = ConvertOffsetToCoordinates(text.Length).Y - _initialY + 1 + _demoWindowLineCount + _statusLineCount;
             int bufferWidth = Console.BufferWidth;
             if (_consoleBuffer.Length != bufferLineCount * bufferWidth)
             {
@@ -1926,7 +2163,7 @@ namespace PSConsoleUtilities
 
                 if (i == token.Extent.StartOffset)
                 {
-                    GetTokenColors(token, ref foregroundColor, ref backgroundColor);
+                    GetTokenColors(token, out foregroundColor, out backgroundColor);
 
                     var stringToken = token as StringExpandableToken;
                     if (stringToken != null)
@@ -1968,22 +2205,41 @@ namespace PSConsoleUtilities
                 else if (char.IsControl(text[i]))
                 {
                     _consoleBuffer[j].UnicodeChar = '^';
-                    _consoleBuffer[j].ForegroundColor = foregroundColor;
-                    _consoleBuffer[j++].BackgroundColor = backgroundColor;
+                    MaybeEmphasize(ref _consoleBuffer[j++], i, foregroundColor, backgroundColor);
                     _consoleBuffer[j].UnicodeChar = (char)('@' + text[i]);
-                    _consoleBuffer[j].ForegroundColor = foregroundColor;
-                    _consoleBuffer[j++].BackgroundColor = backgroundColor;
+                    MaybeEmphasize(ref _consoleBuffer[j++], i, foregroundColor, backgroundColor);
                 }
                 else
                 {
                     _consoleBuffer[j].UnicodeChar = text[i];
-                    _consoleBuffer[j].ForegroundColor = foregroundColor;
-                    _consoleBuffer[j++].BackgroundColor = backgroundColor;
+                    MaybeEmphasize(ref _consoleBuffer[j++], i, foregroundColor, backgroundColor);
                 }
             }
-            for (; j < (_consoleBuffer.Length - (_demoWindowLineCount * _bufferWidth)); j++)
+
+            for (; j < (_consoleBuffer.Length - ((_statusLineCount + _demoWindowLineCount) * _bufferWidth)); j++)
             {
                 _consoleBuffer[j] = _space;
+            }
+
+            if (_statusLineCount > 0)
+            {
+                for (int i = 0; i < _statusLinePrompt.Length; i++, j++)
+                {
+                    _consoleBuffer[j].UnicodeChar = _statusLinePrompt[i];
+                    _consoleBuffer[j].ForegroundColor = Console.ForegroundColor;
+                    _consoleBuffer[j].BackgroundColor = Console.BackgroundColor;
+                }
+                for (int i = 0; i < _statusBuffer.Length; i++, j++)
+                {
+                    _consoleBuffer[j].UnicodeChar = _statusBuffer[i];
+                    _consoleBuffer[j].ForegroundColor = Console.ForegroundColor;
+                    _consoleBuffer[j].BackgroundColor = Console.BackgroundColor;
+                }
+
+                for (; j < (_consoleBuffer.Length - (_demoWindowLineCount * _bufferWidth)); j++)
+                {
+                    _consoleBuffer[j] = _space;
+                }
             }
 
             if (_demoMode)
@@ -2018,7 +2274,7 @@ namespace PSConsoleUtilities
 
             PlaceCursor();
 
-            if (_demoMode && (_initialY + bufferLineCount + 1) > (Console.WindowTop + Console.WindowHeight))
+            if ((_initialY + bufferLineCount + 1) > (Console.WindowTop + Console.WindowHeight))
             {
                 Console.WindowTop = _initialY + bufferLineCount + 1 - Console.WindowHeight;
             }
@@ -2076,7 +2332,7 @@ namespace PSConsoleUtilities
             return result;
         }
 
-        private void GetTokenColors(Token token, ref ConsoleColor foregroundColor, ref ConsoleColor backgroundColor)
+        private void GetTokenColors(Token token, out ConsoleColor foregroundColor, out ConsoleColor backgroundColor)
         {
             switch (token.Kind)
             {
@@ -2149,6 +2405,18 @@ namespace PSConsoleUtilities
             backgroundColor = _options.DefaultTokenBackgroundColor;
         }
 
+        private void MaybeEmphasize(ref CHAR_INFO charInfo, int i, ConsoleColor foregroundColor, ConsoleColor backgroundColor)
+        {
+            if (i >= _emphasisStart && i < (_emphasisStart + _emphasisLength))
+            {
+                backgroundColor = _options.EmphasisBackgroundColor;
+                foregroundColor = _options.EmphasisForegroundColor;
+            }
+
+            charInfo.ForegroundColor = foregroundColor;
+            charInfo.BackgroundColor = backgroundColor;
+        }
+
         private static void ScrollBuffer(int lines)
         {
             var handle = NativeMethods.GetStdHandle((uint) StandardHandleId.Output);
@@ -2167,9 +2435,9 @@ namespace PSConsoleUtilities
 
         private void PlaceCursor(int x, int y)
         {
-            if ((y + _demoWindowLineCount) >= Console.BufferHeight)
+            if ((y + _demoWindowLineCount + _statusLineCount) >= Console.BufferHeight)
             {
-                ScrollBuffer((y + _demoWindowLineCount) - Console.BufferHeight + 1);
+                ScrollBuffer((y + _demoWindowLineCount + _statusLineCount) - Console.BufferHeight + 1);
                 y = Console.BufferHeight - 1;
             }
             Console.SetCursorPosition(x, y);
@@ -2430,6 +2698,14 @@ namespace PSConsoleUtilities
             if (options._continuationPromptBackgroundColor.HasValue)
             {
                 Options.ContinuationPromptBackgroundColor = options.ContinuationPromptBackgroundColor;
+            }
+            if (options._emphasisBackgroundColor.HasValue)
+            {
+                Options.EmphasisBackgroundColor = options.EmphasisBackgroundColor;
+            }
+            if (options._emphasisForegroundColor.HasValue)
+            {
+                Options.EmphasisForegroundColor = options.EmphasisForegroundColor;
             }
             if (options._historyNoDuplicates.HasValue)
             {
