@@ -756,9 +756,7 @@ namespace PSConsoleUtilities
             {
                 string textToPaste = System.Windows.Clipboard.GetText();
                 textToPaste = textToPaste.Replace("\r", "");
-                _singleton._buffer.Insert(_singleton._current, textToPaste);
-                _singleton._current += textToPaste.Length;
-                _singleton.Render();
+                Insert(textToPaste);
             }
         }
 

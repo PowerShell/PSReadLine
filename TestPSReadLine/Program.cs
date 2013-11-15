@@ -88,6 +88,7 @@ namespace TestPSReadLine
             Console.ReadKey();
         }
 
+        [STAThread]
         static void Main()
         {
             //Box(new List<string> {"abc", "  def", "this is something coo"});
