@@ -44,6 +44,22 @@ $version = (Get-ChildItem $targetDir\PSReadline.dll).VersionInfo.FileVersion
 
 & $PSScriptRoot\Update-ModuleManifest.ps1 $targetDir\PSReadline.psd1 $version
 
+#make sure chocolatey is installed and in the path
+if (gcm cpack -ea Ignore)
+{
+    $chocolateyDir = "$PSScriptRoot\ChocolateyPackage"
+
+    if (Test-Path $chocolateyDir\PSReadline)
+    {
+        rm -re $chocolateyDir\PSReadline
+    }
+
+    & $PSScriptRoot\Update-NuspecVersion.ps1 "$chocolateyDir\PSReadline.nuspec" $version
+
+    cp -r $targetDir $chocolateyDir\PSReadline
+
+    cpack "$chocolateyDir\PSReadline.nuspec"
+}
 
 del $PSScriptRoot\PSReadline.zip -ea Ignore
 [System.IO.Compression.ZipFile]::CreateFromDirectory($targetDir, "$PSScriptRoot\PSReadline.zip")
