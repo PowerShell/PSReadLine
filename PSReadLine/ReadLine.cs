@@ -2272,9 +2272,9 @@ namespace PSConsoleUtilities
 
             PlaceCursor();
 
-            if ((_initialY + bufferLineCount + 1) > (Console.WindowTop + Console.WindowHeight))
+            if ((_initialY + bufferLineCount + (_demoMode ? 1 : 0)) > (Console.WindowTop + Console.WindowHeight))
             {
-                Console.WindowTop = _initialY + bufferLineCount + 1 - Console.WindowHeight;
+                Console.WindowTop = _initialY + bufferLineCount + (_demoMode ? 1 : 0) - Console.WindowHeight;
             }
 
             _lastRenderTime = DateTime.Now;
