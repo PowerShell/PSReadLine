@@ -640,6 +640,7 @@ namespace PSConsoleUtilities
             _singleton.Render();
             Console.Out.Write("\n");
             _singleton._buffer.Clear(); // Clear so we don't actually run the input
+            _singleton._currentHistoryIndex = _singleton._history.Count;
             _singleton._inputAccepted = true;
         }
 
