@@ -27,7 +27,7 @@ First, you need to download the module.  Using PsGet (http://psget.net, very eas
 install-module PSReadline
 ```
 
-Alternatively, download the file https://github.com/lzybkr/PSReadLine/raw/master/PSReadline.zip and extract the contents into your `C:\Users\[User]\Documents\WindowsPowerShell\modules\PSReadline` folder. (You may have to create these directories if they don't exist)
+Alternatively, download the file https://github.com/lzybkr/PSReadLine/releases/download/Latest/PSReadline.zip and extract the contents into your `C:\Users\[User]\Documents\WindowsPowerShell\modules\PSReadline` folder. (You may have to create these directories if they don't exist)
 
 Next edit your profile to import the module.  There are two common profile files commonly used and the instructions are slightly different for each.
 
