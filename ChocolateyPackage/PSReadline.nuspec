@@ -2,7 +2,7 @@
 <package>
   <metadata>
     <id>PSReadline</id>
-    <version></version>
+    <version>1.0.0.4</version>
     <authors>Jason Shirk</authors>
     <owners>Jason Shirk</owners>
     <projectUrl>https://github.com/lzybkr/PSReadLine</projectUrl>
@@ -11,7 +11,8 @@
     <summary>A bash inspired readline implementation for PowerShell</summary>
     <description>Once installed you will likely want to change your profile.ps1 to automatically load the PSReadLine module. Please refer to the project website for instructions. Note that to upgrade or uninstall you will likely need to close all instances of PowerShell and uninstall from cmd.exe. This package installs as a global module accessible by all users.</description>
     <releaseNotes>https://raw.github.com/lzybkr/PSReadLine/master/Changes.txt</releaseNotes>
-    <copyright></copyright>
+    <copyright>
+    </copyright>
     <tags>Powershell PS Script</tags>
     <dependencies>
     </dependencies>
