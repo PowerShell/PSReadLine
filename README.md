@@ -11,6 +11,7 @@ It provides:
 * Cmd and emacs modes (neither are fully implemented yet, but both are usable)
 * Many configuration options
 * Bash style completion (optional in Cmd mode, default in Emacs mode)
+* Bash/zsh style interactive history search (CTRL-R)
 * Emacs yank/kill ring
 * PowerShell token based "word" movement and kill
 * Undo/redo
@@ -18,6 +19,8 @@ It provides:
 Many planned features are not yet implemented, but in it's current state, the module is very usable.
 
 The "out of box" experience is meant to be very familiar to PowerShell.exe users - there should be no need to learn any new key strokes.
+
+Keith Hill wrote a great introduction to PSReadline here: http://rkeithhill.wordpress.com/2013/10/18/psreadline-a-better-line-editing-experience-for-the-powershell-console/
 
 Installation
 ============

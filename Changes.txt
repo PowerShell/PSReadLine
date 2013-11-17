@@ -1,11 +1,15 @@
 ### Version 1.0.0.4
 
 New features:
+* Interactive history search (Ctrl+R)
 * Brace matching function added (GotoBrace)
+* Clear screen (Ctrl+L)
 
 Bugs fixed:
 * When showing possible completions, truncate at newline
 * Prompt before showing a large number of completions
+* Undo after paste works now
+* Long pause after clicking on X to close powershell is now fixed
 
 ### Version 1.0.0.3
 
