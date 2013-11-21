@@ -355,7 +355,17 @@ namespace PSConsoleUtilities
         void ProcessOneKey(ConsoleKeyInfo key, Dictionary<ConsoleKeyInfo, KeyHandler> dispatchTable, bool ignoreIfNoAction)
         {
             KeyHandler handler;
-            if (dispatchTable.TryGetValue(key, out handler))
+            if (!dispatchTable.TryGetValue(key, out handler))
+            {
+                // If we see a control character where Ctrl wasn't used but shift was, treat that like
+                // shift hadn't be pressed.  This cleanly allows Shift+Backspace without adding a key binding.
+                if (key.KeyChar > 0 && char.IsControl(key.KeyChar) && key.Modifiers == ConsoleModifiers.Shift)
+                {
+                    key = new ConsoleKeyInfo(key.KeyChar, key.Key, false, false, false);
+                    dispatchTable.TryGetValue(key, out handler);
+                }
+            }
+            if (handler != null)
             {
                 _renderForDemoNeeded = _demoMode;
 
