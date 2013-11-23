@@ -1,3 +1,8 @@
+### Version 1.0.0.5
+
+Bugs fixed:
+* Shift+Backspace works like Backspace
+
 ### Version 1.0.0.4
 
 New features:
