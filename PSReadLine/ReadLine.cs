@@ -435,8 +435,8 @@ namespace PSConsoleUtilities
                 { Keys.Escape,          MakeKeyHandler(RevertLine,           "RevertLine") },
                 { Keys.LeftArrow,       MakeKeyHandler(BackwardChar,         "BackwardChar") },
                 { Keys.RightArrow,      MakeKeyHandler(ForwardChar,          "ForwardChar") },
-                { Keys.CtrlLeftArrow,   MakeKeyHandler(BackwardWord,         "BackwordWord") },
-                { Keys.CtrlRightArrow,  MakeKeyHandler(ForwardWord,          "ForwardWord") },
+                { Keys.CtrlLeftArrow,   MakeKeyHandler(ShellBackwardWord,    "ShellBackwardWord") },
+                { Keys.CtrlRightArrow,  MakeKeyHandler(ShellForwardWord,     "ShellForwardWord") },
                 { Keys.UpArrow,         MakeKeyHandler(PreviousHistory,      "PreviousHistory") },
                 { Keys.DownArrow,       MakeKeyHandler(NextHistory,          "NextHistory") },
                 { Keys.Home,            MakeKeyHandler(BeginningOfLine,      "BeginningOfLine") },
@@ -493,12 +493,12 @@ namespace PSConsoleUtilities
                 { Keys.CtrlY,           MakeKeyHandler(Yank,                 "Yank") },
                 { Keys.CtrlAt,          MakeKeyHandler(SetMark,              "SetMark") },
                 { Keys.CtrlUnderbar,    MakeKeyHandler(Undo,                 "Undo") },
-                { Keys.AltB,            MakeKeyHandler(EmacsBackwardWord,    "EmacsBackwardWord") },
-                { Keys.AltD,            MakeKeyHandler(KillWord,             "KillWord") },
-                { Keys.AltF,            MakeKeyHandler(EmacsForwardWord,     "EmacsForwardWord") },
+                { Keys.AltB,            MakeKeyHandler(ShellBackwardWord,    "ShellBackwardWord") },
+                { Keys.AltD,            MakeKeyHandler(ShellKillWord,        "ShellKillWord") },
+                { Keys.AltF,            MakeKeyHandler(ShellForwardWord,     "ShellForwardWord") },
                 { Keys.AltR,            MakeKeyHandler(RevertLine,           "RevertLine") },
                 { Keys.AltY,            MakeKeyHandler(YankPop,              "YankPop") },
-                { Keys.AltBackspace,    MakeKeyHandler(KillBackwardWord,     "KillBackwardWord") },
+                { Keys.AltBackspace,    MakeKeyHandler(ShellBackwardKillWord,"ShellBackwardKillWord") },
                 { Keys.AltEquals,       MakeKeyHandler(PossibleCompletions,  "PossibleCompletions") },
                 { Keys.AltSpace,        MakeKeyHandler(SetMark,              "SetMark") },  // useless entry here for completeness - brings up system menu on Windows
                 { Keys.VolumeDown,      MakeKeyHandler(Ignore,               "Ignore") },
@@ -508,12 +508,12 @@ namespace PSConsoleUtilities
 
             _emacsMetaMap = new Dictionary<ConsoleKeyInfo, KeyHandler>(new ConsoleKeyInfoComparer())
             {
-                { Keys.B,               MakeKeyHandler(EmacsBackwardWord,    "EmacsBackwardWord") },
-                { Keys.D,               MakeKeyHandler(KillWord,             "KillWord") },
-                { Keys.F,               MakeKeyHandler(EmacsForwardWord,     "EmacsForwardWord") },
+                { Keys.B,               MakeKeyHandler(ShellBackwardWord,    "ShellBackwardWord") },
+                { Keys.D,               MakeKeyHandler(ShellKillWord,        "ShellKillWord") },
+                { Keys.F,               MakeKeyHandler(ShellForwardWord,     "ShellForwardWord") },
                 { Keys.R,               MakeKeyHandler(RevertLine,           "RevertLine") },
                 { Keys.Y,               MakeKeyHandler(YankPop,              "YankPop") },
-                { Keys.Backspace,       MakeKeyHandler(KillBackwardWord,     "KillBackwardWord") },
+                { Keys.Backspace,       MakeKeyHandler(ShellBackwardKillWord,"ShellBackwardKillWord") },
             };
 
             _emacsCtrlXMap = new Dictionary<ConsoleKeyInfo, KeyHandler>(new ConsoleKeyInfoComparer())
@@ -815,53 +815,32 @@ namespace PSConsoleUtilities
             }
         }
 
-        private void ForwardWord(EditMode mode)
-        {
-            var findTokenMode = mode == EditMode.Windows
-                                    ? FindTokenMode.Next
-                                    : FindTokenMode.CurrentOrNext;
-            var token = FindToken(_current, findTokenMode);
-
-            Debug.Assert(token != null, "We'll always find EOF");
-
-            switch (mode)
-            {
-            case EditMode.Emacs:
-                _current = token.Kind == TokenKind.EndOfInput
-                    ? _buffer.Length
-                    : token.Extent.EndOffset;
-                break;
-            case EditMode.Windows:
-                _current = token.Kind == TokenKind.EndOfInput
-                    ? _buffer.Length
-                    : token.Extent.StartOffset;
-                break;
-            }
-            PlaceCursor();
-        }
-
         /// <summary>
         /// Move the cursor forward to the end of the current word, or if between words,
         /// to the end of the next word.
         /// </summary>
-        public static void EmacsForwardWord(ConsoleKeyInfo? key = null, object arg = null)
+        public static void ShellForwardWord(ConsoleKeyInfo? key = null, object arg = null)
         {
-            _singleton.ForwardWord(EditMode.Emacs);
-        }
+            var findTokenMode = _singleton.Options.EditMode == EditMode.Windows
+                                    ? FindTokenMode.Next
+                                    : FindTokenMode.CurrentOrNext;
+            var token = _singleton.FindToken(_singleton._current, findTokenMode);
 
-        /// <summary>
-        /// Move the cursor forward to the start of the next word.
-        /// </summary>
-        public static void ForwardWord(ConsoleKeyInfo? key = null, object arg = null)
-        {
-            _singleton.ForwardWord(EditMode.Windows);
-        }
+            Debug.Assert(token != null, "We'll always find EOF");
 
-        private void BackwardWord(EditMode mode)
-        {
-            var token = _singleton.FindToken(_singleton._current, FindTokenMode.Previous);
-
-            _singleton._current = (token != null) ? token.Extent.StartOffset : 0;
+            switch (_singleton.Options.EditMode)
+            {
+            case EditMode.Emacs:
+                _singleton._current = token.Kind == TokenKind.EndOfInput
+                    ? _singleton._buffer.Length
+                    : token.Extent.EndOffset;
+                break;
+            case EditMode.Windows:
+                _singleton._current = token.Kind == TokenKind.EndOfInput
+                    ? _singleton._buffer.Length
+                    : token.Extent.StartOffset;
+                break;
+            }
             _singleton.PlaceCursor();
         }
 
@@ -869,18 +848,12 @@ namespace PSConsoleUtilities
         /// Move the cursor back to the start of the current word, or if between words,
         /// the start of the previous word.
         /// </summary>
-        public static void BackwardWord(ConsoleKeyInfo? key = null, object arg = null)
+        public static void ShellBackwardWord(ConsoleKeyInfo? key = null, object arg = null)
         {
-            _singleton.BackwardWord(EditMode.Windows);
-        }
+            var token = _singleton.FindToken(_singleton._current, FindTokenMode.Previous);
 
-        /// <summary>
-        /// Move the cursor back to the start of the current word, or if between words,
-        /// the start of the previous word.
-        /// </summary>
-        public static void EmacsBackwardWord(ConsoleKeyInfo? key = null, object arg = null)
-        {
-            _singleton.BackwardWord(EditMode.Emacs);
+            _singleton._current = (token != null) ? token.Extent.StartOffset : 0;
+            _singleton.PlaceCursor();
         }
 
         /// <summary>
@@ -1663,7 +1636,7 @@ namespace PSConsoleUtilities
         /// is between words, the input is cleared from the cursor to the end of the next word.
         /// The cleared text is placed in the kill ring.
         /// </summary>
-        public static void KillWord(ConsoleKeyInfo? key = null, object arg = null)
+        public static void ShellKillWord(ConsoleKeyInfo? key = null, object arg = null)
         {
             var token = _singleton.FindToken(_singleton._current, FindTokenMode.CurrentOrNext);
             var end = (token.Kind == TokenKind.EndOfInput)
@@ -1677,7 +1650,7 @@ namespace PSConsoleUtilities
         /// is between words, the input is cleared from the start of the previous word to the
         /// cursor.  The cleared text is placed in the kill ring.
         /// </summary>
-        public static void KillBackwardWord(ConsoleKeyInfo? key = null, object arg = null)
+        public static void ShellBackwardKillWord(ConsoleKeyInfo? key = null, object arg = null)
         {
             var token = _singleton.FindToken(_singleton._current, FindTokenMode.Previous);
             var start = token == null 
@@ -2773,8 +2746,10 @@ namespace PSConsoleUtilities
                 Options.MaximumKillRingCount = options.MaximumKillRingCount;
                 // TODO - make _killRing smaller
             }
-            if (options._editMode.HasValue)
+            if (options._editMode.HasValue && options.EditMode != Options.EditMode)
             {
+                Options.EditMode = options.EditMode;
+
                 // Switching modes - clear out chord dispatch table
                 _chordDispatchTable.Clear();
 

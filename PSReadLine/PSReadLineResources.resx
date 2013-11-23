@@ -135,9 +135,6 @@
   <data name="BackwardKillLineDescription" xml:space="preserve">
     <value>Move the text from the cursor to the beginning of the line to the kill ring</value>
   </data>
-  <data name="BackwordWordDescription" xml:space="preserve">
-    <value>Move the cursor to the beginning of the current or previous token or start of the line</value>
-  </data>
   <data name="BeginningOfHistoryDescription" xml:space="preserve">
     <value>Move to the first item in the history</value>
   </data>
@@ -159,14 +156,11 @@
   <data name="DeleteCharDescription" xml:space="preserve">
     <value>Delete the character under the cusor</value>
   </data>
-  <data name="EmacsBackwardWordDescription" xml:space="preserve">
+  <data name="ShellBackwardWordDescription" xml:space="preserve">
     <value>Move the cursor to the beginning of the current or previous token or start of the line</value>
   </data>
   <data name="EmacsCtrlXDescription" xml:space="preserve">
     <value>String is not used in the UI</value>
-  </data>
-  <data name="EmacsForwardWordDescription" xml:space="preserve">
-    <value>Move the cursor to the end of the current or next token</value>
   </data>
   <data name="EmacsMetaDescription" xml:space="preserve">
     <value>String is not used in the UI</value>
@@ -186,7 +180,7 @@
   <data name="ForwardDeleteLineDescription" xml:space="preserve">
     <value>Delete text from the cursor to the end of the line</value>
   </data>
-  <data name="ForwardWordDescription" xml:space="preserve">
+  <data name="ShellForwardWordDescription" xml:space="preserve">
     <value>Move the cursor to the beginning of the next token or end of line</value>
   </data>
   <data name="HistorySearchBackwardsDescription" xml:space="preserve">
@@ -198,13 +192,13 @@
   <data name="IgnoreDescription" xml:space="preserve">
     <value>String is not used in the UI</value>
   </data>
-  <data name="KillBackwardWordDescription" xml:space="preserve">
+  <data name="ShellBackwardKillWordDescription" xml:space="preserve">
     <value>Move the text from the cursor to the start of the current or previous token to the kill ring</value>
   </data>
   <data name="KillLineDescription" xml:space="preserve">
     <value>Move the text from the cursor to the end of the input to the kill ring</value>
   </data>
-  <data name="KillWordDescription" xml:space="preserve">
+  <data name="ShellKillWordDescription" xml:space="preserve">
     <value>Move the text from the cursor to the end of the current or next token to the kill ring</value>
   </data>
   <data name="NextHistoryDescription" xml:space="preserve">

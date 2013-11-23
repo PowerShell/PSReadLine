@@ -124,15 +124,6 @@ namespace PSConsoleUtilities {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Move the cursor to the beginning of the current or previous token or start of the line.
-        /// </summary>
-        internal static string BackwordWordDescription {
-            get {
-                return ResourceManager.GetString("BackwordWordDescription", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Move to the first item in the history.
         /// </summary>
         internal static string BeginningOfHistoryDescription {
@@ -214,29 +205,11 @@ namespace PSConsoleUtilities {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Move the cursor to the beginning of the current or previous token or start of the line.
-        /// </summary>
-        internal static string EmacsBackwardWordDescription {
-            get {
-                return ResourceManager.GetString("EmacsBackwardWordDescription", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to String is not used in the UI.
         /// </summary>
         internal static string EmacsCtrlXDescription {
             get {
                 return ResourceManager.GetString("EmacsCtrlXDescription", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Move the cursor to the end of the current or next token.
-        /// </summary>
-        internal static string EmacsForwardWordDescription {
-            get {
-                return ResourceManager.GetString("EmacsForwardWordDescription", resourceCulture);
             }
         }
         
@@ -304,15 +277,6 @@ namespace PSConsoleUtilities {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Move the cursor to the beginning of the next token or end of line.
-        /// </summary>
-        internal static string ForwardWordDescription {
-            get {
-                return ResourceManager.GetString("ForwardWordDescription", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Go to matching brace.
         /// </summary>
         internal static string GotoBraceDescription {
@@ -349,29 +313,11 @@ namespace PSConsoleUtilities {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Move the text from the cursor to the start of the current or previous token to the kill ring.
-        /// </summary>
-        internal static string KillBackwardWordDescription {
-            get {
-                return ResourceManager.GetString("KillBackwardWordDescription", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Move the text from the cursor to the end of the input to the kill ring.
         /// </summary>
         internal static string KillLineDescription {
             get {
                 return ResourceManager.GetString("KillLineDescription", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Move the text from the cursor to the end of the current or next token to the kill ring.
-        /// </summary>
-        internal static string KillWordDescription {
-            get {
-                return ResourceManager.GetString("KillWordDescription", resourceCulture);
             }
         }
         
@@ -453,6 +399,42 @@ namespace PSConsoleUtilities {
         internal static string SetMarkDescription {
             get {
                 return ResourceManager.GetString("SetMarkDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Move the text from the cursor to the start of the current or previous token to the kill ring.
+        /// </summary>
+        internal static string ShellBackwardKillWordDescription {
+            get {
+                return ResourceManager.GetString("ShellBackwardKillWordDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Move the cursor to the beginning of the current or previous token or start of the line.
+        /// </summary>
+        internal static string ShellBackwardWordDescription {
+            get {
+                return ResourceManager.GetString("ShellBackwardWordDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Move the cursor to the beginning of the next token or end of line.
+        /// </summary>
+        internal static string ShellForwardWordDescription {
+            get {
+                return ResourceManager.GetString("ShellForwardWordDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Move the text from the cursor to the end of the current or next token to the kill ring.
+        /// </summary>
+        internal static string ShellKillWordDescription {
+            get {
+                return ResourceManager.GetString("ShellKillWordDescription", resourceCulture);
             }
         }
         
