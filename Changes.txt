@@ -1,7 +1,14 @@
 ### Version 1.0.0.5
 
+New features:
+* Delimiter support in *Word functions
+
 Bugs fixed:
 * Shift+Backspace works like Backspace
+
+Behavior change:
+* Word functions now use delimiters.  The previous behavior is availble 
+  via a Shell*Word function, e.g. instead of KillWord, use ShellKillWord.
 
 ### Version 1.0.0.4
 
