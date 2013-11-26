@@ -996,14 +996,14 @@ namespace UnitTestPSReadLine
             var keys = Keys(" abcdir", _.LeftArrow, _.LeftArrow, _.LeftArrow,
                 _.CtrlK, // Kill 'dir'
                 _.CtrlU, // Kill append ' abc'
-                _.CtrlY, // Yank 'dir abc'
+                _.CtrlY, // Yank ' abcdir'
                 _.Enter);
             var result = Test(keys);
-            Assert.AreEqual("dir abc", result);
+            Assert.AreEqual(" abcdir", result);
 
             // Test empty kill doesn't affect kill append
             keys = Keys("ab", _.LeftArrow, _.CtrlK, _.CtrlK, _.CtrlU, _.CtrlY, _.Enter);
-            result = Test(keys); Assert.AreEqual("ba", result);
+            result = Test(keys); Assert.AreEqual("ab", result);
         }
 
         [TestMethod]

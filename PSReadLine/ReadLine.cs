@@ -1629,7 +1629,7 @@ namespace PSConsoleUtilities
             _singleton._killIndex = -1;    // So first add indexes 0.
         }
 
-        private void Kill(int start, int length)
+        private void Kill(int start, int length, bool prepend)
         {
             if (length > 0)
             {
@@ -1640,7 +1640,14 @@ namespace PSConsoleUtilities
                 Render();
                 if (_killCommandCount > 0)
                 {
-                    _killRing[_killIndex] += killText;
+                    if (prepend)
+                    {
+                        _killRing[_killIndex] = killText + _killRing[_killIndex];
+                    }
+                    else
+                    {
+                        _killRing[_killIndex] += killText;
+                    }
                 }
                 else
                 {
@@ -1669,7 +1676,7 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void KillLine(ConsoleKeyInfo? key = null, object arg = null)
         {
-            _singleton.Kill(_singleton._current, _singleton._buffer.Length - _singleton._current);
+            _singleton.Kill(_singleton._current, _singleton._buffer.Length - _singleton._current, false);
         }
 
         /// <summary>
@@ -1678,7 +1685,7 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void BackwardKillLine(ConsoleKeyInfo? key = null, object arg = null)
         {
-            _singleton.Kill(0, _singleton._current);
+            _singleton.Kill(0, _singleton._current, true);
         }
 
         /// <summary>
@@ -1689,7 +1696,7 @@ namespace PSConsoleUtilities
         public static void KillWord(ConsoleKeyInfo? key = null, object arg = null)
         {
             int i = _singleton.FindForwardWordPoint(_singleton.Options.WordDelimiters);
-            _singleton.Kill(_singleton._current, i - _singleton._current);
+            _singleton.Kill(_singleton._current, i - _singleton._current, false);
         }
 
         /// <summary>
@@ -1703,7 +1710,7 @@ namespace PSConsoleUtilities
             var end = (token.Kind == TokenKind.EndOfInput)
                 ? _singleton._buffer.Length 
                 : token.Extent.EndOffset;
-            _singleton.Kill(_singleton._current, end - _singleton._current);
+            _singleton.Kill(_singleton._current, end - _singleton._current, false);
         }
 
         /// <summary>
@@ -1714,7 +1721,7 @@ namespace PSConsoleUtilities
         public static void BackwardKillWord(ConsoleKeyInfo? key = null, object arg = null)
         {
             int i = _singleton.FindBackwardWordPoint(_singleton.Options.WordDelimiters);
-            _singleton.Kill(i, _singleton._current - i);
+            _singleton.Kill(i, _singleton._current - i, true);
         }
 
         /// <summary>
@@ -1725,7 +1732,7 @@ namespace PSConsoleUtilities
         public static void UnixWordRubout(ConsoleKeyInfo? key = null, object arg = null)
         {
             int i = _singleton.FindBackwardWordPoint("");
-            _singleton.Kill(i, _singleton._current - i);
+            _singleton.Kill(i, _singleton._current - i, true);
         }
 
         /// <summary>
@@ -1739,7 +1746,7 @@ namespace PSConsoleUtilities
             var start = token == null 
                 ? 0
                 : token.Extent.StartOffset;
-            _singleton.Kill(start, _singleton._current - start);
+            _singleton.Kill(start, _singleton._current - start, true);
         }
 
         private void YankImpl()
