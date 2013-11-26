@@ -454,6 +454,8 @@ namespace PSConsoleUtilities
                 { Keys.CtrlL,           MakeKeyHandler(ClearScreen,          "ClearScreen") },
                 { Keys.CtrlY,           MakeKeyHandler(Redo,                 "Redo") },
                 { Keys.CtrlZ,           MakeKeyHandler(Undo,                 "Undo") },
+                { Keys.CtrlBackspace,   MakeKeyHandler(BackwardKillWord,     "BackwardKillWord") },
+                { Keys.CtrlDelete,      MakeKeyHandler(KillWord,             "KillWord") },
                 { Keys.CtrlEnd,         MakeKeyHandler(ForwardDeleteLine,    "ForwardDeleteLine") },
                 { Keys.CtrlHome,        MakeKeyHandler(BackwardDeleteLine,   "BackwardDeleteLine") },
                 { Keys.CtrlRBracket,    MakeKeyHandler(GotoBrace,            "GotoBrace") },

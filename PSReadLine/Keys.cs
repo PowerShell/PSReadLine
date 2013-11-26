@@ -173,8 +173,10 @@ namespace PSConsoleUtilities
         public static ConsoleKeyInfo CtrlZ = new ConsoleKeyInfo((char)26, ConsoleKey.Z, false, false, true);
 
         public static ConsoleKeyInfo Backspace    = new ConsoleKeyInfo((char)8, ConsoleKey.Backspace, false, false, false);
+        public static ConsoleKeyInfo CtrlBackspace = new ConsoleKeyInfo((char)0x7f, ConsoleKey.Backspace, false, false, true);
         public static ConsoleKeyInfo AltBackspace = new ConsoleKeyInfo((char)8, ConsoleKey.Backspace, false, true, false);
         public static ConsoleKeyInfo Delete       = new ConsoleKeyInfo((char)0, ConsoleKey.Delete, false, false, false);
+        public static ConsoleKeyInfo CtrlDelete   = new ConsoleKeyInfo((char)0, ConsoleKey.Delete, false, false, true);
         public static ConsoleKeyInfo DownArrow    = new ConsoleKeyInfo((char)0, ConsoleKey.DownArrow, false, false, false);
         public static ConsoleKeyInfo End          = new ConsoleKeyInfo((char)0, ConsoleKey.End, false, false, false);
         public static ConsoleKeyInfo CtrlEnd      = new ConsoleKeyInfo((char)0, ConsoleKey.End, false, false, true);
