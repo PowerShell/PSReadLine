@@ -124,6 +124,24 @@ namespace PSConsoleUtilities {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Move the text from the start of the current or previous word to the cursor to the kill ring.
+        /// </summary>
+        internal static string BackwardKillWordDescription {
+            get {
+                return ResourceManager.GetString("BackwardKillWordDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Move the cursor to the beginning of the current or previous word.
+        /// </summary>
+        internal static string BackwardWordDescription {
+            get {
+                return ResourceManager.GetString("BackwardWordDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Move to the first item in the history.
         /// </summary>
         internal static string BeginningOfHistoryDescription {
@@ -277,6 +295,15 @@ namespace PSConsoleUtilities {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Move the cursor forward to the end of the current word, or if between words, to the end of the next word. .
+        /// </summary>
+        internal static string ForwardWordDescription {
+            get {
+                return ResourceManager.GetString("ForwardWordDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Go to matching brace.
         /// </summary>
         internal static string GotoBraceDescription {
@@ -322,11 +349,29 @@ namespace PSConsoleUtilities {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Move the text from the cursor to the end of the current or next word to the kill ring.
+        /// </summary>
+        internal static string KillWordDescription {
+            get {
+                return ResourceManager.GetString("KillWordDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Replace the input with the next item in the history.
         /// </summary>
         internal static string NextHistoryDescription {
             get {
                 return ResourceManager.GetString("NextHistoryDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Move the cursor forward to the start of the next word.
+        /// </summary>
+        internal static string NextWordDescription {
+            get {
+                return ResourceManager.GetString("NextWordDescription", resourceCulture);
             }
         }
         

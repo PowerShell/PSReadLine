@@ -435,8 +435,8 @@ namespace PSConsoleUtilities
                 { Keys.Escape,          MakeKeyHandler(RevertLine,           "RevertLine") },
                 { Keys.LeftArrow,       MakeKeyHandler(BackwardChar,         "BackwardChar") },
                 { Keys.RightArrow,      MakeKeyHandler(ForwardChar,          "ForwardChar") },
-                { Keys.CtrlLeftArrow,   MakeKeyHandler(ShellBackwardWord,    "ShellBackwardWord") },
-                { Keys.CtrlRightArrow,  MakeKeyHandler(ShellForwardWord,     "ShellForwardWord") },
+                { Keys.CtrlLeftArrow,   MakeKeyHandler(BackwardWord,         "BackwardWord") },
+                { Keys.CtrlRightArrow,  MakeKeyHandler(NextWord,             "NextWord") },
                 { Keys.UpArrow,         MakeKeyHandler(PreviousHistory,      "PreviousHistory") },
                 { Keys.DownArrow,       MakeKeyHandler(NextHistory,          "NextHistory") },
                 { Keys.Home,            MakeKeyHandler(BeginningOfLine,      "BeginningOfLine") },
@@ -486,19 +486,19 @@ namespace PSConsoleUtilities
                 { Keys.CtrlL,           MakeKeyHandler(ClearScreen,          "ClearScreen") },
                 { Keys.CtrlK,           MakeKeyHandler(KillLine,             "KillLine") },
                 { Keys.CtrlM,           MakeKeyHandler(AcceptLine,           "AcceptLine") },
-                { Keys.CtrlR,           MakeKeyHandler(ReverseSearchHistory, "ReverseSeachHistory") },
-                { Keys.CtrlS,           MakeKeyHandler(ForwardSearchHistory, "ForwardSeachHistory") },
+                { Keys.CtrlR,           MakeKeyHandler(ReverseSearchHistory, "ReverseSearchHistory") },
+                { Keys.CtrlS,           MakeKeyHandler(ForwardSearchHistory, "ForwardSearchHistory") },
                 { Keys.CtrlU,           MakeKeyHandler(BackwardKillLine,     "BackwardKillLine") },
                 { Keys.CtrlX,           MakeKeyHandler(Chord,                "ChordFirstKey") },
                 { Keys.CtrlY,           MakeKeyHandler(Yank,                 "Yank") },
                 { Keys.CtrlAt,          MakeKeyHandler(SetMark,              "SetMark") },
                 { Keys.CtrlUnderbar,    MakeKeyHandler(Undo,                 "Undo") },
-                { Keys.AltB,            MakeKeyHandler(ShellBackwardWord,    "ShellBackwardWord") },
-                { Keys.AltD,            MakeKeyHandler(ShellKillWord,        "ShellKillWord") },
-                { Keys.AltF,            MakeKeyHandler(ShellForwardWord,     "ShellForwardWord") },
+                { Keys.AltB,            MakeKeyHandler(BackwardWord,         "BackwardWord") },
+                { Keys.AltD,            MakeKeyHandler(KillWord,             "KillWord") },
+                { Keys.AltF,            MakeKeyHandler(ForwardWord,          "ForwardWord") },
                 { Keys.AltR,            MakeKeyHandler(RevertLine,           "RevertLine") },
                 { Keys.AltY,            MakeKeyHandler(YankPop,              "YankPop") },
-                { Keys.AltBackspace,    MakeKeyHandler(ShellBackwardKillWord,"ShellBackwardKillWord") },
+                { Keys.AltBackspace,    MakeKeyHandler(BackwardKillWord,     "BackwardKillWord") },
                 { Keys.AltEquals,       MakeKeyHandler(PossibleCompletions,  "PossibleCompletions") },
                 { Keys.AltSpace,        MakeKeyHandler(SetMark,              "SetMark") },  // useless entry here for completeness - brings up system menu on Windows
                 { Keys.VolumeDown,      MakeKeyHandler(Ignore,               "Ignore") },
@@ -508,12 +508,12 @@ namespace PSConsoleUtilities
 
             _emacsMetaMap = new Dictionary<ConsoleKeyInfo, KeyHandler>(new ConsoleKeyInfoComparer())
             {
-                { Keys.B,               MakeKeyHandler(ShellBackwardWord,    "ShellBackwardWord") },
-                { Keys.D,               MakeKeyHandler(ShellKillWord,        "ShellKillWord") },
-                { Keys.F,               MakeKeyHandler(ShellForwardWord,     "ShellForwardWord") },
+                { Keys.B,               MakeKeyHandler(BackwardWord,         "BackwardWord") },
+                { Keys.D,               MakeKeyHandler(KillWord,             "KillWord") },
+                { Keys.F,               MakeKeyHandler(ForwardWord,          "ForwardWord") },
                 { Keys.R,               MakeKeyHandler(RevertLine,           "RevertLine") },
                 { Keys.Y,               MakeKeyHandler(YankPop,              "YankPop") },
-                { Keys.Backspace,       MakeKeyHandler(ShellBackwardKillWord,"ShellBackwardKillWord") },
+                { Keys.Backspace,       MakeKeyHandler(BackwardKillWord,     "BackwardKillWord") },
             };
 
             _emacsCtrlXMap = new Dictionary<ConsoleKeyInfo, KeyHandler>(new ConsoleKeyInfoComparer())
@@ -816,8 +816,43 @@ namespace PSConsoleUtilities
         }
 
         /// <summary>
+        /// Move the cursor forward to the start of the next word.
+        /// Word boundaries are defined by a configurable set of characters.
+        /// </summary>
+        public static void NextWord(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            int i = _singleton.FindNextWordPoint(_singleton.Options.WordDelimiters);
+            if (i == _singleton._buffer.Length)
+            {
+                // Both cmd and bash put the cursor on the last character instead
+                // of one past the end.  This seems a little odd to me, but whatever.
+                i -= 1;
+            }
+            _singleton._current = i;
+            _singleton.PlaceCursor();
+        }
+
+        /// <summary>
         /// Move the cursor forward to the end of the current word, or if between words,
-        /// to the end of the next word.
+        /// to the end of the next word.  Word boundaries are defined by a configurable
+        /// set of characters.
+        /// </summary>
+        public static void ForwardWord(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            int i = _singleton.FindForwardWordPoint(_singleton.Options.WordDelimiters);
+            if (i == _singleton._buffer.Length)
+            {
+                // Both cmd and bash put the cursor on the last character instead
+                // of one past the end.  This seems a little odd to me, but whatever.
+                i -= 1;
+            }
+            _singleton._current = i;
+            _singleton.PlaceCursor();
+        }
+
+        /// <summary>
+        /// Move the cursor forward to the end of the current word, or if between words,
+        /// to the end of the next word.  Word boundaries are defined by PowerShell tokens.
         /// </summary>
         public static void ShellForwardWord(ConsoleKeyInfo? key = null, object arg = null)
         {
@@ -846,7 +881,19 @@ namespace PSConsoleUtilities
 
         /// <summary>
         /// Move the cursor back to the start of the current word, or if between words,
-        /// the start of the previous word.
+        /// the start of the previous word.  Word boundaries are defined by a configurable
+        /// set of characters.
+        /// </summary>
+        public static void BackwardWord(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            int i = _singleton.FindBackwardWordPoint(_singleton.Options.WordDelimiters);
+            _singleton._current = i;
+            _singleton.PlaceCursor();
+        }
+
+        /// <summary>
+        /// Move the cursor back to the start of the current word, or if between words,
+        /// the start of the previous word.  Word boundaries are defined by PowerShell tokens.
         /// </summary>
         public static void ShellBackwardWord(ConsoleKeyInfo? key = null, object arg = null)
         {
@@ -1636,6 +1683,17 @@ namespace PSConsoleUtilities
         /// is between words, the input is cleared from the cursor to the end of the next word.
         /// The cleared text is placed in the kill ring.
         /// </summary>
+        public static void KillWord(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            int i = _singleton.FindForwardWordPoint(_singleton.Options.WordDelimiters);
+            _singleton.Kill(_singleton._current, i - _singleton._current);
+        }
+
+        /// <summary>
+        /// Clear the input from the cursor to the end of the current word.  If the cursor
+        /// is between words, the input is cleared from the cursor to the end of the next word.
+        /// The cleared text is placed in the kill ring.
+        /// </summary>
         public static void ShellKillWord(ConsoleKeyInfo? key = null, object arg = null)
         {
             var token = _singleton.FindToken(_singleton._current, FindTokenMode.CurrentOrNext);
@@ -1643,6 +1701,17 @@ namespace PSConsoleUtilities
                 ? _singleton._buffer.Length 
                 : token.Extent.EndOffset;
             _singleton.Kill(_singleton._current, end - _singleton._current);
+        }
+
+        /// <summary>
+        /// Clear the input from the start of the current word to the cursor.  If the cursor
+        /// is between words, the input is cleared from the start of the previous word to the
+        /// cursor.  The cleared text is placed in the kill ring.
+        /// </summary>
+        public static void BackwardKillWord(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            int i = _singleton.FindBackwardWordPoint(_singleton.Options.WordDelimiters);
+            _singleton.Kill(i, _singleton._current - i);
         }
 
         /// <summary>
@@ -1788,6 +1857,116 @@ namespace PSConsoleUtilities
             }
 
             return FindNestedToken(current, _tokens, mode);
+        }
+
+        private bool InWord(int index, string wordDelimiters)
+        {
+            char c = _buffer[index];
+            return !char.IsWhiteSpace(c) && wordDelimiters.IndexOf(c) < 0;
+        }
+
+        /// <summary>
+        /// Find the end of the current/next word as defined by wordDelimiters and whitespace.
+        /// </summary>
+        private int FindForwardWordPoint(string wordDelimiters)
+        {
+            int i = _current;
+            if (i == _buffer.Length)
+            {
+                return i;
+            }
+
+            if (!InWord(i, wordDelimiters))
+            {
+                // Scan to end of current non-word region
+                while (i < _buffer.Length)
+                {
+                    if (InWord(i, wordDelimiters))
+                    {
+                        break;
+                    }
+                    i += 1;
+                }
+            }
+            while (i < _buffer.Length)
+            {
+                if (!InWord(i, wordDelimiters))
+                {
+                    break;
+                }
+                i += 1;
+            }
+            return i;
+        }
+
+        /// <summary>
+        /// Find the start of the next word.
+        /// </summary>
+        private int FindNextWordPoint(string wordDelimiters)
+        {
+            int i = _singleton._current;
+            if (i == _singleton._buffer.Length)
+            {
+                return i;
+            }
+
+            if (InWord(i, wordDelimiters))
+            {
+                // Scan to end of current word region
+                while (i < _singleton._buffer.Length)
+                {
+                    if (!InWord(i, wordDelimiters))
+                    {
+                        break;
+                    }
+                    i += 1;
+                }
+            }
+
+            while (i < _singleton._buffer.Length)
+            {
+                if (InWord(i, wordDelimiters))
+                {
+                    break;
+                }
+                i += 1;
+            }
+            return i;
+        }
+
+        /// <summary>
+        /// Find the beginning of the previous word.
+        /// </summary>
+        private int FindBackwardWordPoint(string wordDelimiters)
+        {
+            int i = _current - 1;
+            if (i < 0)
+            {
+                return 0;
+            }
+
+            if (!InWord(i, wordDelimiters))
+            {
+                // Scan backwards until we are at the end of the previous word.
+                while (i > 0)
+                {
+                    if (InWord(i, wordDelimiters))
+                    {
+                        break;
+                    }
+                    i -= 1;
+                }
+            }
+            while (i > 0)
+            {
+                if (!InWord(i, wordDelimiters))
+                {
+                    i += 1;
+                    break;
+                }
+                i -= 1;
+            }
+            return i;
         }
 
         private void MoveCursor(int offset)
@@ -2798,6 +2977,10 @@ namespace PSConsoleUtilities
             if (options._completionQueryItems.HasValue)
             {
                 Options.CompletionQueryItems = options.CompletionQueryItems;
+            }
+            if (options.WordDelimiters != null)
+            {
+                Options.WordDelimiters = options.WordDelimiters;
             }
             if (options.ResetTokenColors)
             {

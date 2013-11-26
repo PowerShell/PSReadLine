@@ -54,6 +54,9 @@ namespace PSConsoleUtilities
 
         public const int DefaultCompletionQueryItems = 100;
 
+        // Default includes all characters PowerShell treats like a dash - em dash, en dash, horizontal bar
+        public const string DefaultWordDelimiters = @";:,.[]{}()/\|^&*-=+" + "\u2013\u2014\u2015";
+
         /// <summary>
         /// When ringing the bell, what should be done?
         /// </summary>
@@ -77,6 +80,7 @@ namespace PSConsoleUtilities
             DingTone = DefaultDingTone;
             BellStyle = DefaultBellStyle;
             CompletionQueryItems = DefaultCompletionQueryItems;
+            WordDelimiters = DefaultWordDelimiters;
         }
 
         public EditMode EditMode { get; set; }
@@ -110,6 +114,7 @@ namespace PSConsoleUtilities
         public bool ShowToolTips { get; set; }
         public int DingTone { get; set; }
         public int CompletionQueryItems { get; set; }
+        public string WordDelimiters { get; set; }
 
         /// <summary>
         /// When ringing the bell, how long (in ms)?
@@ -366,6 +371,9 @@ namespace PSConsoleUtilities
             set { _completionQueryItems = value; }
         }
         internal int? _completionQueryItems;
+
+        [Parameter(ParameterSetName = "OptionsSet")]
+        public string WordDelimiters { get; set; }
 
         [Parameter(ParameterSetName = "ColorSet", Position = 0, Mandatory = true)]
         public TokenClassification TokenKind

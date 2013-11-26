@@ -1007,9 +1007,10 @@ namespace UnitTestPSReadLine
         }
 
         [TestMethod]
-        public void TestKillWord()
+        public void TestShellKillWord()
         {
-            TestSetup(KeyMode.Emacs);
+            TestSetup(KeyMode.Emacs,
+                new KeyHandler("Alt+D", PSConsoleReadLine.ShellKillWord));
 
             var keys = Keys(_.AltD,  // Test on empty input
                 "echo abc def", _.LeftArrow, _.LeftArrow, _.LeftArrow, _.LeftArrow, _.LeftArrow, _.LeftArrow, _.LeftArrow,
@@ -1020,9 +1021,10 @@ namespace UnitTestPSReadLine
         }
 
         [TestMethod]
-        public void TestKillBackwardWord()
+        public void TestShellBackwardKillWord()
         {
-            TestSetup(KeyMode.Emacs);
+            TestSetup(KeyMode.Emacs,
+                new KeyHandler("Alt+Backspace", PSConsoleReadLine.ShellBackwardKillWord));
 
             var keys = Keys(_.AltBackspace, // Test on empty line
                 "echo abc def", _.LeftArrow, _.LeftArrow, _.LeftArrow,
@@ -1054,26 +1056,14 @@ namespace UnitTestPSReadLine
         }
 
         [TestMethod]
-        public void TestForwardWord()
+        public void TestCmdShellForwardWord()
         {
-            TestSetup(KeyMode.Cmd);
+            TestSetup(KeyMode.Cmd,
+                new KeyHandler("Ctrl+RightArrow", PSConsoleReadLine.ShellForwardWord));
 
-            var keys = new[]
-            {
+            var keys = Keys(
                 new KeyWithValidation(_.CtrlRightArrow, () => AssertCursorLeftIs(0)),
-                new KeyWithValidation(_.A),
-                new KeyWithValidation(_.A),
-                new KeyWithValidation(_.A),
-                new KeyWithValidation(_.Space),
-                new KeyWithValidation(_.Space),
-                new KeyWithValidation(_.B),
-                new KeyWithValidation(_.B),
-                new KeyWithValidation(_.B),
-                new KeyWithValidation(_.Space),
-                new KeyWithValidation(_.Space),
-                new KeyWithValidation(_.C),
-                new KeyWithValidation(_.C),
-                new KeyWithValidation(_.C),
+                "aaa  bbb  ccc",
                 new KeyWithValidation(_.Home, () => AssertCursorLeftIs(0)),
                 new KeyWithValidation(_.CtrlRightArrow, () => AssertCursorLeftIs(5)),
                 new KeyWithValidation(_.LeftArrow),
@@ -1084,7 +1074,7 @@ namespace UnitTestPSReadLine
                 new KeyWithValidation(_.CtrlRightArrow, () => AssertCursorLeftIs(10)),
                 new KeyWithValidation(_.CtrlRightArrow, () => AssertCursorLeftIs(13)),
                 new KeyWithValidation(_.Home, CancelReadLineException.Throw)
-            };
+            );
             Test(keys);
 
             keys = Keys("echo \"a $b c $d e\" 42",
@@ -1134,13 +1124,14 @@ namespace UnitTestPSReadLine
         }
 
         [TestMethod]
-        public void TestEmacsForwardWord()
+        public void TestEmacsShellForwardWord()
         {
-            TestSetup(KeyMode.Emacs);
+            TestSetup(KeyMode.Emacs,
+                new KeyHandler("Alt+F", PSConsoleReadLine.ShellForwardWord));
 
             var keys = Keys(
                 new KeyWithValidation(_.AltF, () => AssertCursorLeftIs(0)),
-                _.A, _.A, _.A, _.Space, _.Space, _.B, _.B, _.B, _.Space, _.Space, _.C, _.C, _.C,
+                "aaa  bbb  ccc",
                 new KeyWithValidation(_.CtrlA, () => AssertCursorLeftIs(0)),
                 new KeyWithValidation(_.AltF, () => AssertCursorLeftIs(3)),
                 new KeyWithValidation(_.AltF, () => AssertCursorLeftIs(8)),

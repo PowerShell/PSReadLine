@@ -261,4 +261,19 @@
   <data name="ReverseSearchHistoryDescription" xml:space="preserve">
     <value>Search history backwards interactively</value>
   </data>
+  <data name="BackwardKillWordDescription" xml:space="preserve">
+    <value>Move the text from the start of the current or previous word to the cursor to the kill ring</value>
+  </data>
+  <data name="BackwardWordDescription" xml:space="preserve">
+    <value>Move the cursor to the beginning of the current or previous word</value>
+  </data>
+  <data name="ForwardWordDescription" xml:space="preserve">
+    <value>Move the cursor forward to the end of the current word, or if between words, to the end of the next word. </value>
+  </data>
+  <data name="KillWordDescription" xml:space="preserve">
+    <value>Move the text from the cursor to the end of the current or next word to the kill ring</value>
+  </data>
+  <data name="NextWordDescription" xml:space="preserve">
+    <value>Move the cursor forward to the start of the next word</value>
+  </data>
 </root>
