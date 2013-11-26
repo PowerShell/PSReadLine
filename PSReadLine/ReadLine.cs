@@ -492,6 +492,7 @@ namespace PSConsoleUtilities
                 { Keys.CtrlS,           MakeKeyHandler(ForwardSearchHistory, "ForwardSearchHistory") },
                 { Keys.CtrlU,           MakeKeyHandler(BackwardKillLine,     "BackwardKillLine") },
                 { Keys.CtrlX,           MakeKeyHandler(Chord,                "ChordFirstKey") },
+                { Keys.CtrlW,           MakeKeyHandler(UnixWordRubout,       "UnixWordRubout") },
                 { Keys.CtrlY,           MakeKeyHandler(Yank,                 "Yank") },
                 { Keys.CtrlAt,          MakeKeyHandler(SetMark,              "SetMark") },
                 { Keys.CtrlUnderbar,    MakeKeyHandler(Undo,                 "Undo") },
@@ -1713,6 +1714,17 @@ namespace PSConsoleUtilities
         public static void BackwardKillWord(ConsoleKeyInfo? key = null, object arg = null)
         {
             int i = _singleton.FindBackwardWordPoint(_singleton.Options.WordDelimiters);
+            _singleton.Kill(i, _singleton._current - i);
+        }
+
+        /// <summary>
+        /// Clear the input from the start of the current word to the cursor.  If the cursor
+        /// is between words, the input is cleared from the start of the previous word to the
+        /// cursor.  The cleared text is placed in the kill ring.
+        /// </summary>
+        public static void UnixWordRubout(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            int i = _singleton.FindBackwardWordPoint("");
             _singleton.Kill(i, _singleton._current - i);
         }
 

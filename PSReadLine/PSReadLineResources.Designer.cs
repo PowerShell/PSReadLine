@@ -520,6 +520,15 @@ namespace PSConsoleUtilities {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Move the text from the cursor to the start of the current or previous whitespace delimited word to the kill ring.
+        /// </summary>
+        internal static string UnixWordRuboutDescription {
+            get {
+                return ResourceManager.GetString("UnixWordRuboutDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Copy the text from the current kill ring position to the input.
         /// </summary>
         internal static string YankDescription {

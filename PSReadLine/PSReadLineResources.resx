@@ -276,4 +276,7 @@
   <data name="NextWordDescription" xml:space="preserve">
     <value>Move the cursor forward to the start of the next word</value>
   </data>
+  <data name="UnixWordRuboutDescription" xml:space="preserve">
+    <value>Move the text from the cursor to the start of the current or previous whitespace delimited word to the kill ring</value>
+  </data>
 </root>
