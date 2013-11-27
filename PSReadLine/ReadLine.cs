@@ -1413,9 +1413,20 @@ namespace PSConsoleUtilities
                 return;
             }
 
+            if (completions.CompletionMatches.Count == 1)
+            {
+                // We want to add a backslash for directory completion if possible.  This
+                // is mostly only needed if we have a single completion - if there are multiple
+                // completions, then we'll be showing the possible completions where it's very
+                // unlikely that we would add a trailing backslash.
+
+                _singleton.DoReplacementForCompletion(completions.CompletionMatches[0], completions);
+                return;
+            }
+
             // Find the longest unambiguous prefix.  This might be the empty
-            // string, in which case we don't want to remove any of the users, instead
-            // we'll immediately show possible completions.
+            // string, in which case we don't want to remove any of the users input,
+            // instead we'll immediately show possible completions.
             // For the purposes of unambiguous prefix, we'll ignore quotes if
             // some completions aren't quoted.
             var firstResult = completions.CompletionMatches[0];
@@ -1508,10 +1519,47 @@ namespace PSConsoleUtilities
                 completions.CurrentMatchIndex = 0;
             }
 
-            var replacementText = completions.CompletionMatches[completions.CurrentMatchIndex].CompletionText;
-            Replace(completions.ReplacementIndex, completions.ReplacementLength, replacementText);
-            completions.ReplacementLength = replacementText.Length;
+            var completionResult = completions.CompletionMatches[completions.CurrentMatchIndex];
+            DoReplacementForCompletion(completionResult, completions);
             _tabCommandCount += 1;
+        }
+
+        private void DoReplacementForCompletion(CompletionResult completionResult, CommandCompletion completions)
+        {
+            var replacementText = completionResult.CompletionText;
+            int cursorAdjustment = 0;
+            if (completionResult.ResultType == CompletionResultType.ProviderContainer)
+            {
+                replacementText = GetReplacementTextForDirectory(replacementText, ref cursorAdjustment);
+            }
+            Replace(completions.ReplacementIndex, completions.ReplacementLength, replacementText);
+            if (cursorAdjustment != 0)
+            {
+                _current += cursorAdjustment;
+                PlaceCursor();
+            }
+            completions.ReplacementLength = replacementText.Length;
+        }
+
+        private static string GetReplacementTextForDirectory(string replacementText, ref int cursorAdjustment)
+        {
+            int len = replacementText.Length;
+            if (len > 0 && replacementText[len - 1] != '\\')
+            {
+                if (len > 1 && replacementText[len - 1] == '\'' || replacementText[len - 1] == '"')
+                {
+                    if (len > 2 && replacementText[len - 2] != '\\')
+                    {
+                        replacementText = replacementText.Substring(0, len - 1) + '\\' + replacementText[len - 1];
+                        cursorAdjustment = -1;
+                    }
+                }
+                else
+                {
+                    replacementText = replacementText + '\\';
+                }
+            }
+            return replacementText;
         }
 
         /// <summary>
