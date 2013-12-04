@@ -2,6 +2,7 @@
 
 New features:
 * Delimiter support in *Word functions
+* DigitArgument (Alt-0,Alt-1,Alt-2,...,Alt-9,Alt--) to pass numeric arguments
 
 Bugs fixed:
 * Shift+Backspace works like Backspace
