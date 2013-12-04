@@ -103,6 +103,7 @@ namespace PSConsoleUtilities
         public static ConsoleKeyInfo Period      = new ConsoleKeyInfo('.', ConsoleKey.OemPeriod, false, false, false);
         public static ConsoleKeyInfo Underbar    = new ConsoleKeyInfo('_', ConsoleKey.OemMinus, true, false, false);
         public static ConsoleKeyInfo Minus       = new ConsoleKeyInfo('-', ConsoleKey.OemMinus, false, false, false);
+        public static ConsoleKeyInfo AltMinus    = new ConsoleKeyInfo('-', ConsoleKey.OemMinus, false, true, false);
         public static ConsoleKeyInfo Plus        = new ConsoleKeyInfo('+', ConsoleKey.OemPlus, true, false, false);
         new
         public static ConsoleKeyInfo Equals      = new ConsoleKeyInfo('=', ConsoleKey.OemPlus, false, false, false);
@@ -117,6 +118,17 @@ namespace PSConsoleUtilities
         public static ConsoleKeyInfo AltLess     = new ConsoleKeyInfo('<', ConsoleKey.OemComma, true, true, false);
         public static ConsoleKeyInfo AltGreater  = new ConsoleKeyInfo('>', ConsoleKey.OemPeriod, true, true, false);
         public static ConsoleKeyInfo CtrlRBracket = new ConsoleKeyInfo((char)29, ConsoleKey.Oem6, false, false, true);
+
+        public static ConsoleKeyInfo Alt0 = new ConsoleKeyInfo('0', ConsoleKey.D0, false, true, false);
+        public static ConsoleKeyInfo Alt1 = new ConsoleKeyInfo('1', ConsoleKey.D1, false, true, false);
+        public static ConsoleKeyInfo Alt2 = new ConsoleKeyInfo('2', ConsoleKey.D2, false, true, false);
+        public static ConsoleKeyInfo Alt3 = new ConsoleKeyInfo('3', ConsoleKey.D3, false, true, false);
+        public static ConsoleKeyInfo Alt4 = new ConsoleKeyInfo('4', ConsoleKey.D4, false, true, false);
+        public static ConsoleKeyInfo Alt5 = new ConsoleKeyInfo('5', ConsoleKey.D5, false, true, false);
+        public static ConsoleKeyInfo Alt6 = new ConsoleKeyInfo('6', ConsoleKey.D6, false, true, false);
+        public static ConsoleKeyInfo Alt7 = new ConsoleKeyInfo('7', ConsoleKey.D6, false, true, false);
+        public static ConsoleKeyInfo Alt8 = new ConsoleKeyInfo('8', ConsoleKey.D8, false, true, false);
+        public static ConsoleKeyInfo Alt9 = new ConsoleKeyInfo('9', ConsoleKey.D9, false, true, false);
 
         public static ConsoleKeyInfo AltA = new ConsoleKeyInfo((char)97, ConsoleKey.A, false, true, false);
         public static ConsoleKeyInfo AltB = new ConsoleKeyInfo((char)98, ConsoleKey.B, false, true, false);

@@ -316,7 +316,7 @@ namespace PSConsoleUtilities
                 var searchHistoryCommandCount = _searchHistoryCommandCount;
 
                 var key = ReadKey();
-                ProcessOneKey(key, _dispatchTable, ignoreIfNoAction: false);
+                ProcessOneKey(key, _dispatchTable, ignoreIfNoAction: false, arg: null);
                 if (_inputAccepted)
                 {
                     return MaybeAddToHistory(_buffer.ToString(), _edits, _undoEditIndex);
@@ -352,7 +352,7 @@ namespace PSConsoleUtilities
         {
         }
 
-        void ProcessOneKey(ConsoleKeyInfo key, Dictionary<ConsoleKeyInfo, KeyHandler> dispatchTable, bool ignoreIfNoAction)
+        void ProcessOneKey(ConsoleKeyInfo key, Dictionary<ConsoleKeyInfo, KeyHandler> dispatchTable, bool ignoreIfNoAction, object arg)
         {
             KeyHandler handler;
             if (!dispatchTable.TryGetValue(key, out handler))
@@ -369,7 +369,7 @@ namespace PSConsoleUtilities
             {
                 _renderForDemoNeeded = _demoMode;
 
-                handler.Action(key, 0);
+                handler.Action(key, arg);
 
                 if (_renderForDemoNeeded)
                 {
@@ -378,7 +378,7 @@ namespace PSConsoleUtilities
             }
             else if (!ignoreIfNoAction && key.KeyChar != 0)
             {
-                Insert(key.KeyChar);
+                SelfInsert(key, arg);
             }
             PostKeyHandler();
         }
@@ -496,6 +496,17 @@ namespace PSConsoleUtilities
                 { Keys.CtrlY,           MakeKeyHandler(Yank,                 "Yank") },
                 { Keys.CtrlAt,          MakeKeyHandler(SetMark,              "SetMark") },
                 { Keys.CtrlUnderbar,    MakeKeyHandler(Undo,                 "Undo") },
+                { Keys.Alt0,            MakeKeyHandler(DigitArgument,        "DigitArgument") },
+                { Keys.Alt1,            MakeKeyHandler(DigitArgument,        "DigitArgument") },
+                { Keys.Alt2,            MakeKeyHandler(DigitArgument,        "DigitArgument") },
+                { Keys.Alt3,            MakeKeyHandler(DigitArgument,        "DigitArgument") },
+                { Keys.Alt4,            MakeKeyHandler(DigitArgument,        "DigitArgument") },
+                { Keys.Alt5,            MakeKeyHandler(DigitArgument,        "DigitArgument") },
+                { Keys.Alt6,            MakeKeyHandler(DigitArgument,        "DigitArgument") },
+                { Keys.Alt7,            MakeKeyHandler(DigitArgument,        "DigitArgument") },
+                { Keys.Alt8,            MakeKeyHandler(DigitArgument,        "DigitArgument") },
+                { Keys.Alt9,            MakeKeyHandler(DigitArgument,        "DigitArgument") },
+                { Keys.AltMinus,        MakeKeyHandler(DigitArgument,        "DigitArgument") },
                 { Keys.AltB,            MakeKeyHandler(BackwardWord,         "BackwardWord") },
                 { Keys.AltD,            MakeKeyHandler(KillWord,             "KillWord") },
                 { Keys.AltF,            MakeKeyHandler(ForwardWord,          "ForwardWord") },
@@ -612,7 +623,7 @@ namespace PSConsoleUtilities
                     _singleton.Render();
                 }
                 var secondKey = ReadKey();
-                _singleton.ProcessOneKey(secondKey, secondKeyDispatchTable, ignoreIfNoAction: true);
+                _singleton.ProcessOneKey(secondKey, secondKeyDispatchTable, ignoreIfNoAction: true, arg: arg);
             }
         }
 
@@ -916,8 +927,6 @@ namespace PSConsoleUtilities
                 Ding();
                 return;
             }
-
-            var charAtPoint = _singleton._buffer[_singleton._current];
 
             Token token = null;
             var index = 0;
@@ -1646,6 +1655,73 @@ namespace PSConsoleUtilities
 
 #endregion Completion
 
+        /// <summary>
+        /// Start a new digit argument to pass to other functions
+        /// </summary>
+        public static void DigitArgument(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            if (!key.HasValue || char.IsControl(key.Value.KeyChar))
+            {
+                Ding();
+                return;
+            }
+
+            _singleton._statusLinePrompt = "digit-argument: ";
+            var argBuffer = _singleton._statusBuffer;
+            argBuffer.Append(key.Value.KeyChar);
+            if (key.Value.KeyChar == '-')
+            {
+                argBuffer.Append('1');
+            }
+            _singleton._statusLineCount = 1;
+
+            _singleton.Render(); // Render prompt
+            while (true)
+            {
+                var nextKey = ReadKey();
+                KeyHandler handler;
+                if (_singleton._dispatchTable.TryGetValue(nextKey, out handler) && handler.Action == DigitArgument)
+                {
+                    if (nextKey.KeyChar == '-')
+                    {
+                        if (argBuffer[0] == '-')
+                        {
+                            argBuffer.Remove(0, 1);
+                        }
+                        else
+                        {
+                            argBuffer.Insert(0, '-');
+                        }
+                        continue;
+                    }
+
+                    if (nextKey.KeyChar >= '0' && nextKey.KeyChar <= '9')
+                    {
+                        argBuffer.Append(nextKey.KeyChar);
+                        _singleton.Render(); // Render prompt
+                        continue;
+                    }
+                }
+
+                int intArg;
+                if (int.TryParse(argBuffer.ToString(), out intArg))
+                {
+                    _singleton.ProcessOneKey(nextKey, _singleton._dispatchTable, ignoreIfNoAction: false, arg: intArg);
+                }
+                else
+                {
+                    Ding();
+                }
+                break;
+            }
+
+            // Remove our status line
+            argBuffer.Clear();
+            _singleton._statusLineCount = 0;
+            _singleton._statusLinePrompt = null;
+            _singleton.Render(); // Render prompt
+        }
+
         #region Kill/Yank
 
         /// <summary>
@@ -2042,6 +2118,29 @@ namespace PSConsoleUtilities
         {
             _current = offset;
             PlaceCursor();
+        }
+
+        /// <summary>
+        /// Insert the key
+        /// </summary>
+        public static void SelfInsert(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            if (!key.HasValue)
+            {
+                return;
+            }
+
+            if (arg is int)
+            {
+                var count = (int)arg;
+                if (count > 0)
+                {
+                    Insert(new string(key.Value.KeyChar, count));
+                }
+                return;
+            }
+
+            Insert(key.Value.KeyChar);
         }
 
         /// <summary>
