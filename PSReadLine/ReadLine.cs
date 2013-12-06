@@ -1589,11 +1589,8 @@ namespace PSConsoleUtilities
 
             if (completions.CompletionMatches.Count >= _singleton._options.CompletionQueryItems)
             {
-                if (!PromptYesOrNo(string.Format(PSReadLineResources.DisplayAllPossibilities, completions.CompletionMatches.Count)))
+                if (!_singleton.PromptYesOrNo(string.Format(PSReadLineResources.DisplayAllPossibilities, completions.CompletionMatches.Count)))
                 {
-                    _singleton.PlaceCursor(0, coords.Y + 1);
-                    WriteLine("");
-                    _singleton.PlaceCursor(coords.X, coords.Y);
                     return;
                 }
             }
@@ -2881,11 +2878,17 @@ namespace PSConsoleUtilities
             _singleton.PlaceCursor(s.Length, Console.CursorTop);
         }
 
-        static private bool PromptYesOrNo(string s)
+        private bool PromptYesOrNo(string s)
         {
-            Write(s);
+            _statusLinePrompt = s;
+            _statusLineCount = 1;
+            Render();
 
             var key = ReadKey();
+
+            _statusLinePrompt = null;
+            _statusLineCount = 0;
+            Render();
             return key.Key == ConsoleKey.Y;
         }
 

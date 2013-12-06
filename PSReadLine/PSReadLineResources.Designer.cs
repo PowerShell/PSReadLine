@@ -214,7 +214,7 @@ namespace PSConsoleUtilities {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Display all {0} possibilities? (y or n).
+        ///   Looks up a localized string similar to Display all {0} possibilities? (y or n) _.
         /// </summary>
         internal static string DisplayAllPossibilities {
             get {
