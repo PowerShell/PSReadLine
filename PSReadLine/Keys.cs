@@ -109,6 +109,7 @@ namespace PSConsoleUtilities
         public static ConsoleKeyInfo Equals      = new ConsoleKeyInfo('=', ConsoleKey.OemPlus, false, false, false);
 
         public static ConsoleKeyInfo CtrlAt       = new ConsoleKeyInfo((char)0, ConsoleKey.D2, true, false, true);
+        public static ConsoleKeyInfo AltUnderbar = new ConsoleKeyInfo('_', ConsoleKey.OemMinus, true, true, false);
         public static ConsoleKeyInfo CtrlUnderbar = new ConsoleKeyInfo((char)31, ConsoleKey.OemMinus, true, false, true);
         public static ConsoleKeyInfo AltEquals    = new ConsoleKeyInfo('=', ConsoleKey.OemPlus, false, true, false);
         public static ConsoleKeyInfo Space        = new ConsoleKeyInfo(' ', ConsoleKey.Spacebar, false, false, false);
@@ -118,6 +119,7 @@ namespace PSConsoleUtilities
         public static ConsoleKeyInfo AltLess     = new ConsoleKeyInfo('<', ConsoleKey.OemComma, true, true, false);
         public static ConsoleKeyInfo AltGreater  = new ConsoleKeyInfo('>', ConsoleKey.OemPeriod, true, true, false);
         public static ConsoleKeyInfo CtrlRBracket = new ConsoleKeyInfo((char)29, ConsoleKey.Oem6, false, false, true);
+        public static ConsoleKeyInfo AltPeriod    = new ConsoleKeyInfo('.', ConsoleKey.OemPeriod, false, true, false);
 
         public static ConsoleKeyInfo Alt0 = new ConsoleKeyInfo('0', ConsoleKey.D0, false, true, false);
         public static ConsoleKeyInfo Alt1 = new ConsoleKeyInfo('1', ConsoleKey.D1, false, true, false);
@@ -183,6 +185,8 @@ namespace PSConsoleUtilities
         public static ConsoleKeyInfo CtrlX = new ConsoleKeyInfo((char)24, ConsoleKey.X, false, false, true);
         public static ConsoleKeyInfo CtrlY = new ConsoleKeyInfo((char)25, ConsoleKey.Y, false, false, true);
         public static ConsoleKeyInfo CtrlZ = new ConsoleKeyInfo((char)26, ConsoleKey.Z, false, false, true);
+
+        public static ConsoleKeyInfo AltCtrlY = new ConsoleKeyInfo((char)0, ConsoleKey.Y, false, true, true);
 
         public static ConsoleKeyInfo Backspace    = new ConsoleKeyInfo((char)8, ConsoleKey.Backspace, false, false, false);
         public static ConsoleKeyInfo CtrlBackspace = new ConsoleKeyInfo((char)0x7f, ConsoleKey.Backspace, false, false, true);

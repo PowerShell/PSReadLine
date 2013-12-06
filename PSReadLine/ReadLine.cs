@@ -169,6 +169,15 @@ namespace PSConsoleUtilities
         private int _killCommandCount;
         private int _yankCommandCount;
         private int _yankStartPoint;
+        private int _yankLastArgCommandCount;
+        class YankLastArgState
+        {
+            internal int argument;
+            internal int historyIndex;
+            internal int historyIncrement;
+            internal int startPoint = -1;
+        }
+        private YankLastArgState _yankLastArgState;
 
         // Tab completion state
         private int _tabCommandCount;
@@ -313,6 +322,7 @@ namespace PSConsoleUtilities
                 var yankCommandCount = _yankCommandCount;
                 var tabCommandCount = _tabCommandCount;
                 var searchHistoryCommandCount = _searchHistoryCommandCount;
+                var yankLastArgCommandCount = _yankLastArgCommandCount;
 
                 var key = ReadKey();
                 ProcessOneKey(key, _dispatchTable, ignoreIfNoAction: false, arg: null);
@@ -330,6 +340,12 @@ namespace PSConsoleUtilities
                 {
                     // Reset yank command count if it didn't change
                     _yankCommandCount = 0;
+                }
+                if (yankLastArgCommandCount == _yankLastArgCommandCount)
+                {
+                    // Reset yank last arg command count if it didn't change
+                    _yankLastArgCommandCount = 0;
+                    _yankLastArgState = null;
                 }
                 if (tabCommandCount == _tabCommandCount)
                 {
@@ -514,6 +530,9 @@ namespace PSConsoleUtilities
                 { Keys.AltBackspace,    MakeKeyHandler(BackwardKillWord,     "BackwardKillWord") },
                 { Keys.AltEquals,       MakeKeyHandler(PossibleCompletions,  "PossibleCompletions") },
                 { Keys.AltSpace,        MakeKeyHandler(SetMark,              "SetMark") },  // useless entry here for completeness - brings up system menu on Windows
+                { Keys.AltPeriod,       MakeKeyHandler(YankLastArg,          "YankLastArg") },
+                { Keys.AltUnderbar,     MakeKeyHandler(YankLastArg,          "YankLastArg") },
+                { Keys.AltCtrlY,        MakeKeyHandler(YankNthArg,           "YankNthArg") },
                 { Keys.VolumeDown,      MakeKeyHandler(Ignore,               "Ignore") },
                 { Keys.VolumeUp,        MakeKeyHandler(Ignore,               "Ignore") },
                 { Keys.VolumeMute,      MakeKeyHandler(Ignore,               "Ignore") },
@@ -526,7 +545,10 @@ namespace PSConsoleUtilities
                 { Keys.F,               MakeKeyHandler(ForwardWord,          "ForwardWord") },
                 { Keys.R,               MakeKeyHandler(RevertLine,           "RevertLine") },
                 { Keys.Y,               MakeKeyHandler(YankPop,              "YankPop") },
+                { Keys.CtrlY,           MakeKeyHandler(YankNthArg,           "YankNthArg") },
                 { Keys.Backspace,       MakeKeyHandler(BackwardKillWord,     "BackwardKillWord") },
+                { Keys.Period,          MakeKeyHandler(YankLastArg,          "YankLastArg") },
+                { Keys.Underbar,        MakeKeyHandler(YankLastArg,          "YankLastArg") },
             };
 
             _emacsCtrlXMap = new Dictionary<ConsoleKeyInfo, KeyHandler>(new ConsoleKeyInfoComparer())
@@ -1657,12 +1679,14 @@ namespace PSConsoleUtilities
                 return;
             }
 
+            bool firstKeyAfterNegative = false;
             _singleton._statusLinePrompt = "digit-argument: ";
             var argBuffer = _singleton._statusBuffer;
             argBuffer.Append(key.Value.KeyChar);
             if (key.Value.KeyChar == '-')
             {
                 argBuffer.Append('1');
+                firstKeyAfterNegative = true;
             }
 
             _singleton.Render(); // Render prompt
@@ -1682,11 +1706,17 @@ namespace PSConsoleUtilities
                         {
                             argBuffer.Insert(0, '-');
                         }
+                        _singleton.Render(); // Render prompt
                         continue;
                     }
 
                     if (nextKey.KeyChar >= '0' && nextKey.KeyChar <= '9')
                     {
+                        if (firstKeyAfterNegative)
+                        {
+                            argBuffer.Remove(1, 1);
+                            firstKeyAfterNegative = false;
+                        }
                         argBuffer.Append(nextKey.KeyChar);
                         _singleton.Render(); // Render prompt
                         continue;
@@ -1905,6 +1935,109 @@ namespace PSConsoleUtilities
         public static void YankPop(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.YankPopImpl();
+        }
+
+        void YankArgImpl(YankLastArgState yankLastArgState)
+        {
+            Debug.Assert(yankLastArgState.historyIndex >= 0 && yankLastArgState.historyIndex < _history.Count);
+
+            Token[] tokens;
+            ParseError[] errors;
+            var buffer = _history[yankLastArgState.historyIndex];
+            Parser.ParseInput(buffer._line, out tokens, out errors);
+
+            int arg = (yankLastArgState.argument < 0)
+                          ? tokens.Length + yankLastArgState.argument - 1
+                          : yankLastArgState.argument;
+            if (arg < 0 || arg >= tokens.Length)
+            {
+                Ding();
+                return;
+            }
+
+            var argText = tokens[arg].Text;
+            if (yankLastArgState.startPoint < 0)
+            {
+                yankLastArgState.startPoint = _current;
+                Insert(argText);
+            }
+            else
+            {
+                Replace(yankLastArgState.startPoint, _current - yankLastArgState.startPoint, argText);
+            }
+        }
+
+        /// <summary>
+        /// Yank the first argument (after the command) from the previous history line.
+        /// With an argument, yank the nth argument (starting from 0), if the argument
+        /// is negative, start from the last argument.
+        /// </summary>
+        public static void YankNthArg(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            var yankLastArgState = new YankLastArgState
+            {
+                argument = (arg is int) ? (int)arg : 1,
+                historyIndex = _singleton._currentHistoryIndex - 1,
+            };
+            _singleton.YankArgImpl(yankLastArgState);
+        }
+
+        /// <summary>
+        /// Yank the last argument from the previous history line.  With an argument,
+        /// the first time it is invoked, behaves just like YankNthArg.  If invoked
+        /// multiple times, instead it iterates through history and arg sets the direction
+        /// (negative reverses the direction.)
+        /// </summary>
+        public static void YankLastArg(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            _singleton._yankLastArgCommandCount += 1;
+
+            if (_singleton._yankLastArgCommandCount == 1)
+            {
+                _singleton._yankLastArgState = new YankLastArgState
+                {
+                    argument = (arg is int) ? (int)arg : -1,
+                    historyIncrement = -1,
+                    historyIndex = _singleton._currentHistoryIndex - 1
+                };
+
+                _singleton.YankArgImpl(_singleton._yankLastArgState);
+                return;
+            }
+
+            var yankLastArgState = _singleton._yankLastArgState;
+
+            if (arg != null)
+            {
+                if (!(arg is int))
+                {
+                    Ding();
+                    return;
+                }
+
+                if ((int)arg < 0)
+                {
+                    yankLastArgState.historyIncrement = -yankLastArgState.historyIncrement;
+                }
+            }
+
+            yankLastArgState.historyIndex += yankLastArgState.historyIncrement;
+
+            // Don't increment more than 1 out of range so it's quick to get back to being in range.
+            if (yankLastArgState.historyIndex < 0)
+            {
+                Ding();
+                yankLastArgState.historyIndex = 0;
+            }
+            else if (yankLastArgState.historyIndex >= _singleton._history.Count)
+            {
+                Ding();
+                yankLastArgState.historyIndex = _singleton._history.Count - 1;
+            }
+            else
+            {
+                _singleton.YankArgImpl(yankLastArgState);
+            }
         }
 
 #endregion Kill/Yank

@@ -279,4 +279,10 @@
   <data name="UnixWordRuboutDescription" xml:space="preserve">
     <value>Move the text from the cursor to the start of the current or previous whitespace delimited word to the kill ring</value>
   </data>
+  <data name="YankLastArgDescription" xml:space="preserve">
+    <value>Copy the text of the last argument to the input</value>
+  </data>
+  <data name="YankNthArgDescription" xml:space="preserve">
+    <value>Copy the text of the first argument to the input</value>
+  </data>
 </root>

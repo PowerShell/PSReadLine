@@ -538,6 +538,24 @@ namespace PSConsoleUtilities {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Copy the text of the last argument to the input.
+        /// </summary>
+        internal static string YankLastArgDescription {
+            get {
+                return ResourceManager.GetString("YankLastArgDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Copy the text of the first argument to the input.
+        /// </summary>
+        internal static string YankNthArgDescription {
+            get {
+                return ResourceManager.GetString("YankNthArgDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Replace the previously yanked text with the text from the next kill ring position.
         /// </summary>
         internal static string YankPopDescription {
