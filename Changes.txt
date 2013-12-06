@@ -3,9 +3,12 @@
 New features:
 * Delimiter support in *Word functions
 * DigitArgument (Alt-0,Alt-1,Alt-2,...,Alt-9,Alt--) to pass numeric arguments
+* YankLastArg/YankNthArg to extract arguments from previous command lines
+* History search is now case insensitive with an option to make it case sensitive
 
 Bugs fixed:
 * Shift+Backspace works like Backspace
+* Ctrl+R with long search lines no longer causes big problems
 
 Behavior change:
 * Word functions now use delimiters.  The previous behavior is availble 
