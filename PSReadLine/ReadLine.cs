@@ -134,7 +134,6 @@ namespace PSConsoleUtilities
         private const string _backwardISearchPrompt = "bck-i-search: ";
         private const string _failedForwardISearchPrompt = "failed-fwd-i-search: ";
         private const string _failedBackwardISearchPrompt = "failed-bck-i-search: ";
-        private int _statusLineCount;
         private List<EditItem> _edits;
         private int _editGroupCount;
         private readonly Stack<int> _pushedEditGroupCount;
@@ -1286,14 +1285,12 @@ namespace PSConsoleUtilities
             _statusLinePrompt = direction > 0 ? _forwardISearchPrompt : _backwardISearchPrompt;
             _statusBuffer.Append(currentBuffer);
             _statusBuffer.Append("_");
-            _statusLineCount = 1;
 
             Render(); // Render prompt
             InteractiveHistorySearchLoop(direction, currentBuffer);
 
             // Remove our status line
             _statusBuffer.Clear();
-            _statusLineCount = 0;
             _statusLinePrompt = null;
             _emphasisStart = -1;
             _emphasisLength = 0;
@@ -1670,7 +1667,6 @@ namespace PSConsoleUtilities
             {
                 argBuffer.Append('1');
             }
-            _singleton._statusLineCount = 1;
 
             _singleton.Render(); // Render prompt
             while (true)
@@ -1714,7 +1710,6 @@ namespace PSConsoleUtilities
 
             // Remove our status line
             argBuffer.Clear();
-            _singleton._statusLineCount = 0;
             _singleton._statusLinePrompt = null;
             _singleton.Render(); // Render prompt
         }
@@ -2437,7 +2432,8 @@ namespace PSConsoleUtilities
 
             var text = ParseInput();
 
-            int bufferLineCount = ConvertOffsetToCoordinates(text.Length).Y - _initialY + 1 + _demoWindowLineCount + _statusLineCount;
+            int statusLineCount = GetStatusLineCount();
+            int bufferLineCount = ConvertOffsetToCoordinates(text.Length).Y - _initialY + 1 + _demoWindowLineCount + statusLineCount;
             int bufferWidth = Console.BufferWidth;
             if (_consoleBuffer.Length != bufferLineCount * bufferWidth)
             {
@@ -2542,12 +2538,12 @@ namespace PSConsoleUtilities
                 }
             }
 
-            for (; j < (_consoleBuffer.Length - ((_statusLineCount + _demoWindowLineCount) * _bufferWidth)); j++)
+            for (; j < (_consoleBuffer.Length - ((statusLineCount + _demoWindowLineCount) * _bufferWidth)); j++)
             {
                 _consoleBuffer[j] = _space;
             }
 
-            if (_statusLineCount > 0)
+            if (_statusLinePrompt != null)
             {
                 for (int i = 0; i < _statusLinePrompt.Length; i++, j++)
                 {
@@ -2761,9 +2757,10 @@ namespace PSConsoleUtilities
 
         private void PlaceCursor(int x, int y)
         {
-            if ((y + _demoWindowLineCount + _statusLineCount) >= Console.BufferHeight)
+            int statusLineCount = GetStatusLineCount();
+            if ((y + _demoWindowLineCount + statusLineCount) >= Console.BufferHeight)
             {
-                ScrollBuffer((y + _demoWindowLineCount + _statusLineCount) - Console.BufferHeight + 1);
+                ScrollBuffer((y + _demoWindowLineCount + statusLineCount) - Console.BufferHeight + 1);
                 y = Console.BufferHeight - 1;
             }
             Console.SetCursorPosition(x, y);
@@ -2803,6 +2800,14 @@ namespace PSConsoleUtilities
             }
 
             return new COORD {X = (short)x, Y = (short)y};
+        }
+
+        private int GetStatusLineCount()
+        {
+            if (_statusLinePrompt == null)
+                return 0;
+
+            return (_statusLinePrompt.Length + _statusBuffer.Length) / Console.BufferWidth + 1;
         }
 
         /// <summary>
@@ -2881,13 +2886,11 @@ namespace PSConsoleUtilities
         private bool PromptYesOrNo(string s)
         {
             _statusLinePrompt = s;
-            _statusLineCount = 1;
             Render();
 
             var key = ReadKey();
 
             _statusLinePrompt = null;
-            _statusLineCount = 0;
             Render();
             return key.Key == ConsoleKey.Y;
         }
