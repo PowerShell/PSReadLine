@@ -62,6 +62,8 @@ namespace PSConsoleUtilities
         /// </summary>
         public const BellStyle DefaultBellStyle = BellStyle.Audible;
 
+        public const bool DefaultHistorySearchCaseSensitive = false;
+
         public PSConsoleReadlineOptions()
         {
             ResetColors();
@@ -81,6 +83,7 @@ namespace PSConsoleUtilities
             BellStyle = DefaultBellStyle;
             CompletionQueryItems = DefaultCompletionQueryItems;
             WordDelimiters = DefaultWordDelimiters;
+            HistorySearchCaseSensitive = DefaultHistorySearchCaseSensitive;
         }
 
         public EditMode EditMode { get; set; }
@@ -121,6 +124,12 @@ namespace PSConsoleUtilities
         /// </summary>
         public int DingDuration { get; set; }
         public BellStyle BellStyle { get; set; }
+
+        public bool HistorySearchCaseSensitive { get; set; }
+        internal StringComparison HistoryStringComparison
+        {
+            get { return HistorySearchCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase; }
+        }
 
         public ConsoleColor DefaultTokenForegroundColor { get; set; }
         public ConsoleColor CommentForegroundColor { get; set; }
@@ -374,6 +383,14 @@ namespace PSConsoleUtilities
 
         [Parameter(ParameterSetName = "OptionsSet")]
         public string WordDelimiters { get; set; }
+
+        [Parameter(ParameterSetName = "OptionsSet")]
+        public bool HistorySearchCaseSensitive
+        {
+            get { return _historySearchCaseSensitive.GetValueOrDefault(); }
+            set { _historySearchCaseSensitive = value; }
+        }
+        internal bool? _historySearchCaseSensitive;
 
         [Parameter(ParameterSetName = "ColorSet", Position = 0, Mandatory = true)]
         public TokenClassification TokenKind

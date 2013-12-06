@@ -1086,7 +1086,7 @@ namespace PSConsoleUtilities
             int incr = backward ? -1 : +1;
             for (int i = _currentHistoryIndex + incr; i >=0 && i < _history.Count; i += incr)
             {
-                if (_history[i]._line.StartsWith(_searchHistoryPrefix))
+                if (_history[i]._line.StartsWith(_searchHistoryPrefix, Options.HistoryStringComparison))
                 {
                     _currentHistoryIndex = i;
                     UpdateFromHistory(moveCursor: Options.HistorySearchCursorMovesToEnd);
@@ -1138,8 +1138,7 @@ namespace PSConsoleUtilities
         {
             for (int i = _currentHistoryIndex + direction; i >=0 && i < _history.Count; i += direction)
             {
-                // TODO - support case insensitive search
-                var startIndex = _history[i]._line.IndexOf(toMatch, StringComparison.Ordinal);
+                var startIndex = _history[i]._line.IndexOf(toMatch, Options.HistoryStringComparison);
                 if (startIndex >= 0)
                 {
                     _statusLinePrompt = direction > 0 ? _forwardISearchPrompt : _backwardISearchPrompt;
@@ -1193,8 +1192,7 @@ namespace PSConsoleUtilities
 
                         // Prompt may need to have 'failed-' removed.
                         var toMatchStr = toMatch.ToString();
-                        // TODO - support case insensitive search
-                        var startIndex = _buffer.ToString().IndexOf(toMatchStr, StringComparison.Ordinal);
+                        var startIndex = _buffer.ToString().IndexOf(toMatchStr, Options.HistoryStringComparison);
                         if (startIndex >= 0)
                         {
                             _statusLinePrompt = direction > 0 ? _forwardISearchPrompt : _backwardISearchPrompt;
@@ -1242,8 +1240,7 @@ namespace PSConsoleUtilities
                     _statusBuffer.Insert(_statusBuffer.Length - 1, key.KeyChar);
 
                     var toMatchStr = toMatch.ToString();
-                    // TODO - support case insensitive search
-                    var startIndex = _buffer.ToString().IndexOf(toMatchStr, StringComparison.Ordinal);
+                    var startIndex = _buffer.ToString().IndexOf(toMatchStr, Options.HistoryStringComparison);
                     if (startIndex < 0)
                     {
                         UpdateHistoryDuringInteractiveSearch(toMatchStr, direction);
@@ -3155,6 +3152,10 @@ namespace PSConsoleUtilities
             if (options.WordDelimiters != null)
             {
                 Options.WordDelimiters = options.WordDelimiters;
+            }
+            if (options._historySearchCaseSensitive.HasValue)
+            {
+                Options.HistorySearchCaseSensitive = options.HistorySearchCaseSensitive;
             }
             if (options.ResetTokenColors)
             {
