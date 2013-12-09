@@ -2,7 +2,7 @@
 <package>
   <metadata>
     <id>PSReadline</id>
-    <version>1.0.0.4</version>
+    <version>1.0.0.6</version>
     <authors>Jason Shirk</authors>
     <owners>Jason Shirk</owners>
     <projectUrl>https://github.com/lzybkr/PSReadLine</projectUrl>
