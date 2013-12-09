@@ -475,6 +475,8 @@ namespace PSConsoleUtilities
                 { Keys.CtrlEnd,         MakeKeyHandler(ForwardDeleteLine,    "ForwardDeleteLine") },
                 { Keys.CtrlHome,        MakeKeyHandler(BackwardDeleteLine,   "BackwardDeleteLine") },
                 { Keys.CtrlRBracket,    MakeKeyHandler(GotoBrace,            "GotoBrace") },
+                { Keys.F3,              MakeKeyHandler(CharacterSearch,      "CharacterSearch") },
+                { Keys.ShiftF3,         MakeKeyHandler(CharacterSearchBackward,"CharacterSearchBackward") },
             };
 
             _emacsKeyMap = new Dictionary<ConsoleKeyInfo, KeyHandler>(new ConsoleKeyInfoComparer())

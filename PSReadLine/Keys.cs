@@ -237,6 +237,8 @@ namespace PSConsoleUtilities
         public static ConsoleKeyInfo F23 = new ConsoleKeyInfo((char)0, ConsoleKey.F23, false, false, false);
         public static ConsoleKeyInfo F24 = new ConsoleKeyInfo((char)0, ConsoleKey.F24, false, false, false);
 
+        public static ConsoleKeyInfo ShiftF3 = new ConsoleKeyInfo((char)0, ConsoleKey.F3, true, false, false);
+
         // Keys to ignore
         public static ConsoleKeyInfo VolumeUp   = new ConsoleKeyInfo((char)0, ConsoleKey.VolumeUp, false, false, false);
         public static ConsoleKeyInfo VolumeDown = new ConsoleKeyInfo((char)0, ConsoleKey.VolumeDown, false, false, false);
