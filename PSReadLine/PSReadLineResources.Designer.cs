@@ -70,6 +70,15 @@ namespace PSConsoleUtilities {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Accept the current line and recall the next line from history after the current line finishes executing.
+        /// </summary>
+        internal static string AcceptAndGetNextDescription {
+            get {
+                return ResourceManager.GetString("AcceptAndGetNextDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Accept the input or move to the next line if input is missing a closing token..
         /// </summary>
         internal static string AcceptLineDescription {

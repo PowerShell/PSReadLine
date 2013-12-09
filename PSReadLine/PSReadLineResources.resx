@@ -294,4 +294,7 @@
   <data name="YankNthArgDescription" xml:space="preserve">
     <value>Copy the text of the first argument to the input</value>
   </data>
+  <data name="AcceptAndGetNextDescription" xml:space="preserve">
+    <value>Accept the current line and recall the next line from history after the current line finishes executing</value>
+  </data>
 </root>

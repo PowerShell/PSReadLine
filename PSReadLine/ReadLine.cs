@@ -157,6 +157,7 @@ namespace PSConsoleUtilities
         private HistoryQueue<HistoryItem> _history;
         private readonly HashSet<string> _hashedHistory; 
         private int _currentHistoryIndex;
+        private int _getNextHistoryIndex;
         private int _searchHistoryCommandCount;
         private string _searchHistoryPrefix;
         // When cycling through history, the current line (not yet added to history)
@@ -503,6 +504,7 @@ namespace PSConsoleUtilities
                 { Keys.CtrlL,           MakeKeyHandler(ClearScreen,          "ClearScreen") },
                 { Keys.CtrlK,           MakeKeyHandler(KillLine,             "KillLine") },
                 { Keys.CtrlM,           MakeKeyHandler(AcceptLine,           "AcceptLine") },
+                { Keys.CtrlO,           MakeKeyHandler(AcceptAndGetNext,     "AcceptAndGetNext") },
                 { Keys.CtrlR,           MakeKeyHandler(ReverseSearchHistory, "ReverseSearchHistory") },
                 { Keys.CtrlS,           MakeKeyHandler(ForwardSearchHistory, "ForwardSearchHistory") },
                 { Keys.CtrlU,           MakeKeyHandler(BackwardKillLine,     "BackwardKillLine") },
@@ -629,6 +631,13 @@ namespace PSConsoleUtilities
 
             _consoleBuffer = ReadBufferLines(_initialY, 1 + Options.ExtraPromptLineCount);
             _lastRenderTime = DateTime.Now;
+
+            if (_getNextHistoryIndex > 0)
+            {
+                _currentHistoryIndex = _getNextHistoryIndex;
+                UpdateFromHistory(moveCursor: true);
+                _getNextHistoryIndex = 0;
+            }
         }
 
         private static void Chord(ConsoleKeyInfo? key = null, object arg = null)
@@ -755,6 +764,31 @@ namespace PSConsoleUtilities
             }
         }
 
+        private bool AcceptLineImpl()
+        {
+            ParseInput();
+            if (_parseErrors.Any(e => e.IncompleteInput))
+            {
+                Insert('\n');
+                return false;
+            }
+
+            _renderForDemoNeeded = false;
+
+            // Make sure cursor is at the end before writing the line
+            _current = _buffer.Length;
+            if (_queuedKeys.Count > 0)
+            {
+                // If text was pasted, for performance reasons we skip rendering for some time,
+                // but if input is accepted, we won't have another chance to render.
+                ReallyRender();
+            }
+            PlaceCursor();
+            Console.Out.Write("\n");
+            _inputAccepted = true;
+            return true;
+        }
+
         /// <summary>
         /// Attempt to execute the current input.  If the current input is incomplete (for
         /// example there is a missing closing parenthesis, bracket, or quote, then the
@@ -763,26 +797,26 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void AcceptLine(ConsoleKeyInfo? key = null, object arg = null)
         {
-            _singleton.ParseInput();
-            if (_singleton._parseErrors.Any(e => e.IncompleteInput))
-            {
-                Insert('\n');
-                return;
-            }
+            _singleton.AcceptLineImpl();
+        }
 
-            _singleton._renderForDemoNeeded = false;
-
-            // Make sure cursor is at the end before writing the line
-            _singleton._current = _singleton._buffer.Length;
-            if (_singleton._queuedKeys.Count > 0)
+        /// <summary>
+        /// Attempt to execute the current input.  If it can be executed (like AcceptLine),
+        /// then recall the next item from history the next time Readline is called.
+        /// </summary>
+        public static void AcceptAndGetNext(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            if (_singleton.AcceptLineImpl())
             {
-                // If text was pasted, for performance reasons we skip rendering for some time,
-                // but if input is accepted, we won't have another chance to render.
-                _singleton.ReallyRender();
+                if (_singleton._currentHistoryIndex < (_singleton._history.Count - 1))
+                {
+                    _singleton._getNextHistoryIndex = _singleton._currentHistoryIndex + 1;
+                }
+                else
+                {
+                    Ding();
+                }
             }
-            _singleton.PlaceCursor();
-            Console.Out.Write("\n");
-            _singleton._inputAccepted = true;
         }
 
         /// <summary>
