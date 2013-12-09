@@ -279,6 +279,15 @@
   <data name="UnixWordRuboutDescription" xml:space="preserve">
     <value>Move the text from the cursor to the start of the current or previous whitespace delimited word to the kill ring</value>
   </data>
+  <data name="CharacterSearchBackwardDescription" xml:space="preserve">
+    <value>Read a character and move the cursor to the previous occurence of that character</value>
+  </data>
+  <data name="CharacterSearchDescription" xml:space="preserve">
+    <value>Read a character and move the cursor to the next occurence of that character</value>
+  </data>
+  <data name="DigitArgumentDescription" xml:space="preserve">
+    <value>Start or accumulate a numeric argument to other functions</value>
+  </data>
   <data name="YankLastArgDescription" xml:space="preserve">
     <value>Copy the text of the last argument to the input</value>
   </data>

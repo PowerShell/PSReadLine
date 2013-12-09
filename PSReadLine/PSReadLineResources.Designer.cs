@@ -169,6 +169,24 @@ namespace PSConsoleUtilities {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Read a character and move the cursor to the previous occurence of that character.
+        /// </summary>
+        internal static string CharacterSearchBackwardDescription {
+            get {
+                return ResourceManager.GetString("CharacterSearchBackwardDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Read a character and move the cursor to the next occurence of that character.
+        /// </summary>
+        internal static string CharacterSearchDescription {
+            get {
+                return ResourceManager.GetString("CharacterSearchDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Remove all items from the kill ring.
         /// </summary>
         internal static string ClearKillRingDescription {
@@ -210,6 +228,15 @@ namespace PSConsoleUtilities {
         internal static string DeleteCharDescription {
             get {
                 return ResourceManager.GetString("DeleteCharDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Start or accumulate a numeric argument to other functions.
+        /// </summary>
+        internal static string DigitArgumentDescription {
+            get {
+                return ResourceManager.GetString("DigitArgumentDescription", resourceCulture);
             }
         }
         

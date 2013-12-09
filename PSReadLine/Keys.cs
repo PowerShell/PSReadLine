@@ -119,6 +119,7 @@ namespace PSConsoleUtilities
         public static ConsoleKeyInfo AltLess     = new ConsoleKeyInfo('<', ConsoleKey.OemComma, true, true, false);
         public static ConsoleKeyInfo AltGreater  = new ConsoleKeyInfo('>', ConsoleKey.OemPeriod, true, true, false);
         public static ConsoleKeyInfo CtrlRBracket = new ConsoleKeyInfo((char)29, ConsoleKey.Oem6, false, false, true);
+        public static ConsoleKeyInfo AltCtrlRBracket = new ConsoleKeyInfo((char)0, ConsoleKey.Oem6, false, true, true);
         public static ConsoleKeyInfo AltPeriod    = new ConsoleKeyInfo('.', ConsoleKey.OemPeriod, false, true, false);
 
         public static ConsoleKeyInfo Alt0 = new ConsoleKeyInfo('0', ConsoleKey.D0, false, true, false);

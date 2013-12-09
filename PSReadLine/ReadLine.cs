@@ -511,6 +511,8 @@ namespace PSConsoleUtilities
                 { Keys.CtrlY,           MakeKeyHandler(Yank,                 "Yank") },
                 { Keys.CtrlAt,          MakeKeyHandler(SetMark,              "SetMark") },
                 { Keys.CtrlUnderbar,    MakeKeyHandler(Undo,                 "Undo") },
+                { Keys.CtrlRBracket,    MakeKeyHandler(CharacterSearch,      "CharacterSearch") },
+                { Keys.AltCtrlRBracket, MakeKeyHandler(CharacterSearchBackward,"CharacterSearchBackward") },
                 { Keys.Alt0,            MakeKeyHandler(DigitArgument,        "DigitArgument") },
                 { Keys.Alt1,            MakeKeyHandler(DigitArgument,        "DigitArgument") },
                 { Keys.Alt2,            MakeKeyHandler(DigitArgument,        "DigitArgument") },
@@ -1007,6 +1009,70 @@ namespace PSConsoleUtilities
             Console.Clear();
             _singleton._initialY = 0;
             _singleton.Render();
+        }
+
+        /// <summary>
+        /// Read a character and search forward for the next occurence of that character.
+        /// If an argument is specified, search forward (or backward if negative) for the
+        /// nth occurence.
+        /// </summary>
+        public static void CharacterSearch(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            int occurence = (arg is int) ? (int)arg : 1;
+            if (occurence < 0)
+            {
+                CharacterSearchBackward(key, -occurence);
+                return;
+            }
+
+            // Should we prompt?
+            char toFind = ReadKey().KeyChar;
+            for (int i = _singleton._current + 1; i < _singleton._buffer.Length; i++)
+            {
+                if (_singleton._buffer[i] == toFind)
+                {
+                    occurence -= 1;
+                    if (occurence == 0)
+                    {
+                        _singleton._current = i;
+                        _singleton.PlaceCursor();
+                        return;
+                    }
+                }
+            }
+            Ding();
+        }
+
+        /// <summary>
+        /// Read a character and search backward for the next occurence of that character.
+        /// If an argument is specified, search backward (or forward if negative) for the
+        /// nth occurence.
+        /// </summary>
+        public static void CharacterSearchBackward(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            int occurence = (arg is int) ? (int)arg : 1;
+            if (occurence < 0)
+            {
+                CharacterSearch(key, -occurence);
+                return;
+            }
+
+            // Should we prompt?
+            char toFind = ReadKey().KeyChar;
+            for (int i = _singleton._current - 1; i >= 0; i--)
+            {
+                if (_singleton._buffer[i] == toFind)
+                {
+                    occurence -= 1;
+                    if (occurence == 0)
+                    {
+                        _singleton._current = i;
+                        _singleton.PlaceCursor();
+                        return;
+                    }
+                }
+            }
+            Ding();
         }
 
 #endregion Movement
