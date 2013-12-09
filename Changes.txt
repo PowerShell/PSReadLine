@@ -1,3 +1,9 @@
+### Version 1.0.0.6
+
+New features:
+* CharacterSearch/CharacterSearchBackward
+* AcceptAndGetNext
+
 ### Version 1.0.0.5
 
 New features:
