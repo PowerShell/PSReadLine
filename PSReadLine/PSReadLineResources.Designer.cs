@@ -250,6 +250,15 @@ namespace PSConsoleUtilities {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Disable demo mode.
+        /// </summary>
+        internal static string DisableDemoModeDescription {
+            get {
+                return ResourceManager.GetString("DisableDemoModeDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Display all {0} possibilities? (y or n) _.
         /// </summary>
         internal static string DisplayAllPossibilities {
@@ -273,6 +282,15 @@ namespace PSConsoleUtilities {
         internal static string EmacsMetaDescription {
             get {
                 return ResourceManager.GetString("EmacsMetaDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Displays a window below the input line that shows which keys are typed.
+        /// </summary>
+        internal static string EnableDemoModeDescription {
+            get {
+                return ResourceManager.GetString("EnableDemoModeDescription", resourceCulture);
             }
         }
         
@@ -351,18 +369,18 @@ namespace PSConsoleUtilities {
         /// <summary>
         ///   Looks up a localized string similar to Search for the previous item in the history that starts with the current input - like PreviousHistory if the input is empty.
         /// </summary>
-        internal static string HistorySearchBackwardsDescription {
+        internal static string HistorySearchBackwardDescription {
             get {
-                return ResourceManager.GetString("HistorySearchBackwardsDescription", resourceCulture);
+                return ResourceManager.GetString("HistorySearchBackwardDescription", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Search for the next item in the history that starts with the current input - like NextHistory if the input is empty.
         /// </summary>
-        internal static string HistorySearchForwardsDescription {
+        internal static string HistorySearchForwardDescription {
             get {
-                return ResourceManager.GetString("HistorySearchForwardsDescription", resourceCulture);
+                return ResourceManager.GetString("HistorySearchForwardDescription", resourceCulture);
             }
         }
         
@@ -471,6 +489,15 @@ namespace PSConsoleUtilities {
         internal static string RevertLineDescription {
             get {
                 return ResourceManager.GetString("RevertLineDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Insert the key typed.
+        /// </summary>
+        internal static string SelfInsertDescription {
+            get {
+                return ResourceManager.GetString("SelfInsertDescription", resourceCulture);
             }
         }
         
