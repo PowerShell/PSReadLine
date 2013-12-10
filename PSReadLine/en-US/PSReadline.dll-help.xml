@@ -15,21 +15,64 @@
   </command:details>
   <maml:description>
   <!--This is the Description section-->
-    <maml:para></maml:para>
+    <maml:para>Gets the key bindings for the PSReadline module.</maml:para>
+    <maml:para>If neither -Bound nor -Unbound is specified, returns all bound keys and unbound functions.</maml:para>
+    <maml:para>If -Bound is specified and -Unbound is not specified, only bound keys are returned.</maml:para>
+    <maml:para>If -Unound is specified and -Bound is not specified, only unbound keys are returned.</maml:para>
+    <maml:para>If both -Bound and -Unound are specified, returns all bound keys and unbound functions.</maml:para>
   </maml:description>
   <command:syntax>
     <command:syntaxItem>
       <maml:name>Get-PSReadlineKeyHandler</maml:name>
+      <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+        <maml:name>Bound</maml:name>
+        <maml:description>
+          <maml:para>Include functions that are bound.</maml:para>
+        </maml:description>
+        <command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+        <maml:name>Unbound</maml:name>
+        <maml:description>
+          <maml:para>Include functions that are unbound.</maml:para>
+        </maml:description>
+        <command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
+      </command:parameter>
     </command:syntaxItem>
   </command:syntax>
-  <command:parameters>  </command:parameters>
+  <command:parameters>
+    <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+      <maml:name>Bound</maml:name>
+      <maml:description>
+        <maml:para>Include functions that are bound.</maml:para>
+      </maml:description>
+      <command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
+      <dev:type>
+        <maml:name>SwitchParameter</maml:name>
+        <maml:uri/>
+      </dev:type>
+      <dev:defaultValue>True</dev:defaultValue>
+    </command:parameter>
+    <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+      <maml:name>Unbound</maml:name>
+      <maml:description>
+        <maml:para>Include functions that are unbound.</maml:para>
+      </maml:description>
+      <command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
+      <dev:type>
+        <maml:name>SwitchParameter</maml:name>
+        <maml:uri/>
+      </dev:type>
+      <dev:defaultValue>True</dev:defaultValue>
+    </command:parameter>
+  </command:parameters>
   <command:inputTypes>
     <command:inputType>
       <dev:type>
         <maml:name></maml:name>
         <maml:uri/>
         <maml:description>
-          <maml:para></maml:para>
+          <maml:para>You cannot pipe objects to Get-PSReadlineKeyHandler</maml:para>
         </maml:description>
       </dev:type>
       <maml:description></maml:description>
@@ -38,15 +81,17 @@
   <command:returnValues>
     <command:returnValue>
       <dev:type>
-        <maml:name></maml:name>
+        <maml:name>PSConsoleUtilities.KeyHandler</maml:name>
         <maml:uri/>
         <maml:description>
           <maml:para></maml:para>
         </maml:description>
       </dev:type>
-      <maml:description></maml:description>
-  </command:returnValue>
-    </command:returnValues>
+      <maml:description>
+          <maml:para>Returns one entry for each key binding (or chord) for bound functions and/or one entry for each unbound function</maml:para>
+      </maml:description>
+    </command:returnValue>
+  </command:returnValues>
   <command:terminatingErrors></command:terminatingErrors>
   <command:nonTerminatingErrors></command:nonTerminatingErrors>
   <maml:alertSet>
@@ -96,7 +141,7 @@ The object returned can be used to change PSReadline options.  This provides a s
         <maml:name></maml:name>
         <maml:uri/>
         <maml:description>
-          <maml:para></maml:para>
+          <maml:para>You cannot pipe objects to Get-PSReadlineOption</maml:para>
         </maml:description>
       </dev:type>
       <maml:description></maml:description>
@@ -176,7 +221,7 @@ With user defined key bindings, you can do nearly anything that is possible from
         <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
       </command:parameter>
       <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
-        <maml:name>LongDescription</maml:name>
+        <maml:name>Description</maml:name>
         <maml:description>
           <maml:para>A more verbose description of the key binding.  Used in the output of the cmdlet Get-PSReadlineKeyHandler.</maml:para>
         </maml:description>
@@ -241,7 +286,7 @@ Using the ScriptBlock parameter, one can achieve equivalent functionality by cal
       <dev:defaultValue></dev:defaultValue>
     </command:parameter>
     <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
-      <maml:name>LongDescription</maml:name>
+      <maml:name>Description</maml:name>
       <maml:description>
         <maml:para>A more verbose description of the key binding.  Used in the output of the cmdlet Get-PSReadlineKeyHandler.</maml:para>
       </maml:description>
@@ -266,42 +311,6 @@ Using the ScriptBlock parameter, one can achieve equivalent functionality by cal
       </dev:type>
       <dev:defaultValue></dev:defaultValue>
     </command:parameter>
-    <command:parameter required="true" variableLength="false" globbing="false" pipelineInput="false" position="0">
-      <maml:name>Key</maml:name>
-      <maml:description>
-        <maml:para>Specifies the key to be bound.</maml:para>
-      </maml:description>
-      <command:parameterValue required="true" variableLength="false">consolekeyinfo</command:parameterValue>
-      <dev:type>
-        <maml:name>consolekeyinfo</maml:name>
-        <maml:uri/>
-      </dev:type>
-      <dev:defaultValue></dev:defaultValue>
-    </command:parameter>
-    <command:parameter required="true" variableLength="false" globbing="false" pipelineInput="false" position="1">
-      <maml:name>Handler</maml:name>
-      <maml:description>
-        <maml:para>Specifies a ScriptBlock to be called when the bound key is pressed.</maml:para>
-      </maml:description>
-      <command:parameterValue required="true" variableLength="false">action</command:parameterValue>
-      <dev:type>
-        <maml:name>action</maml:name>
-        <maml:uri/>
-      </dev:type>
-      <dev:defaultValue></dev:defaultValue>
-    </command:parameter>
-    <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
-      <maml:name>CtrlXPrefix</maml:name>
-      <maml:description>
-        <maml:para></maml:para>
-      </maml:description>
-      <command:parameterValue required="false" variableLength="false">switchparameter</command:parameterValue>
-      <dev:type>
-        <maml:name>switchparameter</maml:name>
-        <maml:uri/>
-      </dev:type>
-      <dev:defaultValue></dev:defaultValue>
-    </command:parameter>
   </command:parameters>
   <command:inputTypes>
     <command:inputType>
@@ -309,7 +318,7 @@ Using the ScriptBlock parameter, one can achieve equivalent functionality by cal
         <maml:name></maml:name>
         <maml:uri/>
         <maml:description>
-          <maml:para></maml:para>
+          <maml:para>You cannot pipe objects to Set-PSReadlineKeyHandler</maml:para>
         </maml:description>
       </dev:type>
       <maml:description></maml:description>
@@ -451,12 +460,12 @@ Using the ScriptBlock parameter, one can achieve equivalent functionality by cal
         </maml:description>
         <command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
       </command:parameter>
-      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="false" position="named">
+      <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
         <maml:name>AddToHistoryHandler</maml:name>
         <maml:description>
           <maml:para>Specifies a ScriptBlock that can be used to control which commands get added to PSReadline history.</maml:para>
         </maml:description>
-        <command:parameterValue required="true" variableLength="true">Func[String, Boolean]</command:parameterValue>
+        <command:parameterValue required="true" variableLength="false">Func[String, Boolean]</command:parameterValue>
       </command:parameter>
       <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
         <maml:name>HistorySearchCursorMovesToEnd</maml:name>
@@ -660,12 +669,12 @@ Using the ScriptBlock parameter, one can achieve equivalent functionality by cal
       </dev:type>
       <dev:defaultValue>False</dev:defaultValue>
     </command:parameter>
-    <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="false" position="named">
+    <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
       <maml:name>AddToHistoryHandler</maml:name>
       <maml:description>
         <maml:para>Specifies a ScriptBlock that can be used to control which commands get added to PSReadline history.</maml:para>
       </maml:description>
-      <command:parameterValue required="true" variableLength="true">Func`2[Boolean]</command:parameterValue>
+      <command:parameterValue required="true" variableLength="false">Func[String, Boolean]</command:parameterValue>
       <dev:type>
         <maml:name>Func[String, Boolean]</maml:name>
         <maml:uri/>

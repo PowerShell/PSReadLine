@@ -5,6 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Management.Automation;
 using System.Management.Automation.Language;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -46,21 +47,21 @@ namespace PSConsoleUtilities
     public class KeyHandler
     {
         public string Key { get; set; }
-        public string BriefDescription { get; set; }
-        public string LongDescription
+        public string Function { get; set; }
+        public string Description
         {
             get
             {
-                var result = _longDescription;
+                var result = _description;
                 if (string.IsNullOrWhiteSpace(result))
-                    result = PSReadLineResources.ResourceManager.GetString(BriefDescription + "Description");
+                    result = PSReadLineResources.ResourceManager.GetString(Function + "Description");
                 if (string.IsNullOrWhiteSpace(result))
-                    result = BriefDescription;
+                    result = Function;
                 return result;
             }
-            set { _longDescription = value; }
+            set { _description = value; }
         }
-        private string _longDescription;
+        private string _description;
     }
 
     public class PSConsoleReadLine
@@ -3462,33 +3463,71 @@ namespace PSConsoleUtilities
         /// Helper function for the Get-PSReadlineKeyHandler cmdlet.
         /// </summary>
         /// <returns></returns>
-        public static IEnumerable<PSConsoleUtilities.KeyHandler> GetKeyHandlers()
+        public static IEnumerable<PSConsoleUtilities.KeyHandler> GetKeyHandlers(bool includeBound = true, bool includeUnbound = false)
         {
+            var boundFunctions = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
             foreach (var entry in _singleton._dispatchTable)
             {
-                if (entry.Value.BriefDescription == "Ignore" 
+                if (entry.Value.BriefDescription == "Ignore"
                     || entry.Value.BriefDescription == "ChordFirstKey")
                 {
                     continue;
                 }
-                yield return new PSConsoleUtilities.KeyHandler
+                boundFunctions.Add(entry.Value.BriefDescription);
+                if (includeBound)
                 {
-                    Key = entry.Key.ToGestureString(),
-                    BriefDescription = entry.Value.BriefDescription,
-                    LongDescription = entry.Value.LongDescription,
-                };
+                    yield return new PSConsoleUtilities.KeyHandler
+                    {
+                        Key = entry.Key.ToGestureString(),
+                        Function = entry.Value.BriefDescription,
+                        Description = entry.Value.LongDescription,
+                    };
+                }
             }
 
             foreach (var entry in _singleton._chordDispatchTable)
             {
                 foreach (var secondEntry in entry.Value)
                 {
-                    yield return new PSConsoleUtilities.KeyHandler
+                    boundFunctions.Add(secondEntry.Value.BriefDescription);
+                    if (includeBound)
                     {
-                        Key = entry.Key.ToGestureString() + "," + secondEntry.Key.ToGestureString(),
-                        BriefDescription = secondEntry.Value.BriefDescription,
-                        LongDescription = secondEntry.Value.LongDescription,
-                    };
+                        yield return new PSConsoleUtilities.KeyHandler
+                        {
+                            Key = entry.Key.ToGestureString() + "," + secondEntry.Key.ToGestureString(),
+                            Function = secondEntry.Value.BriefDescription,
+                            Description = secondEntry.Value.LongDescription,
+                        };
+                    }
+                }
+            }
+
+            if (includeUnbound)
+            {
+                // SelfInsert isn't really unbound, but we don't want UI to show it that way
+                boundFunctions.Add("SelfInsert");
+
+                var methods = typeof (PSConsoleReadLine).GetMethods(BindingFlags.Public | BindingFlags.Static);
+                foreach (var method in methods)
+                {
+                    var parameters = method.GetParameters();
+                    if (parameters.Length != 2 ||
+                        parameters[0].ParameterType != typeof (ConsoleKeyInfo?) ||
+                        parameters[1].ParameterType != typeof (object))
+                    {
+                        continue;
+                    }
+
+                    if (!boundFunctions.Contains(method.Name))
+                    {
+                        yield return new PSConsoleUtilities.KeyHandler
+                        {
+                            Key = "Unbound",
+                            Function = method.Name,
+                            Description = null,
+                        };
+                    }
                 }
             }
         }

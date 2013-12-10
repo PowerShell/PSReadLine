@@ -15,8 +15,8 @@
                         <Width>20</Width>
                     </TableColumnHeader>
                     <TableColumnHeader>
-                        <Label>BriefDescription</Label>
-                        <Width>22</Width>
+                        <Label>Function</Label>
+                        <Width>24</Width>
                     </TableColumnHeader>
                     <TableColumnHeader/>
                 </TableHeaders>
@@ -27,10 +27,10 @@
                                 <PropertyName>Key</PropertyName>
                             </TableColumnItem>
                             <TableColumnItem>
-                                <PropertyName>BriefDescription</PropertyName>
+                                <PropertyName>Function</PropertyName>
                             </TableColumnItem>
                             <TableColumnItem>
-                                <PropertyName>LongDescription</PropertyName>
+                                <PropertyName>Description</PropertyName>
                             </TableColumnItem>
                         </TableColumnItems>
                     </TableRowEntry>
