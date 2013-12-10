@@ -1447,7 +1447,7 @@ namespace PSConsoleUtilities
         /// <summary>
         /// Perform an incremental forward search through history
         /// </summary>
-        public static void ForwardSearchHistory(ConsoleKeyInfo? arg1, object arg2)
+        public static void ForwardSearchHistory(ConsoleKeyInfo? key, object arg)
         {
             _singleton.InteractiveHistorySearch(+1);
         }
@@ -1455,7 +1455,7 @@ namespace PSConsoleUtilities
         /// <summary>
         /// Perform an incremental backward search through history
         /// </summary>
-        public static void ReverseSearchHistory(ConsoleKeyInfo? arg1, object arg2)
+        public static void ReverseSearchHistory(ConsoleKeyInfo? key, object arg)
         {
             _singleton.InteractiveHistorySearch(-1);
         }
