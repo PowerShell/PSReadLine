@@ -385,12 +385,12 @@ namespace PSConsoleUtilities
         public string WordDelimiters { get; set; }
 
         [Parameter(ParameterSetName = "OptionsSet")]
-        public bool HistorySearchCaseSensitive
+        public SwitchParameter HistorySearchCaseSensitive
         {
             get { return _historySearchCaseSensitive.GetValueOrDefault(); }
             set { _historySearchCaseSensitive = value; }
         }
-        internal bool? _historySearchCaseSensitive;
+        internal SwitchParameter? _historySearchCaseSensitive;
 
         [Parameter(ParameterSetName = "ColorSet", Position = 0, Mandatory = true)]
         public TokenClassification TokenKind
