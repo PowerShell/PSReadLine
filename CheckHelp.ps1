@@ -1,11 +1,25 @@
 
 $about_topic = Get-Help about_PSReadline
 
-$methods = ([PSConsoleUtilities.PSConsoleReadLine] |
-    Get-Member -Static -Type Method |
-    Where-Object Definition -match .*Nullable.*).Name
+$methods = [PSConsoleUtilities.PSConsoleReadLine].GetMethods('public,static') |
+    Where-Object {
+        $method = $_
+        $parameters = $method.GetParameters()
+        $parameters.Count -eq 2 -and
+            $parameters[0].ParameterType -eq [Nullable[ConsoleKeyInfo]] -and
+            $parameters[1].ParameterType -eq [object]
+    }
 
-$methods | ForEach-Object {
+foreach ($method in $methods)
+{
+    $parameters = $method.GetParameters()
+    if ($parameters[0].Name -ne 'key' -or $parameters[1].Name -ne 'arg')
+    {
+        "Function $($method.Name) parameter names should be key and arg"
+    }
+}
+
+$methods.Name | ForEach-Object {
     if ($about_topic -notlike "*$_*")
     {
         "Function not documented: $_"
