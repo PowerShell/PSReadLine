@@ -450,10 +450,9 @@ namespace PSConsoleUtilities
                      "ForwardDeleteLine", "ForwardSearchHistory", "ForwardWord", "GotoBrace", "HistorySearchBackward",
                      "HistorySearchForward", "KillLine", "KillWord", "NextHistory", "NextWord",
                      "Paste", "PossibleCompletions", "PreviousHistory", "Redo", "ReverseSearchHistory",
-                     "RevertLine", "SelfInsert", "SetKeyHandler", "SetMark", "ShellBackwardKillWord",
-                     "ShellBackwardWord", "ShellForwardWord", "ShellKillWord", "TabCompleteNext", "TabCompletePrevious",
-                     "Undo", "UnixWordRubout", "Yank", "YankLastArg", "YankNthArg",
-                     "YankPop")]
+                     "RevertLine", "SelfInsert", "SetMark", "ShellBackwardKillWord", "ShellBackwardWord",
+                     "ShellForwardWord", "ShellKillWord", "TabCompleteNext", "TabCompletePrevious", "Undo",
+                     "UnixWordRubout", "Yank", "YankLastArg", "YankNthArg", "YankPop")]
         [Parameter(Position = 1, Mandatory = true, ParameterSetName = "Function")]
         public string Function { get; set; }
 

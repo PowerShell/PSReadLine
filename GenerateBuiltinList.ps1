@@ -2,9 +2,15 @@
 # Generate the ValidateSet attribute for the Builtin parameter
 # Set-PSReadlineKeyHandler
 
-$methods = ([PSConsoleUtilities.PSConsoleReadLine] |
-    Get-Member -Static -Type Method |
-    Where-Object Definition -match .*Nullable.*).Name
+$methods = ([PSConsoleUtilities.PSConsoleReadLine].GetMethods('public,static') |
+    Where-Object {
+        $method = $_
+        $parameters = $method.GetParameters()
+        $parameters.Count -eq 2 -and
+            $parameters[0].ParameterType -eq [Nullable[ConsoleKeyInfo]] -and
+            $parameters[1].ParameterType -eq [object]
+    } |
+    Sort-Object Name).Name
 
 $indent = " " * 8
 $prefix = "[ValidateSet("
