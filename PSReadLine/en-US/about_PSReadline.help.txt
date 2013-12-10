@@ -26,42 +26,58 @@ LONG DESCRIPTION
   Cursor movement
   ---------------
 
-    EndOfLine                (Cmd: <End>                Emacs: <End> or <Ctrl-E>)
+    EndOfLine                (Cmd: <End>                Emacs: <End> or <Ctrl+E>)
 
         Move the cursor to the end of the input.
 
-    BeginningOfLine          (Cmd: <Home>               Emacs: <Home> or <Ctrl-A>)
+    BeginningOfLine          (Cmd: <Home>               Emacs: <Home> or <Ctrl+A>)
 
         Move the cursor to the start of the input.
 
-    ForwardChar              (Cmd: <RightArrow>         Emacs: <RightArrow> or <Ctrl-F>)
+    ForwardChar              (Cmd: <RightArrow>         Emacs: <RightArrow> or <Ctrl+F>)
 
         Move the cursor one character to the right.  This may move the cursor to the next
         line of multi-line input.
 
-    BackwardChar             (Cmd: <LeftArrow>          Emacs: <LeftArrow> or <Ctrl-B>)
+    BackwardChar             (Cmd: <LeftArrow>          Emacs: <LeftArrow> or <Ctrl+B>)
 
         Move the cursor one character to the left.  This may move the cursor to the previous
         line of multi-line input.
 
-    EmacsForwardWord         (Cmd: unbound              Emacs: <Alt-F>)
+    ForwardWord              (Cmd: unbound              Emacs: <Alt+F>)
 
         Move the cursor forward to the end of the current word, or if between words,
-        to the end of the next word.
+        to the end of the next word.  Word delimiter characters can be set with:
 
-    ForwardWord              (Cmd: <Ctrl-RightArrow>    Emacs: unbound)
+            Set-PSReadlineOption -WordDelimiters <string of delimiter characters>
 
-        Move the cursor forward to the start of the next word.
+    NextWord                 (Cmd: <Ctrl+RightArrow>    Emacs: unbound)
 
-    BackwardWord             (Cmd: <Ctrl-LeftArrow>     Emacs: unbound)
+        Move the cursor forward to the start of the next word.  Word delimiter characters
+        can be set with:
+
+            Set-PSReadlineOption -WordDelimiters <string of delimiter characters>
+
+    BackwardWord             (Cmd: <Ctrl+LeftArrow>     Emacs: <Alt+B>)
 
         Move the cursor back to the start of the current word, or if between words,
-        the start of the previous word.
+        the start of the previous word.  Word delimiter characters
+        can be set with:
 
-    EmacsBackwardWord        (Cmd: unbound              Emacs: <Alt-B>)
+            Set-PSReadlineOption -WordDelimiters <string of delimiter characters>
 
-        Move the cursor back to the start of the current word, or if between words,
-        the start of the previous word.
+    ShellForwardWord         (Cmd: unbound              Emacs: unbound)
+
+        Like ForwardWord in Emacs mode or NextWord in WIndows mode except word boundaries
+        are defined by PowerShell token boundaries.
+
+    ShellBackwardWord        (Cmd: unbound              Emacs: unbound)
+
+        Like BackardWord except word boundaries are defined by PowerShell token boundaries.
+
+    GotoBrace                (Cmd: <Ctrl+}>             Emacs: unbound)
+
+        Go to the matching parenthesis, curly brace, or square bracket.
 
     AddLine                  (Cmd: <Shift-Enter>        Emacs: <Shift-Enter>)
 
@@ -72,17 +88,17 @@ LONG DESCRIPTION
   Basic editing
   -------------
 
-    CancelLine               (Cmd: <Ctrl-C>                Emacs: <Ctrl-C>)
+    CancelLine               (Cmd: <Ctrl+C>             Emacs: <Ctrl+C>)
 
         Cancel all editing to the line, leave the line of input on the screen but
         return from PSReadline without executing the input.
 
-    RevertLine               (Cmd: <ESC>                Emacs: <Alt-R>)
+    RevertLine               (Cmd: <ESC>                Emacs: <Alt+R>)
 
         Reverts all of the input since the last input was accepted and executed.
         This is equivalent to doing Undo until there is nothing left to undo.
 
-    BackwardDeleteChar       (Cmd: <Backspace>          Emacs: <Backspace> or <Ctrl-H>)
+    BackwardDeleteChar       (Cmd: <Backspace>          Emacs: <Backspace> or <Ctrl+H>)
 
         Delete the character before the cursor.
 
@@ -90,12 +106,17 @@ LONG DESCRIPTION
 
         Delete the character under the cursor.
 
-    AcceptLine               (Cmd: <Enter>              Emacs: <Enter> or <Ctrl-M>)
+    AcceptLine               (Cmd: <Enter>              Emacs: <Enter> or <Ctrl+M>)
 
         Attempt to execute the current input.  If the current input is incomplete (for
         example there is a missing closing parenthesis, bracket, or quote, then the
         continuation prompt is displayed on the next line and PSReadline waits for
         keys to edit the current input.
+
+    AcceptAndGetNext         (Cmd: unbound              Emacs: <Ctrl+O>
+
+        Like AcceptLine, but after the line completes, start editing the next line
+        from history.
 
     BackwardDeleteLine       (Cmd: <Ctrl+Home>          Emacs: unbound)
 
@@ -104,6 +125,10 @@ LONG DESCRIPTION
     ForwardDeleteLine        (Cmd: <Ctrl+End>           Emacs: unbound)
 
         Delete the text from the cursor to the end of the input.
+
+    SelfInsert               (Cmd: <a>, <b>, ...        Emacs: <a>, <b>, ...)
+
+        Insert the key entered.
 
     Redo                     (Cmd: <Ctrl+Y>             Emacs: unbound)
 
@@ -128,6 +153,14 @@ LONG DESCRIPTION
 
         Replace the current input with the 'next' item from PSReadline history.
 
+    ForwardSearchHistory     (Cmd: unbound              Emacs: <Ctrl+S>)
+
+        Search forward from the current history line interactively.
+
+    ReverseSearchHistory     (Cmd: unbound              Emacs: <Ctrl+R>)
+
+        Search backward from the current history line interactively.
+
     HistorySearchBackward    (Cmd: unbound              Emacs: unbound)
 
         Replace the current input with the 'previous' item from PSReadline history
@@ -138,11 +171,11 @@ LONG DESCRIPTION
         Replace the current input with the 'next' item from PSReadline history
         that matches the characters between the start and the input and the cursor.
 
-    BeginningOfHistory       (Cmd: unbound              Emacs: <Alt-<>)
+    BeginningOfHistory       (Cmd: unbound              Emacs: <Alt+<>)
 
         Replace the current input with the last item from PSReadline history.
 
-    EndOfHistory             (Cmd: unbound              Emacs: <Alt->>)
+    EndOfHistory             (Cmd: unbound              Emacs: <Alt+>>)
 
         Replace the current input with the last item in PSReadline history, which
         is the possibly empty input that was entered before any history commands.
@@ -167,15 +200,15 @@ LONG DESCRIPTION
         prefix is used for completion.  If trying to complete the longest
         unambiguous completion, a list of possible completions is displayed.
 
-    PossibleCompletions      (Cmd: <Ctrl-Space>         Emacs: <Alt-Equals>)
+    PossibleCompletions      (Cmd: <Ctrl+Space>         Emacs: <Alt+Equals>)
     
         Display the list of possible completions.
 
-    SetMark                  (Cmd: unbound              Emacs: <Alt-Space>)
+    SetMark                  (Cmd: unbound              Emacs: <Alt+Space>)
 
         Mark the current loction of the cursor for use in a subsequent editing command.
 
-    ExchangePointAndMark     (Cmd: unbound              Emacs: <Ctrl-X,Ctrl-X>)
+    ExchangePointAndMark     (Cmd: unbound              Emacs: <Ctrl+X,Ctrl+X>)
 
         The cursor is placed at the location of the mark and the mark is moved
         to the location of the cursor.
@@ -192,33 +225,45 @@ LONG DESCRIPTION
   in the kill ring.  This is how you can cut a part of a line, say for example with multiple
   KillWord operations, then yank them back elsewhere as a single yank.
 
-    KillLine                 (Cmd: unbound              Emacs: <Ctrl-K>)
+    KillLine                 (Cmd: unbound              Emacs: <Ctrl+K>)
 
         Clear the input from the cursor to the end of the line.  The cleared text is placed
         in the kill ring.
 
-    BackwardKillLine         (Cmd: unbound              Emacs: <Ctrl-U> or <Ctrl-X,Backspace>)
+    BackwardKillLine         (Cmd: unbound              Emacs: <Ctrl+U> or <Ctrl+X,Backspace>)
 
         Clear the input from the start of the input to the cursor.  The cleared text is placed
         in the kill ring.
 
-    KillWord                 (Cmd: unbound              Emacs: <Alt-D>)
+    KillWord                 (Cmd: unbound              Emacs: <Alt+D>)
 
         Clear the input from the cursor to the end of the current word.  If the cursor
         is between words, the input is cleared from the cursor to the end of the next word.
         The cleared text is placed in the kill ring.
 
-    KillBackwardWord         (Cmd: unbound              Emacs: <Alt-Backspace>)
+    BackwardKillWord         (Cmd: unbound              Emacs: <Alt+Backspace>)
 
         Clear the input from the start of the current word to the cursor.  If the cursor
         is between words, the input is cleared from the start of the previous word to the
         cursor.  The cleared text is placed in the kill ring.
 
-    Yank                     (Cmd: unbound              Emacs: <Ctrl-Y>)
+    ShellKillWord            (Cmd: unbound              Emacs: unbound)
+
+        Like KillWord except word boundaries are defined by PowerShell token boundaries.
+
+    ShellBackwardKillWord    (Cmd: unbound              Emacs: unbound)
+
+        Like BackwardKillWord except word boundaries are defined by PowerShell token boundaries.
+
+    UnixWordRubout           (Cmd: unbound              Emacs: <Ctrl+W>)
+
+        Like BackwardKillWord except word boundaries are defined by whitespace.
+
+    Yank                     (Cmd: unbound              Emacs: <Ctrl+Y>)
 
         Add the most recently killed text to the input.
 
-    YankPop                  (Cmd: unbound              Emacs: <Alt-Y>)
+    YankPop                  (Cmd: unbound              Emacs: <Alt+Y>)
     
         If the previous operation was Yank or YankPop, replace the previously yanked
         text with the next killed text from the kill ring.
@@ -227,53 +272,121 @@ LONG DESCRIPTION
 
         The contents of the kill ring are cleared.
 
-    Paste                    (Cmd: <Ctrl-V>             Emacs: unbound)
+    Paste                    (Cmd: <Ctrl+V>             Emacs: unbound)
 
         This is similar to Yank, but uses the system clipboard instead of the kill ring.
+
+    YankLastArg              (Cmd: unbound              Emacs: <Alt+.>, <Alt+_>)
+
+        Insert the last argument from the previous command in history.  Repeated operations
+        will replace the last inserted argument with the last argument from the previous
+        command (so Alt+. Alt+. will insert the last argument of the second to last history
+        line.)
+
+        With an argument, the first time YankLastArg behaves like YankNthArg.  A negative
+        argument on subsequent YankLastArg calls will change the direction while going
+        through history.  For example, if you hit Alt+. one too many times, you can type
+        Alt+- Alt+. to reverse the direction.
+
+        Arguments are based on PowerShell tokens.
+
+    YankNthArg               (Cmd: unbound              Emacs: <Alt+Ctrl+Y>)
+
+        Insert the first argument (not the command name) of the previous command in history.
+
+        With an argument, insert the nth argument where 0 is typically the command.  Negative
+        arguments start from the end.
+
+        Arguments are based on PowerShell tokens.
 
   Miscellaneous
   -------------
 
-    DisableDemoMode
+    Abort                    (Cmd: unbound              Emacs: <Ctrl+G>)
+
+        Abort the current action, e.g. stop interactive history search.
+        Does not cancel input like CancelLine.
+
+    CharacterSearch          (Cmd: <F3>                 Emacs: <Ctrl+]>)
+
+        Read a key and search forwards for that character.  With an argument, search
+        forwards for the nth occurance of that argument.  With a negative argument,
+        searches backwards.
+
+    CharacterSearchBackward  (Cmd: <Shift+F3>           Emacs: <Alt+Ctrl+]>)
+
+        Like CharacterSearch, but searches backwards.  With a negative argument, searches
+        forwards.
+
+    ClearScreen              (Cmd: <Ctrl+L>             Emacs: <Ctrl+L>)
+
+        Clears the screen and displays the current prompt and input at the top of the screen.
+
+    DigitArgument            (Cmd: unbound              Emacs: <Alt+[0..9]>,,<Alt+->)
+
+        Used to pass numeric arguments to functions like CharacterSearch or YankNthArg.
+        Alt+- toggles the argument to be negative/non-negative.  To enter 80 '*' characters,
+        you could type Alt+8 Alt+0 *.
+
+    DisableDemoMode          (Cmd: unbound              Emacs: unbound)
 
         Turn off demo mode.
 
-    EnableDemoMode
+    EnableDemoMode           (Cmd: unbound              Emacs: unbound)
 
         Turn on demo mode.  Displays a window below the input line that shows which
         keys are typed.
 
+  Custom Key Binding Support
+  --------------------------
+
+  The following functions are public but cannot be directly bound to a key.  They are used
+  in custom key bindings.
+
+    Ding
+
+        Perform the Ding action based on the users perference.
+
+    GetBufferState(out string input, out int cursor)
+    GetBufferState(out Ast ast, out Token[] tokens, out ParseError[] parseErrors, out int cursor)
+
+        These two functions retrieve useful information about the current state of
+        the input buffer.  The first is more commonly used for simple cases.  The
+        second is used if your binding is doing something more advanced with the Ast.
+
+    Insert(char c)
+    Insert(string s)
+
+        Insert a character or string in a way that supports undo/redo.
+
+    Replace(int start, int length, string replacement)
+    
+        Replace some of the input in a way that supports undo/redo as a single action.
+        This is preferred over Delete followed by Insert to better support Undo.
+
+    SetCursorPosition(int offset)
+
+        Move the cursor to the given offset.  Cursor movement is not tracked for undo.
 
   Custom Key Bindings
   -------------------
 
-  PSReadline supports custom key bindings using the cmdlet Set-PSReadlineKeyHandler.  A
-  typical custom key binding will call one of the above functions, for example:
+  PSReadline supports custom key bindings using the cmdlet Set-PSReadlineKeyHandler.  Most
+  custom key bindings will call one of the above functions, for example:
 
-      Set-PSReadlineKeyHandler -Key UpArrow -BriefDescription HistorySearchBackward -Handler { 
-          [PSConsoleUtilities.PSConsoleReadLine]::HistorySearchBackward()
+      Set-PSReadlineKeyHandler -Key UpArrow -Function HistorySearchBackward
+
+  You can bind a ScriptBlock to a key.  This ScriptBlock can do pretty much anything you like.
+  For example, say you wanted to run a specific command after hitting Ctrl+B, you could do this:
+
+      Set-PSReadlineKeyHandler -Key Ctrl+B -BriefDescription build -LongDescription "Build the current directory" -ScriptBlock {
+          [PSConsoleUtilities.PSConsoleReadLine]::RevertLine()
+          [PSConsoleUtilities.PSConsoleReadLine]::Insert("build")
+          [PSConsoleUtilities.PSConsoleReadLine]::AcceptLine()
       }
 
-  The following functions are useful when writing more advanced handlers for custom key bindings.
-  They allow you to get and change the state of the input buffer.
-
-    GetBufferState
-
-        There are two versions of this function.  One will return the text and cursor position.
-        This is useful if you want to make changes to the text.
-
-        The other returns the Ast, tokens, and any errors.  This information is available
-        by parsing the input returned from the other overload, but this overload is faster
-        because the parsed version of the input is always produced to handle syntax coloring.
-
-    SetBufferState
-
-        This function can be used to set the text in the input buffer and/or move the cursor.
-
-    SetCursorPosition
-
-        This function can be used to move the cursor.
-
+  In this example, multiple functions are called and the end result is running the 'build' command
+  by entering Ctrl+B.
 
 POWERSHELL COMPATIBILITY
     
@@ -284,7 +397,7 @@ FEEDBACK
 
     https://github.com/lzybkr/PSReadline
    
-CONTRIBUTING TO TABEXPANSION++
+CONTRIBUTING TO PSREADLINE
 
     Feel free to submit a pull request or submit feedback on the github page.
 
