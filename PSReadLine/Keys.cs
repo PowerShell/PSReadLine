@@ -121,6 +121,8 @@ namespace PSConsoleUtilities
         public static ConsoleKeyInfo CtrlRBracket = new ConsoleKeyInfo((char)29, ConsoleKey.Oem6, false, false, true);
         public static ConsoleKeyInfo AltCtrlRBracket = new ConsoleKeyInfo((char)0, ConsoleKey.Oem6, false, true, true);
         public static ConsoleKeyInfo AltPeriod    = new ConsoleKeyInfo('.', ConsoleKey.OemPeriod, false, true, false);
+        public static ConsoleKeyInfo CtrlAltQuestion  = new ConsoleKeyInfo((char)0, ConsoleKey.Oem2, true, true, true);
+        public static ConsoleKeyInfo AltQuestion  = new ConsoleKeyInfo('?', ConsoleKey.Oem2, true, true, false);
 
         public static ConsoleKeyInfo Alt0 = new ConsoleKeyInfo('0', ConsoleKey.D0, false, true, false);
         public static ConsoleKeyInfo Alt1 = new ConsoleKeyInfo('1', ConsoleKey.D1, false, true, false);

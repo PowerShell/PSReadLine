@@ -394,6 +394,15 @@ namespace PSConsoleUtilities {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Key is unbound.
+        /// </summary>
+        internal static string KeyIsUnbound {
+            get {
+                return ResourceManager.GetString("KeyIsUnbound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Move the text from the cursor to the end of the input to the kill ring.
         /// </summary>
         internal static string KillLineDescription {
@@ -547,6 +556,15 @@ namespace PSConsoleUtilities {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Show all key bindings.
+        /// </summary>
+        internal static string ShowKeyBindingsDescription {
+            get {
+                return ResourceManager.GetString("ShowKeyBindingsDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &apos;start&apos; cannot be less than zero or greater than the length of the buffer.
         /// </summary>
         internal static string StartOutOfRange {
@@ -588,6 +606,15 @@ namespace PSConsoleUtilities {
         internal static string UnixWordRuboutDescription {
             get {
                 return ResourceManager.GetString("UnixWordRuboutDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Show the key binding for the next chord entered.
+        /// </summary>
+        internal static string WhatIsKeyDescription {
+            get {
+                return ResourceManager.GetString("WhatIsKeyDescription", resourceCulture);
             }
         }
         

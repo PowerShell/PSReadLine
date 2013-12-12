@@ -206,27 +206,26 @@ namespace PSConsoleUtilities
             {
                 sb.Append((char)('0' + key.Key - ConsoleKey.D0));
             }
+            else if (char.IsLetterOrDigit(key.KeyChar))
+            {
+                sb.Append(key.KeyChar);
+            }
             else switch (key.Key)
             {
-            case ConsoleKey.Escape:      sb.Append("Esc"); break;
-            case ConsoleKey.PageUp:      sb.Append("PgUp"); break;
-            case ConsoleKey.PageDown:    sb.Append("PgDn"); break;
-            case ConsoleKey.Delete:      sb.Append("Del"); break;
-            case ConsoleKey.Insert:      sb.Append("Ins"); break;
-            case ConsoleKey.PrintScreen: sb.Append("PrtSc"); break;
-            case ConsoleKey.Backspace:   sb.Append("BS"); break;
-            case ConsoleKey.Oem1:        sb.Append("Semicolon"); break;
-            case ConsoleKey.OemPlus:     sb.Append("Plus"); break;
-            case ConsoleKey.OemComma:    sb.Append("Comma"); break;
-            case ConsoleKey.OemMinus:    sb.Append("Minus"); break;
-            case ConsoleKey.OemPeriod:   sb.Append("Period"); break;
-            case ConsoleKey.Oem2:        sb.Append("Question"); break;
-            case ConsoleKey.Oem3:        sb.Append("Tilde"); break;
-            case ConsoleKey.Oem4:        sb.Append("Openbrackets"); break;
-            case ConsoleKey.Oem5:        sb.Append("Pipe"); break;
-            case ConsoleKey.Oem6:        sb.Append("Closebrackets"); break;
-            case ConsoleKey.Oem7:        sb.Append("Quotes"); break;
-            case ConsoleKey.Oem102:      sb.Append("Backslash"); break;
+            case ConsoleKey.Oem1:      sb.Append(';'); break;
+            case ConsoleKey.Oem2:      sb.Append('/'); break;
+            case ConsoleKey.Oem3:      sb.Append('`'); break;
+            case ConsoleKey.Oem4:      sb.Append('['); break;
+            case ConsoleKey.Oem6:      sb.Append(']'); break;
+            case ConsoleKey.Oem7:      sb.Append('`'); break;
+            case ConsoleKey.Oem8:      sb.Append('`'); break;
+            case ConsoleKey.OemComma:  sb.Append(','); break;
+            case ConsoleKey.OemPeriod: sb.Append('.'); break;
+            case ConsoleKey.OemMinus:  sb.Append('-'); break;
+            case ConsoleKey.OemPlus:   sb.Append('+'); break;
+            //case ConsoleKey.Oem102:
+            //case ConsoleKey.OemClear:
+            //case ConsoleKey.Oem5:
             default:
                 sb.Append(key.Key);
                 break;

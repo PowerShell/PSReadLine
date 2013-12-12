@@ -337,6 +337,14 @@ LONG DESCRIPTION
         Turn on demo mode.  Displays a window below the input line that shows which
         keys are typed.
 
+    WhatIsKey                (Cmd: <Alt+?>              Emacs: <Alt+?>)
+
+        Read a key or chord and display the key binding.
+
+    ShowKeyBindings          (Cmd: <Ctrl+Alt+?>         Emacs: <Ctrl+Alt+?>)
+
+        Show all of the currently bound keys.
+
   Custom Key Binding Support
   --------------------------
 

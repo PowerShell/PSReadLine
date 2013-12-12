@@ -110,6 +110,9 @@ namespace PSConsoleUtilities
 
         static KeyHandler MakeKeyHandler(Action<ConsoleKeyInfo?, object> action, string briefDescription, string longDescription = null)
         {
+            if (string.IsNullOrWhiteSpace(longDescription))
+                longDescription = PSReadLineResources.ResourceManager.GetString(briefDescription + "Description");
+
             return new KeyHandler
             {
                 Action = action,
@@ -476,6 +479,8 @@ namespace PSConsoleUtilities
                 { Keys.CtrlEnd,         MakeKeyHandler(ForwardDeleteLine,    "ForwardDeleteLine") },
                 { Keys.CtrlHome,        MakeKeyHandler(BackwardDeleteLine,   "BackwardDeleteLine") },
                 { Keys.CtrlRBracket,    MakeKeyHandler(GotoBrace,            "GotoBrace") },
+                { Keys.CtrlAltQuestion, MakeKeyHandler(ShowKeyBindings,      "ShowKeyBindings") },
+                { Keys.AltQuestion,     MakeKeyHandler(WhatIsKey,            "WhatIsKey") },
                 { Keys.F3,              MakeKeyHandler(CharacterSearch,      "CharacterSearch") },
                 { Keys.ShiftF3,         MakeKeyHandler(CharacterSearchBackward,"CharacterSearchBackward") },
             };
@@ -536,6 +541,8 @@ namespace PSConsoleUtilities
                 { Keys.AltY,            MakeKeyHandler(YankPop,              "YankPop") },
                 { Keys.AltBackspace,    MakeKeyHandler(BackwardKillWord,     "BackwardKillWord") },
                 { Keys.AltEquals,       MakeKeyHandler(PossibleCompletions,  "PossibleCompletions") },
+                { Keys.CtrlAltQuestion, MakeKeyHandler(ShowKeyBindings,      "ShowKeyBindings") },
+                { Keys.AltQuestion,     MakeKeyHandler(WhatIsKey,            "WhatIsKey") },
                 { Keys.AltSpace,        MakeKeyHandler(SetMark,              "SetMark") },  // useless entry here for completeness - brings up system menu on Windows
                 { Keys.AltPeriod,       MakeKeyHandler(YankLastArg,          "YankLastArg") },
                 { Keys.AltUnderbar,     MakeKeyHandler(YankLastArg,          "YankLastArg") },
@@ -3066,55 +3073,57 @@ namespace PSConsoleUtilities
         // The unit test framework redirects stdout - so it would see Console.WriteLine calls.
         // Unfortunately, we are testing exact placement of characters on the screen, so redirection
         // doesn't work for us.
-        static private void WriteImpl(string s)
-        {
-            Debug.Assert(s.Length <= Console.BufferWidth);
-
-            var handle = NativeMethods.GetStdHandle((uint) StandardHandleId.Output);
-
-            var buffer = new CHAR_INFO[s.Length];
-            for (int i = 0; i < s.Length; i++)
-            {
-                Debug.Assert(s[i] != '\n');
-                buffer[i] = new CHAR_INFO(s[i], Console.ForegroundColor, Console.BackgroundColor);
-            }
-
-            var bufferSize = new COORD
-                             {
-                                 X = (short) s.Length,
-                                 Y = 1
-                             };
-            var bufferCoord = new COORD {X = 0, Y = 0};
-            var writeRegion = new SMALL_RECT
-                              {
-                                  Top = (short) Console.CursorTop,
-                                  Left = 0,
-                                  Bottom = (short) Console.CursorTop,
-                                  Right = (short) s.Length
-                              };
-            NativeMethods.WriteConsoleOutput(handle, buffer, bufferSize, bufferCoord, ref writeRegion);
-        }
-
         static private void WriteLine(string s)
         {
-            Debug.Assert(s.Length <= Console.BufferWidth);
+            var handle = NativeMethods.GetStdHandle((uint) StandardHandleId.Output);
 
-            var spaces = Console.BufferWidth - s.Length;
-            if (spaces > 0)
+            var buffer = new CHAR_INFO[Console.BufferWidth];
+            int i = 0;
+            int linesWritten = 0;
+            int startLine = Console.CursorTop;
+            var space = new CHAR_INFO(' ', Console.ForegroundColor, Console.BackgroundColor);
+            while (i < s.Length)
             {
-                s = s + new string(' ', spaces);
+                int j;
+                for (j = 0; j < buffer.Length && i < s.Length; j++, i++)
+                {
+                    if (s[i] == '\n')
+                    {
+                        break;
+                    }
+                    buffer[j] = new CHAR_INFO(s[i], Console.ForegroundColor, Console.BackgroundColor);
+                }
+
+                if (i < s.Length && s[i] == '\n')
+                {
+                    i++;
+                }
+
+                while (j < buffer.Length)
+                {
+                    buffer[j++] = space;
+                }
+
+                var bufferSize = new COORD
+                                 {
+                                     X = (short) Console.BufferWidth,
+                                     Y = 1
+                                 };
+                var bufferCoord = new COORD {X = 0, Y = 0};
+                var writeRegion = new SMALL_RECT
+                                  {
+                                      Top = (short) (startLine + linesWritten),
+                                      Left = 0,
+                                      Bottom = (short) (startLine + linesWritten),
+                                      Right = (short) Console.BufferWidth
+                                  };
+                NativeMethods.WriteConsoleOutput(handle, buffer, bufferSize, bufferCoord, ref writeRegion);
+                linesWritten += 1;
             }
-            WriteImpl(s);
 
-            _singleton.PlaceCursor(0, Console.CursorTop + 1);
+            _singleton.PlaceCursor(0, Console.CursorTop + linesWritten);
         }
 
-        static private void Write(string s)
-        {
-            WriteImpl(s);
-
-            _singleton.PlaceCursor(s.Length, Console.CursorTop);
-        }
 
         private bool PromptYesOrNo(string s)
         {
@@ -3224,6 +3233,96 @@ namespace PSConsoleUtilities
 
 #endregion Rendering
 
+        #region Miscellaneous bindable functions
+
+        /// <summary>
+        /// Show all bound keys
+        /// </summary>
+        public static void ShowKeyBindings(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            var buffer = new StringBuilder();
+            buffer.AppendFormat("{0,-20} {1,-24} {2}\n", "Key", "Function", "Description");
+            buffer.AppendFormat("{0,-20} {1,-24} {2}\n", "---", "--------", "-----------");
+            var boundKeys = GetKeyHandlers(includeBound: true, includeUnbound: false);
+            var maxDescriptionLength = Console.WindowWidth - 20 - 24 - 2;
+            foreach (var boundKey in boundKeys)
+            {
+                var description = boundKey.Description;
+                if (description.Length >= maxDescriptionLength)
+                {
+                    description = description.Substring(0, maxDescriptionLength - 3) + "...";
+                }
+                buffer.AppendFormat("{0,-20} {1,-24} {2}\n", boundKey.Key, boundKey.Function, description);
+            }
+
+            // Don't overwrite any of the line - so move to first line after the end of our buffer.
+            var coords = _singleton.ConvertOffsetToCoordinates(_singleton._buffer.Length);
+            _singleton.PlaceCursor(0, coords.Y + 1);
+
+            WriteLine(buffer.ToString());
+            _singleton._initialY = Console.CursorTop;
+            _singleton.Render();
+        }
+
+        /// <summary>
+        /// Read a key and tell me what the key is bound to.
+        /// </summary>
+        public static void WhatIsKey(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            _singleton._statusLinePrompt = "what-is-key: ";
+            _singleton.Render();
+            var toLookup = ReadKey();
+            KeyHandler keyHandler;
+            var buffer = new StringBuilder();
+            _singleton._dispatchTable.TryGetValue(toLookup, out keyHandler);
+            buffer.Append(toLookup.ToGestureString());
+            if (keyHandler != null)
+            {
+                if (keyHandler.BriefDescription == "ChordFirstKey")
+                {
+                    Dictionary<ConsoleKeyInfo, KeyHandler> secondKeyDispatchTable;
+                    if (_singleton._chordDispatchTable.TryGetValue(toLookup, out secondKeyDispatchTable))
+                    {
+                        toLookup = ReadKey();
+                        secondKeyDispatchTable.TryGetValue(toLookup, out keyHandler);
+                        buffer.Append(",");
+                        buffer.Append(toLookup.ToGestureString());
+                    }
+                }
+            }
+            buffer.Append(": ");
+            if (keyHandler != null)
+            {
+                buffer.Append(keyHandler.BriefDescription);
+                if (!string.IsNullOrWhiteSpace(keyHandler.LongDescription))
+                {
+                    buffer.Append(" - ");
+                    buffer.Append(keyHandler.LongDescription);
+                }
+            }
+            else if (toLookup.KeyChar != 0)
+            {
+                buffer.Append("SelfInsert");
+                buffer.Append(" - ");
+                buffer.Append(PSReadLineResources.SelfInsertDescription);
+            }
+            else
+            {
+                buffer.Append(PSReadLineResources.KeyIsUnbound);
+            }
+
+            _singleton._statusLinePrompt = null;
+            _singleton.Render();
+
+            // Don't overwrite any of the line - so move to first line after the end of our buffer.
+            var coords = _singleton.ConvertOffsetToCoordinates(_singleton._buffer.Length);
+            _singleton.PlaceCursor(0, coords.Y + 1);
+
+            WriteLine(buffer.ToString());
+            _singleton._initialY = Console.CursorTop;
+            _singleton.Render();
+        }
+
         /// <summary>
         /// Turn on demo mode (display events like keys pressed)
         /// </summary>
@@ -3252,6 +3351,8 @@ namespace PSConsoleUtilities
             _singleton._demoWindowLineCount = 0;
             _singleton.ClearDemoWindow();
         }
+
+        #endregion Miscellaneous bindable functions
 
         private void SetOptionsInternal(SetPSReadlineOption options)
         {

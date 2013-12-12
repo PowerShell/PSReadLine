@@ -303,7 +303,16 @@
   <data name="EnableDemoModeDescription" xml:space="preserve">
     <value>Displays a window below the input line that shows which keys are typed</value>
   </data>
+  <data name="KeyIsUnbound" xml:space="preserve">
+    <value>Key is unbound</value>
+  </data>
   <data name="SelfInsertDescription" xml:space="preserve">
     <value>Insert the key typed</value>
+  </data>
+  <data name="ShowKeyBindingsDescription" xml:space="preserve">
+    <value>Show all key bindings</value>
+  </data>
+  <data name="WhatIsKeyDescription" xml:space="preserve">
+    <value>Show the key binding for the next chord entered</value>
   </data>
 </root>
