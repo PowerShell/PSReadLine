@@ -188,7 +188,7 @@ namespace PSConsoleUtilities
             return valid;
         }
 
-        private static char GetCharFromConsoleKey(ConsoleKey key, ConsoleModifiers modifiers)
+        internal static char GetCharFromConsoleKey(ConsoleKey key, ConsoleModifiers modifiers)
         {
             // default for unprintables and unhandled
             char keyChar = '\u0000';
@@ -204,12 +204,11 @@ namespace PSConsoleUtilities
 
             // get corresponding scan code
             uint scanCode = NativeMethods.MapVirtualKey(virtualKey, NativeMethods.MAPVK_VK_TO_VSC);
-            Debug.Assert(scanCode != 0, "scanCode != 0");
 
             // get corresponding character  - maybe be 0, 1 or 2 in length (diacriticals)
-            var chars = new StringBuilder();
-            int charCount = NativeMethods.ToAscii(
-                virtualKey, scanCode, state, chars, NativeMethods.MENU_IS_INACTIVE);
+            var chars = new char[2];
+            int charCount = NativeMethods.ToUnicode(
+                virtualKey, scanCode, state, chars, chars.Length, NativeMethods.MENU_IS_INACTIVE);
 
             // TODO: support diacriticals (charCount == 2)
             if (charCount == 1)

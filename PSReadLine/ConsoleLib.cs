@@ -52,8 +52,9 @@ namespace PSConsoleUtilities
         [DllImport("user32.dll", SetLastError = true)]
         public static extern uint MapVirtualKey(uint uCode, uint uMapType);
 
-        [DllImport("user32.dll")]
-        public static extern int ToAscii(uint uVirtKey, uint uScanCode, byte[] lpKeyState, [Out] StringBuilder lpChar, uint uFlags);
+        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+        public static extern int ToUnicode(uint uVirtKey, uint uScanCode, byte[] lpKeyState,
+           [MarshalAs(UnmanagedType.LPArray)] [Out] char[] chars, int charMaxCount, uint flags);
 
         [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         public static extern short VkKeyScan(char @char);
@@ -179,6 +180,8 @@ namespace PSConsoleUtilities
     {
         public static string ToGestureString(this ConsoleKeyInfo key)
         {
+            var mods = key.Modifiers;
+
             var sb = new StringBuilder();
             if (key.Modifiers.HasFlag(ConsoleModifiers.Control))
             {
@@ -190,45 +193,26 @@ namespace PSConsoleUtilities
                     sb.Append("+");
                 sb.Append("Alt");
             }
-            if (key.Modifiers.HasFlag(ConsoleModifiers.Shift))
+
+            char c = ConsoleKeyChordConverter.GetCharFromConsoleKey(key.Key,
+                (mods & ConsoleModifiers.Shift) != 0 ? ConsoleModifiers.Shift : 0);
+            if (char.IsControl(c) || char.IsWhiteSpace(c))
+            {
+                if (key.Modifiers.HasFlag(ConsoleModifiers.Shift))
+                {
+                    if (sb.Length > 0)
+                        sb.Append("+");
+                    sb.Append("Shift");
+                }
+                if (sb.Length > 0)
+                    sb.Append("+");
+                sb.Append(key.Key);
+            }
+            else
             {
                 if (sb.Length > 0)
                     sb.Append("+");
-                sb.Append("Shift");
-            }
-            if (sb.Length > 0)
-                sb.Append("+");
-            if (key.Key >= ConsoleKey.A && key.Key <= ConsoleKey.Z)
-            {
-                sb.Append((char)('A' + key.Key - ConsoleKey.A));
-            }
-            else if (key.Key >= ConsoleKey.D0 && key.Key <= ConsoleKey.D9)
-            {
-                sb.Append((char)('0' + key.Key - ConsoleKey.D0));
-            }
-            else if (char.IsLetterOrDigit(key.KeyChar))
-            {
-                sb.Append(key.KeyChar);
-            }
-            else switch (key.Key)
-            {
-            case ConsoleKey.Oem1:      sb.Append(';'); break;
-            case ConsoleKey.Oem2:      sb.Append('/'); break;
-            case ConsoleKey.Oem3:      sb.Append('`'); break;
-            case ConsoleKey.Oem4:      sb.Append('['); break;
-            case ConsoleKey.Oem6:      sb.Append(']'); break;
-            case ConsoleKey.Oem7:      sb.Append('`'); break;
-            case ConsoleKey.Oem8:      sb.Append('`'); break;
-            case ConsoleKey.OemComma:  sb.Append(','); break;
-            case ConsoleKey.OemPeriod: sb.Append('.'); break;
-            case ConsoleKey.OemMinus:  sb.Append('-'); break;
-            case ConsoleKey.OemPlus:   sb.Append('+'); break;
-            //case ConsoleKey.Oem102:
-            //case ConsoleKey.OemClear:
-            //case ConsoleKey.Oem5:
-            default:
-                sb.Append(key.Key);
-                break;
+                sb.Append(c);
             }
             return sb.ToString();
         }
