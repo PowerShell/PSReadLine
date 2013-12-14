@@ -1055,6 +1055,23 @@ namespace PSConsoleUtilities
             _singleton.Render();
         }
 
+        // Try to convert the arg to a char, return 0 for failure
+        private static char TryGetArgAsChar(object arg)
+        {
+            if (arg is char)
+            {
+                return (char)arg;
+            }
+
+            var s = arg as string;
+            if (s != null && s.Length == 1)
+            {
+                return s[0];
+            }
+
+            return (char)0;
+        }
+
         /// <summary>
         /// Read a character and search forward for the next occurence of that character.
         /// If an argument is specified, search forward (or backward if negative) for the
@@ -1069,8 +1086,12 @@ namespace PSConsoleUtilities
                 return;
             }
 
-            // Should we prompt?
-            char toFind = ReadKey().KeyChar;
+            char toFind = TryGetArgAsChar(arg);
+            if (toFind == (char)0)
+            {
+                // Should we prompt?
+                toFind = ReadKey().KeyChar;
+            }
             for (int i = _singleton._current + 1; i < _singleton._buffer.Length; i++)
             {
                 if (_singleton._buffer[i] == toFind)
@@ -1101,8 +1122,12 @@ namespace PSConsoleUtilities
                 return;
             }
 
-            // Should we prompt?
-            char toFind = ReadKey().KeyChar;
+            char toFind = TryGetArgAsChar(arg);
+            if (toFind == (char)0)
+            {
+                // Should we prompt?
+                toFind = ReadKey().KeyChar;
+            }
             for (int i = _singleton._current - 1; i >= 0; i--)
             {
                 if (_singleton._buffer[i] == toFind)
