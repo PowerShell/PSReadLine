@@ -9,6 +9,17 @@ New features:
   (not breaking because I left an alias)
 * WhatIsKey - display binding for a key
 * ShowKeyBindings - show all bound keys
+* Keyboard selection of text for cut/copy/delete.  New functions:
+  - Cut
+  - Copy
+  - KillRegion
+  - SelectBackwardChar
+  - SelectForwardChar
+  - SelectBackwardWord
+  - SelectForwardWord
+  - SelectNextWord
+  - SelectShellForwardWord
+  - SelectShellBackwardWord
 
 Breaking change:
 * The properties in the output of Get-PSReadlineKeyHandler have changed.
