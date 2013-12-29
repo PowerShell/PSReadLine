@@ -1,4 +1,6 @@
 
+ipmo PSReadline
+
 $about_topic = Get-Help about_PSReadline
 
 $methods = [PSConsoleUtilities.PSConsoleReadLine].GetMethods('public,static') |
@@ -20,7 +22,7 @@ foreach ($method in $methods)
 }
 
 $methods.Name | ForEach-Object {
-    if ($about_topic -notlike "*$_*")
+    if ($about_topic -cnotmatch "\n +$_ +")
     {
         "Function not documented: $_"
     }
@@ -45,3 +47,10 @@ Get-Command -Type Cmdlet -Module PSReadline |
                 }
             }
     }
+
+Get-PSReadlineKeyHandler |
+    Where-Object { $_.Function -eq $_.Description } |
+    ForEach-Object {
+        "Function missing description: $($_.Function)"
+    }
+

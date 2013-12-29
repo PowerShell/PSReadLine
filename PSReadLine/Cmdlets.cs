@@ -450,14 +450,17 @@ namespace PSConsoleUtilities
         [ValidateSet("Abort", "AcceptAndGetNext", "AcceptLine", "AddLine", "BackwardChar",
                      "BackwardDeleteChar", "BackwardDeleteLine", "BackwardKillLine", "BackwardKillWord", "BackwardWord",
                      "BeginningOfHistory", "BeginningOfLine", "CancelLine", "CharacterSearch", "CharacterSearchBackward",
-                     "ClearScreen", "Complete", "DeleteChar", "DigitArgument", "DisableDemoMode",
-                     "EnableDemoMode", "EndOfHistory", "EndOfLine", "ExchangePointAndMark", "ForwardChar",
-                     "ForwardDeleteLine", "ForwardSearchHistory", "ForwardWord", "GotoBrace", "HistorySearchBackward",
-                     "HistorySearchForward", "KillLine", "KillWord", "NextHistory", "NextWord",
-                     "Paste", "PossibleCompletions", "PreviousHistory", "Redo", "ReverseSearchHistory",
-                     "RevertLine", "SelfInsert", "SetMark", "ShellBackwardKillWord", "ShellBackwardWord",
-                     "ShellForwardWord", "ShellKillWord", "TabCompleteNext", "TabCompletePrevious", "Undo",
-                     "UnixWordRubout", "Yank", "YankLastArg", "YankNthArg", "YankPop")]
+                     "ClearScreen", "Complete", "Copy", "Cut", "DeleteChar",
+                     "DigitArgument", "DisableDemoMode", "EnableDemoMode", "EndOfHistory", "EndOfLine",
+                     "ExchangePointAndMark", "ForwardChar", "ForwardDeleteLine", "ForwardSearchHistory", "ForwardWord",
+                     "GotoBrace", "HistorySearchBackward", "HistorySearchForward", "KillLine", "KillRegion",
+                     "KillWord", "NextHistory", "NextWord", "Paste", "PossibleCompletions",
+                     "PreviousHistory", "Redo", "ReverseSearchHistory", "RevertLine", "SelectBackwardChar",
+                     "SelectBackwardWord", "SelectForwardChar", "SelectForwardWord", "SelectNextWord", "SelectShellBackwardWord",
+                     "SelectShellForwardWord", "SelfInsert", "SetMark", "ShellBackwardKillWord", "ShellBackwardWord",
+                     "ShellForwardWord", "ShellKillWord", "ShowKeyBindings", "TabCompleteNext", "TabCompletePrevious",
+                     "Undo", "UnixWordRubout", "WhatIsKey", "Yank", "YankLastArg",
+                     "YankNthArg", "YankPop")]
         [Parameter(Position = 1, Mandatory = true, ParameterSetName = "Function")]
         public string Function { get; set; }
 

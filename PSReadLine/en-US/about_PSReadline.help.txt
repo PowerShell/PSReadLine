@@ -126,6 +126,34 @@ LONG DESCRIPTION
 
         Delete the text from the cursor to the end of the input.
 
+    SelectBackwardChar       (Cmd: <Shift+LeftArrow>    Emacs: <Shift+LeftArrow>)
+
+        Adjust the current selection to include the previous character.
+
+    SelectForwardChar        (Cmd: <Shift+RightArrow>   Emacs: <Shift+RightArrow>)
+
+        Adjust the current selection to include the next character.
+
+    SelectBackwardWord       (Cmd: <Shift+Ctrl+LeftArrow> Emacs: <Alt+Shift+B>)
+
+        Adjust the current selection to include the previous word.
+
+    SelectForwardWord        (Cmd: unbound              Emacs: <Alt+Shift+F>)
+
+        Adjust the current selection to include the next word using ForwardWord.
+
+    SelectNextWord           (Cmd: <Shift+Ctrl+RightArrow> Emacs: unbound)
+
+        Adjust the current selection to include the next word using NextWord.
+
+    SelectShellForwardWord   (Cmd: unbound              Emacs: unbound)
+
+        Adjust the current selection to include the next word using ShellForwardWord.
+
+    SelectShellBackwardWord  (Cmd: unbound              Emacs: unbound)
+
+        Adjust the current selection to include the previous word using ShellBackwardWord.
+
     SelfInsert               (Cmd: <a>, <b>, ...        Emacs: <a>, <b>, ...)
 
         Insert the key entered.
@@ -258,6 +286,18 @@ LONG DESCRIPTION
     UnixWordRubout           (Cmd: unbound              Emacs: <Ctrl+W>)
 
         Like BackwardKillWord except word boundaries are defined by whitespace.
+
+    KillRegion               (Cmd: unbound              Emacs: unbound)
+
+        Kill the text between the cursor and the mark.
+
+    Copy                     (Cmd: <Ctrl+Shift+C>       Emacs: unbound)
+
+        Copy selected region to the system clipboard.  If no region is selected, copy the whole line.
+
+    Cut                      (Cmd: <Ctrl+X>             Emacs: unbound)
+
+        Delete selected region placing deleted text in the system clipboard.
 
     Yank                     (Cmd: unbound              Emacs: <Ctrl+Y>)
 

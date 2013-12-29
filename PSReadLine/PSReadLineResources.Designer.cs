@@ -232,6 +232,24 @@ namespace PSConsoleUtilities {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Copy selected region to the system clipboard.  If no region is selected, copy the whole line.
+        /// </summary>
+        internal static string CopyDescription {
+            get {
+                return ResourceManager.GetString("CopyDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Delete selected region placing deleted text in the system clipboard.
+        /// </summary>
+        internal static string CutDescription {
+            get {
+                return ResourceManager.GetString("CutDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Delete the character under the cusor.
         /// </summary>
         internal static string DeleteCharDescription {
@@ -412,6 +430,15 @@ namespace PSConsoleUtilities {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Kill the text between the cursor and the mark.
+        /// </summary>
+        internal static string KillRegionDescription {
+            get {
+                return ResourceManager.GetString("KillRegionDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Move the text from the cursor to the end of the current or next word to the kill ring.
         /// </summary>
         internal static string KillWordDescription {
@@ -498,6 +525,69 @@ namespace PSConsoleUtilities {
         internal static string RevertLineDescription {
             get {
                 return ResourceManager.GetString("RevertLineDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Adjust the current selection to include the previous character.
+        /// </summary>
+        internal static string SelectBackwardCharDescription {
+            get {
+                return ResourceManager.GetString("SelectBackwardCharDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Adjust the current selection to include the previous word.
+        /// </summary>
+        internal static string SelectBackwardWordDescription {
+            get {
+                return ResourceManager.GetString("SelectBackwardWordDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Adjust the current selection to include the next character.
+        /// </summary>
+        internal static string SelectForwardCharDescription {
+            get {
+                return ResourceManager.GetString("SelectForwardCharDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Adjust the current selection to include the next word using ForwardWord.
+        /// </summary>
+        internal static string SelectForwardWordDescription {
+            get {
+                return ResourceManager.GetString("SelectForwardWordDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Adjust the current selection to include the next word.
+        /// </summary>
+        internal static string SelectNextWordDescription {
+            get {
+                return ResourceManager.GetString("SelectNextWordDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Adjust the current selection to include the previous word using ShellBackwardWord.
+        /// </summary>
+        internal static string SelectShellBackwardWordDescription {
+            get {
+                return ResourceManager.GetString("SelectShellBackwardWordDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Adjust the current selection to include the next word using ShellForwardWord.
+        /// </summary>
+        internal static string SelectShellForwardWordDescription {
+            get {
+                return ResourceManager.GetString("SelectShellForwardWordDescription", resourceCulture);
             }
         }
         

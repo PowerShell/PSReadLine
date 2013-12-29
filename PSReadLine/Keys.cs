@@ -189,6 +189,11 @@ namespace PSConsoleUtilities
         public static ConsoleKeyInfo CtrlY = new ConsoleKeyInfo((char)25, ConsoleKey.Y, false, false, true);
         public static ConsoleKeyInfo CtrlZ = new ConsoleKeyInfo((char)26, ConsoleKey.Z, false, false, true);
 
+        public static ConsoleKeyInfo CtrlShiftC = new ConsoleKeyInfo((char)3, ConsoleKey.C, true, false, true);
+
+        public static ConsoleKeyInfo AltShiftB = new ConsoleKeyInfo('B', ConsoleKey.B, true, true, false);
+        public static ConsoleKeyInfo AltShiftF = new ConsoleKeyInfo('F', ConsoleKey.F, true, true, false);
+
         public static ConsoleKeyInfo AltCtrlY = new ConsoleKeyInfo((char)0, ConsoleKey.Y, false, true, true);
 
         public static ConsoleKeyInfo Backspace    = new ConsoleKeyInfo((char)8, ConsoleKey.Backspace, false, false, false);
@@ -208,8 +213,12 @@ namespace PSConsoleUtilities
         public static ConsoleKeyInfo Tab          = new ConsoleKeyInfo((char)9, ConsoleKey.Tab, false, false, false);
         public static ConsoleKeyInfo UpArrow      = new ConsoleKeyInfo((char)0, ConsoleKey.UpArrow, false, false, false);
 
+        public static ConsoleKeyInfo ShiftLeftArrow  = new ConsoleKeyInfo((char)0, ConsoleKey.LeftArrow, true, false, false);
+        public static ConsoleKeyInfo ShiftRightArrow = new ConsoleKeyInfo((char)0, ConsoleKey.RightArrow, true, false, false);
         public static ConsoleKeyInfo CtrlLeftArrow  = new ConsoleKeyInfo((char)0, ConsoleKey.LeftArrow, false, false, true);
         public static ConsoleKeyInfo CtrlRightArrow = new ConsoleKeyInfo((char)0, ConsoleKey.RightArrow, false, false, true);
+        public static ConsoleKeyInfo ShiftCtrlLeftArrow  = new ConsoleKeyInfo((char)0, ConsoleKey.LeftArrow, true, false, true);
+        public static ConsoleKeyInfo ShiftCtrlRightArrow = new ConsoleKeyInfo((char)0, ConsoleKey.RightArrow, true, false, true);
 
         public static ConsoleKeyInfo ShiftTab   = new ConsoleKeyInfo((char)9, ConsoleKey.Tab, true, false, false);
         public static ConsoleKeyInfo ShiftEnter = new ConsoleKeyInfo((char)13, ConsoleKey.Enter, true, false, false);

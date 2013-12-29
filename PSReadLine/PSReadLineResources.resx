@@ -315,4 +315,34 @@
   <data name="WhatIsKeyDescription" xml:space="preserve">
     <value>Show the key binding for the next chord entered</value>
   </data>
+  <data name="CopyDescription" xml:space="preserve">
+    <value>Copy selected region to the system clipboard.  If no region is selected, copy the whole line</value>
+  </data>
+  <data name="CutDescription" xml:space="preserve">
+    <value>Delete selected region placing deleted text in the system clipboard</value>
+  </data>
+  <data name="KillRegionDescription" xml:space="preserve">
+    <value>Kill the text between the cursor and the mark</value>
+  </data>
+  <data name="SelectBackwardCharDescription" xml:space="preserve">
+    <value>Adjust the current selection to include the previous character</value>
+  </data>
+  <data name="SelectBackwardWordDescription" xml:space="preserve">
+    <value>Adjust the current selection to include the previous word</value>
+  </data>
+  <data name="SelectForwardCharDescription" xml:space="preserve">
+    <value>Adjust the current selection to include the next character</value>
+  </data>
+  <data name="SelectForwardWordDescription" xml:space="preserve">
+    <value>Adjust the current selection to include the next word using ForwardWord</value>
+  </data>
+  <data name="SelectNextWordDescription" xml:space="preserve">
+    <value>Adjust the current selection to include the next word</value>
+  </data>
+  <data name="SelectShellBackwardWordDescription" xml:space="preserve">
+    <value>Adjust the current selection to include the previous word using ShellBackwardWord</value>
+  </data>
+  <data name="SelectShellForwardWordDescription" xml:space="preserve">
+    <value>Adjust the current selection to include the next word using ShellForwardWord</value>
+  </data>
 </root>

@@ -183,6 +183,7 @@ namespace PSConsoleUtilities
             internal int startPoint = -1;
         }
         private YankLastArgState _yankLastArgState;
+        private int _visualSelectionCommandCount;
 
         // Tab completion state
         private int _tabCommandCount;
@@ -328,6 +329,7 @@ namespace PSConsoleUtilities
                 var tabCommandCount = _tabCommandCount;
                 var searchHistoryCommandCount = _searchHistoryCommandCount;
                 var yankLastArgCommandCount = _yankLastArgCommandCount;
+                var visualSelectionCommandCount = _visualSelectionCommandCount;
 
                 var key = ReadKey();
                 ProcessOneKey(key, _dispatchTable, ignoreIfNoAction: false, arg: null);
@@ -362,6 +364,11 @@ namespace PSConsoleUtilities
                 {
                     _searchHistoryCommandCount = 0;
                     _searchHistoryPrefix = null;
+                }
+                if (visualSelectionCommandCount == _visualSelectionCommandCount && _visualSelectionCommandCount > 0)
+                {
+                    _visualSelectionCommandCount = 0;
+                    Render();  // Clears the visual selection
                 }
             }
         }
@@ -457,6 +464,10 @@ namespace PSConsoleUtilities
                 { Keys.RightArrow,      MakeKeyHandler(ForwardChar,          "ForwardChar") },
                 { Keys.CtrlLeftArrow,   MakeKeyHandler(BackwardWord,         "BackwardWord") },
                 { Keys.CtrlRightArrow,  MakeKeyHandler(NextWord,             "NextWord") },
+                { Keys.ShiftLeftArrow,  MakeKeyHandler(SelectBackwardChar,   "SelectBackwardChar") },
+                { Keys.ShiftRightArrow, MakeKeyHandler(SelectForwardChar,    "SelectForwardChar") },
+                { Keys.ShiftCtrlLeftArrow, MakeKeyHandler(SelectBackwardWord,"SelectBackwardWord") },
+                { Keys.ShiftCtrlRightArrow, MakeKeyHandler(SelectNextWord,   "SelectNextWord") },
                 { Keys.UpArrow,         MakeKeyHandler(PreviousHistory,      "PreviousHistory") },
                 { Keys.DownArrow,       MakeKeyHandler(NextHistory,          "NextHistory") },
                 { Keys.Home,            MakeKeyHandler(BeginningOfLine,      "BeginningOfLine") },
@@ -471,7 +482,9 @@ namespace PSConsoleUtilities
                 { Keys.VolumeUp,        MakeKeyHandler(Ignore,               "Ignore") },
                 { Keys.VolumeMute,      MakeKeyHandler(Ignore,               "Ignore") },
                 { Keys.CtrlC,           MakeKeyHandler(CancelLine,           "CancelLine") },
+                { Keys.CtrlShiftC,      MakeKeyHandler(Copy,                 "Copy") },
                 { Keys.CtrlL,           MakeKeyHandler(ClearScreen,          "ClearScreen") },
+                { Keys.CtrlX,           MakeKeyHandler(Cut,                  "Cut") },
                 { Keys.CtrlY,           MakeKeyHandler(Redo,                 "Redo") },
                 { Keys.CtrlZ,           MakeKeyHandler(Undo,                 "Undo") },
                 { Keys.CtrlBackspace,   MakeKeyHandler(BackwardKillWord,     "BackwardKillWord") },
@@ -492,6 +505,8 @@ namespace PSConsoleUtilities
                 { Keys.ShiftEnter,      MakeKeyHandler(AddLine,              "AddLine") },
                 { Keys.LeftArrow,       MakeKeyHandler(BackwardChar,         "BackwardChar") },
                 { Keys.RightArrow,      MakeKeyHandler(ForwardChar,          "ForwardChar") },
+                { Keys.ShiftLeftArrow,  MakeKeyHandler(SelectBackwardChar,   "SelectBackwardChar") },
+                { Keys.ShiftRightArrow, MakeKeyHandler(SelectForwardChar,    "SelectForwardChar") },
                 { Keys.UpArrow,         MakeKeyHandler(PreviousHistory,      "PreviousHistory") },
                 { Keys.DownArrow,       MakeKeyHandler(NextHistory,          "NextHistory") },
                 { Keys.AltLess,         MakeKeyHandler(BeginningOfHistory,   "BeginningOfHistory") },
@@ -535,8 +550,10 @@ namespace PSConsoleUtilities
                 { Keys.Alt9,            MakeKeyHandler(DigitArgument,        "DigitArgument") },
                 { Keys.AltMinus,        MakeKeyHandler(DigitArgument,        "DigitArgument") },
                 { Keys.AltB,            MakeKeyHandler(BackwardWord,         "BackwardWord") },
+                { Keys.AltShiftB,       MakeKeyHandler(SelectBackwardWord,   "SelectBackwardWord") },
                 { Keys.AltD,            MakeKeyHandler(KillWord,             "KillWord") },
                 { Keys.AltF,            MakeKeyHandler(ForwardWord,          "ForwardWord") },
+                { Keys.AltShiftF,       MakeKeyHandler(SelectForwardWord,    "SelectForwardWord") },
                 { Keys.AltR,            MakeKeyHandler(RevertLine,           "RevertLine") },
                 { Keys.AltY,            MakeKeyHandler(YankPop,              "YankPop") },
                 { Keys.AltBackspace,    MakeKeyHandler(BackwardKillWord,     "BackwardKillWord") },
@@ -638,6 +655,7 @@ namespace PSConsoleUtilities
             _killCommandCount = 0;
             _yankCommandCount = 0;
             _tabCommandCount = 0;
+            _visualSelectionCommandCount = 0;
 
             _consoleBuffer = ReadBufferLines(_initialY, 1 + Options.ExtraPromptLineCount);
             _lastRenderTime = DateTime.Now;
@@ -749,6 +767,14 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void BackwardDeleteChar(ConsoleKeyInfo? key = null, object arg = null)
         {
+            if (_singleton._visualSelectionCommandCount > 0)
+            {
+                int start, length;
+                _singleton.GetRegion(out start, out length);
+                Delete(start, length);
+                return;
+            }
+
             if (_singleton._buffer.Length > 0 && _singleton._current > 0)
             {
                 int startDeleteIndex = _singleton._current - 1;
@@ -765,6 +791,14 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void DeleteChar(ConsoleKeyInfo? key = null, object arg = null)
         {
+            if (_singleton._visualSelectionCommandCount > 0)
+            {
+                int start, length;
+                _singleton.GetRegion(out start, out length);
+                Delete(start, length);
+                return;
+            }
+
             if (_singleton._buffer.Length > 0 && _singleton._current < _singleton._buffer.Length)
             {
                 _singleton.SaveEditItem(
@@ -848,7 +882,47 @@ namespace PSConsoleUtilities
             {
                 string textToPaste = System.Windows.Clipboard.GetText();
                 textToPaste = textToPaste.Replace("\r", "");
-                Insert(textToPaste);
+                if (_singleton._visualSelectionCommandCount > 0)
+                {
+                    int start, length;
+                    _singleton.GetRegion(out start, out length);
+                    Replace(start, length, textToPaste);
+                }
+                else
+                {
+                    Insert(textToPaste);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Copy selected region to the system clipboard.  If no region is selected, copy the whole line.
+        /// </summary>
+        public static void Copy(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            if (_singleton._visualSelectionCommandCount > 0)
+            {
+                int start, length;
+                _singleton.GetRegion(out start, out length);
+                System.Windows.Clipboard.SetText(_singleton._buffer.ToString(start, length));
+            }
+            else
+            {
+                System.Windows.Clipboard.SetText(_singleton._buffer.ToString());
+            }
+        }
+
+        /// <summary>
+        /// Delete selected region placing deleted text in the system clipboard.
+        /// </summary>
+        public static void Cut(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            if (_singleton._visualSelectionCommandCount > 0)
+            {
+                int start, length;
+                _singleton.GetRegion(out start, out length);
+                System.Windows.Clipboard.SetText(_singleton._buffer.ToString(start, length));
+                Delete(start, length);
             }
         }
 
@@ -2027,6 +2101,16 @@ namespace PSConsoleUtilities
             _singleton.Kill(start, _singleton._current - start, true);
         }
 
+        /// <summary>
+        /// Kill the text between the cursor and the mark.
+        /// </summary>
+        public static void KillRegion(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            int start, length;
+            _singleton.GetRegion(out start, out length);
+            _singleton.Kill(start, length, true);
+        }
+
         private void YankImpl()
         {
             if (_killRing.Count == 0)
@@ -2173,6 +2257,73 @@ namespace PSConsoleUtilities
             {
                 _singleton.YankArgImpl(yankLastArgState);
             }
+        }
+
+        private void VisualSelectionCommon(Action action)
+        {
+            if (_singleton._visualSelectionCommandCount == 0)
+            {
+                SetMark();
+            }
+            _singleton._visualSelectionCommandCount += 1;
+            action();
+            _singleton.Render();
+        }
+
+        /// <summary>
+        /// Adjust the current selection to include the previous character
+        /// </summary>
+        public static void SelectBackwardChar(ConsoleKeyInfo? key, object arg)
+        {
+            _singleton.VisualSelectionCommon(() => BackwardChar());
+        }
+
+        /// <summary>
+        /// Adjust the current selection to include the next character
+        /// </summary>
+        public static void SelectForwardChar(ConsoleKeyInfo? key, object arg)
+        {
+            _singleton.VisualSelectionCommon(() => ForwardChar());
+        }
+
+        /// <summary>
+        /// Adjust the current selection to include the previous word
+        /// </summary>
+        public static void SelectBackwardWord(ConsoleKeyInfo? key, object arg)
+        {
+            _singleton.VisualSelectionCommon(() => BackwardWord());
+        }
+
+        /// <summary>
+        /// Adjust the current selection to include the next word
+        /// </summary>
+        public static void SelectNextWord(ConsoleKeyInfo? key, object arg)
+        {
+            _singleton.VisualSelectionCommon(() => NextWord());
+        }
+
+        /// <summary>
+        /// Adjust the current selection to include the next word using ForwardWord
+        /// </summary>
+        public static void SelectForwardWord(ConsoleKeyInfo? key, object arg)
+        {
+            _singleton.VisualSelectionCommon(() => ForwardWord());
+        }
+
+        /// <summary>
+        /// Adjust the current selection to include the next word using ShellForwardWord
+        /// </summary>
+        public static void SelectShellForwardWord(ConsoleKeyInfo? key, object arg)
+        {
+            _singleton.VisualSelectionCommon(() => ShellForwardWord());
+        }
+
+        /// <summary>
+        /// Adjust the current selection to include the previous word using ShellBackwardWord
+        /// </summary>
+        public static void SelectShellBackwardWord(ConsoleKeyInfo? key, object arg)
+        {
+            _singleton.VisualSelectionCommon(() => ShellBackwardWord());
         }
 
 #endregion Kill/Yank
@@ -2440,6 +2591,16 @@ namespace PSConsoleUtilities
             }
             _singleton._current += s.Length;
             _singleton.Render();
+        }
+
+        /// <summary>
+        /// Delete some text at the given position.  Supports undo.
+        /// </summary>
+        /// <param name="start">The start position to delete</param>
+        /// <param name="length">The length to delete</param>
+        public static void Delete(int start, int length)
+        {
+            Replace(start, length, null);
         }
 
         /// <summary>
@@ -2992,12 +3153,52 @@ namespace PSConsoleUtilities
             backgroundColor = _options.DefaultTokenBackgroundColor;
         }
 
+        private void GetRegion(out int start, out int length)
+        {
+            if (_mark < _current)
+            {
+                start = _mark;
+                length = _current - start;
+            }
+            else
+            {
+                start = _current;
+                length = _mark - start;
+            }
+        }
+
+        private bool InRegion(int i)
+        {
+            int start, end;
+            if (_mark > _current)
+            {
+                start = _current;
+                end = _mark;
+            }
+            else
+            {
+                start = _mark;
+                end = _current;
+            }
+            return i >= start && i < end;
+        }
+
         private void MaybeEmphasize(ref CHAR_INFO charInfo, int i, ConsoleColor foregroundColor, ConsoleColor backgroundColor)
         {
             if (i >= _emphasisStart && i < (_emphasisStart + _emphasisLength))
             {
                 backgroundColor = _options.EmphasisBackgroundColor;
                 foregroundColor = _options.EmphasisForegroundColor;
+            }
+            else if (_visualSelectionCommandCount > 0 && InRegion(i))
+            {
+                // We can't quite emulate real console selection because it inverts
+                // based on actual screen colors, our pallete is limited.  The choice
+                // to invert only the lower 3 bits to change the color is somewhat
+                // but looks best with the 2 default color schemes - starting PowerShell
+                // from it's shortcut or from a cmd shortcut.
+                foregroundColor = (ConsoleColor)((int)foregroundColor ^ 7);
+                backgroundColor = (ConsoleColor)((int)backgroundColor ^ 7);
             }
 
             charInfo.ForegroundColor = foregroundColor;
