@@ -101,17 +101,12 @@ namespace TestPSReadLine
             PSConsoleReadLine.SetOptions(new SetPSReadlineOption
             {
                 EditMode = EditMode.Emacs,
-            //    HistorySearchCursorMovesToEnd = true,
-            //    ExtraPromptLineCount = 1
             });
             //PSConsoleReadLine.SetKeyHandler(new[] {"UpArrow"}, PSConsoleReadLine.HistorySearchBackward, "", "");
             //PSConsoleReadLine.SetKeyHandler(new[] {"DownArrow"}, PSConsoleReadLine.HistorySearchForward, "", "");
             PSConsoleReadLine.SetKeyHandler(new[] {"Ctrl+D,Ctrl+E"}, PSConsoleReadLine.EnableDemoMode, "", "");
             PSConsoleReadLine.SetKeyHandler(new[] {"Ctrl+D,Ctrl+D"}, PSConsoleReadLine.DisableDemoMode, "", "");
-            PSConsoleReadLine.AddToHistory("echo aaa");
-            PSConsoleReadLine.AddToHistory("echo aab");
-            PSConsoleReadLine.AddToHistory("echo aac");
-            PSConsoleReadLine.AddToHistory("echo aad");
+            PSConsoleReadLine.SetKeyHandler(new[] {"Ctrl+D,Ctrl+C"}, PSConsoleReadLine.CaptureScreen, "", "");
             while (true)
             {
                 //Console.Write("C:\\Windows\nPS> ");

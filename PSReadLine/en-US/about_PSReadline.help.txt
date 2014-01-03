@@ -368,6 +368,13 @@ LONG DESCRIPTION
         Alt+- toggles the argument to be negative/non-negative.  To enter 80 '*' characters,
         you could type Alt+8 Alt+0 *.
 
+    CaptureScreen            (Cmd: unbound              Emacs: unbound)
+
+        Copies selected lines to the clipboard in both text and rtf formats.  Use up/down
+        arrow keys to the first line to select, then Shift+UpArrow/Shift+DownArrow to select
+        multiple lines.  After selecting, press Enter to copy the text.  Escape/Ctrl+C/Ctrl+G
+        will cancel so nothing is copied to the clipboard.
+
     DisableDemoMode          (Cmd: unbound              Emacs: unbound)
 
         Turn off demo mode.

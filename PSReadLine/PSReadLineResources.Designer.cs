@@ -223,6 +223,15 @@ namespace PSConsoleUtilities {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to \red0\green0\blue0\red0\green0\blue128\red0\green128\blue0\red0\green128\blue128\red128\green0\blue0\red1\green36\blue86\red238\green237\blue240\red192\green192\blue192\red128\green128\blue128\red0\green0\blue255\red0\green255\blue0\red0\green255\blue255\red255\green0\blue0\red255\green0\blue255\red255\green255\blue0\red255\green255\blue255.
+        /// </summary>
+        internal static string CmdColorTable {
+            get {
+                return ResourceManager.GetString("CmdColorTable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Complete the input if there is a single completion, otherwise complete the input with common prefix for all completions.  Show possible completions if pressed a second time..
         /// </summary>
         internal static string CompleteDescription {
@@ -480,6 +489,15 @@ namespace PSConsoleUtilities {
         internal static string PossibleCompletionsDescription {
             get {
                 return ResourceManager.GetString("PossibleCompletionsDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to \red0\green0\blue0\red0\green0\blue128\red0\green128\blue0\red0\green128\blue128\red128\green0\blue0\red1\green36\blue86\red238\green237\blue240\red192\green192\blue192\red128\green128\blue128\red0\green0\blue255\red0\green255\blue0\red0\green255\blue255\red255\green0\blue0\red255\green0\blue255\red255\green255\blue0\red255\green255\blue255.
+        /// </summary>
+        internal static string PowerShellColorTable {
+            get {
+                return ResourceManager.GetString("PowerShellColorTable", resourceCulture);
             }
         }
         
