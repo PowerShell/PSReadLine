@@ -384,6 +384,12 @@ LONG DESCRIPTION
         Turn on demo mode.  Displays a window below the input line that shows which
         keys are typed.
 
+    InvokePrompt             (Cmd: unbound              Emacs: unbound)
+
+        Erases the current prompt and calls the prompt function to redisplay
+        the prompt.  Useful for custom key handlers that change state, e.g.
+        change the current directory.
+
     WhatIsKey                (Cmd: <Alt+?>              Emacs: <Alt+?>)
 
         Read a key or chord and display the key binding.

@@ -3779,6 +3779,39 @@ namespace PSConsoleUtilities
             Clipboard.SetDataObject(dataObject, copy: true);
         }
 
+        /// <summary>
+        /// Erases the current prompt and calls the prompt function to redisplay
+        /// the prompt.  Useful for custom key handlers that change state, e.g.
+        /// change the current directory.
+        /// </summary>
+        public static void InvokePrompt(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            var currentBuffer = _singleton._buffer.ToString();
+            var currentPos = _singleton._current;
+            _singleton._buffer.Clear();
+            _singleton._current = 0;
+            for (int i = 0; i < _singleton._consoleBuffer.Length; i++)
+            {
+                _singleton._consoleBuffer[i].UnicodeChar = ' ';
+                _singleton._consoleBuffer[i].ForegroundColor = Console.ForegroundColor;
+                _singleton._consoleBuffer[i].BackgroundColor = Console.BackgroundColor;
+            }
+            _singleton.Render();
+            Console.CursorLeft = 0;
+            Console.CursorTop = _singleton._initialY;
+
+            var ps = PowerShell.Create(RunspaceMode.CurrentRunspace);
+            ps.AddCommand("prompt");
+            var result = ps.Invoke<string>();
+            var strResult = result.Count == 1 ? result[0] : "PS> ";
+            Console.Write(strResult);
+
+            _singleton._consoleBuffer = ReadBufferLines(_singleton._initialY, 1 + _singleton.Options.ExtraPromptLineCount);
+            _singleton._buffer.Append(currentBuffer);
+            _singleton._current = currentPos;
+            _singleton.Render();
+        }
+
         #endregion Miscellaneous bindable functions
 
         private void SetOptionsInternal(SetPSReadlineOption options)

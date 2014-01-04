@@ -453,14 +453,14 @@ namespace PSConsoleUtilities
                      "CharacterSearchBackward", "ClearScreen", "Complete", "Copy", "Cut",
                      "DeleteChar", "DigitArgument", "DisableDemoMode", "EnableDemoMode", "EndOfHistory",
                      "EndOfLine", "ExchangePointAndMark", "ForwardChar", "ForwardDeleteLine", "ForwardSearchHistory",
-                     "ForwardWord", "GotoBrace", "HistorySearchBackward", "HistorySearchForward", "KillLine",
-                     "KillRegion", "KillWord", "NextHistory", "NextWord", "Paste",
-                     "PossibleCompletions", "PreviousHistory", "Redo", "ReverseSearchHistory", "RevertLine",
-                     "SelectBackwardChar", "SelectBackwardWord", "SelectForwardChar", "SelectForwardWord", "SelectNextWord",
-                     "SelectShellBackwardWord", "SelectShellForwardWord", "SelfInsert", "SetMark", "ShellBackwardKillWord",
-                     "ShellBackwardWord", "ShellForwardWord", "ShellKillWord", "ShowKeyBindings", "TabCompleteNext",
-                     "TabCompletePrevious", "Undo", "UnixWordRubout", "WhatIsKey", "Yank",
-                     "YankLastArg", "YankNthArg", "YankPop")]
+                     "ForwardWord", "GotoBrace", "HistorySearchBackward", "HistorySearchForward", "InvokePrompt",
+                     "KillLine", "KillRegion", "KillWord", "NextHistory", "NextWord",
+                     "Paste", "PossibleCompletions", "PreviousHistory", "Redo", "ReverseSearchHistory",
+                     "RevertLine", "SelectBackwardChar", "SelectBackwardWord", "SelectForwardChar", "SelectForwardWord",
+                     "SelectNextWord", "SelectShellBackwardWord", "SelectShellForwardWord", "SelfInsert", "SetMark",
+                     "ShellBackwardKillWord", "ShellBackwardWord", "ShellForwardWord", "ShellKillWord", "ShowKeyBindings",
+                     "TabCompleteNext", "TabCompletePrevious", "Undo", "UnixWordRubout", "WhatIsKey",
+                     "Yank", "YankLastArg", "YankNthArg", "YankPop")]
         [Parameter(Position = 1, Mandatory = true, ParameterSetName = "Function")]
         public string Function { get; set; }
 

@@ -178,6 +178,15 @@ namespace PSConsoleUtilities {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Copy selected lines to the clipboard.
+        /// </summary>
+        internal static string CaptureScreenDescription {
+            get {
+                return ResourceManager.GetString("CaptureScreenDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Read a character and move the cursor to the previous occurence of that character.
         /// </summary>
         internal static string CharacterSearchBackwardDescription {
@@ -223,7 +232,7 @@ namespace PSConsoleUtilities {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to \red0\green0\blue0\red0\green0\blue128\red0\green128\blue0\red0\green128\blue128\red128\green0\blue0\red1\green36\blue86\red238\green237\blue240\red192\green192\blue192\red128\green128\blue128\red0\green0\blue255\red0\green255\blue0\red0\green255\blue255\red255\green0\blue0\red255\green0\blue255\red255\green255\blue0\red255\green255\blue255.
+        ///   Looks up a localized string similar to \red0\green0\blue0;\red0\green0\blue128;\red0\green128\blue0;\red0\green128\blue128;\red128\green0\blue0;\red1\green36\blue86;\red238\green237\blue240;\red192\green192\blue192;\red128\green128\blue128;\red0\green0\blue255;\red0\green255\blue0;\red0\green255\blue255;\red255\green0\blue0;\red255\green0\blue255;\red255\green255\blue0;\red255\green255\blue255;.
         /// </summary>
         internal static string CmdColorTable {
             get {
@@ -421,6 +430,15 @@ namespace PSConsoleUtilities {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Erases the current prompt and calls the prompt function to redisplay the prompt.
+        /// </summary>
+        internal static string InvokePromptDescription {
+            get {
+                return ResourceManager.GetString("InvokePromptDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Key is unbound.
         /// </summary>
         internal static string KeyIsUnbound {
@@ -493,7 +511,7 @@ namespace PSConsoleUtilities {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to \red0\green0\blue0\red0\green0\blue128\red0\green128\blue0\red0\green128\blue128\red128\green0\blue0\red1\green36\blue86\red238\green237\blue240\red192\green192\blue192\red128\green128\blue128\red0\green0\blue255\red0\green255\blue0\red0\green255\blue255\red255\green0\blue0\red255\green0\blue255\red255\green255\blue0\red255\green255\blue255.
+        ///   Looks up a localized string similar to \red0\green0\blue0\red0\green0\blue128\red0\green128\blue0\red0\green128\blue128\red128\green0\blue0\red1\green36\blue86\red238\green237\blue240\red192\green192\blue192\red128\green128\blue128\red0\green0\blue255\red0\green255\blue0\red0\green255\blue255\red255\green0\blue0\red255\green0\blue255\red255\gree\red0\green0\blue0;\red0\green0\blue128;\red0\green128\blue0;\red0\green128\blue128;\red128\green0\blue0;\red1\green36\blue86;\red238\green237\blue240;\red192\green192\blue192;\red128\green128\blue128;\re [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string PowerShellColorTable {
             get {
