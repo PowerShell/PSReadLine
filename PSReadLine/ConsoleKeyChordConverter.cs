@@ -71,6 +71,22 @@ namespace PSConsoleUtilities
                 // key should be first token to be popped
                 if (key == 0)
                 {
+                    // Enum.TryParse accepts arbitrary integers.  We shouldn't,
+                    // but single digits need to map to the correct key, e.g.
+                    // ConsoleKey.D1
+                    long tokenAsLong;
+                    if (long.TryParse(token, out tokenAsLong))
+                    {
+                        if (tokenAsLong >= 0 && tokenAsLong <= 9)
+                        {
+                            token = "D" + token;
+                        }
+                        else
+                        {
+                            throw new ArgumentException("Unrecognized key '" + token + "'. Please use a character literal or a " +
+                                "well-known key name from the System.ConsoleKey enumeration.");
+                        }
+                    }
                     // try simple parse for ConsoleKey enum name
                     valid = Enum.TryParse(token, ignoreCase: true, result: out key);
 
