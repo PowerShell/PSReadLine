@@ -2631,6 +2631,10 @@ namespace PSConsoleUtilities
                 _singleton._buffer.Insert(start, replacement);
                 _singleton._current = start + replacement.Length;
             }
+            else
+            {
+                _singleton._current = start;
+            }
             _singleton.EndEditGroup();
             _singleton.Render();
         }
