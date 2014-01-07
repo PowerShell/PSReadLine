@@ -828,8 +828,8 @@ namespace PSConsoleUtilities
                 // but if input is accepted, we won't have another chance to render.
                 ReallyRender();
             }
-            PlaceCursor();
-            Console.Out.Write("\n");
+            var coordinates = ConvertOffsetToCoordinates(_current);
+            PlaceCursor(0, coordinates.Y + 1);
             _inputAccepted = true;
             return true;
         }
