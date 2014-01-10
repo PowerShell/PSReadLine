@@ -215,6 +215,13 @@ namespace PSConsoleUtilities
 
         #endregion Unit test only properties
 
+        // For some reason nothing from System.Console is available via the Fakes assembly.
+        // If we define a trivial wrapper, it can be faked, so we do.
+        private static ConsoleKeyInfo ConsoleReadKey()
+        {
+            return Console.ReadKey(true);
+        }
+
         private void ReadKeyThreadProc()
         {
             while (true)
@@ -225,7 +232,7 @@ namespace PSConsoleUtilities
                 var start = DateTime.Now;
                 while (Console.KeyAvailable)
                 {
-                    _queuedKeys.Enqueue(Console.ReadKey(true));
+                    _queuedKeys.Enqueue(ConsoleReadKey());
                     if ((DateTime.Now - start).Milliseconds > 2)
                     {
                         // Don't spend too long in this loop if there are lots of queued keys
@@ -235,7 +242,7 @@ namespace PSConsoleUtilities
 
                 if (_queuedKeys.Count == 0)
                 {
-                    var key = Console.ReadKey(true);
+                    var key = ConsoleReadKey();
                     _queuedKeys.Enqueue(key);
                 }
 
@@ -374,12 +381,6 @@ namespace PSConsoleUtilities
             }
         }
 
-        // Test hook.
-        [ExcludeFromCodeCoverage]
-        private static void PostKeyHandler()
-        {
-        }
-
         void ProcessOneKey(ConsoleKeyInfo key, Dictionary<ConsoleKeyInfo, KeyHandler> dispatchTable, bool ignoreIfNoAction, object arg)
         {
             KeyHandler handler;
@@ -408,7 +409,6 @@ namespace PSConsoleUtilities
             {
                 SelfInsert(key, arg);
             }
-            PostKeyHandler();
         }
 
         private string MaybeAddToHistory(string result, List<EditItem> edits, int undoEditIndex)
@@ -675,6 +675,7 @@ namespace PSConsoleUtilities
             {
                 throw new ArgumentNullException("key");
             }
+
             Dictionary<ConsoleKeyInfo, KeyHandler> secondKeyDispatchTable;
             if (_singleton._chordDispatchTable.TryGetValue(key.Value, out secondKeyDispatchTable))
             {
@@ -1176,11 +1177,14 @@ namespace PSConsoleUtilities
                     {
                         _singleton._current = i;
                         _singleton.PlaceCursor();
-                        return;
+                        break;
                     }
                 }
             }
-            Ding();
+            if (occurence > 0)
+            {
+                Ding();
+            }
         }
 
         /// <summary>
