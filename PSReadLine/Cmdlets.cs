@@ -4,6 +4,37 @@ using System.Management.Automation;
 
 namespace PSConsoleUtilities
 {
+    public enum TokenClassification
+    {
+        None,
+        Comment,
+        Keyword,
+        String,
+        Operator,
+        Variable,
+        Command,
+        Parameter,
+        Type,
+        Number,
+        Member,
+    }
+
+    public enum EditMode
+    {
+        Windows,
+        Emacs,
+#if FALSE
+        Vi,
+#endif
+    }
+
+    public enum BellStyle
+    {
+        None,
+        Visual,
+        Audible
+    }
+
     public class PSConsoleReadlineOptions
     {
         public const ConsoleColor DefaultCommentForegroundColor   = ConsoleColor.DarkGreen;

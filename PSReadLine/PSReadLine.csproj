@@ -50,17 +50,29 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyInfo.cs" />
+    <Compile Include="BasicEditing.cs" />
     <Compile Include="Cmdlets.cs" />
+    <Compile Include="Completion.cs" />
     <Compile Include="ConsoleKeyChordConverter.cs" />
     <Compile Include="ConsoleLib.cs" />
+    <Compile Include="History.cs" />
     <Compile Include="HistoryQueue.cs" />
+    <Compile Include="KeyBindings.cs" />
     <Compile Include="Keys.cs" />
+    <Compile Include="KillYank.cs" />
+    <Compile Include="Movement.cs" />
+    <Compile Include="Options.cs" />
     <Compile Include="PSReadLineResources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>PSReadLineResources.resx</DependentUpon>
     </Compile>
+    <Compile Include="PublicAPI.cs" />
     <Compile Include="ReadLine.cs" />
+    <Compile Include="Render.cs" />
+    <Compile Include="ScreenCapture.cs" />
+    <Compile Include="UndoRedo.cs" />
+    <Compile Include="Words.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />
