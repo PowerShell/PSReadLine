@@ -54,7 +54,9 @@ namespace PSConsoleUtilities
             _singleton._current = _singleton._buffer.Length;
             _singleton._buffer.Append(key.HasValue ? key.Value.KeyChar : Keys.CtrlC.KeyChar);
             _singleton.Render();
-            Console.Out.Write("\n");
+
+            var coordinates = _singleton.ConvertOffsetToCoordinates(_singleton._current);
+            _singleton.PlaceCursor(0, coordinates.Y + 1);
             _singleton._buffer.Clear(); // Clear so we don't actually run the input
             _singleton._currentHistoryIndex = _singleton._history.Count;
             _singleton._inputAccepted = true;
@@ -204,7 +206,5 @@ namespace PSConsoleUtilities
         {
             Insert('\n');
         }
-
-        
     }
 }

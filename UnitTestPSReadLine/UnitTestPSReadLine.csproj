@@ -65,7 +65,19 @@
   </Choose>
   <ItemGroup>
     <Compile Include="AssemblyInfo.cs" />
+    <Compile Include="CompletionTest.cs" />
+    <Compile Include="HistoryTest.cs" />
+    <Compile Include="KeyInfoConverterTest.cs" />
+    <Compile Include="BasicEditingTest.cs" />
+    <Compile Include="KillYankTest.cs" />
+    <Compile Include="MovementTest.cs" />
+    <Compile Include="OptionsTest.cs" />
+    <Compile Include="PublicAPIsTest.cs" />
+    <Compile Include="RenderTest.cs" />
+    <Compile Include="ScreenCaptureTest.cs" />
+    <Compile Include="UndoRedoTest.cs" />
     <Compile Include="UnitTestReadLine.cs" />
+    <Compile Include="WordsTest.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\PSReadLine\PSReadLine.csproj">

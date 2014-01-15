@@ -1,0 +1,159 @@
+﻿using System;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using PSConsoleUtilities;
+
+namespace UnitTestPSReadLine
+{
+    // Disgusting language hack to make it easier to read a sequence of keys.
+    using _ = Keys;
+
+    public partial class UnitTest
+    {
+        [TestMethod]
+        public void TestInput()
+        {
+            TestSetup(KeyMode.Cmd);
+
+            Test("exit", Keys(
+                "exit",
+                _.Enter,
+                CheckThat(() => AssertCursorLeftIs(0))));
+        }
+
+        [TestMethod]
+        public void TestRevertLine()
+        {
+            // Add one test for chords
+            TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+X,Escape", PSConsoleReadLine.RevertLine));
+
+            Test("ls", Keys("di", _.Escape, "ls"));
+            Test("ls", Keys("di", _.CtrlX, _.Escape, "ls"));
+
+            TestSetup(KeyMode.Emacs);
+            Test("ls", Keys("di", _.Escape, _.R, "ls"));
+            Test("ls", Keys("di", _.AltR, "ls"));
+        }
+
+        [TestMethod]
+        public void TestCancelLine()
+        {
+            TestSetup(KeyMode.Cmd);
+
+            Test("", Keys("oops", _.CtrlC,
+                CheckThat(() => AssertScreenIs(1, TokenClassification.Command, "oops^C")),
+                InputAcceptedNow
+                ));
+        }
+
+        [TestMethod]
+        public void TestForwardDeleteLine()
+        {
+            TestSetup(KeyMode.Cmd);
+
+            // Empty input (does nothing but don't crash)
+            Test("", Keys("", _.CtrlEnd));
+
+            // at end of input - doesn't change anything
+            Test("abc", Keys("abc", _.CtrlEnd));
+
+            // More normal usage - actually delete stuff
+            Test("a", Keys("abc", _.LeftArrow, _.LeftArrow, _.CtrlEnd));
+        }
+
+        [TestMethod]
+        public void TestBackwardDeleteLine()
+        {
+            TestSetup(KeyMode.Cmd);
+
+            // Empty input (does nothing but don't crash)
+            Test("", Keys(_.CtrlHome));
+
+            // at beginning of input - doesn't change anything
+            Test("abc", Keys("abc", _.Home, _.CtrlHome));
+
+            // More typical usage
+            Test("c", Keys("abc", _.LeftArrow, _.CtrlHome));
+            Test("", Keys("abc", _.CtrlHome));
+        }
+
+        [TestMethod]
+        public void TestBackwardDeleteChar()
+        {
+            TestSetup(KeyMode.Cmd);
+
+            // Empty input (does nothing but don't crash)
+            Test("", Keys("", _.Backspace));
+
+            // At end, delete all input
+            Test("", Keys("a", _.Backspace));
+
+            // At end, delete all input with extra backspaces
+            Test("", Keys("a", _.Backspace, _.Backspace));
+
+            // Delete first character
+            Test("b", Keys("ab", _.LeftArrow, _.Backspace));
+
+            // Delete first character with extra backspaces
+            Test("b", Keys("ab", _.LeftArrow, _.Backspace, _.Backspace));
+
+            // Delete middle character
+            Test("ac", Keys("abc", _.LeftArrow, _.Backspace));
+        }
+
+        [TestMethod]
+        public void TestDeleteChar()
+        {
+            TestSetup(KeyMode.Cmd);
+
+            // Empty input (does nothing, but don't crash)
+            Test("", Keys(_.Delete));
+
+            // At end but input not empty (does nothing, but don't crash)
+            Test("a", Keys('a', _.Delete));
+
+            // Delete last character
+            Test("a", Keys("ab", _.LeftArrow, _.Delete));
+
+            // Delete first character
+            Test("b", Keys("ab", _.Home, _.Delete));
+
+            // Delete middle character
+            Test("ac", Keys("abc", _.Home, _.RightArrow, _.Delete));
+        }
+
+        [TestMethod]
+        public void TestAcceptAndGetNext()
+        {
+            TestSetup(KeyMode.Emacs);
+
+            // No history
+            Test("", Keys(_.CtrlO, InputAcceptedNow));
+
+            // One item in history
+            PSConsoleReadLine.AddToHistory("echo 1");
+            Test("", Keys(_.CtrlO, InputAcceptedNow));
+
+            // Two items in history, make sure after Ctrl+O, second history item
+            // is recalled.
+            PSConsoleReadLine.AddToHistory("echo 2");
+            Test("echo 1", Keys(_.UpArrow, _.UpArrow, _.CtrlO, InputAcceptedNow));
+            Test("echo 2", Keys(_.Enter));
+        }
+
+        [TestMethod]
+        public void TestAddLine()
+        {
+            TestSetup(KeyMode.Cmd);
+
+            Test("1\n2", Keys('1', _.ShiftEnter, '2'));
+        }
+
+        [TestMethod]
+        public void TestIgnore()
+        {
+            TestSetup(KeyMode.Emacs);
+
+            Test("ab", Keys("a", _.VolumeDown, _.VolumeMute, _.VolumeUp, "b"));
+        }
+    }
+}
