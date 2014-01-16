@@ -125,7 +125,7 @@ namespace PSConsoleUtilities
             if (signal == ConsoleBreakSignal.Close || signal == ConsoleBreakSignal.Shutdown)
             {
                 // Set the event so ReadKey throws an exception to unwind.
-                _singleton._closingWaitHandle.Set();
+                _closingWaitHandle.Set();
             }
 
             return false;

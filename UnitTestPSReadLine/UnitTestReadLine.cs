@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Management.Automation.Runspaces;
-using System.Text;
 using Microsoft.QualityTools.Testing.Fakes;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using PSConsoleUtilities;
@@ -438,6 +437,7 @@ namespace UnitTestPSReadLine
             {
                 System.Management.Automation.Fakes.ShimCommandCompletion.CompleteInputStringInt32HashtablePowerShell =
                     MockedCompleteInput;
+                Exception validationFailure = null;
                 PSConsoleUtilities.Fakes.ShimPSConsoleReadLine.ConsoleReadKey = () =>
                 {
                     while (index < items.Length)
@@ -447,13 +447,31 @@ namespace UnitTestPSReadLine
                         {
                             return (ConsoleKeyInfo)item;
                         }
-                        ((Action)item)();
+                        try
+                        {
+                            ((Action)item)();
+                        }
+                        catch (Exception e)
+                        {
+                            // Just remember the first exception
+                            if (validationFailure == null)
+                            {
+                                validationFailure = e;
+                            }
+                            // In the hopes of avoiding additional failures, try cancelling via Ctrl+C.
+                            return _.CtrlC;
+                        }
                     }
                     Assert.Fail("Shouldn't call ReadKey when there are no more keys");
                     return _.CtrlC;
                 };
 
                 var result = PSConsoleReadLine.ReadLine();
+
+                if (validationFailure != null)
+                {
+                    throw new Exception("", validationFailure);
+                }
 
                 while (index < items.Length)
                 {
