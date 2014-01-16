@@ -131,7 +131,7 @@ namespace PSConsoleUtilities
         public static ConsoleKeyInfo Alt4 = new ConsoleKeyInfo('4', ConsoleKey.D4, false, true, false);
         public static ConsoleKeyInfo Alt5 = new ConsoleKeyInfo('5', ConsoleKey.D5, false, true, false);
         public static ConsoleKeyInfo Alt6 = new ConsoleKeyInfo('6', ConsoleKey.D6, false, true, false);
-        public static ConsoleKeyInfo Alt7 = new ConsoleKeyInfo('7', ConsoleKey.D6, false, true, false);
+        public static ConsoleKeyInfo Alt7 = new ConsoleKeyInfo('7', ConsoleKey.D7, false, true, false);
         public static ConsoleKeyInfo Alt8 = new ConsoleKeyInfo('8', ConsoleKey.D8, false, true, false);
         public static ConsoleKeyInfo Alt9 = new ConsoleKeyInfo('9', ConsoleKey.D9, false, true, false);
 
