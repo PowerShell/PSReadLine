@@ -49,13 +49,25 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void CancelLine(ConsoleKeyInfo? key = null, object arg = null)
         {
-            // Append the key that canceled input and display it so we have some visual
-            // hint that the command didn't run.
             _singleton._current = _singleton._buffer.Length;
-            _singleton._buffer.Append(key.HasValue ? key.Value.KeyChar : Keys.CtrlC.KeyChar);
-            _singleton.Render();
+            // We want to display ^C to show the line was canceled.  Instead of appending ^C
+            // (or (char)3), we append 2 spaces so we don't affect tokenization too much, e.g.
+            // changing a keyword to a command.
+            _singleton._buffer.Append("  ");
+            _singleton.ReallyRender();
 
+            // Now that we've rendered with this extra spaces, go back and replace the spaces
+            // with ^C colored in red (so it stands out.)
             var coordinates = _singleton.ConvertOffsetToCoordinates(_singleton._current);
+            int i = (coordinates.Y - _singleton._initialY) * Console.BufferWidth + coordinates.X;
+            _singleton._consoleBuffer[i].UnicodeChar = '^';
+            _singleton._consoleBuffer[i].ForegroundColor = ConsoleColor.Red;
+            _singleton._consoleBuffer[i].BackgroundColor = Console.BackgroundColor;
+            _singleton._consoleBuffer[i+1].UnicodeChar = 'C';
+            _singleton._consoleBuffer[i+1].ForegroundColor = ConsoleColor.Red;
+            _singleton._consoleBuffer[i+1].BackgroundColor = Console.BackgroundColor;
+            WriteBufferLines(_singleton._consoleBuffer, ref _singleton._initialY);
+
             _singleton.PlaceCursor(0, coordinates.Y + 1);
             _singleton._buffer.Clear(); // Clear so we don't actually run the input
             _singleton._currentHistoryIndex = _singleton._history.Count;

@@ -140,7 +140,7 @@ namespace UnitTestPSReadLine
         private class NextLineToken { }
         static NextLineToken NextLine = new NextLineToken();
 
-        private CHAR_INFO[] CreateCharInfoBuffer(params object[] items)
+        private CHAR_INFO[] CreateCharInfoBuffer(int lines, params object[] items)
         {
             var result = new List<CHAR_INFO>();
             var fg = Console.ForegroundColor;
@@ -183,8 +183,8 @@ namespace UnitTestPSReadLine
                 throw new ArgumentException("Unexpected type");
             }
 
-            var extraSpacesNeeded = Console.BufferWidth - (result.Count % Console.BufferWidth);
-            if (extraSpacesNeeded != 0)
+            var extraSpacesNeeded = (lines * Console.BufferWidth) - result.Count;
+            if (extraSpacesNeeded > 0)
             {
                 var space = new CHAR_INFO(' ', Console.ForegroundColor, Console.BackgroundColor);
                 result.AddRange(Enumerable.Repeat(space, extraSpacesNeeded));
@@ -348,7 +348,7 @@ namespace UnitTestPSReadLine
         {
             var consoleBuffer = ReadBufferLines(0, lines);
 
-            var expectedBuffer = CreateCharInfoBuffer(items);
+            var expectedBuffer = CreateCharInfoBuffer(lines, items);
             Assert.AreEqual(expectedBuffer.Length, consoleBuffer.Length);
             for (var i = 0; i < expectedBuffer.Length; i++)
             {

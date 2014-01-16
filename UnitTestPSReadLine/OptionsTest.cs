@@ -90,7 +90,7 @@ namespace UnitTestPSReadLine
             bool exception = false;
             try
             {
-                CreateCharInfoBuffer(new object());
+                CreateCharInfoBuffer(0, new object());
             }
             catch (ArgumentException)
             {
