@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections;
 using System.Collections.ObjectModel;
-using System.Linq;
 using System.Management.Automation;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.QualityTools.Testing.Fakes;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using PSConsoleUtilities;
