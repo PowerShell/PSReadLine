@@ -39,6 +39,7 @@
     <Reference Include="mscorlib.4.0.0.0.Fakes">
       <HintPath>FakesAssemblies\mscorlib.4.0.0.0.Fakes.dll</HintPath>
     </Reference>
+    <Reference Include="PresentationCore" />
     <Reference Include="PSReadLine.Fakes">
       <HintPath>FakesAssemblies\PSReadLine.Fakes.dll</HintPath>
     </Reference>
@@ -66,6 +67,7 @@
   <ItemGroup>
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="CompletionTest.cs" />
+    <Compile Include="DigitArgumentTest.cs" />
     <Compile Include="HistoryTest.cs" />
     <Compile Include="KeyInfoConverterTest.cs" />
     <Compile Include="BasicEditingTest.cs" />
