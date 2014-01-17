@@ -5,6 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace PSConsoleUtilities
 {
+    [ExcludeFromCodeCoverage]
     internal sealed class QueueDebugView<T>
     {
         private readonly HistoryQueue<T> _queue;
