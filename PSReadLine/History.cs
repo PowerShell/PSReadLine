@@ -56,6 +56,9 @@ namespace PSConsoleUtilities
             {
                 ClearDemoWindow();
             }
+            _savedCurrentLine._line = null;
+            _savedCurrentLine._edits = null;
+            _savedCurrentLine._undoEditIndex = 0;
             return result;
         }
 

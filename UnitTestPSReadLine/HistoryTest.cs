@@ -13,16 +13,25 @@ namespace UnitTestPSReadLine
 
     public partial class UnitTest
     {
+        private void SetHistory(params string[] historyItems)
+        {
+            PSConsoleReadLine.ClearHistory();
+            foreach (var item in historyItems)
+            {
+                PSConsoleReadLine.AddToHistory(item);
+            }
+        }
+
         [TestMethod]
         public void TestHistory()
         {
             TestSetup(KeyMode.Cmd);
 
             // No history
+            SetHistory();
             Test("", Keys(_.UpArrow, _.DownArrow));
 
-            PSConsoleReadLine.AddToHistory("dir c*");
-            PSConsoleReadLine.AddToHistory("ps p*");
+            SetHistory("dir c*", "ps p*");
 
             Test("dir c*", Keys(_.UpArrow, _.UpArrow));
             Test("dir c*", Keys(_.UpArrow, _.UpArrow, _.DownArrow));
@@ -36,39 +45,93 @@ namespace UnitTestPSReadLine
                       new KeyHandler("DownArrow", PSConsoleReadLine.HistorySearchForward));
 
             // No history
+            SetHistory();
             Test("", Keys(_.UpArrow, _.DownArrow));
 
             // Clear history in case the above added some history (but it shouldn't)
-            PSConsoleReadLine.ClearHistory();
-
+            SetHistory();
             Test(" ", Keys(' ', _.UpArrow, _.DownArrow));
 
-            PSConsoleReadLine.AddToHistory("dir c*");
-            PSConsoleReadLine.AddToHistory("ps p*");
-            PSConsoleReadLine.AddToHistory("dir cd*");
-
-            Test("dir c*", Keys(
+            SetHistory("dosomething", "ps p*", "dir", "echo zzz");
+            Test("dosomething", Keys(
                 "d",
-                _.UpArrow,
-                CheckThat(() => AssertCursorLeftIs(1)),
-                _.UpArrow,
-                CheckThat(() => AssertCursorLeftIs(1)),
-                _.DownArrow,
-                CheckThat(() => AssertCursorLeftIs(1)),
-                _.UpArrow,
-                CheckThat(() => AssertCursorLeftIs(1))));
+                _.UpArrow,   CheckThat(() => {
+                    AssertScreenIs(1, TokenClassification.Command, "dir");
+                    AssertCursorLeftIs(1);
+                }),
+                _.UpArrow,   CheckThat(() => {
+                    AssertScreenIs(1, TokenClassification.Command, "dosomething");
+                    AssertCursorLeftIs(1);
+                }),
+                _.DownArrow, CheckThat(() => {
+                    AssertScreenIs(1, TokenClassification.Command, "dir");
+                    AssertCursorLeftIs(1);
+                }),
+                _.UpArrow,   CheckThat(() =>
+                {
+                    AssertScreenIs(1, TokenClassification.Command, "dosomething");
+                    AssertCursorLeftIs(1);
+                })));
+        }
+
+        [TestMethod]
+        public void TestHistorySearchCursorMovesToEnd()
+        {
+            TestSetup(KeyMode.Cmd,
+                      new KeyHandler("UpArrow", PSConsoleReadLine.HistorySearchBackward),
+                      new KeyHandler("DownArrow", PSConsoleReadLine.HistorySearchForward));
 
             PSConsoleReadLine.SetOptions(new SetPSReadlineOption {HistorySearchCursorMovesToEnd = true});
-            Test("dir cd*", Keys(
+
+            SetHistory("dosomething", "ps p*", "dir", "echo zzz");
+            Test("dosomething", Keys(
                 "d",
-                _.UpArrow,
-                CheckThat(() => AssertCursorLeftIs(6)),
-                _.UpArrow,
-                CheckThat(() => AssertCursorLeftIs(7)),
-                _.DownArrow,
-                CheckThat(() => AssertCursorLeftIs(6)),
-                _.UpArrow,
-                CheckThat(() => AssertCursorLeftIs(7))));
+                _.UpArrow,   CheckThat(() => {
+                    AssertScreenIs(1, TokenClassification.Command, "dir");
+                    AssertCursorLeftIs(3);
+                }),
+                _.UpArrow,   CheckThat(() => {
+                    AssertScreenIs(1, TokenClassification.Command, "dosomething");
+                    AssertCursorLeftIs(11);
+                }),
+                _.DownArrow, CheckThat(() => {
+                    AssertScreenIs(1, TokenClassification.Command, "dir");
+                    AssertCursorLeftIs(3);
+                }),
+                _.UpArrow,   CheckThat(() =>
+                {
+                    AssertScreenIs(1, TokenClassification.Command, "dosomething");
+                    AssertCursorLeftIs(11);
+                })));
+        }
+
+        [TestMethod]
+        public void TestBeginningOfHistory()
+        {
+            TestSetup(KeyMode.Emacs);
+
+            SetHistory("echo first", "echo second", "echo third");
+            Test("echo first", Keys(_.AltLess));
+
+            SetHistory("echo first", "echo second", "echo third");
+            Test("echo second", Keys(_.AltLess, _.DownArrow));
+        }
+
+        [TestMethod]
+        public void TestEndOfHistory()
+        {
+            TestSetup(KeyMode.Emacs);
+
+            SetHistory("echo first", "echo second", "echo third");
+            Test("", Keys(_.UpArrow, _.AltGreater));
+
+            // Make sure end of history restores the "current" line if
+            // there was anything entered before going through history
+            Test("abc", Keys("abc", _.UpArrow, _.AltGreater));
+
+            // Make sure we don't recall the previous "current" line
+            // after we accepted it.
+            Test("", Keys(_.AltGreater));
         }
 
         [TestMethod]
@@ -76,7 +139,7 @@ namespace UnitTestPSReadLine
         {
             TestSetup(KeyMode.Emacs);
 
-            PSConsoleReadLine.AddToHistory("echo aaa");
+            SetHistory("echo aaa");
             Test("echo aaa", Keys(_.CtrlR, 'a'));
         }
 
@@ -137,6 +200,5 @@ namespace UnitTestPSReadLine
             Test("cccc", Keys("cccc"));
             Test("aaaa", Keys(Enumerable.Repeat(_.UpArrow, 4)));
         }
-
     }
 }

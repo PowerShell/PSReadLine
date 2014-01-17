@@ -158,12 +158,12 @@ namespace UnitTestPSReadLine
             Test("", Keys(_.CtrlO, InputAcceptedNow));
 
             // One item in history
-            PSConsoleReadLine.AddToHistory("echo 1");
+            SetHistory("echo 1");
             Test("", Keys(_.CtrlO, InputAcceptedNow));
 
             // Two items in history, make sure after Ctrl+O, second history item
             // is recalled.
-            PSConsoleReadLine.AddToHistory("echo 2");
+            SetHistory("echo 1", "echo 2");
             Test("echo 1", Keys(_.UpArrow, _.UpArrow, _.CtrlO, InputAcceptedNow));
             Test("echo 2", Keys(_.Enter));
         }
