@@ -370,14 +370,17 @@ namespace PSConsoleUtilities
                 return;
             }
 
-            bool firstKeyAfterNegative = false;
+            bool sawDigit = false;
             _singleton._statusLinePrompt = "digit-argument: ";
             var argBuffer = _singleton._statusBuffer;
             argBuffer.Append(key.Value.KeyChar);
             if (key.Value.KeyChar == '-')
             {
                 argBuffer.Append('1');
-                firstKeyAfterNegative = true;
+            }
+            else
+            {
+                sawDigit = true;
             }
 
             _singleton.Render(); // Render prompt
@@ -403,11 +406,13 @@ namespace PSConsoleUtilities
 
                     if (nextKey.KeyChar >= '0' && nextKey.KeyChar <= '9')
                     {
-                        if (firstKeyAfterNegative)
+                        if (!sawDigit && argBuffer.Length > 0)
                         {
-                            argBuffer.Remove(1, 1);
-                            firstKeyAfterNegative = false;
+                            // Buffer is either '-1' or '1' from one or more Alt+- keys
+                            // but no digits yet.  Remove the '1'.
+                            argBuffer.Length -= 1;
                         }
+                        sawDigit = true;
                         argBuffer.Append(nextKey.KeyChar);
                         _singleton.Render(); // Render prompt
                         continue;
