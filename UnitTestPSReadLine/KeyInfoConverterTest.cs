@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using PSConsoleUtilities;
 
@@ -101,6 +102,31 @@ namespace UnitTestPSReadLine
         }
 
         [TestMethod]
+        public void TestKeyInfoConverterDigits()
+        {
+            var result = ConsoleKeyChordConverter.Convert("1");
+            Assert.IsNotNull(result);
+            Assert.AreEqual(result.Length, 1);
+
+            var key = result[0];
+
+            Assert.AreEqual(key.KeyChar, '1');
+            Assert.AreEqual(key.Key, ConsoleKey.D1);
+            Assert.AreEqual(key.Modifiers, (ConsoleModifiers)0);
+
+            result = ConsoleKeyChordConverter.Convert("Ctrl+7");
+            Assert.IsNotNull(result);
+            Assert.AreEqual(result.Length, 1);
+
+            key = result[0];
+
+            Assert.AreEqual(key.KeyChar, (char)0);
+            Assert.AreEqual(key.Key, ConsoleKey.D7);
+            Assert.AreEqual(key.Modifiers, ConsoleModifiers.Control);
+        }
+
+        [TestMethod]
+        [ExcludeFromCodeCoverage]
         [ExpectedException(typeof(ArgumentException))]        
         public void TestKeyInfoConverterInvalidKey()
         {
@@ -108,6 +134,7 @@ namespace UnitTestPSReadLine
         }
 
         [TestMethod]
+        [ExcludeFromCodeCoverage]
         [ExpectedException(typeof(ArgumentException))]
         public void TestKeyInfoConverterInvalidModifierTypo()
         {
@@ -115,6 +142,7 @@ namespace UnitTestPSReadLine
         }
 
         [TestMethod]
+        [ExcludeFromCodeCoverage]
         [ExpectedException(typeof(ArgumentException))]
         public void TestKeyInfoConverterInvalidModifierInapplicable()
         {
@@ -122,6 +150,7 @@ namespace UnitTestPSReadLine
         }
 
         [TestMethod]
+        [ExcludeFromCodeCoverage]
         [ExpectedException(typeof (ArgumentException))]
         public void TestKeyInfoConverterInvalidSubsequence1()
         {
@@ -129,10 +158,19 @@ namespace UnitTestPSReadLine
         }
 
         [TestMethod]
+        [ExcludeFromCodeCoverage]
         [ExpectedException(typeof (ArgumentException))]
         public void TestKeyInfoConverterInvalidSubsequence2()
         {
             var result = ConsoleKeyChordConverter.Convert(",x");
+        }
+
+        [TestMethod]
+        [ExcludeFromCodeCoverage]
+        [ExpectedException(typeof(ArgumentException))]
+        public void TestKeyInfoConverterInvalidDigits()
+        {
+            var result = ConsoleKeyChordConverter.Convert("Ctrl+10");
         }
     }
 }

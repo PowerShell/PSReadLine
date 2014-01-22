@@ -96,7 +96,7 @@ namespace UnitTestPSReadLine
                 _.Backspace, CheckThat(() => AssertScreenIs(2, TokenClassification.None, '{', NextLine)),
                 '}'));
 
-            ClearScreen();
+            Console.Clear();
             string promptLine = "PS> ";
             Test("\"\"", Keys(
                 '"',
@@ -156,5 +156,22 @@ namespace UnitTestPSReadLine
             Test(input, Keys(input));
         }
 
+        [TestMethod]
+        public void TestDemoWindow()
+        {
+            TestSetup(KeyMode.Cmd,
+                new KeyHandler("Ctrl+D,Ctrl+E", PSConsoleReadLine.EnableDemoMode),
+                new KeyHandler("Ctrl+D,Ctrl+D", PSConsoleReadLine.DisableDemoMode));
+
+            Test("a", Keys(
+                _.CtrlD, _.CtrlE,
+                "a",
+                _.CtrlD, _.CtrlD));
+
+            // To test:
+            //   * Actually check rendering
+            //   * With status line
+            //   * WIth show completions
+        }
     }
 }

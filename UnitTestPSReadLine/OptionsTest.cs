@@ -57,6 +57,29 @@ namespace UnitTestPSReadLine
         }
 
         [TestMethod]
+        public void TestGetKeyHandlers()
+        {
+            foreach (var keymode in new[] {KeyMode.Cmd, KeyMode.Emacs})
+            {
+                TestSetup(keymode);
+
+                foreach (var handler in PSConsoleReadLine.GetKeyHandlers(includeBound: false, includeUnbound: true))
+                {
+                    Assert.AreEqual("Unbound", handler.Key);
+                    Assert.IsFalse(string.IsNullOrWhiteSpace(handler.Function));
+                    Assert.IsFalse(string.IsNullOrWhiteSpace(handler.Description));
+                }
+
+                foreach (var handler in PSConsoleReadLine.GetKeyHandlers(includeBound: true, includeUnbound: false))
+                {
+                    Assert.AreNotEqual("Unbound", handler.Key);
+                    Assert.IsFalse(string.IsNullOrWhiteSpace(handler.Function));
+                    Assert.IsFalse(string.IsNullOrWhiteSpace(handler.Description));
+                }
+            }
+        }
+
+        [TestMethod]
         [ExcludeFromCodeCoverage]
         public void TestUselessStuffForBetterCoverage()
         {
@@ -78,6 +101,10 @@ namespace UnitTestPSReadLine
                           + options.BellStyle.GetHashCode()
                           + options.ExtraPromptLineCount.GetHashCode()
                           + options.ShowToolTips.GetHashCode()
+                          + options.CompletionQueryItems.GetHashCode()
+                          + options.EmphasisBackgroundColor.GetHashCode()
+                          + options.EmphasisForegroundColor.GetHashCode()
+                          + options.HistorySearchCaseSensitive.GetHashCode()
                           + getKeyHandlerCommand.Bound.GetHashCode()
                           + getKeyHandlerCommand.Unbound.GetHashCode();
             // This assertion just avoids annoying warnings about unused variables.

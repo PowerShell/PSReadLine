@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.ObjectModel;
 using System.Management.Automation;
 using System.Reflection;
@@ -58,7 +59,7 @@ namespace UnitTestPSReadLine
         {
             TestSetup(KeyMode.Emacs);
 
-            ClearScreen();
+            Console.Clear();
             // Test empty input, make sure line after the cursor is blank and cursor didn't move
             Test("", Keys(
                 _.AltEquals,
@@ -93,7 +94,7 @@ namespace UnitTestPSReadLine
                 PSConsoleUtilities.Fakes.ShimPSConsoleReadLine.Ding =
                     () => ding = true;
 
-                ClearScreen();
+                Console.Clear();
                 Test("none", Keys(
                     "none",
                     _.AltEquals,

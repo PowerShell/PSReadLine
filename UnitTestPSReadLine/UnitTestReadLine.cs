@@ -3,6 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Management.Automation.Runspaces;
+using System.Threading;
+using System.Windows;
 using Microsoft.QualityTools.Testing.Fakes;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using PSConsoleUtilities;
@@ -24,15 +26,15 @@ namespace UnitTestPSReadLine
 
             for (var i = 'a'; i <= 'z'; i++)
             {
-                CharToKeyInfo[i] = new ConsoleKeyInfo(i, ConsoleKey.A + 'a' - i, false, false, false);
+                CharToKeyInfo[i] = new ConsoleKeyInfo(i, ConsoleKey.A + i - 'a', false, false, false);
             }
             for (var i = 'A'; i <= 'Z'; i++)
             {
-                CharToKeyInfo[i] = new ConsoleKeyInfo(i, ConsoleKey.A + 'A' - i, true, false, false);
+                CharToKeyInfo[i] = new ConsoleKeyInfo(i, ConsoleKey.A + i - 'A', true, false, false);
             }
             for (var i = '0'; i <= '9'; i++)
             {
-                CharToKeyInfo[i] = new ConsoleKeyInfo(i, ConsoleKey.D0 + '0' - i, false, false, false);
+                CharToKeyInfo[i] = new ConsoleKeyInfo(i, ConsoleKey.D0 + i - '0', false, false, false);
             }
             CharToKeyInfo['{'] = _.LCurly;
             CharToKeyInfo['}'] = _.RCurly;
@@ -134,6 +136,63 @@ namespace UnitTestPSReadLine
             int unused;
             PSConsoleReadLine.GetBufferState(out input, out unused);
             Assert.AreEqual(expected, input);
+        }
+
+        private void AssertClipboardTextIs(params string[] lines)
+        {
+            string fromClipboard = null;
+            ExecuteOnSTAThread(() =>
+            {
+                for (int i = 0; i < 5; i++)
+                {
+                    try
+                    {
+                        Assert.IsTrue(Clipboard.ContainsText());
+                        fromClipboard = Clipboard.GetText();
+                    }
+                    catch (System.Runtime.InteropServices.COMException)
+                    {
+                    }
+                }
+            });
+            var newline = Environment.NewLine;
+            var text = string.Join(Environment.NewLine, lines);
+            if (!text.EndsWith(newline))
+            {
+                text = text + newline;
+            }
+            Assert.AreEqual(text, fromClipboard);
+        }
+
+        private static void ExecuteOnSTAThread(Action action)
+        {
+            if (Thread.CurrentThread.GetApartmentState() == ApartmentState.STA)
+            {
+                action();
+                return;
+            }
+
+            Exception exception = null;
+            var thread = new Thread(() =>
+            {
+                try
+                {
+                    action();
+                }
+                catch (Exception e)
+                {
+                    exception = e;
+                }
+            });
+
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+            thread.Join();
+
+            if (exception != null)
+            {
+                throw exception;
+            }
         }
 
         private class NextLineToken { }
@@ -360,19 +419,6 @@ namespace UnitTestPSReadLine
             }
         }
 
-        static void ClearScreen()
-        {
-            int bufferWidth = Console.BufferWidth;
-            const int bufferLineCount = 10;
-            var consoleBuffer = new CHAR_INFO[bufferWidth * bufferLineCount];
-            for (int i = 0; i < consoleBuffer.Length; i++)
-            {
-                consoleBuffer[i] = new CHAR_INFO(' ', Console.ForegroundColor, Console.BackgroundColor);
-            }
-            int top = 0;
-            WriteBufferLines(consoleBuffer, ref top);
-        }
-
         static private void SetPrompt(string prompt)
         {
             if (string.IsNullOrEmpty(prompt))
@@ -430,6 +476,8 @@ namespace UnitTestPSReadLine
             {
                 Console.CursorLeft = 0;
                 Console.CursorTop = 0;
+                Console.BufferWidth = Console.WindowWidth = 60;
+                Console.BufferHeight = Console.WindowHeight = 40;
             }
             SetPrompt(prompt);
             int index = 0;
@@ -462,7 +510,8 @@ namespace UnitTestPSReadLine
                             return _.CtrlC;
                         }
                     }
-                    Assert.Fail("Shouldn't call ReadKey when there are no more keys");
+
+                    validationFailure = new Exception("Shouldn't call ReadKey when there are no more keys");
                     return _.CtrlC;
                 };
 
@@ -485,7 +534,7 @@ namespace UnitTestPSReadLine
 
         private void TestSetup(KeyMode keyMode, params KeyHandler[] keyHandlers)
         {
-            ClearScreen();
+            Console.Clear();
             PSConsoleReadLine.ClearHistory();
             PSConsoleReadLine.ClearKillRing();
 

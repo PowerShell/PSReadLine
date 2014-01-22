@@ -404,9 +404,16 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void Paste(ConsoleKeyInfo? key = null, object arg = null)
         {
-            if (Clipboard.ContainsText())
+            string textToPaste = null;
+            ExecuteOnSTAThread(() => {
+                if (Clipboard.ContainsText())
+                {
+                    textToPaste = Clipboard.GetText();
+                }
+            });
+
+            if (textToPaste != null)
             {
-                string textToPaste = Clipboard.GetText();
                 textToPaste = textToPaste.Replace("\r", "");
                 if (_singleton._visualSelectionCommandCount > 0)
                 {
@@ -426,16 +433,18 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void Copy(ConsoleKeyInfo? key = null, object arg = null)
         {
+            string textToSet;
             if (_singleton._visualSelectionCommandCount > 0)
             {
                 int start, length;
                 _singleton.GetRegion(out start, out length);
-                Clipboard.SetText(_singleton._buffer.ToString(start, length));
+                textToSet = _singleton._buffer.ToString(start, length);
             }
             else
             {
-                Clipboard.SetText(_singleton._buffer.ToString());
+                textToSet = _singleton._buffer.ToString(); 
             }
+            ExecuteOnSTAThread(() => Clipboard.SetText(textToSet));
         }
 
         /// <summary>
@@ -451,6 +460,5 @@ namespace PSConsoleUtilities
                 Delete(start, length);
             }
         }
-
     }
 }
