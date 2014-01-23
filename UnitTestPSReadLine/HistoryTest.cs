@@ -317,22 +317,9 @@ namespace UnitTestPSReadLine
                     statusColors, "fwd-i-search: a_")),
                 _.CtrlG));
 
-            // To test:
-            // * Type multiple characters and
-            //    - search always succeeds
-            //    - search fails
-            // * Backspace after failed search, back to success
-            // * Backspace after success but no change to item found
-            // * Backspace after success but change to item found
-            // * Finish with:
-            //    - Escape
-            //    - Something else like cursor movement, make sure it applies
-            //    - Abort
-            //       - Make sure original line is restored
-            //    - Custom bound abort
-            //       - Make sure original line is restored
-            // * Reverse directions
-            // * Start with fwd search, then reverse
+            // TODO: long search line
+            // TODO: start with Ctrl+S
+            // TODO: "fast" typing in search where buffered keys after search is accepted
         }
 
         [TestMethod]
