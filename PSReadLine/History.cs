@@ -222,38 +222,45 @@ namespace PSConsoleUtilities
             _singleton.HistorySearch(backward: false);
         }
 
-        private void UpdateHistoryDuringInteractiveSearch(string toMatch, int direction)
+        private void UpdateHistoryDuringInteractiveSearch(string toMatch, int direction, ref int searchFromPoint)
         {
-            for (int i = _currentHistoryIndex + direction; i >=0 && i < _history.Count; i += direction)
+            searchFromPoint += direction;
+            while (searchFromPoint >= 0 && searchFromPoint < _history.Count)
             {
-                var startIndex = _history[i]._line.IndexOf(toMatch, Options.HistoryStringComparison);
+                var startIndex = _history[searchFromPoint]._line.IndexOf(toMatch, Options.HistoryStringComparison);
                 if (startIndex >= 0)
                 {
                     _statusLinePrompt = direction > 0 ? _forwardISearchPrompt : _backwardISearchPrompt;
                     _current = startIndex;
                     _emphasisStart = startIndex;
                     _emphasisLength = toMatch.Length;
-                    _currentHistoryIndex = i;
+                    _currentHistoryIndex = searchFromPoint;
                     UpdateFromHistory(moveCursor: Options.HistorySearchCursorMovesToEnd);
                     return;
                 }
+                searchFromPoint += direction;
             }
 
+            // Make sure we're never more than 1 away from being in range so if they
+            // reverse direction, the first time they reverse they are back in range.
+            if (searchFromPoint < 0)
+                searchFromPoint = -1;
+            else if (searchFromPoint >= _history.Count)
+                searchFromPoint = _history.Count;
+
+            _emphasisStart = -1;
+            _emphasisLength = 0;
             _statusLinePrompt = direction > 0 ? _failedForwardISearchPrompt : _failedBackwardISearchPrompt;
             Render();
         }
 
-        private void InteractiveHistorySearchLoop(int direction, string currentBuffer)
+        private void InteractiveHistorySearchLoop(int direction)
         {
+            var searchFromPoint = _currentHistoryIndex;
             var searchPositions = new Stack<int>();
             searchPositions.Push(_currentHistoryIndex);
 
-            var toMatch = new StringBuilder(currentBuffer, 64);
-            var initialToMatchLength = currentBuffer.Length;
-            if (initialToMatchLength > 0)
-            {
-                UpdateHistoryDuringInteractiveSearch(currentBuffer, direction);
-            }
+            var toMatch = new StringBuilder(64);
             while (true)
             {
                 var key = ReadKey();
@@ -262,15 +269,15 @@ namespace PSConsoleUtilities
                 var function = handler != null ? handler.Action : null;
                 if (function == ReverseSearchHistory)
                 {
-                    UpdateHistoryDuringInteractiveSearch(toMatch.ToString(), direction);
+                    UpdateHistoryDuringInteractiveSearch(toMatch.ToString(), -1, ref searchFromPoint);
                 }
                 else if (function == ForwardSearchHistory)
                 {
-                    UpdateHistoryDuringInteractiveSearch(toMatch.ToString(), -direction);
+                    UpdateHistoryDuringInteractiveSearch(toMatch.ToString(), +1, ref searchFromPoint);
                 }
-                else if (function == BackwardDeleteChar)
+                else if (function == BackwardDeleteChar || key == Keys.Backspace || key == Keys.CtrlH)
                 {
-                    if (toMatch.Length > initialToMatchLength)
+                    if (toMatch.Length > 0)
                     {
                         toMatch.Remove(toMatch.Length - 1, 1);
                         _statusBuffer.Remove(_statusBuffer.Length - 2, 1);
@@ -331,7 +338,7 @@ namespace PSConsoleUtilities
                     var startIndex = _buffer.ToString().IndexOf(toMatchStr, Options.HistoryStringComparison);
                     if (startIndex < 0)
                     {
-                        UpdateHistoryDuringInteractiveSearch(toMatchStr, direction);
+                        UpdateHistoryDuringInteractiveSearch(toMatchStr, direction, ref searchFromPoint);
                     }
                     else
                     {
@@ -365,14 +372,12 @@ namespace PSConsoleUtilities
         {
             SaveCurrentLine();
 
-            var currentBuffer = _buffer.ToString();
             // Add a status line that will contain the search prompt and string
             _statusLinePrompt = direction > 0 ? _forwardISearchPrompt : _backwardISearchPrompt;
-            _statusBuffer.Append(currentBuffer);
             _statusBuffer.Append("_");
 
             Render(); // Render prompt
-            InteractiveHistorySearchLoop(direction, currentBuffer);
+            InteractiveHistorySearchLoop(direction);
 
             // Remove our status line
             _statusBuffer.Clear();

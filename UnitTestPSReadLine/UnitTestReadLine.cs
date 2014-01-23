@@ -540,15 +540,25 @@ namespace UnitTestPSReadLine
 
             var options = new SetPSReadlineOption
             {
-                AddToHistoryHandler         = null,
-                HistoryNoDuplicates         = PSConsoleReadlineOptions.DefaultHistoryNoDuplicates,
-                MaximumHistoryCount         = PSConsoleReadlineOptions.DefaultMaximumHistoryCount,
-                MaximumKillRingCount        = PSConsoleReadlineOptions.DefaultMaximumKillRingCount,
-                ResetTokenColors            = true,
-                ExtraPromptLineCount        = PSConsoleReadlineOptions.DefaultExtraPromptLineCount,
-                ContinuationPrompt          = PSConsoleReadlineOptions.DefaultContinuationPrompt,
-                DingDuration                = 1,  // Make tests virtually silent when they ding
-                DingTone                    = 37, // Make tests virtually silent when they ding
+                AddToHistoryHandler               = null,
+                BellStyle                         = PSConsoleReadlineOptions.DefaultBellStyle,
+                CompletionQueryItems              = PSConsoleReadlineOptions.DefaultCompletionQueryItems,
+                ContinuationPrompt                = PSConsoleReadlineOptions.DefaultContinuationPrompt,
+                ContinuationPromptBackgroundColor = Console.BackgroundColor,
+                ContinuationPromptForegroundColor = Console.ForegroundColor,
+                DingDuration                      = 1,  // Make tests virtually silent when they ding
+                DingTone                          = 37, // Make tests virtually silent when they ding
+                EmphasisBackgroundColor           = Console.BackgroundColor,
+                EmphasisForegroundColor           = PSConsoleReadlineOptions.DefaultEmphasisForegroundColor,
+                ExtraPromptLineCount              = PSConsoleReadlineOptions.DefaultExtraPromptLineCount,
+                HistoryNoDuplicates               = PSConsoleReadlineOptions.DefaultHistoryNoDuplicates,
+                HistorySearchCaseSensitive        = PSConsoleReadlineOptions.DefaultHistorySearchCaseSensitive,
+                HistorySearchCursorMovesToEnd     = PSConsoleReadlineOptions.DefaultHistorySearchCursorMovesToEnd,
+                MaximumHistoryCount               = PSConsoleReadlineOptions.DefaultMaximumHistoryCount,
+                MaximumKillRingCount              = PSConsoleReadlineOptions.DefaultMaximumKillRingCount,
+                ResetTokenColors                  = true,
+                ShowToolTips                      = PSConsoleReadlineOptions.DefaultShowToolTips,
+                WordDelimiters                    = PSConsoleReadlineOptions.DefaultWordDelimiters,
             };
 
             switch (keyMode)
