@@ -93,11 +93,11 @@ namespace PSConsoleUtilities
                 Options.MaximumKillRingCount = options.MaximumKillRingCount;
                 // TODO - make _killRing smaller
             }
-            if (options._editMode.HasValue && options.EditMode != Options.EditMode)
+            if (options._editMode.HasValue)
             {
                 Options.EditMode = options.EditMode;
 
-                // Switching modes - clear out chord dispatch table
+                // Switching/resetting modes - clear out chord dispatch table
                 _chordDispatchTable.Clear();
 
                 switch (options._editMode)
