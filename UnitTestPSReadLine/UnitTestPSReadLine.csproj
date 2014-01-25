@@ -69,6 +69,7 @@
     <Compile Include="CompletionTest.cs" />
     <Compile Include="DigitArgumentTest.cs" />
     <Compile Include="HistoryTest.cs" />
+    <Compile Include="KeyBindingsTest.cs" />
     <Compile Include="KeyInfoConverterTest.cs" />
     <Compile Include="BasicEditingTest.cs" />
     <Compile Include="KillYankTest.cs" />
