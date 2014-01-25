@@ -102,5 +102,90 @@ namespace UnitTestPSReadLine
                 }
             }
         }
+
+        [TestMethod]
+        public void TestCharacterSearch()
+        {
+            TestSetup(KeyMode.Cmd);
+
+            Test("cmd1 | cmd2 | cmd3", Keys(
+                "cmd1 | cmd2 | cmd3", _.Home,
+                _.F3, '|', CheckThat(() => AssertCursorLeftIs(5)),
+                _.F3, '|', CheckThat(() => AssertCursorLeftIs(12))));
+
+            TestSetup(KeyMode.Emacs);
+
+            Test("cmd1 | cmd2 | cmd3", Keys(
+                "cmd1 | cmd2 | cmd3", _.Home,
+                _.CtrlRBracket, '|', CheckThat(() => AssertCursorLeftIs(5)),
+                _.CtrlRBracket, '|', CheckThat(() => AssertCursorLeftIs(12)),
+                _.End,
+                _.AltMinus, _.Alt2, _.CtrlRBracket, '|', CheckThat(() => AssertCursorLeftIs(5)),
+                _.Home,
+                _.Alt2, _.CtrlRBracket, '|', CheckThat(() => AssertCursorLeftIs(12))));
+
+            using (ShimsContext.Create())
+            {
+                bool ding = false;
+                PSConsoleUtilities.Fakes.ShimPSConsoleReadLine.Ding =
+                    () => ding = true;
+
+                Test("cmd1 | cmd2 | cmd3", Keys(
+                    "cmd1 | cmd2 | cmd3",
+                    _.CtrlRBracket, 'z', CheckThat(() => Assert.IsTrue(ding))));
+            }
+
+            int i = 0;
+            TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+z",
+                (key, count) => PSConsoleReadLine.CharacterSearch(null, i++ == 0 ? (object)'|' : "|")));
+
+            Test("cmd1 | cmd2 | cmd3", Keys(
+                "cmd1 | cmd2 | cmd3",
+                _.Home,
+                _.CtrlZ, CheckThat(() => AssertCursorLeftIs(5)),
+                _.CtrlZ, CheckThat(() => AssertCursorLeftIs(12))));
+        }
+
+        [TestMethod]
+        public void TestCharacterSearchBackward()
+        {
+            TestSetup(KeyMode.Cmd);
+
+            Test("cmd1 | cmd2 | cmd3", Keys(
+                "cmd1 | cmd2 | cmd3",
+                _.ShiftF3, '|', CheckThat(() => AssertCursorLeftIs(12)),
+                _.ShiftF3, '|', CheckThat(() => AssertCursorLeftIs(5))));
+
+            TestSetup(KeyMode.Emacs);
+
+            Test("cmd1 | cmd2 | cmd3", Keys(
+                "cmd1 | cmd2 | cmd3",
+                _.AltCtrlRBracket, '|', CheckThat(() => AssertCursorLeftIs(12)),
+                _.AltCtrlRBracket, '|', CheckThat(() => AssertCursorLeftIs(5)),
+                _.Home,
+                _.AltMinus, _.Alt2, _.AltCtrlRBracket, '|', CheckThat(() => AssertCursorLeftIs(12)),
+                _.End,
+                _.Alt2, _.AltCtrlRBracket, '|', CheckThat(() => AssertCursorLeftIs(5))));
+
+            using (ShimsContext.Create())
+            {
+                bool ding = false;
+                PSConsoleUtilities.Fakes.ShimPSConsoleReadLine.Ding =
+                    () => ding = true;
+
+                Test("cmd1 | cmd2 | cmd3", Keys(
+                    "cmd1 | cmd2 | cmd3",
+                    _.AltCtrlRBracket, 'z', CheckThat(() => Assert.IsTrue(ding))));
+            }
+
+            int i = 0;
+            TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+z",
+                (key, count) => PSConsoleReadLine.CharacterSearchBackward(null, i++ == 0 ? (object)'|' : "|")));
+
+            Test("cmd1 | cmd2 | cmd3", Keys(
+                "cmd1 | cmd2 | cmd3",
+                _.CtrlZ, CheckThat(() => AssertCursorLeftIs(12)),
+                _.CtrlZ, CheckThat(() => AssertCursorLeftIs(5))));
+        }
     }
 }
