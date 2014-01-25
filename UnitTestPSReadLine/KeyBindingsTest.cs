@@ -35,5 +35,18 @@ namespace UnitTestPSReadLine
                 _.AltQuestion, _.CtrlX, _.CtrlU,
                 CheckThat(() => AssertScreenIs(2, NextLine, "Ctrl+x,Ctrl+u: Undo - Undo a previous edit"))));
         }
+
+        [TestMethod]
+        public void TestShowKeyBindings()
+        {
+            // I'm too lazy to validate the output as there's a lot of output.  So
+            // just run it a few times to make sure nothing crashes.
+
+            TestSetup(KeyMode.Cmd);
+            Test("", Keys(Enumerable.Repeat(_.CtrlAltQuestion, 10)));
+
+            TestSetup(KeyMode.Emacs);
+            Test("", Keys(Enumerable.Repeat(_.CtrlAltQuestion, 10)));
+        }
     }
 }
