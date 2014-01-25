@@ -495,53 +495,28 @@ namespace PSConsoleUtilities
         // doesn't work for us.
         static private void WriteLine(string s)
         {
-            var handle = NativeMethods.GetStdHandle((uint) StandardHandleId.Output);
-
-            var buffer = new CHAR_INFO[Console.BufferWidth];
-            int i = 0;
-            int linesWritten = 0;
-            int startLine = Console.CursorTop;
-            var space = new CHAR_INFO(' ', Console.ForegroundColor, Console.BackgroundColor);
-            while (i < s.Length)
+            var buffer = new List<CHAR_INFO>(Console.BufferWidth);
+            foreach (char c in s)
             {
-                int j;
-                for (j = 0; j < buffer.Length && i < s.Length; j++, i++)
+                if (c == '\n')
                 {
-                    if (s[i] == '\n')
+                    while (buffer.Count % Console.BufferWidth != 0)
                     {
-                        break;
+                        buffer.Add(new CHAR_INFO(' ', Console.ForegroundColor, Console.BackgroundColor));
                     }
-                    buffer[j] = new CHAR_INFO(s[i], Console.ForegroundColor, Console.BackgroundColor);
                 }
-
-                if (i < s.Length && s[i] == '\n')
+                else
                 {
-                    i++;
+                    buffer.Add(new CHAR_INFO(c, Console.ForegroundColor, Console.BackgroundColor));
                 }
-
-                while (j < buffer.Length)
-                {
-                    buffer[j++] = space;
-                }
-
-                var bufferSize = new COORD
-                                 {
-                                     X = (short) Console.BufferWidth,
-                                     Y = 1
-                                 };
-                var bufferCoord = new COORD {X = 0, Y = 0};
-                var writeRegion = new SMALL_RECT
-                                  {
-                                      Top = (short) (startLine + linesWritten),
-                                      Left = 0,
-                                      Bottom = (short) (startLine + linesWritten),
-                                      Right = (short) Console.BufferWidth
-                                  };
-                NativeMethods.WriteConsoleOutput(handle, buffer, bufferSize, bufferCoord, ref writeRegion);
-                linesWritten += 1;
             }
-
-            _singleton.PlaceCursor(0, Console.CursorTop + linesWritten);
+            while (buffer.Count % Console.BufferWidth != 0)
+            {
+                buffer.Add(new CHAR_INFO(' ', Console.ForegroundColor, Console.BackgroundColor));
+            }
+            int startLine = Console.CursorTop;
+            WriteBufferLines(buffer.ToArray(), ref startLine);
+            _singleton.PlaceCursor(0, startLine + (buffer.Count / Console.BufferWidth));
         }
 
 
