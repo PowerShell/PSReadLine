@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Windows;
 using Microsoft.QualityTools.Testing.Fakes;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using PSConsoleUtilities;
@@ -215,6 +216,46 @@ namespace UnitTestPSReadLine
             SetHistory("echo a", "echo a");
             TestMustDing("", Keys(_.CtrlZ)); 
             TestMustDing("a", Keys(_.AltPeriod, _.CtrlZ)); 
+        }
+
+        [TestMethod]
+        public void TestPaste()
+        {
+            TestSetup(KeyMode.Cmd);
+
+            ExecuteOnSTAThread(() => Clipboard.SetText("pastetest1"));
+            Test("pastetest1", Keys(_.CtrlV));
+
+            ExecuteOnSTAThread(() => Clipboard.SetText("pastetest2"));
+            Test("echo pastetest2", Keys(
+                "echo foobar", _.ShiftCtrlLeftArrow, _.CtrlV));
+        }
+
+        [TestMethod]
+        public void TestCut()
+        {
+            TestSetup(KeyMode.Cmd);
+
+            ExecuteOnSTAThread(() => Clipboard.SetText(""));
+            Test("", Keys(
+                "cuttest1", _.ShiftCtrlLeftArrow, _.CtrlX));
+            AssertClipboardTextIs("cuttest1");
+        }
+
+        [TestMethod]
+        public void TestCopy()
+        {
+            TestSetup(KeyMode.Cmd);
+
+            ExecuteOnSTAThread(() => Clipboard.SetText(""));
+            Test("copytest1", Keys(
+                "copytest1", _.CtrlShiftC));
+            AssertClipboardTextIs("copytest1");
+
+            ExecuteOnSTAThread(() => Clipboard.SetText(""));
+            Test("echo copytest2", Keys(
+                "echo copytest2", _.ShiftCtrlLeftArrow, _.CtrlShiftC));
+            AssertClipboardTextIs("copytest2");
         }
     }
 }

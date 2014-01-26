@@ -138,7 +138,7 @@ namespace UnitTestPSReadLine
             Assert.AreEqual(expected, input);
         }
 
-        private void AssertClipboardTextIs(params string[] lines)
+        private static string GetClipboardText()
         {
             string fromClipboard = null;
             ExecuteOnSTAThread(() =>
@@ -155,6 +155,18 @@ namespace UnitTestPSReadLine
                     }
                 }
             });
+            return fromClipboard;
+        }
+
+        private void AssertClipboardTextIs(string text)
+        {
+            var fromClipboard = GetClipboardText();
+            Assert.AreEqual(text, fromClipboard);
+        }
+
+        private void AssertScreenCaptureClipboardIs(params string[] lines)
+        {
+            var fromClipboard = GetClipboardText();
             var newline = Environment.NewLine;
             var text = string.Join(Environment.NewLine, lines);
             if (!text.EndsWith(newline))
