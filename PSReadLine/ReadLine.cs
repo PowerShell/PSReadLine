@@ -312,6 +312,7 @@ namespace PSConsoleUtilities
             _bufferWidth = Console.BufferWidth;
             _killCommandCount = 0;
             _yankCommandCount = 0;
+            _yankLastArgCommandCount = 0;
             _tabCommandCount = 0;
             _visualSelectionCommandCount = 0;
 

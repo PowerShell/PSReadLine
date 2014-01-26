@@ -231,7 +231,11 @@ namespace PSConsoleUtilities
 
         void YankArgImpl(YankLastArgState yankLastArgState)
         {
-            Debug.Assert(yankLastArgState.historyIndex >= 0 && yankLastArgState.historyIndex < _history.Count);
+            if (yankLastArgState.historyIndex < 0 || yankLastArgState.historyIndex >= _history.Count)
+            {
+                Ding();
+                return;
+            }
 
             Token[] tokens;
             ParseError[] errors;
@@ -282,6 +286,12 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void YankLastArg(ConsoleKeyInfo? key = null, object arg = null)
         {
+            if (arg != null && !(arg is int))
+            {
+                Ding();
+                return;
+            }
+
             _singleton._yankLastArgCommandCount += 1;
 
             if (_singleton._yankLastArgCommandCount == 1)
@@ -301,12 +311,6 @@ namespace PSConsoleUtilities
 
             if (arg != null)
             {
-                if (!(arg is int))
-                {
-                    Ding();
-                    return;
-                }
-
                 if ((int)arg < 0)
                 {
                     yankLastArgState.historyIncrement = -yankLastArgState.historyIncrement;

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Microsoft.QualityTools.Testing.Fakes;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using PSConsoleUtilities;
 
@@ -147,6 +148,73 @@ namespace UnitTestPSReadLine
                 exchangePointAndMark,
                 CheckThat(() => AssertCursorLeftIs(0))
                 ));
+        }
+
+        [TestMethod]
+        public void TestYankLastNth()
+        {
+            TestSetup(KeyMode.Emacs);
+
+            SetHistory();
+            TestMustDing("", Keys(_.AltCtrlY));
+
+            SetHistory("echo a b c");
+            TestMustDing("", Keys(_.Alt9, _.AltCtrlY));
+
+            SetHistory("echo a b c");
+            TestMustDing("", Keys(_.AltMinus, _.Alt9, _.AltCtrlY));
+
+            // Test no argument, gets the first argument (not the command).
+            SetHistory("echo aa bb");
+            Test("aa", Keys(_.AltCtrlY));
+
+            // Test various arguments:
+            //   * 0 - is the command
+            //   * 2 - the second argument
+            //   * -1 - the last argument
+            //   * -2 - the second to last argument
+            SetHistory("echo aa bb cc 'zz zz $(1 2 3)'");
+            Test("echo bb 'zz zz $(1 2 3)' cc", Keys(
+                _.Alt0, _.AltCtrlY, ' ',
+                _.Alt2, _.AltCtrlY, ' ',
+                _.AltMinus, _.Escape, _.CtrlY, ' ',
+                _.AltMinus, _.Alt2, _.AltCtrlY));
+        }
+
+        [TestMethod]
+        public void TestYankLastArg()
+        {
+            TestSetup(KeyMode.Emacs);
+
+            SetHistory();
+            TestMustDing("", Keys(_.AltPeriod));
+
+            SetHistory("echo def");
+            Test("def", Keys(_.AltPeriod));
+
+            SetHistory("echo abc", "echo def");
+            Test("abc", Keys(_.AltPeriod, _.AltPeriod));
+
+            SetHistory("echo aa bb cc 'zz zz $(1 2 3)'");
+            Test("echo bb 'zz zz $(1 2 3)' cc", Keys(
+                _.Alt0, _.AltPeriod, ' ',
+                _.Alt2, _.AltPeriod, ' ',
+                _.AltMinus, _.AltPeriod, ' ',
+                _.AltMinus, _.Alt2, _.AltPeriod));
+
+            SetHistory("echo a", "echo b");
+            TestMustDing("a", Keys(
+                _.AltPeriod, _.AltPeriod, _.AltPeriod));
+
+            SetHistory("echo a", "echo b");
+            TestMustDing("b", Keys(
+                _.AltPeriod, _.AltPeriod, _.AltMinus, _.AltPeriod, _.AltPeriod));
+
+            // Somewhat silly test to make sure invalid args are handled reasonably.
+            TestSetup(KeyMode.Emacs, new[] {new KeyHandler("Ctrl+Z", (key,arg) => PSConsoleReadLine.YankLastArg(null, "zz"))});
+            SetHistory("echo a", "echo a");
+            TestMustDing("", Keys(_.CtrlZ)); 
+            TestMustDing("a", Keys(_.AltPeriod, _.CtrlZ)); 
         }
     }
 }

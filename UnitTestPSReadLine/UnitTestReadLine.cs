@@ -532,6 +532,19 @@ namespace UnitTestPSReadLine
             }
         }
 
+        static private void TestMustDing(string expectedResult, object[] items, bool resetCursor = true, string prompt = null)
+        {
+            using (ShimsContext.Create())
+            {
+                bool ding = false;
+                PSConsoleUtilities.Fakes.ShimPSConsoleReadLine.Ding =
+                    () => ding = true;
+
+                Test(expectedResult, items, resetCursor, prompt);
+                Assert.IsTrue(ding);
+            }
+        }
+
         private void TestSetup(KeyMode keyMode, params KeyHandler[] keyHandlers)
         {
             Console.Clear();
