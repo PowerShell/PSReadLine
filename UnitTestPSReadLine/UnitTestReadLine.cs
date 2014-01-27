@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Management.Automation.Runspaces;
 using System.Threading;
@@ -562,6 +563,10 @@ namespace UnitTestPSReadLine
             Console.Clear();
             PSConsoleReadLine.ClearHistory();
             PSConsoleReadLine.ClearKillRing();
+
+            // We don't want stdout redirected, we want it sent to the screen.
+            var standardOutput = new StreamWriter(Console.OpenStandardOutput()) {AutoFlush = true};
+            Console.SetOut(standardOutput);
 
             var options = new SetPSReadlineOption
             {

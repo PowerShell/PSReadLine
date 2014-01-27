@@ -287,7 +287,7 @@ namespace PSConsoleUtilities
                                       ? match.ToolTip
                                       : match.ToolTip.Substring(0, maxTooltipWidth);
                     sb.Append(toolTip.Trim());
-                    WriteLine(sb.ToString());
+                    Console.WriteLine(sb.ToString());
                     sb.Clear();
                 }
             }
@@ -308,7 +308,7 @@ namespace PSConsoleUtilities
                         sb.Append(item);
                         sb.Append(' ', minColWidth - item.Length);
                     }
-                    WriteLine(sb.ToString());
+                    Console.WriteLine(sb.ToString());
                     sb.Clear();
                 }
             }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Management.Automation;
 using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using PSConsoleUtilities;
@@ -172,6 +173,58 @@ namespace UnitTestPSReadLine
             //   * Actually check rendering
             //   * With status line
             //   * WIth show completions
+        }
+
+        [TestMethod]
+        public void TestInvokePrompt()
+        {
+            TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+Z", PSConsoleReadLine.InvokePrompt));
+
+            // Test dumb prompt that doesn't return anything.
+            using (var ps = PowerShell.Create(RunspaceMode.CurrentRunspace))
+            {
+                ps.AddScript(@"function prompt {}");
+                ps.Invoke();
+            }
+            Test("dir", Keys(
+                "dir", _.CtrlZ,
+                CheckThat(() => AssertScreenIs(1,
+                    Tuple.Create(Console.ForegroundColor, Console.BackgroundColor), "PS>",
+                    TokenClassification.Command, "dir"))));
+
+            // Test a boring prompt function
+            using (var ps = PowerShell.Create(RunspaceMode.CurrentRunspace))
+            {
+                ps.AddScript(@"function prompt { 'PSREADLINE> ' }");
+                ps.Invoke();
+            }
+            Test("dir", Keys(
+                "dir", _.CtrlZ,
+                CheckThat(() => AssertScreenIs(1,
+                    Tuple.Create(Console.ForegroundColor, Console.BackgroundColor), "PSREADLINE> ",
+                    TokenClassification.Command, "dir"))));
+
+            // Tricky prompt - writes to console directly with colors, uses ^H trick to eliminate trailng space.
+            using (var ps = PowerShell.Create(RunspaceMode.CurrentRunspace))
+            {
+                ps.AddScript(@"
+function prompt {
+    $fg = [Console]::ForegroundColor
+    $bg = [Console]::BackgroundColor
+    [Console]::ForegroundColor = [ConsoleColor]::Blue
+    [Console]::BackgroundColor = [ConsoleColor]::Magenta
+    [Console]::Write('PSREADLINE>')
+    [Console]::ForegroundColor = $fg
+    [Console]::BackgroundColor = $bg
+    return ' ' + ([char]8)
+}");
+                ps.Invoke();
+            }
+            Test("dir", Keys(
+                "dir", _.CtrlZ,
+                CheckThat(() => AssertScreenIs(1,
+                    Tuple.Create(ConsoleColor.Blue, ConsoleColor.Magenta), "PSREADLINE>",
+                    TokenClassification.Command, "dir"))));
         }
     }
 }

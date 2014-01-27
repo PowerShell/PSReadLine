@@ -488,38 +488,6 @@ namespace PSConsoleUtilities
             }
         }
 
-        // Console.WriteLine works as expected in PowerShell but not in the unit test framework
-        // so we use our own special (and limited) version as we don't need WriteLine much.
-        // The unit test framework redirects stdout - so it would see Console.WriteLine calls.
-        // Unfortunately, we are testing exact placement of characters on the screen, so redirection
-        // doesn't work for us.
-        static private void WriteLine(string s)
-        {
-            var buffer = new List<CHAR_INFO>(Console.BufferWidth);
-            foreach (char c in s)
-            {
-                if (c == '\n')
-                {
-                    while (buffer.Count % Console.BufferWidth != 0)
-                    {
-                        buffer.Add(new CHAR_INFO(' ', Console.ForegroundColor, Console.BackgroundColor));
-                    }
-                }
-                else
-                {
-                    buffer.Add(new CHAR_INFO(c, Console.ForegroundColor, Console.BackgroundColor));
-                }
-            }
-            while (buffer.Count % Console.BufferWidth != 0)
-            {
-                buffer.Add(new CHAR_INFO(' ', Console.ForegroundColor, Console.BackgroundColor));
-            }
-            int startLine = Console.CursorTop;
-            WriteBufferLines(buffer.ToArray(), ref startLine);
-            _singleton.PlaceCursor(0, startLine + (buffer.Count / Console.BufferWidth));
-        }
-
-
         private bool PromptYesOrNo(string s)
         {
             _statusLinePrompt = s;

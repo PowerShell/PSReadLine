@@ -490,12 +490,16 @@ namespace PSConsoleUtilities
             Console.CursorLeft = 0;
             Console.CursorTop = _singleton._initialY;
 
-            var ps = PowerShell.Create(RunspaceMode.CurrentRunspace);
-            ps.AddCommand("prompt");
-            var result = ps.Invoke<string>();
-            var strResult = result.Count == 1 ? result[0] : "PS> ";
-            Console.Write(strResult);
+            string newPrompt;
+            using (var ps = PowerShell.Create(RunspaceMode.CurrentRunspace))
+            {
+                ps.AddCommand("prompt");
+                var result = ps.Invoke<string>();
+                newPrompt = result.Count == 1 ? result[0] : "PS>";
+            }
+            Console.Write(newPrompt);
 
+            _singleton._initialX = Console.CursorLeft;
             _singleton._consoleBuffer = ReadBufferLines(_singleton._initialY, 1 + _singleton.Options.ExtraPromptLineCount);
             _singleton._buffer.Append(currentBuffer);
             _singleton._current = currentPos;

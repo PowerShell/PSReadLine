@@ -244,7 +244,7 @@ namespace PSConsoleUtilities
             var coords = _singleton.ConvertOffsetToCoordinates(_singleton._buffer.Length);
             _singleton.PlaceCursor(0, coords.Y + 1);
 
-            WriteLine(buffer.ToString());
+            Console.WriteLine(buffer.ToString());
             _singleton._initialY = Console.CursorTop;
             _singleton.Render();
         }
@@ -303,7 +303,7 @@ namespace PSConsoleUtilities
             var coords = _singleton.ConvertOffsetToCoordinates(_singleton._buffer.Length);
             _singleton.PlaceCursor(0, coords.Y + 1);
 
-            WriteLine(buffer.ToString());
+            Console.WriteLine(buffer.ToString());
             _singleton._initialY = Console.CursorTop;
             _singleton.Render();
         }
