@@ -118,8 +118,6 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void SetCursorPosition(int cursor)
         {
-            EnsureIsInitialized();
-
             if (cursor > _singleton._buffer.Length)
             {
                 cursor = _singleton._buffer.Length;

@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Management.Automation.Language;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using PSConsoleUtilities;
 
 namespace UnitTestPSReadLine
@@ -12,5 +14,102 @@ namespace UnitTestPSReadLine
 
     public partial class UnitTest
     {
+        [TestMethod]
+        public void TestInsertAPI()
+        {
+            TestSetup(KeyMode.Cmd);
+
+            Test("echo foo", Keys(
+                CheckThat(() =>
+                {
+                    PSConsoleReadLine.Insert('e');
+                    PSConsoleReadLine.Insert(" foo");
+                }),
+                _.Home, _.RightArrow,
+                CheckThat(() =>
+                {
+                    PSConsoleReadLine.Insert('c');
+                    PSConsoleReadLine.Insert("ho");
+                })));
+        }
+
+        [TestMethod]
+        public void TestDeleteAPI()
+        {
+            TestSetup(KeyMode.Cmd);
+
+            Test("echo", Keys(
+                "echo zzz",
+                CheckThat(() => PSConsoleReadLine.Delete(4, 4))));
+        }
+
+        [TestMethod]
+        public void TestReplaceAPI()
+        {
+            TestSetup(KeyMode.Cmd);
+
+            Test("echo zzz", Keys(
+                "echo foobar",
+                CheckThat(() => PSConsoleReadLine.Replace(5, 6, "zzz"))));
+
+            bool throws = false;
+            Test("echo", Keys(
+                "echo",
+                CheckThat(() =>
+                {
+                    try { PSConsoleReadLine.Replace(-1, 6, "zzz"); }
+                    catch (ArgumentException) { throws = true; }
+                    Assert.IsTrue(throws, "Negative start should throw");
+
+                    try { PSConsoleReadLine.Replace(11, 6, "zzz"); }
+                    catch (ArgumentException) { throws = true; }
+                    Assert.IsTrue(throws, "Start beyond end of buffer should throw");
+
+                    try { PSConsoleReadLine.Replace(0, 12, "zzz"); }
+                    catch (ArgumentException) { throws = true; }
+                    Assert.IsTrue(throws, "Length too long should throw");
+                })));
+        }
+
+        [TestMethod]
+        public void TestGetBufferStateAPI()
+        {
+            TestSetup(KeyMode.Cmd);
+
+            Test("echo", Keys(
+                "echo",
+                CheckThat(() =>
+                {
+                    string input;
+                    int cursor;
+                    PSConsoleReadLine.GetBufferState(out input, out cursor);
+                    Assert.AreEqual("echo", input);
+                    Assert.AreEqual(4, cursor);
+
+                    Ast ast;
+                    Token[] tokens;
+                    ParseError[] parseErrors;
+                    PSConsoleReadLine.GetBufferState(out ast, out tokens, out parseErrors, out cursor);
+                    Assert.IsNotNull(ast);
+                    Assert.IsTrue(ast is ScriptBlockAst && ((ScriptBlockAst)ast).EndBlock.Statements.Count == 1);
+                    Assert.IsTrue((tokens[0].TokenFlags & TokenFlags.CommandName) == TokenFlags.CommandName);
+                    Assert.AreEqual(0, parseErrors.Length);
+                    Assert.AreEqual(4, cursor);
+                })));
+        }
+
+        [TestMethod]
+        public void TestSetCursorPositionAPI()
+        {
+            TestSetup(KeyMode.Cmd);
+
+            Test("echo abc", Keys(
+                "ec a",
+                CheckThat(() => PSConsoleReadLine.SetCursorPosition(2)),
+                "ho",
+                CheckThat(() => PSConsoleReadLine.SetCursorPosition(100)),
+                "bc"
+                ));
+        }
     }
 }

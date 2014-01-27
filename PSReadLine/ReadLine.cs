@@ -507,14 +507,5 @@ namespace PSConsoleUtilities
         }
 
         #endregion Miscellaneous bindable functions
-
-        private static void EnsureIsInitialized()
-        {
-            // The check that ConsoleBuffer is not null exists mostly
-            // for unit tests that may execute this function before
-            // the _singleton is initialized.
-            if (_singleton.ConsoleBuffer == null)
-                _singleton.Initialize();
-        }
     }
 }
