@@ -250,10 +250,6 @@ namespace PSConsoleUtilities
                 return;
             }
 
-            // Don't overwrite any of the line - so move to first line after the end of our buffer.
-            var coords = _singleton.ConvertOffsetToCoordinates(_singleton._buffer.Length);
-            _singleton.PlaceCursor(0, coords.Y + 1);
-
             if (completions.CompletionMatches.Count >= _singleton._options.CompletionQueryItems)
             {
                 if (!_singleton.PromptYesOrNo(string.Format(PSReadLineResources.DisplayAllPossibilities, completions.CompletionMatches.Count)))
@@ -261,6 +257,10 @@ namespace PSConsoleUtilities
                     return;
                 }
             }
+
+            // Don't overwrite any of the line - so move to first line after the end of our buffer.
+            var coords = _singleton.ConvertOffsetToCoordinates(_singleton._buffer.Length);
+            _singleton.PlaceCursor(0, coords.Y + 1);
 
             var sb = new StringBuilder();
             var matches = completions.CompletionMatches.Select(
@@ -287,14 +287,20 @@ namespace PSConsoleUtilities
                                       ? match.ToolTip
                                       : match.ToolTip.Substring(0, maxTooltipWidth);
                     sb.Append(toolTip.Trim());
-                    Console.WriteLine(sb.ToString());
+
+                    // Make sure we always write out exactly 1 buffer width
+                    spacesNeeded = Console.BufferWidth - sb.Length;
+                    if (spacesNeeded > 0)
+                    {
+                        sb.Append(' ', spacesNeeded);
+                    }
+                    Console.Write(sb.ToString());
                     sb.Clear();
                 }
             }
             else
             {
-                // Use BufferWidth here instead of WindowWidth?  Probably shouldn't.
-                var screenColumns = Console.WindowWidth;
+                var screenColumns = Console.BufferWidth;
                 var displayColumns = Math.Max(1, screenColumns / minColWidth);
                 var displayRows = (completions.CompletionMatches.Count + displayColumns - 1) / displayColumns;
                 for (var row = 0; row < displayRows; row++)
@@ -308,7 +314,14 @@ namespace PSConsoleUtilities
                         sb.Append(item);
                         sb.Append(' ', minColWidth - item.Length);
                     }
-                    Console.WriteLine(sb.ToString());
+
+                    // Make sure we always write out exactly 1 buffer width
+                    var spacesNeeded = Console.BufferWidth - sb.Length;
+                    if (spacesNeeded > 0)
+                    {
+                        sb.Append(' ', spacesNeeded);
+                    }
+                    Console.Write(sb.ToString());
                     sb.Clear();
                 }
             }
