@@ -211,6 +211,9 @@ namespace UnitTestPSReadLine
         private class NextLineToken { }
         static NextLineToken NextLine = new NextLineToken();
 
+        private class InvertedToken { }
+        static InvertedToken Inverted = new InvertedToken();
+
         private CHAR_INFO[] CreateCharInfoBuffer(int lines, params object[] items)
         {
             var result = new List<CHAR_INFO>();
@@ -223,6 +226,12 @@ namespace UnitTestPSReadLine
                 if (item is char)
                 {
                     result.Add(new CHAR_INFO((char)item, fg, bg));
+                    continue;
+                }
+                if (item is InvertedToken)
+                {
+                    fg = (ConsoleColor)((int)fg ^ 7);
+                    bg = (ConsoleColor)((int)bg ^ 7);
                     continue;
                 }
                 if (item is NextLineToken)
