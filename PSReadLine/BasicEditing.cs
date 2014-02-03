@@ -20,14 +20,36 @@ namespace PSConsoleUtilities
             if (arg is int)
             {
                 var count = (int)arg;
-                if (count > 0)
+                if (count <= 0)
+                    return;
+                if (count > 1)
                 {
-                    Insert(new string(key.Value.KeyChar, count));
+                    var toInsert = new string(key.Value.KeyChar, count);
+                    if (_singleton._visualSelectionCommandCount > 0)
+                    {
+                        int start, length;
+                        _singleton.GetRegion(out start, out length);
+                        Replace(start, length, toInsert);
+                    }
+                    else
+                    {
+                        Insert(toInsert);
+                    }
+                    return;
                 }
-                return;
             }
 
-            Insert(key.Value.KeyChar);
+            if (_singleton._visualSelectionCommandCount > 0)
+            {
+                int start, length;
+                _singleton.GetRegion(out start, out length);
+                Replace(start, length, new string(key.Value.KeyChar, 1));
+            }
+            else
+            {
+                Insert(key.Value.KeyChar);
+            }
+
         }
 
         /// <summary>
