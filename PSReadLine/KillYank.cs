@@ -352,7 +352,7 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void SelectBackwardChar(ConsoleKeyInfo? key, object arg)
         {
-            _singleton.VisualSelectionCommon(() => BackwardChar());
+            _singleton.VisualSelectionCommon(() => BackwardChar(key, arg));
         }
 
         /// <summary>
@@ -360,7 +360,7 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void SelectForwardChar(ConsoleKeyInfo? key, object arg)
         {
-            _singleton.VisualSelectionCommon(() => ForwardChar());
+            _singleton.VisualSelectionCommon(() => ForwardChar(key, arg));
         }
 
         /// <summary>
@@ -368,7 +368,7 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void SelectBackwardWord(ConsoleKeyInfo? key, object arg)
         {
-            _singleton.VisualSelectionCommon(() => BackwardWord());
+            _singleton.VisualSelectionCommon(() => BackwardWord(key, arg));
         }
 
         /// <summary>
@@ -376,7 +376,7 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void SelectNextWord(ConsoleKeyInfo? key, object arg)
         {
-            _singleton.VisualSelectionCommon(() => NextWord());
+            _singleton.VisualSelectionCommon(() => NextWord(key, arg));
         }
 
         /// <summary>
@@ -384,7 +384,7 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void SelectForwardWord(ConsoleKeyInfo? key, object arg)
         {
-            _singleton.VisualSelectionCommon(() => ForwardWord());
+            _singleton.VisualSelectionCommon(() => ForwardWord(key, arg));
         }
 
         /// <summary>
@@ -392,7 +392,15 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void SelectShellForwardWord(ConsoleKeyInfo? key, object arg)
         {
-            _singleton.VisualSelectionCommon(() => ShellForwardWord());
+            _singleton.VisualSelectionCommon(() => ShellForwardWord(key, arg));
+        }
+
+        /// <summary>
+        /// Adjust the current selection to include the next word using ShellNextWord
+        /// </summary>
+        public static void SelectShellNextWord(ConsoleKeyInfo? key, object arg)
+        {
+            _singleton.VisualSelectionCommon(() => ShellNextWord(key, arg));
         }
 
         /// <summary>
@@ -400,7 +408,7 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void SelectShellBackwardWord(ConsoleKeyInfo? key, object arg)
         {
-            _singleton.VisualSelectionCommon(() => ShellBackwardWord());
+            _singleton.VisualSelectionCommon(() => ShellBackwardWord(key, arg));
         }
 
         /// <summary>

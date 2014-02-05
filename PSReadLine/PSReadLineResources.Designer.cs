@@ -628,6 +628,15 @@ namespace PSConsoleUtilities {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Adjust the current selection to include the next word using ShellNextWord.
+        /// </summary>
+        internal static string SelectShellNextWordDescription {
+            get {
+                return ResourceManager.GetString("SelectShellNextWordDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Insert the key typed.
         /// </summary>
         internal static string SelfInsertDescription {
@@ -678,6 +687,15 @@ namespace PSConsoleUtilities {
         internal static string ShellKillWordDescription {
             get {
                 return ResourceManager.GetString("ShellKillWordDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Move the cursor to the end of the current token.
+        /// </summary>
+        internal static string ShellNextWordDescription {
+            get {
+                return ResourceManager.GetString("ShellNextWordDescription", resourceCulture);
             }
         }
         

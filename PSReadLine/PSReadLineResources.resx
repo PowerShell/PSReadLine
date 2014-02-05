@@ -357,4 +357,10 @@
   <data name="InvokePromptDescription" xml:space="preserve">
     <value>Erases the current prompt and calls the prompt function to redisplay the prompt</value>
   </data>
+  <data name="SelectShellNextWordDescription" xml:space="preserve">
+    <value>Adjust the current selection to include the next word using ShellNextWord</value>
+  </data>
+  <data name="ShellNextWordDescription" xml:space="preserve">
+    <value>Move the cursor to the end of the current token</value>
+  </data>
 </root>

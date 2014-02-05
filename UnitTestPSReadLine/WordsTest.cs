@@ -10,10 +10,10 @@ namespace UnitTestPSReadLine
     public partial class UnitTest
     {
         [TestMethod]
-        public void TestCmdShellForwardWord()
+        public void TestShellNextWord()
         {
             TestSetup(KeyMode.Cmd,
-                new KeyHandler("Ctrl+RightArrow", PSConsoleReadLine.ShellForwardWord));
+                new KeyHandler("Ctrl+RightArrow", PSConsoleReadLine.ShellNextWord));
 
             Test("aaa  bbb  ccc", Keys(
                 _.CtrlRightArrow,

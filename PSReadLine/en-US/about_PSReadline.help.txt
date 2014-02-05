@@ -68,8 +68,11 @@ LONG DESCRIPTION
 
     ShellForwardWord         (Cmd: unbound              Emacs: unbound)
 
-        Like ForwardWord in Emacs mode or NextWord in WIndows mode except word boundaries
-        are defined by PowerShell token boundaries.
+        Like ForwardWord except word boundaries are defined by PowerShell token boundaries.
+
+    ShellNextWord            (Cmd: unbound              Emacs: unbound)
+
+        Like NextWord except word boundaries are defined by PowerShell token boundaries.
 
     ShellBackwardWord        (Cmd: unbound              Emacs: unbound)
 
@@ -149,6 +152,10 @@ LONG DESCRIPTION
     SelectShellForwardWord   (Cmd: unbound              Emacs: unbound)
 
         Adjust the current selection to include the next word using ShellForwardWord.
+
+    SelectShellNextWord      (Cmd: unbound              Emacs: unbound)
+
+        Adjust the current selection to include the next word using ShellNextWord.
 
     SelectShellBackwardWord  (Cmd: unbound              Emacs: unbound)
 

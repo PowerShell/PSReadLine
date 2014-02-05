@@ -72,6 +72,22 @@ namespace PSConsoleUtilities
 
         /// <summary>
         /// Move the cursor forward to the end of the current word, or if between words,
+        /// to the end of the next word.  Word boundaries are defined by PowerShell tokens.
+        /// </summary>
+        public static void ShellNextWord(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            var token = _singleton.FindToken(_singleton._current, FindTokenMode.Next);
+
+            Debug.Assert(token != null, "We'll always find EOF");
+
+            _singleton._current = token.Kind == TokenKind.EndOfInput
+                ? _singleton._buffer.Length
+                : token.Extent.StartOffset;
+            _singleton.PlaceCursor();
+        }
+
+        /// <summary>
+        /// Move the cursor forward to the end of the current word, or if between words,
         /// to the end of the next word.  Word boundaries are defined by a configurable
         /// set of characters.
         /// </summary>
@@ -89,31 +105,18 @@ namespace PSConsoleUtilities
         }
 
         /// <summary>
-        /// Move the cursor forward to the end of the current word, or if between words,
-        /// to the end of the next word.  Word boundaries are defined by PowerShell tokens.
+        /// Move the cursor forward to the start of the next word.
+        /// Word boundaries are defined by PowerShell tokens.
         /// </summary>
         public static void ShellForwardWord(ConsoleKeyInfo? key = null, object arg = null)
         {
-            var findTokenMode = _singleton.Options.EditMode == EditMode.Windows
-                                    ? FindTokenMode.Next
-                                    : FindTokenMode.CurrentOrNext;
-            var token = _singleton.FindToken(_singleton._current, findTokenMode);
+            var token = _singleton.FindToken(_singleton._current, FindTokenMode.CurrentOrNext);
 
             Debug.Assert(token != null, "We'll always find EOF");
 
-            switch (_singleton.Options.EditMode)
-            {
-            case EditMode.Emacs:
-                _singleton._current = token.Kind == TokenKind.EndOfInput
-                    ? _singleton._buffer.Length
-                    : token.Extent.EndOffset;
-                break;
-            case EditMode.Windows:
-                _singleton._current = token.Kind == TokenKind.EndOfInput
-                    ? _singleton._buffer.Length
-                    : token.Extent.StartOffset;
-                break;
-            }
+            _singleton._current = token.Kind == TokenKind.EndOfInput
+                ? _singleton._buffer.Length
+                : token.Extent.EndOffset;
             _singleton.PlaceCursor();
         }
 
