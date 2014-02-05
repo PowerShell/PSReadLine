@@ -56,6 +56,8 @@ namespace UnitTestPSReadLine
             CharToKeyInfo[';'] = _.Semicolon;
             CharToKeyInfo['"'] = _.DQuote;
             CharToKeyInfo['\''] = _.SQuote;
+            CharToKeyInfo['\\'] = _.Backslash;
+            CharToKeyInfo['/'] = _.Slash;
             CharToKeyInfo['\n'] = new ConsoleKeyInfo('\r', ConsoleKey.Enter, false, false, false);
             CharToKeyInfo['\r'] = new ConsoleKeyInfo('\r', ConsoleKey.Enter, false, false, false);
         }
