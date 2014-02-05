@@ -257,5 +257,113 @@ namespace UnitTestPSReadLine
                 "echo copytest2", _.ShiftCtrlLeftArrow, _.CtrlShiftC));
             AssertClipboardTextIs("copytest2");
         }
+
+        [TestMethod]
+        public void TestSelectBackwardChar()
+        {
+            TestSetup(KeyMode.Cmd);
+
+            Test("echo", Keys(
+                "eczz", _.ShiftLeftArrow,
+                CheckThat(() => AssertScreenIs(1, TokenClassification.Command, "ecz", Inverted, "z", Inverted)),
+                _.ShiftLeftArrow,
+                CheckThat(() => AssertScreenIs(1, TokenClassification.Command, "ec", Inverted, "zz", Inverted)),
+                _.Delete, "ho"));
+        }
+
+        [TestMethod]
+        public void TestSelectForwardChar()
+        {
+            TestSetup(KeyMode.Cmd);
+
+            Test("echo", Keys(
+                "zzho", _.Home, _.ShiftRightArrow,
+                CheckThat(() => AssertScreenIs(1, TokenClassification.Command, Inverted, "z", Inverted, "zho")),
+                _.ShiftRightArrow,
+                CheckThat(() => AssertScreenIs(1, TokenClassification.Command, Inverted, "zz", Inverted, "ho")),
+                "ec"));
+        }
+
+        [TestMethod]
+        public void TestSelectBackwardWord()
+        {
+            TestSetup(KeyMode.Cmd);
+
+            Test("echo bar", Keys(
+                "echo foo bar", _.CtrlLeftArrow, _.ShiftCtrlLeftArrow,
+                CheckThat(() => AssertScreenIs(1,
+                    TokenClassification.Command, "echo",
+                    TokenClassification.None, " ",
+                    Inverted, "foo ", Inverted, "bar")),
+                _.Delete));
+        }
+
+        [TestMethod]
+        public void TestSelectNextWord()
+        {
+            TestSetup(KeyMode.Cmd);
+
+            Test("echo bar", Keys(
+                "foo echo bar", _.Home, _.ShiftCtrlRightArrow,
+                CheckThat(() => AssertScreenIs(1,
+                    TokenClassification.Command, Inverted, "foo",
+                    TokenClassification.None, Inverted, " ", Inverted,
+                    TokenClassification.None, "echo bar")),
+                _.Delete));
+        }
+
+        [TestMethod]
+        public void TestSelectForwardWord()
+        {
+            TestSetup(KeyMode.Emacs);
+
+            Test(" echo bar", Keys(
+                "foo echo bar", _.Home, _.AltShiftF,
+                CheckThat(() => AssertScreenIs(1,
+                    TokenClassification.Command, Inverted, "foo", Inverted,
+                    TokenClassification.None, " echo bar")),
+                _.Delete));
+        }
+
+        [TestMethod]
+        public void TestSelectShellForwardWord()
+        {
+            TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+Z", PSConsoleReadLine.SelectShellForwardWord));
+
+            Test(" echo bar", Keys(
+                "a\\b\\c echo bar", _.Home, _.CtrlZ,
+                CheckThat(() => AssertScreenIs(1,
+                    TokenClassification.Command, Inverted, "a\\b\\c", Inverted,
+                    TokenClassification.None, " echo bar")),
+                _.Delete));
+        }
+
+        [TestMethod]
+        public void TestSelectShellNextWord()
+        {
+            TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+Z", PSConsoleReadLine.SelectShellNextWord));
+
+            Test("echo bar", Keys(
+                "a\\b\\c echo bar", _.Home, _.CtrlZ,
+                CheckThat(() => AssertScreenIs(1,
+                    TokenClassification.Command, Inverted, "a\\b\\c",
+                    TokenClassification.None, Inverted, " ",
+                    TokenClassification.None, "echo bar")),
+                _.Delete));
+        }
+
+        [TestMethod]
+        public void TestSelectShellBackwardWord()
+        {
+            TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+Z", PSConsoleReadLine.SelectShellBackwardWord));
+
+            Test("echo bar ", Keys(
+                "echo bar 'a b c'", _.CtrlZ,
+                CheckThat(() => AssertScreenIs(1,
+                    TokenClassification.Command, "echo",
+                    TokenClassification.None, " bar ",
+                    TokenClassification.String, Inverted, "'a b c'")),
+                _.Delete));
+        }
     }
 }
