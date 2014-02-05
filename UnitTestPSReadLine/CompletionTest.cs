@@ -71,6 +71,7 @@ namespace UnitTestPSReadLine
 
             const string promptLine1 = "c:\\windows";
             const string promptLine2 = "PS> ";
+            Console.Clear();
             Test("psvar", Keys(
                 "psvar",
                 _.AltEquals,
@@ -88,19 +89,55 @@ namespace UnitTestPSReadLine
                                                TokenClassification.Command, "psvar"))),
                 prompt: promptLine1 + "\n" + promptLine2);
 
-            using (ShimsContext.Create())
-            {
-                bool ding = false;
-                PSConsoleUtilities.Fakes.ShimPSConsoleReadLine.Ding =
-                    () => ding = true;
+            Console.Clear();
+            TestMustDing("none", Keys(
+                "none",
+                _.AltEquals,
+                CheckThat(() => AssertScreenIs(2, TokenClassification.Command, "none", NextLine))));
+        }
 
-                Console.Clear();
-                Test("none", Keys(
-                    "none",
-                    _.AltEquals,
-                    CheckThat(() => AssertScreenIs(2, TokenClassification.Command, "none", NextLine))));
-                Assert.IsTrue(ding);
-            }
+        [TestMethod]
+        public void TestPossibleCompletionsPrompt()
+        {
+            TestSetup(KeyMode.Cmd);
+
+            PSConsoleReadLine.GetOptions().CompletionQueryItems = 10;
+            Console.Clear();
+            Test("Get-Many", Keys(
+                "Get-Many", _.CtrlSpace,
+                CheckThat(() => AssertScreenIs(2,
+                    TokenClassification.Command, "Get-Many", NextLine,
+                    TokenClassification.None, "Display all 15 possibilities? (y or n) _")),
+                "n"));
+
+            Console.Clear();
+            Test("Get-Many", Keys(
+                "Get-Many", _.CtrlSpace,
+                CheckThat(() => AssertScreenIs(2,
+                    TokenClassification.Command, "Get-Many", NextLine,
+                    TokenClassification.None, "Display all 15 possibilities? (y or n) _")),
+                "y",
+                CheckThat(() => AssertScreenIs(4,
+                    TokenClassification.Command, "Get-Many", NextLine,
+                    TokenClassification.None,
+                    "Get-Many0   Get-Many3   Get-Many6   Get-Many9   Get-Many12", NextLine,
+                    "Get-Many1   Get-Many4   Get-Many7   Get-Many10  Get-Many13", NextLine,
+                    "Get-Many2   Get-Many5   Get-Many8   Get-Many11  Get-Many14"))));
+        }
+
+        [TestMethod]
+        public void TestShowTooltips()
+        {
+            TestSetup(KeyMode.Cmd);
+
+            PSConsoleReadLine.GetOptions().ShowToolTips = true;
+            Console.Clear();
+            Test("Get-Tooltips", Keys(
+                "Get-Tooltips", _.CtrlSpace,
+                CheckThat(() => AssertScreenIs(2,
+                    TokenClassification.Command, "Get-Tooltips", NextLine,
+                    TokenClassification.None,
+                    "item1  - useful description goes here"))));
         }
 
         static private CommandCompletion MockedCompleteInput(string input, int cursor, Hashtable options, PowerShell powerShell)
@@ -138,6 +175,19 @@ namespace UnitTestPSReadLine
                 completions.Add(new CompletionResult("ambiguous1"));
                 completions.Add(new CompletionResult("ambiguous2"));
                 completions.Add(new CompletionResult("ambiguous3"));
+                break;
+            case "Get-Many":
+                replacementIndex = 0;
+                replacementLength = 8;
+                for (int i = 0; i < 15; i++)
+                {
+                    completions.Add(new CompletionResult("Get-Many" + i));
+                }
+                break;
+            case "Get-Tooltips":
+                replacementIndex = 0;
+                replacementLength = 12;
+                completions.Add(new CompletionResult("something really long", "item1", CompletionResultType.Command, "useful description goes here"));
                 break;
             case "none":
                 break;
