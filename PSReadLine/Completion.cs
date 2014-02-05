@@ -219,16 +219,17 @@ namespace PSConsoleUtilities
 
         private static string GetReplacementTextForDirectory(string replacementText, ref int cursorAdjustment)
         {
-            int len = replacementText.Length;
-            if (len > 0 && replacementText[len - 1] != '\\')
+            if (!replacementText.EndsWith("\\"))
             {
-                if (len > 1 && replacementText[len - 1] == '\'' || replacementText[len - 1] == '"')
+                if (replacementText.EndsWith("\\'") || replacementText.EndsWith("\\\""))
                 {
-                    if (len > 2 && replacementText[len - 2] != '\\')
-                    {
-                        replacementText = replacementText.Substring(0, len - 1) + '\\' + replacementText[len - 1];
-                        cursorAdjustment = -1;
-                    }
+                    cursorAdjustment = -1;
+                }
+                else if (replacementText.EndsWith("'") || replacementText.EndsWith("\""))
+                {
+                    var len = replacementText.Length;
+                    replacementText = replacementText.Substring(0, len - 1) + '\\' + replacementText[len - 1];
+                    cursorAdjustment = -1;
                 }
                 else
                 {

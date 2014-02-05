@@ -140,6 +140,28 @@ namespace UnitTestPSReadLine
                     "item1  - useful description goes here"))));
         }
 
+        [TestMethod]
+        public void TestDirectoryCompletion()
+        {
+            TestSetup(KeyMode.Cmd);
+
+            Test("", Keys(
+                "Get-Directory", _.Tab,
+                CheckThat(() => AssertLineIs("abc\\")),
+                _.Tab,
+                CheckThat(() => AssertLineIs("'e f\\'")),
+                CheckThat(() => AssertCursorLeftIs(5)),
+                _.Tab,
+                CheckThat(() => AssertLineIs("a\\")),
+                _.Tab,
+                CheckThat(() => AssertLineIs("'a b\\'")),
+                CheckThat(() => AssertCursorLeftIs(5)),
+                _.Tab,
+                CheckThat(() => AssertLineIs("\"a b\\\"")),
+                CheckThat(() => AssertCursorLeftIs(5)),
+                _.CtrlC, InputAcceptedNow));
+        }
+
         static private CommandCompletion MockedCompleteInput(string input, int cursor, Hashtable options, PowerShell powerShell)
         {
             var ctor = typeof (CommandCompletion).GetConstructor(
@@ -188,6 +210,15 @@ namespace UnitTestPSReadLine
                 replacementIndex = 0;
                 replacementLength = 12;
                 completions.Add(new CompletionResult("something really long", "item1", CompletionResultType.Command, "useful description goes here"));
+                break;
+            case "Get-Directory":
+                replacementIndex = 0;
+                replacementLength = 13;
+                completions.Add(new CompletionResult("abc", "abc", CompletionResultType.ProviderContainer, "abc"));
+                completions.Add(new CompletionResult("'e f'", "'e f'", CompletionResultType.ProviderContainer, "'e f'"));
+                completions.Add(new CompletionResult("a", "a", CompletionResultType.ProviderContainer, "a"));
+                completions.Add(new CompletionResult("'a b\\'", "a b\\'", CompletionResultType.ProviderContainer, "a b\\'"));
+                completions.Add(new CompletionResult("\"a b\\\"", "\"a b\\\"", CompletionResultType.ProviderContainer, "\"a b\\\""));
                 break;
             case "none":
                 break;
