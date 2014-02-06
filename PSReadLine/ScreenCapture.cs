@@ -121,6 +121,44 @@ namespace PSConsoleUtilities
             InvertLines(selectionTop, selectionHeight);
         }
 
+        private const string CmdColorTable = @"
+\red0\green0\blue0;
+\red0\green0\blue128;
+\red0\green128\blue0;
+\red0\green128\blue128;
+\red128\green0\blue0;
+\red128\green0\blue128;
+\red128\green128\blue0;
+\red192\green192\blue192;
+\red128\green128\blue128;
+\red0\green0\blue255;
+\red0\green255\blue0;
+\red0\green255\blue255;
+\red255\green0\blue0;
+\red255\green0\blue255;
+\red255\green255\blue0;
+\red255\green255\blue255;
+";
+
+        private const string PowerShellColorTable = @"
+\red1\green36\blue86;
+\red0\green0\blue128;
+\red0\green128\blue0;
+\red0\green128\blue128;
+\red128\green0\blue0;
+\red1\green36\blue86;
+\red238\green237\blue240;
+\red192\green192\blue192;
+\red128\green128\blue128;
+\red0\green0\blue255;
+\red0\green255\blue0;
+\red0\green255\blue255;
+\red255\green0\blue0;
+\red255\green0\blue255;
+\red255\green255\blue0;
+\red255\green255\blue255;
+";
+
         private static void DumpScreenToClipboard(int top, int count)
         {
             var buffer = ReadBufferLines(top, count);
@@ -135,9 +173,9 @@ namespace PSConsoleUtilities
             // A bit of a hack because I don't know how to find the shortcut used to start
             // the current console.  We assume if the background color is Magenta, then
             // PowerShell's color scheme is being used, otherwise we assume the default scheme.
-            var colorTable = Console.BackgroundColor == ConsoleColor.Magenta
-                                 ? PSReadLineResources.PowerShellColorTable
-                                 : PSReadLineResources.CmdColorTable;
+            var colorTable = Console.BackgroundColor == ConsoleColor.DarkMagenta
+                                 ? PowerShellColorTable
+                                 : CmdColorTable;
             rtfBuffer.AppendFormat(@"{{\colortbl;{0}}}{1}", colorTable, Environment.NewLine);
             rtfBuffer.Append(@"\f0 \fs18 ");
 
