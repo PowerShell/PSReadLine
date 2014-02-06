@@ -155,6 +155,8 @@ namespace PSConsoleUtilities
                 return;
             }
 
+            _singleton.MaybeParseInput();
+
             Token token = null;
             var index = 0;
             for (; index < _singleton._tokens.Length; index++)

@@ -27,6 +27,14 @@ namespace PSConsoleUtilities
             internal ConsoleColor ForegroundColor { get; set; }
         }
 
+        private void MaybeParseInput()
+        {
+            if (_tokens == null)
+            {
+                ParseInput();
+            }
+        }
+
         private string ParseInput()
         {
             var text = _buffer.ToString();
@@ -40,6 +48,10 @@ namespace PSConsoleUtilities
             // recently.
             if (_queuedKeys.Count > 10 && (DateTime.Now - _lastRenderTime).Milliseconds < 50)
             {
+                // We won't render, but most likely the tokens will be different, so make
+                // sure we don't use old tokens.
+                _tokens = null;
+                _ast = null;
                 return;
             }
 

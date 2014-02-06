@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Management.Automation;
 using System.Management.Automation.Language;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
-using System.Windows;
 
 namespace PSConsoleUtilities
 {
@@ -41,20 +39,18 @@ namespace PSConsoleUtilities
         private Ast _ast;
         private ParseError[] _parseErrors;
 
-        #region Unit test only properties
-
-        // These properties exist solely so the Fakes assembly has something
-        // that can be used to access the private bits here.  It's annoying
-        // to be so close to 100% coverage and not have 100% coverage!
-        private CHAR_INFO[] ConsoleBuffer { get { return _consoleBuffer; } }
-
-        #endregion Unit test only properties
-
         // For some reason nothing from System.Console is available via the Fakes assembly.
         // If we define a trivial wrapper, it can be faked, so we do.
+        [ExcludeFromCodeCoverage]
         private static ConsoleKeyInfo ConsoleReadKey()
         {
             return Console.ReadKey(true);
+        }
+
+        [ExcludeFromCodeCoverage]
+        private static bool ConsoleKeyAvailable()
+        {
+            return Console.KeyAvailable;
         }
 
         private void ReadKeyThreadProc()
@@ -65,7 +61,7 @@ namespace PSConsoleUtilities
                 _readKeyWaitHandle.WaitOne();
 
                 var start = DateTime.Now;
-                while (Console.KeyAvailable)
+                while (ConsoleKeyAvailable())
                 {
                     _queuedKeys.Enqueue(ConsoleReadKey());
                     if ((DateTime.Now - start).Milliseconds > 2)
@@ -86,7 +82,6 @@ namespace PSConsoleUtilities
             }
         }
 
-        [ExcludeFromCodeCoverage]
         private static ConsoleKeyInfo ReadKey()
         {
             // Reading a key is handled on a different thread.  During process shutdown,

@@ -81,11 +81,7 @@ namespace PSConsoleUtilities
 
         private Token FindToken(int current, FindTokenMode mode)
         {
-            if (_tokens == null)
-            {
-                ParseInput();
-            }
-
+            MaybeParseInput();
             return FindNestedToken(current, _tokens, mode);
         }
 
