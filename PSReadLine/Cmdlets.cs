@@ -455,7 +455,7 @@ namespace PSConsoleUtilities
     }
 
     [Cmdlet("Set", "PSReadlineKeyHandler")]
-    public class SetKeyHandlerCommand : PSCmdlet
+    public class SetPSReadlineKeyHandlerCommand : PSCmdlet
     {
         [Parameter(Position = 0, Mandatory = true)]
         [Alias("Key")]
@@ -487,12 +487,12 @@ namespace PSConsoleUtilities
                      "ForwardWord", "GotoBrace", "HistorySearchBackward", "HistorySearchForward", "InvokePrompt",
                      "KillLine", "KillRegion", "KillWord", "NextHistory", "NextWord",
                      "Paste", "PossibleCompletions", "PreviousHistory", "Redo", "ReverseSearchHistory",
-                     "RevertLine", "SelectBackwardChar", "SelectBackwardWord", "SelectForwardChar", "SelectForwardWord",
-                     "SelectNextWord", "SelectShellBackwardWord", "SelectShellForwardWord", "SelectShellNextWord", "SelfInsert",
-                     "SetMark", "ShellBackwardKillWord", "ShellBackwardWord", "ShellForwardWord", "ShellKillWord",
-                     "ShellNextWord", "ShowKeyBindings", "TabCompleteNext", "TabCompletePrevious", "Undo",
-                     "UnixWordRubout", "WhatIsKey", "Yank", "YankLastArg", "YankNthArg",
-                     "YankPop")]
+                     "RevertLine", "ScrollDisplayDown", "ScrollDisplayToCursor", "ScrollDisplayTop", "ScrollDisplayUp",
+                     "SelectBackwardChar", "SelectBackwardWord", "SelectForwardChar", "SelectForwardWord", "SelectNextWord",
+                     "SelectShellBackwardWord", "SelectShellForwardWord", "SelectShellNextWord", "SelfInsert", "SetMark",
+                     "ShellBackwardKillWord", "ShellBackwardWord", "ShellForwardWord", "ShellKillWord", "ShellNextWord",
+                     "ShowKeyBindings", "TabCompleteNext", "TabCompletePrevious", "Undo", "UnixWordRubout",
+                     "WhatIsKey", "Yank", "YankLastArg", "YankNthArg", "YankPop")]
         [Parameter(Position = 1, Mandatory = true, ParameterSetName = "Function")]
         public string Function { get; set; }
 
