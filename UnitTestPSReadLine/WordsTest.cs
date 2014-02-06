@@ -10,6 +10,67 @@ namespace UnitTestPSReadLine
     public partial class UnitTest
     {
         [TestMethod]
+        public void TestBackwardWord()
+        {
+            TestSetup(KeyMode.Cmd);
+
+            const string input = "  aaa  bbb  ccc  ";
+            Test(input, Keys(
+                _.CtrlLeftArrow, CheckThat(() => AssertCursorLeftIs(0)),
+                input,
+                _.CtrlLeftArrow, CheckThat(() => AssertCursorLeftIs(12)),
+                _.CtrlLeftArrow, CheckThat(() => AssertCursorLeftIs(7)),
+                _.CtrlLeftArrow, CheckThat(() => AssertCursorLeftIs(2)),
+                _.CtrlLeftArrow, CheckThat(() => AssertCursorLeftIs(0))));
+        }
+
+        [TestMethod]
+        public void TestEmacsBackwardWord()
+        {
+            TestSetup(KeyMode.Emacs);
+
+            const string input = "  aaa  bbb  ccc  ";
+            Test(input, Keys(
+                _.AltB, CheckThat(() => AssertCursorLeftIs(0)),
+                input,
+                _.AltB, CheckThat(() => AssertCursorLeftIs(12)),
+                _.AltB, CheckThat(() => AssertCursorLeftIs(7)),
+                _.AltB, CheckThat(() => AssertCursorLeftIs(2)),
+                _.AltB, CheckThat(() => AssertCursorLeftIs(0))));
+        }
+
+        [TestMethod]
+        public void TestForwardWord()
+        {
+            TestSetup(KeyMode.Emacs);
+
+            Test("", Keys(_.AltF));
+
+            Test("echo   abc  def", Keys(
+                 "echo   abc  def", _.Home, _.AltF,
+                 CheckThat(() => AssertCursorLeftIs(4)),
+                 _.RightArrow, _.AltF,
+                 CheckThat(() => AssertCursorLeftIs(10))
+                ));
+        }
+
+        [TestMethod]
+        public void TestShellBackwardWord()
+        {
+            TestSetup(KeyMode.Cmd,
+                new KeyHandler("Ctrl+LeftArrow", PSConsoleReadLine.ShellBackwardWord));
+
+            Test("", Keys(_.CtrlLeftArrow));
+
+            Test("echo \"a $b c $d e\" 42", Keys(
+                "echo \"a $b c $d e\" 42", _.CtrlLeftArrow,
+                CheckThat(() => AssertCursorLeftIs(19)),
+                _.CtrlLeftArrow,
+                CheckThat(() => AssertCursorLeftIs(5))
+                ));
+        }
+
+        [TestMethod]
         public void TestShellNextWord()
         {
             TestSetup(KeyMode.Cmd,
@@ -48,37 +109,7 @@ namespace UnitTestPSReadLine
         }
 
         [TestMethod]
-        public void TestBackwardWord()
-        {
-            TestSetup(KeyMode.Cmd);
-
-            const string input = "  aaa  bbb  ccc  ";
-            Test(input, Keys(
-                _.CtrlLeftArrow, CheckThat(() => AssertCursorLeftIs(0)),
-                input,
-                _.CtrlLeftArrow, CheckThat(() => AssertCursorLeftIs(12)),
-                _.CtrlLeftArrow, CheckThat(() => AssertCursorLeftIs(7)),
-                _.CtrlLeftArrow, CheckThat(() => AssertCursorLeftIs(2)),
-                _.CtrlLeftArrow, CheckThat(() => AssertCursorLeftIs(0))));
-        }
-
-        [TestMethod]
-        public void TestEmacsBackwardWord()
-        {
-            TestSetup(KeyMode.Emacs);
-
-            const string input = "  aaa  bbb  ccc  ";
-            Test(input, Keys(
-                _.AltB, CheckThat(() => AssertCursorLeftIs(0)),
-                input,
-                _.AltB, CheckThat(() => AssertCursorLeftIs(12)),
-                _.AltB, CheckThat(() => AssertCursorLeftIs(7)),
-                _.AltB, CheckThat(() => AssertCursorLeftIs(2)),
-                _.AltB, CheckThat(() => AssertCursorLeftIs(0))));
-        }
-
-        [TestMethod]
-        public void TestEmacsShellForwardWord()
+        public void TestShellForwardWord()
         {
             TestSetup(KeyMode.Emacs,
                 new KeyHandler("Alt+F", PSConsoleReadLine.ShellForwardWord));
@@ -100,6 +131,5 @@ namespace UnitTestPSReadLine
                 _.AltF, CheckThat(() => AssertCursorLeftIs(15)),
                 _.AltF, CheckThat(() => AssertCursorLeftIs(18))));
         }
-
     }
 }

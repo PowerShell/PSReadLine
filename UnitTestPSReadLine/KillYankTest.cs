@@ -13,6 +13,48 @@ namespace UnitTestPSReadLine
     public partial class UnitTest
     {
         [TestMethod]
+        public void TestKillWord()
+        {
+            TestSetup(KeyMode.Emacs);
+
+            Test("echo  defabc", Keys(
+                _.AltD, // Test on empty input
+                "echo abc def",
+                Enumerable.Repeat(_.LeftArrow, 7),
+                _.AltD, // Kill 'abc'
+                _.End, _.CtrlY)); // Yank 'abc' at end of line
+        }
+
+        [TestMethod]
+        public void TestBackwardKillWord()
+        {
+            TestSetup(KeyMode.Emacs);
+
+            Test("echo defabc ", Keys(
+                _.AltBackspace, // Test on empty line
+                "echo abc def",
+                Enumerable.Repeat(_.LeftArrow, 3),
+                _.AltBackspace,    // Kill 'abc '
+                _.End, _.CtrlY));  // Yank 'abc ' at the end
+        }
+
+        [TestMethod]
+        public void TestUnixWordRubout()
+        {
+            TestSetup(KeyMode.Emacs);
+
+            Test("echo abc ", Keys("echo abc a\\b\\c", _.CtrlW));
+        }
+
+        [TestMethod]
+        public void TestKillRegion()
+        {
+            TestSetup(KeyMode.Emacs, new KeyHandler("Ctrl+Z", PSConsoleReadLine.KillRegion));
+
+            Test("echo foobar", Keys("bar", _.CtrlAt, "echo foo", _.CtrlZ, _.Home, _.CtrlY));
+        }
+
+        [TestMethod]
         public void TestYankPop()
         {
             TestSetup(KeyMode.Emacs);
@@ -106,6 +148,8 @@ namespace UnitTestPSReadLine
                 Enumerable.Repeat(_.LeftArrow, 7),
                 _.AltD, // Kill 'abc'
                 _.End, _.CtrlY)); // Yank 'abc' at end of line
+
+            Test("echo foo", Keys("'a b c'echo foo", _.Home, _.AltD));
         }
 
         [TestMethod]
@@ -120,6 +164,8 @@ namespace UnitTestPSReadLine
                 Enumerable.Repeat(_.LeftArrow, 3),
                 _.AltBackspace,    // Kill 'abc '
                 _.End, _.CtrlY));  // Yank 'abc ' at the end
+
+            Test("echo foo ", Keys("echo foo 'a b c'", _.AltBackspace));
         }
 
         [TestMethod]

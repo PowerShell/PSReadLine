@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Management.Automation.Runspaces;
@@ -494,6 +495,7 @@ namespace UnitTestPSReadLine
             NativeMethods.WriteConsoleOutput(handle, consoleBuffer, bufferSize, bufferCoord, ref writeRegion);
         }
 
+        [ExcludeFromCodeCoverage]
         static private void Test(string expectedResult, object[] items, bool resetCursor = true, string prompt = null)
         {
             if (resetCursor)
@@ -510,6 +512,8 @@ namespace UnitTestPSReadLine
                 System.Management.Automation.Fakes.ShimCommandCompletion.CompleteInputStringInt32HashtablePowerShell =
                     MockedCompleteInput;
                 Exception validationFailure = null;
+                PSConsoleUtilities.Fakes.ShimPSConsoleReadLine.ConsoleKeyAvailable = 
+                    () => index < items.Length && items[index] is ConsoleKeyInfo;
                 PSConsoleUtilities.Fakes.ShimPSConsoleReadLine.ConsoleReadKey = () =>
                 {
                     while (index < items.Length)
