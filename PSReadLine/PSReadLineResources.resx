@@ -357,6 +357,18 @@
   <data name="InvokePromptDescription" xml:space="preserve">
     <value>Erases the current prompt and calls the prompt function to redisplay the prompt</value>
   </data>
+  <data name="ScrollDisplayDownDescription" xml:space="preserve">
+    <value>Scroll the display down one screen</value>
+  </data>
+  <data name="ScrollDisplayToCursorDescription" xml:space="preserve">
+    <value>Scroll the display to the cursor</value>
+  </data>
+  <data name="ScrollDisplayTopDescription" xml:space="preserve">
+    <value>Scroll the display to the top</value>
+  </data>
+  <data name="ScrollDisplayUpDescription" xml:space="preserve">
+    <value>Scroll the display up one screen</value>
+  </data>
   <data name="SelectShellNextWordDescription" xml:space="preserve">
     <value>Adjust the current selection to include the next word using ShellNextWord</value>
   </data>

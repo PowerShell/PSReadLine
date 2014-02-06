@@ -405,6 +405,22 @@ LONG DESCRIPTION
 
         Show all of the currently bound keys.
 
+    ScrollDisplayUp          (Cmd: <PageUp>             Emacs: <PageUp>)
+
+        Scroll the display up one screen.
+
+    ScrollDisplayDown        (Cmd: <PageDown>           Emacs: <PageDown>)
+
+        Scroll the display down one screen.
+
+    ScrollDisplayTop         (Cmd: unbound              Emacs: <Ctrl+Home>)
+
+        Scroll the display to the top.
+
+    ScrollDisplayToCursor    (Cmd: unbound              Emacs: <Ctrl+End>)
+
+        Scroll the display to the cursor.
+
   Custom Key Binding Support
   --------------------------
 

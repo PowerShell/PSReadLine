@@ -565,6 +565,42 @@ namespace PSConsoleUtilities {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Scroll the display down one screen.
+        /// </summary>
+        internal static string ScrollDisplayDownDescription {
+            get {
+                return ResourceManager.GetString("ScrollDisplayDownDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Scroll the display to the cursor.
+        /// </summary>
+        internal static string ScrollDisplayToCursorDescription {
+            get {
+                return ResourceManager.GetString("ScrollDisplayToCursorDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Scroll the display to the top.
+        /// </summary>
+        internal static string ScrollDisplayTopDescription {
+            get {
+                return ResourceManager.GetString("ScrollDisplayTopDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Scroll the display up one screen.
+        /// </summary>
+        internal static string ScrollDisplayUpDescription {
+            get {
+                return ResourceManager.GetString("ScrollDisplayUpDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Adjust the current selection to include the previous character.
         /// </summary>
         internal static string SelectBackwardCharDescription {

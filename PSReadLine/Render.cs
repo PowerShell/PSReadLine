@@ -644,5 +644,56 @@ namespace PSConsoleUtilities
         }
 
         #endregion Demo mode
+
+        #region Screen scrolling
+
+        /// <summary>
+        /// Scroll the display up one screen.
+        /// </summary>
+        public static void ScrollDisplayUp(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            var newTop = Console.WindowTop - Console.WindowHeight;
+            if (newTop < 0)
+            {
+                newTop = 0;
+            }
+            Console.SetWindowPosition(0, newTop);
+        }
+
+        /// <summary>
+        /// Scroll the display down one screen.
+        /// </summary>
+        public static void ScrollDisplayDown(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            var newTop = Console.WindowTop + Console.WindowHeight;
+            if (newTop > (Console.BufferHeight - Console.WindowHeight))
+            {
+                newTop = (Console.BufferHeight - Console.WindowHeight);
+            }
+            Console.SetWindowPosition(0, newTop);
+        }
+
+        /// <summary>
+        /// Scroll the display to the top.
+        /// </summary>
+        public static void ScrollDisplayTop(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            Console.SetWindowPosition(0, 0);
+        }
+
+        /// <summary>
+        /// Scroll the display to the cursor.
+        /// </summary>
+        public static void ScrollDisplayToCursor(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            var newTop = Console.CursorTop;
+            if (newTop > (Console.BufferHeight - Console.WindowHeight))
+            {
+                newTop = (Console.BufferHeight - Console.WindowHeight);
+            }
+            Console.SetWindowPosition(0, newTop);
+        }
+
+        #endregion Screen scrolling
     }
 }
