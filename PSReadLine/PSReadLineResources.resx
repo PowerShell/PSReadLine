@@ -369,4 +369,10 @@
   <data name="ShellNextWordDescription" xml:space="preserve">
     <value>Move the cursor to the end of the current token</value>
   </data>
+  <data name="SelectBackwardsLineDescription" xml:space="preserve">
+    <value>Adjust the current selection to include from the cursor to the end of the line</value>
+  </data>
+  <data name="SelectLineDescription" xml:space="preserve">
+    <value>Adjust the current selection to include from the cursor to the start of the line</value>
+  </data>
 </root>

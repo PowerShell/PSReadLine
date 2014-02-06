@@ -488,11 +488,12 @@ namespace PSConsoleUtilities
                      "KillLine", "KillRegion", "KillWord", "NextHistory", "NextWord",
                      "Paste", "PossibleCompletions", "PreviousHistory", "Redo", "ReverseSearchHistory",
                      "RevertLine", "ScrollDisplayDown", "ScrollDisplayToCursor", "ScrollDisplayTop", "ScrollDisplayUp",
-                     "SelectBackwardChar", "SelectBackwardWord", "SelectForwardChar", "SelectForwardWord", "SelectNextWord",
-                     "SelectShellBackwardWord", "SelectShellForwardWord", "SelectShellNextWord", "SelfInsert", "SetMark",
-                     "ShellBackwardKillWord", "ShellBackwardWord", "ShellForwardWord", "ShellKillWord", "ShellNextWord",
-                     "ShowKeyBindings", "TabCompleteNext", "TabCompletePrevious", "Undo", "UnixWordRubout",
-                     "WhatIsKey", "Yank", "YankLastArg", "YankNthArg", "YankPop")]
+                     "SelectBackwardChar", "SelectBackwardsLine", "SelectBackwardWord", "SelectForwardChar", "SelectForwardWord",
+                     "SelectLine", "SelectNextWord", "SelectShellBackwardWord", "SelectShellForwardWord", "SelectShellNextWord",
+                     "SelfInsert", "SetMark", "ShellBackwardKillWord", "ShellBackwardWord", "ShellForwardWord",
+                     "ShellKillWord", "ShellNextWord", "ShowKeyBindings", "TabCompleteNext", "TabCompletePrevious",
+                     "Undo", "UnixWordRubout", "WhatIsKey", "Yank", "YankLastArg",
+                     "YankNthArg", "YankPop")]
         [Parameter(Position = 1, Mandatory = true, ParameterSetName = "Function")]
         public string Function { get; set; }
 

@@ -412,6 +412,22 @@ namespace PSConsoleUtilities
         }
 
         /// <summary>
+        /// Adjust the current selection to include from the cursor to the end of the line
+        /// </summary>
+        public static void SelectLine(ConsoleKeyInfo? key, object arg)
+        {
+            _singleton.VisualSelectionCommon(() => EndOfLine(key, arg));
+        }
+
+        /// <summary>
+        /// Adjust the current selection to include from the cursor to the start of the line
+        /// </summary>
+        public static void SelectBackwardsLine(ConsoleKeyInfo? key, object arg)
+        {
+            _singleton.VisualSelectionCommon(() => BeginningOfLine(key, arg));
+        }
+
+        /// <summary>
         /// Paste text from the system clipboard.
         /// </summary>
         public static void Paste(ConsoleKeyInfo? key = null, object arg = null)

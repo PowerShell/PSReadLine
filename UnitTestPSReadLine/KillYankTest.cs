@@ -411,5 +411,31 @@ namespace UnitTestPSReadLine
                     TokenClassification.String, Inverted, "'a b c'")),
                 _.Delete));
         }
+
+        [TestMethod]
+        public void TestSelectBackwardsLine()
+        {
+            TestSetup(KeyMode.Emacs);
+
+            Test("", Keys(
+                "echo foo", _.ShiftHome,
+                CheckThat(() => AssertScreenIs(1,
+                    TokenClassification.Command, Inverted, "echo",
+                    TokenClassification.None, Inverted, " foo")),
+                _.Backspace));
+        }
+
+        [TestMethod]
+        public void TestSelectLine()
+        {
+            TestSetup(KeyMode.Cmd);
+
+            Test("", Keys(
+                "echo foo", _.Home, _.ShiftEnd,
+                CheckThat(() => AssertScreenIs(1,
+                    TokenClassification.Command, Inverted, "echo",
+                    TokenClassification.None, Inverted, " foo")),
+                _.Delete));
+        }
     }
 }

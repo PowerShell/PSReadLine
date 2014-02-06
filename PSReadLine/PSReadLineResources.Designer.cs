@@ -592,6 +592,15 @@ namespace PSConsoleUtilities {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Adjust the current selection to include from the cursor to the end of the line.
+        /// </summary>
+        internal static string SelectBackwardsLineDescription {
+            get {
+                return ResourceManager.GetString("SelectBackwardsLineDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Adjust the current selection to include the previous word.
         /// </summary>
         internal static string SelectBackwardWordDescription {
@@ -615,6 +624,15 @@ namespace PSConsoleUtilities {
         internal static string SelectForwardWordDescription {
             get {
                 return ResourceManager.GetString("SelectForwardWordDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Adjust the current selection to include from the cursor to the start of the line.
+        /// </summary>
+        internal static string SelectLineDescription {
+            get {
+                return ResourceManager.GetString("SelectLineDescription", resourceCulture);
             }
         }
         
