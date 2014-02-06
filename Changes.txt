@@ -1,3 +1,15 @@
+### Version 1.0.0.7
+
+New features:
+* CaptureScreen - copies selected portion of screen to clipboard in text and rtf
+* InvokePrompt - re-evaluate the prompt while preserving the current input
+* New functions to scroll the screen w/o using the mouse:
+    - ScrollScreenUp
+    - ScrollScreenDown
+    - ScrollScreenTop
+    - ScrollScreenToCursor
+* Many small bug fixes
+
 ### Version 1.0.0.6
 
 New features:
