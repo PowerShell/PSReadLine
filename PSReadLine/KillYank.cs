@@ -350,7 +350,7 @@ namespace PSConsoleUtilities
         /// <summary>
         /// Adjust the current selection to include the previous character
         /// </summary>
-        public static void SelectBackwardChar(ConsoleKeyInfo? key, object arg)
+        public static void SelectBackwardChar(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.VisualSelectionCommon(() => BackwardChar(key, arg));
         }
@@ -358,7 +358,7 @@ namespace PSConsoleUtilities
         /// <summary>
         /// Adjust the current selection to include the next character
         /// </summary>
-        public static void SelectForwardChar(ConsoleKeyInfo? key, object arg)
+        public static void SelectForwardChar(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.VisualSelectionCommon(() => ForwardChar(key, arg));
         }
@@ -366,7 +366,7 @@ namespace PSConsoleUtilities
         /// <summary>
         /// Adjust the current selection to include the previous word
         /// </summary>
-        public static void SelectBackwardWord(ConsoleKeyInfo? key, object arg)
+        public static void SelectBackwardWord(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.VisualSelectionCommon(() => BackwardWord(key, arg));
         }
@@ -374,7 +374,7 @@ namespace PSConsoleUtilities
         /// <summary>
         /// Adjust the current selection to include the next word
         /// </summary>
-        public static void SelectNextWord(ConsoleKeyInfo? key, object arg)
+        public static void SelectNextWord(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.VisualSelectionCommon(() => NextWord(key, arg));
         }
@@ -382,7 +382,7 @@ namespace PSConsoleUtilities
         /// <summary>
         /// Adjust the current selection to include the next word using ForwardWord
         /// </summary>
-        public static void SelectForwardWord(ConsoleKeyInfo? key, object arg)
+        public static void SelectForwardWord(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.VisualSelectionCommon(() => ForwardWord(key, arg));
         }
@@ -390,7 +390,7 @@ namespace PSConsoleUtilities
         /// <summary>
         /// Adjust the current selection to include the next word using ShellForwardWord
         /// </summary>
-        public static void SelectShellForwardWord(ConsoleKeyInfo? key, object arg)
+        public static void SelectShellForwardWord(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.VisualSelectionCommon(() => ShellForwardWord(key, arg));
         }
@@ -398,7 +398,7 @@ namespace PSConsoleUtilities
         /// <summary>
         /// Adjust the current selection to include the next word using ShellNextWord
         /// </summary>
-        public static void SelectShellNextWord(ConsoleKeyInfo? key, object arg)
+        public static void SelectShellNextWord(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.VisualSelectionCommon(() => ShellNextWord(key, arg));
         }
@@ -406,7 +406,7 @@ namespace PSConsoleUtilities
         /// <summary>
         /// Adjust the current selection to include the previous word using ShellBackwardWord
         /// </summary>
-        public static void SelectShellBackwardWord(ConsoleKeyInfo? key, object arg)
+        public static void SelectShellBackwardWord(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.VisualSelectionCommon(() => ShellBackwardWord(key, arg));
         }
@@ -414,7 +414,7 @@ namespace PSConsoleUtilities
         /// <summary>
         /// Adjust the current selection to include from the cursor to the end of the line
         /// </summary>
-        public static void SelectLine(ConsoleKeyInfo? key, object arg)
+        public static void SelectLine(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.VisualSelectionCommon(() => EndOfLine(key, arg));
         }
@@ -422,7 +422,7 @@ namespace PSConsoleUtilities
         /// <summary>
         /// Adjust the current selection to include from the cursor to the start of the line
         /// </summary>
-        public static void SelectBackwardsLine(ConsoleKeyInfo? key, object arg)
+        public static void SelectBackwardsLine(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.VisualSelectionCommon(() => BeginningOfLine(key, arg));
         }

@@ -19,6 +19,14 @@ foreach ($method in $methods)
     {
         "Function $($method.Name) parameter names should be key and arg"
     }
+    if (!$parameters[1].HasDefaultValue -or ($null -ne $parameters[1].DefaultValue))
+    {
+        "Function $($method.Name) arg parameter missing default"
+    }
+    if (!$parameters[0].HasDefaultValue -or ($null -ne $parameters[0].DefaultValue))
+    {
+        "Function $($method.Name) key parameter missing default"
+    }
 }
 
 $methods.Name | ForEach-Object {
