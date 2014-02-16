@@ -185,10 +185,11 @@ Set-PSReadlineKeyHandler -Key Ctrl+Shift+v `
                          -ScriptBlock {
     param($key, $arg)
 
+    Add-Type -Assembly PresentationCore
     if ([System.Windows.Clipboard]::ContainsText())
     {
         # Get clipboard text - remove trailing spaces, convert \r\n to \n, and remove the final \n.
-        $text = ([System.Windows.Clipboard]::GetText() -replace "\p{Zs}*`r?`n","`n").Trim()
+        $text = ([System.Windows.Clipboard]::GetText() -replace "\p{Zs}*`r?`n","`n").TrimEnd()
         [PSConsoleUtilities.PSConsoleReadLine]::Insert("@'`n$text`n'@")
     }
     else
