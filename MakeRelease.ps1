@@ -22,6 +22,7 @@ $null = mkdir $targetDir\en-US
 
 $files = @('Changes.txt',
            'License.txt',
+           'SamplePSReadlineProfile.ps1',
            'PSReadline\PSReadline.psd1',
            'PSReadline\PSReadline.psm1',
            'PSReadline\PSReadline.format.ps1xml',
