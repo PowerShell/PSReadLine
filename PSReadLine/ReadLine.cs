@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Management.Automation;
 using System.Management.Automation.Language;
@@ -20,7 +21,7 @@ namespace PSConsoleUtilities
         private AutoResetEvent _closingWaitHandle;
         private WaitHandle[] _waitHandles;
         private bool _captureKeys;
-        private readonly Queue<ConsoleKeyInfo> _savedKeys; 
+        private readonly Queue<ConsoleKeyInfo> _savedKeys;
 
         private readonly StringBuilder _buffer;
         private readonly StringBuilder _statusBuffer;
@@ -32,7 +33,7 @@ namespace PSConsoleUtilities
         private int _mark;
         private bool _inputAccepted;
         private readonly Queue<ConsoleKeyInfo> _queuedKeys;
-        private DateTime _lastRenderTime;
+        private Stopwatch _lastRenderTime;
 
         // Tokens etc.
         private Token[] _tokens;
@@ -55,16 +56,17 @@ namespace PSConsoleUtilities
 
         private void ReadKeyThreadProc()
         {
+            Stopwatch stopwatch = new Stopwatch();
             while (true)
             {
                 // Wait until ReadKey tells us to read a key.
                 _readKeyWaitHandle.WaitOne();
 
-                var start = DateTime.Now;
+                stopwatch.Restart();
                 while (ConsoleKeyAvailable())
                 {
                     _queuedKeys.Enqueue(ConsoleReadKey());
-                    if ((DateTime.Now - start).Milliseconds > 2)
+                    if (stopwatch.ElapsedMilliseconds > 2)
                     {
                         // Don't spend too long in this loop if there are lots of queued keys
                         break;
@@ -313,7 +315,7 @@ namespace PSConsoleUtilities
             _visualSelectionCommandCount = 0;
 
             _consoleBuffer = ReadBufferLines(_initialY, 1 + Options.ExtraPromptLineCount);
-            _lastRenderTime = DateTime.Now;
+            _lastRenderTime = Stopwatch.StartNew();
 
             if (_getNextHistoryIndex > 0)
             {
