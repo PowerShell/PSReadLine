@@ -46,7 +46,7 @@ namespace PSConsoleUtilities
         {
             // If there are a bunch of keys queued up, skip rendering if we've rendered
             // recently.
-            if (_queuedKeys.Count > 10 && (DateTime.Now - _lastRenderTime).Milliseconds < 50)
+            if (_queuedKeys.Count > 10 && (_lastRenderTime.ElapsedMilliseconds < 50))
             {
                 // We won't render, but most likely the tokens will be different, so make
                 // sure we don't use old tokens.
@@ -233,7 +233,7 @@ namespace PSConsoleUtilities
                 Console.WindowTop = _initialY + bufferLineCount + (_demoMode ? 1 : 0) - Console.WindowHeight;
             }
 
-            _lastRenderTime = DateTime.Now;
+            _lastRenderTime.Restart();
         }
 
         private static void WriteBufferLines(CHAR_INFO[] buffer, ref int top)
