@@ -378,4 +378,7 @@
   <data name="SelectAllDescription" xml:space="preserve">
     <value>Select the entire line. Moves the cursor to the end of the line</value>
   </data>
+  <data name="CopyOrCancelLineDescription" xml:space="preserve">
+    <value>Either copy selected text to the clipboard, or if no text is selected, cancel editing the line with CancelLine.</value>
+  </data>
 </root>

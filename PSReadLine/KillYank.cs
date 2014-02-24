@@ -487,6 +487,21 @@ namespace PSConsoleUtilities
         }
 
         /// <summary>
+        /// If text is selected, copy to the clipboard, otherwise cancel the line.
+        /// </summary>
+        public static void CopyOrCancelLine(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            if (_singleton._visualSelectionCommandCount > 0)
+            {
+                Copy(key, arg);
+            }
+            else
+            {
+                CancelLine(key, arg);
+            }
+        }
+
+        /// <summary>
         /// Delete selected region placing deleted text in the system clipboard.
         /// </summary>
         public static void Cut(ConsoleKeyInfo? key = null, object arg = null)
