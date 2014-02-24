@@ -104,6 +104,7 @@ namespace PSConsoleUtilities
                 { Keys.VolumeDown,             MakeKeyHandler(Ignore,                    "Ignore") },
                 { Keys.VolumeUp,               MakeKeyHandler(Ignore,                    "Ignore") },
                 { Keys.VolumeMute,             MakeKeyHandler(Ignore,                    "Ignore") },
+                { Keys.CtrlA,                  MakeKeyHandler(SelectAll,                 "SelectAll") },
                 { Keys.CtrlC,                  MakeKeyHandler(CancelLine,                "CancelLine") },
                 { Keys.CtrlShiftC,             MakeKeyHandler(Copy,                      "Copy") },
                 { Keys.CtrlL,                  MakeKeyHandler(ClearScreen,               "ClearScreen") },

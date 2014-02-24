@@ -412,6 +412,17 @@ namespace PSConsoleUtilities
         }
 
         /// <summary>
+        /// Select the entire line
+        /// </summary>
+        public static void SelectAll(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            _singleton._visualSelectionCommandCount += 1;
+            _singleton._mark = 0;
+            _singleton._current = _singleton._buffer.Length;
+            _singleton.Render();
+        }
+
+        /// <summary>
         /// Adjust the current selection to include from the cursor to the end of the line
         /// </summary>
         public static void SelectLine(ConsoleKeyInfo? key = null, object arg = null)

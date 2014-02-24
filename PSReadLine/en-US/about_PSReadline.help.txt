@@ -165,9 +165,13 @@ LONG DESCRIPTION
 
         Adjust the current selection to include from the cursor to the start of the line.
 
-    SelectLine               (Cmd: <Shift+End>         Emacs: <Shift+End>)
+    SelectLine               (Cmd: <Shift+End>          Emacs: <Shift+End>)
 
         Adjust the current selection to include from the cursor to the end of the line.
+
+    SelectAll                (Cmd: <Ctrl+A>             Emacs: unbound)
+
+        Select the entire line. Moves the cursor to the end of the line.
 
     SelfInsert               (Cmd: <a>, <b>, ...        Emacs: <a>, <b>, ...)
 

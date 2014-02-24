@@ -437,5 +437,28 @@ namespace UnitTestPSReadLine
                     TokenClassification.None, Inverted, " foo")),
                 _.Delete));
         }
+
+        [TestMethod]
+        public void TestSelectAll()
+        {
+            TestSetup(KeyMode.Cmd);
+
+            Test("", Keys(
+                "echo foo", _.CtrlA,
+                CheckThat(() => AssertScreenIs(1,
+                    TokenClassification.Command, Inverted, "echo",
+                    TokenClassification.None, Inverted, " foo")),
+                _.Delete
+                ));
+
+            Test("", Keys(
+                "echo foo", _.CtrlLeftArrow, _.CtrlA,
+                CheckThat(() => AssertScreenIs(1,
+                    TokenClassification.Command, Inverted, "echo",
+                    TokenClassification.None, Inverted, " foo")),
+                CheckThat(() => AssertCursorLeftIs(8)),
+                _.Delete
+                ));
+        }
     }
 }
