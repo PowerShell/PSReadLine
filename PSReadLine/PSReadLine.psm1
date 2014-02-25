@@ -1,3 +1,4 @@
+
 #
 # .SYNOPSIS
 #
@@ -7,6 +8,5 @@ function PSConsoleHostReadline
 {
     [PSConsoleUtilities.PSConsoleReadLine]::ReadLine()
 }
-
 # Load history
 Get-History | ForEach-Object { [PSConsoleUtilities.PSConsoleReadLine]::AddToHistory($_.CommandLine) }
