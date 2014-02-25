@@ -412,6 +412,15 @@ namespace PSConsoleUtilities {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The current Windows PowerShell host is not a console-based host, therefore the PSReadline module is of no use to it..
+        /// </summary>
+        internal static string HostNotSupported {
+            get {
+                return ResourceManager.GetString("HostNotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to String is not used in the UI.
         /// </summary>
         internal static string IgnoreDescription {

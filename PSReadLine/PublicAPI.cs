@@ -1,9 +1,10 @@
 ﻿using System;
+using System.Management.Automation;
 using System.Management.Automation.Language;
 
 namespace PSConsoleUtilities
 {
-    public partial class PSConsoleReadLine
+    public partial class PSConsoleReadLine : IModuleAssemblyInitializer
     {
         /// <summary>
         /// Insert a character at the current position.  Supports undo.
@@ -125,6 +126,19 @@ namespace PSConsoleUtilities
 
             _singleton._current = cursor;
             _singleton.PlaceCursor();
+        }
+
+        void IModuleAssemblyInitializer.OnImport()
+        {
+            // The purpose of the PSReadline module is to give a better experience in
+            // console-based hosts. If the host is not console-based, PSReadline can't do
+            // anything. Rather than having a list of hosts which we know are
+            // console-based, let's just check to see if the current process has a console
+            // associated with it. It's a heuristic, but it should be good enough.
+            if (IntPtr.Zero == NativeMethods.GetConsoleWindow())
+            {
+                throw new NotSupportedException(PSReadLineResources.HostNotSupported);
+            }
         }
     }
 }
