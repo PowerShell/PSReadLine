@@ -49,6 +49,9 @@ namespace PSConsoleUtilities
         [DllImport("KERNEL32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         public static extern bool ReadConsoleOutput(IntPtr consoleOutput, [Out] CHAR_INFO[] buffer, COORD bufferSize, COORD bufferCoord, ref SMALL_RECT readRegion);
 
+        [DllImport("kernel32.dll")]
+        public static extern IntPtr GetConsoleWindow();
+
         [DllImport("user32.dll", SetLastError = true)]
         public static extern uint MapVirtualKey(uint uCode, uint uMapType);
 
