@@ -1,3 +1,17 @@
+### Version 1.0.0.8
+
+New features:
+* SamplePSReadlineProfile.ps1 added with examples of custom key bindings
+* New functions:
+    - SelectBackwardsLine
+    - SelectLine
+    - SelectAll
+    - CopyOrCancelLine
+
+Bug fixes:
+* Backspace after a failed interactive history search (Ctrl+R) caused searching
+  to fail if you typed anything other than backspace.
+
 ### Version 1.0.0.7
 
 New features:

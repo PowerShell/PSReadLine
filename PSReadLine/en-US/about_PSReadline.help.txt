@@ -91,7 +91,7 @@ LONG DESCRIPTION
   Basic editing
   -------------
 
-    CancelLine               (Cmd: <Ctrl+C>             Emacs: <Ctrl+C>)
+    CancelLine               (Cmd: unbound              Emacs: unbound)
 
         Cancel all editing to the line, leave the line of input on the screen but
         return from PSReadline without executing the input.
@@ -165,9 +165,13 @@ LONG DESCRIPTION
 
         Adjust the current selection to include from the cursor to the start of the line.
 
-    SelectLine               (Cmd: <Shift+End>         Emacs: <Shift+End>)
+    SelectLine               (Cmd: <Shift+End>          Emacs: <Shift+End>)
 
         Adjust the current selection to include from the cursor to the end of the line.
+
+    SelectAll                (Cmd: <Ctrl+A>             Emacs: unbound)
+
+        Select the entire line. Moves the cursor to the end of the line.
 
     SelfInsert               (Cmd: <a>, <b>, ...        Emacs: <a>, <b>, ...)
 
@@ -309,6 +313,11 @@ LONG DESCRIPTION
     Copy                     (Cmd: <Ctrl+Shift+C>       Emacs: unbound)
 
         Copy selected region to the system clipboard.  If no region is selected, copy the whole line.
+
+    CopyOrCancelLine         (Cmd: <Ctrl+C>             Emacs: <Ctrl+C>)
+
+        Either copy selected text to the clipboard, or if no text is selected, cancel editing
+        the line with CancelLine.
 
     Cut                      (Cmd: <Ctrl+X>             Emacs: unbound)
 

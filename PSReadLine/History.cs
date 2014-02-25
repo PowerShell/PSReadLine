@@ -282,7 +282,7 @@ namespace PSConsoleUtilities
                         toMatch.Remove(toMatch.Length - 1, 1);
                         _statusBuffer.Remove(_statusBuffer.Length - 2, 1);
                         searchPositions.Pop();
-                        _currentHistoryIndex = searchPositions.Peek();
+                        searchFromPoint = _currentHistoryIndex = searchPositions.Peek();
                         UpdateFromHistory(moveCursor: Options.HistorySearchCursorMovesToEnd);
 
                         // Prompt may need to have 'failed-' removed.

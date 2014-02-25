@@ -317,6 +317,55 @@ namespace UnitTestPSReadLine
                     statusColors, "fwd-i-search: a_")),
                 _.CtrlG));
 
+            // Test that searching works after a failed search
+            SetHistory("echo aa1", "echo bb1", "echo bb2", "echo aa2");
+            Test("echo aa1", Keys(_.CtrlR, "zz", _.Backspace, _.Backspace, "a1",
+                CheckThat(() => AssertScreenIs(2,
+                    TokenClassification.Command, "echo",
+                    TokenClassification.None, " a",
+                    emphasisColors, "a1",
+                    NextLine,
+                    statusColors, "bck-i-search: a1_"))
+                ));
+
+            // Test that searching works after backspace after a successful search
+            SetHistory("echo aa1", "echo bb1", "echo bb2", "echo aa2");
+            Test("echo aa2", Keys(
+                _.CtrlR,
+                "aa",
+                CheckThat(() => AssertScreenIs(2,
+                    TokenClassification.Command, "echo",
+                    TokenClassification.None, " ",
+                    emphasisColors, "aa",
+                    TokenClassification.None, "2",
+                    NextLine,
+                    statusColors, "bck-i-search: aa_")),
+                _.CtrlR,
+                CheckThat(() => AssertScreenIs(2,
+                    TokenClassification.Command, "echo",
+                    TokenClassification.None, " ",
+                    emphasisColors, "aa",
+                    TokenClassification.None, "1",
+                    NextLine,
+                    statusColors, "bck-i-search: aa_")),
+                _.Backspace,
+                CheckThat(() => AssertScreenIs(2,
+                    TokenClassification.Command, "echo",
+                    TokenClassification.None, " ",
+                    emphasisColors, "a",
+                    TokenClassification.None, "a2",
+                    NextLine,
+                    statusColors, "bck-i-search: a_")),
+                'a', _.CtrlR,
+                CheckThat(() => AssertScreenIs(2,
+                    TokenClassification.Command, "echo",
+                    TokenClassification.None, " ",
+                    emphasisColors, "aa",
+                    TokenClassification.None, "1",
+                    NextLine,
+                    statusColors, "bck-i-search: aa_")),
+                _.Backspace));
+
             // TODO: long search line
             // TODO: start with Ctrl+S
             // TODO: "fast" typing in search where buffered keys after search is accepted

@@ -37,7 +37,7 @@ namespace UnitTestPSReadLine
         [TestMethod]
         public void TestCancelLine()
         {
-            TestSetup(KeyMode.Cmd);
+            TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+C", PSConsoleReadLine.CancelLine));
 
             Test("", Keys("oops", _.CtrlC,
                 CheckThat(() => AssertScreenIs(1,

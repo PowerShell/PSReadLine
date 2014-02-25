@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using Microsoft.QualityTools.Testing.Fakes;
@@ -305,6 +306,23 @@ namespace UnitTestPSReadLine
         }
 
         [TestMethod]
+        public void TestCopyOrCancelLine()
+        {
+            TestSetup(KeyMode.Cmd);
+
+            ExecuteOnSTAThread(() => Clipboard.SetText(""));
+            Test("echo copytest2", Keys(
+                "echo copytest2", _.ShiftCtrlLeftArrow, _.CtrlC));
+            AssertClipboardTextIs("copytest2");
+
+            Test("", Keys("oops", _.CtrlC,
+                CheckThat(() => AssertScreenIs(1,
+                    TokenClassification.Command, "oops",
+                    Tuple.Create(ConsoleColor.Red, Console.BackgroundColor), "^C")),
+                InputAcceptedNow));
+        }
+
+        [TestMethod]
         public void TestSelectBackwardChar()
         {
             TestSetup(KeyMode.Cmd);
@@ -436,6 +454,29 @@ namespace UnitTestPSReadLine
                     TokenClassification.Command, Inverted, "echo",
                     TokenClassification.None, Inverted, " foo")),
                 _.Delete));
+        }
+
+        [TestMethod]
+        public void TestSelectAll()
+        {
+            TestSetup(KeyMode.Cmd);
+
+            Test("", Keys(
+                "echo foo", _.CtrlA,
+                CheckThat(() => AssertScreenIs(1,
+                    TokenClassification.Command, Inverted, "echo",
+                    TokenClassification.None, Inverted, " foo")),
+                _.Delete
+                ));
+
+            Test("", Keys(
+                "echo foo", _.CtrlLeftArrow, _.CtrlA,
+                CheckThat(() => AssertScreenIs(1,
+                    TokenClassification.Command, Inverted, "echo",
+                    TokenClassification.None, Inverted, " foo")),
+                CheckThat(() => AssertCursorLeftIs(8)),
+                _.Delete
+                ));
         }
     }
 }

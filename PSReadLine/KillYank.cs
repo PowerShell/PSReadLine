@@ -412,6 +412,17 @@ namespace PSConsoleUtilities
         }
 
         /// <summary>
+        /// Select the entire line
+        /// </summary>
+        public static void SelectAll(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            _singleton._visualSelectionCommandCount += 1;
+            _singleton._mark = 0;
+            _singleton._current = _singleton._buffer.Length;
+            _singleton.Render();
+        }
+
+        /// <summary>
         /// Adjust the current selection to include from the cursor to the end of the line
         /// </summary>
         public static void SelectLine(ConsoleKeyInfo? key = null, object arg = null)
@@ -473,6 +484,21 @@ namespace PSConsoleUtilities
                 textToSet = _singleton._buffer.ToString(); 
             }
             ExecuteOnSTAThread(() => Clipboard.SetText(textToSet));
+        }
+
+        /// <summary>
+        /// If text is selected, copy to the clipboard, otherwise cancel the line.
+        /// </summary>
+        public static void CopyOrCancelLine(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            if (_singleton._visualSelectionCommandCount > 0)
+            {
+                Copy(key, arg);
+            }
+            else
+            {
+                CancelLine(key, arg);
+            }
         }
 
         /// <summary>
