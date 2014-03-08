@@ -38,43 +38,33 @@ namespace UnitTestPSReadLine
             var shiftUpArrow = new ConsoleKeyInfo((char)0, ConsoleKey.UpArrow, true, false, false);
             var shiftDownArrow = new ConsoleKeyInfo((char)0, ConsoleKey.DownArrow, true, false, false);
 
-            using (ShimsContext.Create())
-            {
-                bool ding = false;
-                PSConsoleUtilities.Fakes.ShimPSConsoleReadLine.Ding =
-                    () => ding = true;
+            Test("", Keys(
+                // Basic up/down arrows
+                _.CtrlZ, _.UpArrow, _.Enter, CheckThat(() => AssertScreenCaptureClipboardIs(line[3])),
+                _.CtrlZ, _.UpArrow, _.UpArrow, _.Enter, CheckThat(() => AssertScreenCaptureClipboardIs(line[2])),
+                _.CtrlZ, _.UpArrow, _.UpArrow, _.DownArrow, _.Enter,
+                CheckThat(() => AssertScreenCaptureClipboardIs(line[3])),
 
-                Test("", Keys(
-                    // Basic up/down arrows
-                    _.CtrlZ, _.UpArrow, _.Enter, CheckThat(() => AssertScreenCaptureClipboardIs(line[3])),
-                    _.CtrlZ, _.UpArrow, _.UpArrow, _.Enter, CheckThat(() => AssertScreenCaptureClipboardIs(line[2])),
-                    _.CtrlZ, _.UpArrow, _.UpArrow, _.DownArrow, _.Enter, CheckThat(() => AssertScreenCaptureClipboardIs(line[3])),
+                // Select multiple lines
+                _.CtrlZ, _.UpArrow, shiftUpArrow, _.Enter,
+                CheckThat(() => AssertScreenCaptureClipboardIs(line[2], line[3])),
+                _.CtrlZ, Enumerable.Repeat(_.UpArrow, 10), shiftDownArrow, _.Enter,
+                CheckThat(() => AssertScreenCaptureClipboardIs(line[0], line[1])),
 
-                    // Select multiple lines
-                    _.CtrlZ, _.UpArrow, shiftUpArrow, _.Enter,
-                    CheckThat(() => AssertScreenCaptureClipboardIs(line[2], line[3])),
-                    _.CtrlZ, Enumerable.Repeat(_.UpArrow, 10), shiftDownArrow, _.Enter,
-                    CheckThat(() => AssertScreenCaptureClipboardIs(line[0], line[1])),
+                // Select multiple lines, then shorten selection
+                _.CtrlZ, _.UpArrow, shiftUpArrow, shiftUpArrow, shiftDownArrow, _.Enter,
+                CheckThat(() => AssertScreenCaptureClipboardIs(line[2], line[3])),
+                _.CtrlZ, Enumerable.Repeat(_.UpArrow, 10), shiftDownArrow, shiftDownArrow, shiftUpArrow, _.Enter,
+                CheckThat(() => AssertScreenCaptureClipboardIs(line[0], line[1])),
 
-                    // Select multiple lines, then shorten selection
-                    _.CtrlZ, _.UpArrow, shiftUpArrow, shiftUpArrow, shiftDownArrow, _.Enter,
-                    CheckThat(() => AssertScreenCaptureClipboardIs(line[2], line[3])),
-                    _.CtrlZ, Enumerable.Repeat(_.UpArrow, 10), shiftDownArrow, shiftDownArrow, shiftUpArrow, _.Enter,
-                    CheckThat(() => AssertScreenCaptureClipboardIs(line[0], line[1])),
+                // Test trying to arrow down past end of buffer (arrowing past top of buffer covered above)
+                _.CtrlZ, Enumerable.Repeat(_.DownArrow, Console.BufferHeight), _.Escape),
+                resetCursor: false);
 
-                    // Test trying to arrow down past end of buffer (arrowing past top of buffer covered above)
-                    _.CtrlZ, Enumerable.Repeat(_.DownArrow, Console.BufferHeight), _.Escape,
-
-                    // Test that we ding input that doesn't do anything
-                    _.CtrlZ,
-                    'c', CheckThat(() => { Assert.IsTrue(ding); ding = false; }),
-                    'g', CheckThat(() => { Assert.IsTrue(ding); ding = false; }),
-                    'a', CheckThat(() => { Assert.IsTrue(ding); ding = false; }),
-                    _.Escape,
-
-                    _.Enter),
-                     resetCursor: false);
-            }
+            // Test that we ding input that doesn't do anything
+            TestMustDing("", Keys(_.CtrlZ, 'c', _.Escape));
+            TestMustDing("", Keys(_.CtrlZ, 'a', _.Escape));
+            TestMustDing("", Keys(_.CtrlZ, 'z', _.Escape));
 
             // To test:
             // * Selected lines are inverted

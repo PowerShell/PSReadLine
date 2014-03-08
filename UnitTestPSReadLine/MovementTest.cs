@@ -76,30 +76,18 @@ namespace UnitTestPSReadLine
             Test("((11))", Keys("((11))", _.LeftArrow, _.CtrlRBracket, CheckThat(() => AssertCursorLeftIs(0))));
             Test("((11))", Keys("((11))", _.LeftArrow, _.LeftArrow, _.CtrlRBracket, CheckThat(() => AssertCursorLeftIs(1))));
 
-            using (ShimsContext.Create())
+            // Make sure we don't match inside a string
+            TestMustDing("", Keys(
+                "'()'", _.LeftArrow, _.LeftArrow,
+                _.CtrlRBracket, CheckThat(() => AssertCursorLeftIs(2)),
+                _.CtrlC, InputAcceptedNow));
+
+            foreach (var c in new[] {'(', ')', '{', '}', '[', ']'})
             {
-                bool ding = false;
-                PSConsoleUtilities.Fakes.ShimPSConsoleReadLine.Ding =
-                    () => ding = true;
-
-                // Make sure we don't match inside a string
-                Test("", Keys(
-                    "'()'", _.LeftArrow, _.LeftArrow,
-                    _.CtrlRBracket, CheckThat(() => AssertCursorLeftIs(2)),
+                TestMustDing("", Keys(
+                    'a', c, _.LeftArrow,
+                    _.CtrlRBracket, CheckThat(() => AssertCursorLeftIs(1)),
                     _.CtrlC, InputAcceptedNow));
-                Assert.IsTrue(ding);
-
-                foreach (var c in new[] {'(', ')', '{', '}', '[', ']'})
-                {
-                    ding = false;
-                    PSConsoleUtilities.Fakes.ShimPSConsoleReadLine.Ding =
-                        () => ding = true;
-                    Test("", Keys(
-                        'a', c, _.LeftArrow,
-                        _.CtrlRBracket, CheckThat(() => AssertCursorLeftIs(1)),
-                        _.CtrlC, InputAcceptedNow));
-                    Assert.IsTrue(ding);
-                }
             }
         }
 
@@ -124,16 +112,9 @@ namespace UnitTestPSReadLine
                 _.Home,
                 _.Alt2, _.CtrlRBracket, '|', CheckThat(() => AssertCursorLeftIs(12))));
 
-            using (ShimsContext.Create())
-            {
-                bool ding = false;
-                PSConsoleUtilities.Fakes.ShimPSConsoleReadLine.Ding =
-                    () => ding = true;
-
-                Test("cmd1 | cmd2 | cmd3", Keys(
-                    "cmd1 | cmd2 | cmd3",
-                    _.CtrlRBracket, 'z', CheckThat(() => Assert.IsTrue(ding))));
-            }
+            TestMustDing("cmd1 | cmd2 | cmd3", Keys(
+                "cmd1 | cmd2 | cmd3",
+                _.CtrlRBracket, 'z'));
 
             int i = 0;
             TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+z",
@@ -167,16 +148,9 @@ namespace UnitTestPSReadLine
                 _.End,
                 _.Alt2, _.AltCtrlRBracket, '|', CheckThat(() => AssertCursorLeftIs(5))));
 
-            using (ShimsContext.Create())
-            {
-                bool ding = false;
-                PSConsoleUtilities.Fakes.ShimPSConsoleReadLine.Ding =
-                    () => ding = true;
-
-                Test("cmd1 | cmd2 | cmd3", Keys(
-                    "cmd1 | cmd2 | cmd3",
-                    _.AltCtrlRBracket, 'z', CheckThat(() => Assert.IsTrue(ding))));
-            }
+            TestMustDing("cmd1 | cmd2 | cmd3", Keys(
+                "cmd1 | cmd2 | cmd3",
+                _.AltCtrlRBracket, 'z'));
 
             int i = 0;
             TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+z",
