@@ -89,18 +89,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Fakes Include="Fakes\System.fakes" />
-  </ItemGroup>
-  <ItemGroup>
-    <Fakes Include="Fakes\mscorlib.fakes" />
-  </ItemGroup>
-  <ItemGroup>
-    <Fakes Include="Fakes\PSReadLine.fakes" />
-  </ItemGroup>
-  <ItemGroup>
-    <Fakes Include="Fakes\System.Management.Automation.fakes" />
-  </ItemGroup>
-  <ItemGroup>
     <Folder Include="Properties\" />
   </ItemGroup>
   <Choose>

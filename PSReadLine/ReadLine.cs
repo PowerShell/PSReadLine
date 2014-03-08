@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -7,12 +8,15 @@ using System.Management.Automation.Language;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
+using PSConsoleUtilities.Internal;
 
 namespace PSConsoleUtilities
 {
-    public partial class PSConsoleReadLine
+    public partial class PSConsoleReadLine : Internal.IPSConsoleReadLineMockableMethods
     {
         private static readonly PSConsoleReadLine _singleton;
+
+        private Internal.IPSConsoleReadLineMockableMethods _mockableMethods;
 
         private static readonly GCHandle _breakHandlerGcHandle;
         private Thread _readKeyThread;
@@ -40,32 +44,30 @@ namespace PSConsoleUtilities
         private Ast _ast;
         private ParseError[] _parseErrors;
 
-        // For some reason nothing from System.Console is available via the Fakes assembly.
-        // If we define a trivial wrapper, it can be faked, so we do.
         [ExcludeFromCodeCoverage]
-        private static ConsoleKeyInfo ConsoleReadKey()
+        ConsoleKeyInfo IPSConsoleReadLineMockableMethods.ReadKey()
         {
             return Console.ReadKey(true);
         }
 
         [ExcludeFromCodeCoverage]
-        private static bool ConsoleKeyAvailable()
+        bool IPSConsoleReadLineMockableMethods.KeyAvailable()
         {
             return Console.KeyAvailable;
         }
 
         private void ReadKeyThreadProc()
         {
-            Stopwatch stopwatch = new Stopwatch();
+            var stopwatch = new Stopwatch();
             while (true)
             {
                 // Wait until ReadKey tells us to read a key.
                 _readKeyWaitHandle.WaitOne();
 
                 stopwatch.Restart();
-                while (ConsoleKeyAvailable())
+                while (_mockableMethods.KeyAvailable())
                 {
-                    _queuedKeys.Enqueue(ConsoleReadKey());
+                    _queuedKeys.Enqueue(_mockableMethods.ReadKey());
                     if (stopwatch.ElapsedMilliseconds > 2)
                     {
                         // Don't spend too long in this loop if there are lots of queued keys
@@ -75,7 +77,7 @@ namespace PSConsoleUtilities
 
                 if (_queuedKeys.Count == 0)
                 {
-                    var key = ConsoleReadKey();
+                    var key = _mockableMethods.ReadKey();
                     _queuedKeys.Enqueue(key);
                 }
 
@@ -260,6 +262,8 @@ namespace PSConsoleUtilities
 
         private PSConsoleReadLine()
         {
+            _mockableMethods = this;
+
             _captureKeys = false;
             _savedKeys = new Queue<ConsoleKeyInfo>();
             _demoStrings = new HistoryQueue<string>(100);
@@ -505,5 +509,6 @@ namespace PSConsoleUtilities
         }
 
         #endregion Miscellaneous bindable functions
+
     }
 }

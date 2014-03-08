@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Management.Automation.Language;
 using System.Text;
+using PSConsoleUtilities.Internal;
 
 namespace PSConsoleUtilities
 {
@@ -482,22 +483,27 @@ namespace PSConsoleUtilities
             return (_statusLinePrompt.Length + _statusBuffer.Length) / Console.BufferWidth + 1;
         }
 
-        /// <summary>
-        /// Notify the user based on their preference for notification.
-        /// </summary>
-        public static void Ding()
+        void IPSConsoleReadLineMockableMethods.Ding()
         {
-            switch (_singleton.Options.BellStyle)
+            switch (Options.BellStyle)
             {
             case BellStyle.None:
                 break;
             case BellStyle.Audible:
-                Console.Beep(_singleton.Options.DingTone, _singleton.Options.DingDuration);
+                Console.Beep(Options.DingTone, Options.DingDuration);
                 break;
             case BellStyle.Visual:
                 // TODO: flash prompt? command line?
                 break;
             }
+        }
+
+        /// <summary>
+        /// Notify the user based on their preference for notification.
+        /// </summary>
+        public static void Ding()
+        {
+            _singleton._mockableMethods.Ding();
         }
 
         private bool PromptYesOrNo(string s)

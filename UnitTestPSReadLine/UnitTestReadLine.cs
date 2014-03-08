@@ -4,7 +4,9 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Management.Automation;
 using System.Management.Automation.Runspaces;
+using System.Reflection;
 using System.Threading;
 using System.Windows;
 using Microsoft.QualityTools.Testing.Fakes;
@@ -15,6 +17,66 @@ namespace UnitTestPSReadLine
 {
     // Disgusting language hack to make it easier to read a sequence of keys.
     using _ = Keys;
+
+    internal class MockedMethods : PSConsoleUtilities.Internal.IPSConsoleReadLineMockableMethods
+    {
+        internal int index;
+        internal object[] items;
+        internal Exception validationFailure;
+        internal bool didDing;
+
+        internal MockedMethods(object[] items)
+        {
+            this.index = 0;
+            this.items = items;
+            this.validationFailure = null;
+            this.didDing = false;
+        }
+
+        public ConsoleKeyInfo ReadKey()
+        {
+            while (index < items.Length)
+            {
+                var item = items[index++];
+                if (item is ConsoleKeyInfo)
+                {
+                    return (ConsoleKeyInfo)item;
+                }
+                try
+                {
+                    ((Action)item)();
+                }
+                catch (Exception e)
+                {
+                    // Just remember the first exception
+                    if (validationFailure == null)
+                    {
+                        validationFailure = e;
+                    }
+                    // In the hopes of avoiding additional failures, try cancelling via Ctrl+C.
+                    return _.CtrlC;
+                }
+            }
+
+            validationFailure = new Exception("Shouldn't call ReadKey when there are no more keys");
+            return _.CtrlC;
+        }
+
+        public bool KeyAvailable()
+        {
+            return index < items.Length && items[index] is ConsoleKeyInfo;
+        }
+
+        public void Ding()
+        {
+            didDing = true;
+        }
+
+        public CommandCompletion CompleteInput(string input, int cursorIndex, Hashtable options, PowerShell powershell)
+        {
+            return UnitTest.MockedCompleteInput(input, cursorIndex, options, powershell);
+        }
+    }
 
     [TestClass]
     public partial class UnitTest
@@ -496,7 +558,7 @@ namespace UnitTestPSReadLine
         }
 
         [ExcludeFromCodeCoverage]
-        static private void Test(string expectedResult, object[] items, bool resetCursor = true, string prompt = null)
+        static private void Test(string expectedResult, object[] items, bool resetCursor = true, string prompt = null, bool mustDing = false)
         {
             if (resetCursor)
             {
@@ -506,71 +568,38 @@ namespace UnitTestPSReadLine
                 Console.BufferHeight = Console.WindowHeight = 40;
             }
             SetPrompt(prompt);
-            int index = 0;
-            using (ShimsContext.Create())
+
+            var mockedMethods = new MockedMethods(items);
+            var instance = (PSConsoleReadLine)typeof(PSConsoleReadLine)
+                .GetField("_singleton", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
+            typeof(PSConsoleReadLine)
+                .GetField("_mockableMethods", BindingFlags.Instance | BindingFlags.NonPublic)
+                .SetValue(instance, mockedMethods);
+
+            var result = PSConsoleReadLine.ReadLine();
+
+            if (mockedMethods.validationFailure != null)
             {
-                System.Management.Automation.Fakes.ShimCommandCompletion.CompleteInputStringInt32HashtablePowerShell =
-                    MockedCompleteInput;
-                Exception validationFailure = null;
-                PSConsoleUtilities.Fakes.ShimPSConsoleReadLine.ConsoleKeyAvailable = 
-                    () => index < items.Length && items[index] is ConsoleKeyInfo;
-                PSConsoleUtilities.Fakes.ShimPSConsoleReadLine.ConsoleReadKey = () =>
-                {
-                    while (index < items.Length)
-                    {
-                        var item = items[index++];
-                        if (item is ConsoleKeyInfo)
-                        {
-                            return (ConsoleKeyInfo)item;
-                        }
-                        try
-                        {
-                            ((Action)item)();
-                        }
-                        catch (Exception e)
-                        {
-                            // Just remember the first exception
-                            if (validationFailure == null)
-                            {
-                                validationFailure = e;
-                            }
-                            // In the hopes of avoiding additional failures, try cancelling via Ctrl+C.
-                            return _.CtrlC;
-                        }
-                    }
+                throw new Exception("", mockedMethods.validationFailure);
+            }
 
-                    validationFailure = new Exception("Shouldn't call ReadKey when there are no more keys");
-                    return _.CtrlC;
-                };
+            while (mockedMethods.index < mockedMethods.items.Length)
+            {
+                var item = mockedMethods.items[mockedMethods.index++];
+                ((Action)item)();
+            }
 
-                var result = PSConsoleReadLine.ReadLine();
+            Assert.AreEqual(expectedResult, result);
 
-                if (validationFailure != null)
-                {
-                    throw new Exception("", validationFailure);
-                }
-
-                while (index < items.Length)
-                {
-                    var item = items[index++];
-                    ((Action)item)();
-                }
-
-                Assert.AreEqual(expectedResult, result);
+            if (mustDing)
+            {
+                Assert.IsTrue(mockedMethods.didDing);
             }
         }
 
         static private void TestMustDing(string expectedResult, object[] items, bool resetCursor = true, string prompt = null)
         {
-            using (ShimsContext.Create())
-            {
-                bool ding = false;
-                PSConsoleUtilities.Fakes.ShimPSConsoleReadLine.Ding =
-                    () => ding = true;
-
-                Test(expectedResult, items, resetCursor, prompt);
-                Assert.IsTrue(ding);
-            }
+            Test(expectedResult, items, resetCursor, prompt, true);
         }
 
         private void TestSetup(KeyMode keyMode, params KeyHandler[] keyHandlers)

@@ -1,9 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections;
 using System.Linq;
 using System.Management.Automation;
 using System.Text;
 using System.Text.RegularExpressions;
+using PSConsoleUtilities.Internal;
 
 namespace PSConsoleUtilities
 {
@@ -12,6 +13,12 @@ namespace PSConsoleUtilities
         // Tab completion state
         private int _tabCommandCount;
         private CommandCompletion _tabCompletions;
+
+        // Stub helper method so completion can be mocked
+        CommandCompletion IPSConsoleReadLineMockableMethods.CompleteInput(string input, int cursorIndex, Hashtable options, PowerShell powershell)
+        {
+            return CommandCompletion.CompleteInput(input, cursorIndex, options, powershell);
+        }
 
         /// <summary>
         /// Attempt to complete the text surrounding the cursor with the next
@@ -166,7 +173,7 @@ namespace PSConsoleUtilities
                     // input for coloring) but that overload is a little more complicated in passing in the
                     // cursor position.
                     var ps = PowerShell.Create(RunspaceMode.CurrentRunspace);
-                    _tabCompletions = CommandCompletion.CompleteInput(_buffer.ToString(), _current, null, ps);
+                    _tabCompletions = _mockableMethods.CompleteInput(_buffer.ToString(), _current, null, ps);
 
                     if (_tabCompletions.CompletionMatches.Count == 0)
                         return null;

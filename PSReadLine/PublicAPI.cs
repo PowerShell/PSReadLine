@@ -1,8 +1,21 @@
 ﻿using System;
+using System.Collections;
+using System.Management.Automation;
 using System.Management.Automation.Language;
 
 namespace PSConsoleUtilities
 {
+    namespace Internal
+    {
+        public interface IPSConsoleReadLineMockableMethods
+        {
+            ConsoleKeyInfo ReadKey();
+            bool KeyAvailable();
+            void Ding();
+            CommandCompletion CompleteInput(string input, int cursorIndex, Hashtable options, PowerShell powershell);
+        }
+    }
+
     public partial class PSConsoleReadLine
     {
         /// <summary>
