@@ -16,7 +16,7 @@ namespace PSConsoleUtilities
         }
     }
 
-    public partial class PSConsoleReadLine
+    public partial class PSConsoleReadLine : IModuleAssemblyInitializer
     {
         /// <summary>
         /// Insert a character at the current position.  Supports undo.
@@ -138,6 +138,35 @@ namespace PSConsoleUtilities
 
             _singleton._current = cursor;
             _singleton.PlaceCursor();
+        }
+
+        void IModuleAssemblyInitializer.OnImport()
+        {
+            // The purpose of the PSReadline module is to give a better experience in
+            // console-based hosts. If the host is not console-based, PSReadline can't do
+            // anything. Rather than having a list of hosts which we know are
+            // console-based, let's just check to see if the current process has a console
+            // associated with it. It's a heuristic, but it should be good enough.
+            IntPtr hwnd = NativeMethods.GetConsoleWindow();
+            if (IntPtr.Zero == hwnd)
+            {
+                throw new NotSupportedException(PSReadLineResources.HostNotSupported);
+            }
+            else
+            {
+                // Just because it has a console window doesn't mean it's a console host.
+                // For instance, if you run "ping" in the ISE, it will acquire a hidden
+                // console window. Let's check to see if the window is hidden.
+                if (!NativeMethods.IsWindowVisible(hwnd))
+                {
+                    // This is just a heuristic. For instance somebody could create a
+                    // PowerShell.exe process with a hidden window. If we decide that we
+                    // want to handle such cases, an alternative to a hard-coded list of
+                    // known-good hosts is to keep the list in a separate text file, which
+                    // end users could edit if necessary.
+                    throw new NotSupportedException(PSReadLineResources.HostNotSupported);
+                }
+            }
         }
     }
 }

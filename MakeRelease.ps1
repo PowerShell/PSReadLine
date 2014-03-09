@@ -17,7 +17,7 @@ if (Test-Path $targetDir)
     rmdir -re $targetDir
 }
 
-$null = mkdir $targetDir 
+$null = mkdir $targetDir
 $null = mkdir $targetDir\en-US
 
 $files = @('Changes.txt',
@@ -67,7 +67,7 @@ del $PSScriptRoot\PSReadline.zip -ea Ignore
 
 if ($Install)
 {
-    $InstallDir = "$HOME\Documents\WIndowsPowerShell\Modules"
+    $InstallDir = "$HOME\Documents\WindowsPowerShell\Modules"
 
     if (!(Test-Path $InstallDir))
     {

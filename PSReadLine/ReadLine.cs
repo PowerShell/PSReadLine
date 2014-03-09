@@ -39,6 +39,9 @@ namespace PSConsoleUtilities
         private readonly Queue<ConsoleKeyInfo> _queuedKeys;
         private Stopwatch _lastRenderTime;
 
+        // Save a fixed # of keys so we can reconstruct a repro after a crash
+        private readonly static HistoryQueue<ConsoleKeyInfo> _lastNKeys;
+
         // Tokens etc.
         private Token[] _tokens;
         private Ast _ast;
@@ -47,7 +50,9 @@ namespace PSConsoleUtilities
         [ExcludeFromCodeCoverage]
         ConsoleKeyInfo IPSConsoleReadLineMockableMethods.ReadKey()
         {
-            return Console.ReadKey(true);
+            var key = Console.ReadKey(true);
+            _lastNKeys.Enqueue(key);
+            return key;
         }
 
         [ExcludeFromCodeCoverage]
@@ -258,6 +263,9 @@ namespace PSConsoleUtilities
             _singleton._keyReadWaitHandle = new AutoResetEvent(false);
             _singleton._closingWaitHandle = new AutoResetEvent(false);
             _singleton._waitHandles = new WaitHandle[] { _singleton._keyReadWaitHandle, _singleton._closingWaitHandle };
+
+            // This is only used for post-mortem debugging - 200 keys should be enough to reconstruct most command lines.
+            _lastNKeys = new HistoryQueue<ConsoleKeyInfo>(200);
         }
 
         private PSConsoleReadLine()
