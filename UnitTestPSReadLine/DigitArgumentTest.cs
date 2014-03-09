@@ -1,9 +1,4 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.ObjectModel;
-using System.Management.Automation;
-using System.Reflection;
-using Microsoft.QualityTools.Testing.Fakes;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using PSConsoleUtilities;
 

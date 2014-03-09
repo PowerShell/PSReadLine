@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -12,11 +11,11 @@ using PSConsoleUtilities.Internal;
 
 namespace PSConsoleUtilities
 {
-    public partial class PSConsoleReadLine : Internal.IPSConsoleReadLineMockableMethods
+    public partial class PSConsoleReadLine : IPSConsoleReadLineMockableMethods
     {
         private static readonly PSConsoleReadLine _singleton;
 
-        private Internal.IPSConsoleReadLineMockableMethods _mockableMethods;
+        private IPSConsoleReadLineMockableMethods _mockableMethods;
 
         private static readonly GCHandle _breakHandlerGcHandle;
         private Thread _readKeyThread;

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Management.Automation;
 using System.Text;
@@ -15,6 +16,7 @@ namespace PSConsoleUtilities
         private CommandCompletion _tabCompletions;
 
         // Stub helper method so completion can be mocked
+        [ExcludeFromCodeCoverage]
         CommandCompletion IPSConsoleReadLineMockableMethods.CompleteInput(string input, int cursorIndex, Hashtable options, PowerShell powershell)
         {
             return CommandCompletion.CompleteInput(input, cursorIndex, options, powershell);

@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Management.Automation.Language;
-using System.Text;
 using PSConsoleUtilities.Internal;
 
 namespace PSConsoleUtilities
@@ -483,6 +483,7 @@ namespace PSConsoleUtilities
             return (_statusLinePrompt.Length + _statusBuffer.Length) / Console.BufferWidth + 1;
         }
 
+        [ExcludeFromCodeCoverage]
         void IPSConsoleReadLineMockableMethods.Ding()
         {
             switch (Options.BellStyle)
