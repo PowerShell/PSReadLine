@@ -26,9 +26,7 @@ namespace PSConsoleUtilities
     {
         Windows,
         Emacs,
-#if FALSE
         Vi,
-#endif
     }
 
     public enum BellStyle

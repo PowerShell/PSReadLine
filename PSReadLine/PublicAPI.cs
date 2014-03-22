@@ -76,7 +76,7 @@ namespace PSConsoleUtilities
         /// <param name="start">The start position to replace</param>
         /// <param name="length">The length to replace</param>
         /// <param name="replacement">The replacement text</param>
-        public static void Replace(int start, int length, string replacement)
+        public static void Replace( int start, int length, string replacement, Action<ConsoleKeyInfo?, object> instigator = null, object instigatorArg = null )
         {
             if (start < 0 || start > _singleton._buffer.Length)
             {
@@ -101,7 +101,7 @@ namespace PSConsoleUtilities
             {
                 _singleton._current = start;
             }
-            _singleton.EndEditGroup();
+            _singleton.EndEditGroup(instigator, instigatorArg); // Instigator is needed for VI undo
             _singleton.Render();
         }
 

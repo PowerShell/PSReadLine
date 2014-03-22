@@ -28,14 +28,15 @@ namespace PSConsoleUtilities
             _editGroupCount = 0;
         }
 
-        private void EndEditGroup()
+        private void EndEditGroup(Action<ConsoleKeyInfo?, object> instigator = null, object instigatorArg = null )
         {
             // The last _editGroupCount edits are treated as a single item for undo
             var start = _edits.Count - _editGroupCount;
             var groupedEditItems = _edits.GetRange(start, _editGroupCount);
             _edits.RemoveRange(start, _editGroupCount);
-            SaveEditItem(GroupedEdit.Create(groupedEditItems));
+            SaveEditItem(GroupedEdit.Create(groupedEditItems, instigator, instigatorArg));
             _editGroupCount = _pushedEditGroupCount.Pop();
+            
         }
 
         /// <summary>
@@ -47,6 +48,10 @@ namespace PSConsoleUtilities
             {
                 _singleton._edits[_singleton._undoEditIndex - 1].Undo(_singleton);
                 _singleton._undoEditIndex--;
+                if( _singleton._options.EditMode == EditMode.Vi && _singleton._current >= _singleton._buffer.Length )
+                {
+                    _singleton._current = _singleton._buffer.Length - 1;
+                }
                 _singleton.Render();
             }
             else
@@ -74,7 +79,10 @@ namespace PSConsoleUtilities
 
         abstract class EditItem
         {
-            public abstract void Undo(PSConsoleReadLine singleton);
+            public Action<ConsoleKeyInfo?, object> _instigator = null;
+            public object _instigatorArg = null;
+
+            public abstract void Undo( PSConsoleReadLine singleton );
             public abstract void Redo(PSConsoleReadLine singleton);
         }
 
@@ -146,12 +154,14 @@ namespace PSConsoleUtilities
             private string _deletedString;
             private int _deleteStartPosition;
 
-            public static EditItem Create(string str, int position)
+            public static EditItem Create( string str, int position, Action<ConsoleKeyInfo?, object> instigator = null, object instigatorArg = null)
             {
                 return new EditItemDelete
                 {
                     _deletedString = str,
-                    _deleteStartPosition = position
+                    _deleteStartPosition = position,
+                    _instigator = instigator,
+                    _instigatorArg = instigatorArg
                 };
             }
 
@@ -172,9 +182,14 @@ namespace PSConsoleUtilities
         {
             private List<EditItem> _groupedEditItems;
 
-            public static EditItem Create(List<EditItem> groupedEditItems)
+            public static EditItem Create( List<EditItem> groupedEditItems, Action<ConsoleKeyInfo?, object> instigator = null, object instigatorArg = null )
             {
-                return new GroupedEdit {_groupedEditItems = groupedEditItems};
+                return new GroupedEdit
+                {
+                    _groupedEditItems = groupedEditItems,
+                    _instigator = instigator,
+                    _instigatorArg = instigatorArg
+                };
             }
 
             public override void Undo(PSConsoleReadLine singleton)

@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Management.Automation.Language;
 
 namespace PSConsoleUtilities
@@ -94,29 +95,73 @@ namespace PSConsoleUtilities
         /// <summary>
         /// Find the end of the current/next word as defined by wordDelimiters and whitespace.
         /// </summary>
-        private int FindForwardWordPoint(string wordDelimiters)
+        private int FindForwardWordPoint( string wordDelimiters )
         {
             int i = _current;
-            if (i == _buffer.Length)
+            if( i == _buffer.Length )
             {
                 return i;
             }
 
-            if (!InWord(i, wordDelimiters))
+            if( !InWord( i, wordDelimiters ) )
             {
                 // Scan to end of current non-word region
-                while (i < _buffer.Length)
+                while( i < _buffer.Length )
                 {
-                    if (InWord(i, wordDelimiters))
+                    if( InWord( i, wordDelimiters ) )
                     {
                         break;
                     }
                     i += 1;
                 }
             }
-            while (i < _buffer.Length)
+            while( i < _buffer.Length )
             {
-                if (!InWord(i, wordDelimiters))
+                if( !InWord( i, wordDelimiters ) )
+                {
+                    break;
+                }
+                i += 1;
+            }
+            return i;
+        }
+
+        /// <summary>
+        /// Find the end of the current/next word as defined by wordDelimiters and whitespace.
+        /// Needed by VI
+        /// </summary>
+        private int FindNextWordEnd( string wordDelimiters )
+        {
+            int i = _current;
+
+            if( InWord( i, wordDelimiters ) )
+            {
+                if( i < _buffer.Length - 1 && !InWord( i + 1, wordDelimiters ) )
+                {
+                    i++;
+                }
+            }
+
+            if( i == _buffer.Length )
+            {
+                return i;
+            }
+
+            if( !InWord( i, wordDelimiters ) )
+            {
+                // Scan to end of current non-word region
+                while( i < _buffer.Length )
+                {
+                    if( InWord( i, wordDelimiters ) )
+                    {
+                        break;
+                    }
+                    i += 1;
+                }
+            }
+            while( i < _buffer.Length )
+            {
+                if( !InWord( i, wordDelimiters ) )
                 {
                     break;
                 }
@@ -128,9 +173,18 @@ namespace PSConsoleUtilities
         /// <summary>
         /// Find the start of the next word.
         /// </summary>
-        private int FindNextWordPoint(string wordDelimiters)
+        private int FindNextWordPoint( string wordDelimiters )
         {
-            int i = _singleton._current;
+            return FindNextWordPointFrom( _singleton._current, wordDelimiters );
+        }
+
+        /// <summary>
+        /// Find the start of the next word from the supplied location.
+        /// Needed by VI.
+        /// </summary>
+        private int FindNextWordPointFrom( int cursor, string wordDelimiters )
+        {
+            int i = cursor;
             if (i == _singleton._buffer.Length)
             {
                 return i;
@@ -163,9 +217,17 @@ namespace PSConsoleUtilities
         /// <summary>
         /// Find the beginning of the previous word.
         /// </summary>
-        private int FindBackwardWordPoint(string wordDelimiters)
+        private int FindBackwardWordPoint( string wordDelimiters )
         {
-            int i = _current - 1;
+            return FindPreviousWordPointFrom( _singleton._current, wordDelimiters );
+        }
+
+        /// <summary>
+        /// Find the beginning of the previous word from the supplied spot.
+        /// </summary>
+        private int FindPreviousWordPointFrom( int cursor, string wordDelimiters )
+        {
+            int i = cursor - 1;
             if (i < 0)
             {
                 return 0;

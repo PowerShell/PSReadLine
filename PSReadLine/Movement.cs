@@ -33,7 +33,7 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void ForwardChar(ConsoleKeyInfo? key = null, object arg = null)
         {
-            if (_singleton._current < _singleton._buffer.Length)
+            if ( _singleton._current < _singleton._buffer.Length )
             {
                 _singleton._current += 1;
                 _singleton.PlaceCursor();
@@ -46,9 +46,11 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void BackwardChar(ConsoleKeyInfo? key = null, object arg = null)
         {
-            if (_singleton._current > 0 && (_singleton._current - 1 < _singleton._buffer.Length))
+            int qty = ( arg is int ) ? (int) arg : 1;   // For VI movement
+            int distance = Math.Min( _singleton._current, qty );
+            if ( distance > 0 && (_singleton._current - distance < _singleton._buffer.Length))
             {
-                _singleton._current -= 1;
+                _singleton._current -= distance;
                 _singleton.PlaceCursor();
             }
         }
@@ -68,6 +70,13 @@ namespace PSConsoleUtilities
             }
             _singleton._current = i;
             _singleton.PlaceCursor();
+
+            // For VI movement 
+            int qty = ( arg is int ) ? (int) arg : 1;
+            if( qty > 1 )
+            {
+                NextWord( key, qty - 1 );
+            }
         }
 
         /// <summary>
@@ -130,6 +139,13 @@ namespace PSConsoleUtilities
             int i = _singleton.FindBackwardWordPoint(_singleton.Options.WordDelimiters);
             _singleton._current = i;
             _singleton.PlaceCursor();
+
+            // For VI movement
+            int qty = ( arg is int ) ? (int) arg : 1;
+            if( qty > 1 )
+            {
+                BackwardWord( key, qty - 1 );
+            }
         }
 
         /// <summary>

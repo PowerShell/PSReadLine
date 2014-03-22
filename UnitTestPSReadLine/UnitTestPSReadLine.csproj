@@ -53,13 +53,16 @@
   </Choose>
   <ItemGroup>
     <Compile Include="AssemblyInfo.cs" />
+    <Compile Include="BasicEditingTest.VI.cs" />
     <Compile Include="CompletionTest.cs" />
     <Compile Include="DigitArgumentTest.cs" />
+    <Compile Include="HistoryTest.VI.cs" />
     <Compile Include="HistoryTest.cs" />
     <Compile Include="KeyBindingsTest.cs" />
     <Compile Include="KeyInfoConverterTest.cs" />
     <Compile Include="BasicEditingTest.cs" />
     <Compile Include="KillYankTest.cs" />
+    <Compile Include="MovementTest.VI.cs" />
     <Compile Include="MovementTest.cs" />
     <Compile Include="OptionsTest.cs" />
     <Compile Include="PublicAPIsTest.cs" />
