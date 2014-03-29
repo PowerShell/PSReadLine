@@ -81,7 +81,7 @@ namespace PSConsoleUtilities
             public Action<ConsoleKeyInfo?, object> _instigator = null;
             public object _instigatorArg = null;
 
-            public abstract void Undo( PSConsoleReadLine singleton );
+            public abstract void Undo(PSConsoleReadLine singleton);
             public abstract void Redo(PSConsoleReadLine singleton);
         }
 

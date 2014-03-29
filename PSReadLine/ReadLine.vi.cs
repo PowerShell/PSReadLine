@@ -202,6 +202,7 @@ namespace PSConsoleUtilities
                 { Keys.CtrlRBracket,    MakeKeyHandler(GotoBrace,              "GotoBrace") },
                 { Keys.F3,              MakeKeyHandler(CharacterSearch,        "CharacterSearch") },
                 { Keys.ShiftF3,         MakeKeyHandler(CharacterSearchBackward,"CharacterSearchBackward") },
+                { Keys.CtrlAltQuestion, MakeKeyHandler(ShowKeyBindings,        "ShowKeyBindings") }
             };
         private static readonly Dictionary<ConsoleKeyInfo, KeyHandler> _viCmdKeyMap = new Dictionary<ConsoleKeyInfo, KeyHandler>( new ConsoleKeyInfoComparer() )
             {
