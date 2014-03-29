@@ -105,12 +105,8 @@ namespace PSConsoleUtilities
                 case EditMode.Emacs:
                     SetDefaultEmacsBindings();
                     break;
-                case EditMode.Vi:   // For VI mode
-                    _dispatchTable = _viInsKeyMap;
-                    _chordDispatchTable = new Dictionary<ConsoleKeyInfo, Dictionary<ConsoleKeyInfo, KeyHandler>>();
-                    _chordDispatchTable[Keys.D] = _viChordDTable;
-                    _chordDispatchTable[Keys.C] = _viChordCTable;
-                    _chordDispatchTable[Keys.Y] = _viChordYTable;
+                case EditMode.Vi:
+                    SetDefaultViBindings();
                     break;
                 case EditMode.Windows:
                     SetDefaultWindowsBindings();

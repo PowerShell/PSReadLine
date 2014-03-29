@@ -28,7 +28,7 @@ namespace PSConsoleUtilities
             _editGroupCount = 0;
         }
 
-        private void EndEditGroup(Action<ConsoleKeyInfo?, object> instigator = null, object instigatorArg = null )
+        private void EndEditGroup(Action<ConsoleKeyInfo?, object> instigator = null, object instigatorArg = null)
         {
             // The last _editGroupCount edits are treated as a single item for undo
             var start = _edits.Count - _editGroupCount;
@@ -36,7 +36,6 @@ namespace PSConsoleUtilities
             _edits.RemoveRange(start, _editGroupCount);
             SaveEditItem(GroupedEdit.Create(groupedEditItems, instigator, instigatorArg));
             _editGroupCount = _pushedEditGroupCount.Pop();
-            
         }
 
         /// <summary>
@@ -48,7 +47,7 @@ namespace PSConsoleUtilities
             {
                 _singleton._edits[_singleton._undoEditIndex - 1].Undo(_singleton);
                 _singleton._undoEditIndex--;
-                if( _singleton._options.EditMode == EditMode.Vi && _singleton._current >= _singleton._buffer.Length )
+                if (_singleton._options.EditMode == EditMode.Vi && _singleton._current >= _singleton._buffer.Length)
                 {
                     _singleton._current = _singleton._buffer.Length - 1;
                 }
@@ -154,7 +153,7 @@ namespace PSConsoleUtilities
             private string _deletedString;
             private int _deleteStartPosition;
 
-            public static EditItem Create( string str, int position, Action<ConsoleKeyInfo?, object> instigator = null, object instigatorArg = null)
+            public static EditItem Create(string str, int position, Action<ConsoleKeyInfo?, object> instigator = null, object instigatorArg = null)
             {
                 return new EditItemDelete
                 {
@@ -182,7 +181,7 @@ namespace PSConsoleUtilities
         {
             private List<EditItem> _groupedEditItems;
 
-            public static EditItem Create( List<EditItem> groupedEditItems, Action<ConsoleKeyInfo?, object> instigator = null, object instigatorArg = null )
+            public static EditItem Create(List<EditItem> groupedEditItems, Action<ConsoleKeyInfo?, object> instigator = null, object instigatorArg = null)
             {
                 return new GroupedEdit
                 {

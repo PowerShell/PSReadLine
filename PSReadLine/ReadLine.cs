@@ -412,7 +412,7 @@ namespace PSConsoleUtilities
             }
 
             #region VI special case
-            if( _singleton._options.EditMode == EditMode.Vi && key.Value.KeyChar == '0' )
+            if (_singleton._options.EditMode == EditMode.Vi && key.Value.KeyChar == '0')
             {
                 BeginningOfLine();
                 return;

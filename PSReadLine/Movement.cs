@@ -33,7 +33,7 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void ForwardChar(ConsoleKeyInfo? key = null, object arg = null)
         {
-            if ( _singleton._current < _singleton._buffer.Length )
+            if (_singleton._current < _singleton._buffer.Length)
             {
                 _singleton._current += 1;
                 _singleton.PlaceCursor();
@@ -48,7 +48,7 @@ namespace PSConsoleUtilities
         {
             int qty = ( arg is int ) ? (int) arg : 1;   // For VI movement
             int distance = Math.Min( _singleton._current, qty );
-            if ( distance > 0 && (_singleton._current - distance < _singleton._buffer.Length))
+            if (distance > 0 && (_singleton._current - distance < _singleton._buffer.Length))
             {
                 _singleton._current -= distance;
                 _singleton.PlaceCursor();
@@ -73,9 +73,9 @@ namespace PSConsoleUtilities
 
             // For VI movement 
             int qty = ( arg is int ) ? (int) arg : 1;
-            if( qty > 1 )
+            if (qty > 1)
             {
-                NextWord( key, qty - 1 );
+                NextWord(key, qty - 1);
             }
         }
 
@@ -142,9 +142,9 @@ namespace PSConsoleUtilities
 
             // For VI movement
             int qty = ( arg is int ) ? (int) arg : 1;
-            if( qty > 1 )
+            if (qty > 1)
             {
-                BackwardWord( key, qty - 1 );
+                BackwardWord(key, qty - 1);
             }
         }
 

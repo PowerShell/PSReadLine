@@ -168,6 +168,7 @@ namespace PSConsoleUtilities
             }
         }
 
+        #region KeyBindings
         private static readonly Dictionary<ConsoleKeyInfo, KeyHandler> _viInsKeyMap = new Dictionary<ConsoleKeyInfo, KeyHandler>( new ConsoleKeyInfoComparer() )
             {
                 { Keys.Enter,           MakeKeyHandler(AcceptLine,             "AcceptLine") },
@@ -368,6 +369,19 @@ namespace PSConsoleUtilities
                 { Keys.Uphat,           MakeKeyHandler( ViBackwardDeleteLineToFirstChar, "ViBackwardDeleteLineToFirstChar" ) },
                 { Keys.Percent,         MakeKeyHandler( ViDeleteBrace,        "ViDeleteBrace" ) }
             };
+        #endregion KeyBindings
+
+        /// <summary>
+        /// Sets up the key bindings for vi operations.
+        /// </summary>
+        private void SetDefaultViBindings()
+        {
+            _dispatchTable = _viInsKeyMap;
+            _chordDispatchTable = new Dictionary<ConsoleKeyInfo, Dictionary<ConsoleKeyInfo, KeyHandler>>();
+            _chordDispatchTable[Keys.D] = _viChordDTable;
+            _chordDispatchTable[Keys.C] = _viChordCTable;
+            _chordDispatchTable[Keys.Y] = _viChordYTable;
+        }
 
         /// <summary>
         /// Delete the character under the cursor.
@@ -468,7 +482,7 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void ViForwardWord( ConsoleKeyInfo? key = null, object arg = null )
         {
-            int i = _singleton.FindNextWordEnd( _singleton.Options.WordDelimiters ) - 1;
+            int i = _singleton.ViFindNextWordEnd( _singleton.Options.WordDelimiters ) - 1;
             _singleton._current = i;
             _singleton.PlaceCursor();
 
@@ -478,6 +492,120 @@ namespace PSConsoleUtilities
             {
                 ViForwardWord( key, qty - 1 );
             }
+        }
+
+        /// <summary>
+        /// Find the end of the current/next word as defined by wordDelimiters and whitespace.
+        /// </summary>
+        private int ViFindNextWordEnd( string wordDelimiters )
+        {
+            int i = _current;
+
+            if( InWord( i, wordDelimiters ) )
+            {
+                if( i < _buffer.Length - 1 && !InWord( i + 1, wordDelimiters ) )
+                {
+                    i++;
+                }
+            }
+
+            if( i == _buffer.Length )
+            {
+                return i;
+            }
+
+            if( !InWord( i, wordDelimiters ) )
+            {
+                // Scan to end of current non-word region
+                while( i < _buffer.Length )
+                {
+                    if( InWord( i, wordDelimiters ) )
+                    {
+                        break;
+                    }
+                    i += 1;
+                }
+            }
+            while( i < _buffer.Length )
+            {
+                if( !InWord( i, wordDelimiters ) )
+                {
+                    break;
+                }
+                i += 1;
+            }
+            return i;
+        }
+
+        /// <summary>
+        /// Find the start of the next word from the supplied location.
+        /// Needed by VI.
+        /// </summary>
+        private int ViFindNextWordPointFrom( int cursor, string wordDelimiters )
+        {
+            int i = cursor;
+            if( i == _singleton._buffer.Length )
+            {
+                return i;
+            }
+
+            if( InWord( i, wordDelimiters ) )
+            {
+                // Scan to end of current word region
+                while( i < _singleton._buffer.Length )
+                {
+                    if( !InWord( i, wordDelimiters ) )
+                    {
+                        break;
+                    }
+                    i += 1;
+                }
+            }
+
+            while( i < _singleton._buffer.Length )
+            {
+                if( InWord( i, wordDelimiters ) )
+                {
+                    break;
+                }
+                i += 1;
+            }
+            return i;
+        }
+
+        /// <summary>
+        /// Find the beginning of the previous word from the supplied spot.
+        /// </summary>
+        private int ViFindPreviousWordPointFrom( int cursor, string wordDelimiters )
+        {
+            int i = cursor - 1;
+            if( i < 0 )
+            {
+                return 0;
+            }
+
+            if( !InWord( i, wordDelimiters ) )
+            {
+                // Scan backwards until we are at the end of the previous word.
+                while( i > 0 )
+                {
+                    if( InWord( i, wordDelimiters ) )
+                    {
+                        break;
+                    }
+                    i -= 1;
+                }
+            }
+            while( i > 0 )
+            {
+                if( !InWord( i, wordDelimiters ) )
+                {
+                    i += 1;
+                    break;
+                }
+                i -= 1;
+            }
+            return i;
         }
 
         private static void ViPreviousHistory( ConsoleKeyInfo? key, object arg )
@@ -678,7 +806,7 @@ namespace PSConsoleUtilities
             int endPoint = _singleton._current;
             for( int i = 0; i < qty; i++ )
             {
-                endPoint = _singleton.FindNextWordPointFrom( endPoint, _singleton.Options.WordDelimiters );
+                endPoint = _singleton.ViFindNextWordPointFrom( endPoint, _singleton.Options.WordDelimiters );
             }
 
             if( endPoint <= _singleton._current )
@@ -705,7 +833,7 @@ namespace PSConsoleUtilities
             int endPoint = _singleton._current;
             for( int i = 0; i < qty; i++ )
             {
-                endPoint = _singleton.FindNextWordEnd( _singleton.Options.WordDelimiters );
+                endPoint = _singleton.ViFindNextWordEnd( _singleton.Options.WordDelimiters );
             }
 
             if( endPoint <= _singleton._current )
@@ -929,7 +1057,7 @@ namespace PSConsoleUtilities
             int deletePoint = _singleton._current;
             for( int i = 0; i < qty; i++ )
             {
-                deletePoint = _singleton.FindPreviousWordPointFrom( deletePoint, _singleton.Options.WordDelimiters );
+                deletePoint = _singleton.ViFindPreviousWordPointFrom( deletePoint, _singleton.Options.WordDelimiters );
             }
             if( deletePoint == _singleton._current )
             {
@@ -958,7 +1086,7 @@ namespace PSConsoleUtilities
             char current = _singleton._buffer[_singleton._current];
             if( current == '[' || current == '(' || current == '{' )
             {
-                int other = FindNext( InverseOf( current ) );
+                int other = ViFindNext( ViInverseOf( current ) );
                 if( other != -1 )
                 {
                     _singleton._current = other;
@@ -968,7 +1096,7 @@ namespace PSConsoleUtilities
             }
             if( current == ']' || current == ')' || current == '}' )
             {
-                int other = FindPrevious( InverseOf( current ) );
+                int other = ViFindPrevious( ViInverseOf( current ) );
                 if( other != -1 )
                 {
                     _singleton._current = other;
@@ -994,19 +1122,19 @@ namespace PSConsoleUtilities
             char current = _singleton._buffer[_singleton._current];
             if( current == '[' || current == '(' || current == '{' )
             {
-                int other = FindNext( InverseOf( current ) );
+                int other = ViFindNext( ViInverseOf( current ) );
                 if( other != -1 )
                 {
-                    DeleteRange( _singleton._current, other, ViDeleteBrace );
+                    ViDeleteRange( _singleton._current, other, ViDeleteBrace );
                     return;
                 }
             }
             if( current == ']' || current == ')' || current == '}' )
             {
-                int other = FindPrevious( InverseOf( current ) );
+                int other = ViFindPrevious( ViInverseOf( current ) );
                 if( other != -1 )
                 {
-                    DeleteRange( other, _singleton._current, ViDeleteBrace );
+                    ViDeleteRange( other, _singleton._current, ViDeleteBrace );
                     return;
                 }
             }
@@ -1041,7 +1169,7 @@ namespace PSConsoleUtilities
         /// <param name="first">Index of where to begin the delete.</param>
         /// <param name="last">Index of where to end the delete.</param>
         /// <param name="action">Action that generated this request, used for repeat command ('.').</param>
-        private static void DeleteRange( int first, int last, Action<ConsoleKeyInfo?, object> action )
+        private static void ViDeleteRange( int first, int last, Action<ConsoleKeyInfo?, object> action )
         {
             int length = last - first + 1;
 
@@ -1051,8 +1179,18 @@ namespace PSConsoleUtilities
             _singleton.Render();
         }
 
-        private static int FindNext( char brace )
+        /// <summary>
+        /// Find the next instance of the indicated character, typically a brace.
+        /// </summary>
+        /// <param name="brace">The character to find.</param>
+        /// <returns>-1 if no instance is found.</returns>
+        private static int ViFindNext( char brace )
         {
+            if( brace == char.MinValue )
+            {
+                return -1;
+            }
+
             int i = _singleton._current + 1;
             for( ; i < _singleton._buffer.Length; i++ )
             {
@@ -1064,8 +1202,17 @@ namespace PSConsoleUtilities
             return -1;
         }
 
-        private static int FindPrevious( char brace )
+        /// <summary>
+        /// Find the previous instance of the indicated character, typically a brace.
+        /// </summary>
+        /// <param name="brace">The character to find.</param>
+        /// <returns>-1 if no instance is found.</returns>
+        private static int ViFindPrevious( char brace )
         {
+            if( brace == char.MinValue )
+            {
+                return -1;
+            }
             int i = _singleton._current - 1;
             for( ; i >= 0 && i < _singleton._buffer.Length; i-- )
             {
@@ -1077,7 +1224,12 @@ namespace PSConsoleUtilities
             return -1;
         }
 
-        private static char InverseOf( char brace )
+        /// <summary>
+        /// Returns the inverse of the supplied brace.
+        /// </summary>
+        /// <param name="brace">The supplied brace.</param>
+        /// <returns>char.MinValue if there is no inverse.</returns>
+        private static char ViInverseOf( char brace )
         {
             switch( brace )
             {
@@ -1094,7 +1246,7 @@ namespace PSConsoleUtilities
                 case '}':
                     return '{';
             }
-            throw new NotImplementedException( "Don't know how to invert '" + brace + "'." );
+            return char.MinValue;
         }
 
         /// <summary>
