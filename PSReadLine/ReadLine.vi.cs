@@ -173,17 +173,17 @@ namespace PSConsoleUtilities
             {
                 { Keys.Enter,           MakeKeyHandler(AcceptLine,             "AcceptLine") },
                 { Keys.ShiftEnter,      MakeKeyHandler(AddLine,                "AddLine") },
-                { Keys.Escape,          MakeKeyHandler(ViCmdMode,              "ToViCmdMode") },
+                { Keys.Escape,          MakeKeyHandler(ViCmdMode,              "ViCmdMode") },
                 { Keys.LeftArrow,       MakeKeyHandler(BackwardChar,           "BackwardChar") },
-                { Keys.RightArrow,      MakeKeyHandler(ViForwardChar,          "ForwardChar") },
+                { Keys.RightArrow,      MakeKeyHandler(ViForwardChar,          "ViForwardChar") },
                 { Keys.CtrlLeftArrow,   MakeKeyHandler(BackwardWord,           "BackwardWord") },
                 { Keys.CtrlRightArrow,  MakeKeyHandler(NextWord,               "NextWord") },
                 //{ Keys.UpArrow,         MakeKeyHandler(PreviousHistory,      "PreviousHistory") },
                 //{ Keys.DownArrow,       MakeKeyHandler(NextHistory,          "NextHistory") },
                 { Keys.Home,            MakeKeyHandler(BeginningOfLine,        "BeginningOfLine") },
                 { Keys.End,             MakeKeyHandler(EndOfLine,              "EndOfLine") },
-                { Keys.Delete,          MakeKeyHandler(ViDeleteChar,           "DeleteChar") },
-                { Keys.Backspace,       MakeKeyHandler(ViBackwardDeleteChar,   "BackwardDeleteChar") },
+                { Keys.Delete,          MakeKeyHandler(ViDeleteChar,           "ViDeleteChar") },
+                { Keys.Backspace,       MakeKeyHandler(ViBackwardDeleteChar,   "ViBackwardDeleteChar") },
                 { Keys.CtrlSpace,       MakeKeyHandler(PossibleCompletions,    "PossibleCompletions") },
                 { Keys.Tab,             MakeKeyHandler(TabCompleteNext,        "TabCompleteNext") },
                 { Keys.ShiftTab,        MakeKeyHandler(TabCompletePrevious,    "TabCompletePrevious") },
@@ -205,20 +205,20 @@ namespace PSConsoleUtilities
             };
         private static readonly Dictionary<ConsoleKeyInfo, KeyHandler> _viCmdKeyMap = new Dictionary<ConsoleKeyInfo, KeyHandler>( new ConsoleKeyInfoComparer() )
             {
-                { Keys.Enter,           MakeKeyHandler(ViAcceptLine,           "AcceptLine") },
+                { Keys.Enter,           MakeKeyHandler(ViAcceptLine,          "ViAcceptLine") },
                 { Keys.ShiftEnter,      MakeKeyHandler(AddLine,              "AddLine") },
                 { Keys.Escape,          MakeKeyHandler(Ding,                 "Ignore") },
                 //{ Keys.Escape,          MakeKeyHandler(RevertLine,           "RevertLine") },
                 { Keys.LeftArrow,       MakeKeyHandler(BackwardChar,         "BackwardChar") },
-                { Keys.RightArrow,      MakeKeyHandler(ViForwardChar,        "ForwardChar") },
-                { Keys.Space,           MakeKeyHandler(ViForwardChar,        "ForwardChar") },
+                { Keys.RightArrow,      MakeKeyHandler(ViForwardChar,        "ViForwardChar") },
+                { Keys.Space,           MakeKeyHandler(ViForwardChar,        "ViForwardChar") },
                 { Keys.CtrlLeftArrow,   MakeKeyHandler(BackwardWord,         "BackwardWord") },
                 { Keys.CtrlRightArrow,  MakeKeyHandler(NextWord,             "NextWord") },
                 { Keys.UpArrow,         MakeKeyHandler(PreviousHistory,      "PreviousHistory") },
                 { Keys.DownArrow,       MakeKeyHandler(NextHistory,          "NextHistory") },
                 { Keys.Home,            MakeKeyHandler(BeginningOfLine,      "BeginningOfLine") },
-                { Keys.End,             MakeKeyHandler(ViEndOfLine,          "EndOfLine") },
-                { Keys.Delete,          MakeKeyHandler(ViDeleteChar,         "DeleteChar") },
+                { Keys.End,             MakeKeyHandler(ViEndOfLine,          "ViEndOfLine") },
+                { Keys.Delete,          MakeKeyHandler(ViDeleteChar,         "ViDeleteChar") },
                 { Keys.Backspace,       MakeKeyHandler(BackwardChar,         "BackwardChar") },
                 { Keys.CtrlSpace,       MakeKeyHandler(PossibleCompletions,  "PossibleCompletions") },
                 { Keys.Tab,             MakeKeyHandler(TabCompleteNext,      "TabCompleteNext") },
@@ -241,41 +241,41 @@ namespace PSConsoleUtilities
                 { Keys.CtrlRBracket,    MakeKeyHandler(GotoBrace,            "GotoBrace") },
                 { Keys.F3,              MakeKeyHandler(CharacterSearch,      "CharacterSearch") },
                 { Keys.ShiftF3,         MakeKeyHandler(CharacterSearchBackward, "CharacterSearchBackward") },
-                { Keys.A,               MakeKeyHandler(ViInsModeWithAppend,  "Ignore") },
+                { Keys.A,               MakeKeyHandler(ViInsModeWithAppend,  "ViInsModeWithAppend") },
                 { Keys.B,               MakeKeyHandler(BackwardWord,         "BackwardWord") },
                 { Keys.C,               MakeKeyHandler(Chord,                "ChordFirstKey") },
                 { Keys.D,               MakeKeyHandler(Chord,                "ChordFirstKey") },
-                { Keys.E,               MakeKeyHandler(ViForwardWord,        "ForwardWord") },
+                { Keys.E,               MakeKeyHandler(ViForwardWord,        "ViForwardWord") },
                 { Keys.F,               MakeKeyHandler(ViCharacterSearcher.Search, "Search") },
                 { Keys.G,               MakeKeyHandler(Ding,                 "Ignore") },
                 { Keys.H,               MakeKeyHandler(BackwardChar,         "BackwardChar") },
-                { Keys.I,               MakeKeyHandler(ViInsMode,            "Insert") },
-                { Keys.J,               MakeKeyHandler(ViNextHistory,        "NextHistory") },
-                { Keys.K,               MakeKeyHandler(ViPreviousHistory,    "PreviousHistory") },
-                { Keys.L,               MakeKeyHandler(ViForwardChar,        "ForwardChar") },
+                { Keys.I,               MakeKeyHandler(ViInsMode,            "ViInsMode") },
+                { Keys.J,               MakeKeyHandler(ViNextHistory,        "ViNextHistory") },
+                { Keys.K,               MakeKeyHandler(ViPreviousHistory,    "ViPreviousHistory") },
+                { Keys.L,               MakeKeyHandler(ViForwardChar,        "ViForwardChar") },
                 { Keys.M,               MakeKeyHandler(Ding,                 "Ignore") },
                 { Keys.N,               MakeKeyHandler(ViRepeatSearch,       "ViRepeatSearch") },
                 { Keys.O,               MakeKeyHandler(Ding,                 "Ignore") },
                 { Keys.P,               MakeKeyHandler(Ding,                 "Ignore") },
                 { Keys.Q,               MakeKeyHandler(Ding,                 "Ignore") },
-                { Keys.R,               MakeKeyHandler(ViReplaceCharInPlace, "ChordFirstKey") },
-                { Keys.S,               MakeKeyHandler(ViInsModeWithDelete,  "Ignore") },
+                { Keys.R,               MakeKeyHandler(ViReplaceCharInPlace, "ViReplaceCharInPlace") },
+                { Keys.S,               MakeKeyHandler(ViInsModeWithDelete,  "ViInsModeWithDelete") },
                 { Keys.T,               MakeKeyHandler(ViCharacterSearcher.SearchWithBackoff, "Search") },
                 { Keys.U,               MakeKeyHandler(Undo,                 "Undo") },
                 { Keys.V,               MakeKeyHandler(Ding,                 "Ignore") },
                 { Keys.W,               MakeKeyHandler(NextWord,             "NextWord") },
-                { Keys.X,               MakeKeyHandler(ViDeleteChar,         "DeleteChar") },
+                { Keys.X,               MakeKeyHandler(ViDeleteChar,         "ViDeleteChar") },
                 { Keys.Y,               MakeKeyHandler(Ding,                 "Ignore") },
                 { Keys.Z,               MakeKeyHandler(Ding,                 "Ignore") },
-                { Keys.ucA,             MakeKeyHandler(ViInsModeAtEnd,       "AppendAtEnd") },
+                { Keys.ucA,             MakeKeyHandler(ViInsModeAtEnd,       "ViAppendAtEnd") },
                 { Keys.ucB,             MakeKeyHandler(BackwardWord,         "BackwardWord") },
                 { Keys.ucC,             MakeKeyHandler(ViReplaceToEnd,       "ViReplaceToEnd") },
                 { Keys.ucD,             MakeKeyHandler(ViDeleteToEnd,        "ViDeleteToEnd") },
-                { Keys.ucE,             MakeKeyHandler(ViForwardWord,        "ForwardWord") },
+                { Keys.ucE,             MakeKeyHandler(ViForwardWord,        "ViForwardWord") },
                 { Keys.ucF,             MakeKeyHandler(ViCharacterSearcher.SearchBackward, "SearchBackward") },
                 { Keys.ucG,             MakeKeyHandler(Ding,                 "Ignore") },
                 { Keys.ucH,             MakeKeyHandler(Ding,                 "Ignore") },
-                { Keys.ucI,             MakeKeyHandler(ViInsModeAtBegining,  "InsertAtBeginning") },
+                { Keys.ucI,             MakeKeyHandler(ViInsModeAtBegining,  "ViInsModeAtBegining") },
                 { Keys.ucJ,             MakeKeyHandler(Ding,                 "Ignore") },
                 { Keys.ucK,             MakeKeyHandler(Ding,                 "Ignore") },
                 { Keys.ucL,             MakeKeyHandler(Ding,                 "Ignore") },
@@ -287,10 +287,10 @@ namespace PSConsoleUtilities
                 { Keys.ucR,             MakeKeyHandler(ViReplaceUntilEsc,    "ViReplaceUntilEsc") },
                 { Keys.ucS,             MakeKeyHandler(ViReplaceLine,        "ViReplaceLine") },
                 { Keys.ucT,             MakeKeyHandler(ViCharacterSearcher.SearchBackwardWithBackoff, "SearchBackward") },
-                { Keys.ucU,             MakeKeyHandler(ViUndoAll,            "UndoAll") },
+                { Keys.ucU,             MakeKeyHandler(ViUndoAll,            "ViUndoAll") },
                 { Keys.ucV,             MakeKeyHandler(Ding,                 "Ignore") },
                 { Keys.ucW,             MakeKeyHandler(NextWord,             "NextWord") },
-                { Keys.ucX,             MakeKeyHandler(ViBackwardDeleteChar, "BackwardDeleteChar") },
+                { Keys.ucX,             MakeKeyHandler(ViBackwardDeleteChar, "ViBackwardDeleteChar") },
                 { Keys.ucY,             MakeKeyHandler(Ding,                 "Ignore") },
                 { Keys.ucZ,             MakeKeyHandler(Ding,                 "Ignore") },
                 { Keys._0,              MakeKeyHandler(DigitArgument,        "DigitArgument") },
@@ -303,10 +303,10 @@ namespace PSConsoleUtilities
                 { Keys._7,              MakeKeyHandler(DigitArgument,        "DigitArgument") },
                 { Keys._8,              MakeKeyHandler(DigitArgument,        "DigitArgument") },
                 { Keys._9,              MakeKeyHandler(DigitArgument,        "DigitArgument") },
-                { Keys.Dollar,          MakeKeyHandler(ViEndOfLine,          "EndOfLine" ) },
-                { Keys.Percent,         MakeKeyHandler(ViGotoMatchingBrace,  "GotoBrace" ) },
-                { Keys.Pound,           MakeKeyHandler(ViCommentLine,        "CommentLine" ) },
-                { Keys.Pipe,            MakeKeyHandler(ViGotoColumn,         "GotoColumn" ) },
+                { Keys.Dollar,          MakeKeyHandler(ViEndOfLine,          "ViEndOfLine" ) },
+                { Keys.Percent,         MakeKeyHandler(ViGotoMatchingBrace,  "ViGotoMatchingBrace" ) },
+                { Keys.Pound,           MakeKeyHandler(ViCommentLine,        "ViCommentLine" ) },
+                { Keys.Pipe,            MakeKeyHandler(ViGotoColumn,         "ViGotoColumn" ) },
                 { Keys.Uphat,           MakeKeyHandler(ViFirstNonBlankOfLine, "ViFirstNonBlankOfLine" ) },
                 { Keys.Tilde,           MakeKeyHandler(ViInvertCase,          "ViInvertCase" ) },
                 { Keys.Slash,           MakeKeyHandler(ViStartSearchBackward, "ViStartSearchBackward") },
@@ -315,20 +315,20 @@ namespace PSConsoleUtilities
                 { Keys.CtrlS,           MakeKeyHandler(ViStartSearchForward,  "ViStartSearchForward") },
                 { Keys.Period,          MakeKeyHandler(ViRepeatLastMod,       "ViRepeatLastMod" ) },
                 { Keys.Semicolon,       MakeKeyHandler(ViCharacterSearcher.RepeatLastSearch,          "RepeatLastSearch" ) },
-                { Keys.Comma,           MakeKeyHandler(ViCharacterSearcher.RepeatLastSearchBackwards, "RepeastLastSearch" ) }
+                { Keys.Comma,           MakeKeyHandler(ViCharacterSearcher.RepeatLastSearchBackwards, "RepeatLastSearch" ) }
             };
 
         private static readonly Dictionary<ConsoleKeyInfo, KeyHandler> _viChordDTable = new Dictionary<ConsoleKeyInfo, KeyHandler>( new ConsoleKeyInfoComparer() )
             {
-                { Keys.D,               MakeKeyHandler( ViDeleteLine,         "DeleteLine" ) },
+                { Keys.D,               MakeKeyHandler( ViDeleteLine,         "ViDeleteLine" ) },
                 { Keys.Dollar,          MakeKeyHandler( ViDeleteToEnd,        "ViDeleteToEnd" ) },
                 { Keys.B,               MakeKeyHandler( ViBackwardDeleteWord, "ViBackwardDeleteWord" ) },
                 { Keys.ucB,             MakeKeyHandler( ViBackwardDeleteWord, "ViBackwardDeleteWord" ) },
                 { Keys.W,               MakeKeyHandler( ViDeleteWord,         "ViDeleteWord" ) },
                 { Keys.ucW,             MakeKeyHandler( ViDeleteWord,         "ViDeleteWord" ) },
-                { Keys.E,               MakeKeyHandler( ViDeleteToEndOfWord,  "ViDeleteWord" ) },
-                { Keys.ucE,             MakeKeyHandler( ViDeleteToEndOfWord,  "ViDeleteWord" ) },
-                { Keys.H,               MakeKeyHandler( ViBackwardDeleteChar, "BackwardDeleteChar" ) },
+                { Keys.E,               MakeKeyHandler( ViDeleteToEndOfWord,  "ViDeleteToEndOfWord" ) },
+                { Keys.ucE,             MakeKeyHandler( ViDeleteToEndOfWord,  "ViDeleteToEndOfWord" ) },
+                { Keys.H,               MakeKeyHandler( ViBackwardDeleteChar, "ViBackwardDeleteChar" ) },
                 { Keys.L,               MakeKeyHandler( ViDeleteChar,         "DeleteChar" ) },
                 { Keys.Space,           MakeKeyHandler( ViDeleteChar,         "DeleteChar" ) },
                 { Keys._0,              MakeKeyHandler( BackwardDeleteLine,   "BackwardDeleteLine" ) },
@@ -354,21 +354,24 @@ namespace PSConsoleUtilities
             };
         private static readonly Dictionary<ConsoleKeyInfo, KeyHandler> _viChordYTable = new Dictionary<ConsoleKeyInfo, KeyHandler>( new ConsoleKeyInfoComparer() )
             {
-                { Keys.D,               MakeKeyHandler( ViReplaceChar,        "ViReplaceChar" ) },
-                { Keys.Dollar,          MakeKeyHandler( ViDeleteToEnd,        "ViDeleteToEnd" ) },
-                { Keys.B,               MakeKeyHandler( ViBackwardDeleteWord, "ViBackwardDeleteWord" ) },
-                { Keys.ucB,             MakeKeyHandler( ViBackwardDeleteWord, "ViBackwardDeleteWord" ) },
-                { Keys.W,               MakeKeyHandler( ViDeleteWord,         "ViDeleteWord" ) },
-                { Keys.ucW,             MakeKeyHandler( ViDeleteWord,         "ViDeleteWord" ) },
-                { Keys.E,               MakeKeyHandler( ViDeleteWord,         "ViDeleteWord" ) },
-                { Keys.ucE,             MakeKeyHandler( ViDeleteWord,         "ViDeleteWord" ) },
-                { Keys.H,               MakeKeyHandler( BackwardDeleteChar,   "BackwardDeleteChar" ) },
-                { Keys.L,               MakeKeyHandler( DeleteChar,           "DeleteChar" ) },
-                { Keys.Space,           MakeKeyHandler( DeleteChar,           "DeleteChar" ) },
-                { Keys._0,              MakeKeyHandler( BackwardDeleteLine,   "BackwardDeleteLine" ) },
-                { Keys.Uphat,           MakeKeyHandler( ViBackwardDeleteLineToFirstChar, "ViBackwardDeleteLineToFirstChar" ) },
-                { Keys.Percent,         MakeKeyHandler( ViDeleteBrace,        "ViDeleteBrace" ) }
+                { Keys.D,               MakeKeyHandler( Ding,        "Ignore" ) },
+                { Keys.Dollar,          MakeKeyHandler( Ding,        "Ignore" ) },
+                { Keys.B,               MakeKeyHandler( Ding,        "Ignore" ) },
+                { Keys.ucB,             MakeKeyHandler( Ding,        "Ignore" ) },
+                { Keys.W,               MakeKeyHandler( Ding,        "Ignore" ) },
+                { Keys.ucW,             MakeKeyHandler( Ding,        "Ignore" ) },
+                { Keys.E,               MakeKeyHandler( Ding,        "Ignore" ) },
+                { Keys.ucE,             MakeKeyHandler( Ding,        "Ignore" ) },
+                { Keys.H,               MakeKeyHandler( Ding,        "Ignore" ) },
+                { Keys.L,               MakeKeyHandler( Ding,        "Ignore" ) },
+                { Keys.Space,           MakeKeyHandler( Ding,        "Ignore" ) },
+                { Keys._0,              MakeKeyHandler( Ding,        "Ignore" ) },
+                { Keys.Uphat,           MakeKeyHandler( Ding,        "Ignore" ) },
+                { Keys.Percent,         MakeKeyHandler( Ding,        "Ignore" ) }
             };
+
+        private static readonly Dictionary<ConsoleKeyInfo, Dictionary<ConsoleKeyInfo, KeyHandler>> _viCmdChordTable = new Dictionary<ConsoleKeyInfo, Dictionary<ConsoleKeyInfo, KeyHandler>>();
+        private static readonly Dictionary<ConsoleKeyInfo, Dictionary<ConsoleKeyInfo, KeyHandler>> _viInsChordTable = new Dictionary<ConsoleKeyInfo, Dictionary<ConsoleKeyInfo, KeyHandler>>();
         #endregion KeyBindings
 
         /// <summary>
@@ -377,10 +380,14 @@ namespace PSConsoleUtilities
         private void SetDefaultViBindings()
         {
             _dispatchTable = _viInsKeyMap;
-            _chordDispatchTable = new Dictionary<ConsoleKeyInfo, Dictionary<ConsoleKeyInfo, KeyHandler>>();
-            _chordDispatchTable[Keys.D] = _viChordDTable;
-            _chordDispatchTable[Keys.C] = _viChordCTable;
-            _chordDispatchTable[Keys.Y] = _viChordYTable;
+            if( _chordDispatchTable == null )
+            {
+                _chordDispatchTable = _viInsChordTable;
+            }
+            _viCmdChordTable[Keys.D] = _viChordDTable;
+            _viCmdChordTable[Keys.C] = _viChordCTable;
+            _viCmdChordTable[Keys.Y] = _viChordYTable;
+
         }
 
         /// <summary>
@@ -866,6 +873,7 @@ namespace PSConsoleUtilities
         public static void ViCmdMode( ConsoleKeyInfo? key = null, object arg = null )
         {
             _singleton._dispatchTable = _viCmdKeyMap;
+            _singleton._chordDispatchTable = _viCmdChordTable;
             BackwardChar();
             _singleton.PlaceCursor();
         }
@@ -873,6 +881,7 @@ namespace PSConsoleUtilities
         public static void ViInsMode( ConsoleKeyInfo? key = null, object arg = null )
         {
             _singleton._dispatchTable = _viInsKeyMap;
+            _singleton._chordDispatchTable = _viInsChordTable;
         }
 
         public static void ViInsModeAtBegining( ConsoleKeyInfo? key = null, object arg = null )
