@@ -3,6 +3,7 @@ using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Management.Automation;
+using System.Management.Automation.Runspaces;
 using System.Text;
 using System.Text.RegularExpressions;
 using PSConsoleUtilities.Internal;
@@ -14,6 +15,7 @@ namespace PSConsoleUtilities
         // Tab completion state
         private int _tabCommandCount;
         private CommandCompletion _tabCompletions;
+        private Runspace _remoteRunspace;
 
         // Stub helper method so completion can be mocked
         [ExcludeFromCodeCoverage]
@@ -174,7 +176,16 @@ namespace PSConsoleUtilities
                     // Could use the overload that takes an AST as it's faster (we've already parsed the
                     // input for coloring) but that overload is a little more complicated in passing in the
                     // cursor position.
-                    var ps = PowerShell.Create(RunspaceMode.CurrentRunspace);
+                    PowerShell ps;
+                    if (_remoteRunspace == null)
+                    {
+                        ps = PowerShell.Create(RunspaceMode.CurrentRunspace);
+                    }
+                    else
+                    {
+                        ps = PowerShell.Create();
+                        ps.Runspace = _remoteRunspace;
+                    }
                     _tabCompletions = _mockableMethods.CompleteInput(_buffer.ToString(), _current, null, ps);
 
                     if (_tabCompletions.CompletionMatches.Count == 0)

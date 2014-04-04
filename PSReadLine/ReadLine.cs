@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Management.Automation;
 using System.Management.Automation.Language;
+using System.Management.Automation.Runspaces;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
@@ -139,7 +140,7 @@ namespace PSConsoleUtilities
         /// after the prompt has been displayed.
         /// </summary>
         /// <returns>The complete command line.</returns>
-        public static string ReadLine()
+        public static string ReadLine(Runspace remoteRunspace = null)
         {
             uint dwConsoleMode;
             var handle = NativeMethods.GetStdHandle((uint) StandardHandleId.Input);
@@ -152,7 +153,7 @@ namespace PSConsoleUtilities
                 NativeMethods.SetConsoleMode(handle,
                     dwConsoleMode & ~(NativeMethods.ENABLE_PROCESSED_INPUT | NativeMethods.ENABLE_LINE_INPUT));
 
-                _singleton.Initialize();
+                _singleton.Initialize(remoteRunspace);
                 return _singleton.InputLoop();
             }
             catch (OperationCanceledException)
@@ -299,7 +300,7 @@ namespace PSConsoleUtilities
             _killRing = new List<string>(Options.MaximumKillRingCount);
         }
 
-        private void Initialize()
+        private void Initialize(Runspace remoteRunspace)
         {
             _buffer.Clear();
             _edits = new List<EditItem>();
@@ -324,6 +325,7 @@ namespace PSConsoleUtilities
             _yankLastArgCommandCount = 0;
             _tabCommandCount = 0;
             _visualSelectionCommandCount = 0;
+            _remoteRunspace = remoteRunspace;
 
             _consoleBuffer = ReadBufferLines(_initialY, 1 + Options.ExtraPromptLineCount);
             _lastRenderTime = Stopwatch.StartNew();
