@@ -1,12 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace PSConsoleUtilities
 {
-    public class Keys
+    public static class Keys
     {
         public static ConsoleKeyInfo A = new ConsoleKeyInfo('a', ConsoleKey.A, false, false, false);
         public static ConsoleKeyInfo B = new ConsoleKeyInfo('b', ConsoleKey.B, false, false, false);

@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace PSConsoleUtilities
 {
@@ -59,7 +57,7 @@ namespace PSConsoleUtilities
         {
             while (_singleton._undoEditIndex > 0)
             {
-                _singleton._edits[_singleton._undoEditIndex - 1].Undo(_singleton);
+                _singleton._edits[_singleton._undoEditIndex - 1].Undo();
                 _singleton._undoEditIndex--;
             }
             _singleton.Render();

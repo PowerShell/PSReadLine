@@ -256,8 +256,7 @@ namespace PSConsoleUtilities
 
             _breakHandlerGcHandle = GCHandle.Alloc(new BreakHandler(_singleton.BreakHandler));
             NativeMethods.SetConsoleCtrlHandler((BreakHandler) _breakHandlerGcHandle.Target, true);
-            _singleton._readKeyThread = new Thread(_singleton.ReadKeyThreadProc);
-            _singleton._readKeyThread.IsBackground = true;
+            _singleton._readKeyThread = new Thread(_singleton.ReadKeyThreadProc) {IsBackground = true};
             _singleton._readKeyThread.Start();
             _singleton._readKeyWaitHandle = new AutoResetEvent(false);
             _singleton._keyReadWaitHandle = new AutoResetEvent(false);
