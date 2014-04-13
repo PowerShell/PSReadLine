@@ -135,9 +135,32 @@ namespace PSConsoleUtilities
             {
                 cursor = _singleton._buffer.Length;
             }
+            else if (cursor < 0)
+            {
+                cursor = 0;
+            }
 
             _singleton._current = cursor;
             _singleton.PlaceCursor();
+        }
+
+        public static bool TryGetArgAsInt(object arg, out int numericArg, int defaultNumericArg)
+        {
+            if (arg == null)
+            {
+                numericArg = defaultNumericArg;
+                return true;
+            }
+
+            if (arg is int)
+            {
+                numericArg = (int)arg;
+                return true;
+            }
+
+            Ding();
+            numericArg = 0;
+            return false;
         }
 
         void IModuleAssemblyInitializer.OnImport()

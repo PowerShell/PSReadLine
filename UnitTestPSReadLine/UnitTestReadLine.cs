@@ -116,6 +116,7 @@ namespace UnitTestPSReadLine
             CharToKeyInfo['_'] = _.Underbar;
             CharToKeyInfo['|'] = _.Pipe;
             CharToKeyInfo[';'] = _.Semicolon;
+            CharToKeyInfo[':'] = _.Colon;
             CharToKeyInfo['"'] = _.DQuote;
             CharToKeyInfo['\''] = _.SQuote;
             CharToKeyInfo['\\'] = _.Backslash;

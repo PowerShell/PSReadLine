@@ -42,18 +42,25 @@ namespace UnitTestPSReadLine
 
             Test("abcde", Keys(
                 // Left arrow at start of line.
-                _.LeftArrow,
-                CheckThat(() => AssertCursorLeftIs(0)),
+                _.LeftArrow, CheckThat(() => AssertCursorLeftIs(0)),
                 "ace",
-                _.LeftArrow,
-                CheckThat(() => AssertCursorLeftIs(2)),
+                _.LeftArrow, CheckThat(() => AssertCursorLeftIs(2)),
                 'd',
-                _.LeftArrow,
-                CheckThat(() => AssertCursorLeftIs(2)),
-                _.LeftArrow,
-                CheckThat(() => AssertCursorLeftIs(1)),
+                _.LeftArrow, CheckThat(() => AssertCursorLeftIs(2)),
+                _.LeftArrow, CheckThat(() => AssertCursorLeftIs(1)),
                 'b'
                 ));
+
+            // Test with digit arguments
+            var input = "0123456789";
+            Test(input, Keys(
+                _.Alt9, _.LeftArrow, CheckThat(() => AssertCursorLeftIs(0)),
+                _.Alt9, _.RightArrow, CheckThat(() => AssertCursorLeftIs(0)),
+                input,
+                _.Alt5, _.LeftArrow, CheckThat(() => AssertCursorLeftIs(5)),
+                _.AltMinus, _.Alt2, _.LeftArrow, CheckThat(() => AssertCursorLeftIs(7)),
+                _.Alt2, _.RightArrow, CheckThat(() => AssertCursorLeftIs(9)),
+                _.AltMinus, _.Alt7, _.RightArrow, CheckThat(() => AssertCursorLeftIs(2))));
         }
 
         [TestMethod]
