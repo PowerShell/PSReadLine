@@ -17,10 +17,11 @@ namespace PSConsoleUtilities
 
         // History state
         private HistoryQueue<HistoryItem> _history;
-        private readonly HashSet<string> _hashedHistory; 
+        private Dictionary<string, int> _hashedHistory;
         private int _currentHistoryIndex;
         private int _getNextHistoryIndex;
         private int _searchHistoryCommandCount;
+        private int _recallHistoryCommandCount;
         private string _searchHistoryPrefix;
         // When cycling through history, the current line (not yet added to history)
         // is saved here so it can be restored.
@@ -34,13 +35,6 @@ namespace PSConsoleUtilities
         private string MaybeAddToHistory(string result, List<EditItem> edits, int undoEditIndex)
         {
             bool addToHistory = !string.IsNullOrWhiteSpace(result) && ((Options.AddToHistoryHandler == null) || Options.AddToHistoryHandler(result));
-            if (addToHistory && Options.HistoryNoDuplicates)
-            {
-                // REVIEW: should history be case sensitive - it is now.
-                // A smart comparer could use the ast to ignore case on commands, parameters,
-                // operators and keywords while remaining case sensitive on command arguments.
-                addToHistory = !_hashedHistory.Contains(result);
-            }
             if (addToHistory)
             {
                 _history.Enqueue(new HistoryItem
@@ -61,23 +55,6 @@ namespace PSConsoleUtilities
             return result;
         }
 
-        private void HistoryOnEnqueueHandler(HistoryItem obj)
-        {
-            if (Options.HistoryNoDuplicates)
-            {
-                _hashedHistory.Add(obj._line);
-            }
-        }
-
-        private void HistoryOnDequeueHandler(HistoryItem obj)
-        {
-            if (Options.HistoryNoDuplicates)
-            {
-                _hashedHistory.Remove(obj._line);
-            }
-        }
-
-
         /// <summary>
         /// Add a command to the history - typically used to restore
         /// history from a previous session.
@@ -94,7 +71,6 @@ namespace PSConsoleUtilities
         public static void ClearHistory()
         {
             _singleton._history.Clear();
-            _singleton._hashedHistory.Clear();
             _singleton._currentHistoryIndex = 0;
         }
 
@@ -136,17 +112,48 @@ namespace PSConsoleUtilities
             }
         }
 
+        private void HistoryRecall(int direction)
+        {
+            int newHistoryIndex;
+            if (Options.HistoryNoDuplicates)
+            {
+                if (_recallHistoryCommandCount == 0)
+                {
+                    _hashedHistory = new Dictionary<string, int>();
+                }
+
+                newHistoryIndex = _currentHistoryIndex;
+                do
+                {
+                    newHistoryIndex = newHistoryIndex + direction;
+                    var line = _history[newHistoryIndex]._line;
+                    if (!_hashedHistory.ContainsKey(line))
+                    {
+                        _hashedHistory.Add(line, newHistoryIndex);
+                        break;
+                    }
+                } while (newHistoryIndex >= 0 && newHistoryIndex < _history.Count);
+            }
+            else
+            {
+                newHistoryIndex = _currentHistoryIndex + direction;
+            }
+            _recallHistoryCommandCount += 1;
+            if (newHistoryIndex >= 0 && newHistoryIndex < _history.Count)
+            {
+                _currentHistoryIndex = newHistoryIndex;
+                UpdateFromHistory(moveCursor: true);
+            }
+
+        }
+
         /// <summary>
         /// Replace the current input with the 'previous' item from PSReadline history.
         /// </summary>
         public static void PreviousHistory(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.SaveCurrentLine();
-            if (_singleton._currentHistoryIndex > 0)
-            {
-                _singleton._currentHistoryIndex -= 1;
-                _singleton.UpdateFromHistory(moveCursor: true);
-            }
+            _singleton.HistoryRecall(-1);
         }
 
         /// <summary>
@@ -155,11 +162,7 @@ namespace PSConsoleUtilities
         public static void NextHistory(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.SaveCurrentLine();
-            if (_singleton._currentHistoryIndex < _singleton._history.Count)
-            {
-                _singleton._currentHistoryIndex += 1;
-                _singleton.UpdateFromHistory(moveCursor: true);
-            }
+            _singleton.HistoryRecall(+1);
         }
 
         private void HistorySearch(bool backward)

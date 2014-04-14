@@ -397,7 +397,7 @@ namespace UnitTestPSReadLine
 
             // Changing the option should affect existing history.
             PSConsoleReadLine.SetOptions(new SetPSReadlineOption {HistoryNoDuplicates = true});
-            Test("aaaa", Keys(Enumerable.Repeat(_.UpArrow, 3)));
+            Test("zzzz", Keys(Enumerable.Repeat(_.UpArrow, 4)));
 
             PSConsoleReadLine.ClearHistory();
             Test("aaaa", Keys("aaaa"));

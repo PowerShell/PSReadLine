@@ -175,6 +175,7 @@ namespace PSConsoleUtilities
                 var yankCommandCount = _yankCommandCount;
                 var tabCommandCount = _tabCommandCount;
                 var searchHistoryCommandCount = _searchHistoryCommandCount;
+                var recallHistoryCommandCount = _recallHistoryCommandCount;
                 var yankLastArgCommandCount = _yankLastArgCommandCount;
                 var visualSelectionCommandCount = _visualSelectionCommandCount;
 
@@ -211,6 +212,15 @@ namespace PSConsoleUtilities
                 {
                     _searchHistoryCommandCount = 0;
                     _searchHistoryPrefix = null;
+                }
+                if (recallHistoryCommandCount == _recallHistoryCommandCount)
+                {
+                    _recallHistoryCommandCount = 0;
+                }
+                if (searchHistoryCommandCount == _searchHistoryCommandCount &&
+                    recallHistoryCommandCount == _recallHistoryCommandCount)
+                {
+                    _hashedHistory = null;
                 }
                 if (visualSelectionCommandCount == _visualSelectionCommandCount && _visualSelectionCommandCount > 0)
                 {
@@ -287,13 +297,8 @@ namespace PSConsoleUtilities
 
             _options = new PSConsoleReadlineOptions();
 
-            _history = new HistoryQueue<HistoryItem>(Options.MaximumHistoryCount)
-            {
-                OnDequeue = HistoryOnDequeueHandler,
-                OnEnqueue = HistoryOnEnqueueHandler
-            };
+            _history = new HistoryQueue<HistoryItem>(Options.MaximumHistoryCount);
             _currentHistoryIndex = 0;
-            _hashedHistory = new HashSet<string>();
 
             _killIndex = -1;    // So first add indexes 0.
             _killRing = new List<string>(Options.MaximumKillRingCount);
@@ -328,6 +333,15 @@ namespace PSConsoleUtilities
 
             _consoleBuffer = ReadBufferLines(_initialY, 1 + Options.ExtraPromptLineCount);
             _lastRenderTime = Stopwatch.StartNew();
+
+            _killCommandCount = 0;
+            _yankCommandCount = 0;
+            _yankLastArgCommandCount = 0;
+            _tabCommandCount = 0;
+            _searchHistoryCommandCount = 0;
+            _recallHistoryCommandCount = 0;
+            _visualSelectionCommandCount = 0;
+            _hashedHistory = null;
 
             if (_getNextHistoryIndex > 0)
             {
