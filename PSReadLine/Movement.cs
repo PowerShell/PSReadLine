@@ -71,12 +71,6 @@ namespace PSConsoleUtilities
             while (numericArg-- > 0)
             {
                 int i = _singleton.FindNextWordPoint(_singleton.Options.WordDelimiters);
-                if (i == _singleton._buffer.Length)
-                {
-                    // Both cmd and bash put the cursor on the last character instead
-                    // of one past the end.  This seems a little odd to me, but whatever.
-                    i -= 1;
-                }
                 _singleton._current = i;
                 _singleton.PlaceCursor();
             }
@@ -135,12 +129,6 @@ namespace PSConsoleUtilities
             while (numericArg-- > 0)
             {
                 int i = _singleton.FindForwardWordPoint(_singleton.Options.WordDelimiters);
-                if (i == _singleton._buffer.Length)
-                {
-                    // Both cmd and bash put the cursor on the last character instead
-                    // of one past the end.  This seems a little odd to me, but whatever.
-                    i -= 1;
-                }
                 _singleton._current = i;
                 _singleton.PlaceCursor();
             }
