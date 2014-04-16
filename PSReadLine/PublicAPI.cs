@@ -127,6 +127,24 @@ namespace PSConsoleUtilities
         }
 
         /// <summary>
+        /// Get the selection state of the buffer
+        /// </summary>
+        /// <param name="start">The start of the current selection or -1 if nothing is selected.</param>
+        /// <param name="length">The length of the current selection or -1 if nothing is selected.</param>
+        public static void GetSelectionState(out int start, out int length)
+        {
+            if (_singleton._visualSelectionCommandCount == 0)
+            {
+                start = -1;
+                length = -1;
+            }
+            else
+            {
+                _singleton.GetRegion(out start, out length);
+            }
+        }
+
+        /// <summary>
         /// Set the position of the cursor.
         /// </summary>
         public static void SetCursorPosition(int cursor)

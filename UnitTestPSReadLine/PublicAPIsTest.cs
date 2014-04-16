@@ -95,6 +95,41 @@ namespace UnitTestPSReadLine
         }
 
         [TestMethod]
+        public void TestGetSelectionStateAPI()
+        {
+            TestSetup(KeyMode.Cmd);
+
+            Test("echo", Keys(
+                "echo",
+                CheckThat(() =>
+                {
+                    int start;
+                    int length;
+                    PSConsoleReadLine.GetSelectionState(out start, out length);
+                    Assert.AreEqual(start, -1);
+                    Assert.AreEqual(length, -1);
+                }),
+                _.ShiftHome,
+                CheckThat(() =>
+                {
+                    int start;
+                    int length;
+                    PSConsoleReadLine.GetSelectionState(out start, out length);
+                    Assert.AreEqual(start, 0);
+                    Assert.AreEqual(length, 4);
+                }),
+                _.ShiftRightArrow,
+                CheckThat(() =>
+                {
+                    int start;
+                    int length;
+                    PSConsoleReadLine.GetSelectionState(out start, out length);
+                    Assert.AreEqual(start, 1);
+                    Assert.AreEqual(length, 3);
+                })));
+        }
+
+        [TestMethod]
         public void TestSetCursorPositionAPI()
         {
             TestSetup(KeyMode.Cmd);
