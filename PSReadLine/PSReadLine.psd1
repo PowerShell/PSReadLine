@@ -22,9 +22,7 @@ Description = 'Great command line editing in the PowerShell console host'
 PowerShellVersion = '3.0'
 
 # Name of the Windows PowerShell host required by this module
-# There are multiple hosts that support PSReadline, but we can only specify one here, so
-# we do a "runtime" check of the host in IModuleAssemblyInitializer.OnImport.
-# PowerShellHostName = ''
+# PowerShellHostName = 'ConsoleHost'
 
 # Minimum version of the Windows PowerShell host required by this module
 # PowerShellHostVersion = ''

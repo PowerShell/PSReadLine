@@ -381,7 +381,4 @@
   <data name="CopyOrCancelLineDescription" xml:space="preserve">
     <value>Either copy selected text to the clipboard, or if no text is selected, cancel editing the line with CancelLine.</value>
   </data>
-  <data name="HostNotSupported" xml:space="preserve">
-    <value>The current Windows PowerShell host does not look like a console-based host, therefore the PSReadline module is of no use to it.</value>
-  </data>
 </root>
