@@ -180,6 +180,8 @@ namespace PSConsoleUtilities
             if (_searchHistoryCommandCount == 0)
             {
                 _searchHistoryPrefix = _buffer.ToString(0, _current);
+                _emphasisStart = 0;
+                _emphasisLength = _current;
                 if (Options.HistoryNoDuplicates)
                 {
                     _hashedHistory = new Dictionary<string, int>();
@@ -205,7 +207,7 @@ namespace PSConsoleUtilities
                         }
                     }
                     _currentHistoryIndex = i;
-                    UpdateFromHistory(moveCursor: Options.HistorySearchCursorMovesToEnd);
+                    UpdateFromHistory(moveCursor: true);
                     break;
                 }
             }
@@ -218,7 +220,7 @@ namespace PSConsoleUtilities
         {
             _singleton.SaveCurrentLine();
             _singleton._currentHistoryIndex = 0;
-            _singleton.UpdateFromHistory(moveCursor: _singleton.Options.HistorySearchCursorMovesToEnd);
+            _singleton.UpdateFromHistory(moveCursor: true);
         }
 
         /// <summary>
@@ -227,7 +229,7 @@ namespace PSConsoleUtilities
         public static void EndOfHistory(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton._currentHistoryIndex = _singleton._history.Count;
-            _singleton.UpdateFromHistory(moveCursor: _singleton.Options.HistorySearchCursorMovesToEnd);
+            _singleton.UpdateFromHistory(moveCursor: true);
         }
 
         /// <summary>

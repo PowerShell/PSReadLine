@@ -210,6 +210,12 @@ namespace PSConsoleUtilities
                 }
                 if (searchHistoryCommandCount == _searchHistoryCommandCount)
                 {
+                    if (_searchHistoryCommandCount > 0)
+                    {
+                        _emphasisStart = -1;
+                        _emphasisLength = 0;
+                        Render();
+                    }
                     _searchHistoryCommandCount = 0;
                     _searchHistoryPrefix = null;
                 }

@@ -49,25 +49,36 @@ namespace UnitTestPSReadLine
             SetHistory();
             Test(" ", Keys(' ', _.UpArrow, _.DownArrow));
 
+            var options = PSConsoleReadLine.GetOptions();
+            var emphasisColors = Tuple.Create(options.EmphasisForegroundColor, options.EmphasisBackgroundColor);
+
             SetHistory("dosomething", "ps p*", "dir", "echo zzz");
             Test("dosomething", Keys(
                 "d",
                 _.UpArrow,   CheckThat(() => {
-                    AssertScreenIs(1, TokenClassification.Command, "dir");
-                    AssertCursorLeftIs(1);
+                    AssertScreenIs(1,
+                        emphasisColors, 'd',
+                        TokenClassification.Command, "ir");
+                    AssertCursorLeftIs(3);
                 }),
                 _.UpArrow,   CheckThat(() => {
-                    AssertScreenIs(1, TokenClassification.Command, "dosomething");
-                    AssertCursorLeftIs(1);
+                    AssertScreenIs(1,
+                        emphasisColors, 'd',
+                        TokenClassification.Command, "osomething");
+                    AssertCursorLeftIs(11);
                 }),
                 _.DownArrow, CheckThat(() => {
-                    AssertScreenIs(1, TokenClassification.Command, "dir");
-                    AssertCursorLeftIs(1);
+                    AssertScreenIs(1,
+                        emphasisColors, 'd',
+                        TokenClassification.Command, "ir");
+                    AssertCursorLeftIs(3);
                 }),
                 _.UpArrow,   CheckThat(() =>
                 {
-                    AssertScreenIs(1, TokenClassification.Command, "dosomething");
-                    AssertCursorLeftIs(1);
+                    AssertScreenIs(1,
+                        emphasisColors, 'd',
+                        TokenClassification.Command, "osomething");
+                    AssertCursorLeftIs(11);
                 })));
         }
 
@@ -79,25 +90,35 @@ namespace UnitTestPSReadLine
                       new KeyHandler("DownArrow", PSConsoleReadLine.HistorySearchForward));
 
             PSConsoleReadLine.SetOptions(new SetPSReadlineOption {HistorySearchCursorMovesToEnd = true});
+            var options = PSConsoleReadLine.GetOptions();
+            var emphasisColors = Tuple.Create(options.EmphasisForegroundColor, options.EmphasisBackgroundColor);
 
             SetHistory("dosomething", "ps p*", "dir", "echo zzz");
             Test("dosomething", Keys(
                 "d",
                 _.UpArrow,   CheckThat(() => {
-                    AssertScreenIs(1, TokenClassification.Command, "dir");
+                    AssertScreenIs(1,
+                        emphasisColors, 'd',
+                        TokenClassification.Command, "ir");
                     AssertCursorLeftIs(3);
                 }),
                 _.UpArrow,   CheckThat(() => {
-                    AssertScreenIs(1, TokenClassification.Command, "dosomething");
+                    AssertScreenIs(1,
+                        emphasisColors, 'd',
+                        TokenClassification.Command, "osomething");
                     AssertCursorLeftIs(11);
                 }),
                 _.DownArrow, CheckThat(() => {
-                    AssertScreenIs(1, TokenClassification.Command, "dir");
+                    AssertScreenIs(1,
+                        emphasisColors, 'd',
+                        TokenClassification.Command, "ir");
                     AssertCursorLeftIs(3);
                 }),
                 _.UpArrow,   CheckThat(() =>
                 {
-                    AssertScreenIs(1, TokenClassification.Command, "dosomething");
+                    AssertScreenIs(1,
+                        emphasisColors, 'd',
+                        TokenClassification.Command, "osomething");
                     AssertCursorLeftIs(11);
                 })));
         }
