@@ -190,9 +190,9 @@ namespace PSConsoleUtilities
             }
             _searchHistoryCommandCount += 1;
 
-            for (int i = _currentHistoryIndex + direction; i >=0 && i < _history.Count; i += direction)
+            for (int i = _currentHistoryIndex + direction; i >= 0 && i <= _history.Count; i += direction)
             {
-                var line = _history[i]._line;
+                var line = i == _history.Count ? _savedCurrentLine._line :_history[i]._line;
                 if (line.StartsWith(_searchHistoryPrefix, Options.HistoryStringComparison))
                 {
                     if (Options.HistoryNoDuplicates)
