@@ -63,7 +63,8 @@ namespace PSConsoleUtilities
         public static void AddToHistory(string command)
         {
             command = command.Replace("\r\n", "\n");
-            _singleton.MaybeAddToHistory(command, new List<EditItem>(), 0);
+            var editItems = new List<EditItem> {EditItemInsertString.Create(command, 0)};
+            _singleton.MaybeAddToHistory(command, editItems, 0);
         }
 
         /// <summary>

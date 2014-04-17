@@ -1,3 +1,9 @@
+
+### Version 1.0.0.9
+
+Bug fixes:
+* Items loaded from history work with RevertLine
+
 ### Version 1.0.0.8
 
 New features:
