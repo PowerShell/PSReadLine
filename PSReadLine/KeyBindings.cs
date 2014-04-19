@@ -22,6 +22,12 @@ namespace PSConsoleUtilities
             set { _description = value; }
         }
         private string _description;
+        public string Mode
+        {
+            get { return _mode == null ? "N/A" : _mode; }
+            set { _mode = value; }
+        }
+        private string _mode;
     }
 
     public partial class PSConsoleReadLine
@@ -43,6 +49,7 @@ namespace PSConsoleUtilities
             public Action<ConsoleKeyInfo?, object> Action;
             public string BriefDescription;
             public string LongDescription;
+            public string Mode;
         }
 
         internal class ConsoleKeyInfoComparer : IEqualityComparer<ConsoleKeyInfo>
@@ -67,7 +74,8 @@ namespace PSConsoleUtilities
             {
                 Action = action,
                 BriefDescription = briefDescription,
-                LongDescription = longDescription
+                LongDescription = longDescription,
+                Mode = "N/A"
             };
         }
 
@@ -236,11 +244,12 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void ShowKeyBindings(ConsoleKeyInfo? key = null, object arg = null)
         {
+            string format = "{0,-20} {1,-24} {2,-5} {3}\n";
             var buffer = new StringBuilder();
-            buffer.AppendFormat("{0,-20} {1,-24} {2}\n", "Key", "Function", "Description");
-            buffer.AppendFormat("{0,-20} {1,-24} {2}\n", "---", "--------", "-----------");
+            buffer.AppendFormat(format, "Key", "Function", "Mode", "Description");
+            buffer.AppendFormat(format, "---", "--------", "----", "-----------");
             var boundKeys = GetKeyHandlers(includeBound: true, includeUnbound: false);
-            var maxDescriptionLength = Console.WindowWidth - 20 - 24 - 2;
+            var maxDescriptionLength = Console.WindowWidth - 20 - 24 - 5 - 4;
             foreach (var boundKey in boundKeys)
             {
                 var description = boundKey.Description;
@@ -248,7 +257,7 @@ namespace PSConsoleUtilities
                 {
                     description = description.Substring(0, maxDescriptionLength - 3) + "...";
                 }
-                buffer.AppendFormat("{0,-20} {1,-24} {2}\n", boundKey.Key, boundKey.Function, description);
+                buffer.AppendFormat(format, boundKey.Key, boundKey.Function, boundKey.Mode, description);
             }
 
             // Don't overwrite any of the line - so move to first line after the end of our buffer.

@@ -145,12 +145,24 @@ namespace PSConsoleUtilities
 
             if (_singleton._buffer.Length > 0 && _singleton._current > 0)
             {
-                int startDeleteIndex = _singleton._current - 1;
+                int qty = (arg is int) ? (int) arg : 1;
+                qty = Math.Min(qty, _singleton._current);
+
+                int startDeleteIndex = _singleton._current - qty;
                 _singleton.SaveEditItem(
-                    EditItemDelete.Create(new string(_singleton._buffer[startDeleteIndex], 1), startDeleteIndex));
-                _singleton._buffer.Remove(startDeleteIndex, 1);
-                _singleton._current--;
+                    EditItemDelete.Create(
+                        _singleton._buffer.ToString(startDeleteIndex, qty),
+                        startDeleteIndex,
+                        BackwardDeleteChar,
+                        arg)
+                        );
+                _singleton._buffer.Remove(startDeleteIndex, qty);
+                _singleton._current = startDeleteIndex;
                 _singleton.Render();
+            }
+            else
+            {
+                Ding();
             }
         }
 
@@ -169,9 +181,19 @@ namespace PSConsoleUtilities
 
             if (_singleton._buffer.Length > 0 && _singleton._current < _singleton._buffer.Length)
             {
+                int qty = (arg is int) ? (int) arg : 1;
+                qty = Math.Min(qty, _singleton._buffer.Length - _singleton._current);
+
                 _singleton.SaveEditItem(
-                    EditItemDelete.Create(new string(_singleton._buffer[_singleton._current], 1), _singleton._current));
-                _singleton._buffer.Remove(_singleton._current, 1);
+                    EditItemDelete.Create(_singleton._buffer.ToString(_singleton._current, qty),
+                    _singleton._current,
+                    DeleteChar,
+                    arg));
+                _singleton._buffer.Remove(_singleton._current, qty);
+                if (_singleton._current >= _singleton._buffer.Length)
+                {
+                    _singleton._current = _singleton._buffer.Length - 1;
+                }
                 _singleton.Render();
             }
         }

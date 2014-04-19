@@ -58,9 +58,11 @@
     <Compile Include="History.cs" />
     <Compile Include="HistoryQueue.cs" />
     <Compile Include="KeyBindings.cs" />
+    <Compile Include="KeyBindings.vi.cs" />
     <Compile Include="Keys.cs" />
     <Compile Include="KillYank.cs" />
     <Compile Include="Movement.cs" />
+    <Compile Include="Movement.vi.cs" />
     <Compile Include="Options.cs" />
     <Compile Include="PSReadLineResources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -69,9 +71,11 @@
     </Compile>
     <Compile Include="PublicAPI.cs" />
     <Compile Include="ReadLine.cs" />
+    <Compile Include="Replace.vi.cs" />
     <Compile Include="ReadLine.vi.cs" />
     <Compile Include="Render.cs" />
     <Compile Include="ScreenCapture.cs" />
+    <Compile Include="UndoRedo.vi.cs" />
     <Compile Include="UndoRedo.cs" />
     <Compile Include="Words.cs" />
   </ItemGroup>
@@ -83,6 +87,7 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>PSReadLineResources.Designer.cs</LastGenOutput>
       <CustomToolNamespace>PSConsoleUtilities</CustomToolNamespace>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
@@ -118,6 +123,11 @@
     </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>IF EXIST ..\..\CopyDLL.cmd (
+    ..\..\CopyDLL.cmd $(TargetPath)
+)</PostBuildEvent>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

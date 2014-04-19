@@ -64,6 +64,7 @@
     <Compile Include="KillYankTest.cs" />
     <Compile Include="MovementTest.VI.cs" />
     <Compile Include="MovementTest.cs" />
+    <Compile Include="OptionsTest.VI.cs" />
     <Compile Include="OptionsTest.cs" />
     <Compile Include="PublicAPIsTest.cs" />
     <Compile Include="RenderTest.cs" />

@@ -148,6 +148,11 @@ namespace PSConsoleUtilities
                 _singleton._currentHistoryIndex -= 1;
                 _singleton.UpdateFromHistory(moveCursor: true);
             }
+            if (_singleton._options.EditMode == EditMode.Vi)
+            {
+                _singleton._current = 0;
+                _singleton.PlaceCursor();
+            }
         }
 
         /// <summary>
@@ -160,6 +165,11 @@ namespace PSConsoleUtilities
             {
                 _singleton._currentHistoryIndex += 1;
                 _singleton.UpdateFromHistory(moveCursor: true);
+            }
+            if (_singleton._options.EditMode == EditMode.Vi)
+            {
+                _singleton._current = 0;
+                _singleton.PlaceCursor();
             }
         }
 

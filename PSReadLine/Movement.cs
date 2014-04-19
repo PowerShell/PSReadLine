@@ -33,9 +33,11 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void ForwardChar(ConsoleKeyInfo? key = null, object arg = null)
         {
-            if (_singleton._current < _singleton._buffer.Length)
+            int qty = (arg is int) ? (int) arg : 1;
+            int distance = Math.Min(qty, _singleton._buffer.Length - _singleton._current + ViEndOfLineFactor);
+            if (distance > 0)
             {
-                _singleton._current += 1;
+                _singleton._current += distance;
                 _singleton.PlaceCursor();
             }
         }
@@ -102,15 +104,19 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void ForwardWord(ConsoleKeyInfo? key = null, object arg = null)
         {
-            int i = _singleton.FindForwardWordPoint(_singleton.Options.WordDelimiters);
-            if (i == _singleton._buffer.Length)
+            int qty = (arg is int) ? (int) arg : 1;
+            for (; qty > 0 && _singleton._current < _singleton._buffer.Length - 1; qty--)
             {
-                // Both cmd and bash put the cursor on the last character instead
-                // of one past the end.  This seems a little odd to me, but whatever.
-                i -= 1;
+                int i = _singleton.FindForwardWordPoint(_singleton.Options.WordDelimiters);
+                if (i == _singleton._buffer.Length)
+                {
+                    // Both cmd and bash put the cursor on the last character instead
+                    // of one past the end.  This seems a little odd to me, but whatever.
+                    i -= 1;
+                }
+                _singleton._current = i;
+                _singleton.PlaceCursor();
             }
-            _singleton._current = i;
-            _singleton.PlaceCursor();
         }
 
         /// <summary>
@@ -136,15 +142,12 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void BackwardWord(ConsoleKeyInfo? key = null, object arg = null)
         {
-            int i = _singleton.FindBackwardWordPoint(_singleton.Options.WordDelimiters);
-            _singleton._current = i;
-            _singleton.PlaceCursor();
-
-            // For VI movement
-            int qty = ( arg is int ) ? (int) arg : 1;
-            if (qty > 1)
+            int qty = (arg is int) ? (int) arg : 1;
+            for (; qty > 0; qty--)
             {
-                BackwardWord(key, qty - 1);
+                int i = _singleton.FindBackwardWordPoint(_singleton.Options.WordDelimiters);
+                _singleton._current = i;
+                _singleton.PlaceCursor();
             }
         }
 
