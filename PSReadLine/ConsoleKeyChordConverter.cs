@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
 
 namespace PSConsoleUtilities
 {
-    public class ConsoleKeyChordConverter
+    public static class ConsoleKeyChordConverter
     {
         /// <summary>
         /// Converts a string to a sequence of ConsoleKeyInfo.

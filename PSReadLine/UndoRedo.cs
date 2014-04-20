@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
 
 namespace PSConsoleUtilities
 {
@@ -45,7 +43,7 @@ namespace PSConsoleUtilities
         {
             if (_singleton._undoEditIndex > 0)
             {
-                _singleton._edits[_singleton._undoEditIndex - 1].Undo(_singleton);
+                _singleton._edits[_singleton._undoEditIndex - 1].Undo();
                 _singleton._undoEditIndex--;
                 if (_singleton._options.EditMode == EditMode.Vi && _singleton._current >= _singleton._buffer.Length)
                 {
@@ -66,7 +64,7 @@ namespace PSConsoleUtilities
         {
             if (_singleton._undoEditIndex < _singleton._edits.Count)
             {
-                _singleton._edits[_singleton._undoEditIndex].Redo(_singleton);
+                _singleton._edits[_singleton._undoEditIndex].Redo();
                 _singleton._undoEditIndex++;
                 _singleton.Render();
             }
@@ -81,8 +79,8 @@ namespace PSConsoleUtilities
             public Action<ConsoleKeyInfo?, object> _instigator = null;
             public object _instigatorArg = null;
 
-            public abstract void Undo(PSConsoleReadLine singleton);
-            public abstract void Redo(PSConsoleReadLine singleton);
+            public abstract void Undo();
+            public abstract void Redo();
         }
 
         [DebuggerDisplay("Insert '{_insertedCharacter}' ({_insertStartPosition})")]
@@ -101,14 +99,14 @@ namespace PSConsoleUtilities
                 };
             }
 
-            public override void Undo(PSConsoleReadLine singleton)
+            public override void Undo()
             {
-                Debug.Assert(singleton._buffer[_insertStartPosition] == _insertedCharacter, "Character to undo is not what it should be");
+                Debug.Assert(_singleton._buffer[_insertStartPosition] == _insertedCharacter, "Character to undo is not what it should be");
                 _singleton._buffer.Remove(_insertStartPosition, 1);
                 _singleton._current = _insertStartPosition;
             }
 
-            public override void Redo(PSConsoleReadLine singleton)
+            public override void Redo()
             {
                 _singleton._buffer.Insert(_insertStartPosition, _insertedCharacter);
                 _singleton._current++;
@@ -132,15 +130,15 @@ namespace PSConsoleUtilities
                 };
             }
 
-            public override void Undo(PSConsoleReadLine singleton)
+            public override void Undo()
             {
-                Debug.Assert(singleton._buffer.ToString(_insertStartPosition, _insertedString.Length).Equals(_insertedString),
+                Debug.Assert(_singleton._buffer.ToString(_insertStartPosition, _insertedString.Length).Equals(_insertedString),
                     "Character to undo is not what it should be");
                 _singleton._buffer.Remove(_insertStartPosition, _insertedString.Length);
                 _singleton._current = _insertStartPosition;
             }
 
-            public override void Redo(PSConsoleReadLine singleton)
+            public override void Redo()
             {
                 _singleton._buffer.Insert(_insertStartPosition, _insertedString);
                 _singleton._current += _insertedString.Length;
@@ -164,13 +162,13 @@ namespace PSConsoleUtilities
                 };
             }
 
-            public override void Undo(PSConsoleReadLine singleton)
+            public override void Undo()
             {
                 _singleton._buffer.Insert(_deleteStartPosition, _deletedString);
                 _singleton._current = _deleteStartPosition + _deletedString.Length;
             }
 
-            public override void Redo(PSConsoleReadLine singleton)
+            public override void Redo()
             {
                 _singleton._buffer.Remove(_deleteStartPosition, _deletedString.Length);
                 _singleton._current = _deleteStartPosition;
@@ -191,19 +189,19 @@ namespace PSConsoleUtilities
                 };
             }
 
-            public override void Undo(PSConsoleReadLine singleton)
+            public override void Undo()
             {
                 for (int i = _groupedEditItems.Count - 1; i >= 0; i--)
                 {
-                    _groupedEditItems[i].Undo(singleton);
+                    _groupedEditItems[i].Undo();
                 }
             }
 
-            public override void Redo(PSConsoleReadLine singleton)
+            public override void Redo()
             {
                 foreach (var editItem in _groupedEditItems)
                 {
-                    editItem.Redo(singleton);
+                    editItem.Redo();
                 }
             }
         }

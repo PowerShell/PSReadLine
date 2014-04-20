@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Management.Automation.Language;
 using System.Windows;
 
@@ -298,7 +297,7 @@ namespace PSConsoleUtilities
             {
                 _singleton._yankLastArgState = new YankLastArgState
                 {
-                    argument = (arg is int) ? (int)arg : -1,
+                    argument = (arg != null) ? (int)arg : -1,
                     historyIncrement = -1,
                     historyIndex = _singleton._currentHistoryIndex - 1
                 };

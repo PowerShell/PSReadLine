@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Management.Automation;
 using System.Management.Automation.Language;
+using System.Management.Automation.Runspaces;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
@@ -139,7 +140,7 @@ namespace PSConsoleUtilities
         /// after the prompt has been displayed.
         /// </summary>
         /// <returns>The complete command line.</returns>
-        public static string ReadLine()
+        public static string ReadLine(Runspace remoteRunspace = null)
         {
             uint dwConsoleMode;
             var handle = NativeMethods.GetStdHandle((uint) StandardHandleId.Input);
@@ -152,7 +153,7 @@ namespace PSConsoleUtilities
                 NativeMethods.SetConsoleMode(handle,
                     dwConsoleMode & ~(NativeMethods.ENABLE_PROCESSED_INPUT | NativeMethods.ENABLE_LINE_INPUT));
 
-                _singleton.Initialize();
+                _singleton.Initialize(remoteRunspace);
                 return _singleton.InputLoop();
             }
             catch (OperationCanceledException)
@@ -174,6 +175,7 @@ namespace PSConsoleUtilities
                 var yankCommandCount = _yankCommandCount;
                 var tabCommandCount = _tabCommandCount;
                 var searchHistoryCommandCount = _searchHistoryCommandCount;
+                var recallHistoryCommandCount = _recallHistoryCommandCount;
                 var yankLastArgCommandCount = _yankLastArgCommandCount;
                 var visualSelectionCommandCount = _visualSelectionCommandCount;
 
@@ -208,8 +210,23 @@ namespace PSConsoleUtilities
                 }
                 if (searchHistoryCommandCount == _searchHistoryCommandCount)
                 {
+                    if (_searchHistoryCommandCount > 0)
+                    {
+                        _emphasisStart = -1;
+                        _emphasisLength = 0;
+                        Render();
+                    }
                     _searchHistoryCommandCount = 0;
                     _searchHistoryPrefix = null;
+                }
+                if (recallHistoryCommandCount == _recallHistoryCommandCount)
+                {
+                    _recallHistoryCommandCount = 0;
+                }
+                if (searchHistoryCommandCount == _searchHistoryCommandCount &&
+                    recallHistoryCommandCount == _recallHistoryCommandCount)
+                {
+                    _hashedHistory = null;
                 }
                 if (visualSelectionCommandCount == _visualSelectionCommandCount && _visualSelectionCommandCount > 0)
                 {
@@ -255,8 +272,7 @@ namespace PSConsoleUtilities
 
             _breakHandlerGcHandle = GCHandle.Alloc(new BreakHandler(_singleton.BreakHandler));
             NativeMethods.SetConsoleCtrlHandler((BreakHandler) _breakHandlerGcHandle.Target, true);
-            _singleton._readKeyThread = new Thread(_singleton.ReadKeyThreadProc);
-            _singleton._readKeyThread.IsBackground = true;
+            _singleton._readKeyThread = new Thread(_singleton.ReadKeyThreadProc) {IsBackground = true};
             _singleton._readKeyThread.Start();
             _singleton._readKeyWaitHandle = new AutoResetEvent(false);
             _singleton._keyReadWaitHandle = new AutoResetEvent(false);
@@ -287,19 +303,14 @@ namespace PSConsoleUtilities
 
             _options = new PSConsoleReadlineOptions();
 
-            _history = new HistoryQueue<HistoryItem>(Options.MaximumHistoryCount)
-            {
-                OnDequeue = HistoryOnDequeueHandler,
-                OnEnqueue = HistoryOnEnqueueHandler
-            };
+            _history = new HistoryQueue<HistoryItem>(Options.MaximumHistoryCount);
             _currentHistoryIndex = 0;
-            _hashedHistory = new HashSet<string>();
 
             _killIndex = -1;    // So first add indexes 0.
             _killRing = new List<string>(Options.MaximumKillRingCount);
         }
 
-        private void Initialize()
+        private void Initialize(Runspace remoteRunspace)
         {
             _buffer.Clear();
             _edits = new List<EditItem>();
@@ -324,9 +335,19 @@ namespace PSConsoleUtilities
             _yankLastArgCommandCount = 0;
             _tabCommandCount = 0;
             _visualSelectionCommandCount = 0;
+            _remoteRunspace = remoteRunspace;
 
             _consoleBuffer = ReadBufferLines(_initialY, 1 + Options.ExtraPromptLineCount);
             _lastRenderTime = Stopwatch.StartNew();
+
+            _killCommandCount = 0;
+            _yankCommandCount = 0;
+            _yankLastArgCommandCount = 0;
+            _tabCommandCount = 0;
+            _searchHistoryCommandCount = 0;
+            _recallHistoryCommandCount = 0;
+            _visualSelectionCommandCount = 0;
+            _hashedHistory = null;
 
             if (_getNextHistoryIndex > 0)
             {

@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Management.Automation.Language;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using PSConsoleUtilities;
 
@@ -95,6 +91,41 @@ namespace UnitTestPSReadLine
                     Assert.IsTrue((tokens[0].TokenFlags & TokenFlags.CommandName) == TokenFlags.CommandName);
                     Assert.AreEqual(0, parseErrors.Length);
                     Assert.AreEqual(4, cursor);
+                })));
+        }
+
+        [TestMethod]
+        public void TestGetSelectionStateAPI()
+        {
+            TestSetup(KeyMode.Cmd);
+
+            Test("echo", Keys(
+                "echo",
+                CheckThat(() =>
+                {
+                    int start;
+                    int length;
+                    PSConsoleReadLine.GetSelectionState(out start, out length);
+                    Assert.AreEqual(start, -1);
+                    Assert.AreEqual(length, -1);
+                }),
+                _.ShiftHome,
+                CheckThat(() =>
+                {
+                    int start;
+                    int length;
+                    PSConsoleReadLine.GetSelectionState(out start, out length);
+                    Assert.AreEqual(start, 0);
+                    Assert.AreEqual(length, 4);
+                }),
+                _.ShiftRightArrow,
+                CheckThat(() =>
+                {
+                    int start;
+                    int length;
+                    PSConsoleReadLine.GetSelectionState(out start, out length);
+                    Assert.AreEqual(start, 1);
+                    Assert.AreEqual(length, 3);
                 })));
         }
 

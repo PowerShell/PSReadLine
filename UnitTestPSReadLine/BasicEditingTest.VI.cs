@@ -24,10 +24,15 @@ namespace UnitTestPSReadLine
         [TestMethod]
         public void ViTestAppend()
         {
-            // Add one test for chords
             TestSetup(KeyMode.Vi);
 
-            Test("wiley", Keys("i", _.Escape, "ae", _.Escape, "il", _.Escape, "Iw", _.Escape, "Ay"));
+            Test("wiley", Keys(
+                "i",
+                _.Escape, "ae", CheckThat(() => AssertLineIs("ie")),
+                _.Escape, "il", CheckThat(() => AssertLineIs("ile")),
+                _.Escape, "Iw", CheckThat(() => AssertLineIs("wile")),
+                _.Escape, "Ay", CheckThat(() => AssertLineIs("wiley"))
+                ));
         }
 
         [TestMethod]

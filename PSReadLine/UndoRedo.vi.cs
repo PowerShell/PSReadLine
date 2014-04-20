@@ -17,7 +17,7 @@ namespace PSConsoleUtilities
             {
                 while (_singleton._undoEditIndex > 0)
                 {
-                    _singleton._edits[_singleton._undoEditIndex - 1].Undo(_singleton);
+                    _singleton._edits[_singleton._undoEditIndex - 1].Undo();
                     _singleton._undoEditIndex--;
                 }
                 _singleton.Render();

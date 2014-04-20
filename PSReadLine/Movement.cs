@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Management.Automation.Language;
-using System.Text;
 
 namespace PSConsoleUtilities
 {
@@ -33,12 +30,17 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void ForwardChar(ConsoleKeyInfo? key = null, object arg = null)
         {
-            int qty = (arg is int) ? (int) arg : 1;
-            int distance = Math.Min(qty, _singleton._buffer.Length - _singleton._current + ViEndOfLineFactor);
-            if (distance > 0)
+            int numericArg;
+            if (TryGetArgAsInt(arg, out numericArg, 1))
             {
-                _singleton._current += distance;
-                _singleton.PlaceCursor();
+                if (_singleton._options.EditMode == EditMode.Vi)
+                {
+                    SetCursorPosition(Math.Min(_singleton._buffer.Length + ViEndOfLineFactor, _singleton._current + numericArg));
+                }
+                else
+                {
+                    SetCursorPosition(_singleton._current + numericArg);
+                }
             }
         }
 
@@ -48,12 +50,10 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void BackwardChar(ConsoleKeyInfo? key = null, object arg = null)
         {
-            int qty = ( arg is int ) ? (int) arg : 1;   // For VI movement
-            int distance = Math.Min( _singleton._current, qty );
-            if (distance > 0 && (_singleton._current - distance < _singleton._buffer.Length))
+            int numericArg;
+            if (TryGetArgAsInt(arg, out numericArg, 1))
             {
-                _singleton._current -= distance;
-                _singleton.PlaceCursor();
+                SetCursorPosition(_singleton._current - numericArg);
             }
         }
 
@@ -63,21 +63,27 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void NextWord(ConsoleKeyInfo? key = null, object arg = null)
         {
-            int i = _singleton.FindNextWordPoint(_singleton.Options.WordDelimiters);
-            if (i == _singleton._buffer.Length)
+            int numericArg;
+            if (!TryGetArgAsInt(arg, out numericArg, 1))
             {
-                // Both cmd and bash put the cursor on the last character instead
-                // of one past the end.  This seems a little odd to me, but whatever.
-                i -= 1;
+                return;
             }
-            _singleton._current = i;
-            _singleton.PlaceCursor();
 
-            // For VI movement 
-            int qty = ( arg is int ) ? (int) arg : 1;
-            if (qty > 1)
+            if (numericArg < 0)
             {
-                NextWord(key, qty - 1);
+                BackwardWord(key, -numericArg);
+                return;
+            }
+
+            while (numericArg-- > 0)
+            {
+                int i = _singleton.FindNextWordPoint(_singleton.Options.WordDelimiters);
+                if (_singleton._options.EditMode == EditMode.Vi && i >= _singleton._buffer.Length)
+                {
+                    i += ViEndOfLineFactor;
+                }
+                _singleton._current = i;
+                _singleton.PlaceCursor();
             }
         }
 
@@ -87,14 +93,29 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void ShellNextWord(ConsoleKeyInfo? key = null, object arg = null)
         {
-            var token = _singleton.FindToken(_singleton._current, FindTokenMode.Next);
+            int numericArg;
+            if (!TryGetArgAsInt(arg, out numericArg, 1))
+            {
+                return;
+            }
 
-            Debug.Assert(token != null, "We'll always find EOF");
+            if (numericArg < 0)
+            {
+                ShellBackwardWord(key, -numericArg);
+                return;
+            }
 
-            _singleton._current = token.Kind == TokenKind.EndOfInput
-                ? _singleton._buffer.Length
-                : token.Extent.StartOffset;
-            _singleton.PlaceCursor();
+            while (numericArg-- > 0)
+            {
+                var token = _singleton.FindToken(_singleton._current, FindTokenMode.Next);
+
+                Debug.Assert(token != null, "We'll always find EOF");
+
+                _singleton._current = token.Kind == TokenKind.EndOfInput
+                                          ? _singleton._buffer.Length
+                                          : token.Extent.StartOffset;
+                _singleton.PlaceCursor();
+            }
         }
 
         /// <summary>
@@ -104,16 +125,21 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void ForwardWord(ConsoleKeyInfo? key = null, object arg = null)
         {
-            int qty = (arg is int) ? (int) arg : 1;
-            for (; qty > 0 && _singleton._current < _singleton._buffer.Length - 1; qty--)
+            int numericArg;
+            if (!TryGetArgAsInt(arg, out numericArg, 1))
+            {
+                return;
+            }
+
+            if (numericArg < 0)
+            {
+                BackwardWord(key, -numericArg);
+                return;
+            }
+
+            while (numericArg-- > 0)
             {
                 int i = _singleton.FindForwardWordPoint(_singleton.Options.WordDelimiters);
-                if (i == _singleton._buffer.Length)
-                {
-                    // Both cmd and bash put the cursor on the last character instead
-                    // of one past the end.  This seems a little odd to me, but whatever.
-                    i -= 1;
-                }
                 _singleton._current = i;
                 _singleton.PlaceCursor();
             }
@@ -125,14 +151,39 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void ShellForwardWord(ConsoleKeyInfo? key = null, object arg = null)
         {
-            var token = _singleton.FindToken(_singleton._current, FindTokenMode.CurrentOrNext);
+            int numericArg;
+            if (!TryGetArgAsInt(arg, out numericArg, 1))
+            {
+                return;
+            }
 
-            Debug.Assert(token != null, "We'll always find EOF");
+            if (numericArg < 0)
+            {
+                ShellBackwardWord(key, -numericArg);
+                return;
+            }
 
-            _singleton._current = token.Kind == TokenKind.EndOfInput
-                ? _singleton._buffer.Length
-                : token.Extent.EndOffset;
-            _singleton.PlaceCursor();
+            while (numericArg-- > 0)
+            {
+                var token = _singleton.FindToken(_singleton._current, FindTokenMode.CurrentOrNext);
+
+                Debug.Assert(token != null, "We'll always find EOF");
+
+                _singleton._current = token.Kind == TokenKind.EndOfInput
+                                          ? _singleton._buffer.Length
+                                          : token.Extent.EndOffset;
+                _singleton.PlaceCursor();
+            }
+        }
+
+        private static bool CheckIsBound(Action<ConsoleKeyInfo?, object> action)
+        {
+            foreach (var entry in _singleton._dispatchTable)
+            {
+                if (entry.Value.Action == action)
+                    return true;
+            }
+            return false;
         }
 
         /// <summary>
@@ -142,8 +193,26 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void BackwardWord(ConsoleKeyInfo? key = null, object arg = null)
         {
-            int qty = (arg is int) ? (int) arg : 1;
-            for (; qty > 0; qty--)
+            int numericArg;
+            if (!TryGetArgAsInt(arg, out numericArg, 1))
+            {
+                return;
+            }
+
+            if (numericArg < 0)
+            {
+                if (CheckIsBound(ForwardWord))
+                {
+                    ForwardWord(key, -numericArg);
+                }
+                else
+                {
+                    NextWord(key, -numericArg);
+                }
+                return;
+            }
+
+            while (numericArg-- > 0)
             {
                 int i = _singleton.FindBackwardWordPoint(_singleton.Options.WordDelimiters);
                 _singleton._current = i;
@@ -157,10 +226,32 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void ShellBackwardWord(ConsoleKeyInfo? key = null, object arg = null)
         {
-            var token = _singleton.FindToken(_singleton._current, FindTokenMode.Previous);
+            int numericArg;
+            if (!TryGetArgAsInt(arg, out numericArg, 1))
+            {
+                return;
+            }
 
-            _singleton._current = (token != null) ? token.Extent.StartOffset : 0;
-            _singleton.PlaceCursor();
+            if (numericArg < 0)
+            {
+                if (CheckIsBound(ShellForwardWord))
+                {
+                    ShellForwardWord(key, -numericArg);
+                }
+                else
+                {
+                    ShellNextWord(key, -numericArg);
+                }
+                return;
+            }
+
+            while (numericArg-- > 0)
+            {
+                var token = _singleton.FindToken(_singleton._current, FindTokenMode.Previous);
+
+                _singleton._current = (token != null) ? token.Extent.StartOffset : 0;
+                _singleton.PlaceCursor();
+            }
         }
 
         /// <summary>

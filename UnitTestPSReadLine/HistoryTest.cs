@@ -49,25 +49,36 @@ namespace UnitTestPSReadLine
             SetHistory();
             Test(" ", Keys(' ', _.UpArrow, _.DownArrow));
 
+            var options = PSConsoleReadLine.GetOptions();
+            var emphasisColors = Tuple.Create(options.EmphasisForegroundColor, options.EmphasisBackgroundColor);
+
             SetHistory("dosomething", "ps p*", "dir", "echo zzz");
             Test("dosomething", Keys(
                 "d",
                 _.UpArrow,   CheckThat(() => {
-                    AssertScreenIs(1, TokenClassification.Command, "dir");
-                    AssertCursorLeftIs(1);
+                    AssertScreenIs(1,
+                        emphasisColors, 'd',
+                        TokenClassification.Command, "ir");
+                    AssertCursorLeftIs(3);
                 }),
                 _.UpArrow,   CheckThat(() => {
-                    AssertScreenIs(1, TokenClassification.Command, "dosomething");
-                    AssertCursorLeftIs(1);
+                    AssertScreenIs(1,
+                        emphasisColors, 'd',
+                        TokenClassification.Command, "osomething");
+                    AssertCursorLeftIs(11);
                 }),
                 _.DownArrow, CheckThat(() => {
-                    AssertScreenIs(1, TokenClassification.Command, "dir");
-                    AssertCursorLeftIs(1);
+                    AssertScreenIs(1,
+                        emphasisColors, 'd',
+                        TokenClassification.Command, "ir");
+                    AssertCursorLeftIs(3);
                 }),
                 _.UpArrow,   CheckThat(() =>
                 {
-                    AssertScreenIs(1, TokenClassification.Command, "dosomething");
-                    AssertCursorLeftIs(1);
+                    AssertScreenIs(1,
+                        emphasisColors, 'd',
+                        TokenClassification.Command, "osomething");
+                    AssertCursorLeftIs(11);
                 })));
         }
 
@@ -79,25 +90,35 @@ namespace UnitTestPSReadLine
                       new KeyHandler("DownArrow", PSConsoleReadLine.HistorySearchForward));
 
             PSConsoleReadLine.SetOptions(new SetPSReadlineOption {HistorySearchCursorMovesToEnd = true});
+            var options = PSConsoleReadLine.GetOptions();
+            var emphasisColors = Tuple.Create(options.EmphasisForegroundColor, options.EmphasisBackgroundColor);
 
             SetHistory("dosomething", "ps p*", "dir", "echo zzz");
             Test("dosomething", Keys(
                 "d",
                 _.UpArrow,   CheckThat(() => {
-                    AssertScreenIs(1, TokenClassification.Command, "dir");
+                    AssertScreenIs(1,
+                        emphasisColors, 'd',
+                        TokenClassification.Command, "ir");
                     AssertCursorLeftIs(3);
                 }),
                 _.UpArrow,   CheckThat(() => {
-                    AssertScreenIs(1, TokenClassification.Command, "dosomething");
+                    AssertScreenIs(1,
+                        emphasisColors, 'd',
+                        TokenClassification.Command, "osomething");
                     AssertCursorLeftIs(11);
                 }),
                 _.DownArrow, CheckThat(() => {
-                    AssertScreenIs(1, TokenClassification.Command, "dir");
+                    AssertScreenIs(1,
+                        emphasisColors, 'd',
+                        TokenClassification.Command, "ir");
                     AssertCursorLeftIs(3);
                 }),
                 _.UpArrow,   CheckThat(() =>
                 {
-                    AssertScreenIs(1, TokenClassification.Command, "dosomething");
+                    AssertScreenIs(1,
+                        emphasisColors, 'd',
+                        TokenClassification.Command, "osomething");
                     AssertCursorLeftIs(11);
                 })));
         }
@@ -377,34 +398,67 @@ namespace UnitTestPSReadLine
             TestSetup(KeyMode.Cmd);
             PSConsoleReadLine.SetOptions(new SetPSReadlineOption {AddToHistoryHandler = s => s.StartsWith("z")});
 
-            Test("zzzz", Keys("zzzz"));
-            Test("azzz", Keys("azzz"));
+            SetHistory("zzzz", "azzz");
             Test("zzzz", Keys(_.UpArrow));
         }
 
         [TestMethod]
-        public void TestHistoryDuplicates()
+        public void TestHistoryNoDuplicates()
         {
             TestSetup(KeyMode.Cmd);
             PSConsoleReadLine.SetOptions(new SetPSReadlineOption {HistoryNoDuplicates = false});
 
-            Test("zzzz", Keys("zzzz"));
-            Test("aaaa", Keys("aaaa"));
-            Test("bbbb", Keys("bbbb"));
-            Test("bbbb", Keys("bbbb"));
-            Test("cccc", Keys("cccc"));
+            SetHistory("zzzz", "aaaa", "bbbb", "bbbb", "cccc");
             Test("aaaa", Keys(Enumerable.Repeat(_.UpArrow, 4)));
 
             // Changing the option should affect existing history.
             PSConsoleReadLine.SetOptions(new SetPSReadlineOption {HistoryNoDuplicates = true});
+            Test("zzzz", Keys(Enumerable.Repeat(_.UpArrow, 4)));
+
+            SetHistory("aaaa", "bbbb", "bbbb", "cccc");
             Test("aaaa", Keys(Enumerable.Repeat(_.UpArrow, 3)));
 
-            PSConsoleReadLine.ClearHistory();
-            Test("aaaa", Keys("aaaa"));
-            Test("bbbb", Keys("bbbb"));
-            Test("bbbb", Keys("bbbb"));
-            Test("cccc", Keys("cccc"));
-            Test("aaaa", Keys(Enumerable.Repeat(_.UpArrow, 3)));
+            SetHistory("aaaa", "bbbb", "bbbb", "cccc");
+            Test("cccc", Keys(
+                Enumerable.Repeat(_.UpArrow, 3),
+                Enumerable.Repeat(_.DownArrow, 2)));
+        }
+
+        [TestMethod]
+        public void TestHistorySearchNoDuplicates()
+        {
+            TestSetup(KeyMode.Cmd,
+                      new KeyHandler("UpArrow", PSConsoleReadLine.HistorySearchBackward),
+                      new KeyHandler("DownArrow", PSConsoleReadLine.HistorySearchForward));
+
+            PSConsoleReadLine.SetOptions(new SetPSReadlineOption {HistoryNoDuplicates = true});
+            SetHistory("0000", "echo aaaa", "1111", "echo bbbb", "2222", "echo bbbb", "3333", "echo cccc", "4444");
+            Test("echo aaaa", Keys("echo", Enumerable.Repeat(_.UpArrow, 3)));
+
+            SetHistory("0000", "echo aaaa", "1111", "echo bbbb", "2222", "echo bbbb", "3333", "echo cccc", "4444");
+            Test("echo cccc", Keys(
+                "echo",
+                Enumerable.Repeat(_.UpArrow, 3),
+                Enumerable.Repeat(_.DownArrow, 2)));
+        }
+
+        [TestMethod]
+        public void TestInteractiveHistorySearchNoDuplicates()
+        {
+            TestSetup(KeyMode.Emacs);
+
+            PSConsoleReadLine.SetOptions(new SetPSReadlineOption {HistoryNoDuplicates = true});
+            SetHistory("0000", "echo aaaa", "1111", "echo bbbb", "2222", "echo bbbb", "3333", "echo cccc", "4444");
+            Test("echo aaaa", Keys(
+                _.CtrlR, "echo", _.CtrlR, _.CtrlR));
+
+            SetHistory("0000", "echo aaaa", "1111", "echo bbbb", "2222", "echo bbbb", "3333", "echo cccc", "4444");
+            Test("echo cccc", Keys(
+                _.CtrlR, "echo", _.CtrlR, _.CtrlR, _.CtrlS, _.CtrlS));
+
+            SetHistory("0000", "echo aaaa", "1111", "echo bbbb", "2222", "echo bbbb", "3333", "echo cccc", "4444");
+            Test("echo aaaa", Keys(
+                _.CtrlR, "echo", _.CtrlR, _.CtrlR, _.CtrlH, _.CtrlR, _.CtrlR));
         }
 
         [TestMethod]
@@ -412,10 +466,7 @@ namespace UnitTestPSReadLine
         {
             TestSetup(KeyMode.Cmd);
 
-            Test("zzzz", Keys("zzzz"));
-            Test("aaaa", Keys("aaaa"));
-            Test("bbbb", Keys("bbbb"));
-            Test("cccc", Keys("cccc"));
+            SetHistory("zzzz", "aaaa", "bbbb", "cccc");
 
             // There should be 4 items in history, the following should remove the
             // oldest history item.

@@ -18,10 +18,11 @@ namespace PSConsoleUtilities
 
         // History state
         private HistoryQueue<HistoryItem> _history;
-        private readonly HashSet<string> _hashedHistory; 
+        private Dictionary<string, int> _hashedHistory;
         private int _currentHistoryIndex;
         private int _getNextHistoryIndex;
         private int _searchHistoryCommandCount;
+        private int _recallHistoryCommandCount;
         private string _searchHistoryPrefix;
         // When cycling through history, the current line (not yet added to history)
         // is saved here so it can be restored.
@@ -35,13 +36,6 @@ namespace PSConsoleUtilities
         private string MaybeAddToHistory(string result, List<EditItem> edits, int undoEditIndex)
         {
             bool addToHistory = !string.IsNullOrWhiteSpace(result) && ((Options.AddToHistoryHandler == null) || Options.AddToHistoryHandler(result));
-            if (addToHistory && Options.HistoryNoDuplicates)
-            {
-                // REVIEW: should history be case sensitive - it is now.
-                // A smart comparer could use the ast to ignore case on commands, parameters,
-                // operators and keywords while remaining case sensitive on command arguments.
-                addToHistory = !_hashedHistory.Contains(result);
-            }
             if (addToHistory)
             {
                 _history.Enqueue(new HistoryItem
@@ -62,23 +56,6 @@ namespace PSConsoleUtilities
             return result;
         }
 
-        private void HistoryOnEnqueueHandler(HistoryItem obj)
-        {
-            if (Options.HistoryNoDuplicates)
-            {
-                _hashedHistory.Add(obj._line);
-            }
-        }
-
-        private void HistoryOnDequeueHandler(HistoryItem obj)
-        {
-            if (Options.HistoryNoDuplicates)
-            {
-                _hashedHistory.Remove(obj._line);
-            }
-        }
-
-
         /// <summary>
         /// Add a command to the history - typically used to restore
         /// history from a previous session.
@@ -95,7 +72,6 @@ namespace PSConsoleUtilities
         public static void ClearHistory()
         {
             _singleton._history.Clear();
-            _singleton._hashedHistory.Clear();
             _singleton._currentHistoryIndex = 0;
         }
 
@@ -137,22 +113,57 @@ namespace PSConsoleUtilities
             }
         }
 
+        private void HistoryRecall(int direction)
+        {
+            int newHistoryIndex;
+            if (Options.HistoryNoDuplicates)
+            {
+                if (_recallHistoryCommandCount == 0)
+                {
+                    _hashedHistory = new Dictionary<string, int>();
+                }
+
+                newHistoryIndex = _currentHistoryIndex;
+                while (true)
+                {
+                    newHistoryIndex = newHistoryIndex + direction;
+                    if (newHistoryIndex < 0 && newHistoryIndex >= _history.Count)
+                    {
+                        break;
+                    }
+                    var line = _history[newHistoryIndex]._line;
+                    int index;
+                    if (!_hashedHistory.TryGetValue(line, out index))
+                    {
+                        _hashedHistory.Add(line, newHistoryIndex);
+                        break;
+                    }
+                    if (index == newHistoryIndex)
+                    {
+                        break;
+                    }
+                }
+            }
+            else
+            {
+                newHistoryIndex = _currentHistoryIndex + direction;
+            }
+            _recallHistoryCommandCount += 1;
+            if (newHistoryIndex >= 0 && newHistoryIndex < _history.Count)
+            {
+                _currentHistoryIndex = newHistoryIndex;
+                UpdateFromHistory(moveCursor: true);
+            }
+
+        }
+
         /// <summary>
         /// Replace the current input with the 'previous' item from PSReadline history.
         /// </summary>
         public static void PreviousHistory(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.SaveCurrentLine();
-            if (_singleton._currentHistoryIndex > 0)
-            {
-                _singleton._currentHistoryIndex -= 1;
-                _singleton.UpdateFromHistory(moveCursor: true);
-            }
-            if (_singleton._options.EditMode == EditMode.Vi)
-            {
-                _singleton._current = 0;
-                _singleton.PlaceCursor();
-            }
+            _singleton.HistoryRecall(-1);
         }
 
         /// <summary>
@@ -161,33 +172,42 @@ namespace PSConsoleUtilities
         public static void NextHistory(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.SaveCurrentLine();
-            if (_singleton._currentHistoryIndex < _singleton._history.Count)
-            {
-                _singleton._currentHistoryIndex += 1;
-                _singleton.UpdateFromHistory(moveCursor: true);
-            }
-            if (_singleton._options.EditMode == EditMode.Vi)
-            {
-                _singleton._current = 0;
-                _singleton.PlaceCursor();
-            }
+            _singleton.HistoryRecall(+1);
         }
 
-        private void HistorySearch(bool backward)
+        private void HistorySearch(int direction)
         {
             if (_searchHistoryCommandCount == 0)
             {
                 _searchHistoryPrefix = _buffer.ToString(0, _current);
+                _emphasisStart = 0;
+                _emphasisLength = _current;
+                if (Options.HistoryNoDuplicates)
+                {
+                    _hashedHistory = new Dictionary<string, int>();
+                }
             }
             _searchHistoryCommandCount += 1;
 
-            int incr = backward ? -1 : +1;
-            for (int i = _currentHistoryIndex + incr; i >=0 && i < _history.Count; i += incr)
+            for (int i = _currentHistoryIndex + direction; i >=0 && i < _history.Count; i += direction)
             {
-                if (_history[i]._line.StartsWith(_searchHistoryPrefix, Options.HistoryStringComparison))
+                var line = _history[i]._line;
+                if (line.StartsWith(_searchHistoryPrefix, Options.HistoryStringComparison))
                 {
+                    if (Options.HistoryNoDuplicates)
+                    {
+                        int index;
+                        if (!_hashedHistory.TryGetValue(line, out index))
+                        {
+                            _hashedHistory.Add(line, i);
+                        }
+                        else if (index != i)
+                        {
+                            continue;
+                        }
+                    }
                     _currentHistoryIndex = i;
-                    UpdateFromHistory(moveCursor: Options.HistorySearchCursorMovesToEnd);
+                    UpdateFromHistory(moveCursor: true);
                     break;
                 }
             }
@@ -200,7 +220,7 @@ namespace PSConsoleUtilities
         {
             _singleton.SaveCurrentLine();
             _singleton._currentHistoryIndex = 0;
-            _singleton.UpdateFromHistory(moveCursor: _singleton.Options.HistorySearchCursorMovesToEnd);
+            _singleton.UpdateFromHistory(moveCursor: true);
         }
 
         /// <summary>
@@ -209,7 +229,7 @@ namespace PSConsoleUtilities
         public static void EndOfHistory(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton._currentHistoryIndex = _singleton._history.Count;
-            _singleton.UpdateFromHistory(moveCursor: _singleton.Options.HistorySearchCursorMovesToEnd);
+            _singleton.UpdateFromHistory(moveCursor: true);
         }
 
         /// <summary>
@@ -219,7 +239,7 @@ namespace PSConsoleUtilities
         public static void HistorySearchBackward(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.SaveCurrentLine();
-            _singleton.HistorySearch(backward: true);
+            _singleton.HistorySearch(-1);
         }
 
         /// <summary>
@@ -229,17 +249,30 @@ namespace PSConsoleUtilities
         public static void HistorySearchForward(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.SaveCurrentLine();
-            _singleton.HistorySearch(backward: false);
+            _singleton.HistorySearch(+1);
         }
 
         private void UpdateHistoryDuringInteractiveSearch(string toMatch, int direction, ref int searchFromPoint)
         {
             searchFromPoint += direction;
-            while (searchFromPoint >= 0 && searchFromPoint < _history.Count)
+            for (; searchFromPoint >= 0 && searchFromPoint < _history.Count; searchFromPoint += direction)
             {
-                var startIndex = _history[searchFromPoint]._line.IndexOf(toMatch, Options.HistoryStringComparison);
+                var line = _history[searchFromPoint]._line;
+                var startIndex = line.IndexOf(toMatch, Options.HistoryStringComparison);
                 if (startIndex >= 0)
                 {
+                    if (Options.HistoryNoDuplicates)
+                    {
+                        int index;
+                        if (!_hashedHistory.TryGetValue(line, out index))
+                        {
+                            _hashedHistory.Add(line, searchFromPoint);
+                        }
+                        else if (index != searchFromPoint)
+                        {
+                            continue;
+                        }
+                    }
                     _statusLinePrompt = direction > 0 ? _forwardISearchPrompt : _backwardISearchPrompt;
                     _current = startIndex;
                     _emphasisStart = startIndex;
@@ -248,7 +281,6 @@ namespace PSConsoleUtilities
                     UpdateFromHistory(moveCursor: Options.HistorySearchCursorMovesToEnd);
                     return;
                 }
-                searchFromPoint += direction;
             }
 
             // Make sure we're never more than 1 away from being in range so if they
@@ -269,6 +301,11 @@ namespace PSConsoleUtilities
             var searchFromPoint = _currentHistoryIndex;
             var searchPositions = new Stack<int>();
             searchPositions.Push(_currentHistoryIndex);
+
+            if (Options.HistoryNoDuplicates)
+            {
+                _hashedHistory = new Dictionary<string, int>();
+            }
 
             var toMatch = new StringBuilder(64);
             while (true)
@@ -294,6 +331,20 @@ namespace PSConsoleUtilities
                         searchPositions.Pop();
                         searchFromPoint = _currentHistoryIndex = searchPositions.Peek();
                         UpdateFromHistory(moveCursor: Options.HistorySearchCursorMovesToEnd);
+
+                        if (_hashedHistory != null)
+                        {
+                            // Remove any entries with index < searchFromPoint because
+                            // we are starting the search from this new index - we always
+                            // want to find the latest entry that matches the search string
+                            foreach (var pair in _hashedHistory.ToArray())
+                            {
+                                if (pair.Value < searchFromPoint)
+                                {
+                                    _hashedHistory.Remove(pair.Key);
+                                }
+                            }
+                        }
 
                         // Prompt may need to have 'failed-' removed.
                         var toMatchStr = toMatch.ToString();
@@ -388,6 +439,8 @@ namespace PSConsoleUtilities
 
             Render(); // Render prompt
             InteractiveHistorySearchLoop(direction);
+
+            _hashedHistory = null;
 
             // Remove our status line
             _statusBuffer.Clear();

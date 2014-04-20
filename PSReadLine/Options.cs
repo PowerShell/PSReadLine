@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
 
 namespace PSConsoleUtilities
 {
@@ -39,27 +37,6 @@ namespace PSConsoleUtilities
             if (options._historyNoDuplicates.HasValue)
             {
                 Options.HistoryNoDuplicates = options.HistoryNoDuplicates;
-                if (Options.HistoryNoDuplicates)
-                {
-                    _hashedHistory.Clear();
-                    _history.OnEnqueue = null;
-                    _history.OnDequeue = null;
-                    var newHistory = new HistoryQueue<HistoryItem>(Options.MaximumHistoryCount);
-                    while (_history.Count > 0)
-                    {
-                        var item = _history.Dequeue();
-                        var itemStr = item._line;
-                        if (!_hashedHistory.Contains(itemStr))
-                        {
-                            newHistory.Enqueue(item);
-                            _hashedHistory.Add(itemStr);
-                        }
-                    }
-                    _history = newHistory;
-                    _history.OnEnqueue = HistoryOnEnqueueHandler;
-                    _history.OnDequeue = HistoryOnDequeueHandler;
-                    _currentHistoryIndex = _history.Count;
-                }
             }
             if (options._historySearchCursorMovesToEnd.HasValue)
             {
@@ -77,15 +54,11 @@ namespace PSConsoleUtilities
                 {
                     _history.Dequeue();
                 }
-                _history.OnEnqueue = null;
-                _history.OnDequeue = null;
                 while (_history.Count > 0)
                 {
                     newHistory.Enqueue(_history.Dequeue());
                 }
                 _history = newHistory;
-                _history.OnEnqueue = HistoryOnEnqueueHandler;
-                _history.OnDequeue = HistoryOnDequeueHandler;
                 _currentHistoryIndex = _history.Count;
             }
             if (options._maximumKillRingCount.HasValue)
