@@ -507,7 +507,7 @@
   <data name="ViTransposeCharsDescription" xml:space="preserve">
     <value>Transposes the current character with the next character in the line.</value>
   </data>
-  <data name="ViUndoAllDescription" xml:space="preserve">
+  <data name="UndoAllDescription" xml:space="preserve">
     <value>Undoes all commands for this line.</value>
   </data>
   <data name="SearchForwardDescription" xml:space="preserve">

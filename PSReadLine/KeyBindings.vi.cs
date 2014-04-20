@@ -142,7 +142,7 @@ namespace PSConsoleUtilities
                 { Keys.ucR,             MakeViKeyHandler(ViReplaceUntilEsc,    "ViReplaceUntilEsc", mode: "Cmd") },
                 { Keys.ucS,             MakeViKeyHandler(ViReplaceLine,        "ViReplaceLine", mode: "Cmd") },
                 { Keys.ucT,             MakeViKeyHandler(SearchCharBackwardWithBackoff, "SearchCharBackwardWithBackoff", mode: "Cmd") },
-                { Keys.ucU,             MakeViKeyHandler(ViUndoAll,            "ViUndoAll", mode: "Cmd") },
+                { Keys.ucU,             MakeViKeyHandler(UndoAll,              "UndoAll", mode: "Cmd") },
                 { Keys.ucV,             MakeViKeyHandler(Ding,                 "Ignore", mode: "Cmd") },
                 { Keys.ucW,             MakeViKeyHandler(NextWord,             "NextWord", mode: "Cmd") },
                 { Keys.ucX,             MakeViKeyHandler(BackwardDeleteChar,   "BackwardDeleteChar", mode: "Cmd") },

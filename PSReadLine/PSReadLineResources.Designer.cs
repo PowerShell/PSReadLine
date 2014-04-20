@@ -1087,6 +1087,15 @@ namespace PSConsoleUtilities {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Undoes all commands for this line..
+        /// </summary>
+        internal static string UndoAllDescription {
+            get {
+                return ResourceManager.GetString("UndoAllDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Undo a previous edit.
         /// </summary>
         internal static string UndoDescription {
@@ -1254,15 +1263,6 @@ namespace PSConsoleUtilities {
         internal static string ViTransposeCharsDescription {
             get {
                 return ResourceManager.GetString("ViTransposeCharsDescription", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Undoes all commands for this line..
-        /// </summary>
-        internal static string ViUndoAllDescription {
-            get {
-                return ResourceManager.GetString("ViUndoAllDescription", resourceCulture);
             }
         }
         

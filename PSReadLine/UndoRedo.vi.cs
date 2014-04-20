@@ -11,7 +11,7 @@ namespace PSConsoleUtilities
         /// <summary>
         /// Undo all previous edits for line.
         /// </summary>
-        public static void ViUndoAll(ConsoleKeyInfo? key = null, object arg = null)
+        public static void UndoAll(ConsoleKeyInfo? key = null, object arg = null)
         {
             if (_singleton._undoEditIndex > 0)
             {
