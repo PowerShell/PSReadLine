@@ -357,6 +357,10 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void ViCommandMode(ConsoleKeyInfo? key = null, object arg = null)
         {
+            if (_singleton._pushedEditGroupCount.Count > 0)
+            {
+                _singleton._groupUndoHelper.EndGroup();
+            }
             _singleton._dispatchTable = _viCmdKeyMap;
             _singleton._chordDispatchTable = _viCmdChordTable;
             BackwardChar();
@@ -404,8 +408,9 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void ViInsertWithDelete(ConsoleKeyInfo? key = null, object arg = null)
         {
-            ViInsertMode(key, arg);
+            _singleton._groupUndoHelper.StartGroup(ViInsertWithDelete, arg);
             DeleteChar(key, arg);
+            ViInsertMode(key, arg);
         }
 
         /// <summary>

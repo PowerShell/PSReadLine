@@ -85,36 +85,42 @@ namespace PSConsoleUtilities
 
         private static void ViReplaceBrace(ConsoleKeyInfo? key, object arg)
         {
+            _singleton._groupUndoHelper.StartGroup(ViReplaceBrace, arg);
             DeleteBrace(key, arg);
             ViInsertMode(key, arg);
         }
 
         private static void ViBackwardReplaceLineToFirstChar(ConsoleKeyInfo? key, object arg)
         {
+            _singleton._groupUndoHelper.StartGroup(ViBackwardReplaceLineToFirstChar, arg);
             DeleteLineToFirstChar(key, arg);
             ViInsertMode(key, arg);
         }
 
         private static void ViBackwardReplaceLine(ConsoleKeyInfo? key, object arg)
         {
+            _singleton._groupUndoHelper.StartGroup(ViBackwardReplaceLine, arg);
             BackwardDeleteLine(key, arg);
             ViInsertMode(key, arg);
         }
 
         private static void BackwardReplaceChar(ConsoleKeyInfo? key, object arg)
         {
+            _singleton._groupUndoHelper.StartGroup(BackwardReplaceChar, arg);
             BackwardDeleteChar(key, arg);
-            InsertCharacter(arg);
+            ViInsertMode(key, arg);
         }
 
         private static void ViBackwardReplaceWord(ConsoleKeyInfo? key, object arg)
         {
+            _singleton._groupUndoHelper.StartGroup(ViBackwardReplaceWord, arg);
             BackwardDeleteWord(key, arg);
             ViInsertMode(key, arg);
         }
 
         private static void ViReplaceToEnd(ConsoleKeyInfo? key, object arg)
         {
+            _singleton._groupUndoHelper.StartGroup(ViReplaceToEnd, arg);
             DeleteToEnd(key, arg);
             _singleton._current++;
             _singleton.PlaceCursor();
@@ -123,12 +129,14 @@ namespace PSConsoleUtilities
 
         private static void ViReplaceLine(ConsoleKeyInfo? key, object arg)
         {
+            _singleton._groupUndoHelper.StartGroup(ViReplaceLine, arg);
             DeleteLine(key, arg);
             ViInsertMode(key, arg);
         }
 
         private static void ViReplaceWord(ConsoleKeyInfo? key, object arg)
         {
+            _singleton._groupUndoHelper.StartGroup(ViReplaceWord, arg);
             DeleteWord(key, arg);
             if (_singleton._current < _singleton._buffer.Length - 1)
             {
@@ -141,8 +149,9 @@ namespace PSConsoleUtilities
 
         private static void ReplaceChar(ConsoleKeyInfo? key, object arg)
         {
+            _singleton._groupUndoHelper.StartGroup(ReplaceChar, arg);
             DeleteChar(key, arg);
-            InsertCharacter(arg);
+            ViInsertMode(key, arg);
         }
 
         /// <summary>

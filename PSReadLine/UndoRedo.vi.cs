@@ -8,6 +8,41 @@ namespace PSConsoleUtilities
 {
     public partial class PSConsoleReadLine
     {
+        private class GroupUndoHelper
+        {
+            public Action<ConsoleKeyInfo?, object> _instigator = null;
+            public object _instigatorArg = null;
+
+            public GroupUndoHelper()
+            {
+                _instigator = null;
+                _instigatorArg = null;
+            }
+
+            public void StartGroup(Action<ConsoleKeyInfo?, object> instigator, object instigatorArg)
+            {
+                _instigator = instigator;
+                _instigatorArg = instigatorArg;
+                _singleton.StartEditGroup();
+            }
+
+            public void Clear()
+            {
+                _instigator = null;
+                _instigatorArg = null;
+            }
+
+            public void EndGroup()
+            {
+                if (_singleton._pushedEditGroupCount.Count > 0)
+                {
+                    _singleton.EndEditGroup(_instigator, _instigatorArg);
+                }
+                Clear();
+            }
+        }
+        private GroupUndoHelper _groupUndoHelper = new GroupUndoHelper();
+
         /// <summary>
         /// Undo all previous edits for line.
         /// </summary>

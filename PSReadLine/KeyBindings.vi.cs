@@ -205,7 +205,7 @@ namespace PSConsoleUtilities
                 { Keys.Space,           MakeViKeyHandler( ReplaceChar,           "ReplaceChar", mode: "Cmd") },
                 { Keys._0,              MakeViKeyHandler( ViBackwardReplaceLine, "ViBackwardReplaceLine", mode: "Cmd") },
                 { Keys.Uphat,           MakeViKeyHandler( ViBackwardReplaceLineToFirstChar, "ViBackwardReplaceLineToFirstChar", mode: "Cmd") },
-                { Keys.Percent,         MakeViKeyHandler( ViReplaceBrace,        "ViReplaceBrace", mode: "Cmd") }
+                { Keys.Percent,         MakeViKeyHandler( ViReplaceBrace,        "ViReplaceBrace", mode: "Cmd") },
             };
         private static readonly Dictionary<ConsoleKeyInfo, KeyHandler> _viChordYTable = new Dictionary<ConsoleKeyInfo, KeyHandler>(new ConsoleKeyInfoComparer())
             {

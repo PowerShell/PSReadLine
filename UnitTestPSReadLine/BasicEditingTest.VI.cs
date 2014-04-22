@@ -43,27 +43,11 @@ namespace UnitTestPSReadLine
             Test("0123f", Keys(
                 "fgedcba",
                 _.Escape,
-                "0cla",
-                CheckThat(() => AssertCursorLeftIs(1)),
-                CheckThat(() => AssertLineIs("agedcba")),
-                "lchb",
-                CheckThat(() => AssertCursorLeftIs(2)),
-                CheckThat(() => AssertLineIs("abedcba")),
-                "c",
-                _.Space,
-                "c",
-                CheckThat(() => AssertCursorLeftIs(3)),
-                CheckThat(() => AssertLineIs("abcdcba")),
-                "c",
-                _.Dollar,
-                "def",
-                _.Escape,
-                CheckThat(() => AssertLineIs("abcdef")),
-                CheckThat(() => AssertCursorLeftIs(5)),
-                "c00123",
-                _.Escape,
-                CheckThat(() => AssertCursorLeftIs(3)),
-                CheckThat(() => AssertLineIs("0123f"))
+                "0cla", _.Escape, CheckThat(() => AssertCursorLeftIs(0)), CheckThat(() => AssertLineIs("agedcba")),
+                "llchb", _.Escape, CheckThat(() => AssertCursorLeftIs(1)), CheckThat(() => AssertLineIs("abedcba")),
+                "lc", _.Space, "c", _.Escape, CheckThat(() => AssertCursorLeftIs(2)), CheckThat(() => AssertLineIs("abcdcba")),
+                "lc", _.Dollar, "def", _.Escape, CheckThat(() => AssertLineIs("abcdef")), CheckThat(() => AssertCursorLeftIs(5)),
+                "c00123", _.Escape, CheckThat(() => AssertCursorLeftIs(3)), CheckThat(() => AssertLineIs("0123f"))
                 ));
 
             Test("67exit89", Keys(
@@ -98,6 +82,127 @@ namespace UnitTestPSReadLine
                 "2hs123", _.Escape, CheckThat(() => AssertLineIs("gOOD123YE")),
                 "lrylre", CheckThat(() => AssertLineIs("gOOD123ye")),
                 "hR45", _.Escape, CheckThat(() => AssertLineIs("gOOD12345"))
+                ));
+        }
+
+        [TestMethod]
+        public void ViTestChangeMovementUndo()
+        {
+            TestSetup(KeyMode.Vi);
+
+            Test("", Keys(
+                "0123(567)9ab", _.Escape, "hhh", CheckThat(() => AssertCursorLeftIs(8)),
+                'c', _.Percent, "45678", _.Escape, CheckThat(() => AssertLineIs("0123456789ab")), CheckThat(() => AssertCursorLeftIs(8)),
+                'u', CheckThat(() => AssertLineIs("0123(567)9ab")), CheckThat(() => AssertCursorLeftIs(9)),
+                'U'
+                ));
+            Test("", Keys(
+                "0123456789a", _.Escape, "hhh", CheckThat(() => AssertCursorLeftIs(7)),
+                'c', _.Dollar, "_ABCD", _.Escape, CheckThat(() => AssertLineIs("0123456_ABCD")),
+                'u', CheckThat(() => AssertLineIs("0123456789a")),
+                'U'
+                ));
+            Test("", Keys(
+                " 123456789a", _.Escape, "hhh", CheckThat(() => AssertCursorLeftIs(7)),
+                'c', _.Uphat, "ABCD", _.Escape, CheckThat(() => AssertLineIs(" ABCD789a")),
+                'u', CheckThat(() => AssertLineIs(" 123456789a")),
+                'U'
+                ));
+            Test("", Keys(
+                "0123456789a", _.Escape, "hhh", CheckThat(() => AssertCursorLeftIs(7)),
+                "c0", "ABCD", _.Escape, CheckThat(() => AssertLineIs("ABCD789a")),
+                'u', CheckThat(() => AssertLineIs("0123456789a")),
+                'U'
+                ));
+            Test("", Keys(
+                "abc def ghi", _.Escape, "bb", CheckThat(() => AssertCursorLeftIs(4)),
+                "cwxxx", _.Escape, CheckThat(() => AssertLineIs("abc xxx ghi")),
+                'u', CheckThat(() => AssertLineIs("abc def ghi")),
+                'U'
+                ));
+            Test("", Keys(
+                "abc def ghi", _.Escape, "bb", CheckThat(() => AssertCursorLeftIs(4)),
+                "2cwxxx", _.Escape, CheckThat(() => AssertLineIs("abc xxx")),
+                'u', CheckThat(() => AssertLineIs("abc def ghi")),
+                'U'
+                ));
+            Test("", Keys(
+                "abc def ghi", _.Escape, "bb", CheckThat(() => AssertCursorLeftIs(4)),
+                "cWxxx", _.Escape, CheckThat(() => AssertLineIs("abc xxx ghi")),
+                'u', CheckThat(() => AssertLineIs("abc def ghi")),
+                'U'
+                ));
+            Test("", Keys(
+                "abc def ghi", _.Escape, "bb", CheckThat(() => AssertCursorLeftIs(4)),
+                "cexxx", _.Escape, CheckThat(() => AssertLineIs("abc xxx ghi")),
+                'u', _.Escape, CheckThat(() => AssertLineIs("abc def ghi")),
+                'U'
+                ));
+            Test("", Keys(
+                "abc def ghi", _.Escape, "bb", CheckThat(() => AssertCursorLeftIs(4)),
+                "2cexxx", _.Escape, CheckThat(() => AssertLineIs("abc xxx")),
+                'u', _.Escape, CheckThat(() => AssertLineIs("abc def ghi")),
+                'U'
+                ));
+            Test("", Keys(
+                "abc def ghi", _.Escape, "bb", CheckThat(() => AssertCursorLeftIs(4)),
+                "cExxx", _.Escape, CheckThat(() => AssertLineIs("abc xxx ghi")),
+                'u', _.Escape, CheckThat(() => AssertLineIs("abc def ghi")),
+                'U'
+                ));
+            Test("", Keys(
+                "abc def ghi", _.Escape, "hhhh", CheckThat(() => AssertCursorLeftIs(6)),
+                "cbxxx", _.Escape, CheckThat(() => AssertLineIs("abc xxxf ghi")),
+                'u', _.Escape, CheckThat(() => AssertLineIs("abc def ghi")),
+                'U'
+                ));
+            Test("", Keys(
+                "abc def ghi", _.Escape, "hhhh", CheckThat(() => AssertCursorLeftIs(6)),
+                "2cbxxx", _.Escape, CheckThat(() => AssertLineIs("xxxf ghi")),
+                'u', _.Escape, CheckThat(() => AssertLineIs("abc def ghi")),
+                'U'
+                ));
+            Test("", Keys(
+                "abc def ghi", _.Escape, "hhhh", CheckThat(() => AssertCursorLeftIs(6)),
+                "cBxxx", _.Escape, CheckThat(() => AssertLineIs("abc xxxf ghi")),
+                'u', _.Escape, CheckThat(() => AssertLineIs("abc def ghi")),
+                'U'
+                ));
+            Test("", Keys(
+                "0123456789", _.Escape,
+                "chabc", _.Escape, CheckThat(() => AssertLineIs("01234567abc9")),
+                'u', CheckThat(() => AssertLineIs("0123456789")),
+                'U'
+                ));
+            Test("", Keys(
+                "0123456789", _.Escape,
+                "0clabc", _.Escape, CheckThat(() => AssertLineIs("abc123456789")),
+                'u', CheckThat(() => AssertLineIs("0123456789")),
+                'U'
+                ));
+            Test("", Keys(
+                "0123456789", _.Escape,
+                "0llCABC", _.Escape, CheckThat(() => AssertLineIs("01ABC")),
+                'u', CheckThat(() => AssertLineIs("0123456789")),
+                'U'
+                ));
+            Test("", Keys(
+                "0123456789", _.Escape,
+                "ccABCDEFG", _.Escape, CheckThat(() => AssertLineIs("ABCDEFG")),
+                'u', CheckThat(() => AssertLineIs("0123456789")),
+                'U'
+                ));
+            Test("", Keys(
+                "0123456789", _.Escape,
+                "SABCDEFG", _.Escape, CheckThat(() => AssertLineIs("ABCDEFG")),
+                'u', CheckThat(() => AssertLineIs("0123456789")),
+                'U'
+                ));
+            Test("", Keys(
+                "0123456789", _.Escape,
+                "4hsABC", _.Escape, CheckThat(() => AssertLineIs("01234ABC6789")),
+                'u', CheckThat(() => AssertLineIs("0123456789")),
+                'U'
                 ));
         }
 
