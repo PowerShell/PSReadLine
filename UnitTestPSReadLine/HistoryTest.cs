@@ -422,6 +422,10 @@ namespace UnitTestPSReadLine
             Test("cccc", Keys(
                 Enumerable.Repeat(_.UpArrow, 3),
                 Enumerable.Repeat(_.DownArrow, 2)));
+
+            // No history
+            SetHistory();
+            Test("", Keys(_.UpArrow, _.DownArrow));
         }
 
         [TestMethod]

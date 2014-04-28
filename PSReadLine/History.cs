@@ -128,7 +128,7 @@ namespace PSConsoleUtilities
                 while (true)
                 {
                     newHistoryIndex = newHistoryIndex + direction;
-                    if (newHistoryIndex < 0 && newHistoryIndex >= _history.Count)
+                    if (newHistoryIndex < 0 || newHistoryIndex >= _history.Count)
                     {
                         break;
                     }
