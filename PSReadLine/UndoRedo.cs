@@ -9,7 +9,7 @@ namespace PSConsoleUtilities
         private void SaveEditItem(EditItem editItem)
         {
             // If there is some sort of edit after an undo, forget
-            // the
+            // any edit items that were undone.
             int removeCount = _edits.Count - _undoEditIndex;
             if (removeCount > 0)
             {
@@ -17,23 +17,20 @@ namespace PSConsoleUtilities
             }
             _edits.Add(editItem);
             _undoEditIndex = _edits.Count;
-            _editGroupCount++;
         }
 
         private void StartEditGroup()
         {
-            _pushedEditGroupCount.Push(_editGroupCount);
-            _editGroupCount = 0;
+            _pushedEditGroupCount.Push(_edits.Count);
         }
 
         private void EndEditGroup()
         {
-            // The last _editGroupCount edits are treated as a single item for undo
-            var start = _edits.Count - _editGroupCount;
-            var groupedEditItems = _edits.GetRange(start, _editGroupCount);
-            _edits.RemoveRange(start, _editGroupCount);
+            var groupEditStart = _pushedEditGroupCount.Pop();
+            var groupEditCount = _edits.Count - groupEditStart;
+            var groupedEditItems = _edits.GetRange(groupEditStart, groupEditCount);
+            _edits.RemoveRange(groupEditStart, groupEditCount);
             SaveEditItem(GroupedEdit.Create(groupedEditItems));
-            _editGroupCount = _pushedEditGroupCount.Pop();
         }
 
         /// <summary>
