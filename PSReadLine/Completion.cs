@@ -5,7 +5,6 @@ using System.Linq;
 using System.Management.Automation;
 using System.Management.Automation.Runspaces;
 using System.Text;
-using System.Text.RegularExpressions;
 using PSConsoleUtilities.Internal;
 
 namespace PSConsoleUtilities
@@ -95,7 +94,7 @@ namespace PSConsoleUtilities
                 }
                 else
                 {
-                    PossibleCompletions();
+                    _singleton.PossibleCompletionsImpl(null, null, menuSelect: true);
                 }
                 return;
             }
@@ -159,7 +158,7 @@ namespace PSConsoleUtilities
             {
                 // No common prefix, don't wait for a second tab, just show the possible completions
                 // right away.
-                PossibleCompletions();
+                _singleton.PossibleCompletionsImpl(null, null, menuSelect: true);
             }
 
             _singleton._tabCommandCount += 1;
@@ -259,58 +258,93 @@ namespace PSConsoleUtilities
             return replacementText;
         }
 
+        private static void InvertSelectedCompletion(int selectedRow, int selectedColumn, int columnWidth)
+        {
+            var buffer = ReadBufferLines(selectedRow, 1);
+            for (int i = selectedColumn * columnWidth; i < (selectedColumn + 1) * columnWidth; i++)
+            {
+                buffer[i].ForegroundColor = (ConsoleColor)((int)buffer[i].ForegroundColor ^ 7);
+                buffer[i].BackgroundColor = (ConsoleColor)((int)buffer[i].BackgroundColor ^ 7);
+            }
+            WriteBufferLines(buffer, ref selectedRow);
+        }
+
         /// <summary>
         /// Display the list of possible completions.
         /// </summary>
         public static void PossibleCompletions(ConsoleKeyInfo? key = null, object arg = null)
         {
-            var completions = _singleton.GetCompletions();
+            _singleton.PossibleCompletionsImpl(key, arg, menuSelect: false);
+        }
+
+        private static string HandleNewlinesForPossibleCompletions(string s)
+        {
+            s = s.Trim();
+            var newlineIndex = s.IndexOfAny(new []{'\r', '\n'});
+            if (newlineIndex >= 0)
+            {
+                s = s.Substring(0, newlineIndex) + "...";
+            }
+            return s;
+        }
+
+        private void PossibleCompletionsImpl(ConsoleKeyInfo? key, object arg, bool menuSelect)
+        {
+            var completions = GetCompletions();
             if (completions == null || completions.CompletionMatches.Count == 0)
             {
                 Ding();
                 return;
             }
 
-            if (completions.CompletionMatches.Count >= _singleton._options.CompletionQueryItems)
+            if (completions.CompletionMatches.Count >= _options.CompletionQueryItems)
             {
-                if (!_singleton.PromptYesOrNo(string.Format(PSReadLineResources.DisplayAllPossibilities, completions.CompletionMatches.Count)))
+                if (!PromptYesOrNo(string.Format(PSReadLineResources.DisplayAllPossibilities, completions.CompletionMatches.Count)))
                 {
                     return;
                 }
             }
 
             // Don't overwrite any of the line - so move to first line after the end of our buffer.
-            var coords = _singleton.ConvertOffsetToCoordinates(_singleton._buffer.Length);
-            _singleton.PlaceCursor(0, coords.Y + 1);
+            var coords = ConvertOffsetToCoordinates(_buffer.Length);
+            PlaceCursor(0, coords.Y + 1);
 
-            var sb = new StringBuilder();
-            var matches = completions.CompletionMatches.Select(
-                completion =>
-                new {ListItemText = Regex.Replace(completion.ListItemText, "\n.*", "..."),
-                     ToolTip = Regex.Replace(completion.ToolTip, "\n.*", "...")})
-                               .ToArray();
+            var matches = completions.CompletionMatches;
             var minColWidth = matches.Max(c => c.ListItemText.Length);
             minColWidth += 2;
+            var menuColumnWidth = minColWidth;
 
-            if (_singleton.Options.ShowToolTips)
+            CompletionResult[,] matchesMatrix;
+            int displayColumns;
+            int displayRows;
+            var bufferWidth = Console.BufferWidth;
+            var sb = new StringBuilder(bufferWidth);
+            if (Options.ShowToolTips)
             {
                 const string seperator = "- ";
-                var maxTooltipWidth = Console.BufferWidth - minColWidth - seperator.Length;
+                var maxTooltipWidth = bufferWidth - minColWidth - seperator.Length;
 
-                foreach (var match in matches)
+                matchesMatrix = new CompletionResult[1, matches.Count];
+                displayRows = matches.Count;
+                displayColumns = 1;
+                for (int index = 0; index < matches.Count; index++)
                 {
-                    sb.Append(match.ListItemText);
-                    var spacesNeeded = minColWidth - match.ListItemText.Length;
+                    var match = matches[index];
+                    matchesMatrix[0, index] = match;
+                    var listItemText = HandleNewlinesForPossibleCompletions(match.ListItemText);
+                    sb.Append(listItemText);
+                    var spacesNeeded = minColWidth - listItemText.Length;
                     if (spacesNeeded > 0)
                         sb.Append(' ', spacesNeeded);
                     sb.Append(seperator);
-                    var toolTip = match.ToolTip.Length <= maxTooltipWidth
-                                      ? match.ToolTip
-                                      : match.ToolTip.Substring(0, maxTooltipWidth);
-                    sb.Append(toolTip.Trim());
+                    var toolTip = HandleNewlinesForPossibleCompletions(match.ToolTip);
+                    toolTip = toolTip.Length <= maxTooltipWidth
+                                  ? toolTip
+                                  : toolTip.Substring(0, maxTooltipWidth);
+                    sb.Append(toolTip);
 
                     // Make sure we always write out exactly 1 buffer width
-                    spacesNeeded = Console.BufferWidth - sb.Length;
+                    spacesNeeded = bufferWidth - sb.Length;
                     if (spacesNeeded > 0)
                     {
                         sb.Append(' ', spacesNeeded);
@@ -318,26 +352,30 @@ namespace PSConsoleUtilities
                     Console.Write(sb.ToString());
                     sb.Clear();
                 }
+                menuColumnWidth = bufferWidth;
             }
             else
             {
-                var screenColumns = Console.BufferWidth;
-                var displayColumns = Math.Max(1, screenColumns / minColWidth);
-                var displayRows = (completions.CompletionMatches.Count + displayColumns - 1) / displayColumns;
+                var screenColumns = bufferWidth;
+                displayColumns = Math.Max(1, screenColumns / minColWidth);
+                displayRows = (completions.CompletionMatches.Count + displayColumns - 1) / displayColumns;
+                matchesMatrix = new CompletionResult[displayColumns, displayRows];
                 for (var row = 0; row < displayRows; row++)
                 {
                     for (var col = 0; col < displayColumns; col++)
                     {
                         var index = row + (displayRows * col);
-                        if (index >= matches.Length)
+                        if (index >= matches.Count)
                             break;
-                        var item = matches[index].ListItemText;
+                        var match = matches[index];
+                        matchesMatrix[col, row] = match;
+                        var item = HandleNewlinesForPossibleCompletions(match.ListItemText);
                         sb.Append(item);
                         sb.Append(' ', minColWidth - item.Length);
                     }
 
                     // Make sure we always write out exactly 1 buffer width
-                    var spacesNeeded = Console.BufferWidth - sb.Length;
+                    var spacesNeeded = bufferWidth - sb.Length;
                     if (spacesNeeded > 0)
                     {
                         sb.Append(' ', spacesNeeded);
@@ -347,8 +385,108 @@ namespace PSConsoleUtilities
                 }
             }
 
-            _singleton._initialY = Console.CursorTop;
-            _singleton.Render();
+            if (menuSelect)
+            {
+                // Move cursor back to the line.
+                PlaceCursor();
+
+                StartEditGroup();
+
+                int top = coords.Y + 1;
+                int selectedItem = 0;
+                bool undo = false;
+
+                InvertSelectedCompletion(top, 0, menuColumnWidth);
+                DoReplacementForCompletion(matchesMatrix[0, 0], completions);
+
+                int previousItem = selectedItem;
+
+                bool processingKeys = true;
+                while (processingKeys)
+                {
+                    var nextKey = ReadKey();
+                    if (nextKey == Keys.RightArrow)
+                    {
+                        selectedItem = Math.Min(selectedItem + displayRows, matches.Count - 1);
+                    }
+                    else if (nextKey == Keys.LeftArrow)
+                    {
+                        selectedItem = Math.Max(selectedItem - displayRows, 0);
+                    }
+                    else if (nextKey == Keys.DownArrow)
+                    {
+                        selectedItem = Math.Min(selectedItem + 1, matches.Count - 1);
+                    }
+                    else if (nextKey == Keys.UpArrow)
+                    {
+                        selectedItem = Math.Max(selectedItem - 1, 0);
+                    }
+                    else if (nextKey == Keys.Tab)
+                    {
+                        selectedItem = (selectedItem + 1) % matches.Count;
+                    }
+                    else if (nextKey == Keys.ShiftTab)
+                    {
+                        selectedItem = (selectedItem - 1) % matches.Count;
+                        if (selectedItem < 0)
+                        {
+                            selectedItem += matches.Count;
+                        }
+                    }
+                    else if (nextKey == Keys.CtrlG || nextKey == Keys.Escape)
+                    {
+                        undo = true;
+                        processingKeys = false;
+                    }
+                    else
+                    {
+                        PrependQueuedKeys(nextKey);
+                        processingKeys = false;
+                    }
+
+                    if (selectedItem != previousItem)
+                    {
+                        var selectedX = selectedItem / displayRows;
+                        var selectedY = selectedItem - (selectedX * displayRows);
+                        var completionResult = matchesMatrix[selectedX, selectedY];
+                        if (completionResult != null)
+                        {
+                            var previousX = previousItem / displayRows;
+                            var previousY = previousItem - (previousX * displayRows);
+                            InvertSelectedCompletion(previousY + top, previousX, menuColumnWidth);
+                            InvertSelectedCompletion(selectedY + top, selectedX, menuColumnWidth);
+                            DoReplacementForCompletion(completionResult, completions);
+                            previousItem = selectedItem;
+                        }
+                        else
+                        {
+                            selectedItem = previousItem;
+                        }
+                    }
+                }
+
+                var blanks = new CHAR_INFO[displayRows * bufferWidth];
+                for (int i = 0; i < displayRows; i++)
+                {
+                    blanks[i].BackgroundColor = Console.BackgroundColor;
+                    blanks[i].ForegroundColor = Console.ForegroundColor;
+                    blanks[i].UnicodeChar = ' ';
+                }
+                WriteBufferLines(blanks, ref top);
+
+                EndEditGroup();
+
+                if (undo)
+                {
+                    // Pretend it never happened.
+                    Undo();
+                }
+            }
+            else
+            {
+                _initialY = Console.CursorTop;
+                Render();
+            }
         }
     }
 }

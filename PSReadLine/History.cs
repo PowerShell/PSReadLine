@@ -377,18 +377,7 @@ namespace PSConsoleUtilities
                 }
                 else if (EndInteractiveHistorySearch(key, function))
                 {
-                    if (_queuedKeys.Count > 0)
-                    {
-                        // This should almost never happen so being inefficient is fine.
-                        var list = new List<ConsoleKeyInfo>(_queuedKeys);
-                        _queuedKeys.Clear();
-                        _queuedKeys.Enqueue(key);
-                        list.ForEach(k => _queuedKeys.Enqueue(k));
-                    }
-                    else
-                    {
-                        _queuedKeys.Enqueue(key);
-                    }
+                    PrependQueuedKeys(key);
                     break;
                 }
                 else
