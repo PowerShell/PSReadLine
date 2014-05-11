@@ -258,15 +258,17 @@ namespace PSConsoleUtilities
             return replacementText;
         }
 
-        private static void InvertSelectedCompletion(int selectedRow, int selectedColumn, int columnWidth)
+        private static void InvertSelectedCompletion(CHAR_INFO[] buffer, int selectedItem, int menuColumnWidth, int menuRows)
         {
-            var buffer = ReadBufferLines(selectedRow, 1);
-            for (int i = selectedColumn * columnWidth; i < (selectedColumn + 1) * columnWidth; i++)
+            var selectedX = selectedItem / menuRows;
+            var selectedY = selectedItem - (selectedX * menuRows);
+            var start = selectedY * Console.BufferWidth + selectedX * menuColumnWidth;
+            for (int i = 0; i < menuColumnWidth; i++)
             {
-                buffer[i].ForegroundColor = (ConsoleColor)((int)buffer[i].ForegroundColor ^ 7);
-                buffer[i].BackgroundColor = (ConsoleColor)((int)buffer[i].BackgroundColor ^ 7);
+                int j = i + start;
+                buffer[j].ForegroundColor = (ConsoleColor)((int)buffer[j].ForegroundColor ^ 7);
+                buffer[j].BackgroundColor = (ConsoleColor)((int)buffer[j].BackgroundColor ^ 7);
             }
-            WriteBufferLines(buffer, ref selectedRow);
         }
 
         /// <summary>
@@ -305,61 +307,53 @@ namespace PSConsoleUtilities
                 }
             }
 
-            // Don't overwrite any of the line - so move to first line after the end of our buffer.
-            var coords = ConvertOffsetToCoordinates(_buffer.Length);
-            PlaceCursor(0, coords.Y + 1);
-
             var matches = completions.CompletionMatches;
             var minColWidth = matches.Max(c => c.ListItemText.Length);
             minColWidth += 2;
             var menuColumnWidth = minColWidth;
 
-            CompletionResult[,] matchesMatrix;
-            int displayColumns;
             int displayRows;
             var bufferWidth = Console.BufferWidth;
-            var sb = new StringBuilder(bufferWidth);
+            ConsoleBufferBuilder cb;
             if (Options.ShowToolTips)
             {
                 const string seperator = "- ";
                 var maxTooltipWidth = bufferWidth - minColWidth - seperator.Length;
 
-                matchesMatrix = new CompletionResult[1, matches.Count];
                 displayRows = matches.Count;
-                displayColumns = 1;
+                cb = new ConsoleBufferBuilder(displayRows * bufferWidth);
                 for (int index = 0; index < matches.Count; index++)
                 {
                     var match = matches[index];
-                    matchesMatrix[0, index] = match;
                     var listItemText = HandleNewlinesForPossibleCompletions(match.ListItemText);
-                    sb.Append(listItemText);
+                    cb.Append(listItemText);
                     var spacesNeeded = minColWidth - listItemText.Length;
                     if (spacesNeeded > 0)
-                        sb.Append(' ', spacesNeeded);
-                    sb.Append(seperator);
+                    {
+                        cb.Append(' ', spacesNeeded);
+                    }
+                    cb.Append(seperator);
                     var toolTip = HandleNewlinesForPossibleCompletions(match.ToolTip);
                     toolTip = toolTip.Length <= maxTooltipWidth
                                   ? toolTip
                                   : toolTip.Substring(0, maxTooltipWidth);
-                    sb.Append(toolTip);
+                    cb.Append(toolTip);
 
                     // Make sure we always write out exactly 1 buffer width
-                    spacesNeeded = bufferWidth - sb.Length;
+                    spacesNeeded = (bufferWidth * (index + 1)) - cb.Length;
                     if (spacesNeeded > 0)
                     {
-                        sb.Append(' ', spacesNeeded);
+                        cb.Append(' ', spacesNeeded);
                     }
-                    Console.Write(sb.ToString());
-                    sb.Clear();
                 }
                 menuColumnWidth = bufferWidth;
             }
             else
             {
                 var screenColumns = bufferWidth;
-                displayColumns = Math.Max(1, screenColumns / minColWidth);
+                var displayColumns = Math.Max(1, screenColumns / minColWidth);
                 displayRows = (completions.CompletionMatches.Count + displayColumns - 1) / displayColumns;
-                matchesMatrix = new CompletionResult[displayColumns, displayRows];
+                cb = new ConsoleBufferBuilder(displayRows * bufferWidth);
                 for (var row = 0; row < displayRows; row++)
                 {
                     for (var col = 0; col < displayColumns; col++)
@@ -368,37 +362,60 @@ namespace PSConsoleUtilities
                         if (index >= matches.Count)
                             break;
                         var match = matches[index];
-                        matchesMatrix[col, row] = match;
                         var item = HandleNewlinesForPossibleCompletions(match.ListItemText);
-                        sb.Append(item);
-                        sb.Append(' ', minColWidth - item.Length);
+                        cb.Append(item);
+                        cb.Append(' ', minColWidth - item.Length);
                     }
 
                     // Make sure we always write out exactly 1 buffer width
-                    var spacesNeeded = bufferWidth - sb.Length;
+                    var spacesNeeded = (bufferWidth * (row + 1)) - cb.Length;
                     if (spacesNeeded > 0)
                     {
-                        sb.Append(' ', spacesNeeded);
+                        cb.Append(' ', spacesNeeded);
                     }
-                    Console.Write(sb.ToString());
-                    sb.Clear();
+                }
+            }
+
+            var menuBuffer = cb.ToArray();
+
+            if (menuSelect)
+            {
+                // Make sure the menu and line can appear on the screen at the same time,
+                // if not, we'll skip the menu.
+
+                var endBufferCoords = ConvertOffsetToCoordinates(_buffer.Length);
+                var bufferLines = endBufferCoords.Y - _initialY + 1;
+                if ((bufferLines + displayRows) > Console.WindowHeight)
+                {
+                    menuSelect = false;
                 }
             }
 
             if (menuSelect)
             {
-                // Move cursor back to the line.
-                PlaceCursor();
-
                 StartEditGroup();
 
-                int top = coords.Y + 1;
                 int selectedItem = 0;
                 bool undo = false;
 
-                InvertSelectedCompletion(top, 0, menuColumnWidth);
-                DoReplacementForCompletion(matchesMatrix[0, 0], completions);
+                DoReplacementForCompletion(matches[0], completions);
 
+                // Recompute end of buffer coordinates as the replacement could have
+                // added a line.
+                var endBufferCoords = ConvertOffsetToCoordinates(_buffer.Length);
+                var menuAreaTop = endBufferCoords.Y + 1;
+                var previousMenuTop = menuAreaTop;
+
+                InvertSelectedCompletion(menuBuffer, selectedItem, menuColumnWidth, displayRows);
+                WriteBufferLines(menuBuffer, ref menuAreaTop);
+
+                if (previousMenuTop != menuAreaTop)
+                {
+                    // Showing the menu scrolled the screen, update initialY to reflect that.
+                    _initialY -= (previousMenuTop - menuAreaTop);
+                    PlaceCursor();
+                    previousMenuTop = menuAreaTop;
+                }
                 int previousItem = selectedItem;
 
                 bool processingKeys = true;
@@ -446,33 +463,24 @@ namespace PSConsoleUtilities
 
                     if (selectedItem != previousItem)
                     {
-                        var selectedX = selectedItem / displayRows;
-                        var selectedY = selectedItem - (selectedX * displayRows);
-                        var completionResult = matchesMatrix[selectedX, selectedY];
-                        if (completionResult != null)
+                        DoReplacementForCompletion(matches[selectedItem], completions);
+
+                        endBufferCoords = ConvertOffsetToCoordinates(_buffer.Length);
+                        menuAreaTop = endBufferCoords.Y + 1;
+
+                        InvertSelectedCompletion(menuBuffer, previousItem, menuColumnWidth, displayRows);
+                        InvertSelectedCompletion(menuBuffer, selectedItem, menuColumnWidth, displayRows);
+                        WriteBufferLines(menuBuffer, ref menuAreaTop);
+                        previousItem = selectedItem;
+
+                        if (previousMenuTop > menuAreaTop)
                         {
-                            var previousX = previousItem / displayRows;
-                            var previousY = previousItem - (previousX * displayRows);
-                            InvertSelectedCompletion(previousY + top, previousX, menuColumnWidth);
-                            InvertSelectedCompletion(selectedY + top, selectedX, menuColumnWidth);
-                            DoReplacementForCompletion(completionResult, completions);
-                            previousItem = selectedItem;
-                        }
-                        else
-                        {
-                            selectedItem = previousItem;
+                            WriteBlankLines(previousMenuTop - menuAreaTop, menuAreaTop + displayRows);
                         }
                     }
                 }
 
-                var blanks = new CHAR_INFO[displayRows * bufferWidth];
-                for (int i = 0; i < displayRows; i++)
-                {
-                    blanks[i].BackgroundColor = Console.BackgroundColor;
-                    blanks[i].ForegroundColor = Console.ForegroundColor;
-                    blanks[i].UnicodeChar = ' ';
-                }
-                WriteBufferLines(blanks, ref top);
+                WriteBlankLines(displayRows, menuAreaTop);
 
                 EndEditGroup();
 
@@ -484,7 +492,11 @@ namespace PSConsoleUtilities
             }
             else
             {
-                _initialY = Console.CursorTop;
+                var endBufferCoords = ConvertOffsetToCoordinates(_buffer.Length);
+                var menuAreaTop = endBufferCoords.Y + 1;
+
+                WriteBufferLines(menuBuffer, ref menuAreaTop);
+                _initialY = menuAreaTop + displayRows;
                 Render();
             }
         }

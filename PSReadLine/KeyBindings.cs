@@ -266,7 +266,8 @@ namespace PSConsoleUtilities
 
             // Don't overwrite any of the line - so move to first line after the end of our buffer.
             var coords = _singleton.ConvertOffsetToCoordinates(_singleton._buffer.Length);
-            _singleton.PlaceCursor(0, coords.Y + 1);
+            var y = coords.Y + 1;
+            _singleton.PlaceCursor(0, ref y);
 
             Console.WriteLine(buffer.ToString());
             _singleton._initialY = Console.CursorTop;
@@ -325,7 +326,8 @@ namespace PSConsoleUtilities
 
             // Don't overwrite any of the line - so move to first line after the end of our buffer.
             var coords = _singleton.ConvertOffsetToCoordinates(_singleton._buffer.Length);
-            _singleton.PlaceCursor(0, coords.Y + 1);
+            var y = coords.Y + 1;
+            _singleton.PlaceCursor(0, ref y);
 
             Console.WriteLine(buffer.ToString());
             _singleton._initialY = Console.CursorTop;

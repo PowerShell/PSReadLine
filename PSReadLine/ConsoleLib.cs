@@ -33,7 +33,7 @@ namespace PSConsoleUtilities
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         public static extern bool ScrollConsoleScreenBuffer(IntPtr hConsoleOutput,
             ref SMALL_RECT lpScrollRectangle,
-            ref SMALL_RECT lpClipRectangle,
+            IntPtr lpClipRectangle,
             COORD dwDestinationOrigin,
             ref CHAR_INFO lpFill);
 
