@@ -53,6 +53,7 @@
     <Compile Include="BasicEditing.cs" />
     <Compile Include="Cmdlets.cs" />
     <Compile Include="Completion.cs" />
+    <Compile Include="ConsoleBufferBuilder.cs" />
     <Compile Include="ConsoleKeyChordConverter.cs" />
     <Compile Include="ConsoleLib.cs" />
     <Compile Include="History.cs" />

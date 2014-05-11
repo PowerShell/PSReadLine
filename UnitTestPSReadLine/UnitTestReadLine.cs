@@ -457,7 +457,7 @@ namespace UnitTestPSReadLine
             };
             var destinationOrigin = new COORD {X = 0, Y = 0};
             var fillChar = new CHAR_INFO(' ', Console.ForegroundColor, Console.BackgroundColor);
-            NativeMethods.ScrollConsoleScreenBuffer(handle, ref scrollRectangle, ref scrollRectangle, destinationOrigin, ref fillChar);
+            NativeMethods.ScrollConsoleScreenBuffer(handle, ref scrollRectangle, IntPtr.Zero, destinationOrigin, ref fillChar);
         }
 
         private static void WriteBufferLines(CHAR_INFO[] buffer, ref int top)
