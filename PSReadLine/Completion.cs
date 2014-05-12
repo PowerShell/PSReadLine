@@ -82,11 +82,27 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void Complete(ConsoleKeyInfo? key = null, object arg = null)
         {
-            var completions = _singleton.GetCompletions();
+            _singleton.CompleteImpl(key, arg, false);
+        }
+
+        /// <summary>
+        /// Attempt to perform completion on the text surrounding the cursor.
+        /// If there are multiple possible completions, the longest unambiguous
+        /// prefix is used for completion.  If trying to complete the longest
+        /// unambiguous completion, a list of possible completions is displayed.
+        /// </summary>
+        public static void MenuComplete(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            _singleton.CompleteImpl(key, arg, true);
+        }
+
+        private void CompleteImpl(ConsoleKeyInfo? key, object arg, bool menuSelect)
+        {
+            var completions = GetCompletions();
             if (completions == null || completions.CompletionMatches.Count == 0)
                 return;
 
-            if (_singleton._tabCommandCount > 0)
+            if (_tabCommandCount > 0)
             {
                 if (completions.CompletionMatches.Count == 1)
                 {
@@ -94,7 +110,7 @@ namespace PSConsoleUtilities
                 }
                 else
                 {
-                    _singleton.PossibleCompletionsImpl(null, null, menuSelect: true);
+                    PossibleCompletionsImpl(completions, menuSelect);
                 }
                 return;
             }
@@ -106,7 +122,13 @@ namespace PSConsoleUtilities
                 // completions, then we'll be showing the possible completions where it's very
                 // unlikely that we would add a trailing backslash.
 
-                _singleton.DoReplacementForCompletion(completions.CompletionMatches[0], completions);
+                DoReplacementForCompletion(completions.CompletionMatches[0], completions);
+                return;
+            }
+
+            if (menuSelect)
+            {
+                PossibleCompletionsImpl(completions, true);
                 return;
             }
 
@@ -158,10 +180,10 @@ namespace PSConsoleUtilities
             {
                 // No common prefix, don't wait for a second tab, just show the possible completions
                 // right away.
-                _singleton.PossibleCompletionsImpl(null, null, menuSelect: true);
+                PossibleCompletionsImpl(completions, false);
             }
 
-            _singleton._tabCommandCount += 1;
+            _tabCommandCount += 1;
         }
 
         private CommandCompletion GetCompletions()
@@ -276,7 +298,8 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void PossibleCompletions(ConsoleKeyInfo? key = null, object arg = null)
         {
-            _singleton.PossibleCompletionsImpl(key, arg, menuSelect: false);
+            var completions = _singleton.GetCompletions();
+            _singleton.PossibleCompletionsImpl(completions, menuSelect: false);
         }
 
         private static string HandleNewlinesForPossibleCompletions(string s)
@@ -290,9 +313,8 @@ namespace PSConsoleUtilities
             return s;
         }
 
-        private void PossibleCompletionsImpl(ConsoleKeyInfo? key, object arg, bool menuSelect)
+        private void PossibleCompletionsImpl(CommandCompletion completions, bool menuSelect)
         {
-            var completions = GetCompletions();
             if (completions == null || completions.CompletionMatches.Count == 0)
             {
                 Ding();

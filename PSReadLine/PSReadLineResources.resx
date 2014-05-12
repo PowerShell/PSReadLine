@@ -381,4 +381,7 @@
   <data name="CopyOrCancelLineDescription" xml:space="preserve">
     <value>Either copy selected text to the clipboard, or if no text is selected, cancel editing the line with CancelLine.</value>
   </data>
+  <data name="MenuCompleteDescription" xml:space="preserve">
+    <value>Complete the input if there is a single completion, otherwise complete the input by selecting from a menu of possible completions.</value>
+  </data>
 </root>
