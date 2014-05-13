@@ -255,15 +255,22 @@ namespace PSConsoleUtilities
                 Y = (short) bufferLineCount
             };
             var bufferCoord = new COORD {X = 0, Y = 0};
+            var bottom = top + bufferLineCount - 1;
             var writeRegion = new SMALL_RECT
             {
                 Top = (short) top,
                 Left = 0,
-                Bottom = (short) (top + bufferLineCount - 1),
+                Bottom = (short) bottom,
                 Right = (short) bufferWidth
             };
             NativeMethods.WriteConsoleOutput(handle, buffer,
                                              bufferSize, bufferCoord, ref writeRegion);
+
+            // Now make sure the bottom line is visible
+            if (bottom >= (Console.WindowTop + Console.WindowHeight))
+            {
+                Console.CursorTop = bottom;
+            }
         }
 
         private static void WriteBlankLines(int count, int top)
