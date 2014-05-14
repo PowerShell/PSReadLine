@@ -1,8 +1,12 @@
 
 ### Version 1.0.0.9
 
+New features:
+* MenuComplete - like an interactive show completions
+
 Bug fixes:
 * Items loaded from history work with RevertLine
+* Recalling current line after up arrow works again
 
 ### Version 1.0.0.8
 
