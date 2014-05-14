@@ -150,12 +150,11 @@ namespace PSConsoleUtilities
                 newHistoryIndex = _currentHistoryIndex + direction;
             }
             _recallHistoryCommandCount += 1;
-            if (newHistoryIndex >= 0 && newHistoryIndex < _history.Count)
+            if (newHistoryIndex >= 0 && newHistoryIndex <= _history.Count)
             {
                 _currentHistoryIndex = newHistoryIndex;
                 UpdateFromHistory(moveCursor: true);
             }
-
         }
 
         /// <summary>
