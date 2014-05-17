@@ -355,3 +355,50 @@ Set-PSReadlineKeyHandler -Key F1 `
         }
     }
 }
+
+
+#
+# Ctrl+Shift+j then type a key to mark the current directory.
+# Ctrj+j then the same key will change back to that directory without
+# needing to type cd and won't change the command line.
+
+#
+$global:PSReadlineMarks = @{}
+
+Set-PSReadlineKeyHandler -Key Ctrl+Shift+j `
+                         -BriefDescription MarkDirectory `
+                         -LongDescription "Mark the current directory" `
+                         -ScriptBlock {
+    param($key, $arg)
+
+    $key = [Console]::ReadKey($true)
+    $global:PSReadlineMarks[$key.KeyChar] = $pwd
+}
+
+Set-PSReadlineKeyHandler -Key Ctrl+j `
+                         -BriefDescription JumpDirectory `
+                         -LongDescription "Goto the marked directory" `
+                         -ScriptBlock {
+    param($key, $arg)
+
+    $key = [Console]::ReadKey()
+    $dir = $global:PSReadlineMarks[$key.KeyChar]
+    if ($dir)
+    {
+        cd $dir
+        [PSConsoleUtilities.PSConsoleReadLine]::InvokePrompt()
+    }
+}
+
+Set-PSReadlineKeyHandler -Key Alt+j `
+                         -BriefDescription ShowDirectoryMarks `
+                         -LongDescription "Show the currently marked directories" `
+                         -ScriptBlock {
+    param($key, $arg)
+
+    $global:PSReadlineMarks.GetEnumerator() | % {
+        [PSCustomObject]@{Key = $_.Key; Dir = $_.Value} } |
+        Format-Table -AutoSize | Out-Host
+
+    [PSConsoleUtilities.PSConsoleReadLine]::InvokePrompt()
+}
