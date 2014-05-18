@@ -534,4 +534,7 @@
   <data name="ViBackwardReplaceWordDescription" xml:space="preserve">
     <value>Replace the previous word.</value>
   </data>
+  <data name="MenuCompleteDescription" xml:space="preserve">
+    <value>Complete the input if there is a single completion, otherwise complete the input by selecting from a menu of possible completions.</value>
+  </data>
 </root>

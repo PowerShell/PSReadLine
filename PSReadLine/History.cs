@@ -63,7 +63,8 @@ namespace PSConsoleUtilities
         public static void AddToHistory(string command)
         {
             command = command.Replace("\r\n", "\n");
-            _singleton.MaybeAddToHistory(command, new List<EditItem>(), 0);
+            var editItems = new List<EditItem> {EditItemInsertString.Create(command, 0)};
+            _singleton.MaybeAddToHistory(command, editItems, 0);
         }
 
         /// <summary>
@@ -127,7 +128,7 @@ namespace PSConsoleUtilities
                 while (true)
                 {
                     newHistoryIndex = newHistoryIndex + direction;
-                    if (newHistoryIndex < 0 && newHistoryIndex >= _history.Count)
+                    if (newHistoryIndex < 0 || newHistoryIndex >= _history.Count)
                     {
                         break;
                     }
@@ -149,12 +150,11 @@ namespace PSConsoleUtilities
                 newHistoryIndex = _currentHistoryIndex + direction;
             }
             _recallHistoryCommandCount += 1;
-            if (newHistoryIndex >= 0 && newHistoryIndex < _history.Count)
+            if (newHistoryIndex >= 0 && newHistoryIndex <= _history.Count)
             {
                 _currentHistoryIndex = newHistoryIndex;
                 UpdateFromHistory(moveCursor: true);
             }
-
         }
 
         /// <summary>
@@ -189,9 +189,9 @@ namespace PSConsoleUtilities
             }
             _searchHistoryCommandCount += 1;
 
-            for (int i = _currentHistoryIndex + direction; i >=0 && i < _history.Count; i += direction)
+            for (int i = _currentHistoryIndex + direction; i >= 0 && i <= _history.Count; i += direction)
             {
-                var line = _history[i]._line;
+                var line = i == _history.Count ? _savedCurrentLine._line : _history[i]._line;
                 if (line.StartsWith(_searchHistoryPrefix, Options.HistoryStringComparison))
                 {
                     if (Options.HistoryNoDuplicates)
@@ -376,18 +376,7 @@ namespace PSConsoleUtilities
                 }
                 else if (EndInteractiveHistorySearch(key, function))
                 {
-                    if (_queuedKeys.Count > 0)
-                    {
-                        // This should almost never happen so being inefficient is fine.
-                        var list = new List<ConsoleKeyInfo>(_queuedKeys);
-                        _queuedKeys.Clear();
-                        _queuedKeys.Enqueue(key);
-                        list.ForEach(k => _queuedKeys.Enqueue(k));
-                    }
-                    else
-                    {
-                        _queuedKeys.Enqueue(key);
-                    }
+                    PrependQueuedKeys(key);
                     break;
                 }
                 else
@@ -441,6 +430,7 @@ namespace PSConsoleUtilities
             InteractiveHistorySearchLoop(direction);
 
             _hashedHistory = null;
+            _currentHistoryIndex = _history.Count;
 
             // Remove our status line
             _statusBuffer.Clear();

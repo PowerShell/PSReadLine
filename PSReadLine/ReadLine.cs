@@ -31,7 +31,6 @@ namespace PSConsoleUtilities
         private readonly StringBuilder _statusBuffer;
         private string _statusLinePrompt;
         private List<EditItem> _edits;
-        private int _editGroupCount;
         private readonly Stack<int> _pushedEditGroupCount;
         private int _undoEditIndex;
         private int _mark;
@@ -122,6 +121,22 @@ namespace PSConsoleUtilities
                 _singleton._savedKeys.Enqueue(key);
             }
             return key;
+        }
+
+        private void PrependQueuedKeys(ConsoleKeyInfo key)
+        {
+            if (_queuedKeys.Count > 0)
+            {
+                // This should almost never happen so being inefficient is fine.
+                var list = new List<ConsoleKeyInfo>(_queuedKeys);
+                _queuedKeys.Clear();
+                _queuedKeys.Enqueue(key);
+                list.ForEach(k => _queuedKeys.Enqueue(k));
+            }
+            else
+            {
+                _queuedKeys.Enqueue(key);
+            }
         }
 
         private bool BreakHandler(ConsoleBreakSignal signal)
@@ -215,12 +230,17 @@ namespace PSConsoleUtilities
                         _emphasisStart = -1;
                         _emphasisLength = 0;
                         Render();
+                        _currentHistoryIndex = _history.Count;
                     }
                     _searchHistoryCommandCount = 0;
                     _searchHistoryPrefix = null;
                 }
                 if (recallHistoryCommandCount == _recallHistoryCommandCount)
                 {
+                    if (_recallHistoryCommandCount > 0)
+                    {
+                        _currentHistoryIndex = _history.Count;
+                    }
                     _recallHistoryCommandCount = 0;
                 }
                 if (searchHistoryCommandCount == _searchHistoryCommandCount &&
@@ -315,7 +335,6 @@ namespace PSConsoleUtilities
             _buffer.Clear();
             _edits = new List<EditItem>();
             _undoEditIndex = 0;
-            _editGroupCount = 0;
             _pushedEditGroupCount.Clear();
             _current = 0;
             _mark = 0;

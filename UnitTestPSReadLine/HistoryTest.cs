@@ -35,6 +35,26 @@ namespace UnitTestPSReadLine
         }
 
         [TestMethod]
+        public void TestHistoryRecallCurrentLine()
+        {
+            TestSetup(KeyMode.Cmd);
+
+            SetHistory("echo foo", "echo bar");
+            Test("ec", Keys("ec", _.UpArrow, _.UpArrow, _.DownArrow, _.DownArrow));
+        }
+
+        [TestMethod]
+        public void TestHistorySearchCurrentLine()
+        {
+            TestSetup(KeyMode.Cmd,
+                      new KeyHandler("UpArrow", PSConsoleReadLine.HistorySearchBackward),
+                      new KeyHandler("DownArrow", PSConsoleReadLine.HistorySearchForward));
+
+            SetHistory("echo foo", "echo bar");
+            Test("ec", Keys("ec", _.UpArrow, _.UpArrow, _.DownArrow, _.DownArrow));
+        }
+
+        [TestMethod]
         public void TestSearchHistory()
         {
             TestSetup(KeyMode.Cmd,
@@ -422,6 +442,10 @@ namespace UnitTestPSReadLine
             Test("cccc", Keys(
                 Enumerable.Repeat(_.UpArrow, 3),
                 Enumerable.Repeat(_.DownArrow, 2)));
+
+            // No history
+            SetHistory();
+            Test("", Keys(_.UpArrow, _.DownArrow));
         }
 
         [TestMethod]

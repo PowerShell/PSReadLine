@@ -108,7 +108,6 @@ namespace PSConsoleUtilities
                 { Keys.CtrlSpace,              MakeKeyHandler(PossibleCompletions,       "PossibleCompletions") },
                 { Keys.Tab,                    MakeKeyHandler(TabCompleteNext,           "TabCompleteNext") },
                 { Keys.ShiftTab,               MakeKeyHandler(TabCompletePrevious,       "TabCompletePrevious") },
-                { Keys.CtrlV,                  MakeKeyHandler(Paste,                     "Paste") },
                 { Keys.VolumeDown,             MakeKeyHandler(Ignore,                    "Ignore") },
                 { Keys.VolumeUp,               MakeKeyHandler(Ignore,                    "Ignore") },
                 { Keys.VolumeMute,             MakeKeyHandler(Ignore,                    "Ignore") },
@@ -118,6 +117,7 @@ namespace PSConsoleUtilities
                 { Keys.CtrlL,                  MakeKeyHandler(ClearScreen,               "ClearScreen") },
                 { Keys.CtrlR,                  MakeKeyHandler(ReverseSearchHistory,      "ReverseSearchHistory") },
                 { Keys.CtrlS,                  MakeKeyHandler(ForwardSearchHistory,      "ForwardSearchHistory") },
+                { Keys.CtrlV,                  MakeKeyHandler(Paste,                     "Paste") },
                 { Keys.CtrlX,                  MakeKeyHandler(Cut,                       "Cut") },
                 { Keys.CtrlY,                  MakeKeyHandler(Redo,                      "Redo") },
                 { Keys.CtrlZ,                  MakeKeyHandler(Undo,                      "Undo") },
@@ -275,7 +275,8 @@ namespace PSConsoleUtilities
 
             // Don't overwrite any of the line - so move to first line after the end of our buffer.
             var coords = _singleton.ConvertOffsetToCoordinates(_singleton._buffer.Length);
-            _singleton.PlaceCursor(0, coords.Y + 1);
+            var y = coords.Y + 1;
+            _singleton.PlaceCursor(0, ref y);
 
             Console.WriteLine(buffer.ToString());
             _singleton._initialY = Console.CursorTop;
@@ -334,7 +335,8 @@ namespace PSConsoleUtilities
 
             // Don't overwrite any of the line - so move to first line after the end of our buffer.
             var coords = _singleton.ConvertOffsetToCoordinates(_singleton._buffer.Length);
-            _singleton.PlaceCursor(0, coords.Y + 1);
+            var y = coords.Y + 1;
+            _singleton.PlaceCursor(0, ref y);
 
             Console.WriteLine(buffer.ToString());
             _singleton._initialY = Console.CursorTop;

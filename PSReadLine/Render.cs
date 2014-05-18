@@ -255,15 +255,34 @@ namespace PSConsoleUtilities
                 Y = (short) bufferLineCount
             };
             var bufferCoord = new COORD {X = 0, Y = 0};
+            var bottom = top + bufferLineCount - 1;
             var writeRegion = new SMALL_RECT
             {
                 Top = (short) top,
                 Left = 0,
-                Bottom = (short) (top + bufferLineCount - 1),
+                Bottom = (short) bottom,
                 Right = (short) bufferWidth
             };
             NativeMethods.WriteConsoleOutput(handle, buffer,
                                              bufferSize, bufferCoord, ref writeRegion);
+
+            // Now make sure the bottom line is visible
+            if (bottom >= (Console.WindowTop + Console.WindowHeight))
+            {
+                Console.CursorTop = bottom;
+            }
+        }
+
+        private static void WriteBlankLines(int count, int top)
+        {
+            var blanks = new CHAR_INFO[count * Console.BufferWidth];
+            for (int i = 0; i < count; i++)
+            {
+                blanks[i].BackgroundColor = Console.BackgroundColor;
+                blanks[i].ForegroundColor = Console.ForegroundColor;
+                blanks[i].UnicodeChar = ' ';
+            }
+            WriteBufferLines(blanks, ref top);
         }
 
         private static CHAR_INFO[] ReadBufferLines(int top, int count)
@@ -420,15 +439,15 @@ namespace PSConsoleUtilities
             {
                 Top = (short) lines,
                 Left = 0,
-                Bottom = (short) (lines + Console.BufferHeight - 1),
+                Bottom = (short) (Console.BufferHeight - 1),
                 Right = (short)Console.BufferWidth
             };
             var destinationOrigin = new COORD {X = 0, Y = 0};
             var fillChar = new CHAR_INFO(' ', Console.ForegroundColor, Console.BackgroundColor);
-            NativeMethods.ScrollConsoleScreenBuffer(handle, ref scrollRectangle, ref scrollRectangle, destinationOrigin, ref fillChar);
+            NativeMethods.ScrollConsoleScreenBuffer(handle, ref scrollRectangle, IntPtr.Zero, destinationOrigin, ref fillChar);
         }
 
-        private void PlaceCursor(int x, int y)
+        private void PlaceCursor(int x, ref int y)
         {
             int statusLineCount = GetStatusLineCount();
             if ((y + _demoWindowLineCount + statusLineCount) >= Console.BufferHeight)
@@ -442,7 +461,8 @@ namespace PSConsoleUtilities
         private void PlaceCursor()
         {
             var coordinates = ConvertOffsetToCoordinates(_current);
-            PlaceCursor(coordinates.X, coordinates.Y);
+            int y = coordinates.Y;
+            PlaceCursor(coordinates.X, ref y);
         }
 
         private COORD ConvertOffsetToCoordinates(int offset)

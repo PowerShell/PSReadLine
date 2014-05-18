@@ -592,6 +592,15 @@ namespace PSConsoleUtilities {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Complete the input if there is a single completion, otherwise complete the input by selecting from a menu of possible completions..
+        /// </summary>
+        internal static string MenuCompleteDescription {
+            get {
+                return ResourceManager.GetString("MenuCompleteDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Move to the end of the line..
         /// </summary>
         internal static string MoveToEndOfLineDescription {
