@@ -555,6 +555,17 @@ Using the ScriptBlock parameter, one can achieve equivalent functionality by cal
         </maml:description>
         <command:parameterValue required="true" variableLength="false">SwitchParameter</command:parameterValue>
       </command:parameter>
+      <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+        <maml:name>SaveHistory</maml:name>
+        <maml:description>
+          <maml:para>Specifies how PSReadLine should save history.</maml:para>
+          <maml:para>Valid values are:</maml:para>
+          <maml:para>-- Incremental: save history after each command is executed - and share across multiple instances of PowerShell</maml:para>
+          <maml:para>-- AtExit: append history file when PowerShell exits</maml:para>
+          <maml:para>-- Never: don't use a history file</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">SaveHistory</command:parameterValue>
+      </command:parameter>
     </command:syntaxItem>
     <command:syntaxItem>
       <maml:name>Set-PSReadlineOption</maml:name>
@@ -828,6 +839,22 @@ Using the ScriptBlock parameter, one can achieve equivalent functionality by cal
         <maml:uri/>
       </dev:type>
       <dev:defaultValue>False</dev:defaultValue>
+    </command:parameter>
+    <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+      <maml:name>SaveHistory</maml:name>
+      <maml:description>
+        <maml:para>Specifies how PSReadLine should save history.</maml:para>
+        <maml:para>Valid values are:</maml:para>
+        <maml:para>-- Incremental: save history after each command is executed - and share across multiple instances of PowerShell</maml:para>
+        <maml:para>-- AtExit: append history file when PowerShell exits</maml:para>
+        <maml:para>-- Never: don't use a history file</maml:para>
+      </maml:description>
+      <command:parameterValue required="true" variableLength="false">SaveHistory</command:parameterValue>
+      <dev:type>
+        <maml:name>SaveHistory</maml:name>
+        <maml:uri/>
+      </dev:type>
+      <dev:defaultValue>Incremental</dev:defaultValue>
     </command:parameter>
     <command:parameter required="true" variableLength="false" globbing="false" pipelineInput="false" position="0">
       <maml:name>TokenKind</maml:name>

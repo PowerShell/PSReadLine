@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Management.Automation;
 using System.Reflection;
 using System.Linq;
@@ -36,6 +37,13 @@ namespace PSConsoleUtilities
         None,
         Visual,
         Audible
+    }
+
+    public enum HistorySaveStyle
+    {
+        SaveIncrementally,
+        SaveAtExit,
+        SaveNothing
     }
 
     public class PSConsoleReadlineOptions
@@ -98,7 +106,9 @@ namespace PSConsoleUtilities
 
         public const bool DefaultHistorySearchCaseSensitive = false;
 
-        public PSConsoleReadlineOptions()
+        public const HistorySaveStyle DefaultHistorySaveStyle = HistorySaveStyle.SaveIncrementally;
+
+        public PSConsoleReadlineOptions(string hostName)
         {
             ResetColors();
             EditMode = DefaultEditMode;
@@ -118,6 +128,9 @@ namespace PSConsoleUtilities
             CompletionQueryItems = DefaultCompletionQueryItems;
             WordDelimiters = DefaultWordDelimiters;
             HistorySearchCaseSensitive = DefaultHistorySearchCaseSensitive;
+            HistorySaveStyle = DefaultHistorySaveStyle;
+            HistorySavePath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)
+                + @"\PSReadline\" + hostName + "_history.txt";
         }
 
         public EditMode EditMode { get; set; }
@@ -164,6 +177,12 @@ namespace PSConsoleUtilities
         {
             get { return HistorySearchCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase; }
         }
+
+        /// <summary>
+        /// The path to the saved history.
+        /// </summary>
+        public string HistorySavePath { get; set; }
+        public HistorySaveStyle HistorySaveStyle { get; set; }
 
         public ConsoleColor DefaultTokenForegroundColor { get; set; }
         public ConsoleColor CommentForegroundColor { get; set; }
@@ -425,6 +444,18 @@ namespace PSConsoleUtilities
             set { _historySearchCaseSensitive = value; }
         }
         internal SwitchParameter? _historySearchCaseSensitive;
+
+        [Parameter(ParameterSetName = "OptionsSet")]
+        public HistorySaveStyle HistorySaveStyle
+        {
+            get { return _historySaveStyle.GetValueOrDefault(); }
+            set { _historySaveStyle = value; }
+        }
+        internal HistorySaveStyle? _historySaveStyle;
+
+        [Parameter(ParameterSetName = "OptionsSet")]
+        [ValidateNotNullOrEmpty]
+        public string HistorySavePath { get; set; }
 
         [Parameter(ParameterSetName = "ColorSet", Position = 0, Mandatory = true)]
         public TokenClassification TokenKind

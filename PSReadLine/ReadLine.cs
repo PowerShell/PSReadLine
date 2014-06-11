@@ -15,6 +15,7 @@ namespace PSConsoleUtilities
     public partial class PSConsoleReadLine : IPSConsoleReadLineMockableMethods
     {
         private static readonly PSConsoleReadLine _singleton;
+        private bool _delayedOneTimeInitCompleted;
 
         private IPSConsoleReadLineMockableMethods _mockableMethods;
 
@@ -113,6 +114,12 @@ namespace PSConsoleUtilities
             {
                 // The console is exiting - throw an exception to unwind the stack to the point
                 // where we can return from ReadLine.
+                if (_singleton.Options.HistorySaveStyle == HistorySaveStyle.SaveAtExit)
+                {
+                    _singleton.SaveHistoryAtExit();
+                }
+                _singleton._historyFileMutex.Dispose();
+
                 throw new OperationCanceledException();
             }
             var key = _singleton._queuedKeys.Dequeue();
@@ -198,7 +205,7 @@ namespace PSConsoleUtilities
                 ProcessOneKey(key, _dispatchTable, ignoreIfNoAction: false, arg: null);
                 if (_inputAccepted)
                 {
-                    return MaybeAddToHistory(_buffer.ToString(), _edits, _undoEditIndex);
+                    return MaybeAddToHistory(_buffer.ToString(), _edits, _undoEditIndex, readingHistoryFile: false);
                 }
 
                 if (killCommandCount == _killCommandCount)
@@ -321,17 +328,30 @@ namespace PSConsoleUtilities
 
             _pushedEditGroupCount = new Stack<int>();
 
-            _options = new PSConsoleReadlineOptions();
-
-            _history = new HistoryQueue<HistoryItem>(Options.MaximumHistoryCount);
-            _currentHistoryIndex = 0;
-
-            _killIndex = -1;    // So first add indexes 0.
-            _killRing = new List<string>(Options.MaximumKillRingCount);
+            string hostName = null;
+            var ps = PowerShell.Create(RunspaceMode.CurrentRunspace)
+                .AddCommand("Get-Variable").AddParameter("Name", "host").AddParameter("ValueOnly");
+            var results = ps.Invoke();
+            dynamic host = results.Count == 1 ? results[0] : null;
+            if (host != null)
+            {
+                try { hostName = host.Name as string; } catch { }
+            }
+            if (hostName == null)
+            {
+                hostName = "PSReadline";
+            }
+            _options = new PSConsoleReadlineOptions(hostName);
         }
 
         private void Initialize(Runspace remoteRunspace)
         {
+            if (!_delayedOneTimeInitCompleted)
+            {
+                DelayedOneTimeInitialize();
+                _delayedOneTimeInitCompleted = true;
+            }
+
             _buffer.Clear();
             _edits = new List<EditItem>();
             _undoEditIndex = 0;
@@ -374,6 +394,25 @@ namespace PSConsoleUtilities
                 UpdateFromHistory(moveCursor: true);
                 _getNextHistoryIndex = 0;
             }
+        }
+
+        private void DelayedOneTimeInitialize()
+        {
+            // Delayed initialization is needed so that options can be set
+            // after the constuctor but have an affect before the user starts
+            // editing their first command line.  For example, if the user
+            // specifies a custom history save file, we don't want to try reading
+            // from the default one.
+
+            _historyFileMutex = new Mutex(false, GetHistorySaveFileMutexName());
+
+            _history = new HistoryQueue<HistoryItem>(Options.MaximumHistoryCount);
+            _currentHistoryIndex = 0;
+
+            ReadHistoryFile();
+
+            _killIndex = -1; // So first add indexes 0.
+            _killRing = new List<string>(Options.MaximumKillRingCount);
         }
 
         private static void Chord(ConsoleKeyInfo? key = null, object arg = null)
