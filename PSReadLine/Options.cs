@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Threading;
 
 namespace PSConsoleUtilities
 {
@@ -119,6 +120,16 @@ namespace PSConsoleUtilities
             if (options._historySearchCaseSensitive.HasValue)
             {
                 Options.HistorySearchCaseSensitive = options.HistorySearchCaseSensitive;
+            }
+            if (options._historySaveStyle.HasValue)
+            {
+                Options.HistorySaveStyle = options.HistorySaveStyle;
+            }
+            if (options.HistorySavePath != null)
+            {
+                Options.HistorySavePath = options.HistorySavePath;
+                _historyFileMutex.Dispose();
+                _historyFileMutex = new Mutex(false, GetHistorySaveFileMutexName());
             }
             if (options.ResetTokenColors)
             {
