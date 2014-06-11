@@ -8,7 +8,7 @@ namespace PSConsoleUtilities
     public partial class PSConsoleReadLine
     {
         // Yank/Kill state
-        private readonly List<string> _killRing;
+        private List<string> _killRing;
         private int _killIndex;
         private int _killCommandCount;
         private int _yankCommandCount;
