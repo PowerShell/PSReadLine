@@ -200,11 +200,11 @@ LONG DESCRIPTION
 
         Replace the current input with the 'next' item from PSReadline history.
 
-    ForwardSearchHistory     (Cmd: unbound              Emacs: <Ctrl+S>)
+    ForwardSearchHistory     (Cmd: <Ctrl+S>             Emacs: <Ctrl+S>)
 
         Search forward from the current history line interactively.
 
-    ReverseSearchHistory     (Cmd: unbound              Emacs: <Ctrl+R>)
+    ReverseSearchHistory     (Cmd: <Ctrl+R>             Emacs: <Ctrl+R>)
 
         Search backward from the current history line interactively.
 
