@@ -1,14 +1,27 @@
 
+### Version 1.0.0.10
+
+New features:
+* Added binding Ctrl+SpaceBar to MenuComplete in Windows and Emacs modes
+  - If you want to old behavior of Ctrl+Spacebar, bind it to PossibleCompletions
+* Added binding Alt+. (YankLastArg) to Windows mode
+* Added diagnostics when an exception occurs to help reporting bugs
+
+Bug fixes:
+* SaveHistoryPath option fixed
+* Fix ShowKeyBindings to not write blank lines
+* Fixed bug with undo
+
 ### Version 1.0.0.9
 
 New features:
-* MenuComplete - like an interactive show completions
+* MenuComplete - like an interactive show completion
 * Automatically save history
     - at process exit
     - incrementally and shared across sessions
     - don't save
-  See parmeters HistorySaveStyle and HistorySavePath to Set-PSReadlineOption
-* Added binding for quickly changing directories in SamplePSReadlineProfile.ps1
+  See parameters HistorySaveStyle and HistorySavePath to Set-PSReadlineOption
+* Added sample custom binding for quickly changing directories in SamplePSReadlineProfile.ps1
 
 Bug fixes:
 * Items loaded from history work with RevertLine
