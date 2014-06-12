@@ -29,7 +29,7 @@ Set-PSReadlineKeyHandler -Key Ctrl+B `
     [PSConsoleUtilities.PSConsoleReadLine]::AcceptLine()
 }
 
-# In Emacs mode - Tab is acts like in bash, but the Windows style completion
+# In Emacs mode - Tab acts like in bash, but the Windows style completion
 # is still useful sometimes, so bind some keys so we can do both
 Set-PSReadlineKeyHandler -Key Ctrl+Q -Function TabCompleteNext
 Set-PSReadlineKeyHandler -Key Ctrl+Shift+Q -Function TabCompletePrevious
