@@ -128,8 +128,12 @@ namespace PSConsoleUtilities
             if (options.HistorySavePath != null)
             {
                 Options.HistorySavePath = options.HistorySavePath;
-                _historyFileMutex.Dispose();
+                if (_historyFileMutex != null)
+                {
+                    _historyFileMutex.Dispose();
+                }
                 _historyFileMutex = new Mutex(false, GetHistorySaveFileMutexName());
+                _historyFileLastSavedSize = 0;
             }
             if (options.ResetTokenColors)
             {
