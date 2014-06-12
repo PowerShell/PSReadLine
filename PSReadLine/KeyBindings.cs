@@ -257,11 +257,13 @@ namespace PSConsoleUtilities
             foreach (var boundKey in boundKeys)
             {
                 var description = boundKey.Description;
+                var newline = "\n";
                 if (description.Length >= maxDescriptionLength)
                 {
                     description = description.Substring(0, maxDescriptionLength - 3) + "...";
+                    newline = "";
                 }
-                buffer.AppendFormat("{0,-20} {1,-24} {2}\n", boundKey.Key, boundKey.Function, description);
+                buffer.AppendFormat("{0,-20} {1,-24} {2}{3}", boundKey.Key, boundKey.Function, description, newline);
             }
 
             // Don't overwrite any of the line - so move to first line after the end of our buffer.
