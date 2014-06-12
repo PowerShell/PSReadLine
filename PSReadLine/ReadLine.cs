@@ -183,6 +183,39 @@ namespace PSConsoleUtilities
                 // Console is exiting - return value isn't too critical - null or 'exit' could work equally well.
                 return "";
             }
+            catch (Exception e)
+            {
+                while (e.InnerException != null)
+                {
+                    e = e.InnerException;
+                }
+                var oldColor = Console.ForegroundColor;
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine(PSReadLineResources.OopsAnErrorMessage1);
+                Console.ForegroundColor = oldColor;
+                var sb = new StringBuilder();
+                for (int i = 0; i < _lastNKeys.Count; i++)
+                {
+                    sb.Append(' ');
+                    sb.Append(_lastNKeys[i].ToGestureString());
+
+                    KeyHandler handler;
+                    if (_singleton._dispatchTable.TryGetValue(_lastNKeys[i], out handler) &&
+                        "AcceptLine".Equals(handler.BriefDescription, StringComparison.OrdinalIgnoreCase))
+                    {
+                        // Make it a little easier to see the keys
+                        sb.Append('\n');
+                    }
+                    // TODO: print non-default function bindings and script blocks
+                }
+
+                Console.WriteLine(PSReadLineResources.OopsAnErrorMessage2, _lastNKeys.Count, sb, e);
+                var lineBeforeCrash = _singleton._buffer.ToString();
+                _singleton.Initialize(remoteRunspace);
+                InvokePrompt();
+                Insert(lineBeforeCrash);
+                return _singleton.InputLoop();
+            }
             finally
             {
                 NativeMethods.SetConsoleMode(handle, dwConsoleMode);
@@ -329,13 +362,19 @@ namespace PSConsoleUtilities
             _pushedEditGroupCount = new Stack<int>();
 
             string hostName = null;
-            var ps = PowerShell.Create(RunspaceMode.CurrentRunspace)
-                .AddCommand("Get-Variable").AddParameter("Name", "host").AddParameter("ValueOnly");
-            var results = ps.Invoke();
-            dynamic host = results.Count == 1 ? results[0] : null;
-            if (host != null)
+            try
             {
-                try { hostName = host.Name as string; } catch { }
+                var ps = PowerShell.Create(RunspaceMode.CurrentRunspace)
+                    .AddCommand("Get-Variable").AddParameter("Name", "host").AddParameter("ValueOnly");
+                var results = ps.Invoke();
+                dynamic host = results.Count == 1 ? results[0] : null;
+                if (host != null)
+                {
+                    hostName = host.Name as string;
+                }
+            }
+            catch
+            {
             }
             if (hostName == null)
             {
