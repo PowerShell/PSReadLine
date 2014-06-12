@@ -103,33 +103,32 @@ namespace PSConsoleUtilities
                 {
                     MaybeReadHistoryFile();
 
-                    bool retry = false;
-                    do
+                    bool retry = true;
+                retry_after_creating_directory:
+                    try
                     {
-                        try
+                        using (var file = fileOpener(Options.HistorySavePath))
                         {
-                            using (var file = fileOpener(Options.HistorySavePath))
+                            for (var i = start; i <= end; i++)
                             {
-                                for (var i = start; i <= end; i++)
-                                {
-                                    _history[i]._saved = true;
-                                    var line = _history[i]._line.Replace("\n", "`\n");
-                                    file.WriteLine(line);
-                                }
-                            }
-                            var fileInfo = new FileInfo(Options.HistorySavePath);
-                            _historyFileLastSavedSize = fileInfo.Length;
-                        }
-                        catch (DirectoryNotFoundException)
-                        {
-                            // Try making the directory, but just once
-                            if (!retry)
-                            {
-                                Directory.CreateDirectory(Path.GetDirectoryName(Options.HistorySavePath));
-                                retry = true;
+                                _history[i]._saved = true;
+                                var line = _history[i]._line.Replace("\n", "`\n");
+                                file.WriteLine(line);
                             }
                         }
-                    } while (retry);
+                        var fileInfo = new FileInfo(Options.HistorySavePath);
+                        _historyFileLastSavedSize = fileInfo.Length;
+                    }
+                    catch (DirectoryNotFoundException)
+                    {
+                        // Try making the directory, but just once
+                        if (retry)
+                        {
+                            retry = false;
+                            Directory.CreateDirectory(Path.GetDirectoryName(Options.HistorySavePath));
+                            goto retry_after_creating_directory;
+                        }
+                    }
                 }
                 finally
                 {
