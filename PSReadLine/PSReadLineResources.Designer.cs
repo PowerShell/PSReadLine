@@ -502,6 +502,33 @@ namespace PSConsoleUtilities {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to 
+        ///Oops, something went wrong.  Please report this bug with the details below.
+        ///Report on GitHub: https://github.com/lzybkr/PSReadLine/issues/new
+        ///Or email: jason@truewheels.net.
+        /// </summary>
+        internal static string OopsAnErrorMessage1 {
+            get {
+                return ResourceManager.GetString("OopsAnErrorMessage1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to -----------------------------------------------------------------------
+        ///Last {0} Keys:
+        ///{1}
+        ///
+        ///Exception:
+        ///{2}
+        ///-----------------------------------------------------------------------.
+        /// </summary>
+        internal static string OopsAnErrorMessage2 {
+            get {
+                return ResourceManager.GetString("OopsAnErrorMessage2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Paste text from the system clipboard.
         /// </summary>
         internal static string PasteDescription {

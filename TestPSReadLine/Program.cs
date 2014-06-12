@@ -88,6 +88,11 @@ namespace TestPSReadLine
             Console.ReadKey();
         }
 
+        static void CauseCrash(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            throw new Exception("intentional crash for test purposes");
+        }
+
         [STAThread]
         static void Main()
         {
@@ -111,6 +116,7 @@ namespace TestPSReadLine
             //PSConsoleReadLine.SetKeyHandler(new[] {"Ctrl+D,Ctrl+D"}, PSConsoleReadLine.DisableDemoMode, "", "");
             //PSConsoleReadLine.SetKeyHandler(new[] {"Ctrl+D,Ctrl+C"}, PSConsoleReadLine.CaptureScreen, "", "");
             PSConsoleReadLine.SetKeyHandler(new[] {"Ctrl+D,Ctrl+P"}, PSConsoleReadLine.InvokePrompt, "", "");
+            PSConsoleReadLine.SetKeyHandler(new[] {"Ctrl+D,Ctrl+X"}, CauseCrash, "", "");
             while (true)
             {
                 //Console.Write("C:\\Windows\nPS> ");
