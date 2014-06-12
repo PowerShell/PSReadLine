@@ -247,7 +247,7 @@ LONG DESCRIPTION
         prefix is used for completion.  If trying to complete the longest
         unambiguous completion, a list of possible completions is displayed.
 
-    MenuComplete             (Cmd: unbound              Emacs: unbound)
+    MenuComplete             (Cmd: <Ctrl+Space>         Emacs: <Ctrl+Space>)
 
         Attempt to perform completion on the text surrounding the cursor.
         If there are multiple possible completions, a list of possible
@@ -256,7 +256,7 @@ LONG DESCRIPTION
         the menu selection and reverts the line to the state before invoking
         MenuComplete.
 
-    PossibleCompletions      (Cmd: <Ctrl+Space>         Emacs: <Alt+Equals>)
+    PossibleCompletions      (Cmd: unbound              Emacs: <Alt+Equals>)
     
         Display the list of possible completions.
 
@@ -349,7 +349,7 @@ LONG DESCRIPTION
 
         This is similar to Yank, but uses the system clipboard instead of the kill ring.
 
-    YankLastArg              (Cmd: unbound              Emacs: <Alt+.>, <Alt+_>)
+    YankLastArg              (Cmd: <Alt+.>              Emacs: <Alt+.>, <Alt+_>)
 
         Insert the last argument from the previous command in history.  Repeated operations
         will replace the last inserted argument with the last argument from the previous
