@@ -175,7 +175,7 @@ namespace PSConsoleUtilities
 
         class GroupedEdit : EditItem
         {
-            private List<EditItem> _groupedEditItems;
+            internal List<EditItem> _groupedEditItems;
 
             public static EditItem Create(List<EditItem> groupedEditItems)
             {
