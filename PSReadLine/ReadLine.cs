@@ -32,7 +32,7 @@ namespace PSConsoleUtilities
         private readonly StringBuilder _statusBuffer;
         private string _statusLinePrompt;
         private List<EditItem> _edits;
-        private readonly Stack<int> _pushedEditGroupCount;
+        private int _editGroupStart;
         private int _undoEditIndex;
         private int _mark;
         private bool _inputAccepted;
@@ -359,8 +359,6 @@ namespace PSConsoleUtilities
             _savedCurrentLine = new HistoryItem();
             _queuedKeys = new Queue<ConsoleKeyInfo>();
 
-            _pushedEditGroupCount = new Stack<int>();
-
             string hostName = null;
             try
             {
@@ -394,7 +392,7 @@ namespace PSConsoleUtilities
             _buffer.Clear();
             _edits = new List<EditItem>();
             _undoEditIndex = 0;
-            _pushedEditGroupCount.Clear();
+            _editGroupStart = -1;
             _current = 0;
             _mark = 0;
             _emphasisStart = -1;

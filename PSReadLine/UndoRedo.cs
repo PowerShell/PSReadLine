@@ -14,6 +14,11 @@ namespace PSConsoleUtilities
             if (removeCount > 0)
             {
                 _edits.RemoveRange(_undoEditIndex, removeCount);
+                if (_editGroupStart >= 0)
+                {
+                    // Adjust the edit group start if we are started a group.
+                    _editGroupStart -= removeCount;
+                }
             }
             _edits.Add(editItem);
             _undoEditIndex = _edits.Count;
@@ -21,16 +26,21 @@ namespace PSConsoleUtilities
 
         private void StartEditGroup()
         {
-            _pushedEditGroupCount.Push(_edits.Count);
+            if (_editGroupStart != -1)
+            {
+                // Nesting not supported.
+                throw new InvalidOperationException();
+            }
+            _editGroupStart = _edits.Count;
         }
 
         private void EndEditGroup()
         {
-            var groupEditStart = _pushedEditGroupCount.Pop();
-            var groupEditCount = _edits.Count - groupEditStart;
-            var groupedEditItems = _edits.GetRange(groupEditStart, groupEditCount);
-            _edits.RemoveRange(groupEditStart, groupEditCount);
+            var groupEditCount = _edits.Count - _editGroupStart;
+            var groupedEditItems = _edits.GetRange(_editGroupStart, groupEditCount);
+            _edits.RemoveRange(_editGroupStart, groupEditCount);
             SaveEditItem(GroupedEdit.Create(groupedEditItems));
+            _editGroupStart = -1;
         }
 
         /// <summary>
