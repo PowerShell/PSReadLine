@@ -50,17 +50,20 @@ namespace PSConsoleUtilities
             if (options._maximumHistoryCount.HasValue)
             {
                 Options.MaximumHistoryCount = options.MaximumHistoryCount;
-                var newHistory = new HistoryQueue<HistoryItem>(Options.MaximumHistoryCount);
-                while (_history.Count > Options.MaximumHistoryCount)
+                if (_history != null)
                 {
-                    _history.Dequeue();
+                    var newHistory = new HistoryQueue<HistoryItem>(Options.MaximumHistoryCount);
+                    while (_history.Count > Options.MaximumHistoryCount)
+                    {
+                        _history.Dequeue();
+                    }
+                    while (_history.Count > 0)
+                    {
+                        newHistory.Enqueue(_history.Dequeue());
+                    }
+                    _history = newHistory;
+                    _currentHistoryIndex = _history.Count;
                 }
-                while (_history.Count > 0)
-                {
-                    newHistory.Enqueue(_history.Dequeue());
-                }
-                _history = newHistory;
-                _currentHistoryIndex = _history.Count;
             }
             if (options._maximumKillRingCount.HasValue)
             {

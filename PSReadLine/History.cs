@@ -243,7 +243,10 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void ClearHistory()
         {
-            _singleton._history.Clear();
+            if (_singleton._history != null)
+            {
+                _singleton._history.Clear();
+            }
             _singleton._currentHistoryIndex = 0;
         }
 
