@@ -199,18 +199,31 @@ Set-PSReadlineKeyHandler -Key Ctrl+Shift+v `
 }
 
 # Sometimes you want to get a property of invoke a member on what you've entered so far
-# but you need parens to do that.  This binding will help by putting parens around the whole line.
+# but you need parens to do that.  This binding will help by putting parens around the current selection,
+# or if nothing is selected, the whole line.
 Set-PSReadlineKeyHandler -Key 'Alt+(' `
-                         -BriefDescription ParenthesizeLine `
-                         -LongDescription "Put parenthesis around the entire line and move the cursor to the end of line" `
+                         -BriefDescription ParenthesizeSelection `
+                         -LongDescription "Put parenthesis around the selection or entire line and move the cursor to after the closing parenthesis" `
                          -ScriptBlock {
     param($key, $arg)
+
+    $selectionStart = $null
+    $selectionLength = $null
+    [PSConsoleUtilities.PSConsoleReadLine]::GetSelectionState([ref]$selectionStart, [ref]$selectionLength)
 
     $line = $null
     $cursor = $null
     [PSConsoleUtilities.PSConsoleReadLine]::GetBufferState([ref]$line, [ref]$cursor)
-    [PSConsoleUtilities.PSConsoleReadLine]::Replace(0, $line.Length, '(' + $line + ')')
-    [PSConsoleUtilities.PSConsoleReadLine]::EndOfLine()
+    if ($selectionStart -ne -1)
+    {
+        [PSConsoleUtilities.PSConsoleReadLine]::Replace($selectionStart, $selectionLength, '(' + $line.SubString($selectionStart, $selectionLength) + ')')
+        [PSConsoleUtilities.PSConsoleReadLine]::SetCursorPosition($selectionStart + $selectionLength + 2)
+    }
+    else
+    {
+        [PSConsoleUtilities.PSConsoleReadLine]::Replace(0, $line.Length, '(' + $line + ')')
+        [PSConsoleUtilities.PSConsoleReadLine]::EndOfLine()
+    }
 }
 
 # Each time you press Alt+', this key handler will change the token
