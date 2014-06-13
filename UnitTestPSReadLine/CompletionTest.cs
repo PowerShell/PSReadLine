@@ -98,7 +98,7 @@ namespace UnitTestPSReadLine
         [TestMethod]
         public void TestPossibleCompletionsPrompt()
         {
-            TestSetup(KeyMode.Cmd);
+            TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+Spacebar", PSConsoleReadLine.PossibleCompletions));
 
             PSConsoleReadLine.GetOptions().CompletionQueryItems = 10;
             Console.Clear();
@@ -127,7 +127,7 @@ namespace UnitTestPSReadLine
         [TestMethod]
         public void TestShowTooltips()
         {
-            TestSetup(KeyMode.Cmd);
+            TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+Spacebar", PSConsoleReadLine.PossibleCompletions));
 
             PSConsoleReadLine.GetOptions().ShowToolTips = true;
             Console.Clear();
