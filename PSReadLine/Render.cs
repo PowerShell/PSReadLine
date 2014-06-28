@@ -209,16 +209,22 @@ namespace PSConsoleUtilities
 
                 while (promptChar >= 0)
                 {
-                    if (char.IsSymbol((char)_consoleBuffer[promptChar].UnicodeChar))
+                    var c = (char)_consoleBuffer[promptChar].UnicodeChar;
+                    if (char.IsWhiteSpace(c))
+                    {
+                        promptChar -= 1;
+                        continue;
+                    }
+
+                    if (!char.IsLetterOrDigit(c))
                     {
                         ConsoleColor prevColor = _consoleBuffer[promptChar].ForegroundColor;
                         _consoleBuffer[promptChar].ForegroundColor = ConsoleColor.Red;
                         WriteBufferLines(_consoleBuffer, ref _initialY);
                         rendered = true;
                         _consoleBuffer[promptChar].ForegroundColor = prevColor;
-                        break;
                     }
-                    promptChar -= 1;
+                    break;
                 }
             }
 

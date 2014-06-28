@@ -119,8 +119,7 @@ namespace TestPSReadLine
             PSConsoleReadLine.SetKeyHandler(new[] {"Ctrl+D,Ctrl+X"}, CauseCrash, "", "");
             while (true)
             {
-                //Console.Write("C:\\Windows\nPS> ");
-                Console.Write("PS> ");
+                Console.Write("PS# ");
 
                 var line = PSConsoleReadLine.ReadLine();
                 Console.WriteLine(line);
