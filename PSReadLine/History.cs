@@ -262,7 +262,7 @@ namespace PSConsoleUtilities
             else
             {
                 line = _history[_currentHistoryIndex]._line;
-                _edits = _history[_currentHistoryIndex]._edits;
+                _edits = new List<EditItem>(_history[_currentHistoryIndex]._edits);
                 _undoEditIndex = _history[_currentHistoryIndex]._undoEditIndex;
             }
             _buffer.Clear();
