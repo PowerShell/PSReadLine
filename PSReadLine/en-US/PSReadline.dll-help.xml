@@ -560,9 +560,9 @@ Using the ScriptBlock parameter, one can achieve equivalent functionality by cal
         <maml:description>
           <maml:para>Specifies how PSReadLine should save history.</maml:para>
           <maml:para>Valid values are:</maml:para>
-          <maml:para>-- Incremental: save history after each command is executed - and share across multiple instances of PowerShell</maml:para>
-          <maml:para>-- AtExit: append history file when PowerShell exits</maml:para>
-          <maml:para>-- Never: don't use a history file</maml:para>
+          <maml:para>-- SaveIncrementally: save history after each command is executed - and share across multiple instances of PowerShell</maml:para>
+          <maml:para>-- SaveAtExit: append history file when PowerShell exits</maml:para>
+          <maml:para>-- SaveNothing: don't use a history file</maml:para>
         </maml:description>
         <command:parameterValue required="true" variableLength="false">HistorySaveStyle</command:parameterValue>
       </command:parameter>
@@ -852,16 +852,16 @@ Using the ScriptBlock parameter, one can achieve equivalent functionality by cal
       <maml:description>
         <maml:para>Specifies how PSReadLine should save history.</maml:para>
         <maml:para>Valid values are:</maml:para>
-        <maml:para>-- Incremental: save history after each command is executed - and share across multiple instances of PowerShell</maml:para>
-        <maml:para>-- AtExit: append history file when PowerShell exits</maml:para>
-        <maml:para>-- Never: don't use a history file</maml:para>
+        <maml:para>-- SaveIncrementally: save history after each command is executed - and share across multiple instances of PowerShell</maml:para>
+        <maml:para>-- SaveAtExit: append history file when PowerShell exits</maml:para>
+        <maml:para>-- SaveNothing: don't use a history file</maml:para>
       </maml:description>
       <command:parameterValue required="true" variableLength="false">HistorySaveStyle</command:parameterValue>
       <dev:type>
         <maml:name>HistorySaveStyle</maml:name>
         <maml:uri/>
       </dev:type>
-      <dev:defaultValue>Incremental</dev:defaultValue>
+      <dev:defaultValue>SaveIncrementally</dev:defaultValue>
     </command:parameter>
     <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
       <maml:name>HistorySavePath</maml:name>
