@@ -208,12 +208,12 @@ LONG DESCRIPTION
 
         Search backward from the current history line interactively.
 
-    HistorySearchBackward    (Cmd: unbound              Emacs: unbound)
+    HistorySearchBackward    (Cmd: <F8>                 Emacs: unbound)
 
         Replace the current input with the 'previous' item from PSReadline history
         that matches the characters between the start and the input and the cursor.
 
-    HistorySearchForward     (Cmd: unbound              Emacs: unbound)
+    HistorySearchForward     (Cmd: <Shift+F8>           Emacs: unbound)
 
         Replace the current input with the 'next' item from PSReadline history
         that matches the characters between the start and the input and the cursor.

@@ -134,6 +134,8 @@ namespace PSConsoleUtilities
                 { Keys.AltQuestion,            MakeKeyHandler(WhatIsKey,                 "WhatIsKey") },
                 { Keys.F3,                     MakeKeyHandler(CharacterSearch,           "CharacterSearch") },
                 { Keys.ShiftF3,                MakeKeyHandler(CharacterSearchBackward,   "CharacterSearchBackward") },
+                { Keys.F8,                     MakeKeyHandler(HistorySearchBackward,     "HistorySearchBackward") },
+                { Keys.ShiftF8,                MakeKeyHandler(HistorySearchForward,      "HistorySearchForward") },
                 { Keys.PageUp,                 MakeKeyHandler(ScrollDisplayUp,           "ScrollDisplayUp") },
                 { Keys.PageDown,               MakeKeyHandler(ScrollDisplayDown,         "ScrollDisplayDown") },
             };
