@@ -112,3 +112,7 @@ UpgradeLog*.XML
 #Chocolatey Build Output
 ChocolateyPackage/PSReadLine/
 *.nupkg
+
+# gvim swap files
+*.swp
+*.swo
