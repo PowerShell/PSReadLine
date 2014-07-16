@@ -513,20 +513,19 @@ namespace PSConsoleUtilities
         [ExcludeFromCodeCoverage]
         protected override void EndProcessing()
         {
-            Action<ConsoleKeyInfo?, object> keyHandler;
             if (ParameterSetName.Equals(FunctionParameterSet))
             {
                 var function = (string)_dynamicParameters.Value[FunctionParameter].Value;
-                keyHandler = (Action<ConsoleKeyInfo?, object>)
+                var keyHandler = (Action<ConsoleKeyInfo?, object>)
                     Delegate.CreateDelegate(typeof (Action<ConsoleKeyInfo?, object>),
-                                            typeof (PSConsoleReadLine).GetMethod(function));
+                        typeof (PSConsoleReadLine).GetMethod(function));
                 BriefDescription = function;
+                PSConsoleReadLine.SetKeyHandler(Chord, keyHandler, BriefDescription, Description);
             }
             else
             {
-                keyHandler = (key, arg) => ScriptBlock.Invoke(key, arg);
+                PSConsoleReadLine.SetKeyHandler(Chord, ScriptBlock, BriefDescription, Description);
             }
-            PSConsoleReadLine.SetKeyHandler(Chord, keyHandler, BriefDescription, Description);
         }
 
         private readonly Lazy<RuntimeDefinedParameterDictionary> _dynamicParameters =

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Management.Automation;
 using System.Reflection;
 using System.Threading;
 
@@ -155,7 +156,7 @@ namespace PSConsoleUtilities
             }
         }
 
-        private void SetKeyHandlerInternal(string[] keys, Action<ConsoleKeyInfo?, object> handler, string briefDescription, string longDescription)
+        private void SetKeyHandlerInternal(string[] keys, Action<ConsoleKeyInfo?, object> handler, string briefDescription, string longDescription, ScriptBlock scriptBlock)
         {
             foreach (var key in keys)
             {
@@ -199,9 +200,19 @@ namespace PSConsoleUtilities
         /// <summary>
         /// Helper function for the Set-PSReadlineKeyHandler cmdlet.
         /// </summary>
+        public static void SetKeyHandler(string[] key, ScriptBlock scriptBlock, string briefDescription, string longDescription)
+        {
+            Action<ConsoleKeyInfo?, object> handler =
+                (k, arg) => scriptBlock.Invoke(k, arg);
+            _singleton.SetKeyHandlerInternal(key, handler, briefDescription, longDescription, scriptBlock);
+        }
+
+        /// <summary>
+        /// Helper function for the Set-PSReadlineKeyHandler cmdlet.
+        /// </summary>
         public static void SetKeyHandler(string[] key, Action<ConsoleKeyInfo?, object> handler, string briefDescription, string longDescription)
         {
-            _singleton.SetKeyHandlerInternal(key, handler, briefDescription, longDescription);
+            _singleton.SetKeyHandlerInternal(key, handler, briefDescription, longDescription, null);
         }
 
         /// <summary>

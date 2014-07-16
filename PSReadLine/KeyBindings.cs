@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Management.Automation;
 using System.Text;
 
 namespace PSConsoleUtilities
@@ -43,6 +44,7 @@ namespace PSConsoleUtilities
             public Action<ConsoleKeyInfo?, object> Action;
             public string BriefDescription;
             public string LongDescription;
+            public ScriptBlock ScriptBlock;
         }
 
         internal class ConsoleKeyInfoComparer : IEqualityComparer<ConsoleKeyInfo>
@@ -58,7 +60,7 @@ namespace PSConsoleUtilities
             }
         }
 
-        static KeyHandler MakeKeyHandler(Action<ConsoleKeyInfo?, object> action, string briefDescription, string longDescription = null)
+        static KeyHandler MakeKeyHandler(Action<ConsoleKeyInfo?, object> action, string briefDescription, string longDescription = null, ScriptBlock scriptBlock = null)
         {
             if (string.IsNullOrWhiteSpace(longDescription))
                 longDescription = PSReadLineResources.ResourceManager.GetString(briefDescription + "Description");
@@ -67,7 +69,8 @@ namespace PSConsoleUtilities
             {
                 Action = action,
                 BriefDescription = briefDescription,
-                LongDescription = longDescription
+                LongDescription = longDescription,
+                ScriptBlock = scriptBlock,
             };
         }
 
