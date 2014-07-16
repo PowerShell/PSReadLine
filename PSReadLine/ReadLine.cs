@@ -108,8 +108,42 @@ namespace PSConsoleUtilities
             // First, set an event so the thread to read a key actually attempts to read a key.
             _singleton._readKeyWaitHandle.Set();
 
-            // Next, wait for one of two things - either a key is pressed on the console is exiting.
-            int handleId = WaitHandle.WaitAny(_singleton._waitHandles);
+            int handleId;
+            PowerShell ps = null;
+
+            try
+            {
+                while (true)
+                {
+                    // Next, wait for one of three things:
+                    //   - a key is pressed
+                    //   - the console is exiting
+                    //   - 300ms - to process events if we're idle
+
+                    handleId = WaitHandle.WaitAny(_singleton._waitHandles, 300);
+                    if (handleId != WaitHandle.WaitTimeout)
+                        break;
+
+                    // If we timed out, check for event subscribers (which is just
+                    // a hint that there might be an event waiting to be processed.)
+                    // If there are any event subscribers, run a tiny useless bit
+                    // of PowerShell so that the events can be processed.
+                    if (Runspace.DefaultRunspace.Events.Subscribers.Count > 0)
+                    {
+                        if (ps == null)
+                        {
+                            ps = PowerShell.Create(RunspaceMode.CurrentRunspace);
+                            ps.AddCommand("Out-Null");
+                        }
+                        ps.Invoke();
+                    }
+                }
+            }
+            finally
+            {
+                if (ps != null) { ps.Dispose(); }
+            }
+
             if (handleId == 1)
             {
                 // The console is exiting - throw an exception to unwind the stack to the point
