@@ -163,7 +163,7 @@ namespace PSConsoleUtilities
                 var chord = ConsoleKeyChordConverter.Convert(key);
                 if (chord.Length == 1)
                 {
-                    _dispatchTable[chord[0]] = MakeKeyHandler(handler, briefDescription, longDescription);
+                    _dispatchTable[chord[0]] = MakeKeyHandler(handler, briefDescription, longDescription, scriptBlock);
                 }
                 else
                 {
@@ -174,7 +174,7 @@ namespace PSConsoleUtilities
                         secondDispatchTable = new Dictionary<ConsoleKeyInfo, KeyHandler>();
                         _chordDispatchTable[chord[0]] = secondDispatchTable;
                     }
-                    secondDispatchTable[chord[1]] = MakeKeyHandler(handler, briefDescription, longDescription);
+                    secondDispatchTable[chord[1]] = MakeKeyHandler(handler, briefDescription, longDescription, scriptBlock);
                 }
             }
         }

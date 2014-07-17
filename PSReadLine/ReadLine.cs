@@ -28,6 +28,7 @@ namespace PSConsoleUtilities
         private WaitHandle[] _waitHandles;
         private bool _captureKeys;
         private readonly Queue<ConsoleKeyInfo> _savedKeys;
+        private uint _prePSReadlineConsoleMode;
 
         private readonly StringBuilder _buffer;
         private readonly StringBuilder _statusBuffer;
@@ -211,16 +212,15 @@ namespace PSConsoleUtilities
         /// <returns>The complete command line.</returns>
         public static string ReadLine(Runspace remoteRunspace = null)
         {
-            uint dwConsoleMode;
             var handle = NativeMethods.GetStdHandle((uint) StandardHandleId.Input);
-            NativeMethods.GetConsoleMode(handle, out dwConsoleMode);
+            NativeMethods.GetConsoleMode(handle, out _singleton._prePSReadlineConsoleMode);
             try
             {
                 // Clear a couple flags so we can actually receive certain keys:
                 //     ENABLE_PROCESSED_INPUT - enables Ctrl+C
                 //     ENABLE_LINE_INPUT - enables Ctrl+S
                 NativeMethods.SetConsoleMode(handle,
-                    dwConsoleMode & ~(NativeMethods.ENABLE_PROCESSED_INPUT | NativeMethods.ENABLE_LINE_INPUT));
+                    _singleton._prePSReadlineConsoleMode & ~(NativeMethods.ENABLE_PROCESSED_INPUT | NativeMethods.ENABLE_LINE_INPUT));
 
                 _singleton.Initialize(remoteRunspace);
                 return _singleton.InputLoop();
@@ -265,7 +265,7 @@ namespace PSConsoleUtilities
             }
             finally
             {
-                NativeMethods.SetConsoleMode(handle, dwConsoleMode);
+                NativeMethods.SetConsoleMode(handle, _singleton._prePSReadlineConsoleMode);
             }
         }
 
@@ -343,6 +343,27 @@ namespace PSConsoleUtilities
             }
         }
 
+        T CalloutUsingDefaultConsoleMode<T>(Func<T> func)
+        {
+            var handle = NativeMethods.GetStdHandle((uint) StandardHandleId.Input);
+            uint psReadlineConsoleMode;
+            NativeMethods.GetConsoleMode(handle, out psReadlineConsoleMode);
+            try
+            {
+                NativeMethods.SetConsoleMode(handle, _prePSReadlineConsoleMode);
+                return func();
+            }
+            finally
+            {
+                NativeMethods.SetConsoleMode(handle, psReadlineConsoleMode);
+            }
+        }
+
+        void CalloutUsingDefaultConsoleMode(Action action)
+        {
+            CalloutUsingDefaultConsoleMode<object>(() => { action(); return null; });
+        }
+
         void ProcessOneKey(ConsoleKeyInfo key, Dictionary<ConsoleKeyInfo, KeyHandler> dispatchTable, bool ignoreIfNoAction, object arg)
         {
             KeyHandler handler;
@@ -360,7 +381,14 @@ namespace PSConsoleUtilities
             {
                 _renderForDemoNeeded = _demoMode;
 
-                handler.Action(key, arg);
+                if (handler.ScriptBlock != null)
+                {
+                    CalloutUsingDefaultConsoleMode(() => handler.Action(key, arg));
+                }
+                else
+                {
+                    handler.Action(key, arg);
+                }
 
                 if (_renderForDemoNeeded)
                 {

@@ -22,7 +22,8 @@ namespace PSConsoleUtilities
         [ExcludeFromCodeCoverage]
         CommandCompletion IPSConsoleReadLineMockableMethods.CompleteInput(string input, int cursorIndex, Hashtable options, PowerShell powershell)
         {
-            return CommandCompletion.CompleteInput(input, cursorIndex, options, powershell);
+            return CalloutUsingDefaultConsoleMode(
+                () => CommandCompletion.CompleteInput(input, cursorIndex, options, powershell));
         }
 
         /// <summary>
