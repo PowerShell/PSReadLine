@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Management.Automation;
 using System.Management.Automation.Language;
 using System.Management.Automation.Runspaces;
@@ -126,16 +127,28 @@ namespace PSConsoleUtilities
 
                     // If we timed out, check for event subscribers (which is just
                     // a hint that there might be an event waiting to be processed.)
-                    // If there are any event subscribers, run a tiny useless bit
-                    // of PowerShell so that the events can be processed.
-                    if (Runspace.DefaultRunspace.Events.Subscribers.Count > 0)
+                    // If there are any event subscribers that have an action (which might
+                    // write to the console) and have a source object (i.e. aren't engine
+                    // events), run a tiny useless bit of PowerShell so that the events
+                    // can be processed.
+                    var eventSubscribers = Runspace.DefaultRunspace.Events.Subscribers;
+                    if (eventSubscribers.Any(sub => sub.Action != null && sub.SourceObject != null))
                     {
                         if (ps == null)
                         {
                             ps = PowerShell.Create(RunspaceMode.CurrentRunspace);
-                            ps.AddCommand("Out-Null");
+                            ps.AddScript("0");
                         }
+
+                        // To detect output during possible event processing, see if the cursor moved
+                        // and rerender if so.
+                        var y = Console.CursorTop;
                         ps.Invoke();
+                        if (y != Console.CursorTop)
+                        {
+                            _singleton._initialY = Console.CursorTop;
+                            _singleton.Render();
+                        }
                     }
                 }
             }
