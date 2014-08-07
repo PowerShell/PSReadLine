@@ -280,6 +280,7 @@ namespace PSConsoleUtilities
                 var recallHistoryCommandCount = _recallHistoryCommandCount;
                 var yankLastArgCommandCount = _yankLastArgCommandCount;
                 var visualSelectionCommandCount = _visualSelectionCommandCount;
+                var movingAtEndOfLineCount = _moveToLineCommandCount;
 
                 var key = ReadKey();
                 ProcessOneKey(key, _dispatchTable, ignoreIfNoAction: false, arg: null);
@@ -339,6 +340,10 @@ namespace PSConsoleUtilities
                 {
                     _visualSelectionCommandCount = 0;
                     Render();  // Clears the visual selection
+                }
+                if (movingAtEndOfLineCount == _moveToLineCommandCount)
+                {
+                    _moveToLineCommandCount = 0;
                 }
             }
         }

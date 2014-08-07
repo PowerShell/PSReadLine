@@ -28,11 +28,23 @@ LONG DESCRIPTION
 
     EndOfLine                (Cmd: <End>                Emacs: <End> or <Ctrl+E>)
 
-        Move the cursor to the end of the input.
+        If the input has multiple lines, move to the end of the current line,
+        or if already at the end of the line, move to the end of the input.
+        If the input has a single line, move to the end of the input.
 
     BeginningOfLine          (Cmd: <Home>               Emacs: <Home> or <Ctrl+A>)
 
-        Move the cursor to the start of the input.
+        If the input has multiple lines, move to the start of the current line,
+        or if already at the start of the line, move to the start of the input.
+        If the input has a single line, move to the start of the input.
+
+    NextLine                 (Cmd: unbound              Emacs: unbound)
+
+        Move the cursor to the next line if the input has multiple lines.
+
+    PreviousLine             (Cmd: unbound              Emacs: unbound)
+
+        Move the cursor to the previous line if the input has multiple lines.
 
     ForwardChar              (Cmd: <RightArrow>         Emacs: <RightArrow> or <Ctrl+F>)
 

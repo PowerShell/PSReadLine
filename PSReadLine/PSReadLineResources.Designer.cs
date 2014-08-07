@@ -493,6 +493,15 @@ namespace PSConsoleUtilities {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Move the cursor to the next line if the input has multiple lines..
+        /// </summary>
+        internal static string NextLineDescription {
+            get {
+                return ResourceManager.GetString("NextLineDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Move the cursor forward to the start of the next word.
         /// </summary>
         internal static string NextWordDescription {
@@ -552,6 +561,15 @@ namespace PSConsoleUtilities {
         internal static string PreviousHistoryDescription {
             get {
                 return ResourceManager.GetString("PreviousHistoryDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Move the cursor to the previous line if the input has multiple lines..
+        /// </summary>
+        internal static string PreviousLineDescription {
+            get {
+                return ResourceManager.GetString("PreviousLineDescription", resourceCulture);
             }
         }
         

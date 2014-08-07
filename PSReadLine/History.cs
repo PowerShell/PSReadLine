@@ -294,6 +294,12 @@ namespace PSConsoleUtilities
 
         private void HistoryRecall(int direction)
         {
+            if (_recallHistoryCommandCount == 0 && LineIsMultiLine())
+            {
+                MoveToLine(direction);
+                return;
+            }
+
             int newHistoryIndex;
             if (Options.HistoryNoDuplicates)
             {
@@ -340,8 +346,15 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void PreviousHistory(ConsoleKeyInfo? key = null, object arg = null)
         {
+            int numericArg;
+            TryGetArgAsInt(arg, out numericArg, -1);
+            if (numericArg > 0)
+            {
+                numericArg = -numericArg;
+            }
+
             _singleton.SaveCurrentLine();
-            _singleton.HistoryRecall(-1);
+            _singleton.HistoryRecall(numericArg);
         }
 
         /// <summary>
@@ -349,14 +362,23 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void NextHistory(ConsoleKeyInfo? key = null, object arg = null)
         {
+            int numericArg;
+            TryGetArgAsInt(arg, out numericArg, +1);
+
             _singleton.SaveCurrentLine();
-            _singleton.HistoryRecall(+1);
+            _singleton.HistoryRecall(numericArg);
         }
 
         private void HistorySearch(int direction)
         {
             if (_searchHistoryCommandCount == 0)
             {
+                if (LineIsMultiLine())
+                {
+                    MoveToLine(direction);
+                    return;
+                }
+
                 _searchHistoryPrefix = _buffer.ToString(0, _current);
                 _emphasisStart = 0;
                 _emphasisLength = _current;
@@ -416,8 +438,15 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void HistorySearchBackward(ConsoleKeyInfo? key = null, object arg = null)
         {
+            int numericArg;
+            TryGetArgAsInt(arg, out numericArg, -1);
+            if (numericArg > 0)
+            {
+                numericArg = -numericArg;
+            }
+
             _singleton.SaveCurrentLine();
-            _singleton.HistorySearch(-1);
+            _singleton.HistorySearch(numericArg);
         }
 
         /// <summary>
@@ -426,8 +455,11 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void HistorySearchForward(ConsoleKeyInfo? key = null, object arg = null)
         {
+            int numericArg;
+            TryGetArgAsInt(arg, out numericArg, +1);
+
             _singleton.SaveCurrentLine();
-            _singleton.HistorySearch(+1);
+            _singleton.HistorySearch(numericArg);
         }
 
         private void UpdateHistoryDuringInteractiveSearch(string toMatch, int direction, ref int searchFromPoint)

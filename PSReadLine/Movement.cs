@@ -6,21 +6,61 @@ namespace PSConsoleUtilities
 {
     public partial class PSConsoleReadLine
     {
+        private int _moveToLineCommandCount;
+        private int _moveToLineDesiredColumn;
+
         /// <summary>
-        /// Move the cursor to the end of the input.
+        /// If the input has multiple lines, move to the end of the current line,
+        /// or if already at the end of the line, move to the end of the input.
+        /// If the input has a single line, move to the end of the input.
         /// </summary>
         public static void EndOfLine(ConsoleKeyInfo? key = null, object arg = null)
         {
-            _singleton._current = _singleton._buffer.Length;
+            if (_singleton.LineIsMultiLine())
+            {
+                int i = _singleton._current;
+                for (; i < _singleton._buffer.Length; i++)
+                {
+                    if (_singleton._buffer[i] == '\n')
+                    {
+                        break;
+                    }
+                }
+
+                _singleton._current = (i == _singleton._current) ? _singleton._buffer.Length : i;
+            }
+            else
+            {
+                _singleton._current = _singleton._buffer.Length;
+            }
             _singleton.PlaceCursor();
         }
 
         /// <summary>
-        /// Move the cursor to the end of the input.
+        /// If the input has multiple lines, move to the start of the current line,
+        /// or if already at the start of the line, move to the start of the input.
+        /// If the input has a single line, move to the start of the input.
         /// </summary>
         public static void BeginningOfLine(ConsoleKeyInfo? key = null, object arg = null)
         {
-            _singleton._current = 0;
+            if (_singleton.LineIsMultiLine())
+            {
+                int i = Math.Max(0, _singleton._current - 1);
+                for (; i > 1; i--)
+                {
+                    if (_singleton._buffer[i] == '\n')
+                    {
+                        i += 1;
+                        break;
+                    }
+                }
+
+                _singleton._current = (i == _singleton._current) ? 0 : i;
+            }
+            else
+            {
+                _singleton._current = 0;
+            }
             _singleton.PlaceCursor();
         }
 
@@ -47,6 +87,68 @@ namespace PSConsoleUtilities
             if (TryGetArgAsInt(arg, out numericArg, 1))
             {
                 SetCursorPosition(_singleton._current - numericArg);
+            }
+        }
+
+        private void MoveToLine(int numericArg)
+        {
+            const int endOfLine = int.MaxValue;
+
+            _moveToLineCommandCount += 1;
+            var coords = ConvertOffsetToCoordinates(_current);
+            if (_moveToLineCommandCount == 1)
+            {
+                _moveToLineDesiredColumn =
+                    (_current == _buffer.Length || _buffer[_current] == '\n')
+                        ? endOfLine
+                        : coords.X;
+            }
+
+            var topLine = _initialY + Options.ExtraPromptLineCount;
+
+            var newY = coords.Y + numericArg;
+            coords.Y = (short)Math.Max(newY, topLine);
+            if (_moveToLineDesiredColumn != endOfLine)
+            {
+                coords.X = (short)_moveToLineDesiredColumn;
+            }
+
+            var newCurrent = ConvertLineAndColumnToOffset(coords);
+            if (newCurrent != -1)
+            {
+                _current = newCurrent;
+                if (_moveToLineDesiredColumn == endOfLine)
+                {
+                    while (_current < _buffer.Length && _buffer[_current] != '\n')
+                    {
+                        _current += 1;
+                    }
+                }
+                PlaceCursor();
+            }
+        }
+
+        /// <summary>
+        /// Move the cursor to the previous line.
+        /// </summary>
+        public static void PreviousLine(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            int numericArg;
+            if (TryGetArgAsInt(arg, out numericArg, 1))
+            {
+                _singleton.MoveToLine(-numericArg);
+            }
+        }
+
+        /// <summary>
+        /// Move the cursor to the next line.
+        /// </summary>
+        public static void NextLine(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            int numericArg;
+            if (TryGetArgAsInt(arg, out numericArg, 1))
+            {
+                _singleton.MoveToLine(numericArg);
             }
         }
 

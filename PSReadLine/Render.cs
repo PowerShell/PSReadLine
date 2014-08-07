@@ -501,6 +501,61 @@ namespace PSConsoleUtilities
             return new COORD {X = (short)x, Y = (short)y};
         }
 
+        private int ConvertLineAndColumnToOffset(COORD coord)
+        {
+            int offset;
+            int x = _initialX;
+            int y = _initialY + Options.ExtraPromptLineCount;
+
+            int bufferWidth = Console.BufferWidth;
+            var continuationPromptLength = Options.ContinuationPrompt.Length;
+            for (offset = 0; offset < _buffer.Length; offset++)
+            {
+                // If we are on the correct line, return when we find
+                // the correct column
+                if (coord.Y == y && coord.X <= x)
+                {
+                    return offset;
+                }
+                char c = _buffer[offset];
+                if (c == '\n')
+                {
+                    // If we are about to move off of the correct line,
+                    // the line was shorter than the column we wanted so return.
+                    if (coord.Y == y)
+                    {
+                        return offset;
+                    }
+                    y += 1;
+                    x = continuationPromptLength;
+                }
+                else
+                {
+                    x += char.IsControl(c) ? 2 : 1;
+                    // Wrap?  No prompt when wrapping
+                    if (x >= bufferWidth)
+                    {
+                        x -= bufferWidth;
+                        y += 1;
+                    }
+                }
+            }
+
+            // Return -1 if y is out of range, otherwise the last line was shorter
+            // than we wanted, but still in range so just return the last offset.B
+            return (coord.Y == y) ? offset : -1;
+        }
+
+        private bool LineIsMultiLine()
+        {
+            for (int i = 0; i < _buffer.Length; i++)
+            {
+                if (_buffer[i] == '\n')
+                    return true;
+            }
+            return false;
+        }
+
         private int GetStatusLineCount()
         {
             if (_statusLinePrompt == null)
