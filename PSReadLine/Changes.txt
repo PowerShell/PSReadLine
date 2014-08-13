@@ -1,3 +1,27 @@
+### Version 1.0.0.12
+
+New features:
+* Multi-line editing is now practical.  Home/End go to the start/end of the current line or
+  start/end of the input in a reasonable way.  Up/Down arrows will move across lines if the
+  input has multiple lines and you are not in the middle of recalling history.
+
+Bug fixes:
+* Color the prompt character if there is an error for any non-alphanumeric character
+* Fix an issue related to undo (which was commonly hit via Escape) and using history search
+* Fix a bug where PowerShell events are not written to the console until PSReadline returns
+* Fixed so PowerTab now works with PSReadline
+* Highlight from history search is cleared before accepting a line now.
+
+New functions:
+* NextLine
+* PreviousLine
+    - These functions are added for completeness, neither is particularly useful as the usual
+      bindings for UpArrow/DownArrow are smart enough to recall history or change lines
+      depending on the context.
+
+New key bindings:
+* F8/Shift+F8 bound to HistorySearchBackward/HistorySearchForward in Windows mode
+
 ### Version 1.0.0.11
 
 Bug fixes:
