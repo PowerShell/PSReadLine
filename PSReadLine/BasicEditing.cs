@@ -184,16 +184,25 @@ namespace PSConsoleUtilities
                 return false;
             }
 
+            // If text was pasted, for performance reasons we skip rendering for some time,
+            // but if input is accepted, we won't have another chance to render.
+            //
+            // Also - if there was an emphasis, we want to clear that before accepting
+            // and that requires rendering.
+            bool renderNeeded = _emphasisStart >= 0 || _queuedKeys.Count > 0;
+
             _renderForDemoNeeded = false;
+            _emphasisStart = -1;
+            _emphasisLength = 0;
 
             // Make sure cursor is at the end before writing the line
             _current = _buffer.Length;
-            if (_queuedKeys.Count > 0)
+
+            if (renderNeeded)
             {
-                // If text was pasted, for performance reasons we skip rendering for some time,
-                // but if input is accepted, we won't have another chance to render.
                 ReallyRender();
             }
+
             var coordinates = ConvertOffsetToCoordinates(_current);
             var y = coordinates.Y + 1;
             PlaceCursor(0, ref y);
