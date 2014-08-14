@@ -267,7 +267,7 @@ namespace PSConsoleUtilities
                 Top = (short) top,
                 Left = 0,
                 Bottom = (short) bottom,
-                Right = (short) bufferWidth
+                Right = (short) (bufferWidth - 1)
             };
             NativeMethods.WriteConsoleOutput(handle, buffer,
                                              bufferSize, bufferCoord, ref writeRegion);
@@ -282,7 +282,7 @@ namespace PSConsoleUtilities
         private static void WriteBlankLines(int count, int top)
         {
             var blanks = new CHAR_INFO[count * Console.BufferWidth];
-            for (int i = 0; i < count; i++)
+            for (int i = 0; i < blanks.Length; i++)
             {
                 blanks[i].BackgroundColor = Console.BackgroundColor;
                 blanks[i].ForegroundColor = Console.ForegroundColor;

@@ -11,6 +11,7 @@ Bug fixes:
 * Fix a bug where PowerShell events are not written to the console until PSReadline returns
 * Fixed so PowerTab now works with PSReadline
 * Highlight from history search is cleared before accepting a line now.
+* Fixed MenuComplete so it clears the menu (which only happened on some systems)
 
 New functions:
 * NextLine
