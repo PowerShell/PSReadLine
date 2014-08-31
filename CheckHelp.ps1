@@ -1,7 +1,7 @@
 
-ipmo PSReadline
+Import-Module -Name PSReadline
 
-$about_topic = Get-Help about_PSReadline
+$about_topic = Get-Help -Name about_PSReadline
 
 $methods = [PSConsoleUtilities.PSConsoleReadLine].GetMethods('public,static') |
     Where-Object {
@@ -12,7 +12,7 @@ $methods = [PSConsoleUtilities.PSConsoleReadLine].GetMethods('public,static') |
             $parameters[1].ParameterType -eq [object]
     }
 
-foreach ($method in $methods)
+ForEach-Object ($method in $methods)
 {
     $parameters = $method.GetParameters()
     if ($parameters[0].Name -ne 'key' -or $parameters[1].Name -ne 'arg')
@@ -36,12 +36,12 @@ $methods.Name | ForEach-Object {
     }
 }
 
-$commonParameters = echo Debug Verbose OutVariable OutBuffer ErrorAction WarningAction ErrorVariable WarningVariable PipelineVariable
+$commonParameters = Write-Output Debug Verbose OutVariable OutBuffer ErrorAction WarningAction ErrorVariable WarningVariable PipelineVariable
 Get-Command -Type Cmdlet -Module PSReadline |
     ForEach-Object {
         $cmdletInfo = $_
         $cmdletName = $cmdletInfo.Name
-        $cmdletHelp = Get-Help -Detailed $cmdletName
+        $cmdletHelp = Get-Help -Name $cmdletName -Detailed
         $cmdletInfo.Parameters.Keys |
             ForEach-Object {
                 $parameterName = $_
