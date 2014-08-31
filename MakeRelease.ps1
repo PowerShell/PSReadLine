@@ -3,7 +3,7 @@ param([switch]$Install)
 
 add-type -AssemblyName System.IO.Compression.FileSystem
 
-if (!(gcm msbuild -ea Ignore))
+if (!(Get-Command -Name msbuild -ea Ignore))
 {
     $env:path += ";${env:SystemRoot}\Microsoft.Net\Framework\v4.0.30319"
 }
@@ -12,13 +12,13 @@ msbuild $PSScriptRoot\PSReadline\PSReadLine.sln /t:Rebuild /p:Configuration=Rele
 
 $targetDir = "${env:Temp}\PSReadline"
 
-if (Test-Path $targetDir)
+if (Test-Path -Path $targetDir)
 {
-    rmdir -re $targetDir
+    Remove-Item -re $targetDir
 }
 
-$null = mkdir $targetDir
-$null = mkdir $targetDir\en-US
+$null = New-Item -Path $targetDir -ItemType directory
+$null = New-Item -Path $targetDir\en-US -ItemType directory
 
 $files = @('PSReadline\Changes.txt',
            'PSReadline\License.txt',
@@ -30,7 +30,7 @@ $files = @('PSReadline\Changes.txt',
 
 foreach ($file in $files)
 {
-    cp $PSScriptRoot\$file $targetDir
+    Copy-Item -Path $PSScriptRoot\$file -Destination $targetDir
 }
 
 $files = @('PSReadline\en-US\about_PSReadline.help.txt',
@@ -38,52 +38,52 @@ $files = @('PSReadline\en-US\about_PSReadline.help.txt',
 
 foreach ($file in $files)
 {
-    cp $PSScriptRoot\$file $targetDir\en-us
+    Copy-Item -Path $PSScriptRoot\$file -Destination $targetDir\en-us
 }
 
-$version = (Get-ChildItem $targetDir\PSReadline.dll).VersionInfo.FileVersion
+$version = (Get-ChildItem -Path $targetDir\PSReadline.dll).VersionInfo.FileVersion
 
 & $PSScriptRoot\Update-ModuleManifest.ps1 $targetDir\PSReadline.psd1 $version
 
 #make sure chocolatey is installed and in the path
-if (gcm cpack -ea Ignore)
+if (Get-Command -Name cpack -ea Ignore)
 {
     $chocolateyDir = "$PSScriptRoot\ChocolateyPackage"
 
-    if (Test-Path $chocolateyDir\PSReadline)
+    if (Test-Path -Path $chocolateyDir\PSReadline)
     {
-        rm -re $chocolateyDir\PSReadline
+        Remove-Item -Recurse -Path $chocolateyDir\PSReadline
     }
 
     & $PSScriptRoot\Update-NuspecVersion.ps1 "$chocolateyDir\PSReadline.nuspec" $version
 
-    cp -r $targetDir $chocolateyDir\PSReadline
+    Copy-Item -Recurse -Path $targetDir -Destination $chocolateyDir\PSReadline
 
     cpack "$chocolateyDir\PSReadline.nuspec"
 }
 
-del $PSScriptRoot\PSReadline.zip -ea Ignore
+Remove-Item -Path $PSScriptRoot\PSReadline.zip -ea Ignore
 [System.IO.Compression.ZipFile]::CreateFromDirectory($targetDir, "$PSScriptRoot\PSReadline.zip")
 
 if ($Install)
 {
     $InstallDir = "$HOME\Documents\WindowsPowerShell\Modules"
 
-    if (!(Test-Path $InstallDir))
+    if (!(Test-Path -Path $InstallDir))
     {
-        mkdir -force $InstallDir
+        New-Item -force -Path $InstallDir -ItemType Directory
     }
 
     try
     {
-        if (Test-Path $InstallDir\PSReadline)
+        if (Test-Path -Path $InstallDir\PSReadline)
         {
-            rm -Recurse -force $InstallDir\PSReadline -ea Stop
+            Remove-Item -Recurse -force -Path $InstallDir\PSReadline -ea Stop
         }
-        cp -Recurse $targetDir $InstallDir
+        Copy-Item -Recurse -Path $targetDir -Destination $InstallDir
     }
     catch
     {
-        Write-Error "Can't install, module is probably in use."
+        Write-Error -Message "Can't install, module is probably in use."
     }
 }
