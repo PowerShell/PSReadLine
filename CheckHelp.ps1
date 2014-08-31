@@ -12,7 +12,7 @@ $methods = [PSConsoleUtilities.PSConsoleReadLine].GetMethods('public,static') |
             $parameters[1].ParameterType -eq [object]
     }
 
-foreach ($method in $methods)
+ForEach-Object ($method in $methods)
 {
     $parameters = $method.GetParameters()
     if ($parameters[0].Name -ne 'key' -or $parameters[1].Name -ne 'arg')
