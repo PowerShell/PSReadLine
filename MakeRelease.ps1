@@ -28,7 +28,7 @@ $files = @('PSReadline\Changes.txt',
            'PSReadline\PSReadline.format.ps1xml',
            'PSReadline\bin\Release\PSReadline.dll')
 
-foreach ($file in $files)
+ForEach-Object ($file in $files)
 {
     Copy-Item -Path $PSScriptRoot\$file -Destination $targetDir
 }
@@ -36,7 +36,7 @@ foreach ($file in $files)
 $files = @('PSReadline\en-US\about_PSReadline.help.txt',
            'PSReadline\en-US\PSReadline.dll-help.xml')
 
-foreach ($file in $files)
+ForEach-Object ($file in $files)
 {
     Copy-Item -Path $PSScriptRoot\$file -Destination $targetDir\en-us
 }
