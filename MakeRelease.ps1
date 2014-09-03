@@ -1,4 +1,3 @@
-
 param([switch]$Install)
 
 add-type -AssemblyName System.IO.Compression.FileSystem
@@ -14,11 +13,11 @@ $targetDir = "${env:Temp}\PSReadline"
 
 if (Test-Path -Path $targetDir)
 {
-    Remove-Item -re $targetDir
+    rmdir -re $targetDir
 }
 
-$null = New-Item -Path $targetDir -ItemType directory
-$null = New-Item -Path $targetDir\en-US -ItemType directory
+$null = mkdir $targetDir
+$null = mkdir $targetDir\en-US
 
 $files = @('PSReadline\Changes.txt',
            'PSReadline\License.txt',
@@ -28,17 +27,17 @@ $files = @('PSReadline\Changes.txt',
            'PSReadline\PSReadline.format.ps1xml',
            'PSReadline\bin\Release\PSReadline.dll')
 
-foreach ($file in $files)
+ForEach-Object ($file in $files)
 {
-    Copy-Item -Path $PSScriptRoot\$file -Destination $targetDir
+    copy $PSScriptRoot\$file $targetDir
 }
 
 $files = @('PSReadline\en-US\about_PSReadline.help.txt',
            'PSReadline\en-US\PSReadline.dll-help.xml')
 
-foreach ($file in $files)
+ForEach-Object ($file in $files)
 {
-    Copy-Item -Path $PSScriptRoot\$file -Destination $targetDir\en-us
+    copy $PSScriptRoot\$file $targetDir\en-us
 }
 
 $version = (Get-ChildItem -Path $targetDir\PSReadline.dll).VersionInfo.FileVersion
@@ -52,17 +51,17 @@ if (Get-Command -Name cpack -ea Ignore)
 
     if (Test-Path -Path $chocolateyDir\PSReadline)
     {
-        Remove-Item -Recurse -Path $chocolateyDir\PSReadline
+        rmdir -re $chocolateyDir\PSReadline
     }
 
     & $PSScriptRoot\Update-NuspecVersion.ps1 "$chocolateyDir\PSReadline.nuspec" $version
 
-    Copy-Item -Recurse -Path $targetDir -Destination $chocolateyDir\PSReadline
+    copy -re $targetDir $chocolateyDir\PSReadline
 
     cpack "$chocolateyDir\PSReadline.nuspec"
 }
 
-Remove-Item -Path $PSScriptRoot\PSReadline.zip -ea Ignore
+del $PSScriptRoot\PSReadline.zip -ea Ignore
 [System.IO.Compression.ZipFile]::CreateFromDirectory($targetDir, "$PSScriptRoot\PSReadline.zip")
 
 if ($Install)
@@ -71,16 +70,16 @@ if ($Install)
 
     if (!(Test-Path -Path $InstallDir))
     {
-        New-Item -force -Path $InstallDir -ItemType Directory
+        mkdir $InstallDir -Force
     }
 
     try
     {
         if (Test-Path -Path $InstallDir\PSReadline)
         {
-            Remove-Item -Recurse -force -Path $InstallDir\PSReadline -ea Stop
+            rmdir -re -force $InstallDir\PSReadline -ea Stop
         }
-        Copy-Item -Recurse -Path $targetDir -Destination $InstallDir
+        copy -re $targetDir ex$InstallDir
     }
     catch
     {
