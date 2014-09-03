@@ -16,4 +16,4 @@ $FilePath = (Resolve-Path $FilePath).Path;
 $moduleVersionPattern = "ModuleVersion = '.*'";
 $newVersion = "ModuleVersion = '" + $Version + "'";
 
-(Get-Content $FilePath) | % {$_ -replace $moduleVersionPattern, $newVersion} | Set-Content $FilePath;
+(Get-Content $FilePath) | ForEach-Object {$_ -replace $moduleVersionPattern, $newVersion} | Set-Content $FilePath;

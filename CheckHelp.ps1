@@ -1,5 +1,4 @@
-
-ipmo PSReadline
+Import-Module -Name PSReadline
 
 $about_topic = Get-Help about_PSReadline
 
@@ -8,8 +7,8 @@ $methods = [PSConsoleUtilities.PSConsoleReadLine].GetMethods('public,static') |
         $method = $_
         $parameters = $method.GetParameters()
         $parameters.Count -eq 2 -and
-            $parameters[0].ParameterType -eq [Nullable[ConsoleKeyInfo]] -and
-            $parameters[1].ParameterType -eq [object]
+        $parameters[0].ParameterType -eq [Nullable[ConsoleKeyInfo]] -and
+        $parameters[1].ParameterType -eq [object]
     }
 
 foreach ($method in $methods)
@@ -61,4 +60,3 @@ Get-PSReadlineKeyHandler |
     ForEach-Object {
         "Function missing description: $($_.Function)"
     }
-
