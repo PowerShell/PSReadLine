@@ -1,6 +1,10 @@
-
 Import-Module -Name PSReadline
 
+<<<<<<< HEAD
+Import-Module -Name PSReadline
+
+=======
+>>>>>>> Updates to PowerShell scripts for the following:
 $about_topic = Get-Help -Name about_PSReadline
 
 $methods = [PSConsoleUtilities.PSConsoleReadLine].GetMethods('public,static') |
@@ -61,4 +65,3 @@ Get-PSReadlineKeyHandler |
     ForEach-Object {
         "Function missing description: $($_.Function)"
     }
-

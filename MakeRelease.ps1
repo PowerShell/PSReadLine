@@ -1,4 +1,3 @@
-
 param([switch]$Install)
 
 add-type -AssemblyName System.IO.Compression.FileSystem
@@ -17,8 +16,13 @@ if (Test-Path -Path $targetDir)
     Remove-Item -re $targetDir
 }
 
+<<<<<<< HEAD
 $null = New-Item -Path $targetDir -ItemType directory
 $null = New-Item -Path $targetDir\en-US -ItemType directory
+=======
+$null = mkdir -Path $targetDir
+$null = mkdir -Path $targetDir\en-US
+>>>>>>> Updates to PowerShell scripts for the following:
 
 $files = @('PSReadline\Changes.txt',
            'PSReadline\License.txt',
@@ -30,7 +34,11 @@ $files = @('PSReadline\Changes.txt',
 
 ForEach-Object ($file in $files)
 {
+<<<<<<< HEAD
     Copy-Item -Path $PSScriptRoot\$file -Destination $targetDir
+=======
+    copy $PSScriptRoot\$file $targetDir
+>>>>>>> Updates to PowerShell scripts for the following:
 }
 
 $files = @('PSReadline\en-US\about_PSReadline.help.txt',
@@ -38,7 +46,11 @@ $files = @('PSReadline\en-US\about_PSReadline.help.txt',
 
 ForEach-Object ($file in $files)
 {
+<<<<<<< HEAD
     Copy-Item -Path $PSScriptRoot\$file -Destination $targetDir\en-us
+=======
+    copy $PSScriptRoot\$file $targetDir\en-us
+>>>>>>> Updates to PowerShell scripts for the following:
 }
 
 $version = (Get-ChildItem -Path $targetDir\PSReadline.dll).VersionInfo.FileVersion
@@ -52,17 +64,29 @@ if (Get-Command -Name cpack -ea Ignore)
 
     if (Test-Path -Path $chocolateyDir\PSReadline)
     {
+<<<<<<< HEAD
         Remove-Item -Recurse -Path $chocolateyDir\PSReadline
+=======
+        rmdir -re $chocolateyDir\PSReadline
+>>>>>>> Updates to PowerShell scripts for the following:
     }
 
     & $PSScriptRoot\Update-NuspecVersion.ps1 "$chocolateyDir\PSReadline.nuspec" $version
 
+<<<<<<< HEAD
     Copy-Item -Recurse -Path $targetDir -Destination $chocolateyDir\PSReadline
+=======
+    copy -re $targetDir $chocolateyDir\PSReadline
+>>>>>>> Updates to PowerShell scripts for the following:
 
     cpack "$chocolateyDir\PSReadline.nuspec"
 }
 
+<<<<<<< HEAD
 Remove-Item -Path $PSScriptRoot\PSReadline.zip -ea Ignore
+=======
+rm $PSScriptRoot\PSReadline.zip -ea Ignore
+>>>>>>> Updates to PowerShell scripts for the following:
 [System.IO.Compression.ZipFile]::CreateFromDirectory($targetDir, "$PSScriptRoot\PSReadline.zip")
 
 if ($Install)
@@ -78,9 +102,15 @@ if ($Install)
     {
         if (Test-Path -Path $InstallDir\PSReadline)
         {
+<<<<<<< HEAD
             Remove-Item -Recurse -force -Path $InstallDir\PSReadline -ea Stop
         }
         Copy-Item -Recurse -Path $targetDir -Destination $InstallDir
+=======
+            rm -re -force -Path $InstallDir\PSReadline -ea Stop
+        }
+        copy -Recurse -Path $targetDir -Destination $InstallDir
+>>>>>>> Updates to PowerShell scripts for the following:
     }
     catch
     {
