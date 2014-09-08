@@ -20,6 +20,7 @@ namespace PSConsoleUtilities
 
         private IPSConsoleReadLineMockableMethods _mockableMethods;
 
+        private EngineIntrinsics _engineIntrinsics;
         private static readonly GCHandle _breakHandlerGcHandle;
         private Thread _readKeyThread;
         private AutoResetEvent _readKeyWaitHandle;
@@ -210,7 +211,7 @@ namespace PSConsoleUtilities
         /// after the prompt has been displayed.
         /// </summary>
         /// <returns>The complete command line.</returns>
-        public static string ReadLine(Runspace remoteRunspace = null)
+        public static string ReadLine(Runspace remoteRunspace = null, EngineIntrinsics engineIntrinsics = null)
         {
             var handle = NativeMethods.GetStdHandle((uint) StandardHandleId.Input);
             NativeMethods.GetConsoleMode(handle, out _singleton._prePSReadlineConsoleMode);
@@ -222,7 +223,7 @@ namespace PSConsoleUtilities
                 NativeMethods.SetConsoleMode(handle,
                     _singleton._prePSReadlineConsoleMode & ~(NativeMethods.ENABLE_PROCESSED_INPUT | NativeMethods.ENABLE_LINE_INPUT));
 
-                _singleton.Initialize(remoteRunspace);
+                _singleton.Initialize(remoteRunspace, engineIntrinsics);
                 return _singleton.InputLoop();
             }
             catch (OperationCanceledException)
@@ -258,7 +259,7 @@ namespace PSConsoleUtilities
 
                 Console.WriteLine(PSReadLineResources.OopsAnErrorMessage2, _lastNKeys.Count, sb, e);
                 var lineBeforeCrash = _singleton._buffer.ToString();
-                _singleton.Initialize(remoteRunspace);
+                _singleton.Initialize(remoteRunspace, _singleton._engineIntrinsics);
                 InvokePrompt();
                 Insert(lineBeforeCrash);
                 return _singleton.InputLoop();
@@ -461,7 +462,7 @@ namespace PSConsoleUtilities
             _options = new PSConsoleReadlineOptions(hostName);
         }
 
-        private void Initialize(Runspace remoteRunspace)
+        private void Initialize(Runspace remoteRunspace, EngineIntrinsics engineIntrinsics)
         {
             if (!_delayedOneTimeInitCompleted)
             {
@@ -469,6 +470,7 @@ namespace PSConsoleUtilities
                 _delayedOneTimeInitCompleted = true;
             }
 
+            _engineIntrinsics = engineIntrinsics;
             _buffer.Clear();
             _edits = new List<EditItem>();
             _undoEditIndex = 0;

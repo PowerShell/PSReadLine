@@ -34,6 +34,6 @@ function PSConsoleHostReadline
     Set-StrictMode -Off
     $remoteRunspace = if ($host.IsRunspacePushed) { $host.Runspace } else { $null }
 
-    [PSConsoleUtilities.PSConsoleReadLine]::ReadLine($remoteRunspace)
+    [PSConsoleUtilities.PSConsoleReadLine]::ReadLine($remoteRunspace, $ExecutionContext)
 }
  
