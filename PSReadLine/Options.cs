@@ -36,6 +36,14 @@ namespace PSConsoleUtilities
             {
                 Options.EmphasisForegroundColor = options.EmphasisForegroundColor;
             }
+            if (options._errorBackgroundColor.HasValue)
+            {
+                Options.ErrorBackgroundColor = options.ErrorBackgroundColor;
+            }
+            if (options._errorForegroundColor.HasValue)
+            {
+                Options.ErrorForegroundColor = options.ErrorForegroundColor;
+            }
             if (options._historyNoDuplicates.HasValue)
             {
                 Options.HistoryNoDuplicates = options.HistoryNoDuplicates;

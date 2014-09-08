@@ -59,6 +59,7 @@ namespace PSConsoleUtilities
         public const ConsoleColor DefaultNumberForegroundColor    = ConsoleColor.White;
         public const ConsoleColor DefaultMemberForegroundColor    = ConsoleColor.Gray;
         public const ConsoleColor DefaultEmphasisForegroundColor  = ConsoleColor.Cyan;
+        public const ConsoleColor DefaultErrorForegroundColor     = ConsoleColor.Red;
 
         public const EditMode DefaultEditMode = EditMode.Windows;
 
@@ -208,6 +209,8 @@ namespace PSConsoleUtilities
         public ConsoleColor MemberBackgroundColor { get; set; }
         public ConsoleColor EmphasisForegroundColor { get; set; }
         public ConsoleColor EmphasisBackgroundColor { get; set; }
+        public ConsoleColor ErrorForegroundColor { get; set; }
+        public ConsoleColor ErrorBackgroundColor { get; set; }
 
         internal void ResetColors()
         {
@@ -223,6 +226,7 @@ namespace PSConsoleUtilities
             NumberForegroundColor       = DefaultNumberForegroundColor;
             MemberForegroundColor       = DefaultNumberForegroundColor;
             EmphasisForegroundColor     = DefaultEmphasisForegroundColor;
+            ErrorForegroundColor        = DefaultErrorForegroundColor;
             DefaultTokenBackgroundColor = Console.BackgroundColor;
             CommentBackgroundColor      = Console.BackgroundColor;
             KeywordBackgroundColor      = Console.BackgroundColor;
@@ -235,6 +239,7 @@ namespace PSConsoleUtilities
             NumberBackgroundColor       = Console.BackgroundColor;
             MemberBackgroundColor       = Console.BackgroundColor;
             EmphasisBackgroundColor     = Console.BackgroundColor;
+            ErrorBackgroundColor        = Console.BackgroundColor;
         }
 
         internal void SetForegroundColor(TokenClassification tokenKind, ConsoleColor color)
@@ -331,6 +336,22 @@ namespace PSConsoleUtilities
             set { _emphasisBackgroundColor = value; }
         }
         internal ConsoleColor? _emphasisBackgroundColor;
+
+        [Parameter(ParameterSetName = "OptionsSet")]
+        public ConsoleColor ErrorForegroundColor
+        {
+            get { return _errorForegroundColor.GetValueOrDefault(); }
+            set { _errorForegroundColor = value; }
+        }
+        internal ConsoleColor? _errorForegroundColor;
+
+        [Parameter(ParameterSetName = "OptionsSet")]
+        public ConsoleColor ErrorBackgroundColor
+        {
+            get { return _errorBackgroundColor.GetValueOrDefault(); }
+            set { _errorBackgroundColor = value; }
+        }
+        internal ConsoleColor? _errorBackgroundColor;
 
         [Parameter(ParameterSetName = "OptionsSet")]
         public SwitchParameter HistoryNoDuplicates

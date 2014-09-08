@@ -33,6 +33,7 @@ namespace PSConsoleUtilities
 
         private readonly StringBuilder _buffer;
         private readonly StringBuilder _statusBuffer;
+        private bool _statusIsErrorMessage;
         private string _statusLinePrompt;
         private List<EditItem> _edits;
         private int _editGroupStart;
@@ -494,6 +495,7 @@ namespace PSConsoleUtilities
             _tabCommandCount = 0;
             _visualSelectionCommandCount = 0;
             _remoteRunspace = remoteRunspace;
+            _statusIsErrorMessage = false;
 
             _consoleBuffer = ReadBufferLines(_initialY, 1 + Options.ExtraPromptLineCount);
             _lastRenderTime = Stopwatch.StartNew();

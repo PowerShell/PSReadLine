@@ -178,17 +178,20 @@ namespace PSConsoleUtilities
 
             if (_statusLinePrompt != null)
             {
+                foregroundColor = _statusIsErrorMessage ? Options.ErrorForegroundColor : Console.ForegroundColor;
+                backgroundColor = _statusIsErrorMessage ? Options.ErrorBackgroundColor : Console.BackgroundColor;
+
                 for (int i = 0; i < _statusLinePrompt.Length; i++, j++)
                 {
                     _consoleBuffer[j].UnicodeChar = _statusLinePrompt[i];
-                    _consoleBuffer[j].ForegroundColor = Console.ForegroundColor;
-                    _consoleBuffer[j].BackgroundColor = Console.BackgroundColor;
+                    _consoleBuffer[j].ForegroundColor = foregroundColor;
+                    _consoleBuffer[j].BackgroundColor = backgroundColor;
                 }
                 for (int i = 0; i < _statusBuffer.Length; i++, j++)
                 {
                     _consoleBuffer[j].UnicodeChar = _statusBuffer[i];
-                    _consoleBuffer[j].ForegroundColor = Console.ForegroundColor;
-                    _consoleBuffer[j].BackgroundColor = Console.BackgroundColor;
+                    _consoleBuffer[j].ForegroundColor = foregroundColor;
+                    _consoleBuffer[j].BackgroundColor = backgroundColor;
                 }
 
                 for (; j < (_consoleBuffer.Length - (_demoWindowLineCount * _bufferWidth)); j++)
