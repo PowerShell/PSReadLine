@@ -1,7 +1,6 @@
+Import-Module -Name PSReadline
 
-ipmo PSReadline
-
-$about_topic = Get-Help about_PSReadline
+$about_topic = Get-Help -Name about_PSReadline
 
 $methods = [PSConsoleUtilities.PSConsoleReadLine].GetMethods('public,static') |
     Where-Object {
@@ -36,7 +35,7 @@ $methods.Name | ForEach-Object {
     }
 }
 
-$commonParameters = echo Debug Verbose OutVariable OutBuffer ErrorAction WarningAction ErrorVariable WarningVariable PipelineVariable
+$commonParameters = Write-Output Debug Verbose OutVariable OutBuffer ErrorAction WarningAction ErrorVariable WarningVariable PipelineVariable
 Get-Command -Type Cmdlet -Module PSReadline |
     ForEach-Object {
         $cmdletInfo = $_
@@ -61,4 +60,3 @@ Get-PSReadlineKeyHandler |
     ForEach-Object {
         "Function missing description: $($_.Function)"
     }
-
