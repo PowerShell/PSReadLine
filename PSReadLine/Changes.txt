@@ -1,3 +1,13 @@
+### Version 1.0.0.13
+
+New features:
+
+Bug fixes:
+
+New functions:
+
+Bug fixes:
+
 ### Version 1.0.0.12
 
 New features:
