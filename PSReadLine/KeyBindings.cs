@@ -81,7 +81,7 @@ namespace PSConsoleUtilities
         {
             _dispatchTable = new Dictionary<ConsoleKeyInfo, KeyHandler>(new ConsoleKeyInfoComparer())
             {
-                { Keys.Enter,                  MakeKeyHandler(AcceptLine,                "AcceptLine") },
+                { Keys.Enter,                  MakeKeyHandler(ValidateAndAcceptLine,     "ValidateAndAcceptLine") },
                 { Keys.ShiftEnter,             MakeKeyHandler(AddLine,                   "AddLine") },
                 { Keys.Escape,                 MakeKeyHandler(RevertLine,                "RevertLine") },
                 { Keys.LeftArrow,              MakeKeyHandler(BackwardChar,              "BackwardChar") },
@@ -151,7 +151,7 @@ namespace PSConsoleUtilities
             _dispatchTable = new Dictionary<ConsoleKeyInfo, KeyHandler>(new ConsoleKeyInfoComparer())
             {
                 { Keys.Backspace,       MakeKeyHandler(BackwardDeleteChar,   "BackwardDeleteChar") },
-                { Keys.Enter,           MakeKeyHandler(AcceptLine,           "AcceptLine") },
+                { Keys.Enter,           MakeKeyHandler(ValidateAndAcceptLine,"ValidateAndAcceptLine") },
                 { Keys.ShiftEnter,      MakeKeyHandler(AddLine,              "AddLine") },
                 { Keys.LeftArrow,       MakeKeyHandler(BackwardChar,         "BackwardChar") },
                 { Keys.RightArrow,      MakeKeyHandler(ForwardChar,          "ForwardChar") },
@@ -178,7 +178,7 @@ namespace PSConsoleUtilities
                 { Keys.CtrlH,           MakeKeyHandler(BackwardDeleteChar,   "BackwardDeleteChar") },
                 { Keys.CtrlL,           MakeKeyHandler(ClearScreen,          "ClearScreen") },
                 { Keys.CtrlK,           MakeKeyHandler(KillLine,             "KillLine") },
-                { Keys.CtrlM,           MakeKeyHandler(AcceptLine,           "AcceptLine") },
+                { Keys.CtrlM,           MakeKeyHandler(ValidateAndAcceptLine,"ValidateAndAcceptLine") },
                 { Keys.CtrlO,           MakeKeyHandler(AcceptAndGetNext,     "AcceptAndGetNext") },
                 { Keys.CtrlR,           MakeKeyHandler(ReverseSearchHistory, "ReverseSearchHistory") },
                 { Keys.CtrlS,           MakeKeyHandler(ForwardSearchHistory, "ForwardSearchHistory") },
