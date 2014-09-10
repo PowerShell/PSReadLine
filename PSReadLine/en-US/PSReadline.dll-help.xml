@@ -454,6 +454,20 @@ Using the ScriptBlock parameter, one can achieve equivalent functionality by cal
         <command:parameterValue required="true" variableLength="false">ConsoleColor</command:parameterValue>
       </command:parameter>
       <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+        <maml:name>ErrorForegroundColor</maml:name>
+        <maml:description>
+          <maml:para>Specifies the foreground color used for errors.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">ConsoleColor</command:parameterValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+        <maml:name>ErrorBackgroundColor</maml:name>
+        <maml:description>
+          <maml:para>Specifies the background color used for errors.</maml:para>
+        </maml:description>
+        <command:parameterValue required="true" variableLength="false">ConsoleColor</command:parameterValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
         <maml:name>HistoryNoDuplicates</maml:name>
         <maml:description>
           <maml:para>Specifies that duplicate commands should not be added to PSReadline history.</maml:para>
@@ -667,6 +681,30 @@ Using the ScriptBlock parameter, one can achieve equivalent functionality by cal
       <maml:name>EmphasisBackgroundColor</maml:name>
       <maml:description>
         <maml:para>Specifies the background color used for emphasis, e.g. to highlight search text.</maml:para>
+      </maml:description>
+      <command:parameterValue required="true" variableLength="false">ConsoleColor</command:parameterValue>
+      <dev:type>
+        <maml:name>ConsoleColor</maml:name>
+        <maml:uri/>
+      </dev:type>
+      <dev:defaultValue></dev:defaultValue>
+    </command:parameter>
+    <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+      <maml:name>ErrorForegroundColor</maml:name>
+      <maml:description>
+        <maml:para>Specifies the foreground color used for errors.</maml:para>
+      </maml:description>
+      <command:parameterValue required="true" variableLength="false">ConsoleColor</command:parameterValue>
+      <dev:type>
+        <maml:name>ConsoleColor</maml:name>
+        <maml:uri/>
+      </dev:type>
+      <dev:defaultValue>Red</dev:defaultValue>
+    </command:parameter>
+    <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
+      <maml:name>ErrorBackgroundColor</maml:name>
+      <maml:description>
+        <maml:para>Specifies the background color used for errors.</maml:para>
       </maml:description>
       <command:parameterValue required="true" variableLength="false">ConsoleColor</command:parameterValue>
       <dev:type>

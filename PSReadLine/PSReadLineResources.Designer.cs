@@ -232,6 +232,15 @@ namespace PSConsoleUtilities {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Command &apos;{0}&apos; cannot be found..
+        /// </summary>
+        internal static string CommandNotFoundError {
+            get {
+                return ResourceManager.GetString("CommandNotFoundError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Complete the input if there is a single completion, otherwise complete the input with common prefix for all completions.  Show possible completions if pressed a second time..
         /// </summary>
         internal static string CompleteDescription {

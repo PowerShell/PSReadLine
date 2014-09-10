@@ -642,38 +642,11 @@ namespace PSConsoleUtilities
             _hashedHistory = null;
             _currentHistoryIndex = _history.Count;
 
-            // Remove our status line
-            _statusBuffer.Clear();
-            _statusLinePrompt = null;
             _emphasisStart = -1;
             _emphasisLength = 0;
 
-#if FALSE
-            int promptStart = _bufferWidth * Options.ExtraPromptLineCount;
-            int promptWidth = _initialX;
-
-            // Copy the prompt (ignoring the possible extra lines which we'll leave alone)
-            var savedPrompt = new CHAR_INFO[promptWidth];
-            Array.Copy(_consoleBuffer, promptStart, savedPrompt, 0, promptWidth);
-
-            string newPrompt = "(reverse-i-search)`': ";
-            _initialX = newPrompt.Length;
-            int i, j;
-            for (i = promptStart, j = 0; j < newPrompt.Length; i++, j++)
-            {
-                _consoleBuffer[i].UnicodeChar = newPrompt[j];
-                _consoleBuffer[i].BackgroundColor = Console.BackgroundColor;
-                _consoleBuffer[i].ForegroundColor = Console.ForegroundColor;
-            }
-
-            InteractiveHistorySearchLoop(direction);
-
-            // Restore the original prompt
-            _initialX = promptWidth;
-            Array.Copy(savedPrompt, 0, _consoleBuffer, promptStart, savedPrompt.Length);
-#endif
-
-            Render();
+            // Remove our status line, this will render
+            ClearStatusMessage(render: true);
         }
 
         /// <summary>

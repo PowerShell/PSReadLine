@@ -43,6 +43,17 @@ namespace PSConsoleUtilities
             return text;
         }
 
+        private void ClearStatusMessage(bool render)
+        {
+            _statusBuffer.Clear();
+            _statusLinePrompt = null;
+            _statusIsErrorMessage = false;
+            if (render)
+            {
+                Render();
+            }
+        }
+
         private void Render()
         {
             // If there are a bunch of keys queued up, skip rendering if we've rendered

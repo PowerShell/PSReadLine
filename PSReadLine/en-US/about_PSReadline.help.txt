@@ -128,10 +128,22 @@ LONG DESCRIPTION
         continuation prompt is displayed on the next line and PSReadline waits for
         keys to edit the current input.
 
-    AcceptAndGetNext         (Cmd: unbound              Emacs: <Ctrl+O>
+    AcceptAndGetNext         (Cmd: unbound              Emacs: <Ctrl+O>)
 
         Like AcceptLine, but after the line completes, start editing the next line
         from history.
+
+    ValidateAndAcceptLine    (Cmd: unbound              Emacs: unbound)
+
+        Like AcceptLine but performs additional validation including:
+
+            * Check for additional parse errors
+            * Validate command names are all found
+            * If using PowerShell V4 or greater, validate the parameters and arguments
+
+        If there are any errors, the error message is displayed and not accepted nor added
+        to the history unless you either correct the command line or execute AcceptLine or
+        ValidateAndAcceptLine again while the error message is displayed.
 
     BackwardDeleteLine       (Cmd: <Ctrl+Home>          Emacs: unbound)
 

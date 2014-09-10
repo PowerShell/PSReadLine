@@ -330,8 +330,7 @@ namespace PSConsoleUtilities
                 buffer.Append(PSReadLineResources.KeyIsUnbound);
             }
 
-            _singleton._statusLinePrompt = null;
-            _singleton.Render();
+            _singleton.ClearStatusMessage(render: false);
 
             // Don't overwrite any of the line - so move to first line after the end of our buffer.
             var coords = _singleton.ConvertOffsetToCoordinates(_singleton._buffer.Length);

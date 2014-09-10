@@ -1,10 +1,14 @@
 ﻿using System;
 using System.Linq;
+using System.Management.Automation;
+using System.Management.Automation.Language;
 
 namespace PSConsoleUtilities
 {
     public partial class PSConsoleReadLine
     {
+        private static Func<CommandAst, bool, object> _staticParameterBinder;
+
         /// <summary>
         /// Insert the key
         /// </summary>
@@ -55,6 +59,12 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void RevertLine(ConsoleKeyInfo? key = null, object arg = null)
         {
+            if (_singleton._statusIsErrorMessage)
+            {
+                // After an edit, clear the error message
+                _singleton.ClearStatusMessage(render: false);
+            }
+
             while (_singleton._undoEditIndex > 0)
             {
                 _singleton._edits[_singleton._undoEditIndex - 1].Undo();
@@ -175,7 +185,7 @@ namespace PSConsoleUtilities
             }
         }
 
-        private bool AcceptLineImpl()
+        private bool AcceptLineImpl(bool validate)
         {
             ParseInput();
             if (_parseErrors.Any(e => e.IncompleteInput))
@@ -203,11 +213,139 @@ namespace PSConsoleUtilities
                 ReallyRender();
             }
 
+            // Only run validation if we haven't before.  If we have and status line shows an error,
+            // treat that as a -Force and accept the input so it is added to history, and PowerShell
+            // can report an error as it normally does.
+            if (validate && !_statusIsErrorMessage)
+            {
+                var errorMessage = Validate(_ast);
+                if (errorMessage != null)
+                {
+                    _statusLinePrompt = "";
+                    _statusBuffer.Append(errorMessage);
+                    _statusIsErrorMessage = true;
+                    Render();
+                    return false;
+                }
+            }
+
+            if (_statusIsErrorMessage)
+            {
+                ClearStatusMessage(render: true);
+            }
+
             var coordinates = ConvertOffsetToCoordinates(_current);
             var y = coordinates.Y + 1;
             PlaceCursor(0, ref y);
             _inputAccepted = true;
             return true;
+        }
+
+        private string Validate(Ast rootAst)
+        {
+            if (_parseErrors != null && _parseErrors.Length > 0)
+            {
+                // Move the cursor to the point of error
+                _current = _parseErrors[0].Extent.EndOffset;
+                return _parseErrors[0].Message;
+            }
+
+            var commandAsts = rootAst.FindAll(a => a is CommandAst, true);
+            if (_engineIntrinsics != null)
+            {
+                foreach (var ast in commandAsts)
+                {
+                    var commandAst = (CommandAst)ast;
+                    var commandName = commandAst.GetCommandName();
+                    if (commandName != null)
+                    {
+                        var commandInfo = _engineIntrinsics.InvokeCommand.GetCommand(commandName, CommandTypes.All);
+                        if (commandInfo == null && !UnresolvedCommandCouldSucceed(commandName, rootAst))
+                        {
+                            _current = commandAst.CommandElements[0].Extent.EndOffset;
+                            return string.Format(PSReadLineResources.CommandNotFoundError, commandName);
+                        }
+
+                        // This code is written in a peculiar manner so that we can compile and run
+                        // against PowerShell V3 but take advantage of an API added to V4.
+                        if (_staticParameterBinder != null && StaticParameterBindingSupported(commandInfo))
+                        {
+                            dynamic bindingResult = _staticParameterBinder(commandAst, true);
+                            if (bindingResult != null && bindingResult.BindingExceptions != null)
+                            {
+                                foreach (dynamic failure in bindingResult.BindingExceptions)
+                                {
+                                    if (failure.Value.CommandElement != null)
+                                    {
+                                        // The cast is necessary here because Extent is an instance of an
+                                        // internal class and dynamic treats that like object so won't
+                                        // find the EndOffset property w/o a cast to the public interface.
+                                        var extent = (IScriptExtent)failure.Value.CommandElement.Extent;
+                                        _current = extent.EndOffset;
+                                    }
+                                    return failure.Value.BindingException.Message;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        private bool UnresolvedCommandCouldSucceed(string commandName, Ast rootAst)
+        {
+            // This is a little hacky, but we check for a few things where part of the current
+            // command defines/imports new commands that PowerShell might not yet know about.
+            // There is little reason to go to great lengths at being correct here, validation
+            // is just a small usability  tweak to avoid cluttering up history - PowerShell
+            // will report errors for stuff we actually let through.
+
+            // Do we define a function matching the command name?
+            var fnDefns = rootAst.FindAll(ast => ast is FunctionDefinitionAst, true).OfType<FunctionDefinitionAst>();
+            if (fnDefns.Any(fnDefnAst => fnDefnAst.Name.Equals(commandName, StringComparison.OrdinalIgnoreCase)))
+            {
+                return true;
+            }
+
+            var cmdAsts = rootAst.FindAll(ast => ast is CommandAst, true).OfType<CommandAst>();
+            foreach (var cmdAst in cmdAsts)
+            {
+                // If we dot source something, we can't in general know what is being
+                // dot sourced so just assume the unresolved command will work.
+                if (cmdAst.InvocationOperator == TokenKind.Dot)
+                {
+                    return true;
+                }
+
+                // Are we importing a module or being tricky with Invoke-Expression?  Let those through.
+                var candidateCommand = cmdAst.GetCommandName();
+                if (candidateCommand.Equals("Import-Module", StringComparison.OrdinalIgnoreCase)
+                    || candidateCommand.Equals("ipmo", StringComparison.OrdinalIgnoreCase)
+                    || candidateCommand.Equals("Invoke-Expression", StringComparison.OrdinalIgnoreCase)
+                    || candidateCommand.Equals("iex", StringComparison.OrdinalIgnoreCase)
+                    )
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        static bool StaticParameterBindingSupported(CommandInfo commandInfo)
+        {
+            var aliasInfo = commandInfo as AliasInfo;
+
+            if (aliasInfo != null)
+            {
+                commandInfo = aliasInfo.ResolvedCommand;
+            }
+
+            return (commandInfo is ExternalScriptInfo)
+                   || (commandInfo is CmdletInfo)
+                   || (commandInfo is FunctionInfo);
         }
 
         /// <summary>
@@ -218,7 +356,18 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void AcceptLine(ConsoleKeyInfo? key = null, object arg = null)
         {
-            _singleton.AcceptLineImpl();
+            _singleton.AcceptLineImpl(false);
+        }
+
+        /// <summary>
+        /// Attempt to execute the current input.  If the current input is incomplete (for
+        /// example there is a missing closing parenthesis, bracket, or quote, then the
+        /// continuation prompt is displayed on the next line and PSReadline waits for
+        /// keys to edit the current input.
+        /// </summary>
+        public static void ValidateAndAcceptLine(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            _singleton.AcceptLineImpl(true);
         }
 
         /// <summary>
@@ -227,7 +376,7 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void AcceptAndGetNext(ConsoleKeyInfo? key = null, object arg = null)
         {
-            if (_singleton.AcceptLineImpl())
+            if (_singleton.AcceptLineImpl(false))
             {
                 if (_singleton._currentHistoryIndex < (_singleton._history.Count - 1))
                 {

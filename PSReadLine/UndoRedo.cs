@@ -8,6 +8,12 @@ namespace PSConsoleUtilities
     {
         private void SaveEditItem(EditItem editItem)
         {
+            if (_statusIsErrorMessage)
+            {
+                // After an edit, clear the error message
+                ClearStatusMessage(render: true);
+            }
+
             // If there is some sort of edit after an undo, forget
             // any edit items that were undone.
             int removeCount = _edits.Count - _undoEditIndex;
@@ -50,6 +56,11 @@ namespace PSConsoleUtilities
         {
             if (_singleton._undoEditIndex > 0)
             {
+                if (_singleton._statusIsErrorMessage)
+                {
+                    // After an edit, clear the error message
+                    _singleton.ClearStatusMessage(render: false);
+                }
                 _singleton._edits[_singleton._undoEditIndex - 1].Undo();
                 _singleton._undoEditIndex--;
                 _singleton.Render();

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Management.Automation;
 using System.Management.Automation.Language;
 using System.Management.Automation.Runspaces;
@@ -423,6 +424,23 @@ namespace PSConsoleUtilities
 
             // This is only used for post-mortem debugging - 200 keys should be enough to reconstruct most command lines.
             _lastNKeys = new HistoryQueue<ConsoleKeyInfo>(200);
+
+
+            var staticParameterBinderType =
+                typeof (PSObject).Assembly.GetType("System.Management.Automation.Language.StaticParameterBinder");
+            if (staticParameterBinderType != null)
+            {
+                var binderMethod =
+                    staticParameterBinderType.GetMethod("BindCommand", new[] {typeof (CommandAst), typeof (bool)});
+                if (binderMethod != null)
+                {
+                    var arg1 = Expression.Parameter(typeof (CommandAst));
+                    var arg2 = Expression.Parameter(typeof (bool));
+                    _staticParameterBinder = Expression.Lambda<Func<CommandAst, bool, object>>(
+                        Expression.Call(binderMethod, arg1, arg2),
+                        new[] {arg1, arg2}).Compile();
+                }
+            }
         }
 
         private PSConsoleReadLine()
@@ -674,9 +692,9 @@ namespace PSConsoleUtilities
 
             // Remove our status line
             argBuffer.Clear();
-            _singleton._statusLinePrompt = null;
-            _singleton.Render(); // Render prompt
+            _singleton.ClearStatusMessage(render: true);
         }
+
 
         /// <summary>
         /// Erases the current prompt and calls the prompt function to redisplay

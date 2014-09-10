@@ -405,4 +405,11 @@ Exception:
   <data name="PreviousLineDescription" xml:space="preserve">
     <value>Move the cursor to the previous line if the input has multiple lines.</value>
   </data>
+  <data name="CommandNotFoundError" xml:space="preserve">
+    <value>Command '{0}' cannot be found.</value>
+  </data>
+  <data name="ValidateAndAcceptLineDescription" xml:space="preserve">
+    <value>Accept the input or move to the next line if input is missing a closing token.
+If there are other parse errors, unresolved commands, or incorrect parameters, show the error and continue editing.</value>
+  </data>
 </root>
