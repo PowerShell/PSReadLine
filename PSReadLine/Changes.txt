@@ -1,12 +1,20 @@
 ### Version 1.0.0.13
 
 New features:
+* Enter now does some extra validation before accepting the input.  If there are any parse
+  errors, command not found, or parameter binding errors, and error message is displayed
+  and you can continue editing.  Your history and the screen won't be cluttered with errors.
+  You can press Enter a second time to force accepting the line if you choose.  
+
+  If you don't like the new behavior for Enter, you can revert to the old behavior with:
+      Set-PSReadlineKeyHandler -Key Enter -Function AcceptLine
 
 Bug fixes:
 
 New functions:
+* ValidateAndAcceptLine
 
-Bug fixes:
+New key bindings:
 
 ### Version 1.0.0.12
 
