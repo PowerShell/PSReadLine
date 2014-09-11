@@ -5,15 +5,15 @@ param (
      [String] $Version
 )
 
-if ((Test-Path $FilePath -PathType Leaf) -ne $TRUE) {
+if ((Test-Path -Path $FilePath -PathType Leaf) -ne $TRUE) {
     Write-Error -Message ($FilePath + ' not found.') -Category InvalidArgument;
     exit 1;
 }
 
 #normalize path
-$FilePath = (Resolve-Path $FilePath).Path;
+$FilePath = (Resolve-Path -Path $FilePath).Path;
 
-$nuspecConfig = [xml] (Get-Content $FilePath);
+$nuspecConfig = [xml] (Get-Content -Path $FilePath);
 $nuspecConfig.DocumentElement.metadata.version = $Version;
 
 if (!$?) {
