@@ -16,6 +16,16 @@ New functions:
 
 New key bindings:
 
+New options:
+* Set-PSReadlineOption
+      -ErrorForegroundColor
+      -ErrorBackgroundColor
+          Colors used when ValidateAndAcceptLine reports an error
+
+      -ValidationHandler
+          A delegate that is called from ValidateAndAcceptLine that can perform custom validation
+
+
 ### Version 1.0.0.12
 
 New features:

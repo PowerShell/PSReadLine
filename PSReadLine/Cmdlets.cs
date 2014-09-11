@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using System.Management.Automation;
 using System.Reflection;
 using System.Linq;
@@ -132,6 +131,7 @@ namespace PSConsoleUtilities
             HistorySaveStyle = DefaultHistorySaveStyle;
             HistorySavePath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)
                 + @"\PSReadline\" + hostName + "_history.txt";
+            ValidationHandler = null;
         }
 
         public EditMode EditMode { get; set; }
@@ -149,9 +149,18 @@ namespace PSConsoleUtilities
         public const int DefaultExtraPromptLineCount = 0;
 
         /// <summary>
-        /// 
+        /// This handler is called before adding a command line to history.
+        /// The return value indicates if the command line should be added
+        /// to history or not.
         /// </summary>
         public Func<string, bool> AddToHistoryHandler { get; set; }
+
+        /// <summary>
+        /// This handler is called from ValidateAndAcceptLine.  If a non-null,
+        /// non-empty string is returned, or if an exception is thrown,
+        /// validation fails and the error is reported.
+        /// </summary>
+        public Func<string, object> ValidationHandler { get; set; }
 
         /// <summary>
         /// When true, duplicates will not be added to the history.
@@ -374,6 +383,20 @@ namespace PSConsoleUtilities
         }
         private Func<string, bool> _addToHistoryHandler;
         internal bool _addToHistoryHandlerSpecified;
+
+        [Parameter(ParameterSetName = "OptionsSet")]
+        [AllowNull]
+        public Func<string, object> ValidationHandler
+        {
+            get { return _validationHandler; }
+            set
+            {
+                _validationHandler = value;
+                _validationHandlerSpecified = true;
+            }
+        }
+        private Func<string, object> _validationHandler;
+        internal bool _validationHandlerSpecified;
 
         [Parameter(ParameterSetName = "OptionsSet")]
         public SwitchParameter HistorySearchCursorMovesToEnd

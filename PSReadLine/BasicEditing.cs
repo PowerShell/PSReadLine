@@ -219,7 +219,7 @@ namespace PSConsoleUtilities
             if (validate && !_statusIsErrorMessage)
             {
                 var errorMessage = Validate(_ast);
-                if (errorMessage != null)
+                if (!string.IsNullOrWhiteSpace(errorMessage))
                 {
                     _statusLinePrompt = "";
                     _statusBuffer.Append(errorMessage);
@@ -291,7 +291,45 @@ namespace PSConsoleUtilities
                 }
             }
 
-            return null;
+            string errorMessage = null;
+            if (_options.ValidationHandler != null)
+            {
+                try
+                {
+                    dynamic validationResult = _options.ValidationHandler(rootAst.Extent.Text);
+                    if (validationResult != null)
+                    {
+                        errorMessage = validationResult as string;
+                        if (errorMessage == null)
+                        {
+                            try
+                            {
+                                errorMessage = validationResult.Message;
+                                _current = validationResult.Offset;
+                            }
+                            catch {}
+                        }
+                        if (errorMessage == null)
+                        {
+                            errorMessage = validationResult.ToString();
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    errorMessage = e.Message;
+                    try
+                    {
+                        // If the exception object has an Offset property, we use it.
+                        // If not, this will throw an exception which we ignore.
+                        dynamic em = e;
+                        _current = em.Offset;
+                    }
+                    catch {}
+                }
+            }
+
+            return errorMessage;
         }
 
         private bool UnresolvedCommandCouldSucceed(string commandName, Ast rootAst)
