@@ -512,7 +512,7 @@ namespace PSConsoleUtilities
             {
                 int start, length;
                 _singleton.GetRegion(out start, out length);
-                Clipboard.SetText(_singleton._buffer.ToString(start, length));
+                ExecuteOnSTAThread(() => Clipboard.SetText(_singleton._buffer.ToString(start, length)));
                 Delete(start, length);
             }
         }
