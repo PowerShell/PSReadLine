@@ -235,6 +235,12 @@ namespace PSConsoleUtilities
             }
             catch (Exception e)
             {
+                // If we're running tests, just throw.
+                if (_singleton._mockableMethods != _singleton)
+                {
+                    throw;
+                }
+
                 while (e.InnerException != null)
                 {
                     e = e.InnerException;
