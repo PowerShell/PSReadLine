@@ -7,8 +7,6 @@ namespace PSConsoleUtilities
 {
     public partial class PSConsoleReadLine
     {
-        private static Func<CommandAst, bool, object> _staticParameterBinder;
-
         /// <summary>
         /// Insert the key
         /// </summary>
@@ -264,28 +262,6 @@ namespace PSConsoleUtilities
                         {
                             _current = commandAst.CommandElements[0].Extent.EndOffset;
                             return string.Format(PSReadLineResources.CommandNotFoundError, commandName);
-                        }
-
-                        // This code is written in a peculiar manner so that we can compile and run
-                        // against PowerShell V3 but take advantage of an API added to V4.
-                        if (_staticParameterBinder != null && StaticParameterBindingSupported(commandInfo))
-                        {
-                            dynamic bindingResult = _staticParameterBinder(commandAst, true);
-                            if (bindingResult != null && bindingResult.BindingExceptions != null)
-                            {
-                                foreach (dynamic failure in bindingResult.BindingExceptions)
-                                {
-                                    if (failure.Value.CommandElement != null)
-                                    {
-                                        // The cast is necessary here because Extent is an instance of an
-                                        // internal class and dynamic treats that like object so won't
-                                        // find the EndOffset property w/o a cast to the public interface.
-                                        var extent = (IScriptExtent)failure.Value.CommandElement.Extent;
-                                        _current = extent.EndOffset;
-                                    }
-                                    return failure.Value.BindingException.Message;
-                                }
-                            }
                         }
                     }
                 }

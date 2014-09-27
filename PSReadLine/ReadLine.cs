@@ -430,23 +430,6 @@ namespace PSConsoleUtilities
 
             // This is only used for post-mortem debugging - 200 keys should be enough to reconstruct most command lines.
             _lastNKeys = new HistoryQueue<ConsoleKeyInfo>(200);
-
-
-            var staticParameterBinderType =
-                typeof (PSObject).Assembly.GetType("System.Management.Automation.Language.StaticParameterBinder");
-            if (staticParameterBinderType != null)
-            {
-                var binderMethod =
-                    staticParameterBinderType.GetMethod("BindCommand", new[] {typeof (CommandAst), typeof (bool)});
-                if (binderMethod != null)
-                {
-                    var arg1 = Expression.Parameter(typeof (CommandAst));
-                    var arg2 = Expression.Parameter(typeof (bool));
-                    _staticParameterBinder = Expression.Lambda<Func<CommandAst, bool, object>>(
-                        Expression.Call(binderMethod, arg1, arg2),
-                        new[] {arg1, arg2}).Compile();
-                }
-            }
         }
 
         private PSConsoleReadLine()
