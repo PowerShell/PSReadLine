@@ -106,13 +106,13 @@ namespace TestPSReadLine
 
             PSConsoleReadLine.SetOptions(new SetPSReadlineOption
             {
-                EditMode = EditMode.Windows,
+                EditMode = EditMode.Emacs,
                 HistoryNoDuplicates = true,
             });
             PSConsoleReadLine.SetKeyHandler(new[] {"Ctrl+LeftArrow"}, PSConsoleReadLine.ShellBackwardWord, "", "");
             PSConsoleReadLine.SetKeyHandler(new[] {"Ctrl+RightArrow"}, PSConsoleReadLine.ShellNextWord, "", "");
-            PSConsoleReadLine.SetKeyHandler(new[] {"UpArrow"}, PSConsoleReadLine.HistorySearchBackward, "", "");
-            PSConsoleReadLine.SetKeyHandler(new[] {"DownArrow"}, PSConsoleReadLine.HistorySearchForward, "", "");
+            PSConsoleReadLine.SetKeyHandler(new[] {"F4"}, PSConsoleReadLine.HistorySearchBackward, "", "");
+            PSConsoleReadLine.SetKeyHandler(new[] {"F5"}, PSConsoleReadLine.HistorySearchForward, "", "");
             //PSConsoleReadLine.SetKeyHandler(new[] {"Ctrl+D,Ctrl+E"}, PSConsoleReadLine.EnableDemoMode, "", "");
             //PSConsoleReadLine.SetKeyHandler(new[] {"Ctrl+D,Ctrl+D"}, PSConsoleReadLine.DisableDemoMode, "", "");
             PSConsoleReadLine.SetKeyHandler(new[] {"Ctrl+D,Ctrl+C"}, PSConsoleReadLine.CaptureScreen, "", "");
@@ -121,6 +121,7 @@ namespace TestPSReadLine
             PSConsoleReadLine.SetKeyHandler(new[] {"F6"}, PSConsoleReadLine.PreviousLine, "", "");
             PSConsoleReadLine.SetKeyHandler(new[] {"F7"}, PSConsoleReadLine.NextLine, "", "");
             PSConsoleReadLine.SetKeyHandler(new[] {"F2"}, PSConsoleReadLine.ValidateAndAcceptLine, "", "");
+            PSConsoleReadLine.SetKeyHandler(new[] {"Enter"}, PSConsoleReadLine.AcceptLine, "", "");
 
 
             EngineIntrinsics executionContext;

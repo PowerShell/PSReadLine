@@ -166,6 +166,29 @@ namespace UnitTestPSReadLine
             SetHistory("echo 1", "echo 2");
             Test("echo 1", Keys(_.UpArrow, _.UpArrow, _.CtrlO, InputAcceptedNow));
             Test("echo 2", Keys(_.Enter));
+
+            // Test that the current saved line is saved after AcceptAndGetNext
+            SetHistory("echo 1", "echo 2");
+            Test("echo 1", Keys("e", _.UpArrow, _.UpArrow, _.CtrlO, InputAcceptedNow));
+            Test("e", Keys(_.DownArrow, _.DownArrow, _.Enter));
+
+            // Test that we can edit after recalling the current line
+            SetHistory("echo 1", "echo 2");
+            Test("echo 1", Keys("e", _.UpArrow, _.UpArrow, _.CtrlO, InputAcceptedNow));
+            Test("eee", Keys(_.DownArrow, _.DownArrow, "ee", _.Enter));
+        }
+
+        [TestMethod]
+        public void TestAcceptAndGetNextWithHistorySearch()
+        {
+            TestSetup(KeyMode.Emacs,
+                      new KeyHandler("UpArrow", PSConsoleReadLine.HistorySearchBackward),
+                      new KeyHandler("DownArrow", PSConsoleReadLine.HistorySearchForward));
+
+            // Test that after AcceptAndGetNext, the previous search is not applied
+            SetHistory("echo 1", "echo 2", "zzz");
+            Test("echo 1", Keys("e", _.UpArrow, _.UpArrow, _.CtrlO, InputAcceptedNow));
+            Test("zzz", Keys(_.DownArrow, _.Enter));
         }
 
         [TestMethod]

@@ -10,6 +10,7 @@ New features:
       Set-PSReadlineKeyHandler -Key Enter -Function AcceptLine
 
 Bug fixes:
+* Occasional exception with AcceptAndGetNext (Ctrl+O) followed by something other than Enter
 
 New functions:
 * ValidateAndAcceptLine

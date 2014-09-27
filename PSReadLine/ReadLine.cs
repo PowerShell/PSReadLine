@@ -528,7 +528,6 @@ namespace PSConsoleUtilities
             _yankCommandCount = 0;
             _yankLastArgCommandCount = 0;
             _tabCommandCount = 0;
-            _searchHistoryCommandCount = 0;
             _recallHistoryCommandCount = 0;
             _visualSelectionCommandCount = 0;
             _hashedHistory = null;
@@ -538,6 +537,18 @@ namespace PSConsoleUtilities
                 _currentHistoryIndex = _getNextHistoryIndex;
                 UpdateFromHistory(moveCursor: true);
                 _getNextHistoryIndex = 0;
+                if (_searchHistoryCommandCount > 0)
+                {
+                    _searchHistoryPrefix = "";
+                    if (Options.HistoryNoDuplicates)
+                    {
+                        _hashedHistory = new Dictionary<string, int>();
+                    }
+                }
+            }
+            else
+            {
+                _searchHistoryCommandCount = 0;
             }
         }
 

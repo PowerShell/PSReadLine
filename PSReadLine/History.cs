@@ -62,9 +62,16 @@ namespace PSConsoleUtilities
             {
                 ClearDemoWindow();
             }
-            _savedCurrentLine._line = null;
-            _savedCurrentLine._edits = null;
-            _savedCurrentLine._undoEditIndex = 0;
+
+            // Clear the saved line unless we used AcceptAndGetNext in which
+            // case we're really still in middle of history and might want
+            // to recall the saved line.
+            if (_getNextHistoryIndex == 0)
+            {
+                _savedCurrentLine._line = null;
+                _savedCurrentLine._edits = null;
+                _savedCurrentLine._undoEditIndex = 0;
+            }
             return result;
         }
 
@@ -284,7 +291,7 @@ namespace PSConsoleUtilities
             // to check if we need to load history from another sessions now.
             MaybeReadHistoryFile();
 
-            if (_singleton._currentHistoryIndex == _history.Count)
+            if (_savedCurrentLine._line == null)
             {
                 _savedCurrentLine._line = _buffer.ToString();
                 _savedCurrentLine._edits = _edits;
