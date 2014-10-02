@@ -14,6 +14,8 @@ using PSConsoleUtilities.Internal;
 
 namespace PSConsoleUtilities
 {
+    class ExitException : Exception { }
+
     public partial class PSConsoleReadLine : IPSConsoleReadLineMockableMethods
     {
         private static readonly PSConsoleReadLine _singleton;
@@ -232,6 +234,10 @@ namespace PSConsoleUtilities
             {
                 // Console is exiting - return value isn't too critical - null or 'exit' could work equally well.
                 return "";
+            }
+            catch (ExitException)
+            {
+                return "exit";
             }
             catch (Exception e)
             {

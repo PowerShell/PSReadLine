@@ -14,8 +14,14 @@ Bug fixes:
 
 New functions:
 * ValidateAndAcceptLine
+    Validate the command line (by making sure there are no parse errors, commands all exist,
+    and possibly other sorts of validation), display an error if any errors, but don't add
+    the command to history and clear the error after an edit.
+* DeleteCharOrExit
+    - emulate Ctrl+D in bash properly by exiting the process if the command line is empty
 
 New key bindings:
+* Ctrl+D bound to DeleteCharOrExit in Emacs mode
 
 New options:
 * Set-PSReadlineOption

@@ -171,7 +171,7 @@ namespace PSConsoleUtilities
                 { Keys.CtrlA,           MakeKeyHandler(BeginningOfLine,      "BeginningOfLine") },
                 { Keys.CtrlB,           MakeKeyHandler(BackwardChar,         "BackwardChar") },
                 { Keys.CtrlC,           MakeKeyHandler(CopyOrCancelLine,     "CopyOrCancelLine") },
-                { Keys.CtrlD,           MakeKeyHandler(DeleteChar,           "DeleteChar") },
+                { Keys.CtrlD,           MakeKeyHandler(DeleteCharOrExit,     "DeleteCharOrExit") },
                 { Keys.CtrlE,           MakeKeyHandler(EndOfLine,            "EndOfLine") },
                 { Keys.CtrlF,           MakeKeyHandler(ForwardChar,          "ForwardChar") },
                 { Keys.CtrlG,           MakeKeyHandler(Abort,                "Abort") },

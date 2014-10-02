@@ -121,6 +121,10 @@ LONG DESCRIPTION
 
         Delete the character under the cursor.
 
+    DeleteCharOrExit         (Cmd: unbound              Emacs: <Ctrl+D>)
+
+        Like DeleteChar, unless the line is empty, in which case exit the process.
+
     AcceptLine               (Cmd: <Enter>              Emacs: <Enter> or <Ctrl+M>)
 
         Attempt to execute the current input.  If the current input is incomplete (for

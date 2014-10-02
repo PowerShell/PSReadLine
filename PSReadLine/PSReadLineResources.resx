@@ -412,4 +412,7 @@ Exception:
     <value>Accept the input or move to the next line if input is missing a closing token.
 If there are other parse errors, unresolved commands, or incorrect parameters, show the error and continue editing.</value>
   </data>
+  <data name="DeleteCharOrExitDescription" xml:space="preserve">
+    <value>Delete the character under the cusor, or if the line is empty, exit the process.</value>
+  </data>
 </root>

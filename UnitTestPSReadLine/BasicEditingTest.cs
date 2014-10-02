@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using PSConsoleUtilities;
 
@@ -147,6 +148,18 @@ namespace UnitTestPSReadLine
 
             // Delete middle character
             Test("ac", Keys("abc", _.Home, _.RightArrow, _.Delete));
+        }
+
+        [TestMethod]
+        public void TestDeleteCharOrExit()
+        {
+            TestSetup(KeyMode.Emacs);
+
+            Test("exit", Keys(_.CtrlD, InputAcceptedNow));
+
+            Test("foo", Keys("foo", _.CtrlD));
+            Test("oo", Keys("foo", _.Home, _.CtrlD));
+            Test("exit", Keys("foo", _.Home, Enumerable.Repeat(_.CtrlD, 4), InputAcceptedNow));
         }
 
         [TestMethod]

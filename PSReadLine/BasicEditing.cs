@@ -161,26 +161,45 @@ namespace PSConsoleUtilities
             }
         }
 
+        private void DeleteCharImpl(bool orExit)
+        {
+            if (_visualSelectionCommandCount > 0)
+            {
+                int start, length;
+                GetRegion(out start, out length);
+                Delete(start, length);
+                return;
+            }
+
+            if (_buffer.Length > 0)
+            {
+                if (_current < _buffer.Length)
+                {
+                    SaveEditItem(EditItemDelete.Create(new string(_buffer[_current], 1), _current));
+                    _buffer.Remove(_current, 1);
+                    Render();
+                }
+            }
+            else if (orExit)
+            {
+                throw new ExitException();
+            }
+        }
+
         /// <summary>
         /// Delete the character under the cursor.
         /// </summary>
         public static void DeleteChar(ConsoleKeyInfo? key = null, object arg = null)
         {
-            if (_singleton._visualSelectionCommandCount > 0)
-            {
-                int start, length;
-                _singleton.GetRegion(out start, out length);
-                Delete(start, length);
-                return;
-            }
+            _singleton.DeleteCharImpl(orExit: false);
+        }
 
-            if (_singleton._buffer.Length > 0 && _singleton._current < _singleton._buffer.Length)
-            {
-                _singleton.SaveEditItem(
-                    EditItemDelete.Create(new string(_singleton._buffer[_singleton._current], 1), _singleton._current));
-                _singleton._buffer.Remove(_singleton._current, 1);
-                _singleton.Render();
-            }
+        /// <summary>
+        /// Delete the character under the cursor, or if the line is empty, exit the process
+        /// </summary>
+        public static void DeleteCharOrExit(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            _singleton.DeleteCharImpl(orExit: true);
         }
 
         private bool AcceptLineImpl(bool validate)
