@@ -22,6 +22,7 @@ New functions:
 
 New key bindings:
 * Ctrl+D bound to DeleteCharOrExit in Emacs mode
+* Ctrl+N/Ctrl+P bound to NextHistory/PreviousHistory in Emacs mode
 
 New options:
 * Set-PSReadlineOption

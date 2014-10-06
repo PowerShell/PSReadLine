@@ -220,11 +220,11 @@ LONG DESCRIPTION
 
         Clears history in PSReadline.  This does not affect PowerShell history.
 
-    PreviousHistory          (Cmd: <UpArrow>            Emacs: <UpArrow>)
+    PreviousHistory          (Cmd: <UpArrow>            Emacs: <UpArrow> or <Ctrl+P>)
 
         Replace the current input with the 'previous' item from PSReadline history.
 
-    NextHistory              (Cmd: <DownArrow>          Emacs: <DownArrow>)
+    NextHistory              (Cmd: <DownArrow>          Emacs: <DownArrow> or <Ctrl+N>)
 
         Replace the current input with the 'next' item from PSReadline history.
 
