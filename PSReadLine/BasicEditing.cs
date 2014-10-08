@@ -347,7 +347,9 @@ namespace PSConsoleUtilities
             {
                 // If we dot source something, we can't in general know what is being
                 // dot sourced so just assume the unresolved command will work.
-                if (cmdAst.InvocationOperator == TokenKind.Dot)
+                // If we use the invocation operator, allow that because an expression
+                // is being invoked and it's reasonable to just allow it.
+                if (cmdAst.InvocationOperator != TokenKind.Unknown)
                 {
                     return true;
                 }
@@ -357,8 +359,7 @@ namespace PSConsoleUtilities
                 if (candidateCommand.Equals("Import-Module", StringComparison.OrdinalIgnoreCase)
                     || candidateCommand.Equals("ipmo", StringComparison.OrdinalIgnoreCase)
                     || candidateCommand.Equals("Invoke-Expression", StringComparison.OrdinalIgnoreCase)
-                    || candidateCommand.Equals("iex", StringComparison.OrdinalIgnoreCase)
-                    )
+                    || candidateCommand.Equals("iex", StringComparison.OrdinalIgnoreCase))
                 {
                     return true;
                 }
