@@ -1,4 +1,4 @@
-param([switch]$Install)
+param([switch]$Install, [switch]$BuildChocolatey)
 
 add-type -AssemblyName System.IO.Compression.FileSystem
 
@@ -45,7 +45,7 @@ $version = (Get-ChildItem -Path $targetDir\PSReadline.dll).VersionInfo.FileVersi
 & $PSScriptRoot\Update-ModuleManifest.ps1 $targetDir\PSReadline.psd1 $version
 
 #make sure chocolatey is installed and in the path
-if (Get-Command -Name cpack -ErrorAction Ignore)
+if ($BuildChocolatey -and (Get-Command -Name cpack -ErrorAction Ignore))
 {
     $chocolateyDir = "$PSScriptRoot\ChocolateyPackage"
 
