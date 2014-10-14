@@ -32,6 +32,9 @@ New options:
       -ValidationHandler
           A delegate that is called from ValidateAndAcceptLine that can perform custom validation
 
+New cmdlet:
+* Remove-PSReadlineKeyHandler
+    This will remove a key binding for previously bound keys.
 
 ### Version 1.0.0.12
 

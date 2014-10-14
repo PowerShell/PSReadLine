@@ -652,4 +652,19 @@ namespace PSConsoleUtilities
             WriteObject(PSConsoleReadLine.GetKeyHandlers(bound, unbound), true);
         }
     }
+
+    [Cmdlet("Remove", "PSReadlineKeyHandler")]
+    public class RemoveKeyHandlerCommand : PSCmdlet
+    {
+        [Parameter(Position = 0, Mandatory = true)]
+        [Alias("Key")]
+        [ValidateNotNullOrEmpty]
+        public string[] Chord { get; set; }
+
+        [ExcludeFromCodeCoverage]
+        protected override void EndProcessing()
+        {
+            PSConsoleReadLine.RemoveKeyHandler(Chord);
+        }
+    }
 }

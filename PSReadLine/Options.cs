@@ -191,6 +191,30 @@ namespace PSConsoleUtilities
             }
         }
 
+        private void RemoveKeyHandlerInternal(string[] keys)
+        {
+            foreach (var key in keys)
+            {
+                var chord = ConsoleKeyChordConverter.Convert(key);
+                if (chord.Length == 1)
+                {
+                    _dispatchTable.Remove(chord[0]);
+                }
+                else
+                {
+                    Dictionary<ConsoleKeyInfo, KeyHandler> secondDispatchTable;
+                    if (_chordDispatchTable.TryGetValue(chord[0], out secondDispatchTable))
+                    {
+                        secondDispatchTable.Remove(chord[1]);
+                        if (secondDispatchTable.Count == 0)
+                        {
+                            _dispatchTable.Remove(chord[0]);
+                        }
+                    }
+                }
+            }
+        }
+
         /// <summary>
         /// Helper function for the Set-PSReadlineOption cmdlet.
         /// </summary>
@@ -225,6 +249,15 @@ namespace PSConsoleUtilities
         public static void SetKeyHandler(string[] key, Action<ConsoleKeyInfo?, object> handler, string briefDescription, string longDescription)
         {
             _singleton.SetKeyHandlerInternal(key, handler, briefDescription, longDescription, null);
+        }
+
+        /// <summary>
+        /// Helper function for the Remove-PSReadlineKeyHandler cmdlet.
+        /// </summary>
+        /// <param name="key"></param>
+        public static void RemoveKeyHandler(string[] key)
+        {
+            _singleton.RemoveKeyHandlerInternal(key);
         }
 
         /// <summary>
