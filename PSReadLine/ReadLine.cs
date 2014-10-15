@@ -133,27 +133,51 @@ namespace PSConsoleUtilities
 
                     // If we timed out, check for event subscribers (which is just
                     // a hint that there might be an event waiting to be processed.)
-                    // If there are any event subscribers that have an action (which might
-                    // write to the console) and have a source object (i.e. aren't engine
-                    // events), run a tiny useless bit of PowerShell so that the events
-                    // can be processed.
-                    var eventSubscribers = Runspace.DefaultRunspace.Events.Subscribers;
-                    if (eventSubscribers.Any(sub => sub.Action != null && sub.SourceObject != null))
+                    var eventSubscribers = _singleton._engineIntrinsics.Events.Subscribers;
+                    if (eventSubscribers.Count > 0)
                     {
-                        if (ps == null)
+                        bool runPipelineForEventProcessing = false;
+                        foreach (var sub in eventSubscribers)
                         {
-                            ps = PowerShell.Create(RunspaceMode.CurrentRunspace);
-                            ps.AddScript("0");
+                            if (sub.SourceIdentifier.Equals("PowerShell.OnIdle", StringComparison.OrdinalIgnoreCase))
+                            {
+                                // There is an OnIdle event.  We're idle because we timed out.  Normally
+                                // PowerShell generates this event, but PowerShell assumes the engine is not
+                                // idle because it called PSConsoleHostReadline which isn't returning.
+                                // So we generate the event intstead.
+                                _singleton._engineIntrinsics.Events.GenerateEvent("PowerShell.OnIdle", null, null, null);
+                                runPipelineForEventProcessing = true;
+                                break;
+                            }
+
+                            // If there are any event subscribers that have an action (which might
+                            // write to the console) and have a source object (i.e. aren't engine
+                            // events), run a tiny useless bit of PowerShell so that the events
+                            // can be processed.
+                            if (sub.Action != null && sub.SourceObject != null)
+                            {
+                                runPipelineForEventProcessing = true;
+                                break;
+                            }
                         }
 
-                        // To detect output during possible event processing, see if the cursor moved
-                        // and rerender if so.
-                        var y = Console.CursorTop;
-                        ps.Invoke();
-                        if (y != Console.CursorTop)
+                        if (runPipelineForEventProcessing)
                         {
-                            _singleton._initialY = Console.CursorTop;
-                            _singleton.Render();
+                            if (ps == null)
+                            {
+                                ps = PowerShell.Create(RunspaceMode.CurrentRunspace);
+                                ps.AddScript("0");
+                            }
+
+                            // To detect output during possible event processing, see if the cursor moved
+                            // and rerender if so.
+                            var y = Console.CursorTop;
+                            ps.Invoke();
+                            if (y != Console.CursorTop)
+                            {
+                                _singleton._initialY = Console.CursorTop;
+                                _singleton.Render();
+                            }
                         }
                     }
                 }
