@@ -463,9 +463,17 @@ LONG DESCRIPTION
 
         Scroll the display up one screen.
 
+    ScrollDisplayUpLine      (Cmd: <Ctrl+PageUp>        Emacs: <Ctrl+PageUp>)
+
+        Scroll the display up one line.
+
     ScrollDisplayDown        (Cmd: <PageDown>           Emacs: <PageDown>)
 
         Scroll the display down one screen.
+
+    ScrollDisplayDownLine    (Cmd: <Ctrl+PageDown>      Emacs: <Ctrl+PageDown>)
+
+        Scroll the display down one line.
 
     ScrollDisplayTop         (Cmd: unbound              Emacs: <Ctrl+Home>)
 

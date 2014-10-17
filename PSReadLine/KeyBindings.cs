@@ -141,6 +141,8 @@ namespace PSConsoleUtilities
                 { Keys.ShiftF8,                MakeKeyHandler(HistorySearchForward,      "HistorySearchForward") },
                 { Keys.PageUp,                 MakeKeyHandler(ScrollDisplayUp,           "ScrollDisplayUp") },
                 { Keys.PageDown,               MakeKeyHandler(ScrollDisplayDown,         "ScrollDisplayDown") },
+                { Keys.CtrlPageUp,             MakeKeyHandler(ScrollDisplayUpLine,       "ScrollDisplayUpLine") },
+                { Keys.CtrlPageDown,           MakeKeyHandler(ScrollDisplayDownLine,     "ScrollDisplayDownLine") },
             };
 
             _chordDispatchTable = new Dictionary<ConsoleKeyInfo, Dictionary<ConsoleKeyInfo, KeyHandler>>();
@@ -221,7 +223,9 @@ namespace PSConsoleUtilities
                 { Keys.VolumeUp,        MakeKeyHandler(Ignore,               "Ignore") },
                 { Keys.VolumeMute,      MakeKeyHandler(Ignore,               "Ignore") },
                 { Keys.PageUp,          MakeKeyHandler(ScrollDisplayUp,      "ScrollDisplayUp") },
+                { Keys.CtrlPageUp,      MakeKeyHandler(ScrollDisplayUpLine,  "ScrollDisplayUpLine") },
                 { Keys.PageDown,        MakeKeyHandler(ScrollDisplayDown,    "ScrollDisplayDown") },
+                { Keys.CtrlPageDown,    MakeKeyHandler(ScrollDisplayDownLine,"ScrollDisplayDownLine") },
                 { Keys.CtrlHome,        MakeKeyHandler(ScrollDisplayTop,     "ScrollDisplayTop") },
                 { Keys.CtrlEnd,         MakeKeyHandler(ScrollDisplayToCursor,"ScrollDisplayToCursor") },
             };

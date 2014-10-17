@@ -21,9 +21,13 @@ New functions:
     the command to history and clear the error after an edit.
 * DeleteCharOrExit
     - emulate Ctrl+D in bash properly by exiting the process if the command line is empty
+* ScrollDisplayUpLine, ScrollDisplayDownLine
+    Scroll the screen up or down by a line instead of by the screen
 
 New key bindings:
 * Ctrl+D bound to DeleteCharOrExit in Emacs mode
+* Ctrl+PageUp bound to ScrollDisplayUpLine
+* Ctrl+PageDown bound to ScrollDisplayDownLine
 
 New options:
 * Set-PSReadlineOption

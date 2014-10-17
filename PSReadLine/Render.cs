@@ -754,7 +754,24 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void ScrollDisplayUp(ConsoleKeyInfo? key = null, object arg = null)
         {
-            var newTop = Console.WindowTop - Console.WindowHeight;
+            int numericArg;
+            TryGetArgAsInt(arg, out numericArg, +1);
+            var newTop = Console.WindowTop - (numericArg * Console.WindowHeight);
+            if (newTop < 0)
+            {
+                newTop = 0;
+            }
+            Console.SetWindowPosition(0, newTop);
+        }
+
+        /// <summary>
+        /// Scroll the display up one line.
+        /// </summary>
+        public static void ScrollDisplayUpLine(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            int numericArg;
+            TryGetArgAsInt(arg, out numericArg, +1);
+            var newTop = Console.WindowTop - numericArg;
             if (newTop < 0)
             {
                 newTop = 0;
@@ -767,7 +784,24 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void ScrollDisplayDown(ConsoleKeyInfo? key = null, object arg = null)
         {
-            var newTop = Console.WindowTop + Console.WindowHeight;
+            int numericArg;
+            TryGetArgAsInt(arg, out numericArg, +1);
+            var newTop = Console.WindowTop + (numericArg * Console.WindowHeight);
+            if (newTop > (Console.BufferHeight - Console.WindowHeight))
+            {
+                newTop = (Console.BufferHeight - Console.WindowHeight);
+            }
+            Console.SetWindowPosition(0, newTop);
+        }
+
+        /// <summary>
+        /// Scroll the display down one line.
+        /// </summary>
+        public static void ScrollDisplayDownLine(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            int numericArg;
+            TryGetArgAsInt(arg, out numericArg, +1);
+            var newTop = Console.WindowTop + numericArg;
             if (newTop > (Console.BufferHeight - Console.WindowHeight))
             {
                 newTop = (Console.BufferHeight - Console.WindowHeight);

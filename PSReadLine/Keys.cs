@@ -212,6 +212,12 @@ namespace PSConsoleUtilities
         public static ConsoleKeyInfo UpArrow      = new ConsoleKeyInfo((char)0, ConsoleKey.UpArrow, false, false, false);
         public static ConsoleKeyInfo PageUp       = new ConsoleKeyInfo((char)0, ConsoleKey.PageUp, false, false, false);
         public static ConsoleKeyInfo PageDown     = new ConsoleKeyInfo((char)0, ConsoleKey.PageDown, false, false, false);
+        public static ConsoleKeyInfo ShiftPageUp   = new ConsoleKeyInfo((char)0, ConsoleKey.PageUp, true, false, false);
+        public static ConsoleKeyInfo ShiftPageDown = new ConsoleKeyInfo((char)0, ConsoleKey.PageDown, true, false, false);
+        public static ConsoleKeyInfo CtrlPageUp    = new ConsoleKeyInfo((char)0, ConsoleKey.PageUp, false, false, true);
+        public static ConsoleKeyInfo CtrlPageDown  = new ConsoleKeyInfo((char)0, ConsoleKey.PageDown, false, false, true);
+        public static ConsoleKeyInfo AltPageUp     = new ConsoleKeyInfo((char)0, ConsoleKey.PageUp, false, true, false);
+        public static ConsoleKeyInfo AltPageDown   = new ConsoleKeyInfo((char)0, ConsoleKey.PageDown, false, true, false);
 
         public static ConsoleKeyInfo ShiftLeftArrow  = new ConsoleKeyInfo((char)0, ConsoleKey.LeftArrow, true, false, false);
         public static ConsoleKeyInfo ShiftRightArrow = new ConsoleKeyInfo((char)0, ConsoleKey.RightArrow, true, false, false);

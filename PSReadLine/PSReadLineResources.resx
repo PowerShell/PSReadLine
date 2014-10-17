@@ -354,6 +354,9 @@
   <data name="ScrollDisplayDownDescription" xml:space="preserve">
     <value>Scroll the display down one screen</value>
   </data>
+  <data name="ScrollDisplayDownLineDescription" xml:space="preserve">
+    <value>Scroll the display down one line</value>
+  </data>
   <data name="ScrollDisplayToCursorDescription" xml:space="preserve">
     <value>Scroll the display to the cursor</value>
   </data>
@@ -362,6 +365,9 @@
   </data>
   <data name="ScrollDisplayUpDescription" xml:space="preserve">
     <value>Scroll the display up one screen</value>
+  </data>
+  <data name="ScrollDisplayUpLineDescription" xml:space="preserve">
+    <value>Scroll the display up one line</value>
   </data>
   <data name="SelectShellNextWordDescription" xml:space="preserve">
     <value>Adjust the current selection to include the next word using ShellNextWord</value>
