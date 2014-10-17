@@ -413,8 +413,9 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void ClearScreen(ConsoleKeyInfo? key = null, object arg = null)
         {
-            Console.Clear();
-            _singleton._initialY = 0;
+            int top = Console.WindowTop;
+            WriteBlankLines(Console.WindowHeight, top);
+            _singleton._initialY = top;
             _singleton.Render();
         }
 

@@ -12,6 +12,7 @@ New features:
 Bug fixes:
 * Occasional exception with AcceptAndGetNext (Ctrl+O) followed by something other than Enter
 * Event handlers that register for the engine event PowerShell.OnIdle should work now.
+* ClearScreen now just clears the visible screen, not the entire buffer.
 
 New functions:
 * ValidateAndAcceptLine
