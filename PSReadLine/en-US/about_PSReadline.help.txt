@@ -483,37 +483,6 @@ LONG DESCRIPTION
 
         Scroll the display to the cursor.
 
-  Custom Key Binding Support
-  --------------------------
-
-  The following functions are public but cannot be directly bound to a key.  They are used
-  in custom key bindings.
-
-    Ding
-
-        Perform the Ding action based on the users perference.
-
-    GetBufferState(out string input, out int cursor)
-    GetBufferState(out Ast ast, out Token[] tokens, out ParseError[] parseErrors, out int cursor)
-
-        These two functions retrieve useful information about the current state of
-        the input buffer.  The first is more commonly used for simple cases.  The
-        second is used if your binding is doing something more advanced with the Ast.
-
-    Insert(char c)
-    Insert(string s)
-
-        Insert a character or string in a way that supports undo/redo.
-
-    Replace(int start, int length, string replacement)
-    
-        Replace some of the input in a way that supports undo/redo as a single action.
-        This is preferred over Delete followed by Insert to better support Undo.
-
-    SetCursorPosition(int offset)
-
-        Move the cursor to the given offset.  Cursor movement is not tracked for undo.
-
   Custom Key Bindings
   -------------------
 
@@ -522,17 +491,135 @@ LONG DESCRIPTION
 
       Set-PSReadlineKeyHandler -Key UpArrow -Function HistorySearchBackward
 
-  You can bind a ScriptBlock to a key.  This ScriptBlock can do pretty much anything you like.
-  For example, say you wanted to run a specific command after hitting Ctrl+B, you could do this:
+  You can bind a ScriptBlock to a key.  The ScriptBlock can do pretty much anything you want.
+  Some useful examples include:
 
-      Set-PSReadlineKeyHandler -Key Ctrl+B -BriefDescription build -LongDescription "Build the current directory" -ScriptBlock {
-          [PSConsoleUtilities.PSConsoleReadLine]::RevertLine()
-          [PSConsoleUtilities.PSConsoleReadLine]::Insert("build")
-          [PSConsoleUtilities.PSConsoleReadLine]::AcceptLine()
-      }
+      * edit the command line
+      * opening a new window (e.g. help)
+      * change directories without changing the command line
 
-  In this example, multiple functions are called and the end result is running the 'build' command
-  by entering Ctrl+B.
+  The ScriptBlock is passed two arguments:
+
+      * $key - A [ConsoleKeyInfo] that is the key that triggered the custom binding.  If you bind
+               the same ScriptBlock to multiple keys and need to perform different actions depending
+               on the key, you can check $key.  Many custom bindings ignore this argument.
+      * $arg - An arbitrary argument.  Most often, this would be an integer argument that the user
+               passes from the key bindings DigitArgument.  If your binding doesn't accept arguments,
+               it's reasonable to ignore this argument.
+
+  Let's take a look at an example that adds a command line to history without executing it.  This is
+  useful when you realize you forgot to do something, but don't want to re-enter the command line
+  you've already entered.
+
+        Set-PSReadlineKeyHandler -Key Alt+w `
+                                 -BriefDescription SaveInHistory `
+                                 -LongDescription "Save current line in history but do not execute" `
+                                 -ScriptBlock {
+            param($key, $arg)   # The arguments are ignored in this example
+
+            # We need the command line, GetBufferState gives us that (with the cursor position)
+            $line = $null
+            $cursor = $null
+            [PSConsoleUtilities.PSConsoleReadLine]::GetBufferState([ref]$line, [ref]$cursor)
+
+            # AddToHistory saves the line in history, but does not execute the line.
+            [PSConsoleUtilities.PSConsoleReadLine]::AddToHistory($line)
+
+            # RevertLine is like pressing Escape.
+            [PSConsoleUtilities.PSConsoleReadLine]::RevertLine()
+        }
+
+  You can see many more examples in the file SamplePSReadlineProfile.ps1 which is installed in the
+  PSReadline module folder.
+
+  Most key bindings will want to take advantage of some helper functions for editing the command
+  line those APIs are documented in the next section.
+
+  Custom Key Binding Support APIs
+  -------------------------------
+
+  The following functions are public in PSConsoleUtilities.PSConsoleReadline, but cannot be directly
+  bound to a key.  Most are useful in custom key bindings.
+
+    void AddToHistory(string command)
+
+        Add a command line to history without executing it.
+
+    void ClearHistory()
+
+        Clear the history.
+
+    void ClearKillRing()
+
+        Clear the kill ring.  This is mostly used for testing.
+
+    void Delete(int start, int length)
+
+        Delete length characters from start.  This operation supports undo/redo.
+
+    void Ding()
+
+        Perform the Ding action based on the users perference.
+
+    void GetBufferState([ref] string input, [ref] int cursor)
+    void GetBufferState([ref] Ast ast, [ref] Token[] tokens, [ref] ParseError[] parseErrors, [ref] int cursor)
+
+        These two functions retrieve useful information about the current state of
+        the input buffer.  The first is more commonly used for simple cases.  The
+        second is used if your binding is doing something more advanced with the Ast.
+
+    IEnumerable[PSConsoleUtilities.KeyHandler] GetKeyHandlers(bool includeBound, bool includeUnbound)
+
+        This function is used by Get-PSReadlineKeyHandler and probably isn't useful in a custom
+        key binding.
+
+    PSConsoleUtilities.PSConsoleReadlineOptions GetOptions()
+
+        This function is used by Get-PSReadlineOption and probably isn't too useful in a custom
+        key binding.
+
+    void GetSelectionState([ref] int start, [ref] int length)
+
+        If there is no selection on the command line, -1 will be returned in both start and length.
+        If there is a selection on the command line, the start and length of the selection are returned.
+
+    void Insert(char c)
+    void Insert(string s)
+
+        Insert a character or string at the cursor.  This operation supports undo/redo.
+
+    string ReadLine(runspace remoteRunspace, System.Management.Automation.EngineIntrinsics engineIntrinsics)
+
+        This is the main entrypoint to PSReadline. It does not support recursion, so is not useful
+        in a custom key binding.
+
+    void RemoveKeyHandler(string[] key)
+
+        This function is used by Remove-PSReadlineKeyHandler and probably isn't too useful in a
+        custom key binding.
+
+    void Replace(int start, int length, string replacement)
+    
+        Replace some of the input.  This operation supports undo/redo.
+        This is preferred over Delete followed by Insert because it is treated as a single action
+        for undo.
+
+    void SetCursorPosition(int cursor)
+
+        Move the cursor to the given offset.  Cursor movement is not tracked for undo.
+
+    void SetOptions(PSConsoleUtilities.SetPSReadlineOption options)
+
+        This function is a helper method used by the cmdlet Set-PSReadlineOption, but might be
+        useful to a custom key binding that wants to temporarily change a setting.
+
+    bool TryGetArgAsInt(System.Object arg, [ref] int numericArg, int defaultNumericArg)
+
+        This helper method is used for custom bindings that honor DigitArgument.  A typical call
+        looks like:
+
+            [int]$numericArg = 0
+            [PSConsoleUtilities.PSConsoleReadLine]::TryGetArgAsInt($arg, [ref]$numericArg, 1)
 
 POWERSHELL COMPATIBILITY
     
