@@ -29,6 +29,7 @@ New key bindings:
 * Ctrl+N/Ctrl+P bound to NextHistory/PreviousHistory in Emacs mode
 * Ctrl+PageUp bound to ScrollDisplayUpLine
 * Ctrl+PageDown bound to ScrollDisplayDownLine
+* Alt+F7 bound to ClearHistory in Windows mode
 
 New options:
 * Set-PSReadlineOption

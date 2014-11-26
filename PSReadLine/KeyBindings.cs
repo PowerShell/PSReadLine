@@ -135,6 +135,7 @@ namespace PSConsoleUtilities
                 { Keys.Alt9,                   MakeKeyHandler(DigitArgument,             "DigitArgument") },
                 { Keys.AltMinus,               MakeKeyHandler(DigitArgument,             "DigitArgument") },
                 { Keys.AltQuestion,            MakeKeyHandler(WhatIsKey,                 "WhatIsKey") },
+                { Keys.AltF7,                  MakeKeyHandler(ClearHistory,              "ClearHistory") },
                 { Keys.F3,                     MakeKeyHandler(CharacterSearch,           "CharacterSearch") },
                 { Keys.ShiftF3,                MakeKeyHandler(CharacterSearchBackward,   "CharacterSearchBackward") },
                 { Keys.F8,                     MakeKeyHandler(HistorySearchBackward,     "HistorySearchBackward") },

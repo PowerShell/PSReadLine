@@ -248,7 +248,7 @@ namespace PSConsoleUtilities
         /// <summary>
         /// Clears history in PSReadline.  This does not affect PowerShell history.
         /// </summary>
-        public static void ClearHistory()
+        public static void ClearHistory(ConsoleKeyInfo? key = null, object arg = null)
         {
             if (_singleton._history != null)
             {

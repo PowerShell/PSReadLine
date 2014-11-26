@@ -216,7 +216,7 @@ LONG DESCRIPTION
   History
   -------
 
-    ClearHistory             (Cmd: unbound              Emacs: unbound)
+    ClearHistory             (Cmd: Alt+F7               Emacs: unbound)
 
         Clears history in PSReadline.  This does not affect PowerShell history.
 
@@ -544,10 +544,6 @@ LONG DESCRIPTION
     void AddToHistory(string command)
 
         Add a command line to history without executing it.
-
-    void ClearHistory()
-
-        Clear the history.
 
     void ClearKillRing()
 

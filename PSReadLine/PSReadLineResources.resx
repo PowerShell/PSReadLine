@@ -147,7 +147,7 @@
   <data name="ClearKillRingDescription" xml:space="preserve">
     <value>Remove all items from the kill ring</value>
   </data>
-  <data name="ClearyHistoryDescription" xml:space="preserve">
+  <data name="ClearHistoryDescription" xml:space="preserve">
     <value>Remove all items from the command line history (not PowerShell history)</value>
   </data>
   <data name="CompleteDescription" xml:space="preserve">
