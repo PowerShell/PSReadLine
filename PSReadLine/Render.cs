@@ -107,49 +107,69 @@ namespace PSConsoleUtilities
             int j               = _initialX + (_bufferWidth * Options.ExtraPromptLineCount);
             var backgroundColor = _initialBackgroundColor;
             var foregroundColor = _initialForegroundColor;
+            bool afterLastToken = false;
 
             for (int i = 0; i < text.Length; i++)
             {
-                // Figure out the color of the character - if it's in a token,
-                // use the tokens color otherwise use the initial color.
-                var state = tokenStack.Peek();
-                var token = state.Tokens[state.Index];
-                if (i == token.Extent.EndOffset)
+                SavedTokenState state = null;
+
+                if (!afterLastToken)
                 {
-                    if (token == state.Tokens[state.Tokens.Length - 1])
+                    // Figure out the color of the character - if it's in a token,
+                    // use the tokens color otherwise use the initial color.
+                    state = tokenStack.Peek();
+                    var token = state.Tokens[state.Index];
+                    if (i == token.Extent.EndOffset)
                     {
-                        tokenStack.Pop();
-                        state = tokenStack.Peek();
-                    }
-                    foregroundColor = state.ForegroundColor;
-                    backgroundColor = state.BackgroundColor;
-
-                    token = state.Tokens[++state.Index];
-                }
-
-                if (i == token.Extent.StartOffset)
-                {
-                    GetTokenColors(token, out foregroundColor, out backgroundColor);
-
-                    var stringToken = token as StringExpandableToken;
-                    if (stringToken != null)
-                    {
-                        // We might have nested tokens.
-                        if (stringToken.NestedTokens != null && stringToken.NestedTokens.Any())
+                        if (token == state.Tokens[state.Tokens.Length - 1])
                         {
-                            var tokens = new Token[stringToken.NestedTokens.Count + 1];
-                            stringToken.NestedTokens.CopyTo(tokens, 0);
-                            // NestedTokens doesn't have an "EOS" token, so we use
-                            // the string literal token for that purpose.
-                            tokens[tokens.Length - 1] = stringToken;
-
-                            tokenStack.Push(new SavedTokenState
+                            tokenStack.Pop();
+                            if (tokenStack.Count == 0)
                             {
-                                Tokens          = tokens,
-                                Index           = 0,
-                                BackgroundColor = backgroundColor,
-                                ForegroundColor = foregroundColor
-                            });
+                                afterLastToken = true;
+                                token = null;
+                                foregroundColor = _initialForegroundColor;
+                                backgroundColor = _initialBackgroundColor;
+                            }
+                            else
+                            {
+                                state = tokenStack.Peek();
+                            }
+                        }
+
+                        if (!afterLastToken)
+                        {
+                            foregroundColor = state.ForegroundColor;
+                            backgroundColor = state.BackgroundColor;
+
+                            token = state.Tokens[++state.Index];
+                        }
+                    }
+
+                    if (!afterLastToken && i == token.Extent.StartOffset)
+                    {
+                        GetTokenColors(token, out foregroundColor, out backgroundColor);
+
+                        var stringToken = token as StringExpandableToken;
+                        if (stringToken != null)
+                        {
+                            // We might have nested tokens.
+                            if (stringToken.NestedTokens != null && stringToken.NestedTokens.Any())
+                            {
+                                var tokens = new Token[stringToken.NestedTokens.Count + 1];
+                                stringToken.NestedTokens.CopyTo(tokens, 0);
+                                // NestedTokens doesn't have an "EOS" token, so we use
+                                // the string literal token for that purpose.
+                                tokens[tokens.Length - 1] = stringToken;
+
+                                tokenStack.Push(new SavedTokenState
+                                {
+                                    Tokens = tokens,
+                                    Index = 0,
+                                    BackgroundColor = backgroundColor,
+                                    ForegroundColor = foregroundColor
+                                });
+                            }
                         }
                     }
                 }
