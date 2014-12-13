@@ -72,6 +72,7 @@
     <Compile Include="UndoRedoTest.cs" />
     <Compile Include="UnitTestReadLine.cs" />
     <Compile Include="WordsTest.cs" />
+    <Compile Include="YankPasteTest.VI.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\PSReadLine\PSReadLine.csproj">

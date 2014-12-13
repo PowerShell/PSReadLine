@@ -121,8 +121,8 @@ namespace PSConsoleUtilities
         {
             if (_singleton._current > 0)
             {
-                var str = _singleton._buffer.ToString(0, _singleton._current);
-                _singleton.SaveEditItem(EditItemDelete.Create(str, 0));
+                _singleton._clipboard = _singleton._buffer.ToString(0, _singleton._current);
+                _singleton.SaveEditItem(EditItemDelete.Create(_singleton._clipboard, 0));
                 _singleton._buffer.Remove(0, _singleton._current);
                 _singleton._current = 0;
                 _singleton.Render();
@@ -155,6 +155,7 @@ namespace PSConsoleUtilities
                         BackwardDeleteChar,
                         arg)
                         );
+                _singleton.SaveToClipboard(startDeleteIndex, qty);
                 _singleton._buffer.Remove(startDeleteIndex, qty);
                 _singleton._current = startDeleteIndex;
                 _singleton.Render();
@@ -188,6 +189,7 @@ namespace PSConsoleUtilities
                     _singleton._current,
                     DeleteChar,
                     arg));
+                _singleton.SaveToClipboard(_singleton._current, qty);
                 _singleton._buffer.Remove(_singleton._current, qty);
                 if (_singleton._current >= _singleton._buffer.Length)
                 {

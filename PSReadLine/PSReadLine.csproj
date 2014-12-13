@@ -79,6 +79,7 @@
     <Compile Include="UndoRedo.vi.cs" />
     <Compile Include="UndoRedo.cs" />
     <Compile Include="Words.cs" />
+    <Compile Include="YankPaste.vi.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />

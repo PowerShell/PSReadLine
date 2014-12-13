@@ -144,7 +144,14 @@ namespace PSConsoleUtilities
                 _singleton._current--;
                 _singleton.PlaceCursor();
             }
-            ViInsertMode(key, arg);
+            if (_singleton._current == _singleton._buffer.Length - 1)
+            {
+                ViInsertWithAppend(key, arg);
+            }
+            else
+            {
+                ViInsertMode(key, arg);
+            }
         }
 
         private static void ReplaceChar(ConsoleKeyInfo? key, object arg)

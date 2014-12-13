@@ -98,6 +98,21 @@ namespace UnitTestPSReadLine
         }
 
         [TestMethod]
+        public void ViTestDotWordMovement()
+        {
+            TestSetup(KeyMode.Vi);
+
+            Test("abc.def.ghi 123.456.789", Keys(
+                "abc", _.Period, "def", _.Period, "ghi 123", _.Period, "456", _.Period, "789",
+                CheckThat(() => AssertCursorLeftIs(23)),
+                _.Escape,
+                CheckThat(() => AssertCursorLeftIs(22)),
+                "b", CheckThat(() => AssertCursorLeftIs(20)),
+                "b", CheckThat(() => AssertCursorLeftIs(19))
+                ));
+        }
+
+        [TestMethod]
         public void ViTestCursorMovement()
         {
             TestSetup( KeyMode.Vi );

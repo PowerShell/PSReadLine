@@ -275,8 +275,9 @@ namespace PSConsoleUtilities
                 return;
             }
 
+            _singleton._clipboard = _singleton._buffer.ToString(_singleton._current, _singleton._buffer.Length - _singleton._current);
             _singleton.SaveEditItem(EditItemDelete.Create(
-                _singleton._buffer.ToString(_singleton._current, _singleton._buffer.Length - _singleton._current),
+                _singleton._clipboard,
                 _singleton._current,
                 DeleteToEnd,
                 arg
@@ -303,13 +304,18 @@ namespace PSConsoleUtilities
                 Ding();
                 return;
             }
+            _singleton.SaveToClipboard(_singleton._current, endPoint - _singleton._current);
             _singleton.SaveEditItem(EditItemDelete.Create(
-                _singleton._buffer.ToString(_singleton._current, endPoint - _singleton._current),
+                _singleton._clipboard,
                 _singleton._current,
                 DeleteWord,
                 arg
                 ));
             _singleton._buffer.Remove(_singleton._current, endPoint - _singleton._current);
+            if (_singleton._current >= _singleton._buffer.Length && _singleton._buffer.Length > 0)
+            {
+                _singleton._current = _singleton._buffer.Length - 1;
+            }
             _singleton.Render();
         }
 
@@ -330,8 +336,9 @@ namespace PSConsoleUtilities
                 Ding();
                 return;
             }
+            _singleton.SaveToClipboard(_singleton._current, endPoint - _singleton._current);
             _singleton.SaveEditItem(EditItemDelete.Create(
-                _singleton._buffer.ToString(_singleton._current, endPoint - _singleton._current),
+                _singleton._clipboard,
                 _singleton._current,
                 DeleteWord,
                 arg
@@ -513,8 +520,8 @@ namespace PSConsoleUtilities
                     }
                 }
 
-                var str = _singleton._buffer.ToString(i, _singleton._current - i);
-                _singleton.SaveEditItem(EditItemDelete.Create(str, i, DeleteLineToFirstChar));
+                _singleton.SaveToClipboard(i, _singleton._current - i);
+                _singleton.SaveEditItem(EditItemDelete.Create(_singleton._clipboard, i, DeleteLineToFirstChar));
 
                 _singleton._buffer.Remove(i, _singleton._current - i);
                 _singleton._current = i;
@@ -531,7 +538,8 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void DeleteLine(ConsoleKeyInfo? key = null, object arg = null)
         {
-            _singleton.SaveEditItem(EditItemDelete.Create(_singleton._buffer.ToString(), 0));
+            _singleton._clipboard = _singleton._buffer.ToString();
+            _singleton.SaveEditItem(EditItemDelete.Create(_singleton._clipboard, 0));
             _singleton._current = 0;
             _singleton._buffer.Remove(0, _singleton._buffer.Length);
             _singleton.Render();
@@ -553,8 +561,9 @@ namespace PSConsoleUtilities
                 Ding();
                 return;
             }
+            _singleton._clipboard = _singleton._buffer.ToString(deletePoint, _singleton._current - deletePoint);
             _singleton.SaveEditItem(EditItemDelete.Create(
-                _singleton._buffer.ToString(deletePoint, _singleton._current - deletePoint),
+                _singleton._clipboard,
                 deletePoint,
                 BackwardDeleteWord,
                 arg
@@ -593,7 +602,8 @@ namespace PSConsoleUtilities
         {
             int length = last - first + 1;
 
-            _singleton.SaveEditItem(EditItemDelete.Create(_singleton._buffer.ToString(first, length), first, action));
+            _singleton.SaveToClipboard(first, length);
+            _singleton.SaveEditItem(EditItemDelete.Create(_singleton._clipboard, first, action));
             _singleton._current = first;
             _singleton._buffer.Remove(first, length);
             _singleton.Render();
