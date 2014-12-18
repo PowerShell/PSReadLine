@@ -78,10 +78,6 @@ namespace PSConsoleUtilities
             while (numericArg-- > 0)
             {
                 int i = _singleton.FindNextWordPoint(_singleton.Options.WordDelimiters);
-                if (_singleton._options.EditMode == EditMode.Vi && i >= _singleton._buffer.Length)
-                {
-                    i += ViEndOfLineFactor;
-                }
                 _singleton._current = i;
                 _singleton.PlaceCursor();
             }

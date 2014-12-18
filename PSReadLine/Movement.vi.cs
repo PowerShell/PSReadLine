@@ -8,6 +8,157 @@ namespace PSConsoleUtilities
     public partial class PSConsoleReadLine
     {
         /// <summary>
+        /// Move the cursor forward to the start of the next word.
+        /// Word boundaries are defined by a configurable set of characters.
+        /// </summary>
+        public static void ViNextWord(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            int numericArg;
+            if (!TryGetArgAsInt(arg, out numericArg, 1))
+            {
+                return;
+            }
+
+            if (numericArg < 0)
+            {
+                ViBackwardWord(key, -numericArg);
+                return;
+            }
+
+            while (numericArg-- > 0)
+            {
+                int i = _singleton.ViFindNextWordPoint(_singleton.Options.WordDelimiters);
+                if (i >= _singleton._buffer.Length)
+                {
+                    i += ViEndOfLineFactor;
+                }
+                _singleton._current = i;
+                _singleton.PlaceCursor();
+            }
+        }
+
+        /// <summary>
+        /// Move the cursor back to the start of the current word, or if between words,
+        /// the start of the previous word.  Word boundaries are defined by a configurable
+        /// set of characters.
+        /// </summary>
+        public static void ViBackwardWord(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            int numericArg;
+            if (!TryGetArgAsInt(arg, out numericArg, 1))
+            {
+                return;
+            }
+
+            if (numericArg < 0)
+            {
+                ViNextWord(key, -numericArg);
+                return;
+            }
+
+            while (numericArg-- > 0)
+            {
+                int i = _singleton.ViFindPreviousWordPoint(_singleton.Options.WordDelimiters);
+                _singleton._current = i;
+                _singleton.PlaceCursor();
+            }
+        }
+
+        /// <summary>
+        /// Moves the cursor back to the beginning of the previous word, using only white space as delimiters.
+        /// </summary>
+        public static void ViBackwardGlob(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            int numericArg;
+            if (!TryGetArgAsInt(arg, out numericArg, 1))
+            {
+                return;
+            }
+
+            if (numericArg < 0)
+            {
+                ViNextGlob(key, -numericArg);
+                return;
+            }
+
+            while (numericArg-- > 0)
+            {
+                int i = _singleton.ViFindPreviousWord();
+                _singleton._current = i;
+                _singleton.PlaceCursor();
+            }
+        }
+
+        /// <summary>
+        /// Moves to the next word, using only white space as a word delimiter.
+        /// </summary>
+        private static void ViNextGlob(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            int numericArg;
+            if (!TryGetArgAsInt(arg, out numericArg, 1))
+            {
+                return;
+            }
+
+            if (numericArg < 0)
+            {
+                ViBackwardGlob(key, -numericArg);
+                return;
+            }
+
+            while (numericArg-- > 0)
+            {
+                int i = _singleton.ViFindNextWord();
+                _singleton._current = i;
+                _singleton.PlaceCursor();
+            }
+        }
+
+        private static void ViEndOfGlob(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            int numericArg;
+            if (!TryGetArgAsInt(arg, out numericArg, 1))
+            {
+                return;
+            }
+
+            if (numericArg < 0)
+            {
+                ViEndOfPreviousGlob(key, -numericArg);
+                return;
+            }
+
+            while (numericArg-- > 0)
+            {
+                int i = _singleton.ViFindEndOfWord();
+                _singleton._current = i;
+                _singleton.PlaceCursor();
+            }
+        }
+
+        private static void ViEndOfPreviousGlob(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            int numericArg;
+            if (!TryGetArgAsInt(arg, out numericArg, 1))
+            {
+                return;
+            }
+
+            if (numericArg < 0)
+            {
+                ViEndOfGlob(key, -numericArg);
+                return;
+            }
+
+            while (numericArg-- > 0)
+            {
+                int i = _singleton.ViFindEndOfPreviousWord();
+                _singleton._current = i;
+                _singleton.PlaceCursor();
+            }
+        }
+
+        /// <summary>
         /// Returns 0 if the cursor is allowed to go past the last character in the line, -1 otherwise.
         /// </summary>
         /// <seealso cref="ForwardChar"/>
