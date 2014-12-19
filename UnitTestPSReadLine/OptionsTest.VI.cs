@@ -21,7 +21,6 @@ namespace UnitTestPSReadLine
                 Assert.AreEqual("Unbound", handler.Key);
                 Assert.IsFalse(string.IsNullOrWhiteSpace(handler.Function));
                 Assert.IsFalse(string.IsNullOrWhiteSpace(handler.Description));
-                Assert.IsFalse(string.IsNullOrWhiteSpace(handler.Mode));
             }
 
             foreach (var handler in PSConsoleReadLine.GetKeyHandlers(includeBound: true, includeUnbound: false))
@@ -29,7 +28,6 @@ namespace UnitTestPSReadLine
                 Assert.AreNotEqual("Unbound", handler.Key);
                 Assert.IsFalse(string.IsNullOrWhiteSpace(handler.Function));
                 Assert.IsFalse(string.IsNullOrWhiteSpace(handler.Description));
-                Assert.IsFalse(string.IsNullOrWhiteSpace(handler.Mode));
             }
         }
     }
