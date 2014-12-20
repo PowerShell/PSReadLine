@@ -86,7 +86,7 @@ namespace PSConsoleUtilities
         private static void ViReplaceBrace(ConsoleKeyInfo? key, object arg)
         {
             _singleton._groupUndoHelper.StartGroup(ViReplaceBrace, arg);
-            DeleteBrace(key, arg);
+            ViDeleteBrace(key, arg);
             ViInsertMode(key, arg);
         }
 

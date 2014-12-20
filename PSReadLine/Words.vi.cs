@@ -268,8 +268,87 @@ namespace PSConsoleUtilities
 
         private int ViFindEndOfWord()
         {
+            return ViFindEndOfWord(_current);
+        }
+
+        /// <summary>
+        /// Find the end of the current/next word as defined by wordDelimiters and whitespace.
+        /// </summary>
+        private int FindNextWordEnd(string wordDelimiters)
+        {
             int i = _current;
 
+            return FindNextWordEnd(i, wordDelimiters);
+        }
+
+        /// <summary>
+        /// Find the end of the current/next word as defined by wordDelimiters and whitespace.
+        /// </summary>
+        private int FindNextWordEnd(int i, string wordDelimiters)
+        {
+            if (IsAtEndOfLine(i))
+            {
+                return i;
+            }
+
+            if (IsDelimiter(i, wordDelimiters) && !IsDelimiter(i + 1, wordDelimiters))
+            {
+                i++;
+                if (IsAtEndOfLine(i))
+                {
+                    return i;
+                }
+            }
+            else if (InWord(i, wordDelimiters) && !InWord(i + 1, wordDelimiters))
+            {
+                i++;
+                if (IsAtEndOfLine(i))
+                {
+                    return i;
+                }
+            }
+
+            while (!IsAtEndOfLine(i) && IsWhiteSpace(i))
+            {
+                i++;
+            }
+
+            if (IsAtEndOfLine(i))
+            {
+                return i;
+            }
+
+            if (IsDelimiter(i, wordDelimiters))
+            {
+                while (!IsAtEndOfLine(i) && IsDelimiter(i, wordDelimiters))
+                {
+                    i++;
+                }
+                if (!IsDelimiter(i, wordDelimiters))
+                {
+                    return i - 1;
+                }
+            }
+            else
+            {
+                while (!IsAtEndOfLine(i) && InWord(i, wordDelimiters))
+                {
+                    i++;
+                }
+                if (!InWord(i, wordDelimiters))
+                {
+                    return i - 1;
+                }
+            }
+
+            return i;
+        }
+
+        /// <summary>
+        /// Return the last character in a white space defined word after skipping contiguous white space.
+        /// </summary>
+        private int ViFindEndOfWord(int i)
+        {
             if (IsAtEndOfLine(i))
             {
                 return i;
@@ -279,27 +358,6 @@ namespace PSConsoleUtilities
             {
                 return i;
             }
-
-            if (IsWhiteSpace(i))
-            {
-                return ViFindEndOfWord(i);
-            }
-            while (!IsAtEndOfLine(i) && !IsWhiteSpace(i))
-            {
-                i++;
-            }
-            if (!IsWhiteSpace(i))
-            {
-                return i;
-            }
-            return i - 1;
-        }
-
-        /// <summary>
-        /// Return the last character in a white space defined word after skipping contiguous white space.
-        /// </summary>
-        private int ViFindEndOfWord(int i)
-        {
             while (!IsAtEndOfLine(i) && IsWhiteSpace(i))
             {
                 i++;

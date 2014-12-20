@@ -321,13 +321,32 @@ namespace UnitTestPSReadLine
         }
 
         [TestMethod]
-        public void TestPercent()
+        public void ViTestPercent()
         {
+            TestSetup(KeyMode.Vi);
 
-            Test("(1{3{5)7}9)b}c", Keys(
-                "(1{3{5)7}9)b}c", _.Escape, CheckThat(() => AssertLineIs("(1{3{5)7}9)b}c")), CheckThat(() => AssertCursorLeftIs(13)),
-                "hd", _.Percent, CheckThat(() => AssertLineIs("(1c")), CheckThat(() => AssertCursorLeftIs(2)),
-                "u", CheckThat(() => AssertLineIs("(1{3{5)7}9)b}c")), CheckThat(() => AssertCursorLeftIs(13))
+            Test("{{}}", Keys(
+                "{{}}", _.Escape, CheckThat(() => AssertCursorLeftIs(3)),
+                _.Percent, CheckThat(() => AssertCursorLeftIs(0)),
+                _.Percent, CheckThat(() => AssertCursorLeftIs(3))
+                ));
+
+            Test("(())", Keys(
+                "(())", _.Escape, CheckThat(() => AssertCursorLeftIs(3)),
+                _.Percent, CheckThat(() => AssertCursorLeftIs(0)),
+                _.Percent, CheckThat(() => AssertCursorLeftIs(3))
+                ));
+
+            Test("[[]]", Keys(
+                "[[]]", _.Escape, CheckThat(() => AssertCursorLeftIs(3)),
+                _.Percent, CheckThat(() => AssertCursorLeftIs(0)),
+                _.Percent, CheckThat(() => AssertCursorLeftIs(3))
+                ));
+
+            Test("(1{3{5)789)b}c", Keys(
+                "(1{3{5)789)b}c", _.Escape, CheckThat(() => AssertLineIs("(1{3{5)789)b}c")), CheckThat(() => AssertCursorLeftIs(13)),
+                "hd", _.Percent, CheckThat(() => AssertLineIs("(1{3c")), CheckThat(() => AssertCursorLeftIs(4)),
+                "u", CheckThat(() => AssertLineIs("(1{3{5)789)b}c")), CheckThat(() => AssertCursorLeftIs(13))
                 ));
 
             Test("(1{3[5)7}9)b]", Keys(
@@ -342,10 +361,10 @@ namespace UnitTestPSReadLine
                 "u", CheckThat(() => AssertLineIs("(1{3[5)7}9)b]c")), CheckThat(() => AssertCursorLeftIs(9))
                 ));
 
-            Test("(1{3[5)7}9)b]", Keys(
-                "(1{3[5)7}9)b]c", _.Escape, CheckThat(() => AssertLineIs("(1{3[5)7}9)b]c")), CheckThat(() => AssertCursorLeftIs(13)),
-                "h", _.Percent, "d", _.Percent, CheckThat(() => AssertLineIs("(1{3[5)7}9)b]c")), CheckThat(() => AssertCursorLeftIs(12)),
-                "u", CheckThat(() => AssertLineIs("(1{3[5)7}9)b]")), CheckThat(() => AssertCursorLeftIs(12))
+            Test("(1{3[5)7}9)b]d", Keys(
+                "(1{3[5)7}9)b]d", _.Escape, CheckThat(() => AssertLineIs("(1{3[5)7}9)b]d")), CheckThat(() => AssertCursorLeftIs(13)),
+                "h", _.Percent, "d", _.Percent, CheckThat(() => AssertLineIs("(1{3d")), CheckThat(() => AssertCursorLeftIs(4)),
+                "u", CheckThat(() => AssertLineIs("(1{3[5)7}9)b]d")), CheckThat(() => AssertCursorLeftIs(13))
                 ));
 
             Test("(1{3[5)7}9)b]", Keys(
@@ -365,7 +384,7 @@ namespace UnitTestPSReadLine
             Test("012 [ 67 ] bc", Keys(
                 "012 [ 67 ] bc", _.Escape, CheckThat(() => AssertLineIs("012 [ 67 ] bc")), CheckThat(() => AssertCursorLeftIs(12)),
                 "hhh", CheckThat(() => AssertCursorLeftIs(9)),
-                _.Percent, CheckThat(() => AssertCursorLeftIs(9)),
+                _.Percent, CheckThat(() => AssertCursorLeftIs(4)),
                 _.Percent, CheckThat(() => AssertCursorLeftIs(9))
                 ));
 
@@ -395,8 +414,10 @@ namespace UnitTestPSReadLine
         }
 
         [TestMethod]
-        public void TestCTRL()
+        public void ViTestCTRL()
         {
+            TestSetup(KeyMode.Vi);
+
             Test("abc def ghi", Keys(
                 CheckThat(() => AssertLineIs("")),
                 "abc def ghi", _.Escape, CheckThat(() => AssertLineIs("abc def ghi")),
@@ -411,8 +432,10 @@ namespace UnitTestPSReadLine
         }
 
         [TestMethod]
-        public void TestMisc()
+        public void ViTestMisc()
         {
+            TestSetup(KeyMode.Vi);
+
             Test("abcdefg", Keys(
                 "abcdefg", _.Escape, CheckThat(() => AssertLineIs("abcdefg")),
                 '0', _.Tilde, _.Tilde, _.Tilde, _.Tilde, _.Tilde, _.Tilde, _.Tilde, CheckThat(() => AssertLineIs("ABCDEFG")),

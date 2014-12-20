@@ -19,12 +19,35 @@ namespace UnitTestPSReadLine
             SetHistory();
             Test("", Keys(_.UpArrow, _.DownArrow));
 
-            SetHistory("dir c*", "ps p*");
+            SetHistory("000", "001", "002", "003", "004");
+            Test("004", Keys(_.UpArrow));
 
-            Test("dir c*", Keys(_.Escape, _.UpArrow, _.UpArrow));
-            Test("dir c*", Keys(_.Escape, _.UpArrow, _.UpArrow, _.DownArrow));
-            Test( "dir c*", Keys( _.Escape, "kk" ) );
-            Test( "dir c*", Keys( _.Escape, "kkj" ) );
+            SetHistory("000", "001", "002", "003", "004");
+            Test("002", Keys(_.UpArrow, _.UpArrow, _.UpArrow));
+
+            SetHistory("000", "001", "002", "003", "004");
+            Test("004", Keys(_.UpArrow, _.UpArrow, _.DownArrow));
+
+            SetHistory("000", "001", "002", "003", "004");
+            Test("004", Keys(_.Escape, _.UpArrow));
+
+            SetHistory("000", "001", "002", "003", "004");
+            Test("002", Keys(_.Escape, _.UpArrow, _.UpArrow, _.UpArrow));
+
+            SetHistory("000", "001", "002", "003", "004");
+            Test("004", Keys(_.Escape, _.UpArrow, _.UpArrow, _.DownArrow));
+
+            SetHistory("000", "001", "002", "003", "004");
+            Test("003", Keys(_.Escape, "kk"));
+
+            SetHistory("000", "001", "002", "003", "004");
+            Test("004", Keys(_.Escape, "kkj"));
+
+            SetHistory("000", "001", "002", "003", "004");
+            Test("003", Keys(_.Escape, "--"));
+
+            SetHistory("000", "001", "002", "003", "004");
+            Test("003", Keys(_.Escape, "---+"));
         }
 
         [TestMethod]

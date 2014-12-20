@@ -190,56 +190,13 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void NextWordEnd(ConsoleKeyInfo? key = null, object arg = null)
         {
-            int qty = (arg is int) ? (int) arg : 1;
+            int qty = (arg is int) ? (int)arg : 1;
             for (; qty > 0 && _singleton._current < _singleton._buffer.Length - 1; qty--)
             {
-                int i = _singleton.FindNextWordEnd(_singleton.Options.WordDelimiters) - 1;
+                int i = _singleton.FindNextWordEnd(_singleton.Options.WordDelimiters);
                 _singleton._current = i;
                 _singleton.PlaceCursor();
             }
-        }
-
-        /// <summary>
-        /// Find the end of the current/next word as defined by wordDelimiters and whitespace.
-        /// </summary>
-        private int FindNextWordEnd(string wordDelimiters)
-        {
-            int i = _current;
-
-            if (InWord(i, wordDelimiters))
-            {
-                if (i < _buffer.Length - 1 && !InWord(i + 1, wordDelimiters))
-                {
-                    i++;
-                }
-            }
-
-            if (i == _buffer.Length)
-            {
-                return i;
-            }
-
-            if (!InWord(i, wordDelimiters))
-            {
-                // Scan to end of current non-word region
-                while (i < _buffer.Length)
-                {
-                    if (InWord(i, wordDelimiters))
-                    {
-                        break;
-                    }
-                    i += 1;
-                }
-            }
-            while (i < _buffer.Length)
-            {
-                if (!InWord(i, wordDelimiters))
-                {
-                    break;
-                }
-                i += 1;
-            }
-            return i;
         }
 
         /// <summary>
@@ -279,6 +236,93 @@ namespace PSConsoleUtilities
                     return;
                 }
             }
+        }
+
+        public static void ViGotoBrace(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            int i = _singleton.ViFindBrace(_singleton._current);
+            if (i == _singleton._current)
+            {
+                Ding();
+                return;
+            }
+            _singleton._current = i;
+            _singleton.PlaceCursor();
+        }
+
+        private int ViFindBrace(int i)
+        {
+            switch (_buffer[i])
+            {
+                case '{':
+                    return ViFindForward(i, '}', withoutPassing: '{');
+                case '[':
+                    return ViFindForward(i, ']', withoutPassing: '[');
+                case '(':
+                    return ViFindForward(i, ')', withoutPassing: '(');
+                case '}':
+                    return ViFindBackward(i, '{', withoutPassing: '}');
+                case ']':
+                    return ViFindBackward(i, '[', withoutPassing: ']');
+                case ')':
+                    return ViFindBackward(i, '(', withoutPassing: ')');
+                default:
+                    return i;
+            }
+        }
+
+        private int ViFindBackward(int start, char target, char withoutPassing)
+        {
+            if (start == 0)
+            {
+                return start;
+            }
+            int i = start - 1;
+            int withoutPassingCount = 0;
+            while (i != 0 && !(_buffer[i] == target && withoutPassingCount == 0))
+            {
+                if (_buffer[i] == withoutPassing)
+                {
+                    withoutPassingCount++;
+                }
+                if (_buffer[i] == target)
+                {
+                    withoutPassingCount--;
+                }
+                i--;
+            }
+            if (_buffer[i] == target && withoutPassingCount == 0)
+            {
+                return i;
+            }
+            return start;
+        }
+
+        private int ViFindForward(int start, char target, char withoutPassing)
+        {
+            if (IsAtEndOfLine(start))
+            {
+                return start;
+            }
+            int i = start + 1;
+            int withoutPassingCount = 0;
+            while (!IsAtEndOfLine(i) && !(_buffer[i] == target && withoutPassingCount == 0))
+            {
+                if (_buffer[i] == withoutPassing)
+                {
+                    withoutPassingCount++;
+                }
+                if (_buffer[i] == target)
+                {
+                    withoutPassingCount--;
+                }
+                i++;
+            }
+            if (_buffer[i] == target && withoutPassingCount == 0)
+            {
+                return i;
+            }
+            return start;
         }
     }
 }

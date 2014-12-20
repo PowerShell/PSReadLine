@@ -336,14 +336,14 @@ namespace PSConsoleUtilities
                 Ding();
                 return;
             }
-            _singleton.SaveToClipboard(_singleton._current, endPoint - _singleton._current);
+            _singleton.SaveToClipboard(_singleton._current, 1 + endPoint - _singleton._current);
             _singleton.SaveEditItem(EditItemDelete.Create(
                 _singleton._clipboard,
                 _singleton._current,
-                DeleteWord,
+                DeleteToEndOfWord,
                 arg
                 ));
-            _singleton._buffer.Remove(_singleton._current, endPoint - _singleton._current);
+            _singleton._buffer.Remove(_singleton._current, 1 + endPoint - _singleton._current);
             if (_singleton._current >= _singleton._buffer.Length)
             {
                 _singleton._current = _singleton._buffer.Length - 1;
@@ -576,19 +576,21 @@ namespace PSConsoleUtilities
         /// <summary>
         /// Find the matching brace, paren, or square bracket and delete all contents within, including the brace.
         /// </summary>
-        public static void DeleteBrace(ConsoleKeyInfo? key = null, object arg = null)
+        public static void ViDeleteBrace(ConsoleKeyInfo? key = null, object arg = null)
         {
-            int initialCursor = _singleton._current;
-            GotoBrace(key, arg);
-            int newCursor = _singleton._current;
+            int newCursor = _singleton.ViFindBrace(_singleton._current);
 
-            if (initialCursor < newCursor)
+            if (_singleton._current < newCursor)
             {
-                DeleteRange(initialCursor, newCursor, DeleteBrace);
+                DeleteRange(_singleton._current, newCursor, ViDeleteBrace);
             }
-            else if (newCursor < initialCursor)
+            else if (newCursor < _singleton._current)
             {
-                DeleteRange(newCursor, initialCursor, DeleteBrace);
+                DeleteRange(newCursor, _singleton._current, ViDeleteBrace);
+            }
+            else
+            {
+                Ding();
             }
         }
 

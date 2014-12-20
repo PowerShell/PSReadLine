@@ -95,95 +95,22 @@ namespace UnitTestPSReadLine
                 "2E",
                 CheckThat( () => AssertCursorLeftIs( 6 ) )
                 ) );
-        }
-
-        [TestMethod]
-        public void ViTestDotWordMovement()
-        {
-            TestSetup(KeyMode.Vi);
-
-            Test("012.456.890", Keys(
-                "012", _.Period, "456", _.Period, "890", CheckThat(() => AssertCursorLeftIs(11)),
-                _.Escape, CheckThat(() => AssertCursorLeftIs(10)),
-                "b", CheckThat(() => AssertCursorLeftIs(8)),
-                "b", CheckThat(() => AssertCursorLeftIs(7)),
-                "b", CheckThat(() => AssertCursorLeftIs(4)),
-                "b", CheckThat(() => AssertCursorLeftIs(3)),
-                "b", CheckThat(() => AssertCursorLeftIs(0)),
-                "b", CheckThat(() => AssertCursorLeftIs(0))
-                ));
-
-            Test("012.456.890", Keys(
-                "012", _.Period, "456", _.Period, "890", CheckThat(() => AssertCursorLeftIs(11)),
-                _.Escape, CheckThat(() => AssertCursorLeftIs(10)),
-                "B", CheckThat(() => AssertCursorLeftIs(0)),
-                "B", CheckThat(() => AssertCursorLeftIs(0))
-                ));
-
-            Test("012.456.890", Keys(
-                "012", _.Period, "456", _.Period, "890", CheckThat(() => AssertCursorLeftIs(11)),
-                _.Escape, CheckThat(() => AssertCursorLeftIs(10)),
-                "0", CheckThat(() => AssertCursorLeftIs(0)),
-                "w", CheckThat(() => AssertCursorLeftIs(3)),
-                "w", CheckThat(() => AssertCursorLeftIs(4)),
-                "w", CheckThat(() => AssertCursorLeftIs(7)),
-                "w", CheckThat(() => AssertCursorLeftIs(8)),
-                "w", CheckThat(() => AssertCursorLeftIs(10)),
-                "w", CheckThat(() => AssertCursorLeftIs(10))
-                ));
-
-
-            Test("012.456.890", Keys(
-                "012", _.Period, "456", _.Period, "890", CheckThat(() => AssertCursorLeftIs(11)),
-                _.Escape, CheckThat(() => AssertCursorLeftIs(10)),
-                "0", CheckThat(() => AssertCursorLeftIs(0)),
-                "W", CheckThat(() => AssertCursorLeftIs(10)),
-                "W", CheckThat(() => AssertCursorLeftIs(10))
-                ));
-
-            Test("012..567..012", Keys(
-                "012", _.Period, _.Period, "567", _.Period, _.Period, "012", CheckThat(() => AssertCursorLeftIs(13)),
-                _.Escape, CheckThat(() => AssertCursorLeftIs(12)),
-                "b", CheckThat(() => AssertCursorLeftIs(10)),
-                "b", CheckThat(() => AssertCursorLeftIs(8)),
-                "b", CheckThat(() => AssertCursorLeftIs(5)),
-                "b", CheckThat(() => AssertCursorLeftIs(3)),
-                "b", CheckThat(() => AssertCursorLeftIs(0)),
-                "b", CheckThat(() => AssertCursorLeftIs(0))
-                ));
-
-            Test("012..567..012", Keys(
-                "012", _.Period, _.Period, "567", _.Period, _.Period, "012", CheckThat(() => AssertCursorLeftIs(13)),
-                _.Escape, CheckThat(() => AssertCursorLeftIs(12)),
-                "B", CheckThat(() => AssertCursorLeftIs(0)),
-                "B", CheckThat(() => AssertCursorLeftIs(0))
-                ));
-
-            Test("012..567..012", Keys(
-                "012", _.Period, _.Period, "567", _.Period, _.Period, "012", CheckThat(() => AssertCursorLeftIs(13)),
-                _.Escape, CheckThat(() => AssertCursorLeftIs(12)),
-                "0", CheckThat(() => AssertCursorLeftIs(0)),
-                "w", CheckThat(() => AssertCursorLeftIs(3)),
-                "w", CheckThat(() => AssertCursorLeftIs(5)),
-                "w", CheckThat(() => AssertCursorLeftIs(8)),
-                "w", CheckThat(() => AssertCursorLeftIs(10)),
-                "w", CheckThat(() => AssertCursorLeftIs(12)),
-                "w", CheckThat(() => AssertCursorLeftIs(12))
-                ));
-
-            Test("012..567..012", Keys(
-                "012", _.Period, _.Period, "567", _.Period, _.Period, "012", CheckThat(() => AssertCursorLeftIs(13)),
-                _.Escape, CheckThat(() => AssertCursorLeftIs(12)),
-                "0", CheckThat(() => AssertCursorLeftIs(0)),
-                "W", CheckThat(() => AssertCursorLeftIs(12)),
-                "W", CheckThat(() => AssertCursorLeftIs(12))
-                ));
 
             Test("012 456 890", Keys(
                 "012", _.Space, "456", _.Space, "890", CheckThat(() => AssertCursorLeftIs(11)),
                 _.Escape, CheckThat(() => AssertCursorLeftIs(10)),
                 "b", CheckThat(() => AssertCursorLeftIs(8)),
                 "b", CheckThat(() => AssertCursorLeftIs(4)),
+                "b", CheckThat(() => AssertCursorLeftIs(0)),
+                "b", CheckThat(() => AssertCursorLeftIs(0))
+                ));
+
+            Test(" 12 45 78", Keys(
+                " 12 45 78", CheckThat(() => AssertCursorLeftIs(9)),
+                _.Escape, CheckThat(() => AssertCursorLeftIs(8)),
+                "b", CheckThat(() => AssertCursorLeftIs(7)),
+                "b", CheckThat(() => AssertCursorLeftIs(4)),
+                "b", CheckThat(() => AssertCursorLeftIs(1)),
                 "b", CheckThat(() => AssertCursorLeftIs(0)),
                 "b", CheckThat(() => AssertCursorLeftIs(0))
                 ));
@@ -302,8 +229,18 @@ namespace UnitTestPSReadLine
                 "W", CheckThat(() => AssertCursorLeftIs(10))
                 ));
 
+            Test(" 123  678 ", Keys(
+                " 123  678 ", CheckThat(() => AssertCursorLeftIs(10)),
+                _.Escape, CheckThat(() => AssertCursorLeftIs(9)),
+                "0", CheckThat(() => AssertCursorLeftIs(0)),
+                "e", CheckThat(() => AssertCursorLeftIs(3)),
+                "e", CheckThat(() => AssertCursorLeftIs(8)),
+                "e", CheckThat(() => AssertCursorLeftIs(9)),
+                "e", CheckThat(() => AssertCursorLeftIs(9))
+                ));
+
             Test(" 123  678  ", Keys(
-                _.Space, "123", _.Space, _.Space, "678", _.Space, _.Space, CheckThat(() => AssertCursorLeftIs(11)),
+                " 123  678  ", CheckThat(() => AssertCursorLeftIs(11)),
                 _.Escape, CheckThat(() => AssertCursorLeftIs(10)),
                 "0", CheckThat(() => AssertCursorLeftIs(0)),
                 "e", CheckThat(() => AssertCursorLeftIs(3)),
@@ -322,12 +259,101 @@ namespace UnitTestPSReadLine
                 "E", CheckThat(() => AssertCursorLeftIs(10))
                 ));
 
+            Test("012 456", Keys(
+                "012 456", _.Escape,
+                "02e", CheckThat(() => AssertCursorLeftIs(6))
+                ));
+        }
+
+        [TestMethod]
+        public void ViTestDotWordMovement()
+        {
+            TestSetup(KeyMode.Vi);
+
+            Test("012.456.890", Keys(
+                "012", _.Period, "456", _.Period, "890", CheckThat(() => AssertCursorLeftIs(11)),
+                _.Escape, CheckThat(() => AssertCursorLeftIs(10)),
+                "b", CheckThat(() => AssertCursorLeftIs(8)),
+                "b", CheckThat(() => AssertCursorLeftIs(7)),
+                "b", CheckThat(() => AssertCursorLeftIs(4)),
+                "b", CheckThat(() => AssertCursorLeftIs(3)),
+                "b", CheckThat(() => AssertCursorLeftIs(0)),
+                "b", CheckThat(() => AssertCursorLeftIs(0))
+                ));
+
+            Test("012.456.890", Keys(
+                "012", _.Period, "456", _.Period, "890", CheckThat(() => AssertCursorLeftIs(11)),
+                _.Escape, CheckThat(() => AssertCursorLeftIs(10)),
+                "B", CheckThat(() => AssertCursorLeftIs(0)),
+                "B", CheckThat(() => AssertCursorLeftIs(0))
+                ));
+
+            Test("012.456.890", Keys(
+                "012", _.Period, "456", _.Period, "890", CheckThat(() => AssertCursorLeftIs(11)),
+                _.Escape, CheckThat(() => AssertCursorLeftIs(10)),
+                "0", CheckThat(() => AssertCursorLeftIs(0)),
+                "w", CheckThat(() => AssertCursorLeftIs(3)),
+                "w", CheckThat(() => AssertCursorLeftIs(4)),
+                "w", CheckThat(() => AssertCursorLeftIs(7)),
+                "w", CheckThat(() => AssertCursorLeftIs(8)),
+                "w", CheckThat(() => AssertCursorLeftIs(10)),
+                "w", CheckThat(() => AssertCursorLeftIs(10))
+                ));
+
+            Test("012.456.890", Keys(
+                "012", _.Period, "456", _.Period, "890", CheckThat(() => AssertCursorLeftIs(11)),
+                _.Escape, CheckThat(() => AssertCursorLeftIs(10)),
+                "0", CheckThat(() => AssertCursorLeftIs(0)),
+                "W", CheckThat(() => AssertCursorLeftIs(10)),
+                "W", CheckThat(() => AssertCursorLeftIs(10))
+                ));
+
+            Test("012..567..012", Keys(
+                "012", _.Period, _.Period, "567", _.Period, _.Period, "012", CheckThat(() => AssertCursorLeftIs(13)),
+                _.Escape, CheckThat(() => AssertCursorLeftIs(12)),
+                "b", CheckThat(() => AssertCursorLeftIs(10)),
+                "b", CheckThat(() => AssertCursorLeftIs(8)),
+                "b", CheckThat(() => AssertCursorLeftIs(5)),
+                "b", CheckThat(() => AssertCursorLeftIs(3)),
+                "b", CheckThat(() => AssertCursorLeftIs(0)),
+                "b", CheckThat(() => AssertCursorLeftIs(0))
+                ));
+
+            Test("012..567..012", Keys(
+                "012", _.Period, _.Period, "567", _.Period, _.Period, "012", CheckThat(() => AssertCursorLeftIs(13)),
+                _.Escape, CheckThat(() => AssertCursorLeftIs(12)),
+                "B", CheckThat(() => AssertCursorLeftIs(0)),
+                "B", CheckThat(() => AssertCursorLeftIs(0))
+                ));
+
+            Test("012..567..012", Keys(
+                "012", _.Period, _.Period, "567", _.Period, _.Period, "012", CheckThat(() => AssertCursorLeftIs(13)),
+                _.Escape, CheckThat(() => AssertCursorLeftIs(12)),
+                "0", CheckThat(() => AssertCursorLeftIs(0)),
+                "w", CheckThat(() => AssertCursorLeftIs(3)),
+                "w", CheckThat(() => AssertCursorLeftIs(5)),
+                "w", CheckThat(() => AssertCursorLeftIs(8)),
+                "w", CheckThat(() => AssertCursorLeftIs(10)),
+                "w", CheckThat(() => AssertCursorLeftIs(12)),
+                "w", CheckThat(() => AssertCursorLeftIs(12))
+                ));
+
+            Test("012..567..012", Keys(
+                "012", _.Period, _.Period, "567", _.Period, _.Period, "012", CheckThat(() => AssertCursorLeftIs(13)),
+                _.Escape, CheckThat(() => AssertCursorLeftIs(12)),
+                "0", CheckThat(() => AssertCursorLeftIs(0)),
+                "W", CheckThat(() => AssertCursorLeftIs(12)),
+                "W", CheckThat(() => AssertCursorLeftIs(12))
+                ));
+
             Test(" 123..678..123", Keys(
                 _.Space, "123", _.Period, _.Period, "678", _.Period, _.Period, "123", CheckThat(() => AssertCursorLeftIs(14)),
                 _.Escape, CheckThat(() => AssertCursorLeftIs(13)),
                 "0", CheckThat(() => AssertCursorLeftIs(0)),
                 "e", CheckThat(() => AssertCursorLeftIs(3)),
+                "e", CheckThat(() => AssertCursorLeftIs(5)),
                 "e", CheckThat(() => AssertCursorLeftIs(8)),
+                "e", CheckThat(() => AssertCursorLeftIs(10)),
                 "e", CheckThat(() => AssertCursorLeftIs(13)),
                 "e", CheckThat(() => AssertCursorLeftIs(13))
                 ));
@@ -394,30 +420,19 @@ namespace UnitTestPSReadLine
         {
             TestSetup(KeyMode.Vi);
 
-            // Test empty input
             Test("0[2(4{6]8)a}c", Keys(
                 "0[2(4{6]8)a}c",
                 CheckThat( () => AssertCursorLeftIs( 13 ) ),
-                _.Escape,
-                CheckThat( () => AssertCursorLeftIs( 12 ) ),
-                'h',
-                CheckThat( () => AssertCursorLeftIs( 11 ) ),
-                _.Percent,
-                CheckThat( () => AssertCursorLeftIs( 5 ) ),
-                _.Percent,
-                CheckThat( () => AssertCursorLeftIs( 11 ) ),
-                "hh",
-                CheckThat( () => AssertCursorLeftIs( 9 ) ),
-                _.Percent,
-                CheckThat( () => AssertCursorLeftIs( 3 ) ),
-                _.Percent,
-                CheckThat( () => AssertCursorLeftIs( 9 ) ),
-                "hh",
-                CheckThat( () => AssertCursorLeftIs( 7 ) )  // there's something I don't get about '[' & ']',
-                //_.Percent,
-                //CheckThat( () => AssertCursorLeftIs( 1 ) ),
-                //_.Percent,
-                //CheckThat( () => AssertCursorLeftIs( 7 ) )
+                _.Escape, CheckThat( () => AssertCursorLeftIs( 12 ) ),
+                'h', CheckThat( () => AssertCursorLeftIs( 11 ) ),
+                _.Percent, CheckThat( () => AssertCursorLeftIs( 5 ) ),
+                _.Percent, CheckThat( () => AssertCursorLeftIs( 11 ) ),
+                "hh", CheckThat( () => AssertCursorLeftIs( 9 ) ),
+                _.Percent, CheckThat( () => AssertCursorLeftIs( 3 ) ),
+                _.Percent, CheckThat( () => AssertCursorLeftIs( 9 ) ),
+                "hh", CheckThat( () => AssertCursorLeftIs( 7 ) ),
+                _.Percent, CheckThat( () => AssertCursorLeftIs( 1 ) ),
+                _.Percent, CheckThat( () => AssertCursorLeftIs( 7 ) )
                 ) );
 
             foreach( char c in new[] { '(', ')', '{', '}', '[', ']' } )

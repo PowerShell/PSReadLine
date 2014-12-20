@@ -192,5 +192,259 @@ namespace UnitTestPSReadLine
                 "uuu"
                 ));
         }
+
+        [TestMethod]
+        public void ViTestPasteAfterDeleteLine()
+        {
+            TestSetup(KeyMode.Vi);
+
+            Test("abc def", Keys(
+                "abc def", _.Escape,
+                "dd", CheckThat(() => AssertLineIs("")), CheckThat(() => AssertCursorLeftIs(0)),
+                'p', CheckThat(() => AssertLineIs("abc def")), CheckThat(() => AssertCursorLeftIs(6)),
+                "dd", CheckThat(() => AssertLineIs("")), CheckThat(() => AssertCursorLeftIs(0)),
+                'P', CheckThat(() => AssertLineIs("abc def")), CheckThat(() => AssertCursorLeftIs(6)),
+                "uuuu"
+                ));
+        }
+
+        [TestMethod]
+        public void ViTestPasteAfterYankLine()
+        {
+            TestSetup(KeyMode.Vi);
+
+            Test("012 456", Keys(
+                "012 456", _.Escape,
+                "byyP", CheckThat(() => AssertLineIs("012 012 456456")), CheckThat(() => AssertCursorLeftIs(10)),
+                "u", CheckThat(() => AssertLineIs("012 456")), CheckThat(() => AssertCursorLeftIs(4)),
+                "p", CheckThat(() => AssertLineIs("012 4012 45656")), CheckThat(() => AssertCursorLeftIs(11)),
+                "u", CheckThat(() => AssertLineIs("012 456")), CheckThat(() => AssertCursorLeftIs(5))
+                ));
+        }
+
+        [TestMethod]
+        public void ViTestPasteAfterYankMovement()
+        {
+            TestSetup(KeyMode.Vi);
+
+            Test("012 456", Keys(
+                "012 456", _.Escape,
+                "bylP", CheckThat(() => AssertLineIs("012 4456")), CheckThat(() => AssertCursorLeftIs(4)),
+                "u2ylP", CheckThat(() => AssertLineIs("012 45456")), CheckThat(() => AssertCursorLeftIs(5)),
+                "ullylp", CheckThat(() => AssertLineIs("012 4566")), CheckThat(() => AssertCursorLeftIs(7)),
+                "u"
+                ));
+
+            Test("012 456", Keys(
+                "012 456", _.Escape,
+                "by", _.Space, "P", CheckThat(() => AssertLineIs("012 4456")), CheckThat(() => AssertCursorLeftIs(4)),
+                "u2y", _.Space, "P", CheckThat(() => AssertLineIs("012 45456")), CheckThat(() => AssertCursorLeftIs(5)),
+                "ully", _.Space, "p", CheckThat(() => AssertLineIs("012 4566")), CheckThat(() => AssertCursorLeftIs(7)),
+                "u"
+                ));
+
+            Test("012 456", Keys(
+                "012 456", _.Escape,
+                "bbeyhP", CheckThat(() => AssertLineIs("0112 456")), CheckThat(() => AssertCursorLeftIs(2)),
+                "u2yhP", CheckThat(() => AssertLineIs("01012 456")), CheckThat(() => AssertCursorLeftIs(3)),
+                "u0yhP", CheckThat(() => AssertLineIs("0012 456")),
+                "u"
+                ));
+
+            Test("012 456", Keys(
+                "012 456", _.Escape,
+                "by", _.Dollar, "P", CheckThat(() => AssertLineIs("012 456456")), CheckThat(() => AssertCursorLeftIs(6)),
+                "u", _.Dollar, "y", _.Dollar, "P", CheckThat(() => AssertLineIs("012 4566")), CheckThat(() => AssertCursorLeftIs(6)),
+                "u", CheckThat(() => AssertLineIs("012 456")), CheckThat(() => AssertCursorLeftIs(6))
+                ));
+        }
+
+        [TestMethod]
+        public void ViTestPasteAfterYankWord()
+        {
+            TestSetup(KeyMode.Vi);
+
+            Test("012 456", Keys(
+                "012 456", _.Escape,
+                "ybp", CheckThat(() => AssertLineIs("012 45645")), CheckThat(() => AssertCursorLeftIs(8)),
+                "u0ybP", CheckThat(() => AssertLineIs("45012 456")), CheckThat(() => AssertCursorLeftIs(1)),
+                "u", _.Dollar, "2ybp", CheckThat(() => AssertLineIs("012 456012 45")), CheckThat(() => AssertCursorLeftIs(12)),
+                "u", _.Dollar, "3ybp", CheckThat(() => AssertLineIs("012 456012 45")), CheckThat(() => AssertCursorLeftIs(12)),
+                "uh2ybp", CheckThat(() => AssertLineIs("012 45012 46")), CheckThat(() => AssertCursorLeftIs(10)),
+                "u"
+                ));
+
+            Test("012 456 ", Keys(
+                "012 456 ", _.Escape,
+                "ybp", CheckThat(() => AssertLineIs("012 456 456")), CheckThat(() => AssertCursorLeftIs(10)),
+                "u0ybP", CheckThat(() => AssertLineIs("456012 456 ")), CheckThat(() => AssertCursorLeftIs(2)),
+                "u", _.Dollar, "2ybp", CheckThat(() => AssertLineIs("012 456 012 456")), CheckThat(() => AssertCursorLeftIs(14)),
+                "u", _.Dollar, "3ybp", CheckThat(() => AssertLineIs("012 456 012 456")), CheckThat(() => AssertCursorLeftIs(14)),
+                "uh2ybp", CheckThat(() => AssertLineIs("012 456012 45 ")), CheckThat(() => AssertCursorLeftIs(12)),
+                "u"
+                ));
+
+            Test("012 456", Keys(
+                "012 456", _.Escape,
+                "0ywP", CheckThat(() => AssertLineIs("012 012 456")), CheckThat(() => AssertCursorLeftIs(3)),
+                "u02ywP", CheckThat(() => AssertLineIs("012 456012 456")), CheckThat(() => AssertCursorLeftIs(6)),
+                "u03ywP", CheckThat(() => AssertLineIs("012 456012 456")), CheckThat(() => AssertCursorLeftIs(6)),
+                "u0lywP", CheckThat(() => AssertLineIs("012 12 456")), CheckThat(() => AssertCursorLeftIs(3)),
+                "u"
+                ));
+
+            Test(" 123  678 ", Keys(
+                " 123  678 ", _.Escape,
+                "0ywP", CheckThat(() => AssertLineIs("  123  678 ")), CheckThat(() => AssertCursorLeftIs(0)),
+                "u02ywP", CheckThat(() => AssertLineIs(" 123   123  678 ")), CheckThat(() => AssertCursorLeftIs(5)),
+                "u03ywP", CheckThat(() => AssertLineIs(" 123  678  123  678 ")), CheckThat(() => AssertCursorLeftIs(9)),
+                "u0lywP", CheckThat(() => AssertLineIs(" 123  123  678 ")), CheckThat(() => AssertCursorLeftIs(5)),
+                "u"
+                ));
+
+            Test("012 456", Keys(
+                "012 456", _.Escape,
+                "0yeP", CheckThat(() => AssertLineIs("012012 456")), CheckThat(() => AssertCursorLeftIs(2)),
+                "u02yeP", CheckThat(() => AssertLineIs("012 456012 456")), CheckThat(() => AssertCursorLeftIs(6)),
+                "u03yeP", CheckThat(() => AssertLineIs("012 456012 456")), CheckThat(() => AssertCursorLeftIs(6)),
+                "u0lyeP", CheckThat(() => AssertLineIs("01212 456")), CheckThat(() => AssertCursorLeftIs(2)),
+                "u"
+                ));
+
+            Test(" 123  678 ", Keys(
+                " 123  678 ", _.Escape,
+                "0yeP", CheckThat(() => AssertLineIs(" 123 123  678 ")), CheckThat(() => AssertCursorLeftIs(3)),
+                "u02yeP", CheckThat(() => AssertLineIs(" 123  678 123  678 ")), CheckThat(() => AssertCursorLeftIs(8)),
+                "u03yeP", CheckThat(() => AssertLineIs(" 123  678  123  678 ")), CheckThat(() => AssertCursorLeftIs(9)),
+                "u0lyeP", CheckThat(() => AssertLineIs(" 123123  678 ")), CheckThat(() => AssertCursorLeftIs(3)),
+                "u"
+                ));
+        }
+
+        [TestMethod]
+        public void ViTestPasteAfterYankBeginningOfLine()
+        {
+            TestSetup(KeyMode.Vi);
+
+            Test("012", Keys(
+                "012", _.Escape,
+                "y0P", CheckThat(() => AssertLineIs("01012")), CheckThat(() => AssertCursorLeftIs(3)),
+                "u"
+                ));
+
+            Test(" 123  ", Keys(
+                " 123  ", _.Escape,
+                "y0P", CheckThat(() => AssertLineIs(" 123  123  ")), CheckThat(() => AssertCursorLeftIs(9)),
+                "u"
+                ));
+        }
+
+        [TestMethod]
+        public void ViTestPasteAfterYankFirstNoneBlank()
+        {
+            TestSetup(KeyMode.Vi);
+
+            Test("012", Keys(
+                "012", _.Escape,
+                "y", _.Uphat, "P", CheckThat(() => AssertLineIs("01012")), CheckThat(() => AssertCursorLeftIs(3)),
+                "u"
+                ));
+
+            Test(" 123  ", Keys(
+                " 123  ", _.Escape,
+                "y", _.Uphat, "P", CheckThat(() => AssertLineIs(" 123 123  ")), CheckThat(() => AssertCursorLeftIs(8)),
+                "u"
+                ));
+        }
+
+        [TestMethod]
+        public void ViTestPasteAfterYankPercent()
+        {
+            TestSetup(KeyMode.Vi);
+
+            Test("012{45}78", Keys(
+                "012{45}78", _.Escape, "hh",
+                "y", _.Percent, "p", CheckThat(() => AssertLineIs("012{45}{4578")), CheckThat(() => AssertCursorLeftIs(9)),
+                "u", CheckThat(() => AssertCursorLeftIs(7))
+                ));
+
+            Test("012(45)78", Keys(
+                "012(45)78", _.Escape, "hh",
+                "y", _.Percent, "p", CheckThat(() => AssertLineIs("012(45)(4578")), CheckThat(() => AssertCursorLeftIs(9)),
+                "u", CheckThat(() => AssertCursorLeftIs(7))
+                ));
+
+            Test("012[45]78", Keys(
+                "012[45]78", _.Escape, "hh",
+                "y", _.Percent, "p", CheckThat(() => AssertLineIs("012[45][4578")), CheckThat(() => AssertCursorLeftIs(9)),
+                "u", CheckThat(() => AssertCursorLeftIs(7))
+                ));
+        }
+
+        [TestMethod]
+        public void ViTestPasteAfterYankPreviousGlob()
+        {
+            TestSetup(KeyMode.Vi);
+
+            Test("012++567++012", Keys(
+                "012++567++012", _.Escape,
+                "yBp", CheckThat(() => AssertLineIs("012++567++012012++567++01")),
+                "u"
+                ));
+
+            Test(" 012++567++012", Keys(
+                " 012++567++012", _.Escape,
+                "yBp", CheckThat(() => AssertLineIs(" 012++567++012012++567++01")),
+                "u"
+                ));
+
+            Test("012+ 567++012", Keys(
+                "012+ 567++012", _.Escape,
+                "yBp", CheckThat(() => AssertLineIs("012+ 567++012567++01")),
+                "u"
+                ));
+        }
+        [TestMethod]
+        public void ViTestPasteAfterYankNextGlob()
+        {
+            TestSetup(KeyMode.Vi);
+
+            Test("012++567++abc", Keys(
+                "012++567++abc", _.Escape,
+                "0yWP", CheckThat(() => AssertLineIs("012++567++abc012++567++abc")),
+                "u"
+                ));
+
+            Test("012++567++abc ", Keys(
+                "012++567++abc ", _.Escape,
+                "0yWP", CheckThat(() => AssertLineIs("012++567++abc 012++567++abc ")),
+                "u"
+                ));
+
+            Test("012++567 +abc ", Keys(
+                "012++567 +abc ", _.Escape,
+                "0yWP", CheckThat(() => AssertLineIs("012++567 012++567 +abc ")),
+                "u"
+                ));
+        }
+
+        [TestMethod]
+        public void ViTestPasteAfterYankEndOfGlob()
+        {
+            TestSetup(KeyMode.Vi);
+
+            Test("012++567++abc", Keys(
+                "012++567++abc", _.Escape,
+                "0yEP", CheckThat(() => AssertLineIs("012++567++abc012++567++abc")),
+                "u"
+                ));
+
+            Test("012++567 +abc", Keys(
+                "012++567 +abc", _.Escape,
+                "0yEP", CheckThat(() => AssertLineIs("012++567012++567 +abc")),
+                "u02yEP", CheckThat(() => AssertLineIs("012++567 +abc012++567 +abc")),
+                "u"
+                ));
+        }
     }
 }
