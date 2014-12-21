@@ -292,7 +292,7 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void DeleteWord(ConsoleKeyInfo? key = null, object arg = null)
         {
-            int qty = (arg is int) ? (int) arg : 1;
+            int qty = (arg is int) ? (int)arg : 1;
             int endPoint = _singleton._current;
             for (int i = 0; i < qty; i++)
             {
@@ -320,15 +320,43 @@ namespace PSConsoleUtilities
         }
 
         /// <summary>
+        /// Delete the next glob (white space delimited word).
+        /// </summary>
+        public static void DeleteGlob(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            int qty = (arg is int) ? (int)arg : 1;
+            int endPoint = _singleton._current;
+            while (qty-- > 0)
+            {
+                endPoint = _singleton.ViFindNextGlob(endPoint);
+            }
+            int length = endPoint - _singleton._current;
+
+            _singleton.SaveToClipboard(_singleton._current, length);
+            _singleton.SaveEditItem(EditItemDelete.Create(
+                _singleton._clipboard,
+                _singleton._current,
+                DeleteGlob,
+                arg
+                ));
+            _singleton._buffer.Remove(_singleton._current, length);
+            if (_singleton._current >= _singleton._buffer.Length && _singleton._buffer.Length > 0)
+            {
+                _singleton._current = _singleton._buffer.Length - 1;
+            }
+            _singleton.Render();
+        }
+
+        /// <summary>
         /// Delete to the end of the word.
         /// </summary>
-        public static void DeleteToEndOfWord(ConsoleKeyInfo? key = null, object arg = null)
+        public static void DeleteEndOfWord(ConsoleKeyInfo? key = null, object arg = null)
         {
-            int qty = (arg is int) ? (int) arg : 1;
+            int qty = (arg is int) ? (int)arg : 1;
             int endPoint = _singleton._current;
             for (int i = 0; i < qty; i++)
             {
-                endPoint = _singleton.FindNextWordEnd(_singleton.Options.WordDelimiters);
+                endPoint = _singleton.ViFindNextWordEnd(endPoint, _singleton.Options.WordDelimiters);
             }
 
             if (endPoint <= _singleton._current)
@@ -340,7 +368,34 @@ namespace PSConsoleUtilities
             _singleton.SaveEditItem(EditItemDelete.Create(
                 _singleton._clipboard,
                 _singleton._current,
-                DeleteToEndOfWord,
+                DeleteEndOfWord,
+                arg
+                ));
+            _singleton._buffer.Remove(_singleton._current, 1 + endPoint - _singleton._current);
+            if (_singleton._current >= _singleton._buffer.Length)
+            {
+                _singleton._current = _singleton._buffer.Length - 1;
+            }
+            _singleton.Render();
+        }
+
+        /// <summary>
+        /// Delete to the end of the word.
+        /// </summary>
+        public static void DeleteEndOfGlob(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            int qty = (arg is int) ? (int)arg : 1;
+            int endPoint = _singleton._current;
+            for (int i = 0; i < qty; i++)
+            {
+                endPoint = _singleton.ViFindGlobEnd(endPoint);
+            }
+
+            _singleton.SaveToClipboard(_singleton._current, 1 + endPoint - _singleton._current);
+            _singleton.SaveEditItem(EditItemDelete.Create(
+                _singleton._clipboard,
+                _singleton._current,
+                DeleteEndOfGlob,
                 arg
                 ));
             _singleton._buffer.Remove(_singleton._current, 1 + endPoint - _singleton._current);
@@ -555,6 +610,39 @@ namespace PSConsoleUtilities
             for (int i = 0; i < qty; i++)
             {
                 deletePoint = _singleton.FindPreviousWordPointFrom(deletePoint, _singleton.Options.WordDelimiters);
+            }
+            if (deletePoint == _singleton._current)
+            {
+                Ding();
+                return;
+            }
+            _singleton._clipboard = _singleton._buffer.ToString(deletePoint, _singleton._current - deletePoint);
+            _singleton.SaveEditItem(EditItemDelete.Create(
+                _singleton._clipboard,
+                deletePoint,
+                BackwardDeleteWord,
+                arg
+                ));
+            _singleton._buffer.Remove(deletePoint, _singleton._current - deletePoint);
+            _singleton._current = deletePoint;
+            _singleton.Render();
+        }
+
+        /// <summary>
+        /// Deletes the previous word, using only white space as the word delimiter.
+        /// </summary>
+        public static void BackwardDeleteGlob(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            if (_singleton._current == 0)
+            {
+                Ding();
+                return;
+            }
+            int qty = (arg is int) ? (int)arg : 1;
+            int deletePoint = _singleton._current;
+            for (int i = 0; i < qty && deletePoint > 0; i++)
+            {
+                deletePoint = _singleton.ViFindPreviousGlob(deletePoint - 1);
             }
             if (deletePoint == _singleton._current)
             {

@@ -75,18 +75,13 @@ namespace PSConsoleUtilities
                 return;
             }
 
-            if (numericArg < 0)
-            {
-                ViNextGlob(key, -numericArg);
-                return;
-            }
-
+            int i = _singleton._current;
             while (numericArg-- > 0)
             {
-                int i = _singleton.ViFindPreviousWord();
-                _singleton._current = i;
-                _singleton.PlaceCursor();
+                i = _singleton.ViFindPreviousGlob(i - 1);
             }
+            _singleton._current = i;
+            _singleton.PlaceCursor();
         }
 
         /// <summary>
@@ -100,18 +95,14 @@ namespace PSConsoleUtilities
                 return;
             }
 
-            if (numericArg < 0)
-            {
-                ViBackwardGlob(key, -numericArg);
-                return;
-            }
-
+            int i = _singleton._current;
             while (numericArg-- > 0)
             {
-                int i = _singleton.ViFindNextWord();
-                _singleton._current = i;
-                _singleton.PlaceCursor();
+                i = _singleton.ViFindNextGlob(i);
             }
+
+            _singleton._current = Math.Min(i, _singleton._buffer.Length - 1);
+            _singleton.PlaceCursor();
         }
 
         private static void ViEndOfGlob(ConsoleKeyInfo? key = null, object arg = null)
@@ -130,7 +121,7 @@ namespace PSConsoleUtilities
 
             while (numericArg-- > 0)
             {
-                int i = _singleton.ViFindEndOfWord();
+                int i = _singleton.ViFindEndOfGlob();
                 _singleton._current = i;
                 _singleton.PlaceCursor();
             }
@@ -152,7 +143,7 @@ namespace PSConsoleUtilities
 
             while (numericArg-- > 0)
             {
-                int i = _singleton.ViFindEndOfPreviousWord();
+                int i = _singleton.ViFindEndOfPreviousGlob();
                 _singleton._current = i;
                 _singleton.PlaceCursor();
             }
@@ -193,7 +184,7 @@ namespace PSConsoleUtilities
             int qty = (arg is int) ? (int)arg : 1;
             for (; qty > 0 && _singleton._current < _singleton._buffer.Length - 1; qty--)
             {
-                int i = _singleton.FindNextWordEnd(_singleton.Options.WordDelimiters);
+                int i = _singleton.ViFindNextWordEnd(_singleton.Options.WordDelimiters);
                 _singleton._current = i;
                 _singleton.PlaceCursor();
             }

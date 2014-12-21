@@ -401,6 +401,7 @@ namespace UnitTestPSReadLine
             Test("012+ 567++012", Keys(
                 "012+ 567++012", _.Escape,
                 "yBp", CheckThat(() => AssertLineIs("012+ 567++012567++01")),
+                "u", _.Dollar, "2yBp", CheckThat(() => AssertLineIs("012+ 567++012012+ 567++01")),
                 "u"
                 ));
         }
@@ -424,6 +425,7 @@ namespace UnitTestPSReadLine
             Test("012++567 +abc ", Keys(
                 "012++567 +abc ", _.Escape,
                 "0yWP", CheckThat(() => AssertLineIs("012++567 012++567 +abc ")),
+                "u02yWP", CheckThat(() => AssertLineIs("012++567 +abc 012++567 +abc ")),
                 "u"
                 ));
         }

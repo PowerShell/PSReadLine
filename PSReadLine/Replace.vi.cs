@@ -118,6 +118,13 @@ namespace PSConsoleUtilities
             ViInsertMode(key, arg);
         }
 
+        private static void ViBackwardReplaceGlob(ConsoleKeyInfo? key, object arg)
+        {
+            _singleton._groupUndoHelper.StartGroup(ViBackwardReplaceGlob, arg);
+            BackwardDeleteGlob(key, arg);
+            ViInsertMode(key, arg);
+        }
+
         private static void ViReplaceToEnd(ConsoleKeyInfo? key, object arg)
         {
             _singleton._groupUndoHelper.StartGroup(ViReplaceToEnd, arg);
@@ -144,6 +151,54 @@ namespace PSConsoleUtilities
                 _singleton._current--;
                 _singleton.PlaceCursor();
             }
+            if (_singleton._current == _singleton._buffer.Length - 1)
+            {
+                ViInsertWithAppend(key, arg);
+            }
+            else
+            {
+                ViInsertMode(key, arg);
+            }
+        }
+
+        private static void ViReplaceGlob(ConsoleKeyInfo? key, object arg)
+        {
+            _singleton._groupUndoHelper.StartGroup(ViReplaceGlob, arg);
+            DeleteGlob(key, arg);
+            if (_singleton._current < _singleton._buffer.Length - 1)
+            {
+                Insert(' ');
+                _singleton._current--;
+                _singleton.PlaceCursor();
+            }
+            if (_singleton._current == _singleton._buffer.Length - 1)
+            {
+                ViInsertWithAppend(key, arg);
+            }
+            else
+            {
+                ViInsertMode(key, arg);
+            }
+        }
+
+        private static void ViReplaceEndOfWord(ConsoleKeyInfo? key, object arg)
+        {
+            _singleton._groupUndoHelper.StartGroup(ViReplaceEndOfWord, arg);
+            DeleteEndOfWord(key, arg);
+            if (_singleton._current == _singleton._buffer.Length - 1)
+            {
+                ViInsertWithAppend(key, arg);
+            }
+            else
+            {
+                ViInsertMode(key, arg);
+            }
+        }
+
+        private static void ViReplaceEndOfGlob(ConsoleKeyInfo? key, object arg)
+        {
+            _singleton._groupUndoHelper.StartGroup(ViReplaceEndOfGlob, arg);
+            DeleteEndOfGlob(key, arg);
             if (_singleton._current == _singleton._buffer.Length - 1)
             {
                 ViInsertWithAppend(key, arg);

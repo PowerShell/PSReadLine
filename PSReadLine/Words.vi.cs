@@ -10,6 +10,9 @@ namespace PSConsoleUtilities
             return ViFindNextWordPoint(_current, wordDelimiters);
         }
 
+        /// <summary>
+        /// Returns the position of the beginning of the next word as delimited by white space and delimiters.
+        /// </summary>
         private int ViFindNextWordPoint(int i, string wordDelimiters)
         {
             if (IsAtEndOfLine(i))
@@ -58,6 +61,11 @@ namespace PSConsoleUtilities
             return i >= (_buffer.Length - 1);
         }
 
+        private bool IsPastEndOfLine(int i)
+        {
+            return i > (_buffer.Length - 1);
+        }
+
         private int ViFindNextWordFromWord(int i, string wordDelimiters)
         {
             while (!IsAtEndOfLine(i) && InWord(i, wordDelimiters))
@@ -79,6 +87,9 @@ namespace PSConsoleUtilities
             return i;
         }
 
+        /// <summary>
+        /// Returns true of the character at the given position is white space.
+        /// </summary>
         private bool IsWhiteSpace(int i)
         {
             return char.IsWhiteSpace(_buffer[i]);
@@ -215,7 +226,7 @@ namespace PSConsoleUtilities
         /// <summary>
         /// Returns the cursor position of the previous word, ignoring all delimiters other what white space
         /// </summary>
-        private int ViFindPreviousWord()
+        private int ViFindPreviousGlob()
         {
             int i = _current;
             if (i == 0)
@@ -224,11 +235,19 @@ namespace PSConsoleUtilities
             }
             i--;
 
-            return ViFindPreviousWord(i);
+            return ViFindPreviousGlob(i);
         }
 
-        private int ViFindPreviousWord(int i)
+        /// <summary>
+        /// Returns the cursor position of the previous word from i, ignoring all delimiters other what white space
+        /// </summary>
+        private int ViFindPreviousGlob(int i)
         {
+            if (i <= 0)
+            {
+                return 0;
+            }
+
             if (!IsWhiteSpace(i))
             {
                 while (i > 0 && !IsWhiteSpace(i))
@@ -249,42 +268,65 @@ namespace PSConsoleUtilities
             {
                 return i;
             }
-            return ViFindPreviousWord(i);
+            return ViFindPreviousGlob(i);
         }
 
-        private int ViFindNextWord()
+        /// <summary>
+        /// Finds the next work, using only white space as the word delimiter.
+        /// </summary>
+        private int ViFindNextGlob()
         {
             int i = _current;
+            return ViFindNextGlob(i);
+        }
+
+        private int ViFindNextGlob(int i)
+        {
+            if (i >= _buffer.Length)
+            {
+                return i;
+            }
             while (!IsAtEndOfLine(i) && !IsWhiteSpace(i))
             {
                 i++;
+            }
+            if (IsAtEndOfLine(i) && !IsWhiteSpace(i))
+            {
+                return i + 1;
             }
             while (!IsAtEndOfLine(i) && IsWhiteSpace(i))
             {
                 i++;
             }
+            if (IsAtEndOfLine(i) && IsWhiteSpace(i))
+            {
+                return i + 1;
+            }
             return i;
         }
 
-        private int ViFindEndOfWord()
+        /// <summary>
+        /// Finds the end of the current/next word as defined by whitespace.
+        /// </summary>
+        private int ViFindEndOfGlob()
         {
-            return ViFindEndOfWord(_current);
+            return ViFindGlobEnd(_current);
         }
 
         /// <summary>
         /// Find the end of the current/next word as defined by wordDelimiters and whitespace.
         /// </summary>
-        private int FindNextWordEnd(string wordDelimiters)
+        private int ViFindNextWordEnd(string wordDelimiters)
         {
             int i = _current;
 
-            return FindNextWordEnd(i, wordDelimiters);
+            return ViFindNextWordEnd(i, wordDelimiters);
         }
 
         /// <summary>
         /// Find the end of the current/next word as defined by wordDelimiters and whitespace.
         /// </summary>
-        private int FindNextWordEnd(int i, string wordDelimiters)
+        private int ViFindNextWordEnd(int i, string wordDelimiters)
         {
             if (IsAtEndOfLine(i))
             {
@@ -347,7 +389,7 @@ namespace PSConsoleUtilities
         /// <summary>
         /// Return the last character in a white space defined word after skipping contiguous white space.
         /// </summary>
-        private int ViFindEndOfWord(int i)
+        private int ViFindGlobEnd(int i)
         {
             if (IsAtEndOfLine(i))
             {
@@ -377,14 +419,14 @@ namespace PSConsoleUtilities
             return i;
         }
 
-        private int ViFindEndOfPreviousWord()
+        private int ViFindEndOfPreviousGlob()
         {
             int i = _current;
 
-            return ViFindEndOfPreviousWord(i);
+            return ViFindEndOfPreviousGlob(i);
         }
 
-        private int ViFindEndOfPreviousWord(int i)
+        private int ViFindEndOfPreviousGlob(int i)
         {
             if (IsWhiteSpace(i))
             {
@@ -399,7 +441,7 @@ namespace PSConsoleUtilities
             {
                 i--;
             }
-            return ViFindEndOfPreviousWord(i);
+            return ViFindEndOfPreviousGlob(i);
         }
     }
 }

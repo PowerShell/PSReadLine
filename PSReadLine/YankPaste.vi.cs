@@ -173,7 +173,7 @@ namespace PSConsoleUtilities
 
             while (numericArg-- > 0)
             {
-                end = _singleton.FindNextWordEnd(end, _singleton.Options.WordDelimiters);
+                end = _singleton.ViFindNextWordEnd(end, _singleton.Options.WordDelimiters);
             }
 
             int length = 1 + end - _singleton._current;
@@ -195,7 +195,7 @@ namespace PSConsoleUtilities
 
             while (numericArg-- > 0)
             {
-                end = _singleton.ViFindEndOfWord(end);
+                end = _singleton.ViFindGlobEnd(end);
             }
 
             int length = 1 + end - _singleton._current;
@@ -252,12 +252,18 @@ namespace PSConsoleUtilities
 
         public static void ViYankPreviousGlob(ConsoleKeyInfo? key = null, object arg = null)
         {
-            int start = _singleton.ViFindPreviousWord();
-            if (_singleton._current < start)
+            int numericArg;
+            if (!TryGetArgAsInt(arg, out numericArg, 1))
             {
-                _singleton.SaveToClipboard(_singleton._current, start - _singleton._current);
+                return;
             }
-            else if (start < _singleton._current)
+
+            int start = _singleton._current;
+            while (numericArg-- > 0)
+            {
+                start = _singleton.ViFindPreviousGlob(start - 1);
+            }
+            if (start < _singleton._current)
             {
                 _singleton.SaveToClipboard(start, _singleton._current - start);
             }
@@ -269,10 +275,16 @@ namespace PSConsoleUtilities
 
         public static void ViYankNextGlob(ConsoleKeyInfo? key = null, object arg = null)
         {
-            int end = _singleton.ViFindNextWord();
-            if (_singleton.IsAtEndOfLine(end))
+            int numericArg;
+            if (!TryGetArgAsInt(arg, out numericArg, 1))
             {
-                end++;
+                return;
+            }
+
+            int end = _singleton._current;
+            while (numericArg-- > 0)
+            {
+                end = _singleton.ViFindNextGlob(end);
             }
             _singleton.SaveToClipboard(_singleton._current, end - _singleton._current);
         }
