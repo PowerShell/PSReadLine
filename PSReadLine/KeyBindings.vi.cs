@@ -189,7 +189,7 @@ namespace PSConsoleUtilities
                 { Keys.Space,           MakeViKeyHandler( DeleteChar,           "^DeleteChar") },
                 { Keys._0,              MakeViKeyHandler( BackwardDeleteLine,   "^BackwardDeleteLine") },
                 { Keys.Uphat,           MakeViKeyHandler( DeleteLineToFirstChar,"^DeleteLineToFirstChar") },
-                { Keys.Percent,         MakeViKeyHandler( ViDeleteBrace,          "^DeleteBrace") }
+                { Keys.Percent,         MakeViKeyHandler( ViDeleteBrace,        "^DeleteBrace") },
             };
         private static readonly Dictionary<ConsoleKeyInfo, KeyHandler> _viChordCTable = new Dictionary<ConsoleKeyInfo, KeyHandler>(new ConsoleKeyInfoComparer())
             {
@@ -223,7 +223,7 @@ namespace PSConsoleUtilities
                 { Keys.Space,           MakeViKeyHandler( ViYankRight,           "^ViYankRight") },
                 { Keys._0,              MakeViKeyHandler( ViYankBeginningOfLine, "^ViYankBeginningOfLine") },
                 { Keys.Uphat,           MakeViKeyHandler( ViYankToFirstChar,     "^ViYankToFirstChar") },
-                { Keys.Percent,         MakeViKeyHandler( ViYankPercent,         "^ViYankPercent") }
+                { Keys.Percent,         MakeViKeyHandler( ViYankPercent,         "^ViYankPercent") },
             };
 
         private static readonly Dictionary<ConsoleKeyInfo, Dictionary<ConsoleKeyInfo, KeyHandler>> _viCmdChordTable = new Dictionary<ConsoleKeyInfo, Dictionary<ConsoleKeyInfo, KeyHandler>>();
