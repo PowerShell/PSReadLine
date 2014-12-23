@@ -1,12 +1,11 @@
-PSReadLine
-==========
+#PSReadLine
 
 This module replaces the command line editing experience in PowerShell.exe.
 It provides:
 
 * Syntax coloring
 * Simple syntax error notification
-* A better multi-line experience (both editing and history)
+* A good multi-line experience (both editing and history)
 * Customizable key bindings
 * Cmd and emacs modes (neither are fully implemented yet, but both are usable)
 * Many configuration options
@@ -15,22 +14,24 @@ It provides:
 * Emacs yank/kill ring
 * PowerShell token based "word" movement and kill
 * Undo/redo
-
-Many planned features are not yet implemented, but in it's current state, the module is very usable.
+* Automatic saving of history, including sharing history across live sessions
+* "Menu" completion (somewhat like Intellisense, select completion with arrows) via Ctrl+Space
 
 The "out of box" experience is meant to be very familiar to PowerShell.exe users - there should be no need to learn any new key strokes.
 
-Keith Hill wrote a great introduction to PSReadline here: http://rkeithhill.wordpress.com/2013/10/18/psreadline-a-better-line-editing-experience-for-the-powershell-console/
+Keith Hill wrote a great introduction to PSReadline [here](http://rkeithhill.wordpress.com/2013/10/18/psreadline-a-better-line-editing-experience-for-the-powershell-console/)
 
-Installation
-============
-First, you need to download the module.  Using PsGet (http://psget.net, very easy to install), you can run:
+Ed Wilson (Scripting Guy) wrote a series on PSReadline, starting [here](http://blogs.technet.com/b/heyscriptingguy/archive/2014/06/16/the-search-for-a-better-powershell-console-experience.aspx)
 
-```
-install-module PSReadline
-```
+##Installation
 
-Alternatively, download the file https://github.com/lzybkr/PSReadLine/releases/download/Latest/PSReadline.zip and extract the contents into your `C:\Users\[User]\Documents\WindowsPowerShell\modules\PSReadline` folder. (You may have to create these directories if they don't exist)
+PSReadline builds are available in two places, GitHub and the PowerShell Gallery.  The most recent builds will be published to the PowerShell Gallery until they are considered stable and then will be published on GitHub.
+
+To install from the PowerShell Gallery, you will need a recent build of [WMF5](http://go.microsoft.com/fwlink/?LinkId=398175).  If you have WMF5 already, you can just run `Install-Module PSReadline`.
+
+To install the build from GitHub, you can install using [PsGet](http://psget.net) (very easy to install), and run `Install-Module PSReadline`.  Note that Install-Module from PsGet is different than Install-Module with WMF5.
+
+Alternatively, download the file [PSReadline.zip](https://github.com/lzybkr/PSReadLine/releases/download/Latest/PSReadline.zip) and extract the contents into your `C:\Users\[User]\Documents\WindowsPowerShell\modules\PSReadline` folder. (You may have to create these directories if they don't exist.)
 
 Next edit your profile to import the module.  There are two common profile files commonly used and the instructions are slightly different for each.
 
@@ -51,11 +52,9 @@ Import-Module PSReadLine
 
 In either case, you can create the appropriate file if you don't already have one.
 
-Upgrading
-============
+##Upgrading
 
-If you installed with `PSGet` you can run `Update-Module PSReadLine`.
-
+If you installed with `PSGet` or WMF5, you can run `Update-Module PSReadLine`.
 
 If you've added it to your `$PROFILE`, when you run `Update-Module PSReadLine` you will get the following error
 
@@ -70,9 +69,7 @@ At C:\Users\{yourName}\Documents\WindowsPowerShell\Modules\PsGet\PsGet.psm1:1009
 2. `powershell -noprofile`
 3. `Update-Module PSReadLine`
 
-
-Usage
-=====
+##Usage
 
 To start using, just import the module:
 
@@ -138,6 +135,8 @@ In this example, when you type a single quote or double quote, there are two thi
 
 Note that with the handler written this way, it correctly handles Undo - both quotes will be undone with one undo.
 
+The [sample profile file](https://github.com/lzybkr/PSReadLine/blob/master/PSReadLine/SamplePSReadlineProfile.ps1) has a bunch of great examples to check out.  This file is included when PSReadline is installed.
+
 See the public methods of [PSConsoleUtilities.PSConsoleReadLine] to see what other built-in functionality you can modify.
 
 If you want to change the command line in some unimplmented way in your custom key binding, you can use the methods:
@@ -148,3 +147,11 @@ If you want to change the command line in some unimplmented way in your custom k
     [PSConsoleUtilities.PSConsoleReadLine]::Replace
     [PSConsoleUtilities.PSConsoleReadLine]::SetCursorPosition
 ```
+
+##Change Log
+
+The change log is available [here](https://github.com/lzybkr/PSReadLine/blob/master/PSReadLine/Changes.txt).
+
+##License
+
+The license is available [here](https://github.com/lzybkr/PSReadLine/blob/master/PSReadLine/License.txt).

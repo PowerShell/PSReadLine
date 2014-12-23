@@ -5,15 +5,15 @@ param (
      [String] $Version
 )
 
-if ((Test-Path $FilePath -PathType Leaf) -ne $TRUE) {
+if ((Test-Path  -Path $FilePath -PathType Leaf) -ne $TRUE) {
     Write-Error -Message ($FilePath + ' not found.') -Category InvalidArgument;
     exit 1;
 }
 
 #normalize path
-$FilePath = (Resolve-Path $FilePath).Path;
+$FilePath = (Resolve-Path -Path $FilePath).Path;
 
 $moduleVersionPattern = "ModuleVersion = '.*'";
 $newVersion = "ModuleVersion = '" + $Version + "'";
 
-(Get-Content $FilePath) | % {$_ -replace $moduleVersionPattern, $newVersion} | Set-Content $FilePath;
+(Get-Content -Path $FilePath) | ForEach-Object {$_ -replace $moduleVersionPattern, $newVersion} | Set-Content -Path $FilePath;
