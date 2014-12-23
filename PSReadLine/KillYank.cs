@@ -8,7 +8,7 @@ namespace PSConsoleUtilities
     public partial class PSConsoleReadLine
     {
         // Yank/Kill state
-        private readonly List<string> _killRing;
+        private List<string> _killRing;
         private int _killIndex;
         private int _killCommandCount;
         private int _yankCommandCount;
@@ -49,7 +49,10 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void ClearKillRing()
         {
+            if (_singleton._killRing != null)
+            {
             _singleton._killRing.Clear();
+            }
             _singleton._killIndex = -1;    // So first add indexes 0.
         }
 
@@ -509,7 +512,7 @@ namespace PSConsoleUtilities
             {
                 int start, length;
                 _singleton.GetRegion(out start, out length);
-                Clipboard.SetText(_singleton._buffer.ToString(start, length));
+                ExecuteOnSTAThread(() => Clipboard.SetText(_singleton._buffer.ToString(start, length)));
                 Delete(start, length);
             }
         }

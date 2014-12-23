@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Management.Automation;
 using System.Reflection;
+using System.Threading;
 
 namespace PSConsoleUtilities
 {
@@ -34,6 +36,14 @@ namespace PSConsoleUtilities
             {
                 Options.EmphasisForegroundColor = options.EmphasisForegroundColor;
             }
+            if (options._errorBackgroundColor.HasValue)
+            {
+                Options.ErrorBackgroundColor = options.ErrorBackgroundColor;
+            }
+            if (options._errorForegroundColor.HasValue)
+            {
+                Options.ErrorForegroundColor = options.ErrorForegroundColor;
+            }
             if (options._historyNoDuplicates.HasValue)
             {
                 Options.HistoryNoDuplicates = options.HistoryNoDuplicates;
@@ -46,9 +56,15 @@ namespace PSConsoleUtilities
             {
                 Options.AddToHistoryHandler = options.AddToHistoryHandler;
             }
+            if (options._validationHandlerSpecified)
+            {
+                Options.ValidationHandler = options.ValidationHandler;
+            }
             if (options._maximumHistoryCount.HasValue)
             {
                 Options.MaximumHistoryCount = options.MaximumHistoryCount;
+                if (_history != null)
+                {
                 var newHistory = new HistoryQueue<HistoryItem>(Options.MaximumHistoryCount);
                 while (_history.Count > Options.MaximumHistoryCount)
                 {
@@ -60,6 +76,7 @@ namespace PSConsoleUtilities
                 }
                 _history = newHistory;
                 _currentHistoryIndex = _history.Count;
+            }
             }
             if (options._maximumKillRingCount.HasValue)
             {
@@ -118,6 +135,20 @@ namespace PSConsoleUtilities
             {
                 Options.HistorySearchCaseSensitive = options.HistorySearchCaseSensitive;
             }
+            if (options._historySaveStyle.HasValue)
+            {
+                Options.HistorySaveStyle = options.HistorySaveStyle;
+            }
+            if (options.HistorySavePath != null)
+            {
+                Options.HistorySavePath = options.HistorySavePath;
+                if (_historyFileMutex != null)
+                {
+                    _historyFileMutex.Dispose();
+                }
+                _historyFileMutex = new Mutex(false, GetHistorySaveFileMutexName());
+                _historyFileLastSavedSize = 0;
+            }
             if (options.ResetTokenColors)
             {
                 Options.ResetColors();
@@ -135,14 +166,14 @@ namespace PSConsoleUtilities
             }
         }
 
-        private void SetKeyHandlerInternal(string[] keys, Action<ConsoleKeyInfo?, object> handler, string briefDescription, string longDescription)
+        private void SetKeyHandlerInternal(string[] keys, Action<ConsoleKeyInfo?, object> handler, string briefDescription, string longDescription, ScriptBlock scriptBlock)
         {
             foreach (var key in keys)
             {
                 var chord = ConsoleKeyChordConverter.Convert(key);
                 if (chord.Length == 1)
                 {
-                    _dispatchTable[chord[0]] = MakeKeyHandler(handler, briefDescription, longDescription);
+                    _dispatchTable[chord[0]] = MakeKeyHandler(handler, briefDescription, longDescription, scriptBlock);
                 }
                 else
                 {
@@ -153,7 +184,31 @@ namespace PSConsoleUtilities
                         secondDispatchTable = new Dictionary<ConsoleKeyInfo, KeyHandler>();
                         _chordDispatchTable[chord[0]] = secondDispatchTable;
                     }
-                    secondDispatchTable[chord[1]] = MakeKeyHandler(handler, briefDescription, longDescription);
+                    secondDispatchTable[chord[1]] = MakeKeyHandler(handler, briefDescription, longDescription, scriptBlock);
+                }
+            }
+        }
+
+        private void RemoveKeyHandlerInternal(string[] keys)
+        {
+            foreach (var key in keys)
+            {
+                var chord = ConsoleKeyChordConverter.Convert(key);
+                if (chord.Length == 1)
+                {
+                    _dispatchTable.Remove(chord[0]);
+                }
+                else
+                {
+                    Dictionary<ConsoleKeyInfo, KeyHandler> secondDispatchTable;
+                    if (_chordDispatchTable.TryGetValue(chord[0], out secondDispatchTable))
+                    {
+                        secondDispatchTable.Remove(chord[1]);
+                        if (secondDispatchTable.Count == 0)
+                        {
+                            _dispatchTable.Remove(chord[0]);
+                        }
+                    }
                 }
             }
         }
@@ -179,9 +234,28 @@ namespace PSConsoleUtilities
         /// <summary>
         /// Helper function for the Set-PSReadlineKeyHandler cmdlet.
         /// </summary>
+        public static void SetKeyHandler(string[] key, ScriptBlock scriptBlock, string briefDescription, string longDescription)
+        {
+            Action<ConsoleKeyInfo?, object> handler =
+                (k, arg) => scriptBlock.Invoke(k, arg);
+            _singleton.SetKeyHandlerInternal(key, handler, briefDescription, longDescription, scriptBlock);
+        }
+
+        /// <summary>
+        /// Helper function for the Set-PSReadlineKeyHandler cmdlet.
+        /// </summary>
         public static void SetKeyHandler(string[] key, Action<ConsoleKeyInfo?, object> handler, string briefDescription, string longDescription)
         {
-            _singleton.SetKeyHandlerInternal(key, handler, briefDescription, longDescription);
+            _singleton.SetKeyHandlerInternal(key, handler, briefDescription, longDescription, null);
+        }
+
+        /// <summary>
+        /// Helper function for the Remove-PSReadlineKeyHandler cmdlet.
+        /// </summary>
+        /// <param name="key"></param>
+        public static void RemoveKeyHandler(string[] key)
+        {
+            _singleton.RemoveKeyHandlerInternal(key);
         }
 
         /// <summary>

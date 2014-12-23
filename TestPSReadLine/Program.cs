@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Management.Automation;
 using System.Management.Automation.Runspaces;
 using PSConsoleUtilities;
 
@@ -88,6 +89,11 @@ namespace TestPSReadLine
             Console.ReadKey();
         }
 
+        static void CauseCrash(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            throw new Exception("intentional crash for test purposes");
+        }
+
         [STAThread]
         static void Main()
         {
@@ -100,23 +106,42 @@ namespace TestPSReadLine
 
             PSConsoleReadLine.SetOptions(new SetPSReadlineOption
             {
-                EditMode = EditMode.Windows,
+                EditMode = EditMode.Emacs,
                 HistoryNoDuplicates = true,
             });
             PSConsoleReadLine.SetKeyHandler(new[] {"Ctrl+LeftArrow"}, PSConsoleReadLine.ShellBackwardWord, "", "");
             PSConsoleReadLine.SetKeyHandler(new[] {"Ctrl+RightArrow"}, PSConsoleReadLine.ShellNextWord, "", "");
-            PSConsoleReadLine.SetKeyHandler(new[] {"UpArrow"}, PSConsoleReadLine.HistorySearchBackward, "", "");
-            PSConsoleReadLine.SetKeyHandler(new[] {"DownArrow"}, PSConsoleReadLine.HistorySearchForward, "", "");
+            PSConsoleReadLine.SetKeyHandler(new[] {"F4"}, PSConsoleReadLine.HistorySearchBackward, "", "");
+            PSConsoleReadLine.SetKeyHandler(new[] {"F5"}, PSConsoleReadLine.HistorySearchForward, "", "");
             //PSConsoleReadLine.SetKeyHandler(new[] {"Ctrl+D,Ctrl+E"}, PSConsoleReadLine.EnableDemoMode, "", "");
             //PSConsoleReadLine.SetKeyHandler(new[] {"Ctrl+D,Ctrl+D"}, PSConsoleReadLine.DisableDemoMode, "", "");
-            //PSConsoleReadLine.SetKeyHandler(new[] {"Ctrl+D,Ctrl+C"}, PSConsoleReadLine.CaptureScreen, "", "");
+            PSConsoleReadLine.SetKeyHandler(new[] {"Ctrl+D,Ctrl+C"}, PSConsoleReadLine.CaptureScreen, "", "");
             PSConsoleReadLine.SetKeyHandler(new[] {"Ctrl+D,Ctrl+P"}, PSConsoleReadLine.InvokePrompt, "", "");
+            PSConsoleReadLine.SetKeyHandler(new[] {"Ctrl+D,Ctrl+X"}, CauseCrash, "", "");
+            PSConsoleReadLine.SetKeyHandler(new[] {"F6"}, PSConsoleReadLine.PreviousLine, "", "");
+            PSConsoleReadLine.SetKeyHandler(new[] {"F7"}, PSConsoleReadLine.NextLine, "", "");
+            PSConsoleReadLine.SetKeyHandler(new[] {"F2"}, PSConsoleReadLine.ValidateAndAcceptLine, "", "");
+            PSConsoleReadLine.SetKeyHandler(new[] {"Enter"}, PSConsoleReadLine.AcceptLine, "", "");
+
+
+            EngineIntrinsics executionContext;
+            using (var ps = PowerShell.Create(RunspaceMode.CurrentRunspace))
+            {
+                executionContext =
+                    ps.AddScript("$ExecutionContext").Invoke<EngineIntrinsics>().FirstOrDefault();
+
+                // This is a workaround to ensure the command analysis cache has been created before
+                // we enter into ReadLine.  It's a little slow and infrequently needed, so just
+                // uncomment if you hit a hang, run it once, then comment it out again.
+                //ps.Commands.Clear();
+                //ps.AddCommand("Get-Command").Invoke();
+            }
+
             while (true)
             {
-                //Console.Write("C:\\Windows\nPS> ");
-                Console.Write("PS> ");
+                Console.Write("TestHostPS> ");
 
-                var line = PSConsoleReadLine.ReadLine();
+                var line = PSConsoleReadLine.ReadLine(null, executionContext);
                 Console.WriteLine(line);
                 line = line.Trim();
                 if (line.Equals("exit"))

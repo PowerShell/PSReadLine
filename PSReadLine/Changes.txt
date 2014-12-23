@@ -1,8 +1,107 @@
+### Version 1.0.0.13
+
+New features:
+* Enter now does some extra validation before accepting the input.  If there are any parse
+  errors, command not found, or parameter binding errors, and error message is displayed
+  and you can continue editing.  Your history and the screen won't be cluttered with errors.
+  You can press Enter a second time to force accepting the line if you choose.  
+
+  If you don't like the new behavior for Enter, you can revert to the old behavior with:
+      Set-PSReadlineKeyHandler -Key Enter -Function AcceptLine
+
+Bug fixes:
+* Occasional exception with AcceptAndGetNext (Ctrl+O) followed by something other than Enter
+* Event handlers that register for the engine event PowerShell.OnIdle should work now.
+* ClearScreen now just clears the visible screen, not the entire buffer.
+* Fix exception on error input during rendering after certain keywords like process, begin, or end.
+
+New functions:
+* ValidateAndAcceptLine
+    Validate the command line (by making sure there are no parse errors, commands all exist,
+    and possibly other sorts of validation), display an error if any errors, but don't add
+    the command to history and clear the error after an edit.
+* DeleteCharOrExit
+    - emulate Ctrl+D in bash properly by exiting the process if the command line is empty
+* ScrollDisplayUpLine, ScrollDisplayDownLine
+    Scroll the screen up or down by a line instead of by the screen
+
+New key bindings:
+* Ctrl+D bound to DeleteCharOrExit in Emacs mode
+* Ctrl+N/Ctrl+P bound to NextHistory/PreviousHistory in Emacs mode
+* Ctrl+PageUp bound to ScrollDisplayUpLine
+* Ctrl+PageDown bound to ScrollDisplayDownLine
+* Alt+F7 bound to ClearHistory in Windows mode
+
+New options:
+* Set-PSReadlineOption
+      -ErrorForegroundColor
+      -ErrorBackgroundColor
+          Colors used when ValidateAndAcceptLine reports an error
+
+      -ValidationHandler
+          A delegate that is called from ValidateAndAcceptLine that can perform custom validation
+
+New cmdlet:
+* Remove-PSReadlineKeyHandler
+    This will remove a key binding for previously bound keys.
+
+### Version 1.0.0.12
+
+New features:
+* Multi-line editing is now practical.  Home/End go to the start/end of the current line or
+  start/end of the input in a reasonable way.  Up/Down arrows will move across lines if the
+  input has multiple lines and you are not in the middle of recalling history.
+
+Bug fixes:
+* Color the prompt character if there is an error for any non-alphanumeric character
+* Fix an issue related to undo (which was commonly hit via Escape) and using history search
+* Fix a bug where PowerShell events are not written to the console until PSReadline returns
+* Fixed so PowerTab now works with PSReadline
+* Highlight from history search is cleared before accepting a line now.
+* Fixed MenuComplete so it clears the menu (which only happened on some systems)
+
+New functions:
+* NextLine
+* PreviousLine
+    - These functions are added for completeness, neither is particularly useful as the usual
+      bindings for UpArrow/DownArrow are smart enough to recall history or change lines
+      depending on the context.
+
+New key bindings:
+* F8/Shift+F8 bound to HistorySearchBackward/HistorySearchForward in Windows mode
+
+### Version 1.0.0.11
+
+Bug fixes:
+* Fixed MenuComplete to actually work
+
+### Version 1.0.0.10
+
+New features:
+* Added binding Ctrl+SpaceBar to MenuComplete in Windows and Emacs modes
+  - If you want to old behavior of Ctrl+Spacebar, bind it to PossibleCompletions
+* Added binding Alt+. (YankLastArg) to Windows mode
+* Added diagnostics when an exception occurs to help reporting bugs
+
+Bug fixes:
+* SaveHistoryPath option fixed
+* Fix ShowKeyBindings to not write blank lines
+* Fixed bug with undo
 
 ### Version 1.0.0.9
 
+New features:
+* MenuComplete - like an interactive show completion
+* Automatically save history
+    - at process exit
+    - incrementally and shared across sessions
+    - don't save
+  See parameters HistorySaveStyle and HistorySavePath to Set-PSReadlineOption
+* Added sample custom binding for quickly changing directories in SamplePSReadlineProfile.ps1
+
 Bug fixes:
 * Items loaded from history work with RevertLine
+* Recalling current line after up arrow works again
 
 ### Version 1.0.0.8
 

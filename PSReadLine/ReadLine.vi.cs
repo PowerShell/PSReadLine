@@ -419,7 +419,7 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void ViCommandMode(ConsoleKeyInfo? key = null, object arg = null)
         {
-            if (_singleton._pushedEditGroupCount.Count > 0)
+            if (_singleton._editGroupStart >= 0)
             {
                 _singleton._groupUndoHelper.EndGroup();
             }

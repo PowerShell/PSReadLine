@@ -147,7 +147,7 @@
   <data name="ClearKillRingDescription" xml:space="preserve">
     <value>Remove all items from the kill ring</value>
   </data>
-  <data name="ClearyHistoryDescription" xml:space="preserve">
+  <data name="ClearHistoryDescription" xml:space="preserve">
     <value>Remove all items from the command line history (not PowerShell history)</value>
   </data>
   <data name="CompleteDescription" xml:space="preserve">
@@ -354,6 +354,9 @@
   <data name="ScrollDisplayDownDescription" xml:space="preserve">
     <value>Scroll the display down one screen</value>
   </data>
+  <data name="ScrollDisplayDownLineDescription" xml:space="preserve">
+    <value>Scroll the display down one line</value>
+  </data>
   <data name="ScrollDisplayToCursorDescription" xml:space="preserve">
     <value>Scroll the display to the cursor</value>
   </data>
@@ -362,6 +365,9 @@
   </data>
   <data name="ScrollDisplayUpDescription" xml:space="preserve">
     <value>Scroll the display up one screen</value>
+  </data>
+  <data name="ScrollDisplayUpLineDescription" xml:space="preserve">
+    <value>Scroll the display up one line</value>
   </data>
   <data name="SelectShellNextWordDescription" xml:space="preserve">
     <value>Adjust the current selection to include the next word using ShellNextWord</value>
@@ -380,6 +386,39 @@
   </data>
   <data name="CopyOrCancelLineDescription" xml:space="preserve">
     <value>Either copy selected text to the clipboard, or if no text is selected, cancel editing the line with CancelLine.</value>
+  </data>
+  <data name="MenuCompleteDescription" xml:space="preserve">
+    <value>Complete the input if there is a single completion, otherwise complete the input by selecting from a menu of possible completions.</value>
+  </data>
+  <data name="OopsAnErrorMessage1" xml:space="preserve">
+    <value>Oops, something went wrong.  Please report this bug with the details below.
+Report on GitHub: https://github.com/lzybkr/PSReadLine/issues/new
+Or email: jason@truewheels.net</value>
+  </data>
+  <data name="OopsAnErrorMessage2" xml:space="preserve">
+    <value>-----------------------------------------------------------------------
+Last {0} Keys:
+{1}
+
+Exception:
+{2}
+-----------------------------------------------------------------------</value>
+  </data>
+  <data name="NextLineDescription" xml:space="preserve">
+    <value>Move the cursor to the next line if the input has multiple lines.</value>
+  </data>
+  <data name="PreviousLineDescription" xml:space="preserve">
+    <value>Move the cursor to the previous line if the input has multiple lines.</value>
+  </data>
+  <data name="CommandNotFoundError" xml:space="preserve">
+    <value>Command '{0}' cannot be found.</value>
+  </data>
+  <data name="ValidateAndAcceptLineDescription" xml:space="preserve">
+    <value>Accept the input or move to the next line if input is missing a closing token.
+If there are other parse errors, unresolved commands, or incorrect parameters, show the error and continue editing.</value>
+  </data>
+  <data name="DeleteCharOrExitDescription" xml:space="preserve">
+    <value>Delete the character under the cusor, or if the line is empty, exit the process.</value>
   </data>
   <data name="HostNotSupported" xml:space="preserve">
     <value>The current Windows PowerShell host does not look like a console-based host, therefore the PSReadline module is of no use to it.</value>
@@ -533,8 +572,5 @@
   </data>
   <data name="ViBackwardReplaceWordDescription" xml:space="preserve">
     <value>Replace the previous word.</value>
-  </data>
-  <data name="MenuCompleteDescription" xml:space="preserve">
-    <value>Complete the input if there is a single completion, otherwise complete the input by selecting from a menu of possible completions.</value>
   </data>
 </root>

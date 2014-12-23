@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Management.Automation;
@@ -20,7 +22,8 @@ namespace PSConsoleUtilities
         [ExcludeFromCodeCoverage]
         CommandCompletion IPSConsoleReadLineMockableMethods.CompleteInput(string input, int cursorIndex, Hashtable options, PowerShell powershell)
         {
-            return CommandCompletion.CompleteInput(input, cursorIndex, options, powershell);
+            return CalloutUsingDefaultConsoleMode(
+                () => CommandCompletion.CompleteInput(input, cursorIndex, options, powershell));
         }
 
         /// <summary>
@@ -415,7 +418,7 @@ namespace PSConsoleUtilities
 
             if (menuSelect)
             {
-                StartEditGroup();
+                var undoPoint = _edits.Count;
 
                 int selectedItem = 0;
                 bool undo = false;
@@ -431,13 +434,11 @@ namespace PSConsoleUtilities
                 InvertSelectedCompletion(menuBuffer, selectedItem, menuColumnWidth, displayRows);
                 WriteBufferLines(menuBuffer, ref menuAreaTop);
 
-                if (previousMenuTop != menuAreaTop)
-                {
-                    // Showing the menu scrolled the screen, update initialY to reflect that.
+                // Showing the menu may have scrolled the screen or moved the cursor, update initialY to reflect that.
                     _initialY -= (previousMenuTop - menuAreaTop);
                     PlaceCursor();
                     previousMenuTop = menuAreaTop;
-                }
+
                 int previousItem = selectedItem;
 
                 bool processingKeys = true;
@@ -504,12 +505,26 @@ namespace PSConsoleUtilities
 
                 WriteBlankLines(displayRows, menuAreaTop);
 
-                EndEditGroup();
+                var lastInsert = ((GroupedEdit)_edits[_edits.Count - 1])._groupedEditItems[1];
+                Debug.Assert(lastInsert is EditItemInsertString, "The only edits possible here are pairs of Delete/Insert");
+                var firstDelete = ((GroupedEdit)_edits[undoPoint])._groupedEditItems[0];
+                Debug.Assert(firstDelete is EditItemDelete, "The only edits possible here are pairs of Delete/Insert");
+
+                var groupEditCount = _edits.Count - undoPoint;
+                _edits.RemoveRange(undoPoint, groupEditCount);
+                _undoEditIndex = undoPoint;
 
                 if (undo)
                 {
                     // Pretend it never happened.
-                    Undo();
+                    lastInsert.Undo();
+                    firstDelete.Undo();
+                    Render();
+                }
+                else
+                {
+                    // Leave one edit instead of possibly many to undo
+                    SaveEditItem(GroupedEdit.Create(new List<EditItem> { firstDelete, lastInsert }));
                 }
             }
             else

@@ -212,6 +212,12 @@ namespace PSConsoleUtilities
         public static ConsoleKeyInfo UpArrow      = new ConsoleKeyInfo((char)0, ConsoleKey.UpArrow, false, false, false);
         public static ConsoleKeyInfo PageUp       = new ConsoleKeyInfo((char)0, ConsoleKey.PageUp, false, false, false);
         public static ConsoleKeyInfo PageDown     = new ConsoleKeyInfo((char)0, ConsoleKey.PageDown, false, false, false);
+        public static ConsoleKeyInfo ShiftPageUp   = new ConsoleKeyInfo((char)0, ConsoleKey.PageUp, true, false, false);
+        public static ConsoleKeyInfo ShiftPageDown = new ConsoleKeyInfo((char)0, ConsoleKey.PageDown, true, false, false);
+        public static ConsoleKeyInfo CtrlPageUp    = new ConsoleKeyInfo((char)0, ConsoleKey.PageUp, false, false, true);
+        public static ConsoleKeyInfo CtrlPageDown  = new ConsoleKeyInfo((char)0, ConsoleKey.PageDown, false, false, true);
+        public static ConsoleKeyInfo AltPageUp     = new ConsoleKeyInfo((char)0, ConsoleKey.PageUp, false, true, false);
+        public static ConsoleKeyInfo AltPageDown   = new ConsoleKeyInfo((char)0, ConsoleKey.PageDown, false, true, false);
 
         public static ConsoleKeyInfo ShiftLeftArrow  = new ConsoleKeyInfo((char)0, ConsoleKey.LeftArrow, true, false, false);
         public static ConsoleKeyInfo ShiftRightArrow = new ConsoleKeyInfo((char)0, ConsoleKey.RightArrow, true, false, false);
@@ -248,7 +254,33 @@ namespace PSConsoleUtilities
         public static ConsoleKeyInfo F23 = new ConsoleKeyInfo((char)0, ConsoleKey.F23, false, false, false);
         public static ConsoleKeyInfo F24 = new ConsoleKeyInfo((char)0, ConsoleKey.F24, false, false, false);
 
+        public static ConsoleKeyInfo AltF1 = new ConsoleKeyInfo((char)0, ConsoleKey.F1, false, true, false);
+        public static ConsoleKeyInfo AltF2 = new ConsoleKeyInfo((char)0, ConsoleKey.F2, false, true, false);
+        public static ConsoleKeyInfo AltF3 = new ConsoleKeyInfo((char)0, ConsoleKey.F3, false, true, false);
+        public static ConsoleKeyInfo AltF4 = new ConsoleKeyInfo((char)0, ConsoleKey.F4, false, true, false);
+        public static ConsoleKeyInfo AltF5 = new ConsoleKeyInfo((char)0, ConsoleKey.F5, false, true, false);
+        public static ConsoleKeyInfo AltF6 = new ConsoleKeyInfo((char)0, ConsoleKey.F6, false, true, false);
+        public static ConsoleKeyInfo AltF7 = new ConsoleKeyInfo((char)0, ConsoleKey.F7, false, true, false);
+        public static ConsoleKeyInfo AltF8 = new ConsoleKeyInfo((char)0, ConsoleKey.F8, false, true, false);
+        public static ConsoleKeyInfo AltF9 = new ConsoleKeyInfo((char)0, ConsoleKey.F9, false, true, false);
+        public static ConsoleKeyInfo AltFl0 = new ConsoleKeyInfo((char)0, ConsoleKey.F10, false, true, false);
+        public static ConsoleKeyInfo AltF11 = new ConsoleKeyInfo((char)0, ConsoleKey.F11, false, true, false);
+        public static ConsoleKeyInfo AltF12 = new ConsoleKeyInfo((char)0, ConsoleKey.F12, false, true, false);
+        public static ConsoleKeyInfo AltF13 = new ConsoleKeyInfo((char)0, ConsoleKey.F13, false, true, false);
+        public static ConsoleKeyInfo AltF14 = new ConsoleKeyInfo((char)0, ConsoleKey.F14, false, true, false);
+        public static ConsoleKeyInfo AltF15 = new ConsoleKeyInfo((char)0, ConsoleKey.F15, false, true, false);
+        public static ConsoleKeyInfo AltF16 = new ConsoleKeyInfo((char)0, ConsoleKey.F16, false, true, false);
+        public static ConsoleKeyInfo AltF17 = new ConsoleKeyInfo((char)0, ConsoleKey.F17, false, true, false);
+        public static ConsoleKeyInfo AltF18 = new ConsoleKeyInfo((char)0, ConsoleKey.F18, false, true, false);
+        public static ConsoleKeyInfo AltF19 = new ConsoleKeyInfo((char)0, ConsoleKey.F19, false, true, false);
+        public static ConsoleKeyInfo AltF20 = new ConsoleKeyInfo((char)0, ConsoleKey.F20, false, true, false);
+        public static ConsoleKeyInfo AltF21 = new ConsoleKeyInfo((char)0, ConsoleKey.F21, false, true, false);
+        public static ConsoleKeyInfo AltF22 = new ConsoleKeyInfo((char)0, ConsoleKey.F22, false, true, false);
+        public static ConsoleKeyInfo AltF23 = new ConsoleKeyInfo((char)0, ConsoleKey.F23, false, true, false);
+        public static ConsoleKeyInfo AltF24 = new ConsoleKeyInfo((char)0, ConsoleKey.F24, false, true, false);
+
         public static ConsoleKeyInfo ShiftF3 = new ConsoleKeyInfo((char)0, ConsoleKey.F3, true, false, false);
+        public static ConsoleKeyInfo ShiftF8 = new ConsoleKeyInfo((char)0, ConsoleKey.F8, true, false, false);
 
         // Keys to ignore
         public static ConsoleKeyInfo VolumeUp   = new ConsoleKeyInfo((char)0, ConsoleKey.VolumeUp, false, false, false);

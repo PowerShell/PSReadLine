@@ -624,6 +624,7 @@ namespace UnitTestPSReadLine
                 EmphasisForegroundColor           = PSConsoleReadlineOptions.DefaultEmphasisForegroundColor,
                 ExtraPromptLineCount              = PSConsoleReadlineOptions.DefaultExtraPromptLineCount,
                 HistoryNoDuplicates               = PSConsoleReadlineOptions.DefaultHistoryNoDuplicates,
+                HistorySaveStyle                  = HistorySaveStyle.SaveNothing,
                 HistorySearchCaseSensitive        = PSConsoleReadlineOptions.DefaultHistorySearchCaseSensitive,
                 HistorySearchCursorMovesToEnd     = PSConsoleReadlineOptions.DefaultHistorySearchCursorMovesToEnd,
                 MaximumHistoryCount               = PSConsoleReadlineOptions.DefaultMaximumHistoryCount,

@@ -28,11 +28,23 @@ LONG DESCRIPTION
 
     EndOfLine                (Cmd: <End>                Emacs: <End> or <Ctrl+E>)
 
-        Move the cursor to the end of the input.
+        If the input has multiple lines, move to the end of the current line,
+        or if already at the end of the line, move to the end of the input.
+        If the input has a single line, move to the end of the input.
 
     BeginningOfLine          (Cmd: <Home>               Emacs: <Home> or <Ctrl+A>)
 
-        Move the cursor to the start of the input.
+        If the input has multiple lines, move to the start of the current line,
+        or if already at the start of the line, move to the start of the input.
+        If the input has a single line, move to the start of the input.
+
+    NextLine                 (Cmd: unbound              Emacs: unbound)
+
+        Move the cursor to the next line if the input has multiple lines.
+
+    PreviousLine             (Cmd: unbound              Emacs: unbound)
+
+        Move the cursor to the previous line if the input has multiple lines.
 
     ForwardChar              (Cmd: <RightArrow>         Emacs: <RightArrow> or <Ctrl+F>)
 
@@ -109,6 +121,10 @@ LONG DESCRIPTION
 
         Delete the character under the cursor.
 
+    DeleteCharOrExit         (Cmd: unbound              Emacs: <Ctrl+D>)
+
+        Like DeleteChar, unless the line is empty, in which case exit the process.
+
     AcceptLine               (Cmd: <Enter>              Emacs: <Enter> or <Ctrl+M>)
 
         Attempt to execute the current input.  If the current input is incomplete (for
@@ -116,10 +132,22 @@ LONG DESCRIPTION
         continuation prompt is displayed on the next line and PSReadline waits for
         keys to edit the current input.
 
-    AcceptAndGetNext         (Cmd: unbound              Emacs: <Ctrl+O>
+    AcceptAndGetNext         (Cmd: unbound              Emacs: <Ctrl+O>)
 
         Like AcceptLine, but after the line completes, start editing the next line
         from history.
+
+    ValidateAndAcceptLine    (Cmd: unbound              Emacs: unbound)
+
+        Like AcceptLine but performs additional validation including:
+
+            * Check for additional parse errors
+            * Validate command names are all found
+            * If using PowerShell V4 or greater, validate the parameters and arguments
+
+        If there are any errors, the error message is displayed and not accepted nor added
+        to the history unless you either correct the command line or execute AcceptLine or
+        ValidateAndAcceptLine again while the error message is displayed.
 
     BackwardDeleteLine       (Cmd: <Ctrl+Home>          Emacs: unbound)
 
@@ -188,32 +216,32 @@ LONG DESCRIPTION
   History
   -------
 
-    ClearHistory             (Cmd: unbound              Emacs: unbound)
+    ClearHistory             (Cmd: Alt+F7               Emacs: unbound)
 
         Clears history in PSReadline.  This does not affect PowerShell history.
 
-    PreviousHistory          (Cmd: <UpArrow>            Emacs: <UpArrow>)
+    PreviousHistory          (Cmd: <UpArrow>            Emacs: <UpArrow> or <Ctrl+P>)
 
         Replace the current input with the 'previous' item from PSReadline history.
 
-    NextHistory              (Cmd: <DownArrow>          Emacs: <DownArrow>)
+    NextHistory              (Cmd: <DownArrow>          Emacs: <DownArrow> or <Ctrl+N>)
 
         Replace the current input with the 'next' item from PSReadline history.
 
-    ForwardSearchHistory     (Cmd: unbound              Emacs: <Ctrl+S>)
+    ForwardSearchHistory     (Cmd: <Ctrl+S>             Emacs: <Ctrl+S>)
 
         Search forward from the current history line interactively.
 
-    ReverseSearchHistory     (Cmd: unbound              Emacs: <Ctrl+R>)
+    ReverseSearchHistory     (Cmd: <Ctrl+R>             Emacs: <Ctrl+R>)
 
         Search backward from the current history line interactively.
 
-    HistorySearchBackward    (Cmd: unbound              Emacs: unbound)
+    HistorySearchBackward    (Cmd: <F8>                 Emacs: unbound)
 
         Replace the current input with the 'previous' item from PSReadline history
         that matches the characters between the start and the input and the cursor.
 
-    HistorySearchForward     (Cmd: unbound              Emacs: unbound)
+    HistorySearchForward     (Cmd: <Shift+F8>           Emacs: unbound)
 
         Replace the current input with the 'next' item from PSReadline history
         that matches the characters between the start and the input and the cursor.
@@ -247,7 +275,7 @@ LONG DESCRIPTION
         prefix is used for completion.  If trying to complete the longest
         unambiguous completion, a list of possible completions is displayed.
 
-    MenuComplete             (Cmd: unbound              Emacs: unbound)
+    MenuComplete             (Cmd: <Ctrl+Space>         Emacs: <Ctrl+Space>)
 
         Attempt to perform completion on the text surrounding the cursor.
         If there are multiple possible completions, a list of possible
@@ -256,7 +284,7 @@ LONG DESCRIPTION
         the menu selection and reverts the line to the state before invoking
         MenuComplete.
 
-    PossibleCompletions      (Cmd: <Ctrl+Space>         Emacs: <Alt+Equals>)
+    PossibleCompletions      (Cmd: unbound              Emacs: <Alt+Equals>)
     
         Display the list of possible completions.
 
@@ -349,7 +377,7 @@ LONG DESCRIPTION
 
         This is similar to Yank, but uses the system clipboard instead of the kill ring.
 
-    YankLastArg              (Cmd: unbound              Emacs: <Alt+.>, <Alt+_>)
+    YankLastArg              (Cmd: <Alt+.>              Emacs: <Alt+.>, <Alt+_>)
 
         Insert the last argument from the previous command in history.  Repeated operations
         will replace the last inserted argument with the last argument from the previous
@@ -435,9 +463,17 @@ LONG DESCRIPTION
 
         Scroll the display up one screen.
 
+    ScrollDisplayUpLine      (Cmd: <Ctrl+PageUp>        Emacs: <Ctrl+PageUp>)
+
+        Scroll the display up one line.
+
     ScrollDisplayDown        (Cmd: <PageDown>           Emacs: <PageDown>)
 
         Scroll the display down one screen.
+
+    ScrollDisplayDownLine    (Cmd: <Ctrl+PageDown>      Emacs: <Ctrl+PageDown>)
+
+        Scroll the display down one line.
 
     ScrollDisplayTop         (Cmd: unbound              Emacs: <Ctrl+Home>)
 
@@ -447,37 +483,6 @@ LONG DESCRIPTION
 
         Scroll the display to the cursor.
 
-  Custom Key Binding Support
-  --------------------------
-
-  The following functions are public but cannot be directly bound to a key.  They are used
-  in custom key bindings.
-
-    Ding
-
-        Perform the Ding action based on the users perference.
-
-    GetBufferState(out string input, out int cursor)
-    GetBufferState(out Ast ast, out Token[] tokens, out ParseError[] parseErrors, out int cursor)
-
-        These two functions retrieve useful information about the current state of
-        the input buffer.  The first is more commonly used for simple cases.  The
-        second is used if your binding is doing something more advanced with the Ast.
-
-    Insert(char c)
-    Insert(string s)
-
-        Insert a character or string in a way that supports undo/redo.
-
-    Replace(int start, int length, string replacement)
-    
-        Replace some of the input in a way that supports undo/redo as a single action.
-        This is preferred over Delete followed by Insert to better support Undo.
-
-    SetCursorPosition(int offset)
-
-        Move the cursor to the given offset.  Cursor movement is not tracked for undo.
-
   Custom Key Bindings
   -------------------
 
@@ -486,17 +491,131 @@ LONG DESCRIPTION
 
       Set-PSReadlineKeyHandler -Key UpArrow -Function HistorySearchBackward
 
-  You can bind a ScriptBlock to a key.  This ScriptBlock can do pretty much anything you like.
-  For example, say you wanted to run a specific command after hitting Ctrl+B, you could do this:
+  You can bind a ScriptBlock to a key.  The ScriptBlock can do pretty much anything you want.
+  Some useful examples include:
 
-      Set-PSReadlineKeyHandler -Key Ctrl+B -BriefDescription build -LongDescription "Build the current directory" -ScriptBlock {
-          [PSConsoleUtilities.PSConsoleReadLine]::RevertLine()
-          [PSConsoleUtilities.PSConsoleReadLine]::Insert("build")
-          [PSConsoleUtilities.PSConsoleReadLine]::AcceptLine()
-      }
+      * edit the command line
+      * opening a new window (e.g. help)
+      * change directories without changing the command line
 
-  In this example, multiple functions are called and the end result is running the 'build' command
-  by entering Ctrl+B.
+  The ScriptBlock is passed two arguments:
+
+      * $key - A [ConsoleKeyInfo] that is the key that triggered the custom binding.  If you bind
+               the same ScriptBlock to multiple keys and need to perform different actions depending
+               on the key, you can check $key.  Many custom bindings ignore this argument.
+      * $arg - An arbitrary argument.  Most often, this would be an integer argument that the user
+               passes from the key bindings DigitArgument.  If your binding doesn't accept arguments,
+               it's reasonable to ignore this argument.
+
+  Let's take a look at an example that adds a command line to history without executing it.  This is
+  useful when you realize you forgot to do something, but don't want to re-enter the command line
+  you've already entered.
+
+        Set-PSReadlineKeyHandler -Key Alt+w `
+                                 -BriefDescription SaveInHistory `
+                                 -LongDescription "Save current line in history but do not execute" `
+                                 -ScriptBlock {
+            param($key, $arg)   # The arguments are ignored in this example
+
+            # We need the command line, GetBufferState gives us that (with the cursor position)
+            $line = $null
+            $cursor = $null
+            [PSConsoleUtilities.PSConsoleReadLine]::GetBufferState([ref]$line, [ref]$cursor)
+
+            # AddToHistory saves the line in history, but does not execute the line.
+            [PSConsoleUtilities.PSConsoleReadLine]::AddToHistory($line)
+
+            # RevertLine is like pressing Escape.
+            [PSConsoleUtilities.PSConsoleReadLine]::RevertLine()
+        }
+
+  You can see many more examples in the file SamplePSReadlineProfile.ps1 which is installed in the
+  PSReadline module folder.
+
+  Most key bindings will want to take advantage of some helper functions for editing the command
+  line those APIs are documented in the next section.
+
+  Custom Key Binding Support APIs
+  -------------------------------
+
+  The following functions are public in PSConsoleUtilities.PSConsoleReadline, but cannot be directly
+  bound to a key.  Most are useful in custom key bindings.
+
+    void AddToHistory(string command)
+
+        Add a command line to history without executing it.
+
+    void ClearKillRing()
+
+        Clear the kill ring.  This is mostly used for testing.
+
+    void Delete(int start, int length)
+
+        Delete length characters from start.  This operation supports undo/redo.
+
+    void Ding()
+
+        Perform the Ding action based on the users perference.
+
+    void GetBufferState([ref] string input, [ref] int cursor)
+    void GetBufferState([ref] Ast ast, [ref] Token[] tokens, [ref] ParseError[] parseErrors, [ref] int cursor)
+
+        These two functions retrieve useful information about the current state of
+        the input buffer.  The first is more commonly used for simple cases.  The
+        second is used if your binding is doing something more advanced with the Ast.
+
+    IEnumerable[PSConsoleUtilities.KeyHandler] GetKeyHandlers(bool includeBound, bool includeUnbound)
+
+        This function is used by Get-PSReadlineKeyHandler and probably isn't useful in a custom
+        key binding.
+
+    PSConsoleUtilities.PSConsoleReadlineOptions GetOptions()
+
+        This function is used by Get-PSReadlineOption and probably isn't too useful in a custom
+        key binding.
+
+    void GetSelectionState([ref] int start, [ref] int length)
+
+        If there is no selection on the command line, -1 will be returned in both start and length.
+        If there is a selection on the command line, the start and length of the selection are returned.
+
+    void Insert(char c)
+    void Insert(string s)
+
+        Insert a character or string at the cursor.  This operation supports undo/redo.
+
+    string ReadLine(runspace remoteRunspace, System.Management.Automation.EngineIntrinsics engineIntrinsics)
+
+        This is the main entrypoint to PSReadline. It does not support recursion, so is not useful
+        in a custom key binding.
+    
+    void RemoveKeyHandler(string[] key)
+
+        This function is used by Remove-PSReadlineKeyHandler and probably isn't too useful in a
+        custom key binding.
+
+    void Replace(int start, int length, string replacement)
+    
+        Replace some of the input.  This operation supports undo/redo.
+        This is preferred over Delete followed by Insert because it is treated as a single action
+        for undo.
+
+    void SetCursorPosition(int cursor)
+
+        Move the cursor to the given offset.  Cursor movement is not tracked for undo.
+
+    void SetOptions(PSConsoleUtilities.SetPSReadlineOption options)
+
+        This function is a helper method used by the cmdlet Set-PSReadlineOption, but might be
+        useful to a custom key binding that wants to temporarily change a setting.
+
+    bool TryGetArgAsInt(System.Object arg, [ref] int numericArg, int defaultNumericArg)
+
+        This helper method is used for custom bindings that honor DigitArgument.  A typical call
+        looks like:
+
+            [int]$numericArg = 0
+            [PSConsoleUtilities.PSConsoleReadLine]::TryGetArgAsInt($arg, [ref]$numericArg, 1)
 
 POWERSHELL COMPATIBILITY
     

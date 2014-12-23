@@ -223,6 +223,15 @@ namespace PSConsoleUtilities {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Remove all items from the command line history (not PowerShell history).
+        /// </summary>
+        internal static string ClearHistoryDescription {
+            get {
+                return ResourceManager.GetString("ClearHistoryDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Remove all items from the kill ring.
         /// </summary>
         internal static string ClearKillRingDescription {
@@ -241,11 +250,11 @@ namespace PSConsoleUtilities {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Remove all items from the command line history (not PowerShell history).
+        ///   Looks up a localized string similar to Command &apos;{0}&apos; cannot be found..
         /// </summary>
-        internal static string ClearyHistoryDescription {
+        internal static string CommandNotFoundError {
             get {
-                return ResourceManager.GetString("ClearyHistoryDescription", resourceCulture);
+                return ResourceManager.GetString("CommandNotFoundError", resourceCulture);
             }
         }
         
@@ -300,6 +309,15 @@ namespace PSConsoleUtilities {
         internal static string DeleteCharDescription {
             get {
                 return ResourceManager.GetString("DeleteCharDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Delete the character under the cusor, or if the line is empty, exit the process..
+        /// </summary>
+        internal static string DeleteCharOrExitDescription {
+            get {
+                return ResourceManager.GetString("DeleteCharOrExitDescription", resourceCulture);
             }
         }
         
@@ -619,6 +637,15 @@ namespace PSConsoleUtilities {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Move the cursor to the next line if the input has multiple lines..
+        /// </summary>
+        internal static string NextLineDescription {
+            get {
+                return ResourceManager.GetString("NextLineDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Move the cursor forward to the start of the next word.
         /// </summary>
         internal static string NextWordDescription {
@@ -633,6 +660,32 @@ namespace PSConsoleUtilities {
         internal static string NextWordEndDescription {
             get {
                 return ResourceManager.GetString("NextWordEndDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Oops, something went wrong.  Please report this bug with the details below.
+        ///Report on GitHub: https://github.com/lzybkr/PSReadLine/issues/new
+        ///Or email: jason@truewheels.net.
+        /// </summary>
+        internal static string OopsAnErrorMessage1 {
+            get {
+                return ResourceManager.GetString("OopsAnErrorMessage1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to -----------------------------------------------------------------------
+        ///Last {0} Keys:
+        ///{1}
+        ///
+        ///Exception:
+        ///{2}
+        ///-----------------------------------------------------------------------.
+        /// </summary>
+        internal static string OopsAnErrorMessage2 {
+            get {
+                return ResourceManager.GetString("OopsAnErrorMessage2", resourceCulture);
             }
         }
         
@@ -669,6 +722,15 @@ namespace PSConsoleUtilities {
         internal static string PreviousHistoryDescription {
             get {
                 return ResourceManager.GetString("PreviousHistoryDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Move the cursor to the previous line if the input has multiple lines..
+        /// </summary>
+        internal static string PreviousLineDescription {
+            get {
+                return ResourceManager.GetString("PreviousLineDescription", resourceCulture);
             }
         }
         
@@ -790,6 +852,15 @@ namespace PSConsoleUtilities {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Scroll the display down one line.
+        /// </summary>
+        internal static string ScrollDisplayDownLineDescription {
+            get {
+                return ResourceManager.GetString("ScrollDisplayDownLineDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Scroll the display to the cursor.
         /// </summary>
         internal static string ScrollDisplayToCursorDescription {
@@ -813,6 +884,15 @@ namespace PSConsoleUtilities {
         internal static string ScrollDisplayUpDescription {
             get {
                 return ResourceManager.GetString("ScrollDisplayUpDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Scroll the display up one line.
+        /// </summary>
+        internal static string ScrollDisplayUpLineDescription {
+            get {
+                return ResourceManager.GetString("ScrollDisplayUpLineDescription", resourceCulture);
             }
         }
         
@@ -1119,6 +1199,16 @@ namespace PSConsoleUtilities {
         internal static string UnixWordRuboutDescription {
             get {
                 return ResourceManager.GetString("UnixWordRuboutDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Accept the input or move to the next line if input is missing a closing token.
+        ///If there are other parse errors, unresolved commands, or incorrect parameters, show the error and continue editing..
+        /// </summary>
+        internal static string ValidateAndAcceptLineDescription {
+            get {
+                return ResourceManager.GetString("ValidateAndAcceptLineDescription", resourceCulture);
             }
         }
         

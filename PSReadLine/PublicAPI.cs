@@ -149,9 +149,9 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void SetCursorPosition(int cursor)
         {
-            if (cursor > _singleton._buffer.Length)
+            if (cursor > _singleton._buffer.Length + ViEndOfLineFactor)
             {
-                cursor = _singleton._buffer.Length;
+                cursor = _singleton._buffer.Length + ViEndOfLineFactor;
             }
             else if (cursor < 0)
             {

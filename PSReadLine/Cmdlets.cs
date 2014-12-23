@@ -36,6 +36,13 @@ namespace PSConsoleUtilities
         Audible
     }
 
+    public enum HistorySaveStyle
+    {
+        SaveIncrementally,
+        SaveAtExit,
+        SaveNothing
+    }
+
     public class PSConsoleReadlineOptions
     {
         public const ConsoleColor DefaultCommentForegroundColor   = ConsoleColor.DarkGreen;
@@ -49,6 +56,7 @@ namespace PSConsoleUtilities
         public const ConsoleColor DefaultNumberForegroundColor    = ConsoleColor.White;
         public const ConsoleColor DefaultMemberForegroundColor    = ConsoleColor.Gray;
         public const ConsoleColor DefaultEmphasisForegroundColor  = ConsoleColor.Cyan;
+        public const ConsoleColor DefaultErrorForegroundColor     = ConsoleColor.Red;
 
         public const EditMode DefaultEditMode = EditMode.Windows;
 
@@ -96,7 +104,9 @@ namespace PSConsoleUtilities
 
         public const bool DefaultHistorySearchCaseSensitive = false;
 
-        public PSConsoleReadlineOptions()
+        public const HistorySaveStyle DefaultHistorySaveStyle = HistorySaveStyle.SaveIncrementally;
+
+        public PSConsoleReadlineOptions(string hostName)
         {
             ResetColors();
             EditMode = DefaultEditMode;
@@ -116,6 +126,10 @@ namespace PSConsoleUtilities
             CompletionQueryItems = DefaultCompletionQueryItems;
             WordDelimiters = DefaultWordDelimiters;
             HistorySearchCaseSensitive = DefaultHistorySearchCaseSensitive;
+            HistorySaveStyle = DefaultHistorySaveStyle;
+            HistorySavePath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)
+                + @"\PSReadline\" + hostName + "_history.txt";
+            ValidationHandler = null;
         }
 
         public EditMode EditMode { get; set; }
@@ -133,9 +147,18 @@ namespace PSConsoleUtilities
         public const int DefaultExtraPromptLineCount = 0;
 
         /// <summary>
-        /// 
+        /// This handler is called before adding a command line to history.
+        /// The return value indicates if the command line should be added
+        /// to history or not.
         /// </summary>
         public Func<string, bool> AddToHistoryHandler { get; set; }
+
+        /// <summary>
+        /// This handler is called from ValidateAndAcceptLine.  If a non-null,
+        /// non-empty string is returned, or if an exception is thrown,
+        /// validation fails and the error is reported.
+        /// </summary>
+        public Func<string, object> ValidationHandler { get; set; }
 
         /// <summary>
         /// When true, duplicates will not be added to the history.
@@ -163,6 +186,12 @@ namespace PSConsoleUtilities
             get { return HistorySearchCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase; }
         }
 
+        /// <summary>
+        /// The path to the saved history.
+        /// </summary>
+        public string HistorySavePath { get; set; }
+        public HistorySaveStyle HistorySaveStyle { get; set; }
+
         public ConsoleColor DefaultTokenForegroundColor { get; set; }
         public ConsoleColor CommentForegroundColor { get; set; }
         public ConsoleColor KeywordForegroundColor { get; set; }
@@ -187,6 +216,8 @@ namespace PSConsoleUtilities
         public ConsoleColor MemberBackgroundColor { get; set; }
         public ConsoleColor EmphasisForegroundColor { get; set; }
         public ConsoleColor EmphasisBackgroundColor { get; set; }
+        public ConsoleColor ErrorForegroundColor { get; set; }
+        public ConsoleColor ErrorBackgroundColor { get; set; }
 
         internal void ResetColors()
         {
@@ -202,6 +233,7 @@ namespace PSConsoleUtilities
             NumberForegroundColor       = DefaultNumberForegroundColor;
             MemberForegroundColor       = DefaultNumberForegroundColor;
             EmphasisForegroundColor     = DefaultEmphasisForegroundColor;
+            ErrorForegroundColor        = DefaultErrorForegroundColor;
             DefaultTokenBackgroundColor = Console.BackgroundColor;
             CommentBackgroundColor      = Console.BackgroundColor;
             KeywordBackgroundColor      = Console.BackgroundColor;
@@ -214,6 +246,7 @@ namespace PSConsoleUtilities
             NumberBackgroundColor       = Console.BackgroundColor;
             MemberBackgroundColor       = Console.BackgroundColor;
             EmphasisBackgroundColor     = Console.BackgroundColor;
+            ErrorBackgroundColor        = Console.BackgroundColor;
         }
 
         internal void SetForegroundColor(TokenClassification tokenKind, ConsoleColor color)
@@ -312,6 +345,22 @@ namespace PSConsoleUtilities
         internal ConsoleColor? _emphasisBackgroundColor;
 
         [Parameter(ParameterSetName = "OptionsSet")]
+        public ConsoleColor ErrorForegroundColor
+        {
+            get { return _errorForegroundColor.GetValueOrDefault(); }
+            set { _errorForegroundColor = value; }
+        }
+        internal ConsoleColor? _errorForegroundColor;
+
+        [Parameter(ParameterSetName = "OptionsSet")]
+        public ConsoleColor ErrorBackgroundColor
+        {
+            get { return _errorBackgroundColor.GetValueOrDefault(); }
+            set { _errorBackgroundColor = value; }
+        }
+        internal ConsoleColor? _errorBackgroundColor;
+
+        [Parameter(ParameterSetName = "OptionsSet")]
         public SwitchParameter HistoryNoDuplicates
         {
             get { return _historyNoDuplicates.GetValueOrDefault(); }
@@ -332,6 +381,20 @@ namespace PSConsoleUtilities
         }
         private Func<string, bool> _addToHistoryHandler;
         internal bool _addToHistoryHandlerSpecified;
+
+        [Parameter(ParameterSetName = "OptionsSet")]
+        [AllowNull]
+        public Func<string, object> ValidationHandler
+        {
+            get { return _validationHandler; }
+            set
+            {
+                _validationHandler = value;
+                _validationHandlerSpecified = true;
+            }
+        }
+        private Func<string, object> _validationHandler;
+        internal bool _validationHandlerSpecified;
 
         [Parameter(ParameterSetName = "OptionsSet")]
         public SwitchParameter HistorySearchCursorMovesToEnd
@@ -424,6 +487,18 @@ namespace PSConsoleUtilities
         }
         internal SwitchParameter? _historySearchCaseSensitive;
 
+        [Parameter(ParameterSetName = "OptionsSet")]
+        public HistorySaveStyle HistorySaveStyle
+        {
+            get { return _historySaveStyle.GetValueOrDefault(); }
+            set { _historySaveStyle = value; }
+        }
+        internal HistorySaveStyle? _historySaveStyle;
+
+        [Parameter(ParameterSetName = "OptionsSet")]
+        [ValidateNotNullOrEmpty]
+        public string HistorySavePath { get; set; }
+
         [Parameter(ParameterSetName = "ColorSet", Position = 0, Mandatory = true)]
         public TokenClassification TokenKind
         {
@@ -480,20 +555,19 @@ namespace PSConsoleUtilities
         [ExcludeFromCodeCoverage]
         protected override void EndProcessing()
         {
-            Action<ConsoleKeyInfo?, object> keyHandler;
             if (ParameterSetName.Equals(FunctionParameterSet))
             {
                 var function = (string)_dynamicParameters.Value[FunctionParameter].Value;
-                keyHandler = (Action<ConsoleKeyInfo?, object>)
+                var keyHandler = (Action<ConsoleKeyInfo?, object>)
                     Delegate.CreateDelegate(typeof (Action<ConsoleKeyInfo?, object>),
                                             typeof (PSConsoleReadLine).GetMethod(function));
                 BriefDescription = function;
+                PSConsoleReadLine.SetKeyHandler(Chord, keyHandler, BriefDescription, Description);
             }
             else
             {
-                keyHandler = (key, arg) => ScriptBlock.Invoke(key, arg);
+                PSConsoleReadLine.SetKeyHandler(Chord, ScriptBlock, BriefDescription, Description);
             }
-            PSConsoleReadLine.SetKeyHandler(Chord, keyHandler, BriefDescription, Description);
         }
 
         private readonly Lazy<RuntimeDefinedParameterDictionary> _dynamicParameters =
@@ -574,6 +648,21 @@ namespace PSConsoleUtilities
                 unbound = _unbound.Value.IsPresent;
             }
             WriteObject(PSConsoleReadLine.GetKeyHandlers(bound, unbound), true);
+        }
+    }
+
+    [Cmdlet("Remove", "PSReadlineKeyHandler")]
+    public class RemoveKeyHandlerCommand : PSCmdlet
+    {
+        [Parameter(Position = 0, Mandatory = true)]
+        [Alias("Key")]
+        [ValidateNotNullOrEmpty]
+        public string[] Chord { get; set; }
+
+        [ExcludeFromCodeCoverage]
+        protected override void EndProcessing()
+        {
+            PSConsoleReadLine.RemoveKeyHandler(Chord);
         }
     }
 }

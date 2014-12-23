@@ -94,6 +94,18 @@ namespace UnitTestPSReadLine
 
         }
 
+        [TestMethod]
+        public void ViTestMovementAfterHistory()
+        {
+            TestSetup(KeyMode.Vi);
+
+            SetHistory("abc def ghi", "012 456 890");
+
+            Test("012 456 890", Keys(
+                _.Escape, "kbb", CheckThat(() => AssertCursorLeftIs(4))
+                ));
+        }
+
         //[TestMethod]
         //public void TestBeginningOfHistory()
         //{

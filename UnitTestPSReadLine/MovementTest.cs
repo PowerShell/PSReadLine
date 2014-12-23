@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using PSConsoleUtilities;
 
@@ -32,6 +33,81 @@ namespace UnitTestPSReadLine
                 CheckThat(() => AssertCursorLeftIs(0)),
                 _.End,
                 CheckThat(() => AssertCursorLeftTopIs(5, 1))
+                ));
+        }
+
+        [TestMethod]
+        public void TestMultilineCursorMovement()
+        {
+            TestSetup(KeyMode.Cmd);
+
+            var continutationPromptLength = PSConsoleReadlineOptions.DefaultContinuationPrompt.Length;
+            Test("", Keys(
+                "4444", _.ShiftEnter,
+                "666666", _.ShiftEnter,
+                "88888888", _.ShiftEnter,
+                "666666", _.ShiftEnter,
+                "4444", _.ShiftEnter,
+
+                // Starting at the end of the next to last line (because it's not blank)
+                // Verify that Home first goes to the start of the line, then the start of the input.
+                _.LeftArrow,
+                _.Home, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 4)),
+                _.Home, CheckThat(() => AssertCursorLeftTopIs(0, 0)),
+
+                // Now (because we're at the start), verify first End goes to end of the line
+                // and the second End goes to the end of the input.
+                _.End, CheckThat(() => AssertCursorLeftTopIs(4, 0)),
+                _.End, CheckThat(() => AssertCursorLeftTopIs(0 + continutationPromptLength, 5)),
+
+                _.Home, _.Home,
+                _.DownArrow, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 1)),
+                _.DownArrow, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 2)),
+                _.DownArrow, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 3)),
+                _.DownArrow, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 4)),
+                _.DownArrow, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 5)),
+                _.LeftArrow, _.Home,
+                _.UpArrow, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 3)),
+                _.UpArrow, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 2)),
+                _.UpArrow, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 1)),
+                _.UpArrow, CheckThat(() => AssertCursorLeftTopIs(4, 0)),
+
+                // Make sure that movement between lines stays at the end of a line if it starts
+                // at the end of a line
+                _.End, _.End,
+                _.UpArrow, CheckThat(() => AssertCursorLeftTopIs(4 + continutationPromptLength, 4)),
+                _.UpArrow, CheckThat(() => AssertCursorLeftTopIs(6 + continutationPromptLength, 3)),
+                _.UpArrow, CheckThat(() => AssertCursorLeftTopIs(8 + continutationPromptLength, 2)),
+                _.UpArrow, CheckThat(() => AssertCursorLeftTopIs(6 + continutationPromptLength, 1)),
+                _.UpArrow, CheckThat(() => AssertCursorLeftTopIs(4, 0)),
+                _.DownArrow, CheckThat(() => AssertCursorLeftTopIs(6 + continutationPromptLength, 1)),
+                _.DownArrow, CheckThat(() => AssertCursorLeftTopIs(8 + continutationPromptLength, 2)),
+                _.DownArrow, CheckThat(() => AssertCursorLeftTopIs(6 + continutationPromptLength, 3)),
+                _.DownArrow, CheckThat(() => AssertCursorLeftTopIs(4 + continutationPromptLength, 4)),
+                _.DownArrow, CheckThat(() => AssertCursorLeftTopIs(0 + continutationPromptLength, 5)),
+
+                _.Escape,
+                _.ShiftEnter,
+                "88888888", _.ShiftEnter,
+                "55555", _.ShiftEnter,
+                "22", _.ShiftEnter,
+                "55555", _.ShiftEnter,
+                "88888888",
+                _.LeftArrow, _.LeftArrow,
+                _.UpArrow, CheckThat(() => AssertCursorLeftTopIs(5 + continutationPromptLength, 4)),
+                _.UpArrow, CheckThat(() => AssertCursorLeftTopIs(2 + continutationPromptLength, 3)),
+                _.UpArrow, CheckThat(() => AssertCursorLeftTopIs(5 + continutationPromptLength, 2)),
+                _.UpArrow, CheckThat(() => AssertCursorLeftTopIs(6 + continutationPromptLength, 1)),
+                _.UpArrow, CheckThat(() => AssertCursorLeftTopIs(0, 0)),
+                _.UpArrow, CheckThat(() => AssertCursorLeftTopIs(0, 0)),
+                _.DownArrow, CheckThat(() => AssertCursorLeftTopIs(6 + continutationPromptLength, 1)),
+                _.DownArrow, CheckThat(() => AssertCursorLeftTopIs(5 + continutationPromptLength, 2)),
+                _.DownArrow, CheckThat(() => AssertCursorLeftTopIs(2 + continutationPromptLength, 3)),
+                _.DownArrow, CheckThat(() => AssertCursorLeftTopIs(5 + continutationPromptLength, 4)),
+                _.DownArrow, CheckThat(() => AssertCursorLeftTopIs(6 + continutationPromptLength, 5)),
+
+                // Clear the input, we were just testing movement
+                _.Escape
                 ));
         }
 

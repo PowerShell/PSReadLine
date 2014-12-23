@@ -43,6 +43,17 @@ namespace PSConsoleUtilities
             return text;
         }
 
+        private void ClearStatusMessage(bool render)
+        {
+            _statusBuffer.Clear();
+            _statusLinePrompt = null;
+            _statusIsErrorMessage = false;
+            if (render)
+            {
+                Render();
+            }
+        }
+
         private void Render()
         {
             // If there are a bunch of keys queued up, skip rendering if we've rendered
@@ -96,27 +107,46 @@ namespace PSConsoleUtilities
             int j               = _initialX + (_bufferWidth * Options.ExtraPromptLineCount);
             var backgroundColor = _initialBackgroundColor;
             var foregroundColor = _initialForegroundColor;
+            bool afterLastToken = false;
 
             for (int i = 0; i < text.Length; i++)
             {
+                SavedTokenState state = null;
+
+                if (!afterLastToken)
+                {
                 // Figure out the color of the character - if it's in a token,
                 // use the tokens color otherwise use the initial color.
-                var state = tokenStack.Peek();
+                    state = tokenStack.Peek();
                 var token = state.Tokens[state.Index];
                 if (i == token.Extent.EndOffset)
                 {
                     if (token == state.Tokens[state.Tokens.Length - 1])
                     {
                         tokenStack.Pop();
+                            if (tokenStack.Count == 0)
+                            {
+                                afterLastToken = true;
+                                token = null;
+                                foregroundColor = _initialForegroundColor;
+                                backgroundColor = _initialBackgroundColor;
+                            }
+                            else
+                            {
                         state = tokenStack.Peek();
                     }
+                        }
+
+                        if (!afterLastToken)
+                        {
                     foregroundColor = state.ForegroundColor;
                     backgroundColor = state.BackgroundColor;
 
                     token = state.Tokens[++state.Index];
                 }
+                    }
 
-                if (i == token.Extent.StartOffset)
+                    if (!afterLastToken && i == token.Extent.StartOffset)
                 {
                     GetTokenColors(token, out foregroundColor, out backgroundColor);
 
@@ -141,6 +171,7 @@ namespace PSConsoleUtilities
                             });
                         }
                     }
+                }
                 }
 
                 if (text[i] == '\n')
@@ -178,17 +209,20 @@ namespace PSConsoleUtilities
 
             if (_statusLinePrompt != null)
             {
+                foregroundColor = _statusIsErrorMessage ? Options.ErrorForegroundColor : Console.ForegroundColor;
+                backgroundColor = _statusIsErrorMessage ? Options.ErrorBackgroundColor : Console.BackgroundColor;
+
                 for (int i = 0; i < _statusLinePrompt.Length; i++, j++)
                 {
                     _consoleBuffer[j].UnicodeChar = _statusLinePrompt[i];
-                    _consoleBuffer[j].ForegroundColor = Console.ForegroundColor;
-                    _consoleBuffer[j].BackgroundColor = Console.BackgroundColor;
+                    _consoleBuffer[j].ForegroundColor = foregroundColor;
+                    _consoleBuffer[j].BackgroundColor = backgroundColor;
                 }
                 for (int i = 0; i < _statusBuffer.Length; i++, j++)
                 {
                     _consoleBuffer[j].UnicodeChar = _statusBuffer[i];
-                    _consoleBuffer[j].ForegroundColor = Console.ForegroundColor;
-                    _consoleBuffer[j].BackgroundColor = Console.BackgroundColor;
+                    _consoleBuffer[j].ForegroundColor = foregroundColor;
+                    _consoleBuffer[j].BackgroundColor = backgroundColor;
                 }
 
                 for (; j < (_consoleBuffer.Length - (_demoWindowLineCount * _bufferWidth)); j++)
@@ -209,17 +243,23 @@ namespace PSConsoleUtilities
 
                 while (promptChar >= 0)
                 {
-                    if (char.IsSymbol((char)_consoleBuffer[promptChar].UnicodeChar))
+                    var c = (char)_consoleBuffer[promptChar].UnicodeChar;
+                    if (char.IsWhiteSpace(c))
+                    {
+                        promptChar -= 1;
+                        continue;
+                    }
+
+                    if (!char.IsLetterOrDigit(c))
                     {
                         ConsoleColor prevColor = _consoleBuffer[promptChar].ForegroundColor;
                         _consoleBuffer[promptChar].ForegroundColor = ConsoleColor.Red;
                         WriteBufferLines(_consoleBuffer, ref _initialY);
                         rendered = true;
                         _consoleBuffer[promptChar].ForegroundColor = prevColor;
+                    }
                         break;
                     }
-                    promptChar -= 1;
-                }
             }
 
             if (!rendered)
@@ -261,7 +301,7 @@ namespace PSConsoleUtilities
                 Top = (short) top,
                 Left = 0,
                 Bottom = (short) bottom,
-                Right = (short) bufferWidth
+                Right = (short) (bufferWidth - 1)
             };
             NativeMethods.WriteConsoleOutput(handle, buffer,
                                              bufferSize, bufferCoord, ref writeRegion);
@@ -276,7 +316,7 @@ namespace PSConsoleUtilities
         private static void WriteBlankLines(int count, int top)
         {
             var blanks = new CHAR_INFO[count * Console.BufferWidth];
-            for (int i = 0; i < count; i++)
+            for (int i = 0; i < blanks.Length; i++)
             {
                 blanks[i].BackgroundColor = Console.BackgroundColor;
                 blanks[i].ForegroundColor = Console.ForegroundColor;
@@ -495,6 +535,61 @@ namespace PSConsoleUtilities
             return new COORD {X = (short)x, Y = (short)y};
         }
 
+        private int ConvertLineAndColumnToOffset(COORD coord)
+        {
+            int offset;
+            int x = _initialX;
+            int y = _initialY + Options.ExtraPromptLineCount;
+
+            int bufferWidth = Console.BufferWidth;
+            var continuationPromptLength = Options.ContinuationPrompt.Length;
+            for (offset = 0; offset < _buffer.Length; offset++)
+            {
+                // If we are on the correct line, return when we find
+                // the correct column
+                if (coord.Y == y && coord.X <= x)
+                {
+                    return offset;
+                }
+                char c = _buffer[offset];
+                if (c == '\n')
+                {
+                    // If we are about to move off of the correct line,
+                    // the line was shorter than the column we wanted so return.
+                    if (coord.Y == y)
+                    {
+                        return offset;
+                    }
+                    y += 1;
+                    x = continuationPromptLength;
+                }
+                else
+                {
+                    x += char.IsControl(c) ? 2 : 1;
+                    // Wrap?  No prompt when wrapping
+                    if (x >= bufferWidth)
+                    {
+                        x -= bufferWidth;
+                        y += 1;
+                    }
+                }
+            }
+
+            // Return -1 if y is out of range, otherwise the last line was shorter
+            // than we wanted, but still in range so just return the last offset.B
+            return (coord.Y == y) ? offset : -1;
+        }
+
+        private bool LineIsMultiLine()
+        {
+            for (int i = 0; i < _buffer.Length; i++)
+            {
+                if (_buffer[i] == '\n')
+                    return true;
+            }
+            return false;
+        }
+
         private int GetStatusLineCount()
         {
             if (_statusLinePrompt == null)
@@ -679,7 +774,24 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void ScrollDisplayUp(ConsoleKeyInfo? key = null, object arg = null)
         {
-            var newTop = Console.WindowTop - Console.WindowHeight;
+            int numericArg;
+            TryGetArgAsInt(arg, out numericArg, +1);
+            var newTop = Console.WindowTop - (numericArg * Console.WindowHeight);
+            if (newTop < 0)
+            {
+                newTop = 0;
+            }
+            Console.SetWindowPosition(0, newTop);
+        }
+
+        /// <summary>
+        /// Scroll the display up one line.
+        /// </summary>
+        public static void ScrollDisplayUpLine(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            int numericArg;
+            TryGetArgAsInt(arg, out numericArg, +1);
+            var newTop = Console.WindowTop - numericArg;
             if (newTop < 0)
             {
                 newTop = 0;
@@ -692,7 +804,24 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void ScrollDisplayDown(ConsoleKeyInfo? key = null, object arg = null)
         {
-            var newTop = Console.WindowTop + Console.WindowHeight;
+            int numericArg;
+            TryGetArgAsInt(arg, out numericArg, +1);
+            var newTop = Console.WindowTop + (numericArg * Console.WindowHeight);
+            if (newTop > (Console.BufferHeight - Console.WindowHeight))
+            {
+                newTop = (Console.BufferHeight - Console.WindowHeight);
+            }
+            Console.SetWindowPosition(0, newTop);
+        }
+
+        /// <summary>
+        /// Scroll the display down one line.
+        /// </summary>
+        public static void ScrollDisplayDownLine(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            int numericArg;
+            TryGetArgAsInt(arg, out numericArg, +1);
+            var newTop = Console.WindowTop + numericArg;
             if (newTop > (Console.BufferHeight - Console.WindowHeight))
             {
                 newTop = (Console.BufferHeight - Console.WindowHeight);

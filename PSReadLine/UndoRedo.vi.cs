@@ -34,7 +34,7 @@ namespace PSConsoleUtilities
 
             public void EndGroup()
             {
-                if (_singleton._pushedEditGroupCount.Count > 0)
+                if (_singleton._editGroupStart >= 0)
                 {
                     _singleton.EndEditGroup(_instigator, _instigatorArg);
                 }

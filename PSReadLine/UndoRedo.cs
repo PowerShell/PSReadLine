@@ -8,12 +8,23 @@ namespace PSConsoleUtilities
     {
         private void SaveEditItem(EditItem editItem)
         {
+            if (_statusIsErrorMessage)
+            {
+                // After an edit, clear the error message
+                ClearStatusMessage(render: true);
+            }
+
             // If there is some sort of edit after an undo, forget
             // any edit items that were undone.
             int removeCount = _edits.Count - _undoEditIndex;
             if (removeCount > 0)
             {
                 _edits.RemoveRange(_undoEditIndex, removeCount);
+                if (_editGroupStart >= 0)
+                {
+                    // Adjust the edit group start if we are started a group.
+                    _editGroupStart -= removeCount;
+                }
             }
             _edits.Add(editItem);
             _undoEditIndex = _edits.Count;
@@ -21,16 +32,21 @@ namespace PSConsoleUtilities
 
         private void StartEditGroup()
         {
-            _pushedEditGroupCount.Push(_edits.Count);
+            if (_editGroupStart != -1)
+            {
+                // Nesting not supported.
+                throw new InvalidOperationException();
+            }
+            _editGroupStart = _edits.Count;
         }
 
         private void EndEditGroup(Action<ConsoleKeyInfo?, object> instigator = null, object instigatorArg = null)
         {
-            var groupEditStart = _pushedEditGroupCount.Pop();
-            var groupEditCount = _edits.Count - groupEditStart;
-            var groupedEditItems = _edits.GetRange(groupEditStart, groupEditCount);
-            _edits.RemoveRange(groupEditStart, groupEditCount);
-            SaveEditItem(GroupedEdit.Create(groupedEditItems));
+            var groupEditCount = _edits.Count - _editGroupStart;
+            var groupedEditItems = _edits.GetRange(_editGroupStart, groupEditCount);
+            _edits.RemoveRange(_editGroupStart, groupEditCount);
+            SaveEditItem(GroupedEdit.Create(groupedEditItems, instigator, instigatorArg));
+            _editGroupStart = -1;
         }
 
         /// <summary>
@@ -40,6 +56,11 @@ namespace PSConsoleUtilities
         {
             if (_singleton._undoEditIndex > 0)
             {
+                if (_singleton._statusIsErrorMessage)
+                {
+                    // After an edit, clear the error message
+                    _singleton.ClearStatusMessage(render: false);
+                }
                 _singleton._edits[_singleton._undoEditIndex - 1].Undo();
                 _singleton._edits.RemoveAt(_singleton._undoEditIndex - 1);
                 _singleton._undoEditIndex--;
@@ -175,7 +196,7 @@ namespace PSConsoleUtilities
 
         class GroupedEdit : EditItem
         {
-            private List<EditItem> _groupedEditItems;
+            internal List<EditItem> _groupedEditItems;
 
             public static EditItem Create(List<EditItem> groupedEditItems, Action<ConsoleKeyInfo?, object> instigator = null, object instigatorArg = null)
             {

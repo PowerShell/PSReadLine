@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 
 namespace PSConsoleUtilities
 {
@@ -14,6 +16,7 @@ namespace PSConsoleUtilities
             public string _line;
             public List<EditItem> _edits;
             public int _undoEditIndex;
+            public bool _saved;
         }
 
         // History state
@@ -28,12 +31,15 @@ namespace PSConsoleUtilities
         // is saved here so it can be restored.
         private readonly HistoryItem _savedCurrentLine;
 
+        private Mutex _historyFileMutex;
+        private long _historyFileLastSavedSize;
+
         private const string _forwardISearchPrompt = "fwd-i-search: ";
         private const string _backwardISearchPrompt = "bck-i-search: ";
         private const string _failedForwardISearchPrompt = "failed-fwd-i-search: ";
         private const string _failedBackwardISearchPrompt = "failed-bck-i-search: ";
 
-        private string MaybeAddToHistory(string result, List<EditItem> edits, int undoEditIndex)
+        private string MaybeAddToHistory(string result, List<EditItem> edits, int undoEditIndex, bool readingHistoryFile)
         {
             bool addToHistory = !string.IsNullOrWhiteSpace(result) && ((Options.AddToHistoryHandler == null) || Options.AddToHistoryHandler(result));
             if (addToHistory)
@@ -42,18 +48,190 @@ namespace PSConsoleUtilities
                 {
                     _line = result,
                     _edits = edits,
-                    _undoEditIndex = undoEditIndex
+                    _undoEditIndex = undoEditIndex,
+                    _saved = readingHistoryFile,
                 });
                 _currentHistoryIndex = _history.Count;
+
+                if (_options.HistorySaveStyle == HistorySaveStyle.SaveIncrementally && !readingHistoryFile)
+                {
+                    IncrementalHistoryWrite();
+                }
             }
             if (_demoMode)
             {
                 ClearDemoWindow();
             }
+
+            // Clear the saved line unless we used AcceptAndGetNext in which
+            // case we're really still in middle of history and might want
+            // to recall the saved line.
+            if (_getNextHistoryIndex == 0)
+            {
             _savedCurrentLine._line = null;
             _savedCurrentLine._edits = null;
             _savedCurrentLine._undoEditIndex = 0;
+            }
             return result;
+        }
+
+        private string GetHistorySaveFileMutexName()
+        {
+            // Return a reasonably unique name - it's not too important as there will rarely
+            // be any contention.
+            return "PSReadlineHistoryFile_" + _options.HistorySavePath.GetHashCode();
+        }
+
+        private void IncrementalHistoryWrite()
+        {
+            var i = _currentHistoryIndex - 1;
+            while (i >= 0)
+            {
+                if (_history[i]._saved)
+                {
+                    break;
+                }
+                i -= 1;
+            }
+
+            WriteHistoryRange(i + 1, _history.Count - 1, File.AppendText);
+        }
+
+        private void SaveHistoryAtExit()
+        {
+            WriteHistoryRange(0, _history.Count - 1, File.CreateText);
+        }
+
+        private void WriteHistoryRange(int start, int end, Func<string, StreamWriter> fileOpener)
+        {
+            if (_historyFileMutex.WaitOne(100))
+            {
+                try
+                {
+                    MaybeReadHistoryFile();
+
+                    bool retry = true;
+                retry_after_creating_directory:
+                    try
+                    {
+                        using (var file = fileOpener(Options.HistorySavePath))
+                        {
+                            for (var i = start; i <= end; i++)
+                            {
+                                _history[i]._saved = true;
+                                var line = _history[i]._line.Replace("\n", "`\n");
+                                file.WriteLine(line);
+                            }
+                        }
+                        var fileInfo = new FileInfo(Options.HistorySavePath);
+                        _historyFileLastSavedSize = fileInfo.Length;
+                    }
+                    catch (DirectoryNotFoundException)
+                    {
+                        // Try making the directory, but just once
+                        if (retry)
+                        {
+                            retry = false;
+                            Directory.CreateDirectory(Path.GetDirectoryName(Options.HistorySavePath));
+                            goto retry_after_creating_directory;
+                        }
+                    }
+                }
+                finally
+                {
+                    _historyFileMutex.ReleaseMutex();
+                }
+            }
+        }
+
+        private void MaybeReadHistoryFile()
+        {
+            if (Options.HistorySaveStyle == HistorySaveStyle.SaveIncrementally)
+            {
+                if (_historyFileMutex.WaitOne(1000))
+                {
+                    try
+                    {
+                        try
+                        {
+                            var fileInfo = new FileInfo(Options.HistorySavePath);
+                            if (fileInfo.Length != _historyFileLastSavedSize)
+                            {
+                                var historyLines = new List<string>();
+                                using (var fs = new FileStream(Options.HistorySavePath, FileMode.Open))
+                                using (var sr = new StreamReader(fs))
+                                {
+                                    fs.Seek(_historyFileLastSavedSize, SeekOrigin.Begin);
+
+                                    while (!sr.EndOfStream)
+                                    {
+                                        historyLines.Add(sr.ReadLine());
+                                    }
+                                }
+                                UpdateHistoryFromFile(historyLines);
+
+                                _historyFileLastSavedSize = fileInfo.Length;
+                            }
+                        }
+                        catch (FileNotFoundException)
+                        {
+                        }
+                    }
+                    finally
+                    {
+                        _historyFileMutex.ReleaseMutex();
+                    }
+                }
+            }
+        }
+
+        private void ReadHistoryFile()
+        {
+            if (_historyFileMutex.WaitOne(1000))
+            {
+                try
+                {
+                    if (!File.Exists(Options.HistorySavePath))
+                    {
+                        return;
+                    }
+
+                    var historyLines = File.ReadAllLines(Options.HistorySavePath);
+                    UpdateHistoryFromFile(historyLines);
+                    var fileInfo = new FileInfo(Options.HistorySavePath);
+                    _historyFileLastSavedSize = fileInfo.Length;
+                }
+                finally
+                {
+                    _historyFileMutex.ReleaseMutex();
+                }
+            }
+        }
+
+        void UpdateHistoryFromFile(IEnumerable<string> historyLines)
+        {
+            var sb = new StringBuilder();
+            foreach (var line in historyLines)
+            {
+                if (line.EndsWith("`"))
+                {
+                    sb.Append(line, 0, line.Length - 1);
+                    sb.Append('\n');
+                }
+                else if (sb.Length > 0)
+                {
+                    sb.Append(line);
+                    var l = sb.ToString();
+                    var editItems = new List<EditItem> {EditItemInsertString.Create(l, 0)};
+                    MaybeAddToHistory(l, editItems, 1, readingHistoryFile: true);
+                    sb.Clear();
+                }
+                else
+                {
+                    var editItems = new List<EditItem> {EditItemInsertString.Create(line, 0)};
+                    MaybeAddToHistory(line, editItems, 1, readingHistoryFile: true);
+                }
+            }
         }
 
         /// <summary>
@@ -64,15 +242,18 @@ namespace PSConsoleUtilities
         {
             command = command.Replace("\r\n", "\n");
             var editItems = new List<EditItem> {EditItemInsertString.Create(command, 0)};
-            _singleton.MaybeAddToHistory(command, editItems, 0);
+            _singleton.MaybeAddToHistory(command, editItems, 1, readingHistoryFile: false);
         }
 
         /// <summary>
         /// Clears history in PSReadline.  This does not affect PowerShell history.
         /// </summary>
-        public static void ClearHistory()
+        public static void ClearHistory(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            if (_singleton._history != null)
         {
             _singleton._history.Clear();
+            }
             _singleton._currentHistoryIndex = 0;
         }
 
@@ -88,25 +269,29 @@ namespace PSConsoleUtilities
             else
             {
                 line = _history[_currentHistoryIndex]._line;
-                _edits = _history[_currentHistoryIndex]._edits;
+                _edits = new List<EditItem>(_history[_currentHistoryIndex]._edits);
                 _undoEditIndex = _history[_currentHistoryIndex]._undoEditIndex;
             }
             _buffer.Clear();
             _buffer.Append(line);
             if (moveCursor)
             {
-                _current = _buffer.Length;
+                _current = _buffer.Length + ViEndOfLineFactor;
             }
             else if (_current > _buffer.Length)
             {
-                _current = _buffer.Length;
+                _current = _buffer.Length + ViEndOfLineFactor;
             }
             Render();
         }
 
         private void SaveCurrentLine()
         {
-            if (_singleton._currentHistoryIndex == _history.Count)
+            // We're called before any history operation - so it's convenient
+            // to check if we need to load history from another sessions now.
+            MaybeReadHistoryFile();
+
+            if (_savedCurrentLine._line == null)
             {
                 _savedCurrentLine._line = _buffer.ToString();
                 _savedCurrentLine._edits = _edits;
@@ -116,6 +301,12 @@ namespace PSConsoleUtilities
 
         private void HistoryRecall(int direction)
         {
+            if (_recallHistoryCommandCount == 0 && LineIsMultiLine())
+            {
+                MoveToLine(direction);
+                return;
+            }
+
             int newHistoryIndex;
             if (Options.HistoryNoDuplicates)
             {
@@ -162,8 +353,15 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void PreviousHistory(ConsoleKeyInfo? key = null, object arg = null)
         {
+            int numericArg;
+            TryGetArgAsInt(arg, out numericArg, -1);
+            if (numericArg > 0)
+            {
+                numericArg = -numericArg;
+            }
+
             _singleton.SaveCurrentLine();
-            _singleton.HistoryRecall(-1);
+            _singleton.HistoryRecall(numericArg);
         }
 
         /// <summary>
@@ -171,14 +369,23 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void NextHistory(ConsoleKeyInfo? key = null, object arg = null)
         {
+            int numericArg;
+            TryGetArgAsInt(arg, out numericArg, +1);
+
             _singleton.SaveCurrentLine();
-            _singleton.HistoryRecall(+1);
+            _singleton.HistoryRecall(numericArg);
         }
 
         private void HistorySearch(int direction)
         {
             if (_searchHistoryCommandCount == 0)
             {
+                if (LineIsMultiLine())
+                {
+                    MoveToLine(direction);
+                    return;
+                }
+
                 _searchHistoryPrefix = _buffer.ToString(0, _current);
                 _emphasisStart = 0;
                 _emphasisLength = _current;
@@ -238,8 +445,15 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void HistorySearchBackward(ConsoleKeyInfo? key = null, object arg = null)
         {
+            int numericArg;
+            TryGetArgAsInt(arg, out numericArg, -1);
+            if (numericArg > 0)
+            {
+                numericArg = -numericArg;
+            }
+
             _singleton.SaveCurrentLine();
-            _singleton.HistorySearch(-1);
+            _singleton.HistorySearch(numericArg);
         }
 
         /// <summary>
@@ -248,8 +462,11 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void HistorySearchForward(ConsoleKeyInfo? key = null, object arg = null)
         {
+            int numericArg;
+            TryGetArgAsInt(arg, out numericArg, +1);
+
             _singleton.SaveCurrentLine();
-            _singleton.HistorySearch(+1);
+            _singleton.HistorySearch(numericArg);
         }
 
         private void UpdateHistoryDuringInteractiveSearch(string toMatch, int direction, ref int searchFromPoint)
@@ -432,38 +649,11 @@ namespace PSConsoleUtilities
             _hashedHistory = null;
             _currentHistoryIndex = _history.Count;
 
-            // Remove our status line
-            _statusBuffer.Clear();
-            _statusLinePrompt = null;
             _emphasisStart = -1;
             _emphasisLength = 0;
 
-#if FALSE
-            int promptStart = _bufferWidth * Options.ExtraPromptLineCount;
-            int promptWidth = _initialX;
-
-            // Copy the prompt (ignoring the possible extra lines which we'll leave alone)
-            var savedPrompt = new CHAR_INFO[promptWidth];
-            Array.Copy(_consoleBuffer, promptStart, savedPrompt, 0, promptWidth);
-
-            string newPrompt = "(reverse-i-search)`': ";
-            _initialX = newPrompt.Length;
-            int i, j;
-            for (i = promptStart, j = 0; j < newPrompt.Length; i++, j++)
-            {
-                _consoleBuffer[i].UnicodeChar = newPrompt[j];
-                _consoleBuffer[i].BackgroundColor = Console.BackgroundColor;
-                _consoleBuffer[i].ForegroundColor = Console.ForegroundColor;
-            }
-
-            InteractiveHistorySearchLoop(direction);
-
-            // Restore the original prompt
-            _initialX = promptWidth;
-            Array.Copy(savedPrompt, 0, _consoleBuffer, promptStart, savedPrompt.Length);
-#endif
-
-            Render();
+            // Remove our status line, this will render
+            ClearStatusMessage(render: true);
         }
 
         /// <summary>

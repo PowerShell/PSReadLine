@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using System.Linq.Expressions;
 using System.Management.Automation;
 using System.Management.Automation.Language;
 using System.Management.Automation.Runspaces;
@@ -12,12 +14,16 @@ using PSConsoleUtilities.Internal;
 
 namespace PSConsoleUtilities
 {
+    class ExitException : Exception { }
+
     public partial class PSConsoleReadLine : IPSConsoleReadLineMockableMethods
     {
         private static readonly PSConsoleReadLine _singleton;
+        private bool _delayedOneTimeInitCompleted;
 
         private IPSConsoleReadLineMockableMethods _mockableMethods;
 
+        private EngineIntrinsics _engineIntrinsics;
         private static readonly GCHandle _breakHandlerGcHandle;
         private Thread _readKeyThread;
         private AutoResetEvent _readKeyWaitHandle;
@@ -26,12 +32,14 @@ namespace PSConsoleUtilities
         private WaitHandle[] _waitHandles;
         private bool _captureKeys;
         private readonly Queue<ConsoleKeyInfo> _savedKeys;
+        private uint _prePSReadlineConsoleMode;
 
         private readonly StringBuilder _buffer;
         private readonly StringBuilder _statusBuffer;
+        private bool _statusIsErrorMessage;
         private string _statusLinePrompt;
         private List<EditItem> _edits;
-        private readonly Stack<int> _pushedEditGroupCount;
+        private int _editGroupStart;
         private int _undoEditIndex;
         private int _mark;
         private bool _inputAccepted;
@@ -107,12 +115,88 @@ namespace PSConsoleUtilities
             // First, set an event so the thread to read a key actually attempts to read a key.
             _singleton._readKeyWaitHandle.Set();
 
-            // Next, wait for one of two things - either a key is pressed on the console is exiting.
-            int handleId = WaitHandle.WaitAny(_singleton._waitHandles);
+            int handleId;
+            PowerShell ps = null;
+
+            try
+            {
+                while (true)
+                {
+                    // Next, wait for one of three things:
+                    //   - a key is pressed
+                    //   - the console is exiting
+                    //   - 300ms - to process events if we're idle
+
+                    handleId = WaitHandle.WaitAny(_singleton._waitHandles, 300);
+                    if (handleId != WaitHandle.WaitTimeout)
+                        break;
+
+                    // If we timed out, check for event subscribers (which is just
+                    // a hint that there might be an event waiting to be processed.)
+                    var eventSubscribers = _singleton._engineIntrinsics.Events.Subscribers;
+                    if (eventSubscribers.Count > 0)
+                    {
+                        bool runPipelineForEventProcessing = false;
+                        foreach (var sub in eventSubscribers)
+                        {
+                            if (sub.SourceIdentifier.Equals("PowerShell.OnIdle", StringComparison.OrdinalIgnoreCase))
+                            {
+                                // There is an OnIdle event.  We're idle because we timed out.  Normally
+                                // PowerShell generates this event, but PowerShell assumes the engine is not
+                                // idle because it called PSConsoleHostReadline which isn't returning.
+                                // So we generate the event intstead.
+                                _singleton._engineIntrinsics.Events.GenerateEvent("PowerShell.OnIdle", null, null, null);
+                                runPipelineForEventProcessing = true;
+                                break;
+                            }
+
+                            // If there are any event subscribers that have an action (which might
+                            // write to the console) and have a source object (i.e. aren't engine
+                            // events), run a tiny useless bit of PowerShell so that the events
+                            // can be processed.
+                            if (sub.Action != null && sub.SourceObject != null)
+                            {
+                                runPipelineForEventProcessing = true;
+                                break;
+                            }
+                        }
+
+                        if (runPipelineForEventProcessing)
+                        {
+                            if (ps == null)
+                            {
+                                ps = PowerShell.Create(RunspaceMode.CurrentRunspace);
+                                ps.AddScript("0");
+                            }
+
+                            // To detect output during possible event processing, see if the cursor moved
+                            // and rerender if so.
+                            var y = Console.CursorTop;
+                            ps.Invoke();
+                            if (y != Console.CursorTop)
+                            {
+                                _singleton._initialY = Console.CursorTop;
+                                _singleton.Render();
+                            }
+                        }
+                    }
+                }
+            }
+            finally
+            {
+                if (ps != null) { ps.Dispose(); }
+            }
+
             if (handleId == 1)
             {
                 // The console is exiting - throw an exception to unwind the stack to the point
                 // where we can return from ReadLine.
+                if (_singleton.Options.HistorySaveStyle == HistorySaveStyle.SaveAtExit)
+                {
+                    _singleton.SaveHistoryAtExit();
+                }
+                _singleton._historyFileMutex.Dispose();
+
                 throw new OperationCanceledException();
             }
             var key = _singleton._queuedKeys.Dequeue();
@@ -155,20 +239,19 @@ namespace PSConsoleUtilities
         /// after the prompt has been displayed.
         /// </summary>
         /// <returns>The complete command line.</returns>
-        public static string ReadLine(Runspace remoteRunspace = null)
+        public static string ReadLine(Runspace remoteRunspace = null, EngineIntrinsics engineIntrinsics = null)
         {
-            uint dwConsoleMode;
             var handle = NativeMethods.GetStdHandle((uint) StandardHandleId.Input);
-            NativeMethods.GetConsoleMode(handle, out dwConsoleMode);
+            NativeMethods.GetConsoleMode(handle, out _singleton._prePSReadlineConsoleMode);
             try
             {
                 // Clear a couple flags so we can actually receive certain keys:
                 //     ENABLE_PROCESSED_INPUT - enables Ctrl+C
                 //     ENABLE_LINE_INPUT - enables Ctrl+S
                 NativeMethods.SetConsoleMode(handle,
-                    dwConsoleMode & ~(NativeMethods.ENABLE_PROCESSED_INPUT | NativeMethods.ENABLE_LINE_INPUT));
+                    _singleton._prePSReadlineConsoleMode & ~(NativeMethods.ENABLE_PROCESSED_INPUT | NativeMethods.ENABLE_LINE_INPUT));
 
-                _singleton.Initialize(remoteRunspace);
+                _singleton.Initialize(remoteRunspace, engineIntrinsics);
                 return _singleton.InputLoop();
             }
             catch (OperationCanceledException)
@@ -176,9 +259,52 @@ namespace PSConsoleUtilities
                 // Console is exiting - return value isn't too critical - null or 'exit' could work equally well.
                 return "";
             }
+            catch (ExitException)
+            {
+                return "exit";
+            }
+            catch (Exception e)
+            {
+                // If we're running tests, just throw.
+                if (_singleton._mockableMethods != _singleton)
+                {
+                    throw;
+                }
+
+                while (e.InnerException != null)
+                {
+                    e = e.InnerException;
+                }
+                var oldColor = Console.ForegroundColor;
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine(PSReadLineResources.OopsAnErrorMessage1);
+                Console.ForegroundColor = oldColor;
+                var sb = new StringBuilder();
+                for (int i = 0; i < _lastNKeys.Count; i++)
+                {
+                    sb.Append(' ');
+                    sb.Append(_lastNKeys[i].ToGestureString());
+
+                    KeyHandler handler;
+                    if (_singleton._dispatchTable.TryGetValue(_lastNKeys[i], out handler) &&
+                        "AcceptLine".Equals(handler.BriefDescription, StringComparison.OrdinalIgnoreCase))
+                    {
+                        // Make it a little easier to see the keys
+                        sb.Append('\n');
+                    }
+                    // TODO: print non-default function bindings and script blocks
+                }
+
+                Console.WriteLine(PSReadLineResources.OopsAnErrorMessage2, _lastNKeys.Count, sb, e);
+                var lineBeforeCrash = _singleton._buffer.ToString();
+                _singleton.Initialize(remoteRunspace, _singleton._engineIntrinsics);
+                InvokePrompt();
+                Insert(lineBeforeCrash);
+                return _singleton.InputLoop();
+            }
             finally
             {
-                NativeMethods.SetConsoleMode(handle, dwConsoleMode);
+                NativeMethods.SetConsoleMode(handle, _singleton._prePSReadlineConsoleMode);
             }
         }
 
@@ -193,12 +319,13 @@ namespace PSConsoleUtilities
                 var recallHistoryCommandCount = _recallHistoryCommandCount;
                 var yankLastArgCommandCount = _yankLastArgCommandCount;
                 var visualSelectionCommandCount = _visualSelectionCommandCount;
+                var movingAtEndOfLineCount = _moveToLineCommandCount;
 
                 var key = ReadKey();
                 ProcessOneKey(key, _dispatchTable, ignoreIfNoAction: false, arg: null);
                 if (_inputAccepted)
                 {
-                    return MaybeAddToHistory(_buffer.ToString(), _edits, _undoEditIndex);
+                    return MaybeAddToHistory(_buffer.ToString(), _edits, _undoEditIndex, readingHistoryFile: false);
                 }
 
                 if (killCommandCount == _killCommandCount)
@@ -253,7 +380,32 @@ namespace PSConsoleUtilities
                     _visualSelectionCommandCount = 0;
                     Render();  // Clears the visual selection
                 }
+                if (movingAtEndOfLineCount == _moveToLineCommandCount)
+                {
+                    _moveToLineCommandCount = 0;
+                }
             }
+        }
+
+        T CalloutUsingDefaultConsoleMode<T>(Func<T> func)
+        {
+            var handle = NativeMethods.GetStdHandle((uint) StandardHandleId.Input);
+            uint psReadlineConsoleMode;
+            NativeMethods.GetConsoleMode(handle, out psReadlineConsoleMode);
+            try
+            {
+                NativeMethods.SetConsoleMode(handle, _prePSReadlineConsoleMode);
+                return func();
+            }
+            finally
+            {
+                NativeMethods.SetConsoleMode(handle, psReadlineConsoleMode);
+            }
+        }
+
+        void CalloutUsingDefaultConsoleMode(Action action)
+        {
+            CalloutUsingDefaultConsoleMode<object>(() => { action(); return null; });
         }
 
         void ProcessOneKey(ConsoleKeyInfo key, Dictionary<ConsoleKeyInfo, KeyHandler> dispatchTable, bool ignoreIfNoAction, object arg)
@@ -273,7 +425,14 @@ namespace PSConsoleUtilities
             {
                 _renderForDemoNeeded = _demoMode;
 
+                if (handler.ScriptBlock != null)
+                {
+                    CalloutUsingDefaultConsoleMode(() => handler.Action(key, arg));
+                }
+                else
+                {
                 handler.Action(key, arg);
+                }
 
                 if (_renderForDemoNeeded)
                 {
@@ -319,23 +478,41 @@ namespace PSConsoleUtilities
             _savedCurrentLine = new HistoryItem();
             _queuedKeys = new Queue<ConsoleKeyInfo>();
 
-            _pushedEditGroupCount = new Stack<int>();
-
-            _options = new PSConsoleReadlineOptions();
-
-            _history = new HistoryQueue<HistoryItem>(Options.MaximumHistoryCount);
-            _currentHistoryIndex = 0;
-
-            _killIndex = -1;    // So first add indexes 0.
-            _killRing = new List<string>(Options.MaximumKillRingCount);
+            string hostName = null;
+            try
+            {
+                var ps = PowerShell.Create(RunspaceMode.CurrentRunspace)
+                    .AddCommand("Get-Variable").AddParameter("Name", "host").AddParameter("ValueOnly");
+                var results = ps.Invoke();
+                dynamic host = results.Count == 1 ? results[0] : null;
+                if (host != null)
+                {
+                    hostName = host.Name as string;
+                }
+            }
+            catch
+            {
+            }
+            if (hostName == null)
+            {
+                hostName = "PSReadline";
+            }
+            _options = new PSConsoleReadlineOptions(hostName);
         }
 
-        private void Initialize(Runspace remoteRunspace)
+        private void Initialize(Runspace remoteRunspace, EngineIntrinsics engineIntrinsics)
         {
+            if (!_delayedOneTimeInitCompleted)
+            {
+                DelayedOneTimeInitialize();
+                _delayedOneTimeInitCompleted = true;
+            }
+
+            _engineIntrinsics = engineIntrinsics;
             _buffer.Clear();
             _edits = new List<EditItem>();
             _undoEditIndex = 0;
-            _pushedEditGroupCount.Clear();
+            _editGroupStart = -1;
             _current = 0;
             _mark = 0;
             _emphasisStart = -1;
@@ -355,6 +532,7 @@ namespace PSConsoleUtilities
             _tabCommandCount = 0;
             _visualSelectionCommandCount = 0;
             _remoteRunspace = remoteRunspace;
+            _statusIsErrorMessage = false;
 
             _consoleBuffer = ReadBufferLines(_initialY, 1 + Options.ExtraPromptLineCount);
             _lastRenderTime = Stopwatch.StartNew();
@@ -363,7 +541,6 @@ namespace PSConsoleUtilities
             _yankCommandCount = 0;
             _yankLastArgCommandCount = 0;
             _tabCommandCount = 0;
-            _searchHistoryCommandCount = 0;
             _recallHistoryCommandCount = 0;
             _visualSelectionCommandCount = 0;
             _hashedHistory = null;
@@ -373,7 +550,38 @@ namespace PSConsoleUtilities
                 _currentHistoryIndex = _getNextHistoryIndex;
                 UpdateFromHistory(moveCursor: true);
                 _getNextHistoryIndex = 0;
+                if (_searchHistoryCommandCount > 0)
+                {
+                    _searchHistoryPrefix = "";
+                    if (Options.HistoryNoDuplicates)
+                    {
+                        _hashedHistory = new Dictionary<string, int>();
+                    }
+                }
             }
+            else
+            {
+                _searchHistoryCommandCount = 0;
+            }
+        }
+
+        private void DelayedOneTimeInitialize()
+        {
+            // Delayed initialization is needed so that options can be set
+            // after the constuctor but have an affect before the user starts
+            // editing their first command line.  For example, if the user
+            // specifies a custom history save file, we don't want to try reading
+            // from the default one.
+
+            _historyFileMutex = new Mutex(false, GetHistorySaveFileMutexName());
+
+            _history = new HistoryQueue<HistoryItem>(Options.MaximumHistoryCount);
+            _currentHistoryIndex = 0;
+
+            ReadHistoryFile();
+
+            _killIndex = -1; // So first add indexes 0.
+            _killRing = new List<string>(Options.MaximumKillRingCount);
         }
 
         private static void Chord(ConsoleKeyInfo? key = null, object arg = null)
@@ -522,8 +730,7 @@ namespace PSConsoleUtilities
 
             // Remove our status line
             argBuffer.Clear();
-            _singleton._statusLinePrompt = null;
-            _singleton.Render(); // Render prompt
+            _singleton.ClearStatusMessage(render: true);
         }
 
         /// <summary>

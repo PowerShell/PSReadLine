@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Management.Automation;
 using System.Text;
 
 namespace PSConsoleUtilities
@@ -43,7 +44,7 @@ namespace PSConsoleUtilities
             public Action<ConsoleKeyInfo?, object> Action;
             public string BriefDescription;
             public string LongDescription;
-            public string Mode;
+            public ScriptBlock ScriptBlock;
         }
 
         internal class ConsoleKeyInfoComparer : IEqualityComparer<ConsoleKeyInfo>
@@ -59,7 +60,7 @@ namespace PSConsoleUtilities
             }
         }
 
-        static KeyHandler MakeKeyHandler(Action<ConsoleKeyInfo?, object> action, string briefDescription, string longDescription = null)
+        static KeyHandler MakeKeyHandler(Action<ConsoleKeyInfo?, object> action, string briefDescription, string longDescription = null, ScriptBlock scriptBlock = null)
         {
             if (string.IsNullOrWhiteSpace(longDescription))
                 longDescription = PSReadLineResources.ResourceManager.GetString(briefDescription + "Description");
@@ -69,7 +70,7 @@ namespace PSConsoleUtilities
                 Action = action,
                 BriefDescription = briefDescription,
                 LongDescription = longDescription,
-                Mode = "N/A"
+                ScriptBlock = scriptBlock,
             };
         }
 
@@ -80,7 +81,7 @@ namespace PSConsoleUtilities
         {
             _dispatchTable = new Dictionary<ConsoleKeyInfo, KeyHandler>(new ConsoleKeyInfoComparer())
             {
-                { Keys.Enter,                  MakeKeyHandler(AcceptLine,                "AcceptLine") },
+                { Keys.Enter,                  MakeKeyHandler(ValidateAndAcceptLine,     "ValidateAndAcceptLine") },
                 { Keys.ShiftEnter,             MakeKeyHandler(AddLine,                   "AddLine") },
                 { Keys.Escape,                 MakeKeyHandler(RevertLine,                "RevertLine") },
                 { Keys.LeftArrow,              MakeKeyHandler(BackwardChar,              "BackwardChar") },
@@ -99,7 +100,7 @@ namespace PSConsoleUtilities
                 { Keys.ShiftEnd,               MakeKeyHandler(SelectLine,                "SelectLine") },
                 { Keys.Delete,                 MakeKeyHandler(DeleteChar,                "DeleteChar") },
                 { Keys.Backspace,              MakeKeyHandler(BackwardDeleteChar,        "BackwardDeleteChar") },
-                { Keys.CtrlSpace,              MakeKeyHandler(PossibleCompletions,       "PossibleCompletions") },
+                { Keys.CtrlSpace,              MakeKeyHandler(MenuComplete,              "MenuComplete") },
                 { Keys.Tab,                    MakeKeyHandler(TabCompleteNext,           "TabCompleteNext") },
                 { Keys.ShiftTab,               MakeKeyHandler(TabCompletePrevious,       "TabCompletePrevious") },
                 { Keys.VolumeDown,             MakeKeyHandler(Ignore,                    "Ignore") },
@@ -121,6 +122,7 @@ namespace PSConsoleUtilities
                 { Keys.CtrlHome,               MakeKeyHandler(BackwardDeleteLine,        "BackwardDeleteLine") },
                 { Keys.CtrlRBracket,           MakeKeyHandler(GotoBrace,                 "GotoBrace") },
                 { Keys.CtrlAltQuestion,        MakeKeyHandler(ShowKeyBindings,           "ShowKeyBindings") },
+                { Keys.AltPeriod,              MakeKeyHandler(YankLastArg,               "YankLastArg") },
                 { Keys.Alt0,                   MakeKeyHandler(DigitArgument,             "DigitArgument") },
                 { Keys.Alt1,                   MakeKeyHandler(DigitArgument,             "DigitArgument") },
                 { Keys.Alt2,                   MakeKeyHandler(DigitArgument,             "DigitArgument") },
@@ -133,10 +135,15 @@ namespace PSConsoleUtilities
                 { Keys.Alt9,                   MakeKeyHandler(DigitArgument,             "DigitArgument") },
                 { Keys.AltMinus,               MakeKeyHandler(DigitArgument,             "DigitArgument") },
                 { Keys.AltQuestion,            MakeKeyHandler(WhatIsKey,                 "WhatIsKey") },
+                { Keys.AltF7,                  MakeKeyHandler(ClearHistory,              "ClearHistory") },
                 { Keys.F3,                     MakeKeyHandler(CharacterSearch,           "CharacterSearch") },
                 { Keys.ShiftF3,                MakeKeyHandler(CharacterSearchBackward,   "CharacterSearchBackward") },
+                { Keys.F8,                     MakeKeyHandler(HistorySearchBackward,     "HistorySearchBackward") },
+                { Keys.ShiftF8,                MakeKeyHandler(HistorySearchForward,      "HistorySearchForward") },
                 { Keys.PageUp,                 MakeKeyHandler(ScrollDisplayUp,           "ScrollDisplayUp") },
                 { Keys.PageDown,               MakeKeyHandler(ScrollDisplayDown,         "ScrollDisplayDown") },
+                { Keys.CtrlPageUp,             MakeKeyHandler(ScrollDisplayUpLine,       "ScrollDisplayUpLine") },
+                { Keys.CtrlPageDown,           MakeKeyHandler(ScrollDisplayDownLine,     "ScrollDisplayDownLine") },
             };
 
             _chordDispatchTable = new Dictionary<ConsoleKeyInfo, Dictionary<ConsoleKeyInfo, KeyHandler>>();
@@ -147,7 +154,7 @@ namespace PSConsoleUtilities
             _dispatchTable = new Dictionary<ConsoleKeyInfo, KeyHandler>(new ConsoleKeyInfoComparer())
             {
                 { Keys.Backspace,       MakeKeyHandler(BackwardDeleteChar,   "BackwardDeleteChar") },
-                { Keys.Enter,           MakeKeyHandler(AcceptLine,           "AcceptLine") },
+                { Keys.Enter,           MakeKeyHandler(ValidateAndAcceptLine,"ValidateAndAcceptLine") },
                 { Keys.ShiftEnter,      MakeKeyHandler(AddLine,              "AddLine") },
                 { Keys.LeftArrow,       MakeKeyHandler(BackwardChar,         "BackwardChar") },
                 { Keys.RightArrow,      MakeKeyHandler(ForwardChar,          "ForwardChar") },
@@ -167,15 +174,17 @@ namespace PSConsoleUtilities
                 { Keys.CtrlA,           MakeKeyHandler(BeginningOfLine,      "BeginningOfLine") },
                 { Keys.CtrlB,           MakeKeyHandler(BackwardChar,         "BackwardChar") },
                 { Keys.CtrlC,           MakeKeyHandler(CopyOrCancelLine,     "CopyOrCancelLine") },
-                { Keys.CtrlD,           MakeKeyHandler(DeleteChar,           "DeleteChar") },
+                { Keys.CtrlD,           MakeKeyHandler(DeleteCharOrExit,     "DeleteCharOrExit") },
                 { Keys.CtrlE,           MakeKeyHandler(EndOfLine,            "EndOfLine") },
                 { Keys.CtrlF,           MakeKeyHandler(ForwardChar,          "ForwardChar") },
                 { Keys.CtrlG,           MakeKeyHandler(Abort,                "Abort") },
                 { Keys.CtrlH,           MakeKeyHandler(BackwardDeleteChar,   "BackwardDeleteChar") },
                 { Keys.CtrlL,           MakeKeyHandler(ClearScreen,          "ClearScreen") },
                 { Keys.CtrlK,           MakeKeyHandler(KillLine,             "KillLine") },
-                { Keys.CtrlM,           MakeKeyHandler(AcceptLine,           "AcceptLine") },
+                { Keys.CtrlM,           MakeKeyHandler(ValidateAndAcceptLine,"ValidateAndAcceptLine") },
+                { Keys.CtrlN,           MakeKeyHandler(NextHistory,          "NextHistory") },
                 { Keys.CtrlO,           MakeKeyHandler(AcceptAndGetNext,     "AcceptAndGetNext") },
+                { Keys.CtrlP,           MakeKeyHandler(PreviousHistory,      "PreviousHistory") },
                 { Keys.CtrlR,           MakeKeyHandler(ReverseSearchHistory, "ReverseSearchHistory") },
                 { Keys.CtrlS,           MakeKeyHandler(ForwardSearchHistory, "ForwardSearchHistory") },
                 { Keys.CtrlU,           MakeKeyHandler(BackwardKillLine,     "BackwardKillLine") },
@@ -206,6 +215,7 @@ namespace PSConsoleUtilities
                 { Keys.AltY,            MakeKeyHandler(YankPop,              "YankPop") },
                 { Keys.AltBackspace,    MakeKeyHandler(BackwardKillWord,     "BackwardKillWord") },
                 { Keys.AltEquals,       MakeKeyHandler(PossibleCompletions,  "PossibleCompletions") },
+                { Keys.CtrlSpace,       MakeKeyHandler(MenuComplete,         "MenuComplete") },
                 { Keys.CtrlAltQuestion, MakeKeyHandler(ShowKeyBindings,      "ShowKeyBindings") },
                 { Keys.AltQuestion,     MakeKeyHandler(WhatIsKey,            "WhatIsKey") },
                 { Keys.AltSpace,        MakeKeyHandler(SetMark,              "SetMark") },  // useless entry here for completeness - brings up system menu on Windows
@@ -216,7 +226,9 @@ namespace PSConsoleUtilities
                 { Keys.VolumeUp,        MakeKeyHandler(Ignore,               "Ignore") },
                 { Keys.VolumeMute,      MakeKeyHandler(Ignore,               "Ignore") },
                 { Keys.PageUp,          MakeKeyHandler(ScrollDisplayUp,      "ScrollDisplayUp") },
+                { Keys.CtrlPageUp,      MakeKeyHandler(ScrollDisplayUpLine,  "ScrollDisplayUpLine") },
                 { Keys.PageDown,        MakeKeyHandler(ScrollDisplayDown,    "ScrollDisplayDown") },
+                { Keys.CtrlPageDown,    MakeKeyHandler(ScrollDisplayDownLine,"ScrollDisplayDownLine") },
                 { Keys.CtrlHome,        MakeKeyHandler(ScrollDisplayTop,     "ScrollDisplayTop") },
                 { Keys.CtrlEnd,         MakeKeyHandler(ScrollDisplayToCursor,"ScrollDisplayToCursor") },
             };
@@ -251,20 +263,21 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void ShowKeyBindings(ConsoleKeyInfo? key = null, object arg = null)
         {
-            string format = "{0,-20} {1,-24} {2}\n";
             var buffer = new StringBuilder();
-            buffer.AppendFormat(format, "Key", "Function", "Description");
-            buffer.AppendFormat(format, "---", "--------", "-----------");
+            buffer.AppendFormat("{0,-20} {1,-24} {2}\n", "Key", "Function", "Description");
+            buffer.AppendFormat("{0,-20} {1,-24} {2}\n", "---", "--------", "-----------");
             var boundKeys = GetKeyHandlers(includeBound: true, includeUnbound: false);
-            var maxDescriptionLength = Console.WindowWidth - 20 - 24 - 4;
+            var maxDescriptionLength = Console.WindowWidth - 20 - 24 - 2;
             foreach (var boundKey in boundKeys)
             {
                 var description = boundKey.Description;
+                var newline = "\n";
                 if (description.Length >= maxDescriptionLength)
                 {
                     description = description.Substring(0, maxDescriptionLength - 3) + "...";
+                    newline = "";
                 }
-                buffer.AppendFormat(format, boundKey.Key, boundKey.Function, description);
+                buffer.AppendFormat("{0,-20} {1,-24} {2}{3}", boundKey.Key, boundKey.Function, description, newline);
             }
 
             // Don't overwrite any of the line - so move to first line after the end of our buffer.
@@ -324,8 +337,7 @@ namespace PSConsoleUtilities
                 buffer.Append(PSReadLineResources.KeyIsUnbound);
             }
 
-            _singleton._statusLinePrompt = null;
-            _singleton.Render();
+            _singleton.ClearStatusMessage(render: false);
 
             // Don't overwrite any of the line - so move to first line after the end of our buffer.
             var coords = _singleton.ConvertOffsetToCoordinates(_singleton._buffer.Length);

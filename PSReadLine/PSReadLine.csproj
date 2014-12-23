@@ -88,9 +88,8 @@
   <ItemGroup>
     <EmbeddedResource Include="PSReadLineResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <CustomToolNamespace>PSConsoleUtilities</CustomToolNamespace>
-      <SubType>Designer</SubType>
       <LastGenOutput>PSReadLineResources.Designer.cs</LastGenOutput>
+      <CustomToolNamespace>PSConsoleUtilities</CustomToolNamespace>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
