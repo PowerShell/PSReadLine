@@ -26,6 +26,7 @@ namespace PSConsoleUtilities
         private static readonly Dictionary<ConsoleKeyInfo, KeyHandler> _viInsKeyMap = new Dictionary<ConsoleKeyInfo, KeyHandler>(new ConsoleKeyInfoComparer())
             {
                 { Keys.Enter,           MakeViKeyHandler(AcceptLine,             "AcceptLine" ) },
+                { Keys.CtrlD,           MakeViKeyHandler(AcceptLine,             "AcceptLine" ) },
                 { Keys.ShiftEnter,      MakeViKeyHandler(AddLine,                "AddLine") },
                 { Keys.Escape,          MakeViKeyHandler(ViCommandMode,          "ViCommandMode") },
                 { Keys.LeftArrow,       MakeViKeyHandler(BackwardChar,           "BackwardChar") },
@@ -61,6 +62,7 @@ namespace PSConsoleUtilities
         private static readonly Dictionary<ConsoleKeyInfo, KeyHandler> _viCmdKeyMap = new Dictionary<ConsoleKeyInfo, KeyHandler>(new ConsoleKeyInfoComparer())
             {
                 { Keys.Enter,           MakeViKeyHandler(ViAcceptLine,         "ViAcceptLine") },
+                { Keys.CtrlD,           MakeViKeyHandler(ViExit,               "ViExit") },
                 { Keys.ShiftEnter,      MakeViKeyHandler(AddLine,              "AddLine") },
                 { Keys.Escape,          MakeViKeyHandler(Ding,                 "Ignore") },
                 { Keys.LeftArrow,       MakeViKeyHandler(BackwardChar,         "BackwardChar") },

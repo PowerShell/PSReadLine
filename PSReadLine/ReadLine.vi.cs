@@ -185,6 +185,14 @@ namespace PSConsoleUtilities
         }
 
         /// <summary>
+        /// Exits the shell.
+        /// </summary>
+        public static void ViExit(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            throw new ExitException();
+        }
+
+        /// <summary>
         /// Insert the next key entered.
         /// </summary>
         private static void InsertCharacter(object arg = null)
