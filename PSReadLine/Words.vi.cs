@@ -5,6 +5,9 @@ namespace PSConsoleUtilities
 {
     public partial class PSConsoleReadLine
     {
+        /// <summary>
+        /// Returns the position of the beginning of the next word as delimited by white space and delimiters.
+        /// </summary>
         private int ViFindNextWordPoint(string wordDelimiters)
         {
             return ViFindNextWordPoint(_current, wordDelimiters);
@@ -72,9 +75,9 @@ namespace PSConsoleUtilities
             {
                 i++;
             }
-            if (IsAtEndOfLine(i))
+            if (IsAtEndOfLine(i) && InWord(i, wordDelimiters))
             {
-                return i;
+                return i + 1;
             }
             if (IsDelimiter(i, wordDelimiters))
             {
@@ -83,6 +86,10 @@ namespace PSConsoleUtilities
             while (!IsAtEndOfLine(i) && IsWhiteSpace(i))
             {
                 i++;
+            }
+            if (IsAtEndOfLine(i) && !InWord(i, wordDelimiters))
+            {
+                return i + 1;
             }
             return i;
         }

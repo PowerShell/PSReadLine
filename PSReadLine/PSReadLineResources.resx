@@ -573,4 +573,94 @@ If there are other parse errors, unresolved commands, or incorrect parameters, s
   <data name="ViBackwardReplaceWordDescription" xml:space="preserve">
     <value>Replace the previous word.</value>
   </data>
+  <data name="ViBackwardWordDescription" xml:space="preserve">
+    <value>Delete backward to the beginning of the previous word, as delimited by white space and common delimiters, and enter insert mode.</value>
+  </data>
+  <data name="PasteAfterDescription" xml:space="preserve">
+    <value>Write the contents of the local clipboard after the cursor.</value>
+  </data>
+  <data name="ViNextWordDescription" xml:space="preserve">
+    <value>Move the cursor to the beginning of the next word, as delimited by white space and common delimiters.</value>
+  </data>
+  <data name="ViBackwardGlobDescription" xml:space="preserve">
+    <value>Move the cursor to the beginning of the previous word, as delimited by white space.</value>
+  </data>
+  <data name="ViEndOfGlobDescription" xml:space="preserve">
+    <value>Move the cursor to the end this word, as delimited by white space.</value>
+  </data>
+  <data name="PasteBeforeDescription" xml:space="preserve">
+    <value>Write the contents of the local clipboard before the cursor.</value>
+  </data>
+  <data name="ViNextGlobDescription" xml:space="preserve">
+    <value>Move the cursor to the beginning of the next word, as delimited by white space.</value>
+  </data>
+  <data name="ViGotoBraceDescription" xml:space="preserve">
+    <value>Move the cursor to the matching brace.</value>
+  </data>
+  <data name="ViBackwardDeleteGlobDescription" xml:space="preserve">
+    <value>Delete backward to the beginning of the previous word, as delimited by white space.</value>
+  </data>
+  <data name="ViDeleteGlobDescription" xml:space="preserve">
+    <value>Delete the current word, as delimited by white space.</value>
+  </data>
+  <data name="DeleteEndOfWordDescription" xml:space="preserve">
+    <value>Delete to the end of the current word, as delimited by white space and common delimiters.</value>
+  </data>
+  <data name="ViDeleteEndOfGlobDescription" xml:space="preserve">
+    <value>Delete to the end of this word, as delimited by white space.</value>
+  </data>
+  <data name="ViBackwardReplaceGlobDescription" xml:space="preserve">
+    <value>Delete backward to the beginning of the previous word, as delimited by white space, and enter insert mode.</value>
+  </data>
+  <data name="ViReplaceGlobDescription" xml:space="preserve">
+    <value>Delete to the beginning of the next word, as delimited by white space, and enter insert mode.</value>
+  </data>
+  <data name="ViReplaceEndOfWordDescription" xml:space="preserve">
+    <value>Delete to the end of the word, as delimited by white space and common delimters, and enter insert mode.</value>
+  </data>
+  <data name="ViReplaceEndOfGlobDescription" xml:space="preserve">
+    <value>Delete to the end of the word, as delimited by white space, and enter insert mode.</value>
+  </data>
+  <data name="ViYankLineDescription" xml:space="preserve">
+    <value>Place all characters in the current line into the local clipboard.</value>
+  </data>
+  <data name="ViYankToEndOfLineDescription" xml:space="preserve">
+    <value>Place all characters at and after the cursor into the local clipboard.</value>
+  </data>
+  <data name="ViYankPreviousWordDescription" xml:space="preserve">
+    <value>Place all characters from before the cursor to the beginning of the previous word, as delimted by white space and common delimiters, into the local clipboard.</value>
+  </data>
+  <data name="ViYankPreviousGlobDescription" xml:space="preserve">
+    <value>Place all characters from before the cursor to the beginning of the previous word, as delimited by white space, into the local clipboard.</value>
+  </data>
+  <data name="ViYankNextWordDescription" xml:space="preserve">
+    <value>Place all characters from the cursor to the end of the word, as delimited by white space and common delimiters, into the local clipboard.</value>
+  </data>
+  <data name="ViYankNextGlobDescription" xml:space="preserve">
+    <value>Place all characters from the cursor to the end of the word, as delimited by white space, into the local clipboard.</value>
+  </data>
+  <data name="ViYankEndOfWordDescription" xml:space="preserve">
+    <value>Place the characters from the cursor to the end of the next word, as delimited by white space and common delimiters, into the local clipboard.</value>
+  </data>
+  <data name="ViYankEndOfGlobDescription" xml:space="preserve">
+    <value>Place the characters from the cursor to the end of the next white space delimited word into the local clipboard.</value>
+  </data>
+  <data name="ViYankLeftDescription" xml:space="preserve">
+    <value>Place the character to the left of the cursor into the local clipboard.</value>
+  </data>
+  <data name="ViYankRightDescription" xml:space="preserve">
+    <value>Place the character at the cursor into the local clipboard.</value>
+  </data>
+  <data name="ViYankBeginningOfLineDescription" xml:space="preserve">
+    <value>Place the characters before the cursor into the local clipboard.</value>
+  </data>
+  <data name="ViYankToFirstCharDescription" xml:space="preserve">
+    <value>Place all characters before the cursor and to the 1st non-white space character into the local clipboard.</value>
+  </data>
+  <data name="ViYankPercentDescription" xml:space="preserve">
+    <value>Place all characters between the matching brace and the cursor into the local clipboard.</value>
+  </data>
+  <data name="ViDeleteBraceDescription" xml:space="preserve">
+    <value>Deletes all characters between the cursor position and the matching brace.</value>
+  </data>
 </root>

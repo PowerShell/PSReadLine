@@ -322,6 +322,15 @@ namespace PSConsoleUtilities {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Delete to the end of the current word, as delimited by white space and common delimiters..
+        /// </summary>
+        internal static string DeleteEndOfWordDescription {
+            get {
+                return ResourceManager.GetString("DeleteEndOfWordDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Deletes the current line..
         /// </summary>
         internal static string DeleteLineDescription {
@@ -686,6 +695,24 @@ namespace PSConsoleUtilities {
         internal static string OopsAnErrorMessage2 {
             get {
                 return ResourceManager.GetString("OopsAnErrorMessage2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Write the contents of the local clipboard after the cursor..
+        /// </summary>
+        internal static string PasteAfterDescription {
+            get {
+                return ResourceManager.GetString("PasteAfterDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Write the contents of the local clipboard before the cursor..
+        /// </summary>
+        internal static string PasteBeforeDescription {
+            get {
+                return ResourceManager.GetString("PasteBeforeDescription", resourceCulture);
             }
         }
         
@@ -1231,6 +1258,33 @@ namespace PSConsoleUtilities {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Delete backward to the beginning of the previous word, as delimited by white space..
+        /// </summary>
+        internal static string ViBackwardDeleteGlobDescription {
+            get {
+                return ResourceManager.GetString("ViBackwardDeleteGlobDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Move the cursor to the beginning of the previous word, as delimited by white space..
+        /// </summary>
+        internal static string ViBackwardGlobDescription {
+            get {
+                return ResourceManager.GetString("ViBackwardGlobDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Delete backward to the beginning of the previous word, as delimited by white space, and enter insert mode..
+        /// </summary>
+        internal static string ViBackwardReplaceGlobDescription {
+            get {
+                return ResourceManager.GetString("ViBackwardReplaceGlobDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Replaces the line left of the cursor and all of the way to the beginning..
         /// </summary>
         internal static string ViBackwardReplaceLineDescription {
@@ -1258,11 +1312,65 @@ namespace PSConsoleUtilities {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Delete backward to the beginning of the previous word, as delimited by white space and common delimiters, and enter insert mode..
+        /// </summary>
+        internal static string ViBackwardWordDescription {
+            get {
+                return ResourceManager.GetString("ViBackwardWordDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Switch to VI&apos;s command mode..
         /// </summary>
         internal static string ViCommandModeDescription {
             get {
                 return ResourceManager.GetString("ViCommandModeDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Deletes all characters between the cursor position and the matching brace..
+        /// </summary>
+        internal static string ViDeleteBraceDescription {
+            get {
+                return ResourceManager.GetString("ViDeleteBraceDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Delete to the end of this word, as delimited by white space..
+        /// </summary>
+        internal static string ViDeleteEndOfGlobDescription {
+            get {
+                return ResourceManager.GetString("ViDeleteEndOfGlobDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Delete the current word, as delimited by white space..
+        /// </summary>
+        internal static string ViDeleteGlobDescription {
+            get {
+                return ResourceManager.GetString("ViDeleteGlobDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Move the cursor to the end this word, as delimited by white space..
+        /// </summary>
+        internal static string ViEndOfGlobDescription {
+            get {
+                return ResourceManager.GetString("ViEndOfGlobDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Move the cursor to the matching brace..
+        /// </summary>
+        internal static string ViGotoBraceDescription {
+            get {
+                return ResourceManager.GetString("ViGotoBraceDescription", resourceCulture);
             }
         }
         
@@ -1312,11 +1420,56 @@ namespace PSConsoleUtilities {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Move the cursor to the beginning of the next word, as delimited by white space..
+        /// </summary>
+        internal static string ViNextGlobDescription {
+            get {
+                return ResourceManager.GetString("ViNextGlobDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Move the cursor to the beginning of the next word, as delimited by white space and common delimiters..
+        /// </summary>
+        internal static string ViNextWordDescription {
+            get {
+                return ResourceManager.GetString("ViNextWordDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Replace all characters between the current brace character and it&apos;s matching partner..
         /// </summary>
         internal static string ViReplaceBraceDescription {
             get {
                 return ResourceManager.GetString("ViReplaceBraceDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Delete to the end of the word, as delimited by white space, and enter insert mode..
+        /// </summary>
+        internal static string ViReplaceEndOfGlobDescription {
+            get {
+                return ResourceManager.GetString("ViReplaceEndOfGlobDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Delete to the end of the word, as delimited by white space and common delimters, and enter insert mode..
+        /// </summary>
+        internal static string ViReplaceEndOfWordDescription {
+            get {
+                return ResourceManager.GetString("ViReplaceEndOfWordDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Delete to the beginning of the next word, as delimited by white space, and enter insert mode..
+        /// </summary>
+        internal static string ViReplaceGlobDescription {
+            get {
+                return ResourceManager.GetString("ViReplaceGlobDescription", resourceCulture);
             }
         }
         
@@ -1362,6 +1515,123 @@ namespace PSConsoleUtilities {
         internal static string ViTransposeCharsDescription {
             get {
                 return ResourceManager.GetString("ViTransposeCharsDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Place the characters before the cursor into the local clipboard..
+        /// </summary>
+        internal static string ViYankBeginningOfLineDescription {
+            get {
+                return ResourceManager.GetString("ViYankBeginningOfLineDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Place the characters from the cursor to the end of the next white space delimited word into the local clipboard..
+        /// </summary>
+        internal static string ViYankEndOfGlobDescription {
+            get {
+                return ResourceManager.GetString("ViYankEndOfGlobDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Place the characters from the cursor to the end of the next word, as delimited by white space and common delimiters, into the local clipboard..
+        /// </summary>
+        internal static string ViYankEndOfWordDescription {
+            get {
+                return ResourceManager.GetString("ViYankEndOfWordDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Place the character to the left of the cursor into the local clipboard..
+        /// </summary>
+        internal static string ViYankLeftDescription {
+            get {
+                return ResourceManager.GetString("ViYankLeftDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Place all characters in the current line into the local clipboard..
+        /// </summary>
+        internal static string ViYankLineDescription {
+            get {
+                return ResourceManager.GetString("ViYankLineDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Place all characters from the cursor to the end of the word, as delimited by white space, into the local clipboard..
+        /// </summary>
+        internal static string ViYankNextGlobDescription {
+            get {
+                return ResourceManager.GetString("ViYankNextGlobDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Place all characters from the cursor to the end of the word, as delimited by white space and common delimiters, into the local clipboard..
+        /// </summary>
+        internal static string ViYankNextWordDescription {
+            get {
+                return ResourceManager.GetString("ViYankNextWordDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Place all characters between the matching brace and the cursor into the local clipboard..
+        /// </summary>
+        internal static string ViYankPercentDescription {
+            get {
+                return ResourceManager.GetString("ViYankPercentDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Place all characters from before the cursor to the beginning of the previous word, as delimited by white space, into the local clipboard..
+        /// </summary>
+        internal static string ViYankPreviousGlobDescription {
+            get {
+                return ResourceManager.GetString("ViYankPreviousGlobDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Place all characters from before the cursor to the beginning of the previous word, as delimted by white space and common delimiters, into the local clipboard..
+        /// </summary>
+        internal static string ViYankPreviousWordDescription {
+            get {
+                return ResourceManager.GetString("ViYankPreviousWordDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Place the character at the cursor into the local clipboard..
+        /// </summary>
+        internal static string ViYankRightDescription {
+            get {
+                return ResourceManager.GetString("ViYankRightDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Place all characters at and after the cursor into the local clipboard..
+        /// </summary>
+        internal static string ViYankToEndOfLineDescription {
+            get {
+                return ResourceManager.GetString("ViYankToEndOfLineDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Place all characters before the cursor and to the 1st non-white space character into the local clipboard..
+        /// </summary>
+        internal static string ViYankToFirstCharDescription {
+            get {
+                return ResourceManager.GetString("ViYankToFirstCharDescription", resourceCulture);
             }
         }
         

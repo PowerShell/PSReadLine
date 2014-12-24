@@ -185,77 +185,6 @@ namespace PSConsoleUtilities
         }
 
         /// <summary>
-        /// Find the start of the next word from the supplied location.
-        /// Needed by VI.
-        /// </summary>
-        private int FindNextWordPointFrom(int cursor, string wordDelimiters)
-        {
-            int i = cursor;
-            if (i == _singleton._buffer.Length)
-            {
-                return i;
-            }
-
-            if (InWord(i, wordDelimiters))
-            {
-                // Scan to end of current word region
-                while (i < _singleton._buffer.Length)
-                {
-                    if (!InWord(i, wordDelimiters))
-                    {
-                        break;
-                    }
-                    i += 1;
-                }
-            }
-
-            while (i < _singleton._buffer.Length)
-            {
-                if (InWord(i, wordDelimiters))
-                {
-                    break;
-                }
-                i += 1;
-            }
-            return i;
-        }
-
-        /// <summary>
-        /// Find the beginning of the previous word from the supplied spot.
-        /// </summary>
-        private int FindPreviousWordPointFrom(int cursor, string wordDelimiters)
-        {
-            int i = cursor - 1;
-            if (i < 0)
-            {
-                return 0;
-            }
-
-            if (!InWord(i, wordDelimiters))
-            {
-                // Scan backwards until we are at the end of the previous word.
-                while (i > 0)
-                {
-                    if (InWord(i, wordDelimiters))
-                    {
-                        break;
-                    }
-                    i -= 1;
-                }
-            }
-            while (i > 0)
-            {
-                if (!InWord(i, wordDelimiters))
-                {
-                    i += 1;
-                    break;
-                }
-                i -= 1;
-            }
-            return i;
-        }
-
-        /// <summary>
         /// Insert the next key entered.
         /// </summary>
         private static void InsertCharacter(object arg = null)
@@ -296,7 +225,7 @@ namespace PSConsoleUtilities
             int endPoint = _singleton._current;
             for (int i = 0; i < qty; i++)
             {
-                endPoint = _singleton.FindNextWordPointFrom(endPoint, _singleton.Options.WordDelimiters);
+                endPoint = _singleton.ViFindNextWordPoint(endPoint, _singleton.Options.WordDelimiters);
             }
 
             if (endPoint <= _singleton._current)
@@ -322,7 +251,7 @@ namespace PSConsoleUtilities
         /// <summary>
         /// Delete the next glob (white space delimited word).
         /// </summary>
-        public static void DeleteGlob(ConsoleKeyInfo? key = null, object arg = null)
+        public static void ViDeleteGlob(ConsoleKeyInfo? key = null, object arg = null)
         {
             int qty = (arg is int) ? (int)arg : 1;
             int endPoint = _singleton._current;
@@ -336,7 +265,7 @@ namespace PSConsoleUtilities
             _singleton.SaveEditItem(EditItemDelete.Create(
                 _singleton._clipboard,
                 _singleton._current,
-                DeleteGlob,
+                ViDeleteGlob,
                 arg
                 ));
             _singleton._buffer.Remove(_singleton._current, length);
@@ -382,7 +311,7 @@ namespace PSConsoleUtilities
         /// <summary>
         /// Delete to the end of the word.
         /// </summary>
-        public static void DeleteEndOfGlob(ConsoleKeyInfo? key = null, object arg = null)
+        public static void ViDeleteEndOfGlob(ConsoleKeyInfo? key = null, object arg = null)
         {
             int qty = (arg is int) ? (int)arg : 1;
             int endPoint = _singleton._current;
@@ -395,7 +324,7 @@ namespace PSConsoleUtilities
             _singleton.SaveEditItem(EditItemDelete.Create(
                 _singleton._clipboard,
                 _singleton._current,
-                DeleteEndOfGlob,
+                ViDeleteEndOfGlob,
                 arg
                 ));
             _singleton._buffer.Remove(_singleton._current, 1 + endPoint - _singleton._current);
@@ -609,7 +538,7 @@ namespace PSConsoleUtilities
             int deletePoint = _singleton._current;
             for (int i = 0; i < qty; i++)
             {
-                deletePoint = _singleton.FindPreviousWordPointFrom(deletePoint, _singleton.Options.WordDelimiters);
+                deletePoint = _singleton.ViFindPreviousWordPoint(deletePoint, _singleton.Options.WordDelimiters);
             }
             if (deletePoint == _singleton._current)
             {
@@ -631,7 +560,7 @@ namespace PSConsoleUtilities
         /// <summary>
         /// Deletes the previous word, using only white space as the word delimiter.
         /// </summary>
-        public static void BackwardDeleteGlob(ConsoleKeyInfo? key = null, object arg = null)
+        public static void ViBackwardDeleteGlob(ConsoleKeyInfo? key = null, object arg = null)
         {
             if (_singleton._current == 0)
             {

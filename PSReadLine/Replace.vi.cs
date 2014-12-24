@@ -121,7 +121,7 @@ namespace PSConsoleUtilities
         private static void ViBackwardReplaceGlob(ConsoleKeyInfo? key, object arg)
         {
             _singleton._groupUndoHelper.StartGroup(ViBackwardReplaceGlob, arg);
-            BackwardDeleteGlob(key, arg);
+            ViBackwardDeleteGlob(key, arg);
             ViInsertMode(key, arg);
         }
 
@@ -164,7 +164,7 @@ namespace PSConsoleUtilities
         private static void ViReplaceGlob(ConsoleKeyInfo? key, object arg)
         {
             _singleton._groupUndoHelper.StartGroup(ViReplaceGlob, arg);
-            DeleteGlob(key, arg);
+            ViDeleteGlob(key, arg);
             if (_singleton._current < _singleton._buffer.Length - 1)
             {
                 Insert(' ');
@@ -198,7 +198,7 @@ namespace PSConsoleUtilities
         private static void ViReplaceEndOfGlob(ConsoleKeyInfo? key, object arg)
         {
             _singleton._groupUndoHelper.StartGroup(ViReplaceEndOfGlob, arg);
-            DeleteEndOfGlob(key, arg);
+            ViDeleteEndOfGlob(key, arg);
             if (_singleton._current == _singleton._buffer.Length - 1)
             {
                 ViInsertWithAppend(key, arg);

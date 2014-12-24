@@ -151,10 +151,10 @@ namespace PSConsoleUtilities
             }
 
             int length = end - _singleton._current;
-            if (_singleton.IsAtEndOfLine(end))
-            {
-                length++;
-            }
+            //if (_singleton.IsAtEndOfLine(end))
+            //{
+            //    length++;
+            //}
             if (length > 0)
             {
                 _singleton.SaveToClipboard(_singleton._current, length);
