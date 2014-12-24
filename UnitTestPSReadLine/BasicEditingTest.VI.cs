@@ -477,10 +477,15 @@ namespace UnitTestPSReadLine
                 _.CtrlW, CheckThat(() => AssertLineIs("abc def i")),
                 'u'
                 ));
+
             Test("abc def ghi", Keys(
                 "abc def ghi", _.Escape, CheckThat(() => AssertLineIs("abc def ghi")),
                 _.CtrlU, CheckThat(() => AssertLineIs("i")),
                 'u'
+                ));
+
+            Test("exit", Keys(
+                "abc", _.Escape, _.CtrlD, InputAcceptedNow
                 ));
         }
 
