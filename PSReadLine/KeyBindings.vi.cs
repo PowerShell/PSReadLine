@@ -26,7 +26,7 @@ namespace PSConsoleUtilities
         private static readonly Dictionary<ConsoleKeyInfo, KeyHandler> _viInsKeyMap = new Dictionary<ConsoleKeyInfo, KeyHandler>(new ConsoleKeyInfoComparer())
             {
                 { Keys.Enter,           MakeViKeyHandler(AcceptLine,             "AcceptLine" ) },
-                { Keys.CtrlD,           MakeViKeyHandler(AcceptLine,             "AcceptLine" ) },
+                { Keys.CtrlD,           MakeViKeyHandler(ViAcceptLineOrExit,     "ViAcceptLineOrExit" ) },
                 { Keys.ShiftEnter,      MakeViKeyHandler(AddLine,                "AddLine") },
                 { Keys.Escape,          MakeViKeyHandler(ViCommandMode,          "ViCommandMode") },
                 { Keys.LeftArrow,       MakeViKeyHandler(BackwardChar,           "BackwardChar") },
@@ -62,7 +62,7 @@ namespace PSConsoleUtilities
         private static readonly Dictionary<ConsoleKeyInfo, KeyHandler> _viCmdKeyMap = new Dictionary<ConsoleKeyInfo, KeyHandler>(new ConsoleKeyInfoComparer())
             {
                 { Keys.Enter,           MakeViKeyHandler(ViAcceptLine,         "ViAcceptLine") },
-                { Keys.CtrlD,           MakeViKeyHandler(ViExit,               "ViExit") },
+                { Keys.CtrlD,           MakeViKeyHandler(ViAcceptLineOrExit,   "ViAcceptLineOrExit") },
                 { Keys.ShiftEnter,      MakeViKeyHandler(AddLine,              "AddLine") },
                 { Keys.Escape,          MakeViKeyHandler(Ding,                 "Ignore") },
                 { Keys.LeftArrow,       MakeViKeyHandler(BackwardChar,         "BackwardChar") },
@@ -99,8 +99,8 @@ namespace PSConsoleUtilities
                 { Keys.ShiftF3,         MakeViKeyHandler(CharacterSearchBackward, "CharacterSearchBackward") },
                 { Keys.A,               MakeViKeyHandler(ViInsertWithAppend,   "ViInsertWithAppend") },
                 { Keys.B,               MakeViKeyHandler(ViBackwardWord,       "ViBackwardWord") },
-                { Keys.C,               MakeViKeyHandler(Chord,                "ChordFirstKey") },
-                { Keys.D,               MakeViKeyHandler(Chord,                "ChordFirstKey") },
+                { Keys.C,               MakeViKeyHandler(ViChord,                "ChordFirstKey") },
+                { Keys.D,               MakeViKeyHandler(ViChord,                "ChordFirstKey") },
                 { Keys.E,               MakeViKeyHandler(NextWordEnd,          "NextWordEnd") },
                 { Keys.F,               MakeViKeyHandler(SearchChar,           "SearchChar") },
                 { Keys.G,               MakeViKeyHandler(Ding,                 "Ignore") },
@@ -121,7 +121,7 @@ namespace PSConsoleUtilities
                 { Keys.V,               MakeViKeyHandler(Ding,                 "Ignore") },
                 { Keys.W,               MakeViKeyHandler(ViNextWord,           "ViNextWord") },
                 { Keys.X,               MakeViKeyHandler(DeleteChar,           "DeleteChar") },
-                { Keys.Y,               MakeViKeyHandler(Chord,                "ChordFirstKey") },
+                { Keys.Y,               MakeViKeyHandler(ViChord,                "ChordFirstKey") },
                 { Keys.Z,               MakeViKeyHandler(Ding,                 "Ignore") },
                 { Keys.ucA,             MakeViKeyHandler(ViInsertAtEnd,        "ViInsertAtEnd") },
                 { Keys.ucB,             MakeViKeyHandler(ViBackwardGlob,       "ViBackwardGlob") },

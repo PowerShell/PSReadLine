@@ -1249,6 +1249,15 @@ namespace PSConsoleUtilities {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to If the line is empty, exit, otherwise accept the line as input..
+        /// </summary>
+        internal static string ViAcceptLineOrExitDescription {
+            get {
+                return ResourceManager.GetString("ViAcceptLineOrExitDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Switches to insert mode after positioning the cursor past the end of the line..
         /// </summary>
         internal static string ViAppendAtEndDescription {
@@ -1357,11 +1366,29 @@ namespace PSConsoleUtilities {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Handles the processing of a number argument after the first key of a chord..
+        /// </summary>
+        internal static string ViDigitArgumentInChordDescription {
+            get {
+                return ResourceManager.GetString("ViDigitArgumentInChordDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Move the cursor to the end this word, as delimited by white space..
         /// </summary>
         internal static string ViEndOfGlobDescription {
             get {
                 return ResourceManager.GetString("ViEndOfGlobDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Exit the shell..
+        /// </summary>
+        internal static string ViExitDescription {
+            get {
+                return ResourceManager.GetString("ViExitDescription", resourceCulture);
             }
         }
         

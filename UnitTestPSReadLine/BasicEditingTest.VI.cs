@@ -326,6 +326,77 @@ namespace UnitTestPSReadLine
                 "d", _.Uphat, CheckThat(() => AssertLineIs(" a")), CheckThat(() => AssertCursorLeftIs(1)),
                 'u'
                 ));
+
+            Test("0123", Keys(
+                "0123", _.Escape,
+                "d1h", CheckThat(() => AssertLineIs("013")),
+                "ud3h", CheckThat(() => AssertLineIs("3")),
+                "ud4h", CheckThat(() => AssertLineIs("3")),
+                "u0dl", CheckThat(() => AssertLineIs("123")),
+                "u0d4l", CheckThat(() => AssertLineIs("")),
+                "u0d5l", CheckThat(() => AssertLineIs("")),
+                "u0d10l", CheckThat(() => AssertLineIs("")),
+                "u05d5l", CheckThat(() => AssertLineIs("0123"))
+                ));
+
+            Test("nslookup www.google.com", Keys(
+                "nslookup www", _.Period, "google", _.Period, "com", _.Escape,
+                "0d2w", CheckThat(() => AssertLineIs(".google.com")),
+                "u0d3w", CheckThat(() => AssertLineIs("google.com")),
+                "u0d4w", CheckThat(() => AssertLineIs(".com")),
+                "u0d5w", CheckThat(() => AssertLineIs("com")),
+                "u0d6w", CheckThat(() => AssertLineIs("")),
+                "u0d7w", CheckThat(() => AssertLineIs("")),
+                'u'
+                ));
+
+            Test("nslookup www.google.com", Keys(
+                "nslookup www", _.Period, "google", _.Period, "com", _.Escape,
+                "0d1W", CheckThat(() => AssertLineIs("www.google.com")),
+                "u0d2W", CheckThat(() => AssertLineIs("")),
+                "u0d3W", CheckThat(() => AssertLineIs("")),
+                'u'
+                ));
+
+            Test("nslookup www.google.com", Keys(
+                "nslookup www", _.Period, "google", _.Period, "com", _.Escape,
+                "0d1e", CheckThat(() => AssertLineIs(" www.google.com")),
+                "u0d2e", CheckThat(() => AssertLineIs(".google.com")),
+                "u0d3e", CheckThat(() => AssertLineIs("google.com")),
+                "u0d4e", CheckThat(() => AssertLineIs(".com")),
+                "u0d5e", CheckThat(() => AssertLineIs("com")),
+                "u0d6e", CheckThat(() => AssertLineIs("")),
+                "u0d7e", CheckThat(() => AssertLineIs("")),
+                'u'
+                ));
+
+            Test("nslookup www.google.com", Keys(
+                "nslookup www", _.Period, "google", _.Period, "com", _.Escape,
+                "0d1E", CheckThat(() => AssertLineIs(" www.google.com")),
+                "u0d2E", CheckThat(() => AssertLineIs("")),
+                "u0d3E", CheckThat(() => AssertLineIs("")),
+                'u'
+                ));
+
+            Test("nslookup www.google.com", Keys(
+                "nslookup www", _.Period, "google", _.Period, "com", _.Escape,
+                "d1b", CheckThat(() => AssertLineIs("nslookup www.google.m")),
+                "ud2b", CheckThat(() => AssertLineIs("nslookup www.googlem")),
+                "ud3b", CheckThat(() => AssertLineIs("nslookup www.m")),
+                "ud4b", CheckThat(() => AssertLineIs("nslookup wwwm")),
+                "ud5b", CheckThat(() => AssertLineIs("nslookup m")),
+                "ud6b", CheckThat(() => AssertLineIs("m")),
+                "ud7b", CheckThat(() => AssertLineIs("m")),
+                'u'
+                ));
+
+            Test("nslookup www.google.com", Keys(
+                "nslookup www", _.Period, "google", _.Period, "com", _.Escape,
+                "d1B", CheckThat(() => AssertLineIs("nslookup m")),
+                "ud2B", CheckThat(() => AssertLineIs("m")),
+                "ud3B", CheckThat(() => AssertLineIs("m")),
+                'u'
+                ));
         }
 
         [TestMethod]
@@ -484,7 +555,7 @@ namespace UnitTestPSReadLine
                 'u'
                 ));
 
-            Test("exit", Keys(
+            Test("abc", Keys(
                 "abc", _.Escape, _.CtrlD, InputAcceptedNow
                 ));
         }

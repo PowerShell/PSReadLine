@@ -782,5 +782,164 @@ namespace PSConsoleUtilities
             }
             Ding();
         }
+
+        /// <summary>
+        /// Chords in vi needs special handling because a numeric argument can be input between the 1st and 2nd key.
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="arg"></param>
+        private static void ViChord(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            if (!key.HasValue)
+            {
+                throw new ArgumentNullException("key");
+            }
+            if (arg != null)
+            {
+                Chord(key, arg);
+                return;
+            }
+
+            Dictionary<ConsoleKeyInfo, KeyHandler> secondKeyDispatchTable;
+            if (_singleton._chordDispatchTable.TryGetValue(key.Value, out secondKeyDispatchTable))
+            {
+                if (_singleton._demoMode)
+                {
+                    // Render so the first key of the chord appears in the demo window
+                    _singleton.Render();
+                }
+                var secondKey = ReadKey();
+                KeyHandler handler;
+                if (secondKeyDispatchTable.TryGetValue(secondKey, out handler))
+                {
+                    _singleton.ProcessOneKey(secondKey, secondKeyDispatchTable, ignoreIfNoAction: true, arg: arg);
+                }
+                else if (!IsNumberic(secondKey))
+                {
+                    _singleton.ProcessOneKey(secondKey, secondKeyDispatchTable, ignoreIfNoAction: true, arg: arg);
+                }
+                else
+                {
+                    var argBuffer = _singleton._statusBuffer;
+                    argBuffer.Clear();
+                    _singleton._statusLinePrompt = "digit-argument: ";
+                    while (IsNumberic(secondKey))
+                    {
+                        argBuffer.Append(secondKey.KeyChar);
+                        _singleton.Render();
+                        secondKey = ReadKey();
+                    }
+                    int numericArg = int.Parse(argBuffer.ToString());
+                    if (secondKeyDispatchTable.TryGetValue(secondKey, out handler))
+                    {
+                        _singleton.ProcessOneKey(secondKey, secondKeyDispatchTable, ignoreIfNoAction: true, arg: numericArg);
+                    }
+                    else
+                    {
+                        Ding();
+                    }
+                    argBuffer.Clear();
+                    _singleton.ClearStatusMessage(render: true);
+                }
+            }
+        }
+
+        private static bool IsNumberic(ConsoleKeyInfo key)
+        {
+            return char.IsNumber(key.KeyChar);
+        }
+
+        /// <summary>
+        /// Start a new digit argument to pass to other functions while in one of vi's chords.
+        /// </summary>
+        public static void ViDigitArgumentInChord(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            if (!key.HasValue || char.IsControl(key.Value.KeyChar))
+            {
+                Ding();
+                return;
+            }
+
+            #region VI special case
+            if (_singleton._options.EditMode == EditMode.Vi && key.Value.KeyChar == '0')
+            {
+                BeginningOfLine();
+                return;
+            }
+            #endregion VI special case
+
+            bool sawDigit = false;
+            _singleton._statusLinePrompt = "digit-argument: ";
+            var argBuffer = _singleton._statusBuffer;
+            argBuffer.Append(key.Value.KeyChar);
+            if (key.Value.KeyChar == '-')
+            {
+                argBuffer.Append('1');
+            }
+            else
+            {
+                sawDigit = true;
+            }
+
+            _singleton.Render(); // Render prompt
+            while (true)
+            {
+                var nextKey = ReadKey();
+                KeyHandler handler;
+                if (_singleton._dispatchTable.TryGetValue(nextKey, out handler) && handler.Action == DigitArgument)
+                {
+                    if (nextKey.KeyChar == '-')
+                    {
+                        if (argBuffer[0] == '-')
+                        {
+                            argBuffer.Remove(0, 1);
+                        }
+                        else
+                        {
+                            argBuffer.Insert(0, '-');
+                        }
+                        _singleton.Render(); // Render prompt
+                        continue;
+                    }
+
+                    if (nextKey.KeyChar >= '0' && nextKey.KeyChar <= '9')
+                    {
+                        if (!sawDigit && argBuffer.Length > 0)
+                        {
+                            // Buffer is either '-1' or '1' from one or more Alt+- keys
+                            // but no digits yet.  Remove the '1'.
+                            argBuffer.Length -= 1;
+                        }
+                        sawDigit = true;
+                        argBuffer.Append(nextKey.KeyChar);
+                        _singleton.Render(); // Render prompt
+                        continue;
+                    }
+                }
+
+                int intArg;
+                if (int.TryParse(argBuffer.ToString(), out intArg))
+                {
+                    _singleton.ProcessOneKey(nextKey, _singleton._dispatchTable, ignoreIfNoAction: false, arg: intArg);
+                }
+                else
+                {
+                    Ding();
+                }
+                break;
+            }
+        }
+
+        public static void ViAcceptLineOrExit(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            if (_singleton._buffer.Length > 0)
+            {
+                _singleton.AcceptLineImpl(false);
+            }
+            else
+            {
+                ViExit(key, arg);
+            }
+        }
     }
 }

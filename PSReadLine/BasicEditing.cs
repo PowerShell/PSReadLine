@@ -176,7 +176,7 @@ namespace PSConsoleUtilities
 
         private void DeleteCharImpl(int qty, bool orExit)
         {
-            qty = Math.Min(qty, _singleton._buffer.Length + 1 - ViEndOfLineFactor - _singleton._current);
+            qty = Math.Min(qty, _singleton._buffer.Length + 1 + ViEndOfLineFactor - _singleton._current);
 
             if (_visualSelectionCommandCount > 0)
             {
