@@ -300,7 +300,7 @@ namespace PSConsoleUtilities
                     {
                         yield return new PSConsoleUtilities.KeyHandler
                         {
-                            Key = entry.Key.ToGestureString(),
+                            Key = "<" + entry.Key.ToGestureString() + ">",
                             Function = entry.Value.BriefDescription,
                             Description = entry.Value.LongDescription,
                         };
@@ -341,7 +341,7 @@ namespace PSConsoleUtilities
                         {
                             yield return new PSConsoleUtilities.KeyHandler
                             {
-                                Key = entry.Key.ToGestureString() + "," + secondEntry.Key.ToGestureString(),
+                                Key = "<" + entry.Key.ToGestureString() + "," + secondEntry.Key.ToGestureString() + ">",
                                 Function = secondEntry.Value.BriefDescription,
                                 Description = secondEntry.Value.LongDescription
                             };
