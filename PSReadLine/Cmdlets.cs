@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Management.Automation;
+using System.Management.Automation.Language;
 using System.Reflection;
 using System.Linq;
 
@@ -131,7 +133,22 @@ namespace PSConsoleUtilities
             HistorySaveStyle = DefaultHistorySaveStyle;
             HistorySavePath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)
                 + @"\PSReadline\" + hostName + "_history.txt";
-            ValidationHandler = null;
+            CommandValidationHandler = null;
+            CommandsToValidateScriptBlockArguments = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                "ForEach-Object", "%",
+                "Invoke-Command", "icm",
+                "Measure-Command",
+                "New-Module", "nmo",
+                "Register-EngineEvent",
+                "Register-ObjectEvent",
+                "Register-WMIEvent",
+                "Set-PSBreakpoint", "sbp",
+                "Start-Job", "sajb",
+                "Trace-Command", "trcm",
+                "Use-Transaction",
+                "Where-Object", "?", "where",
+            };
         }
 
         public EditMode EditMode { get; set; }
@@ -156,11 +173,23 @@ namespace PSConsoleUtilities
         public Func<string, bool> AddToHistoryHandler { get; set; }
 
         /// <summary>
-        /// This handler is called from ValidateAndAcceptLine.  If a non-null,
-        /// non-empty string is returned, or if an exception is thrown,
-        /// validation fails and the error is reported.
+        /// This handler is called from ValidateAndAcceptLine.
+        /// If an exception is thrown, validation fails and the error is reported.
         /// </summary>
-        public Func<string, object> ValidationHandler { get; set; }
+        public Action<CommandAst> CommandValidationHandler { get; set; }
+
+        /// <summary>
+        /// Most commands do not accept script blocks, but for those that do,
+        /// we want to validate commands in the script block arguments.
+        /// Unfortunately, we can't know how the argument is used.  In the worst
+        /// case, for commands like Get-ADUser, the script block actually
+        /// specifies a different language.
+        ///
+        /// Because we can't know ahead of time all of the commands that do
+        /// odd things with script blocks, we create a white-list of commands
+        /// that do invoke the script block - this covers the most useful cases.
+        /// </summary>
+        public HashSet<string> CommandsToValidateScriptBlockArguments { get; set; }
 
         /// <summary>
         /// When true, duplicates will not be added to the history.
@@ -386,17 +415,17 @@ namespace PSConsoleUtilities
 
         [Parameter(ParameterSetName = "OptionsSet")]
         [AllowNull]
-        public Func<string, object> ValidationHandler
+        public Action<CommandAst> CommandValidationHandler
         {
-            get { return _validationHandler; }
+            get { return _commandValidationHandler; }
             set
             {
-                _validationHandler = value;
-                _validationHandlerSpecified = true;
+                _commandValidationHandler = value;
+                _commandValidationHandlerSpecified = true;
             }
         }
-        private Func<string, object> _validationHandler;
-        internal bool _validationHandlerSpecified;
+        private Action<CommandAst> _commandValidationHandler;
+        internal bool _commandValidationHandlerSpecified;
 
         [Parameter(ParameterSetName = "OptionsSet")]
         public SwitchParameter HistorySearchCursorMovesToEnd

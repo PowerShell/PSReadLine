@@ -56,9 +56,9 @@ namespace PSConsoleUtilities
             {
                 Options.AddToHistoryHandler = options.AddToHistoryHandler;
             }
-            if (options._validationHandlerSpecified)
+            if (options._commandValidationHandlerSpecified)
             {
-                Options.ValidationHandler = options.ValidationHandler;
+                Options.CommandValidationHandler = options.CommandValidationHandler;
             }
             if (options._maximumHistoryCount.HasValue)
             {

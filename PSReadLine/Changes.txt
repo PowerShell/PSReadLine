@@ -2,8 +2,9 @@
 
 New features:
 * Enter now does some extra validation before accepting the input.  If there are any parse
-  errors, command not found, or parameter binding errors, and error message is displayed
-  and you can continue editing.  Your history and the screen won't be cluttered with errors.
+  errors or a command is not found, an error message is displayed, but you can continue editing,
+  the erroneous line will not be added to history, and the error message will be cleared after
+  you make an edit.
   You can press Enter a second time to force accepting the line if you choose.  
 
   If you don't like the new behavior for Enter, you can revert to the old behavior with:
@@ -38,8 +39,9 @@ New options:
       -ErrorBackgroundColor
           Colors used when ValidateAndAcceptLine reports an error
 
-      -ValidationHandler
+      -CommandValidationHandler
           A delegate that is called from ValidateAndAcceptLine that can perform custom validation
+          and also fix the command line, e.g. to correct common typos.
 
 New cmdlet:
 * Remove-PSReadlineKeyHandler

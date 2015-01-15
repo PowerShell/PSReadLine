@@ -258,6 +258,60 @@ namespace PSConsoleUtilities
             return true;
         }
 
+        class CommandValidationVisitor : AstVisitor
+        {
+            private readonly Ast _rootAst;
+            internal string detectedError;
+
+            internal CommandValidationVisitor(Ast rootAst)
+            {
+                _rootAst = rootAst;
+            }
+
+            public override AstVisitAction VisitCommand(CommandAst commandAst)
+            {
+                var commandName = commandAst.GetCommandName();
+                if (commandName != null)
+                {
+                    if (_singleton._engineIntrinsics != null)
+                    {
+                        var commandInfo = _singleton._engineIntrinsics.InvokeCommand.GetCommand(commandName, CommandTypes.All);
+                        if (commandInfo == null && !_singleton.UnresolvedCommandCouldSucceed(commandName, _rootAst))
+                        {
+                            _singleton._current = commandAst.CommandElements[0].Extent.EndOffset;
+                            detectedError = string.Format(PSReadLineResources.CommandNotFoundError, commandName);
+                            return AstVisitAction.StopVisit;
+                        }
+                    }
+
+                    if (commandAst.CommandElements.Any(e => e is ScriptBlockExpressionAst))
+                    {
+                        if (_singleton._options.CommandsToValidateScriptBlockArguments == null ||
+                            !_singleton._options.CommandsToValidateScriptBlockArguments.Contains(commandName))
+                        {
+                            return AstVisitAction.SkipChildren;
+                        }
+                    }
+                }
+
+                if (_singleton._options.CommandValidationHandler != null)
+                {
+                    try
+                    {
+                        _singleton._options.CommandValidationHandler(commandAst);
+                    }
+                    catch (Exception e)
+                    {
+                        detectedError = e.Message;
+                    }
+                }
+
+                return !string.IsNullOrWhiteSpace(detectedError)
+                    ? AstVisitAction.StopVisit
+                    : AstVisitAction.Continue;
+            }
+        }
+
         private string Validate(Ast rootAst)
         {
             if (_parseErrors != null && _parseErrors.Length > 0)
@@ -267,64 +321,14 @@ namespace PSConsoleUtilities
                 return _parseErrors[0].Message;
             }
 
-            var commandAsts = rootAst.FindAll(a => a is CommandAst, true);
-            if (_engineIntrinsics != null)
+            var validationVisitor = new CommandValidationVisitor(rootAst);
+            rootAst.Visit(validationVisitor);
+            if (!string.IsNullOrWhiteSpace(validationVisitor.detectedError))
             {
-                foreach (var ast in commandAsts)
-                {
-                    var commandAst = (CommandAst)ast;
-                    var commandName = commandAst.GetCommandName();
-                    if (commandName != null)
-                    {
-                        var commandInfo = _engineIntrinsics.InvokeCommand.GetCommand(commandName, CommandTypes.All);
-                        if (commandInfo == null && !UnresolvedCommandCouldSucceed(commandName, rootAst))
-                        {
-                            _current = commandAst.CommandElements[0].Extent.EndOffset;
-                            return string.Format(PSReadLineResources.CommandNotFoundError, commandName);
-                        }
-                    }
-                }
+                return validationVisitor.detectedError;
             }
 
-            string errorMessage = null;
-            if (_options.ValidationHandler != null)
-            {
-                try
-                {
-                    dynamic validationResult = _options.ValidationHandler(rootAst.Extent.Text);
-                    if (validationResult != null)
-                    {
-                        errorMessage = validationResult as string;
-                        if (errorMessage == null)
-                        {
-                            try
-                            {
-                                errorMessage = validationResult.Message;
-                                _current = validationResult.Offset;
-                            }
-                            catch {}
-                        }
-                        if (errorMessage == null)
-                        {
-                            errorMessage = validationResult.ToString();
-                        }
-                    }
-                }
-                catch (Exception e)
-                {
-                    errorMessage = e.Message;
-                    try
-                    {
-                        // If the exception object has an Offset property, we use it.
-                        // If not, this will throw an exception which we ignore.
-                        dynamic em = e;
-                        _current = em.Offset;
-                    }
-                    catch {}
-                }
-            }
-
-            return errorMessage;
+            return null;
         }
 
         private bool UnresolvedCommandCouldSucceed(string commandName, Ast rootAst)

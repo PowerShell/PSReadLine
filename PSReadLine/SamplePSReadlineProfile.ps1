@@ -415,3 +415,21 @@ Set-PSReadlineKeyHandler -Key Alt+j `
 
     [PSConsoleUtilities.PSConsoleReadLine]::InvokePrompt()
 }
+
+Set-PSReadlineOption -CommandValidationHandler {
+    param([System.Management.Automation.Language.CommandAst]$CommandAst)
+
+    switch ($CommandAst.GetCommandName())
+    {
+        'git' {
+            $gitCmd = $CommandAst.CommandElements[1].Extent
+            switch ($gitCmd.Text)
+            {
+                'cmt' {
+                    [PSConsoleUtilities.PSConsoleReadLine]::Replace(
+                        $gitCmd.StartOffset, $gitCmd.EndOffset - $gitCmd.StartOffset, 'commit')
+                }
+            }
+        }
+    }
+}
