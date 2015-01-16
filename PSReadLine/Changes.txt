@@ -15,6 +15,7 @@ Bug fixes:
 * Event handlers that register for the engine event PowerShell.OnIdle should work now.
 * ClearScreen now just clears the visible screen, not the entire buffer.
 * Fix exception on error input during rendering after certain keywords like process, begin, or end.
+* Fix exception after undo from menu completion
 
 New functions:
 * ValidateAndAcceptLine
