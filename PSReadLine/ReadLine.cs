@@ -677,34 +677,43 @@ namespace PSConsoleUtilities
             {
                 var nextKey = ReadKey();
                 KeyHandler handler;
-                if (_singleton._dispatchTable.TryGetValue(nextKey, out handler) && handler.Action == DigitArgument)
+                if (_singleton._dispatchTable.TryGetValue(nextKey, out handler))
                 {
-                    if (nextKey.KeyChar == '-')
+                    if (handler.Action == DigitArgument)
                     {
-                        if (argBuffer[0] == '-')
+                        if (nextKey.KeyChar == '-')
                         {
-                            argBuffer.Remove(0, 1);
+                            if (argBuffer[0] == '-')
+                            {
+                                argBuffer.Remove(0, 1);
+                            }
+                            else
+                            {
+                                argBuffer.Insert(0, '-');
+                            }
+                            _singleton.Render(); // Render prompt
+                            continue;
                         }
-                        else
-                        {
-                            argBuffer.Insert(0, '-');
-                        }
-                        _singleton.Render(); // Render prompt
-                        continue;
-                    }
 
-                    if (nextKey.KeyChar >= '0' && nextKey.KeyChar <= '9')
-                    {
-                        if (!sawDigit && argBuffer.Length > 0)
+                        if (nextKey.KeyChar >= '0' && nextKey.KeyChar <= '9')
                         {
-                            // Buffer is either '-1' or '1' from one or more Alt+- keys
-                            // but no digits yet.  Remove the '1'.
-                            argBuffer.Length -= 1;
+                            if (!sawDigit && argBuffer.Length > 0)
+                            {
+                                // Buffer is either '-1' or '1' from one or more Alt+- keys
+                                // but no digits yet.  Remove the '1'.
+                                argBuffer.Length -= 1;
+                            }
+                            sawDigit = true;
+                            argBuffer.Append(nextKey.KeyChar);
+                            _singleton.Render(); // Render prompt
+                            continue;
                         }
-                        sawDigit = true;
-                        argBuffer.Append(nextKey.KeyChar);
-                        _singleton.Render(); // Render prompt
-                        continue;
+                    }
+                    else if (handler.Action == Abort ||
+                             handler.Action == CancelLine ||
+                             handler.Action == CopyOrCancelLine)
+                    {
+                        break;
                     }
                 }
 

@@ -99,6 +99,7 @@ namespace PSConsoleUtilities
             var y = coordinates.Y + 1;
             _singleton.PlaceCursor(0, ref y);
             _singleton._buffer.Clear(); // Clear so we don't actually run the input
+            _singleton._current = 0; // If Render is called, _current must be correct.
             _singleton._currentHistoryIndex = _singleton._history.Count;
             _singleton._inputAccepted = true;
         }
