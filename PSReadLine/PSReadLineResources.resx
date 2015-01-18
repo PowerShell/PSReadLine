@@ -672,4 +672,10 @@ If there are other parse errors, unresolved commands, or incorrect parameters, s
   <data name="ViExitDescription" xml:space="preserve">
     <value>Exit the shell.</value>
   </data>
+  <data name="ViTabCompleteNextDescription" xml:space="preserve">
+    <value>Invokes TabCompleteNext after doing some vi-specific clean up.</value>
+  </data>
+  <data name="ViTabCompletePreviousDescription" xml:space="preserve">
+    <value>Invokes TabCompletePrevious after doing some vi-specific clean up.</value>
+  </data>
 </root>
