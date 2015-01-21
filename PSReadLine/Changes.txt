@@ -17,6 +17,8 @@ Bug fixes:
 * Fix exception on error input during rendering after certain keywords like process, begin, or end.
 * Fix exception after undo from menu completion
 * Support CancelLine (Ctrl+C) and Abort (Ctrl+G in emacs) to cancel DigitArgument
+* History recall now ignores command lines from other currently running sessions, but you can
+  still find command lines from those sessions when searching history.
 
 New functions:
 * ValidateAndAcceptLine

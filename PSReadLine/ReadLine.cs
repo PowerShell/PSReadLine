@@ -325,7 +325,7 @@ namespace PSConsoleUtilities
                 ProcessOneKey(key, _dispatchTable, ignoreIfNoAction: false, arg: null);
                 if (_inputAccepted)
                 {
-                    return MaybeAddToHistory(_buffer.ToString(), _edits, _undoEditIndex, readingHistoryFile: false);
+                    return MaybeAddToHistory(_buffer.ToString(), _edits, _undoEditIndex, readingHistoryFile: false, fromDifferentSession: false);
                 }
 
                 if (killCommandCount == _killCommandCount)
