@@ -77,6 +77,7 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void CancelLine(ConsoleKeyInfo? key = null, object arg = null)
         {
+            _singleton.ClearStatusMessage(false);
             _singleton._current = _singleton._buffer.Length;
             // We want to display ^C to show the line was canceled.  Instead of appending ^C
             // (or (char)3), we append 2 spaces so we don't affect tokenization too much, e.g.
