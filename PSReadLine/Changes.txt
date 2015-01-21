@@ -19,6 +19,7 @@ Bug fixes:
 * Support CancelLine (Ctrl+C) and Abort (Ctrl+G in emacs) to cancel DigitArgument
 * History recall now ignores command lines from other currently running sessions, but you can
   still find command lines from those sessions when searching history.
+* Color any non-whitespace prompt character when there is an error, not just non-characters
 
 New functions:
 * ValidateAndAcceptLine

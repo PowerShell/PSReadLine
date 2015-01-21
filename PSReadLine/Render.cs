@@ -250,14 +250,11 @@ namespace PSConsoleUtilities
                         continue;
                     }
 
-                    if (!char.IsLetterOrDigit(c))
-                    {
-                        ConsoleColor prevColor = _consoleBuffer[promptChar].ForegroundColor;
-                        _consoleBuffer[promptChar].ForegroundColor = ConsoleColor.Red;
-                        WriteBufferLines(_consoleBuffer, ref _initialY);
-                        rendered = true;
-                        _consoleBuffer[promptChar].ForegroundColor = prevColor;
-                    }
+                    ConsoleColor prevColor = _consoleBuffer[promptChar].ForegroundColor;
+                    _consoleBuffer[promptChar].ForegroundColor = ConsoleColor.Red;
+                    WriteBufferLines(_consoleBuffer, ref _initialY);
+                    rendered = true;
+                    _consoleBuffer[promptChar].ForegroundColor = prevColor;
                     break;
                 }
             }
