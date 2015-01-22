@@ -13,7 +13,7 @@ New features:
 Bug fixes:
 * Occasional exception with AcceptAndGetNext (Ctrl+O) followed by something other than Enter
 * Event handlers that register for the engine event PowerShell.OnIdle should work now.
-* ClearScreen now just clears the visible screen, not the entire buffer.
+* ClearScreen now scrolls the screen to preserve as much output as possible
 * Fix exception on error input during rendering after certain keywords like process, begin, or end.
 * Fix exception after undo from menu completion
 * Support CancelLine (Ctrl+C) and Abort (Ctrl+G in emacs) to cancel DigitArgument
