@@ -387,14 +387,6 @@ namespace PSConsoleUtilities
 
         private void HistorySearch(int direction)
         {
-            if (_current == 0)
-            {
-                // If we aren't actually searching, use HistoryRecall
-                // because it ignores command lines from other running sessions.
-                HistoryRecall(direction);
-                return;
-            }
-
             if (_searchHistoryCommandCount == 0)
             {
                 if (LineIsMultiLine())
@@ -422,6 +414,11 @@ namespace PSConsoleUtilities
                 if (newHistoryIndex < 0 || newHistoryIndex >= _history.Count)
                 {
                     break;
+                }
+
+                if (_history[newHistoryIndex]._fromDifferentLiveSession && _searchHistoryPrefix.Length == 0)
+                {
+                    continue;
                 }
 
                 var line = newHistoryIndex == _history.Count ? _savedCurrentLine._line : _history[newHistoryIndex]._line;
