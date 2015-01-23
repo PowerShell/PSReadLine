@@ -22,6 +22,15 @@ function PSConsoleHostReadline
         $script:firstTime = $false
 
         $options = [PSConsoleUtilities.PSConsoleReadLine]::GetOptions()
+
+        # Honor $MaximumHistoryCount, but get it safely in case it was removed in the profile.
+        $MaximumHistoryCount = Get-Variable -ea Ignore -ValueOnly MaximumHistoryCount
+        if ($MaximumHistoryCount -gt 0)
+        {
+            $options.MaximumHistoryCount = $MaximumHistoryCount
+            [PSConsoleUtilities.PSConsoleReadLine]::SetOptions($options)
+        }
+
         if ($options.HistorySaveStyle -eq [PSConsoleUtilities.HistorySaveStyle]::SaveNothing)
         {
             # PSReadline isn't saving history, but we might still have history to reuse

@@ -69,7 +69,7 @@ namespace PSConsoleUtilities
         /// <summary>
         /// The maximum number of commands to store in the history.
         /// </summary>
-        public const int DefaultMaximumHistoryCount = 1024;
+        public const int DefaultMaximumHistoryCount = 4096;
 
         /// <summary>
         /// The maximum number of items to store in the kill ring.
