@@ -1,3 +1,6 @@
+# Built binary placed in the root
+PSReadline.zip
+
 # Build Folders (you can keep bin if you'd like, to store dlls and pdbs)
 [Bb]in/
 [Oo]bj/
@@ -113,3 +116,7 @@ UpgradeLog*.XML
 #Chocolatey Build Output
 ChocolateyPackage/PSReadLine/
 *.nupkg
+
+# gvim swap files
+*.swp
+*.swo

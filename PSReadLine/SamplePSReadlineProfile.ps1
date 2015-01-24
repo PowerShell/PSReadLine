@@ -221,8 +221,8 @@ Set-PSReadlineKeyHandler -Key 'Alt+(' `
     }
     else
     {
-    [PSConsoleUtilities.PSConsoleReadLine]::Replace(0, $line.Length, '(' + $line + ')')
-    [PSConsoleUtilities.PSConsoleReadLine]::EndOfLine()
+        [PSConsoleUtilities.PSConsoleReadLine]::Replace(0, $line.Length, '(' + $line + ')')
+        [PSConsoleUtilities.PSConsoleReadLine]::EndOfLine()
     }
 }
 

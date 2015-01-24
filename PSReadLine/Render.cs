@@ -115,15 +115,15 @@ namespace PSConsoleUtilities
 
                 if (!afterLastToken)
                 {
-                // Figure out the color of the character - if it's in a token,
-                // use the tokens color otherwise use the initial color.
+                    // Figure out the color of the character - if it's in a token,
+                    // use the tokens color otherwise use the initial color.
                     state = tokenStack.Peek();
-                var token = state.Tokens[state.Index];
-                if (i == token.Extent.EndOffset)
-                {
-                    if (token == state.Tokens[state.Tokens.Length - 1])
+                    var token = state.Tokens[state.Index];
+                    if (i == token.Extent.EndOffset)
                     {
-                        tokenStack.Pop();
+                        if (token == state.Tokens[state.Tokens.Length - 1])
+                        {
+                            tokenStack.Pop();
                             if (tokenStack.Count == 0)
                             {
                                 afterLastToken = true;
@@ -133,45 +133,45 @@ namespace PSConsoleUtilities
                             }
                             else
                             {
-                        state = tokenStack.Peek();
-                    }
+                                state = tokenStack.Peek();
+                            }
                         }
 
                         if (!afterLastToken)
                         {
-                    foregroundColor = state.ForegroundColor;
-                    backgroundColor = state.BackgroundColor;
+                            foregroundColor = state.ForegroundColor;
+                            backgroundColor = state.BackgroundColor;
 
-                    token = state.Tokens[++state.Index];
-                }
+                            token = state.Tokens[++state.Index];
+                        }
                     }
 
                     if (!afterLastToken && i == token.Extent.StartOffset)
-                {
-                    GetTokenColors(token, out foregroundColor, out backgroundColor);
-
-                    var stringToken = token as StringExpandableToken;
-                    if (stringToken != null)
                     {
-                        // We might have nested tokens.
-                        if (stringToken.NestedTokens != null && stringToken.NestedTokens.Any())
-                        {
-                            var tokens = new Token[stringToken.NestedTokens.Count + 1];
-                            stringToken.NestedTokens.CopyTo(tokens, 0);
-                            // NestedTokens doesn't have an "EOS" token, so we use
-                            // the string literal token for that purpose.
-                            tokens[tokens.Length - 1] = stringToken;
+                        GetTokenColors(token, out foregroundColor, out backgroundColor);
 
-                            tokenStack.Push(new SavedTokenState
+                        var stringToken = token as StringExpandableToken;
+                        if (stringToken != null)
+                        {
+                            // We might have nested tokens.
+                            if (stringToken.NestedTokens != null && stringToken.NestedTokens.Any())
                             {
-                                Tokens          = tokens,
-                                Index           = 0,
-                                BackgroundColor = backgroundColor,
-                                ForegroundColor = foregroundColor
-                            });
+                                var tokens = new Token[stringToken.NestedTokens.Count + 1];
+                                stringToken.NestedTokens.CopyTo(tokens, 0);
+                                // NestedTokens doesn't have an "EOS" token, so we use
+                                // the string literal token for that purpose.
+                                tokens[tokens.Length - 1] = stringToken;
+
+                                tokenStack.Push(new SavedTokenState
+                                {
+                                    Tokens = tokens,
+                                    Index = 0,
+                                    BackgroundColor = backgroundColor,
+                                    ForegroundColor = foregroundColor
+                                });
+                            }
                         }
                     }
-                }
                 }
 
                 if (text[i] == '\n')
@@ -258,8 +258,8 @@ namespace PSConsoleUtilities
                         rendered = true;
                         _consoleBuffer[promptChar].ForegroundColor = prevColor;
                     }
-                        break;
-                    }
+                    break;
+                }
             }
 
             if (!rendered)

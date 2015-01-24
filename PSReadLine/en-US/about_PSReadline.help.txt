@@ -588,7 +588,7 @@ LONG DESCRIPTION
 
         This is the main entrypoint to PSReadline. It does not support recursion, so is not useful
         in a custom key binding.
-    
+
     void RemoveKeyHandler(string[] key)
 
         This function is used by Remove-PSReadlineKeyHandler and probably isn't too useful in a

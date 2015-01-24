@@ -31,7 +31,7 @@ namespace PSConsoleUtilities
             }
             else
             {
-            _singleton._current = _singleton._buffer.Length;
+                _singleton._current = _singleton._buffer.Length;
             }
             _singleton.PlaceCursor();
         }
@@ -59,7 +59,7 @@ namespace PSConsoleUtilities
             }
             else
             {
-            _singleton._current = 0;
+                _singleton._current = 0;
             }
             _singleton.PlaceCursor();
         }

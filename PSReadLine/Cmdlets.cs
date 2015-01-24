@@ -560,7 +560,7 @@ namespace PSConsoleUtilities
                 var function = (string)_dynamicParameters.Value[FunctionParameter].Value;
                 var keyHandler = (Action<ConsoleKeyInfo?, object>)
                     Delegate.CreateDelegate(typeof (Action<ConsoleKeyInfo?, object>),
-                                            typeof (PSConsoleReadLine).GetMethod(function));
+                        typeof (PSConsoleReadLine).GetMethod(function));
                 BriefDescription = function;
                 PSConsoleReadLine.SetKeyHandler(Chord, keyHandler, BriefDescription, Description);
             }

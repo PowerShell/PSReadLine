@@ -51,7 +51,7 @@ namespace PSConsoleUtilities
         {
             if (_singleton._killRing != null)
             {
-            _singleton._killRing.Clear();
+                _singleton._killRing.Clear();
             }
             _singleton._killIndex = -1;    // So first add indexes 0.
         }

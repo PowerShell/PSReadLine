@@ -28,8 +28,9 @@ namespace PSConsoleUtilities
         private Thread _readKeyThread;
         private AutoResetEvent _readKeyWaitHandle;
         private AutoResetEvent _keyReadWaitHandle;
-        private AutoResetEvent _closingWaitHandle;
-        private WaitHandle[] _waitHandles;
+        private ManualResetEvent _closingWaitHandle;
+        private WaitHandle[] _threadProcWaitHandles;
+        private WaitHandle[] _requestKeyWaitHandles;
         private bool _captureKeys;
         private readonly Queue<ConsoleKeyInfo> _savedKeys;
         private uint _prePSReadlineConsoleMode;
@@ -73,8 +74,10 @@ namespace PSConsoleUtilities
             var stopwatch = new Stopwatch();
             while (true)
             {
-                // Wait until ReadKey tells us to read a key.
-                _readKeyWaitHandle.WaitOne();
+                // Wait until ReadKey tells us to read a key (or it's time to exit).
+                int handleId = WaitHandle.WaitAny(_singleton._threadProcWaitHandles);
+                if (handleId == 1) // It was the _closingWaitHandle that was signaled.
+                    break;
 
                 stopwatch.Restart();
                 while (_mockableMethods.KeyAvailable())
@@ -127,7 +130,7 @@ namespace PSConsoleUtilities
                     //   - the console is exiting
                     //   - 300ms - to process events if we're idle
 
-                    handleId = WaitHandle.WaitAny(_singleton._waitHandles, 300);
+                    handleId = WaitHandle.WaitAny(_singleton._requestKeyWaitHandles, 300);
                     if (handleId != WaitHandle.WaitTimeout)
                         break;
 
@@ -383,8 +386,8 @@ namespace PSConsoleUtilities
                 if (movingAtEndOfLineCount == _moveToLineCommandCount)
                 {
                     _moveToLineCommandCount = 0;
-                }
             }
+        }
         }
 
         T CalloutUsingDefaultConsoleMode<T>(Func<T> func)
@@ -451,15 +454,30 @@ namespace PSConsoleUtilities
 
             _breakHandlerGcHandle = GCHandle.Alloc(new BreakHandler(_singleton.BreakHandler));
             NativeMethods.SetConsoleCtrlHandler((BreakHandler) _breakHandlerGcHandle.Target, true);
-            _singleton._readKeyThread = new Thread(_singleton.ReadKeyThreadProc) {IsBackground = true};
-            _singleton._readKeyThread.Start();
             _singleton._readKeyWaitHandle = new AutoResetEvent(false);
             _singleton._keyReadWaitHandle = new AutoResetEvent(false);
-            _singleton._closingWaitHandle = new AutoResetEvent(false);
-            _singleton._waitHandles = new WaitHandle[] { _singleton._keyReadWaitHandle, _singleton._closingWaitHandle };
+            _singleton._closingWaitHandle = new ManualResetEvent(false);
+            _singleton._requestKeyWaitHandles = new WaitHandle[] { _singleton._keyReadWaitHandle, _singleton._closingWaitHandle };
+            _singleton._threadProcWaitHandles = new WaitHandle[] { _singleton._readKeyWaitHandle, _singleton._closingWaitHandle };
 
             // This is only used for post-mortem debugging - 200 keys should be enough to reconstruct most command lines.
             _lastNKeys = new HistoryQueue<ConsoleKeyInfo>(200);
+
+            // This is for a "being hosted in an alternate appdomain scenario" (the
+            // DomainUnload event is not raised for the default appdomain). It allows us
+            // to exit cleanly when the appdomain is unloaded but the process is not going
+            // away.
+            if (!AppDomain.CurrentDomain.IsDefaultAppDomain())
+            {
+                AppDomain.CurrentDomain.DomainUnload += (x, y) =>
+                {
+                    _singleton._closingWaitHandle.Set();
+                    _singleton._readKeyThread.Join(); // may need to wait for history to be written
+                };
+        }
+
+            _singleton._readKeyThread = new Thread(_singleton.ReadKeyThreadProc) {IsBackground = true};
+            _singleton._readKeyThread.Start();
         }
 
         private PSConsoleReadLine()
@@ -506,7 +524,7 @@ namespace PSConsoleUtilities
             {
                 DelayedOneTimeInitialize();
                 _delayedOneTimeInitCompleted = true;
-            }
+        }
 
             _engineIntrinsics = engineIntrinsics;
             _buffer.Clear();
@@ -563,7 +581,7 @@ namespace PSConsoleUtilities
             {
                 _searchHistoryCommandCount = 0;
             }
-        }
+            }
 
         private void DelayedOneTimeInitialize()
         {
@@ -732,6 +750,7 @@ namespace PSConsoleUtilities
             argBuffer.Clear();
             _singleton.ClearStatusMessage(render: true);
         }
+
 
         /// <summary>
         /// Erases the current prompt and calls the prompt function to redisplay
