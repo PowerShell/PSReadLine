@@ -276,11 +276,11 @@ namespace PSConsoleUtilities
             _buffer.Append(line);
             if (moveCursor)
             {
-                _current = _buffer.Length + ViEndOfLineFactor;
+                _current = Math.Max(0, _buffer.Length + ViEndOfLineFactor);
             }
             else if (_current > _buffer.Length)
             {
-                _current = _buffer.Length + ViEndOfLineFactor;
+                _current = Math.Max(0, _buffer.Length + ViEndOfLineFactor);
             }
             Render();
         }

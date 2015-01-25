@@ -106,6 +106,37 @@ namespace UnitTestPSReadLine
                 ));
         }
 
+        [TestMethod]
+        public void ViTestChangeAfterHistory()
+        {
+            TestSetup(KeyMode.Vi);
+
+            SetHistory("abc def ghi", "012 456 890");
+
+            Test("xyz", Keys(
+                _.Escape, "kj", CheckThat(() => AssertLineIs("")),
+                "clxyz", _.Escape
+                ));
+        }
+
+        [TestMethod]
+        public void ViTestAppendAfterHistory()
+        {
+            TestSetup(KeyMode.Vi);
+
+            SetHistory("abc def ghi", "012 456 890");
+
+            Test("xyz", Keys(
+                _.Escape, "kj", CheckThat(() => AssertLineIs("")),
+                "axyz", _.Escape
+                ));
+            
+            Test("xyz", Keys(
+                _.Escape, "kj", CheckThat(() => AssertLineIs("")),
+                "Axyz", _.Escape
+                ));
+        }
+
         //[TestMethod]
         //public void TestBeginningOfHistory()
         //{
