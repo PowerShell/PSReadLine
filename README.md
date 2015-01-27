@@ -1,6 +1,6 @@
 #PSReadLine
 
-This module replaces the command line editing experience in PowerShell.exe.
+This module replaces the command line editing experience in PowerShell.exe for versions 3 and up.
 It provides:
 
 * Syntax coloring
