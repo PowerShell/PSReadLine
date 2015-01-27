@@ -220,7 +220,6 @@ namespace PSConsoleUtilities
             // and that requires rendering.
             bool renderNeeded = _emphasisStart >= 0 || _queuedKeys.Count > 0;
 
-            _renderForDemoNeeded = false;
             _emphasisStart = -1;
             _emphasisLength = 0;
 

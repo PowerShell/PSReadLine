@@ -297,12 +297,6 @@
   <data name="AcceptAndGetNextDescription" xml:space="preserve">
     <value>Accept the current line and recall the next line from history after the current line finishes executing</value>
   </data>
-  <data name="DisableDemoModeDescription" xml:space="preserve">
-    <value>Disable demo mode</value>
-  </data>
-  <data name="EnableDemoModeDescription" xml:space="preserve">
-    <value>Displays a window below the input line that shows which keys are typed</value>
-  </data>
   <data name="KeyIsUnbound" xml:space="preserve">
     <value>Key is unbound</value>
   </data>

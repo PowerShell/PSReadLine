@@ -426,8 +426,6 @@ namespace PSConsoleUtilities
             }
             if (handler != null)
             {
-                _renderForDemoNeeded = _demoMode;
-
                 if (handler.ScriptBlock != null)
                 {
                     CalloutUsingDefaultConsoleMode(() => handler.Action(key, arg));
@@ -435,11 +433,6 @@ namespace PSConsoleUtilities
                 else
                 {
                     handler.Action(key, arg);
-                }
-
-                if (_renderForDemoNeeded)
-                {
-                    Render();
                 }
             }
             else if (!ignoreIfNoAction && key.KeyChar != 0)
@@ -486,8 +479,6 @@ namespace PSConsoleUtilities
 
             _captureKeys = false;
             _savedKeys = new Queue<ConsoleKeyInfo>();
-            _demoStrings = new HistoryQueue<string>(100);
-            _demoMode = false;
 
             SetDefaultWindowsBindings();
 
@@ -612,11 +603,6 @@ namespace PSConsoleUtilities
             Dictionary<ConsoleKeyInfo, KeyHandler> secondKeyDispatchTable;
             if (_singleton._chordDispatchTable.TryGetValue(key.Value, out secondKeyDispatchTable))
             {
-                if (_singleton._demoMode)
-                {
-                    // Render so the first key of the chord appears in the demo window
-                    _singleton.Render();
-                }
                 var secondKey = ReadKey();
                 _singleton.ProcessOneKey(secondKey, secondKeyDispatchTable, ignoreIfNoAction: true, arg: arg);
             }

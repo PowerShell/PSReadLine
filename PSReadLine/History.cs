@@ -60,10 +60,6 @@ namespace PSConsoleUtilities
                     IncrementalHistoryWrite();
                 }
             }
-            if (_demoMode)
-            {
-                ClearDemoWindow();
-            }
 
             // Clear the saved line unless we used AcceptAndGetNext in which
             // case we're really still in middle of history and might want

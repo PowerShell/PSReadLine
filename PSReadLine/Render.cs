@@ -72,12 +72,10 @@ namespace PSConsoleUtilities
 
         private void ReallyRender()
         {
-            _renderForDemoNeeded = false;
-
             var text = ParseInput();
 
             int statusLineCount = GetStatusLineCount();
-            int bufferLineCount = ConvertOffsetToCoordinates(text.Length).Y - _initialY + 1 + _demoWindowLineCount + statusLineCount;
+            int bufferLineCount = ConvertOffsetToCoordinates(text.Length).Y - _initialY + 1 + statusLineCount;
             int bufferWidth = Console.BufferWidth;
             if (_consoleBuffer.Length != bufferLineCount * bufferWidth)
             {
@@ -202,7 +200,7 @@ namespace PSConsoleUtilities
                 }
             }
 
-            for (; j < (_consoleBuffer.Length - ((statusLineCount + _demoWindowLineCount) * _bufferWidth)); j++)
+            for (; j < (_consoleBuffer.Length - (statusLineCount * _bufferWidth)); j++)
             {
                 _consoleBuffer[j] = _space;
             }
@@ -225,15 +223,10 @@ namespace PSConsoleUtilities
                     _consoleBuffer[j].BackgroundColor = backgroundColor;
                 }
 
-                for (; j < (_consoleBuffer.Length - (_demoWindowLineCount * _bufferWidth)); j++)
+                for (; j < _consoleBuffer.Length; j++)
                 {
                     _consoleBuffer[j] = _space;
                 }
-            }
-
-            if (_demoMode)
-            {
-                RenderDemoWindow(j);
             }
 
             bool rendered = false;
@@ -266,9 +259,9 @@ namespace PSConsoleUtilities
 
             PlaceCursor();
 
-            if ((_initialY + bufferLineCount + (_demoMode ? 1 : 0)) > (Console.WindowTop + Console.WindowHeight))
+            if ((_initialY + bufferLineCount) > (Console.WindowTop + Console.WindowHeight))
             {
-                Console.WindowTop = _initialY + bufferLineCount + (_demoMode ? 1 : 0) - Console.WindowHeight;
+                Console.WindowTop = _initialY + bufferLineCount - Console.WindowHeight;
             }
 
             _lastRenderTime.Restart();
@@ -487,9 +480,9 @@ namespace PSConsoleUtilities
         private void PlaceCursor(int x, ref int y)
         {
             int statusLineCount = GetStatusLineCount();
-            if ((y + _demoWindowLineCount + statusLineCount) >= Console.BufferHeight)
+            if ((y + statusLineCount) >= Console.BufferHeight)
             {
-                ScrollBuffer((y + _demoWindowLineCount + statusLineCount) - Console.BufferHeight + 1);
+                ScrollBuffer((y + statusLineCount) - Console.BufferHeight + 1);
                 y = Console.BufferHeight - 1;
             }
             Console.SetCursorPosition(x, y);
@@ -630,139 +623,6 @@ namespace PSConsoleUtilities
             Render();
             return key.Key == ConsoleKey.Y;
         }
-
-        #region Demo mode
-
-        private readonly HistoryQueue<string> _demoStrings;
-        private bool _demoMode;
-        private int _demoWindowLineCount;
-        private bool _renderForDemoNeeded;
-
-        /// <summary>
-        /// Turn on demo mode (display events like keys pressed)
-        /// </summary>
-        public static void EnableDemoMode(ConsoleKeyInfo? key = null, object arg = null)
-        {
-            const int windowLineCount = 4;  // 1 blank line, 2 border lines, 1 line of info
-            _singleton._captureKeys = true;
-            _singleton._demoMode = true;
-            _singleton._demoWindowLineCount = windowLineCount;
-            var newBuffer = new CHAR_INFO[_singleton._consoleBuffer.Length + (windowLineCount * _singleton._bufferWidth)];
-            Array.Copy(_singleton._consoleBuffer, newBuffer,
-                _singleton._initialX + (_singleton.Options.ExtraPromptLineCount * _singleton._bufferWidth));
-            _singleton._consoleBuffer = newBuffer;
-            _singleton.Render();
-        }
-
-        /// <summary>
-        /// Turn off demo mode (display events like keys pressed)
-        /// </summary>
-        public static void DisableDemoMode(ConsoleKeyInfo? key = null, object arg = null)
-        {
-            _singleton._savedKeys.Clear();
-            _singleton._captureKeys = false;
-            _singleton._demoMode = false;
-            _singleton._demoStrings.Clear();
-            _singleton._demoWindowLineCount = 0;
-            _singleton.ClearDemoWindow();
-        }
-
-
-        private void RenderDemoWindow(int windowStart)
-        {
-            int i;
-
-            Action<int, char> setChar = (index, c) =>
-            {
-                _consoleBuffer[index].UnicodeChar = c;
-                _consoleBuffer[index].ForegroundColor = ConsoleColor.DarkCyan;
-                _consoleBuffer[index].BackgroundColor = ConsoleColor.White;
-            };
-
-            for (i = 0; i < _bufferWidth; i++)
-            {
-                _consoleBuffer[windowStart + i].UnicodeChar = ' ';
-                _consoleBuffer[windowStart + i].ForegroundColor = _initialForegroundColor;
-                _consoleBuffer[windowStart + i].BackgroundColor = _initialBackgroundColor;
-            }
-            windowStart += _bufferWidth;
-
-            const int extraSpace = 2;
-            // Draw the box
-            setChar(windowStart + extraSpace, (char)9484); // upper left
-            setChar(windowStart + _bufferWidth * 2 + extraSpace, (char)9492); // lower left
-            setChar(windowStart + _bufferWidth - 1 - extraSpace, (char)9488); // upper right
-            setChar(windowStart + _bufferWidth * 3 - 1 - extraSpace, (char)9496); // lower right
-            setChar(windowStart + _bufferWidth + extraSpace, (char)9474); // side
-            setChar(windowStart + _bufferWidth * 2 - 1 - extraSpace, (char)9474); // side
-
-            for (i = 1 + extraSpace; i < _bufferWidth - 1 - extraSpace; i++)
-            {
-                setChar(windowStart + i, (char)9472);
-                setChar(windowStart + i + 2 * _bufferWidth, (char)9472);
-            }
-
-            while (_savedKeys.Count > 0)
-            {
-                var key = _savedKeys.Dequeue();
-                _demoStrings.Enqueue(key.ToGestureString());
-            }
-
-            int charsToDisplay = _bufferWidth - 2 - (2 * extraSpace);
-            i = windowStart + _bufferWidth + 1 + extraSpace;
-            bool first = true;
-            for (int j = _demoStrings.Count; j > 0; j--)
-            {
-                string eventString = _demoStrings[j - 1];
-                if ((eventString.Length + (first ? 0 : 1)) > charsToDisplay)
-                    break;
-
-                if (!first)
-                {
-                    setChar(i++, ' ');
-                    charsToDisplay--;
-                }
-
-                foreach (char c in eventString)
-                {
-                    setChar(i, c);
-                    if (first)
-                    {
-                        // Invert the first word to highlight it
-                        var color = _consoleBuffer[i].ForegroundColor;
-                        _consoleBuffer[i].ForegroundColor = _consoleBuffer[i].BackgroundColor;
-                        _consoleBuffer[i].BackgroundColor = color;
-                    }
-                    i++;
-                    charsToDisplay--;
-                }
-
-                first = false;
-            }
-            while (charsToDisplay-- > 0)
-            {
-                setChar(i++, ' ');
-            }
-        }
-
-        private void ClearDemoWindow()
-        {
-            int bufferWidth = Console.BufferWidth;
-            var charInfoBuffer = new CHAR_INFO[bufferWidth * 3];
-
-            for (int i = 0; i < charInfoBuffer.Length; i++)
-            {
-                charInfoBuffer[i].UnicodeChar = ' ';
-                charInfoBuffer[i].ForegroundColor = _initialForegroundColor;
-                charInfoBuffer[i].BackgroundColor= _initialBackgroundColor;
-            }
-
-            int bufferLineCount = ConvertOffsetToCoordinates(_buffer.Length).Y - _initialY + 1;
-            int y = _initialY + bufferLineCount + 1;
-            WriteBufferLines(charInfoBuffer, ref y);
-        }
-
-        #endregion Demo mode
 
         #region Screen scrolling
 

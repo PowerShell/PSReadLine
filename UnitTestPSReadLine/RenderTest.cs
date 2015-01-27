@@ -158,24 +158,6 @@ namespace UnitTestPSReadLine
         }
 
         [TestMethod]
-        public void TestDemoWindow()
-        {
-            TestSetup(KeyMode.Cmd,
-                new KeyHandler("Ctrl+D,Ctrl+E", PSConsoleReadLine.EnableDemoMode),
-                new KeyHandler("Ctrl+D,Ctrl+D", PSConsoleReadLine.DisableDemoMode));
-
-            Test("a", Keys(
-                _.CtrlD, _.CtrlE,
-                "a",
-                _.CtrlD, _.CtrlD));
-
-            // To test:
-            //   * Actually check rendering
-            //   * With status line
-            //   * WIth show completions
-        }
-
-        [TestMethod]
         public void TestInvokePrompt()
         {
             TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+Z", PSConsoleReadLine.InvokePrompt));

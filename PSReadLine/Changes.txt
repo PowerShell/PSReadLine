@@ -52,6 +52,10 @@ New cmdlet:
 * Remove-PSReadlineKeyHandler
     This will remove a key binding for previously bound keys.
 
+Breaking change:
+* Demo mode removed
+    - Trying to bind functions EnableDemoMode or DisableDemoMode will result in an error.
+
 ### Version 1.0.0.12
 
 New features:

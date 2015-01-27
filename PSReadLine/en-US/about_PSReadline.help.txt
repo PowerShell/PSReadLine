@@ -436,15 +436,6 @@ LONG DESCRIPTION
         multiple lines.  After selecting, press Enter to copy the text.  Escape/Ctrl+C/Ctrl+G
         will cancel so nothing is copied to the clipboard.
 
-    DisableDemoMode          (Cmd: unbound              Emacs: unbound)
-
-        Turn off demo mode.
-
-    EnableDemoMode           (Cmd: unbound              Emacs: unbound)
-
-        Turn on demo mode.  Displays a window below the input line that shows which
-        keys are typed.
-
     InvokePrompt             (Cmd: unbound              Emacs: unbound)
 
         Erases the current prompt and calls the prompt function to redisplay

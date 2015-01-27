@@ -38,10 +38,6 @@ Set-PSReadlineKeyHandler -Key Ctrl+Shift+Q -Function TabCompletePrevious
 Set-PSReadlineKeyHandler -Key Shift+Ctrl+C -Function Copy
 Set-PSReadlineKeyHandler -Key Ctrl+V -Function Paste
 
-# Demo mode is great for giving demos of PSReadline,
-Set-PSReadlineKeyHandler -Chord 'Ctrl+D,Ctrl+E' -Function EnableDemoMode
-Set-PSReadlineKeyHandler -Chord 'Ctrl+D,Ctrl+D' -Function DisableDemoMode
-
 # CaptureScreen is good for blog posts or email showing a transaction
 # of what you did when asking for help or demonstrating a technique.
 Set-PSReadlineKeyHandler -Chord 'Ctrl+D,Ctrl+C' -Function CaptureScreen

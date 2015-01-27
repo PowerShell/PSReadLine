@@ -304,15 +304,6 @@ namespace PSConsoleUtilities {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Disable demo mode.
-        /// </summary>
-        internal static string DisableDemoModeDescription {
-            get {
-                return ResourceManager.GetString("DisableDemoModeDescription", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Display all {0} possibilities? (y or n) _.
         /// </summary>
         internal static string DisplayAllPossibilities {
@@ -336,15 +327,6 @@ namespace PSConsoleUtilities {
         internal static string EmacsMetaDescription {
             get {
                 return ResourceManager.GetString("EmacsMetaDescription", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Displays a window below the input line that shows which keys are typed.
-        /// </summary>
-        internal static string EnableDemoModeDescription {
-            get {
-                return ResourceManager.GetString("EnableDemoModeDescription", resourceCulture);
             }
         }
         
