@@ -699,7 +699,20 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void ScrollDisplayToCursor(ConsoleKeyInfo? key = null, object arg = null)
         {
-            var newTop = Console.CursorTop;
+            // Ideally, we'll put the last input line at the bottom of the window
+            var coordinates = _singleton.ConvertOffsetToCoordinates(_singleton._buffer.Length);
+
+            var newTop = coordinates.Y - Console.WindowHeight + 1;
+
+            // But if the cursor won't be visible, make sure it is.
+            if (newTop > Console.CursorTop)
+            {
+                // Add 10 for some extra context instead of putting the
+                // cursor on the bottom line.
+                newTop = Console.CursorTop - Console.WindowHeight + 10;
+            }
+
+            // But we can't go past the end of the buffer.
             if (newTop > (Console.BufferHeight - Console.WindowHeight))
             {
                 newTop = (Console.BufferHeight - Console.WindowHeight);

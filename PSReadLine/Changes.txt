@@ -20,6 +20,7 @@ Bug fixes:
 * History recall now ignores command lines from other currently running sessions, but you can
   still find command lines from those sessions when searching history.
 * Color any non-whitespace prompt character when there is an error, not just non-characters
+* ScrollDisplayToCursor works a little better now.
 
 New functions:
 * ValidateAndAcceptLine
