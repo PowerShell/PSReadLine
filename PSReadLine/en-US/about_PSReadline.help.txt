@@ -20,7 +20,7 @@ LONG DESCRIPTION
       * Bash style completion (optional in Cmd mode, default in Emacs mode)
       * Emacs yank/kill ring
       * PowerShell token based "word" movement and kill
-    
+
     The following functions are available in the class [PSConsoleUtilities.PSConsoleReadLine]:
 
   Cursor movement
@@ -88,7 +88,7 @@ LONG DESCRIPTION
 
     ShellBackwardWord        (Cmd: unbound              Emacs: unbound)
 
-        Like BackardWord except word boundaries are defined by PowerShell token boundaries.
+        Like BackwardWord except word boundaries are defined by PowerShell token boundaries.
 
     GotoBrace                (Cmd: <Ctrl+}>             Emacs: unbound)
 
@@ -285,12 +285,12 @@ LONG DESCRIPTION
         MenuComplete.
 
     PossibleCompletions      (Cmd: unbound              Emacs: <Alt+Equals>)
-    
+
         Display the list of possible completions.
 
     SetMark                  (Cmd: unbound              Emacs: <Alt+Space>)
 
-        Mark the current loction of the cursor for use in a subsequent editing command.
+        Mark the current location of the cursor for use in a subsequent editing command.
 
     ExchangePointAndMark     (Cmd: unbound              Emacs: <Ctrl+X,Ctrl+X>)
 
@@ -365,7 +365,7 @@ LONG DESCRIPTION
         Add the most recently killed text to the input.
 
     YankPop                  (Cmd: unbound              Emacs: <Alt+Y>)
-    
+
         If the previous operation was Yank or YankPop, replace the previously yanked
         text with the next killed text from the kill ring.
 
@@ -411,7 +411,7 @@ LONG DESCRIPTION
     CharacterSearch          (Cmd: <F3>                 Emacs: <Ctrl+]>)
 
         Read a key and search forwards for that character.  With an argument, search
-        forwards for the nth occurance of that argument.  With a negative argument,
+        forwards for the nth occurrence of that argument.  With a negative argument,
         searches backwards.
 
     CharacterSearchBackward  (Cmd: <Shift+F3>           Emacs: <Alt+Ctrl+]>)
@@ -546,7 +546,7 @@ LONG DESCRIPTION
 
     void Ding()
 
-        Perform the Ding action based on the users perference.
+        Perform the Ding action based on the users preference.
 
     void GetBufferState([ref] string input, [ref] int cursor)
     void GetBufferState([ref] Ast ast, [ref] Token[] tokens, [ref] ParseError[] parseErrors, [ref] int cursor)
@@ -577,7 +577,7 @@ LONG DESCRIPTION
 
     string ReadLine(runspace remoteRunspace, System.Management.Automation.EngineIntrinsics engineIntrinsics)
 
-        This is the main entrypoint to PSReadline. It does not support recursion, so is not useful
+        This is the main entry point to PSReadline. It does not support recursion, so is not useful
         in a custom key binding.
 
     void RemoveKeyHandler(string[] key)
@@ -586,7 +586,7 @@ LONG DESCRIPTION
         custom key binding.
 
     void Replace(int start, int length, string replacement)
-    
+
         Replace some of the input.  This operation supports undo/redo.
         This is preferred over Delete followed by Insert because it is treated as a single action
         for undo.
@@ -609,14 +609,14 @@ LONG DESCRIPTION
             [PSConsoleUtilities.PSConsoleReadLine]::TryGetArgAsInt($arg, [ref]$numericArg, 1)
 
 POWERSHELL COMPATIBILITY
-    
+
     PSReadline requires PowerShell version 3 or greater and the console host.  It
     will not work in the ISE.
 
 FEEDBACK
 
     https://github.com/lzybkr/PSReadline
-   
+
 CONTRIBUTING TO PSREADLINE
 
     Feel free to submit a pull request or submit feedback on the github page.
