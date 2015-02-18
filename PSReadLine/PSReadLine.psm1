@@ -28,7 +28,6 @@ function PSConsoleHostReadline
         if ($MaximumHistoryCount -gt 0)
         {
             $options.MaximumHistoryCount = $MaximumHistoryCount
-            [PSConsoleUtilities.PSConsoleReadLine]::SetOptions($options)
         }
 
         if ($options.HistorySaveStyle -eq [PSConsoleUtilities.HistorySaveStyle]::SaveNothing)
