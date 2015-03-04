@@ -562,5 +562,15 @@ namespace UnitTestPSReadLine
                 CheckThat( () => AssertCursorLeftIs( 30 ) )
                 ) );
         }
+
+        [TestMethod]
+        public void ViTestBOLErrorCase()
+        {
+            TestSetup(KeyMode.Vi);
+
+            Test("h", Keys(
+                _.Escape, 'h', _.Space, "ih"
+                ));
+        }
     }
 }

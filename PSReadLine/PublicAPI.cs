@@ -153,7 +153,7 @@ namespace PSConsoleUtilities
             {
                 cursor = _singleton._buffer.Length + ViEndOfLineFactor;
             }
-            else if (cursor < 0)
+            if (cursor < 0)
             {
                 cursor = 0;
             }
