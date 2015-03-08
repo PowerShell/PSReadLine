@@ -20,7 +20,7 @@ namespace PSConsoleUtilities
                 return;
             }
 
-            _singleton._visualEditTemporaryFilename = Path.GetTempFileName();
+            _singleton._visualEditTemporaryFilename = GetTemporaryPowerShellFile();
             using (FileStream fs = File.OpenWrite(_singleton._visualEditTemporaryFilename))
             {
                 using (TextWriter tw = new StreamWriter(fs))
@@ -40,6 +40,17 @@ namespace PSConsoleUtilities
             _singleton.Render();
             _singleton._buffer.Append(editorOfChoice + " " + _singleton._visualEditTemporaryFilename);
             AcceptLine();
+        }
+
+        private static string GetTemporaryPowerShellFile()
+        {
+            string filename;
+            do
+            {
+                filename = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName() + ".ps1");
+            } while (File.Exists(filename) || Directory.Exists(filename));
+
+            return filename;
         }
 
         private void ProcessViVisualEditing()
