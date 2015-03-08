@@ -413,10 +413,17 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void ClearScreen(ConsoleKeyInfo? key = null, object arg = null)
         {
-            int top = Console.WindowTop;
-            WriteBlankLines(Console.WindowHeight, top);
-            _singleton._initialY = top;
-            _singleton.Render();
+            if (_singleton._initialY + Console.WindowHeight > Console.BufferHeight)
+            {
+                var scrollCount = _singleton._initialY - Console.WindowTop;
+                ScrollBuffer(scrollCount);
+                _singleton._initialY -= scrollCount;
+                Console.SetCursorPosition(Console.CursorLeft, Console.CursorTop - scrollCount);
+            }
+            else
+            {
+                Console.SetWindowPosition(0, _singleton._initialY);
+            }
         }
 
         // Try to convert the arg to a char, return 0 for failure

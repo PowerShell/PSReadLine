@@ -17,6 +17,7 @@ namespace PSConsoleUtilities
             public List<EditItem> _edits;
             public int _undoEditIndex;
             public bool _saved;
+            public bool _fromDifferentLiveSession;
         }
 
         // History state
@@ -39,7 +40,7 @@ namespace PSConsoleUtilities
         private const string _failedForwardISearchPrompt = "failed-fwd-i-search: ";
         private const string _failedBackwardISearchPrompt = "failed-bck-i-search: ";
 
-        private string MaybeAddToHistory(string result, List<EditItem> edits, int undoEditIndex, bool readingHistoryFile)
+        private string MaybeAddToHistory(string result, List<EditItem> edits, int undoEditIndex, bool readingHistoryFile, bool fromDifferentSession)
         {
             bool addToHistory = !string.IsNullOrWhiteSpace(result) && ((Options.AddToHistoryHandler == null) || Options.AddToHistoryHandler(result));
             if (addToHistory)
@@ -50,6 +51,7 @@ namespace PSConsoleUtilities
                     _edits = edits,
                     _undoEditIndex = undoEditIndex,
                     _saved = readingHistoryFile,
+                    _fromDifferentLiveSession = fromDifferentSession,
                 });
                 _currentHistoryIndex = _history.Count;
 
@@ -57,10 +59,6 @@ namespace PSConsoleUtilities
                 {
                     IncrementalHistoryWrite();
                 }
-            }
-            if (_demoMode)
-            {
-                ClearDemoWindow();
             }
 
             // Clear the saved line unless we used AcceptAndGetNext in which
@@ -168,7 +166,7 @@ namespace PSConsoleUtilities
                                         historyLines.Add(sr.ReadLine());
                                     }
                                 }
-                                UpdateHistoryFromFile(historyLines);
+                                UpdateHistoryFromFile(historyLines, fromDifferentSession: true);
 
                                 _historyFileLastSavedSize = fileInfo.Length;
                             }
@@ -197,7 +195,7 @@ namespace PSConsoleUtilities
                     }
 
                     var historyLines = File.ReadAllLines(Options.HistorySavePath);
-                    UpdateHistoryFromFile(historyLines);
+                    UpdateHistoryFromFile(historyLines, fromDifferentSession: false);
                     var fileInfo = new FileInfo(Options.HistorySavePath);
                     _historyFileLastSavedSize = fileInfo.Length;
                 }
@@ -208,7 +206,7 @@ namespace PSConsoleUtilities
             }
         }
 
-        void UpdateHistoryFromFile(IEnumerable<string> historyLines)
+        void UpdateHistoryFromFile(IEnumerable<string> historyLines, bool fromDifferentSession)
         {
             var sb = new StringBuilder();
             foreach (var line in historyLines)
@@ -223,13 +221,13 @@ namespace PSConsoleUtilities
                     sb.Append(line);
                     var l = sb.ToString();
                     var editItems = new List<EditItem> {EditItemInsertString.Create(l, 0)};
-                    MaybeAddToHistory(l, editItems, 1, readingHistoryFile: true);
+                    MaybeAddToHistory(l, editItems, 1, /*readingHistoryFile*/ true, fromDifferentSession);
                     sb.Clear();
                 }
                 else
                 {
                     var editItems = new List<EditItem> {EditItemInsertString.Create(line, 0)};
-                    MaybeAddToHistory(line, editItems, 1, readingHistoryFile: true);
+                    MaybeAddToHistory(line, editItems, 1, /*readingHistoryFile*/ true, fromDifferentSession);
                 }
             }
         }
@@ -242,7 +240,7 @@ namespace PSConsoleUtilities
         {
             command = command.Replace("\r\n", "\n");
             var editItems = new List<EditItem> {EditItemInsertString.Create(command, 0)};
-            _singleton.MaybeAddToHistory(command, editItems, 1, readingHistoryFile: false);
+            _singleton.MaybeAddToHistory(command, editItems, 1, readingHistoryFile: false, fromDifferentSession: false);
         }
 
         /// <summary>
@@ -307,38 +305,45 @@ namespace PSConsoleUtilities
                 return;
             }
 
-            int newHistoryIndex;
-            if (Options.HistoryNoDuplicates)
+            if (Options.HistoryNoDuplicates && _recallHistoryCommandCount == 0)
             {
-                if (_recallHistoryCommandCount == 0)
+                _hashedHistory = new Dictionary<string, int>();
+            }
+
+            int count = Math.Abs(direction);
+            direction = direction < 0 ? -1 : +1;
+            int newHistoryIndex = _currentHistoryIndex;
+            while (count > 0)
+            {
+                newHistoryIndex += direction;
+                if (newHistoryIndex < 0 || newHistoryIndex >= _history.Count)
                 {
-                    _hashedHistory = new Dictionary<string, int>();
+                    break;
                 }
 
-                newHistoryIndex = _currentHistoryIndex;
-                while (true)
+                if (_history[newHistoryIndex]._fromDifferentLiveSession)
                 {
-                    newHistoryIndex = newHistoryIndex + direction;
-                    if (newHistoryIndex < 0 || newHistoryIndex >= _history.Count)
-                    {
-                        break;
-                    }
+                    continue;
+                }
+
+                if (Options.HistoryNoDuplicates)
+                {
                     var line = _history[newHistoryIndex]._line;
                     int index;
                     if (!_hashedHistory.TryGetValue(line, out index))
                     {
                         _hashedHistory.Add(line, newHistoryIndex);
-                        break;
+                        --count;
                     }
-                    if (index == newHistoryIndex)
+                    else if (newHistoryIndex == index)
                     {
-                        break;
+                        --count;
                     }
                 }
-            }
-            else
-            {
-                newHistoryIndex = _currentHistoryIndex + direction;
+                else
+                {
+                    --count;
+                }
             }
             _recallHistoryCommandCount += 1;
             if (newHistoryIndex >= 0 && newHistoryIndex <= _history.Count)
@@ -396,9 +401,23 @@ namespace PSConsoleUtilities
             }
             _searchHistoryCommandCount += 1;
 
-            for (int i = _currentHistoryIndex + direction; i >= 0 && i <= _history.Count; i += direction)
+            int count = Math.Abs(direction);
+            direction = direction < 0 ? -1 : +1;
+            int newHistoryIndex = _currentHistoryIndex;
+            while (count > 0)
             {
-                var line = i == _history.Count ? _savedCurrentLine._line : _history[i]._line;
+                newHistoryIndex += direction;
+                if (newHistoryIndex < 0 || newHistoryIndex >= _history.Count)
+                {
+                    break;
+                }
+
+                if (_history[newHistoryIndex]._fromDifferentLiveSession && _searchHistoryPrefix.Length == 0)
+                {
+                    continue;
+                }
+
+                var line = newHistoryIndex == _history.Count ? _savedCurrentLine._line : _history[newHistoryIndex]._line;
                 if (line.StartsWith(_searchHistoryPrefix, Options.HistoryStringComparison))
                 {
                     if (Options.HistoryNoDuplicates)
@@ -406,17 +425,25 @@ namespace PSConsoleUtilities
                         int index;
                         if (!_hashedHistory.TryGetValue(line, out index))
                         {
-                            _hashedHistory.Add(line, i);
+                            _hashedHistory.Add(line, newHistoryIndex);
+                            --count;
                         }
-                        else if (index != i)
+                        else if (index == newHistoryIndex)
                         {
-                            continue;
+                            --count;
                         }
                     }
-                    _currentHistoryIndex = i;
-                    UpdateFromHistory(moveCursor: true);
-                    break;
+                    else
+                    {
+                        --count;
+                    }
                 }
+            }
+
+            if (newHistoryIndex >= 0 && newHistoryIndex <= _history.Count)
+            {
+                _currentHistoryIndex = newHistoryIndex;
+                UpdateFromHistory(moveCursor: true);
             }
         }
 

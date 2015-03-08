@@ -418,6 +418,7 @@ namespace PSConsoleUtilities
 
             if (menuSelect)
             {
+                RemoveEditsAfterUndo();
                 var undoPoint = _edits.Count;
 
                 int selectedItem = 0;

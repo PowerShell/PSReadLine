@@ -803,11 +803,11 @@ namespace PSConsoleUtilities
             Dictionary<ConsoleKeyInfo, KeyHandler> secondKeyDispatchTable;
             if (_singleton._chordDispatchTable.TryGetValue(key.Value, out secondKeyDispatchTable))
             {
-                if (_singleton._demoMode)
-                {
-                    // Render so the first key of the chord appears in the demo window
-                    _singleton.Render();
-                }
+                //if (_singleton._demoMode)
+                //{
+                //    // Render so the first key of the chord appears in the demo window
+                //    _singleton.Render();
+                //}
                 var secondKey = ReadKey();
                 KeyHandler handler;
                 if (secondKeyDispatchTable.TryGetValue(secondKey, out handler))

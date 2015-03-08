@@ -297,12 +297,6 @@
   <data name="AcceptAndGetNextDescription" xml:space="preserve">
     <value>Accept the current line and recall the next line from history after the current line finishes executing</value>
   </data>
-  <data name="DisableDemoModeDescription" xml:space="preserve">
-    <value>Disable demo mode</value>
-  </data>
-  <data name="EnableDemoModeDescription" xml:space="preserve">
-    <value>Displays a window below the input line that shows which keys are typed</value>
-  </data>
   <data name="KeyIsUnbound" xml:space="preserve">
     <value>Key is unbound</value>
   </data>
@@ -346,7 +340,7 @@
     <value>Adjust the current selection to include the next word using ShellForwardWord</value>
   </data>
   <data name="CaptureScreenDescription" xml:space="preserve">
-    <value>Copy selected lines to the clipboard</value>
+    <value>Allows you to select multiple lines from the console using Shift+UpArrow/DownArrow and copy the selected lines to clipboard by pressing Enter.</value>
   </data>
   <data name="InvokePromptDescription" xml:space="preserve">
     <value>Erases the current prompt and calls the prompt function to redisplay the prompt</value>

@@ -567,11 +567,11 @@ Using the ScriptBlock parameter, one can achieve equivalent functionality by cal
         <command:parameterValue required="true" variableLength="false">Func[String, Boolean]</command:parameterValue>
       </command:parameter>
       <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
-        <maml:name>ValidationHandler</maml:name>
+        <maml:name>CommandValidationHandler</maml:name>
         <maml:description>
-          <maml:para>Specifies a ScriptBlock that is called from ValidateAndAcceptLine.  If a non-null object is returned or an exception is thrown, validation fails and the error is reported.  If the object returned/thrown has a Message property, it's value is used in the error message, and if there is an Offset property, the cursor is moved to that offset after reporting the error.  If there is no Message property, the ToString method is called to report the error.</maml:para>
+          <maml:para>Specifies a ScriptBlock that is called from ValidateAndAcceptLine.  If an exception is thrown, validation fails and the error is reported. Before throwing an exception, the validation handler may choose to place the cursor at the point of the error to make it easier to fix. A validation handler may also modify the command line, e.g. to correct common typos.</maml:para>
         </maml:description>
-        <command:parameterValue required="true" variableLength="false">Func[String, Object]</command:parameterValue>
+        <command:parameterValue required="true" variableLength="false">Action[CommandAst]</command:parameterValue>
       </command:parameter>
       <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
         <maml:name>HistorySearchCursorMovesToEnd</maml:name>
@@ -830,13 +830,13 @@ Using the ScriptBlock parameter, one can achieve equivalent functionality by cal
       <dev:defaultValue>None</dev:defaultValue>
     </command:parameter>
     <command:parameter required="false" variableLength="false" globbing="false" pipelineInput="false" position="named">
-      <maml:name>ValidationHandler</maml:name>
+      <maml:name>CommandValidationHandler</maml:name>
       <maml:description>
-          <maml:para>Specifies a ScriptBlock that is called from ValidateAndAcceptLine.  If a non-null object is returned or an exception is thrown, validation fails and the error is reported.  If the object returned/thrown has a Message property, it's value is used in the error message, and if there is an Offset property, the cursor is moved to that offset after reporting the error.  If there is no Message property, the ToString method is called to report the error.</maml:para>
+          <maml:para>Specifies a ScriptBlock that is called from ValidateAndAcceptLine.  If an exception is thrown, validation fails and the error is reported. Before throwing an exception, the validation handler may choose to place the cursor at the point of the error to make it easier to fix. A validation handler may also modify the command line, e.g. to correct common typos.</maml:para>
       </maml:description>
-      <command:parameterValue required="true" variableLength="false">Func[String, Object]</command:parameterValue>
+      <command:parameterValue required="true" variableLength="false">Action[CommandAst]</command:parameterValue>
       <dev:type>
-        <maml:name>Func[String, String]</maml:name>
+        <maml:name>Action[CommandAst]</maml:name>
         <maml:uri/>
       </dev:type>
       <dev:defaultValue>None</dev:defaultValue>

@@ -328,7 +328,7 @@ namespace PSConsoleUtilities
                 ProcessOneKey(key, _dispatchTable, ignoreIfNoAction: false, arg: null);
                 if (_inputAccepted)
                 {
-                    return MaybeAddToHistory(_buffer.ToString(), _edits, _undoEditIndex, readingHistoryFile: false);
+                    return MaybeAddToHistory(_buffer.ToString(), _edits, _undoEditIndex, readingHistoryFile: false, fromDifferentSession: false);
                 }
 
                 if (killCommandCount == _killCommandCount)
@@ -426,8 +426,6 @@ namespace PSConsoleUtilities
             }
             if (handler != null)
             {
-                _renderForDemoNeeded = _demoMode;
-
                 if (handler.ScriptBlock != null)
                 {
                     CalloutUsingDefaultConsoleMode(() => handler.Action(key, arg));
@@ -435,11 +433,6 @@ namespace PSConsoleUtilities
                 else
                 {
                 handler.Action(key, arg);
-                }
-
-                if (_renderForDemoNeeded)
-                {
-                    Render();
                 }
             }
             else if (!ignoreIfNoAction && key.KeyChar != 0)
@@ -486,8 +479,6 @@ namespace PSConsoleUtilities
 
             _captureKeys = false;
             _savedKeys = new Queue<ConsoleKeyInfo>();
-            _demoStrings = new HistoryQueue<string>(100);
-            _demoMode = false;
 
             SetDefaultWindowsBindings();
 
@@ -612,11 +603,6 @@ namespace PSConsoleUtilities
             Dictionary<ConsoleKeyInfo, KeyHandler> secondKeyDispatchTable;
             if (_singleton._chordDispatchTable.TryGetValue(key.Value, out secondKeyDispatchTable))
             {
-                if (_singleton._demoMode)
-                {
-                    // Render so the first key of the chord appears in the demo window
-                    _singleton.Render();
-                }
                 var secondKey = ReadKey();
                 _singleton.ProcessOneKey(secondKey, secondKeyDispatchTable, ignoreIfNoAction: true, arg: arg);
             }
@@ -703,34 +689,43 @@ namespace PSConsoleUtilities
             {
                 var nextKey = ReadKey();
                 KeyHandler handler;
-                if (_singleton._dispatchTable.TryGetValue(nextKey, out handler) && handler.Action == DigitArgument)
+                if (_singleton._dispatchTable.TryGetValue(nextKey, out handler))
                 {
-                    if (nextKey.KeyChar == '-')
+                    if (handler.Action == DigitArgument)
                     {
-                        if (argBuffer[0] == '-')
+                        if (nextKey.KeyChar == '-')
                         {
-                            argBuffer.Remove(0, 1);
+                            if (argBuffer[0] == '-')
+                            {
+                                argBuffer.Remove(0, 1);
+                            }
+                            else
+                            {
+                                argBuffer.Insert(0, '-');
+                            }
+                            _singleton.Render(); // Render prompt
+                            continue;
                         }
-                        else
-                        {
-                            argBuffer.Insert(0, '-');
-                        }
-                        _singleton.Render(); // Render prompt
-                        continue;
-                    }
 
-                    if (nextKey.KeyChar >= '0' && nextKey.KeyChar <= '9')
-                    {
-                        if (!sawDigit && argBuffer.Length > 0)
+                        if (nextKey.KeyChar >= '0' && nextKey.KeyChar <= '9')
                         {
-                            // Buffer is either '-1' or '1' from one or more Alt+- keys
-                            // but no digits yet.  Remove the '1'.
-                            argBuffer.Length -= 1;
+                            if (!sawDigit && argBuffer.Length > 0)
+                            {
+                                // Buffer is either '-1' or '1' from one or more Alt+- keys
+                                // but no digits yet.  Remove the '1'.
+                                argBuffer.Length -= 1;
+                            }
+                            sawDigit = true;
+                            argBuffer.Append(nextKey.KeyChar);
+                            _singleton.Render(); // Render prompt
+                            continue;
                         }
-                        sawDigit = true;
-                        argBuffer.Append(nextKey.KeyChar);
-                        _singleton.Render(); // Render prompt
-                        continue;
+                    }
+                    else if (handler.Action == Abort ||
+                             handler.Action == CancelLine ||
+                             handler.Action == CopyOrCancelLine)
+                    {
+                        break;
                     }
                 }
 

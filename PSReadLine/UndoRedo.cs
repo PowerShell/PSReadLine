@@ -6,14 +6,8 @@ namespace PSConsoleUtilities
 {
     public partial class PSConsoleReadLine
     {
-        private void SaveEditItem(EditItem editItem)
+        private void RemoveEditsAfterUndo()
         {
-            if (_statusIsErrorMessage)
-            {
-                // After an edit, clear the error message
-                ClearStatusMessage(render: true);
-            }
-
             // If there is some sort of edit after an undo, forget
             // any edit items that were undone.
             int removeCount = _edits.Count - _undoEditIndex;
@@ -26,6 +20,18 @@ namespace PSConsoleUtilities
                     _editGroupStart -= removeCount;
                 }
             }
+        }
+
+        private void SaveEditItem(EditItem editItem)
+        {
+            if (_statusIsErrorMessage)
+            {
+                // After an edit, clear the error message
+                ClearStatusMessage(render: true);
+            }
+
+            RemoveEditsAfterUndo();
+
             _edits.Add(editItem);
             _undoEditIndex = _edits.Count;
         }
@@ -37,6 +43,8 @@ namespace PSConsoleUtilities
                 // Nesting not supported.
                 throw new InvalidOperationException();
             }
+
+            RemoveEditsAfterUndo();
             _editGroupStart = _edits.Count;
         }
 
