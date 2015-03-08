@@ -118,7 +118,7 @@ namespace PSConsoleUtilities
                 { Keys.S,               MakeViKeyHandler(ViInsertWithDelete,   "ViInsertWithDelete") },
                 { Keys.T,               MakeViKeyHandler(SearchCharWithBackoff,"SearchCharWithBackoff") },
                 { Keys.U,               MakeViKeyHandler(Undo,                 "Undo") },
-                { Keys.V,               MakeViKeyHandler(Ding,                 "Ignore") },
+                { Keys.V,               MakeViKeyHandler(ViEditVisually,       "ViEditVisually") },
                 { Keys.W,               MakeViKeyHandler(ViNextWord,           "ViNextWord") },
                 { Keys.X,               MakeViKeyHandler(DeleteChar,           "DeleteChar") },
                 { Keys.Y,               MakeViKeyHandler(ViChord,                "ChordFirstKey") },

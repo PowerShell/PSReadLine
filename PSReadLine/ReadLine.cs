@@ -313,6 +313,8 @@ namespace PSConsoleUtilities
 
         private string InputLoop()
         {
+            ProcessViVisualEditing();
+
             while (true)
             {
                 var killCommandCount = _killCommandCount;
