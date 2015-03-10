@@ -663,6 +663,10 @@ namespace UnitTestPSReadLine
             Test("", Keys(
                 _.Escape, 'r', _.Space, CheckThat(() => AssertCursorLeftIs(0))
                 ));
+
+            Test("$", Keys(
+                _.Escape, _.Dollar, 'i', _.Dollar, CheckThat(() => AssertCursorLeftIs(1))
+                ));
         }
     }
 }

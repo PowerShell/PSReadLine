@@ -170,7 +170,7 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void MoveToEndOfLine(ConsoleKeyInfo? key = null, object arg = null)
         {
-            _singleton._current = _singleton._buffer.Length + ViEndOfLineFactor;
+            _singleton._current = Math.Max(0, _singleton._buffer.Length + ViEndOfLineFactor);
             _singleton.PlaceCursor();
         }
 
