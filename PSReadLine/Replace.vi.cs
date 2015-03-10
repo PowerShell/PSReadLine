@@ -222,7 +222,7 @@ namespace PSConsoleUtilities
         private static void ReplaceCharInPlace(ConsoleKeyInfo? key, object arg)
         {
             ConsoleKeyInfo nextKey = ReadKey();
-            if (nextKey.KeyChar > 0 && nextKey.Key != ConsoleKey.Escape && nextKey.Key != ConsoleKey.Enter)
+            if (_singleton._buffer.Length > 0 && nextKey.KeyChar > 0 && nextKey.Key != ConsoleKey.Escape && nextKey.Key != ConsoleKey.Enter)
             {
                 _singleton.StartEditGroup();
                 _singleton.SaveEditItem(EditItemDelete.Create(_singleton._buffer[_singleton._current].ToString(), _singleton._current));

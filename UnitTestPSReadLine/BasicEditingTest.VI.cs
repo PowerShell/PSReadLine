@@ -659,6 +659,10 @@ namespace UnitTestPSReadLine
                 "u0w3c", _.Percent, "abc", _.Escape, CheckThat(() => AssertLineIs("0abc5")), CheckThat(() => AssertCursorLeftIs(3)),
                 'u'
                 ));
+
+            Test("", Keys(
+                _.Escape, 'r', _.Space, CheckThat(() => AssertCursorLeftIs(0))
+                ));
         }
     }
 }
