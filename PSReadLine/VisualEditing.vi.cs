@@ -38,7 +38,7 @@ namespace PSConsoleUtilities
             _singleton._buffer.Clear();
             _singleton._current = 0;
             _singleton.Render();
-            _singleton._buffer.Append(editorOfChoice + " " + _singleton._visualEditTemporaryFilename);
+            _singleton._buffer.Append(editorOfChoice + " \"" + _singleton._visualEditTemporaryFilename+ "\"");
             AcceptLine();
         }
 
