@@ -147,8 +147,12 @@ namespace PSConsoleUtilities
             DeleteWord(key, arg);
             if (_singleton._current < _singleton._buffer.Length - 1)
             {
-                Insert(' ');
-                _singleton._current--;
+                if (char.IsWhiteSpace(_singleton._lastWordDelimiter))
+                {
+                    Insert(_singleton._lastWordDelimiter);
+                    _singleton._current--;
+                }
+                _singleton._lastWordDelimiter = char.MinValue;
                 _singleton.PlaceCursor();
             }
             if (_singleton._current == _singleton._buffer.Length - 1)

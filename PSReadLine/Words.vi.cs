@@ -5,6 +5,8 @@ namespace PSConsoleUtilities
 {
     public partial class PSConsoleReadLine
     {
+        private char _lastWordDelimiter = char.MinValue;
+
         /// <summary>
         /// Returns the position of the beginning of the next word as delimited by white space and delimiters.
         /// </summary>
@@ -81,6 +83,7 @@ namespace PSConsoleUtilities
             }
             if (IsDelimiter(i, wordDelimiters))
             {
+                _lastWordDelimiter = _buffer[i];
                 return i;
             }
             while (!IsAtEndOfLine(i) && IsWhiteSpace(i))
@@ -91,6 +94,7 @@ namespace PSConsoleUtilities
             {
                 return i + 1;
             }
+            _lastWordDelimiter = _buffer[i-1];
             return i;
         }
 
