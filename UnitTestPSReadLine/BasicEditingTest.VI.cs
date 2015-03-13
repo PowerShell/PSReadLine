@@ -88,8 +88,8 @@ namespace UnitTestPSReadLine
                 "vim ", _.Period, _.Backslash, "PSReadLine", _.Backslash, "VisualEditing", _.Period, "vi", _.Period, "cs",
                 CheckThat(() => AssertLineIs(@"vim .\PSReadLine\VisualEditing.vi.cs")),
                 _.Escape, "Bll", CheckThat(() => AssertCursorLeftIs(6)),
-                "cw", _.Escape, CheckThat(() => AssertCursorLeftIs(5)),
-                'u', CheckThat(() => AssertCursorLeftIs(16)),
+                "cw", _.Escape, CheckThat(() => AssertCursorLeftIs(5)), CheckThat(() => AssertLineIs(@"vim .\\VisualEditing.vi.cs")),
+                'u', CheckThat(() => AssertCursorLeftIs(16)), CheckThat(() => AssertLineIs(@"vim .\PSReadLine\VisualEditing.vi.cs")),
                 "bcwxx", _.Escape, CheckThat(() => AssertCursorLeftIs(7))
                 ));
         }
