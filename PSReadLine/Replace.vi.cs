@@ -144,6 +144,8 @@ namespace PSConsoleUtilities
         private static void ViReplaceWord(ConsoleKeyInfo? key, object arg)
         {
             _singleton._groupUndoHelper.StartGroup(ViReplaceWord, arg);
+            _singleton._lastWordDelimiter = char.MinValue;
+            _singleton._shouldAppend = false;
             DeleteWord(key, arg);
             if (_singleton._current < _singleton._buffer.Length - 1)
             {
@@ -155,7 +157,9 @@ namespace PSConsoleUtilities
                 _singleton._lastWordDelimiter = char.MinValue;
                 _singleton.PlaceCursor();
             }
-            if (_singleton._current == _singleton._buffer.Length - 1)
+            if (_singleton._current == _singleton._buffer.Length - 1 
+                && !_singleton.IsDelimiter(_singleton._lastWordDelimiter, _singleton.Options.WordDelimiters)
+                && _singleton._shouldAppend)
             {
                 ViInsertWithAppend(key, arg);
             }

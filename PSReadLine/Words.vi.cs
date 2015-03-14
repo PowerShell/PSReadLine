@@ -6,6 +6,7 @@ namespace PSConsoleUtilities
     public partial class PSConsoleReadLine
     {
         private char _lastWordDelimiter = char.MinValue;
+        private bool _shouldAppend = false;
 
         /// <summary>
         /// Returns the position of the beginning of the next word as delimited by white space and delimiters.
@@ -52,6 +53,11 @@ namespace PSConsoleUtilities
             }
             if (IsAtEndOfLine(i))
             {
+                if (IsDelimiter(i, wordDelimiters))
+                {
+                    _shouldAppend = true;
+                    return i + 1;
+                }
                 return i;
             }
             while (!IsAtEndOfLine(i) && IsWhiteSpace(i))
@@ -79,6 +85,7 @@ namespace PSConsoleUtilities
             }
             if (IsAtEndOfLine(i) && InWord(i, wordDelimiters))
             {
+                _shouldAppend = true;
                 return i + 1;
             }
             if (IsDelimiter(i, wordDelimiters))
@@ -196,6 +203,21 @@ namespace PSConsoleUtilities
         }
 
         /// <summary>
+        /// Returns true if <paramref name="c"/> is in the set of <paramref name="wordDelimiters"/>.
+        /// </summary>
+        private bool IsDelimiter(char c, string wordDelimiters)
+        {
+            foreach (char delimiter in wordDelimiters)
+            {
+                if (c == delimiter)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /// <summary>
         /// Returns the cursor position of the beginning of the previous word when starting on a delimiter
         /// </summary>
         private int FindPreviousWordFromDelimiter(int i, string wordDelimiters)
@@ -208,6 +230,10 @@ namespace PSConsoleUtilities
                     i--;
                 }
                 if (i == 0 && !IsDelimiter(i, wordDelimiters))
+                {
+                    return i + 1;
+                }
+                if (!IsWhiteSpace(i))
                 {
                     return i + 1;
                 }
