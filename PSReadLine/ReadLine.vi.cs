@@ -364,6 +364,10 @@ namespace PSConsoleUtilities
             _singleton._chordDispatchTable = _viCmdChordTable;
             BackwardChar();
             _singleton.PlaceCursor();
+            if (_singleton._options.ChangeViCursor)
+            {
+                Console.CursorSize = _singleton._normalCursorSize < 50 ? 100 : 25;
+            }
         }
 
         /// <summary>
@@ -373,6 +377,10 @@ namespace PSConsoleUtilities
         {
             _singleton._dispatchTable = _viInsKeyMap;
             _singleton._chordDispatchTable = _viInsChordTable;
+            if (_singleton._options.ChangeViCursor)
+            {
+                Console.CursorSize = _singleton._normalCursorSize;
+            }
         }
 
         /// <summary>

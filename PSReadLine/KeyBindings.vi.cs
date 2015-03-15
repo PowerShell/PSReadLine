@@ -7,6 +7,8 @@ namespace PSConsoleUtilities
 {
     public partial class PSConsoleReadLine
     {
+        private int _normalCursorSize = 10;
+
         private static KeyHandler MakeViKeyHandler(Action<ConsoleKeyInfo?, object> action, string briefDescription, string longDescription = null)
         {
             if (string.IsNullOrWhiteSpace(longDescription))
@@ -246,6 +248,7 @@ namespace PSConsoleUtilities
             _viCmdChordTable[Keys.C] = _viChordCTable;
             _viCmdChordTable[Keys.Y] = _viChordYTable;
 
+            _normalCursorSize = Console.CursorSize;
         }
     }
 }

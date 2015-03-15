@@ -139,6 +139,10 @@ namespace PSConsoleUtilities
             {
                 Options.HistorySaveStyle = options.HistorySaveStyle;
             }
+            if(options._changeViCursor.HasValue)
+            {
+                Options.ChangeViCursor = options.ChangeCursor;
+            }
             if (options.HistorySavePath != null)
             {
                 Options.HistorySavePath = options.HistorySavePath;

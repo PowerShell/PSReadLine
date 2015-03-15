@@ -1357,6 +1357,15 @@ namespace PSConsoleUtilities {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invokes the console compatible editor specified by $env:VISUAL or $env:$EDITOR on the current command line..
+        /// </summary>
+        internal static string ViEditVisuallyDescription {
+            get {
+                return ResourceManager.GetString("ViEditVisuallyDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Move the cursor to the end this word, as delimited by white space..
         /// </summary>
         internal static string ViEndOfGlobDescription {

@@ -672,4 +672,7 @@ If there are other parse errors, unresolved commands, or incorrect parameters, s
   <data name="ViTabCompletePreviousDescription" xml:space="preserve">
     <value>Invokes TabCompletePrevious after doing some vi-specific clean up.</value>
   </data>
+  <data name="ViEditVisuallyDescription" xml:space="preserve">
+    <value>Invokes the console compatible editor specified by $env:VISUAL or $env:$EDITOR on the current command line.</value>
+  </data>
 </root>

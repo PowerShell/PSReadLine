@@ -215,6 +215,10 @@ namespace PSConsoleUtilities
             get { return HistorySearchCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase; }
         }
 
+        #region vi
+        public bool ChangeViCursor { get; set; }
+        #endregion vi
+
         /// <summary>
         /// The path to the saved history.
         /// </summary>
@@ -527,6 +531,14 @@ namespace PSConsoleUtilities
         [Parameter(ParameterSetName = "OptionsSet")]
         [ValidateNotNullOrEmpty]
         public string HistorySavePath { get; set; }
+
+        [Parameter(ParameterSetName = "OptionsSet")]
+        public SwitchParameter ChangeCursor
+        {
+            get { return _changeViCursor.GetValueOrDefault(); }
+            set { _changeViCursor = value; }
+        }
+        internal SwitchParameter? _changeViCursor;
 
         [Parameter(ParameterSetName = "ColorSet", Position = 0, Mandatory = true)]
         public TokenClassification TokenKind
