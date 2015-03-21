@@ -548,7 +548,7 @@ namespace PSConsoleUtilities
             get { return _viModeIndicator.GetValueOrDefault(); }
             set { _viModeIndicator = value; }
         }
-        internal ViModeStyle? _viModeIndicator;
+        internal ViModeStyle? _viModeIndicator = ViModeStyle.None;
         #endregion vi
 
         [Parameter(ParameterSetName = "ColorSet", Position = 0, Mandatory = true)]
