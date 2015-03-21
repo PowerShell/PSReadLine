@@ -38,6 +38,15 @@ namespace PSConsoleUtilities
         Audible
     }
 
+    #region vi
+    public enum ViModeStyle
+    {
+        None,
+        StatusLine,
+        Cursor
+    }
+    #endregion vi
+
     public enum HistorySaveStyle
     {
         SaveIncrementally,
@@ -216,7 +225,7 @@ namespace PSConsoleUtilities
         }
 
         #region vi
-        public bool ChangeViCursor { get; set; }
+        public ViModeStyle ViModeIndicator { get; set; }
         #endregion vi
 
         /// <summary>
@@ -532,13 +541,15 @@ namespace PSConsoleUtilities
         [ValidateNotNullOrEmpty]
         public string HistorySavePath { get; set; }
 
+        #region vi
         [Parameter(ParameterSetName = "OptionsSet")]
-        public SwitchParameter ChangeCursor
+        public ViModeStyle ViModeIndicator
         {
-            get { return _changeViCursor.GetValueOrDefault(); }
-            set { _changeViCursor = value; }
+            get { return _viModeIndicator.GetValueOrDefault(); }
+            set { _viModeIndicator = value; }
         }
-        internal SwitchParameter? _changeViCursor;
+        internal ViModeStyle? _viModeIndicator;
+        #endregion vi
 
         [Parameter(ParameterSetName = "ColorSet", Position = 0, Mandatory = true)]
         public TokenClassification TokenKind

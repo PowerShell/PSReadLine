@@ -139,10 +139,12 @@ namespace PSConsoleUtilities
             {
                 Options.HistorySaveStyle = options.HistorySaveStyle;
             }
-            if(options._changeViCursor.HasValue)
+            #region vi
+            if (options._viModeIndicator.HasValue)
             {
-                Options.ChangeViCursor = options.ChangeCursor;
+                Options.ViModeIndicator = options.ViModeIndicator;
             }
+            #endregion
             if (options.HistorySavePath != null)
             {
                 Options.HistorySavePath = options.HistorySavePath;
