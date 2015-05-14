@@ -22,9 +22,9 @@ Set-PSReadlineKeyHandler -Key DownArrow -Function HistorySearchForward
 # really easy to find a command you previously used.
 # Either press F7 to bring up your entire history, or type part of the 
 # command line and then press F7 to bring up just the commands that match.
-Set-PSReadlineKeyHandler -Key F7 
-                         -BriefDescription History 
-                         -LongDescription 'Show history' 
+Set-PSReadlineKeyHandler -Key F7 `
+                         -BriefDescription History `
+                         -LongDescription 'Show history' `
                          -ScriptBlock {
     $history = [System.Collections.ArrayList]([System.IO.File]::ReadAllLines((Get-PSReadlineOption).HistorySavePath))
     $history.Reverse()
