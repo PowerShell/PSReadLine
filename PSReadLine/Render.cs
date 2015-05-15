@@ -86,9 +86,9 @@ namespace PSConsoleUtilities
                 Array.Copy(_consoleBuffer, newBuffer, _initialX + (Options.ExtraPromptLineCount * _bufferWidth));
                 if (_consoleBuffer.Length > bufferLineCount * bufferWidth)
                 {
-                    int consoleBufferOffet = ConvertOffsetToConsoleOffset(text.Length, _initialX + (Options.ExtraPromptLineCount * _bufferWidth));
+                    int consoleBufferOffset = ConvertOffsetToConsoleOffset(text.Length, _initialX + (Options.ExtraPromptLineCount * _bufferWidth));
                     // Need to erase the extra lines that we won't draw again
-                    for (int i = consoleBufferOffet; i < _consoleBuffer.Length; i++)
+                    for (int i = consoleBufferOffset; i < _consoleBuffer.Length; i++)
                     {
                         _consoleBuffer[i] = _space;
                     }
