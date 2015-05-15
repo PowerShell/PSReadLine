@@ -144,7 +144,7 @@ namespace PSConsoleUtilities
         /// </summary>
         public static void BackwardDeleteChar(ConsoleKeyInfo? key = null, object arg = null)
         {
-            if (_singleton._visualSelectionCommandCount > 0)
+           if (_singleton._visualSelectionCommandCount > 0)
             {
                 int start, length;
                 _singleton.GetRegion(out start, out length);

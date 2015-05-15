@@ -35,8 +35,10 @@ namespace PSConsoleUtilities
             {
                 _singleton._buffer.Insert(_singleton._current, c);
             }
+            
             _singleton._current += 1;
             _singleton.Render();
+            
         }
 
         /// <summary>
