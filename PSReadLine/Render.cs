@@ -535,7 +535,7 @@ namespace PSConsoleUtilities
         private int LengthInBufferCells(char c)
         {
             int length = char.IsControl(c) ? 1 : 0;
-            if (!IsAvailableFarEastCodePage())
+            if (c < 256 || !IsAvailableFarEastCodePage())
             {
                 return length + 1;
             }
