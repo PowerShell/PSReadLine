@@ -58,6 +58,27 @@ namespace PSConsoleUtilities
 
         [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         public static extern short VkKeyScan(char @char);
+
+        [DllImport("kernel32.dll", SetLastError = false, CharSet = CharSet.Unicode)]
+        public static extern uint GetConsoleOutputCP();
+
+        [DllImport("User32.dll", SetLastError = false, CharSet = CharSet.Unicode)]
+        public static extern int ReleaseDC(IntPtr hwnd, IntPtr hdc);
+
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern IntPtr GetConsoleWindow();
+
+        [DllImport("User32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern IntPtr GetDC(IntPtr hwnd);
+
+        [DllImport("GDI32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern bool TranslateCharsetInfo(IntPtr src, out CHARSETINFO Cs, uint options);
+
+        [DllImport("GDI32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern bool GetTextMetrics(IntPtr hdc, out TEXTMETRIC tm);
+
+        [DllImport("GDI32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern bool GetCharWidth32(IntPtr hdc, uint first, uint last, out int width);
     }
 
     public delegate bool BreakHandler(ConsoleBreakSignal ConsoleBreakSignal);
@@ -117,6 +138,56 @@ namespace PSConsoleUtilities
         {
             return String.Format(CultureInfo.InvariantCulture, "{0},{1}", X, Y);
         }
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct FONTSIGNATURE
+    {
+        //From public\sdk\inc\wingdi.h
+
+        // fsUsb*: A 128-bit Unicode subset bitfield (USB) identifying up to 126 Unicode subranges
+        internal uint fsUsb0;
+        internal uint fsUsb1;
+        internal uint fsUsb2;
+        internal uint fsUsb3;
+        // fsCsb*: A 64-bit, code-page bitfield (CPB) that identifies a specific character set or code page.
+        internal uint fsCsb0;
+        internal uint fsCsb1;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct CHARSETINFO
+    {
+        //From public\sdk\inc\wingdi.h
+        internal uint ciCharset;   // Character set value.
+        internal uint ciACP;       // ANSI code-page identifier.
+        internal FONTSIGNATURE fs;
+    }
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+    public struct TEXTMETRIC
+    {
+        //From public\sdk\inc\wingdi.h
+        public int tmHeight;
+        public int tmAscent;
+        public int tmDescent;
+        public int tmInternalLeading;
+        public int tmExternalLeading;
+        public int tmAveCharWidth;
+        public int tmMaxCharWidth;
+        public int tmWeight;
+        public int tmOverhang;
+        public int tmDigitizedAspectX;
+        public int tmDigitizedAspectY;
+        public char tmFirstChar;
+        public char tmLastChar;
+        public char tmDefaultChar;
+        public char tmBreakChar;
+        public byte tmItalic;
+        public byte tmUnderlined;
+        public byte tmStruckOut;
+        public byte tmPitchAndFamily;
+        public byte tmCharSet;
     }
 
     public struct CHAR_INFO

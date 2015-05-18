@@ -164,7 +164,7 @@ namespace UnitTestPSReadLine
         static internal CommandCompletion MockedCompleteInput(string input, int cursor, Hashtable options, PowerShell powerShell)
         {
             var ctor = typeof (CommandCompletion).GetConstructor(
-                BindingFlags.NonPublic | BindingFlags.Instance, null, 
+                BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance, null, 
                 new [] {typeof (Collection<CompletionResult>), typeof (int), typeof (int), typeof (int)}, null);
 
             var completions = new Collection<CompletionResult>();
