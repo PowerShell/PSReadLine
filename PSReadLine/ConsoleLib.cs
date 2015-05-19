@@ -117,7 +117,6 @@ namespace PSConsoleUtilities
     {
         COMMON_LVB_LEADING_BYTE = 0x0100,
         COMMON_LVB_TRAILING_BYTE = 0x0200
-
     }
 
     public enum StandardHandleId : uint
