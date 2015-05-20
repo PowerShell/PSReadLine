@@ -768,7 +768,7 @@ namespace PSConsoleUtilities
             }
             _singleton.Render();
             Console.CursorLeft = 0;
-            Console.CursorTop = _singleton._initialY;
+            Console.CursorTop = _singleton._initialY - _singleton.Options.ExtraPromptLineCount;
 
             string newPrompt;
             using (var ps = PowerShell.Create(RunspaceMode.CurrentRunspace))

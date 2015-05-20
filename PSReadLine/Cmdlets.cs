@@ -42,7 +42,7 @@ namespace PSConsoleUtilities
     public enum ViModeStyle
     {
         None,
-        StatusLine,
+        Prompt,
         Cursor
     }
     #endregion vi
@@ -548,7 +548,7 @@ namespace PSConsoleUtilities
             get { return _viModeIndicator.GetValueOrDefault(); }
             set { _viModeIndicator = value; }
         }
-        internal ViModeStyle? _viModeIndicator = ViModeStyle.None;
+        internal ViModeStyle? _viModeIndicator;
         #endregion vi
 
         [Parameter(ParameterSetName = "ColorSet", Position = 0, Mandatory = true)]

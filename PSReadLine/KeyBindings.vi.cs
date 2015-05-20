@@ -7,7 +7,36 @@ namespace PSConsoleUtilities
 {
     public partial class PSConsoleReadLine
     {
+        public static class BackgroundColorMapper
+        {
+            private static Dictionary<ConsoleColor, ConsoleColor> map = new Dictionary<ConsoleColor, ConsoleColor>();
+            static BackgroundColorMapper()
+            {
+                map.Add(ConsoleColor.Black, ConsoleColor.DarkGray);
+                map.Add(ConsoleColor.Blue, ConsoleColor.DarkBlue);
+                map.Add(ConsoleColor.Cyan, ConsoleColor.DarkCyan);
+                map.Add(ConsoleColor.DarkBlue, ConsoleColor.Black);
+                map.Add(ConsoleColor.DarkCyan, ConsoleColor.Black);
+                map.Add(ConsoleColor.DarkGray, ConsoleColor.Black);
+                map.Add(ConsoleColor.DarkGreen, ConsoleColor.Black);
+                map.Add(ConsoleColor.DarkMagenta, ConsoleColor.Black);
+                map.Add(ConsoleColor.DarkRed, ConsoleColor.Black);
+                map.Add(ConsoleColor.DarkYellow, ConsoleColor.Black);
+                map.Add(ConsoleColor.Gray, ConsoleColor.White);
+                map.Add(ConsoleColor.Green, ConsoleColor.DarkGreen);
+                map.Add(ConsoleColor.Magenta, ConsoleColor.DarkMagenta);
+                map.Add(ConsoleColor.Red, ConsoleColor.DarkRed);
+                map.Add(ConsoleColor.White, ConsoleColor.Gray);
+                map.Add(ConsoleColor.Yellow, ConsoleColor.DarkYellow);
+            }
+            public static ConsoleColor AlternateBackground(ConsoleColor bg)
+            {
+                return map[bg];
+            }
+        }
+
         private int _normalCursorSize = 10;
+        private ConsoleColor _normalBackground = ConsoleColor.Black;
 
         private static KeyHandler MakeViKeyHandler(Action<ConsoleKeyInfo?, object> action, string briefDescription, string longDescription = null)
         {
@@ -249,6 +278,7 @@ namespace PSConsoleUtilities
             _viCmdChordTable[Keys.Y] = _viChordYTable;
 
             _normalCursorSize = Console.CursorSize;
+            _normalBackground = Console.BackgroundColor;
         }
     }
 }

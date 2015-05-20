@@ -364,10 +364,7 @@ namespace PSConsoleUtilities
             _singleton._chordDispatchTable = _viCmdChordTable;
             BackwardChar();
             _singleton.PlaceCursor();
-            if (_singleton._options.ViModeIndicator == ViModeStyle.Cursor)
-            {
-                Console.CursorSize = _singleton._normalCursorSize < 50 ? 100 : 25;
-            }
+            _singleton.ViIndicateCommandMode();
         }
 
         /// <summary>
@@ -377,9 +374,33 @@ namespace PSConsoleUtilities
         {
             _singleton._dispatchTable = _viInsKeyMap;
             _singleton._chordDispatchTable = _viInsChordTable;
-            if (_singleton._options.ViModeIndicator == ViModeStyle.Cursor)
+            _singleton.ViIndicateInsertMode();
+        }
+
+        private void ViIndicateCommandMode()
+        {
+            if (_options.ViModeIndicator == ViModeStyle.Cursor)
             {
-                Console.CursorSize = _singleton._normalCursorSize;
+                Console.CursorSize = _normalCursorSize < 50 ? 100 : 25;
+            }
+            else if (_options.ViModeIndicator == ViModeStyle.Prompt)
+            {
+                ConsoleColor savedBackground = Console.BackgroundColor;
+                Console.BackgroundColor = BackgroundColorMapper.AlternateBackground(Console.BackgroundColor);
+                InvokePrompt();
+                Console.BackgroundColor = savedBackground;
+            }
+        }
+
+        private void ViIndicateInsertMode()
+        {
+            if (_options.ViModeIndicator == ViModeStyle.Cursor)
+            {
+                Console.CursorSize = _normalCursorSize;
+            }
+            else if (_options.ViModeIndicator == ViModeStyle.Prompt)
+            {
+                InvokePrompt();
             }
         }
 
