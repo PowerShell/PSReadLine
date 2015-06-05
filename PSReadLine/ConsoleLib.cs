@@ -21,6 +21,11 @@ namespace PSConsoleUtilities
         public const uint ENABLE_PROCESSED_INPUT = 0x0001;
         public const uint ENABLE_LINE_INPUT      = 0x0002;
 
+        public const int FontTypeMask = 0x06;
+        public const int TrueTypeFont = 0x04;
+
+        internal static readonly IntPtr INVALID_HANDLE_VALUE = new IntPtr(-1);  // WinBase.h
+
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         public static extern IntPtr GetStdHandle(uint handleId);
 
@@ -79,6 +84,21 @@ namespace PSConsoleUtilities
 
         [DllImport("GDI32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
         public static extern bool GetCharWidth32(IntPtr hdc, uint first, uint last, out int width);
+
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        public static extern IntPtr CreateFile
+        (
+            string fileName,
+            uint desiredAccess,
+            uint ShareModes,
+            IntPtr securityAttributes,
+            uint creationDisposition,
+            uint flagsAndAttributes,
+            IntPtr templateFileWin32Handle
+        );
+
+        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+        internal static extern bool GetCurrentConsoleFontEx(IntPtr consoleOutput, bool bMaximumWindow, ref CONSOLE_FONT_INFO_EX consoleFontInfo);
     }
 
     public delegate bool BreakHandler(ConsoleBreakSignal ConsoleBreakSignal);
@@ -93,11 +113,43 @@ namespace PSConsoleUtilities
         None      = 255,
     }
 
+    public enum CHAR_INFO_Attributes : ushort
+    {
+        COMMON_LVB_LEADING_BYTE = 0x0100,
+        COMMON_LVB_TRAILING_BYTE = 0x0200
+    }
+
     public enum StandardHandleId : uint
     {
         Error  = unchecked((uint)-12),
         Output = unchecked((uint)-11),
         Input  = unchecked((uint)-10),
+    }
+
+    [Flags]
+    public enum AccessQualifiers : uint
+    {
+        // From winnt.h
+        GenericRead = 0x80000000,
+        GenericWrite = 0x40000000
+    }
+
+    public enum CreationDisposition : uint
+    {
+        // From winbase.h
+        CreateNew = 1,
+        CreateAlways = 2,
+        OpenExisting = 3,
+        OpenAlways = 4,
+        TruncateExisting = 5
+    }
+
+    [Flags]
+    public enum ShareModes : uint
+    {
+        // From winnt.h
+        ShareRead = 0x00000001,
+        ShareWrite = 0x00000002
     }
 
     public struct SMALL_RECT
@@ -188,6 +240,19 @@ namespace PSConsoleUtilities
         public byte tmStruckOut;
         public byte tmPitchAndFamily;
         public byte tmCharSet;
+    }
+
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+    public struct CONSOLE_FONT_INFO_EX
+    {
+        internal int cbSize;
+        internal int nFont;
+        internal short FontWidth;
+        internal short FontHeight;
+        internal int FontFamily;
+        internal int FontWeight;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]
+        internal string FontFace;
     }
 
     public struct CHAR_INFO

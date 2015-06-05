@@ -3,10 +3,13 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Management.Automation;
+using System.Management.Automation.Host;
 using System.Management.Automation.Language;
 using System.Runtime.InteropServices;
 using System.Security;
 using PSConsoleUtilities.Internal;
+using ConsoleHandle = Microsoft.Win32.SafeHandles.SafeFileHandle;
+using System.ComponentModel;
 
 namespace PSConsoleUtilities
 {
@@ -27,6 +30,30 @@ namespace PSConsoleUtilities
         private uint _codePage;
         private bool _istmInitialized = false;
         private TEXTMETRIC _tm = new TEXTMETRIC();
+        private bool _trueTypeInUse = false;
+
+        private readonly Lazy<ConsoleHandle> _outputHandle = new Lazy<ConsoleHandle>(() =>
+        {
+            // We use CreateFile here instead of GetStdWin32Handle, as GetStdWin32Handle will return redirected handles
+            var handle = NativeMethods.CreateFile(
+                "CONOUT$",
+                (UInt32)(AccessQualifiers.GenericRead | AccessQualifiers.GenericWrite),
+                (UInt32)ShareModes.ShareWrite,
+                (IntPtr)0,
+                (UInt32)CreationDisposition.OpenExisting,
+                0,
+                (IntPtr)0);
+
+            if (handle == NativeMethods.INVALID_HANDLE_VALUE)
+            {
+                int err = Marshal.GetLastWin32Error();
+                Win32Exception innerException = new Win32Exception(err);
+                throw new Exception("Failed to retreive the input console handle.", innerException);
+            }
+
+            return new ConsoleHandle(handle, true);
+        }
+        );
 
         private class SavedTokenState
         {
@@ -83,43 +110,50 @@ namespace PSConsoleUtilities
             var text = ParseInput();
             _codePage = NativeMethods.GetConsoleOutputCP();
             _istmInitialized = false;
+            ConsoleHandle consoleHandle = _outputHandle.Value;
+            CONSOLE_FONT_INFO_EX fontInfo = GetConsoleFontInfo(consoleHandle);
+            int fontType = fontInfo.FontFamily & NativeMethods.FontTypeMask;
+            _trueTypeInUse = (fontType & NativeMethods.TrueTypeFont) == NativeMethods.TrueTypeFont;
 
             int statusLineCount = GetStatusLineCount();
-            int bufferLineCount = ConvertOffsetToCoordinates(text.Length).Y - _initialY + 1 + statusLineCount;
-            int bufferWidth = Console.BufferWidth;
-            if (_consoleBuffer.Length != bufferLineCount * bufferWidth)
-            {
-                var newBuffer = new CHAR_INFO[bufferLineCount * bufferWidth];
-                Array.Copy(_consoleBuffer, newBuffer, _initialX + (Options.ExtraPromptLineCount * _bufferWidth));
-                if (_consoleBuffer.Length > bufferLineCount * bufferWidth)
-                {
-                    int consoleBufferOffset = ConvertOffsetToConsoleBufferOffset(text.Length, _initialX + (Options.ExtraPromptLineCount * _bufferWidth));
-                    // Need to erase the extra lines that we won't draw again
-                    for (int i = consoleBufferOffset; i < _consoleBuffer.Length; i++)
-                    {
-                        _consoleBuffer[i] = _space;
-                    }
-                    WriteBufferLines(_consoleBuffer, ref _initialY);
-                }
-                _consoleBuffer = newBuffer;
-            }
-
-            var tokenStack = new Stack<SavedTokenState>();
-            tokenStack.Push(new SavedTokenState
-            {
-                Tokens          = _tokens,
-                Index           = 0,
-                BackgroundColor = _initialBackgroundColor,
-                ForegroundColor = _initialForegroundColor
-            });
-
-            int j               = _initialX + (_bufferWidth * Options.ExtraPromptLineCount);
+            int j = _initialX + (_bufferWidth * Options.ExtraPromptLineCount);
             var backgroundColor = _initialBackgroundColor;
             var foregroundColor = _initialForegroundColor;
             bool afterLastToken = false;
             int totalBytes = j;
+            int bufferWidth = Console.BufferWidth;
+
+            var tokenStack = new Stack<SavedTokenState>();
+            tokenStack.Push(new SavedTokenState
+            {
+                Tokens = _tokens,
+                Index = 0,
+                BackgroundColor = _initialBackgroundColor,
+                ForegroundColor = _initialForegroundColor
+            });
+
+            int bufferLineCount;
+
             try
             {
+                bufferLineCount = ConvertOffsetToCoordinates(text.Length).Y - _initialY + 1 + statusLineCount;
+                if (_consoleBuffer.Length != bufferLineCount * bufferWidth)
+                {
+                    var newBuffer = new CHAR_INFO[bufferLineCount * bufferWidth];
+                    Array.Copy(_consoleBuffer, newBuffer, _initialX + (Options.ExtraPromptLineCount * _bufferWidth));
+                    if (_consoleBuffer.Length > bufferLineCount * bufferWidth)
+                    {
+                        int consoleBufferOffset = ConvertOffsetToConsoleBufferOffset(text.Length, _initialX + (Options.ExtraPromptLineCount * _bufferWidth));
+                        // Need to erase the extra lines that we won't draw again
+                        for (int i = consoleBufferOffset; i < _consoleBuffer.Length; i++)
+                        {
+                            _consoleBuffer[i] = _space;
+                        }
+                        WriteBufferLines(_consoleBuffer, ref _initialY);
+                    }
+                    _consoleBuffer = newBuffer;
+                }
+            
                 for (int i = 0; i < text.Length; i++)
                 {
                     SavedTokenState state = null;
@@ -220,6 +254,17 @@ namespace PSConsoleUtilities
                             _consoleBuffer[j].UnicodeChar = (char) ('@' + text[i]);
                             MaybeEmphasize(ref _consoleBuffer[j++], i, foregroundColor, backgroundColor);
 
+                        }
+                        else if (size > 1  && IsCJKOutputCodePage() && _trueTypeInUse)
+                        {
+                            _consoleBuffer[j].UnicodeChar = text[i];
+                            _consoleBuffer[j].Attributes = (ushort) ((uint)_consoleBuffer[j].Attributes |
+                                                           (uint) CHAR_INFO_Attributes.COMMON_LVB_LEADING_BYTE);
+                            MaybeEmphasize(ref _consoleBuffer[j++], i, foregroundColor, backgroundColor);
+                            _consoleBuffer[j].UnicodeChar = text[i];
+                            _consoleBuffer[j].Attributes = (ushort) ((uint)_consoleBuffer[j].Attributes |
+                                                           (uint) CHAR_INFO_Attributes.COMMON_LVB_TRAILING_BYTE);
+                            MaybeEmphasize(ref _consoleBuffer[j++], i, foregroundColor, backgroundColor);
                         }
                         else
                         {
@@ -476,6 +521,22 @@ namespace PSConsoleUtilities
             return i >= start && i < end;
         }
 
+        private static CONSOLE_FONT_INFO_EX GetConsoleFontInfo(ConsoleHandle consoleHandle)
+        {
+
+            CONSOLE_FONT_INFO_EX fontInfo = new CONSOLE_FONT_INFO_EX();
+            fontInfo.cbSize = Marshal.SizeOf(fontInfo);
+            bool result = NativeMethods.GetCurrentConsoleFontEx(consoleHandle.DangerousGetHandle(), false, ref fontInfo);
+
+            if (result == false)
+            {
+                int err = Marshal.GetLastWin32Error();
+                Win32Exception innerException = new Win32Exception(err);
+                throw new Exception("Failed to get console font information.", innerException);
+            }
+            return fontInfo;
+        }
+
         private void MaybeEmphasize(ref CHAR_INFO charInfo, int i, ConsoleColor foregroundColor, ConsoleColor backgroundColor)
         {
             if (i >= _emphasisStart && i < (_emphasisStart + _emphasisLength))
@@ -562,6 +623,18 @@ namespace PSConsoleUtilities
                 csi.ciCharset = OEM_CHARSET;
             }
             return csi.ciCharset;
+        }
+
+        /// <summary>
+        /// Check if the output buffer code page is Japanese, Simplified Chinese, Korean, or Traditional Chinese
+        /// </summary>
+        /// <returns>true if it is CJK code page; otherwise, false.</returns>
+        private bool IsCJKOutputCodePage()
+        {
+            return _codePage == 932 || // Japanese
+                _codePage == 936 || // Simplified Chinese
+                _codePage == 949 || // Korean
+                _codePage == 950;  // Traditional Chinese
         }
 
         private bool IsAvailableFarEastCodePage()
@@ -748,6 +821,10 @@ namespace PSConsoleUtilities
                     }
                 }
                 else if (char.IsControl(_buffer[i]))
+                {
+                    j += 2;
+                }
+                else if (LengthInBufferCells(_buffer[i]) > 1 && IsCJKOutputCodePage() && _trueTypeInUse)
                 {
                     j += 2;
                 }
