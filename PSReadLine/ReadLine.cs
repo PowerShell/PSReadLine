@@ -388,8 +388,8 @@ namespace PSConsoleUtilities
                 if (movingAtEndOfLineCount == _moveToLineCommandCount)
                 {
                     _moveToLineCommandCount = 0;
+                }
             }
-        }
         }
 
         T CalloutUsingDefaultConsoleMode<T>(Func<T> func)
@@ -434,7 +434,7 @@ namespace PSConsoleUtilities
                 }
                 else
                 {
-                handler.Action(key, arg);
+                    handler.Action(key, arg);
                 }
             }
             else if (!ignoreIfNoAction && key.KeyChar != 0)
@@ -448,7 +448,7 @@ namespace PSConsoleUtilities
             _singleton = new PSConsoleReadLine();
 
             _breakHandlerGcHandle = GCHandle.Alloc(new BreakHandler(_singleton.BreakHandler));
-            NativeMethods.SetConsoleCtrlHandler((BreakHandler) _breakHandlerGcHandle.Target, true);
+            NativeMethods.SetConsoleCtrlHandler((BreakHandler)_breakHandlerGcHandle.Target, true);
             _singleton._readKeyWaitHandle = new AutoResetEvent(false);
             _singleton._keyReadWaitHandle = new AutoResetEvent(false);
             _singleton._closingWaitHandle = new ManualResetEvent(false);
@@ -469,9 +469,9 @@ namespace PSConsoleUtilities
                     _singleton._closingWaitHandle.Set();
                     _singleton._readKeyThread.Join(); // may need to wait for history to be written
                 };
-        }
+            }
 
-            _singleton._readKeyThread = new Thread(_singleton.ReadKeyThreadProc) {IsBackground = true};
+            _singleton._readKeyThread = new Thread(_singleton.ReadKeyThreadProc) { IsBackground = true };
             _singleton._readKeyThread.Start();
         }
 
@@ -517,7 +517,7 @@ namespace PSConsoleUtilities
             {
                 DelayedOneTimeInitialize();
                 _delayedOneTimeInitCompleted = true;
-        }
+            }
 
             _engineIntrinsics = engineIntrinsics;
             _buffer.Clear();
@@ -574,7 +574,7 @@ namespace PSConsoleUtilities
             {
                 _searchHistoryCommandCount = 0;
             }
-            }
+        }
 
         private void DelayedOneTimeInitialize()
         {

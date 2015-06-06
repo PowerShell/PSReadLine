@@ -286,7 +286,7 @@ namespace PSConsoleUtilities
                     {
                         Key = entry.Key.ToGestureString(),
                         Function = entry.Value.BriefDescription,
-                        Description = entry.Value.LongDescription
+                        Description = entry.Value.LongDescription,
                     };
                 }
             }
@@ -325,7 +325,7 @@ namespace PSConsoleUtilities
                         {
                             Key = entry.Key.ToGestureString() + "," + secondEntry.Key.ToGestureString(),
                             Function = secondEntry.Value.BriefDescription,
-                            Description = secondEntry.Value.LongDescription
+                            Description = secondEntry.Value.LongDescription,
                         };
                     }
                 }

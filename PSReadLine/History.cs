@@ -66,9 +66,9 @@ namespace PSConsoleUtilities
             // to recall the saved line.
             if (_getNextHistoryIndex == 0)
             {
-            _savedCurrentLine._line = null;
-            _savedCurrentLine._edits = null;
-            _savedCurrentLine._undoEditIndex = 0;
+                _savedCurrentLine._line = null;
+                _savedCurrentLine._edits = null;
+                _savedCurrentLine._undoEditIndex = 0;
             }
             return result;
         }
@@ -249,8 +249,8 @@ namespace PSConsoleUtilities
         public static void ClearHistory(ConsoleKeyInfo? key = null, object arg = null)
         {
             if (_singleton._history != null)
-        {
-            _singleton._history.Clear();
+            {
+                _singleton._history.Clear();
             }
             _singleton._currentHistoryIndex = 0;
         }
