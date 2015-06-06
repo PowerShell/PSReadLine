@@ -2,8 +2,14 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Management.Automation;
+using System.Management.Automation.Host;
 using System.Management.Automation.Language;
+using System.Runtime.InteropServices;
+using System.Security;
 using PSConsoleUtilities.Internal;
+using ConsoleHandle = Microsoft.Win32.SafeHandles.SafeFileHandle;
+using System.ComponentModel;
 
 namespace PSConsoleUtilities
 {
@@ -19,6 +25,35 @@ namespace PSConsoleUtilities
         private int _current;
         private int _emphasisStart;
         private int _emphasisLength;
+        private IntPtr _hwnd = (IntPtr)0;
+        private IntPtr _hDC = (IntPtr)0;
+        private uint _codePage;
+        private bool _istmInitialized = false;
+        private TEXTMETRIC _tm = new TEXTMETRIC();
+        private bool _trueTypeInUse = false;
+
+        private readonly Lazy<ConsoleHandle> _outputHandle = new Lazy<ConsoleHandle>(() =>
+        {
+            // We use CreateFile here instead of GetStdWin32Handle, as GetStdWin32Handle will return redirected handles
+            var handle = NativeMethods.CreateFile(
+                "CONOUT$",
+                (UInt32)(AccessQualifiers.GenericRead | AccessQualifiers.GenericWrite),
+                (UInt32)ShareModes.ShareWrite,
+                (IntPtr)0,
+                (UInt32)CreationDisposition.OpenExisting,
+                0,
+                (IntPtr)0);
+
+            if (handle == NativeMethods.INVALID_HANDLE_VALUE)
+            {
+                int err = Marshal.GetLastWin32Error();
+                Win32Exception innerException = new Win32Exception(err);
+                throw new Exception("Failed to retreive the input console handle.", innerException);
+            }
+
+            return new ConsoleHandle(handle, true);
+        }
+        );
 
         private class SavedTokenState
         {
@@ -73,131 +108,178 @@ namespace PSConsoleUtilities
         private void ReallyRender()
         {
             var text = ParseInput();
+            _codePage = NativeMethods.GetConsoleOutputCP();
+            _istmInitialized = false;
+            ConsoleHandle consoleHandle = _outputHandle.Value;
+            CONSOLE_FONT_INFO_EX fontInfo = GetConsoleFontInfo(consoleHandle);
+            int fontType = fontInfo.FontFamily & NativeMethods.FontTypeMask;
+            _trueTypeInUse = (fontType & NativeMethods.TrueTypeFont) == NativeMethods.TrueTypeFont;
 
             int statusLineCount = GetStatusLineCount();
-            int bufferLineCount = ConvertOffsetToCoordinates(text.Length).Y - _initialY + 1 + statusLineCount;
+            int j = _initialX + (_bufferWidth * Options.ExtraPromptLineCount);
+            var backgroundColor = _initialBackgroundColor;
+            var foregroundColor = _initialForegroundColor;
+            bool afterLastToken = false;
+            int totalBytes = j;
             int bufferWidth = Console.BufferWidth;
-            if (_consoleBuffer.Length != bufferLineCount * bufferWidth)
-            {
-                var newBuffer = new CHAR_INFO[bufferLineCount * bufferWidth];
-                Array.Copy(_consoleBuffer, newBuffer, _initialX + (Options.ExtraPromptLineCount * _bufferWidth));
-                if (_consoleBuffer.Length > bufferLineCount * bufferWidth)
-                {
-                    // Need to erase the extra lines that we won't draw again
-                    for (int i = bufferLineCount * bufferWidth; i < _consoleBuffer.Length; i++)
-                    {
-                        _consoleBuffer[i] = _space;
-                    }
-                    WriteBufferLines(_consoleBuffer, ref _initialY);
-                }
-                _consoleBuffer = newBuffer;
-            }
 
             var tokenStack = new Stack<SavedTokenState>();
             tokenStack.Push(new SavedTokenState
             {
-                Tokens          = _tokens,
-                Index           = 0,
+                Tokens = _tokens,
+                Index = 0,
                 BackgroundColor = _initialBackgroundColor,
                 ForegroundColor = _initialForegroundColor
             });
 
-            int j               = _initialX + (_bufferWidth * Options.ExtraPromptLineCount);
-            var backgroundColor = _initialBackgroundColor;
-            var foregroundColor = _initialForegroundColor;
-            bool afterLastToken = false;
+            int bufferLineCount;
 
-            for (int i = 0; i < text.Length; i++)
+            try
             {
-                SavedTokenState state = null;
-
-                if (!afterLastToken)
+                bufferLineCount = ConvertOffsetToCoordinates(text.Length).Y - _initialY + 1 + statusLineCount;
+                if (_consoleBuffer.Length != bufferLineCount * bufferWidth)
                 {
-                    // Figure out the color of the character - if it's in a token,
-                    // use the tokens color otherwise use the initial color.
-                    state = tokenStack.Peek();
-                    var token = state.Tokens[state.Index];
-                    if (i == token.Extent.EndOffset)
+                    var newBuffer = new CHAR_INFO[bufferLineCount * bufferWidth];
+                    Array.Copy(_consoleBuffer, newBuffer, _initialX + (Options.ExtraPromptLineCount * _bufferWidth));
+                    if (_consoleBuffer.Length > bufferLineCount * bufferWidth)
                     {
-                        if (token == state.Tokens[state.Tokens.Length - 1])
+                        int consoleBufferOffset = ConvertOffsetToConsoleBufferOffset(text.Length, _initialX + (Options.ExtraPromptLineCount * _bufferWidth));
+                        // Need to erase the extra lines that we won't draw again
+                        for (int i = consoleBufferOffset; i < _consoleBuffer.Length; i++)
                         {
-                            tokenStack.Pop();
-                            if (tokenStack.Count == 0)
-                            {
-                                afterLastToken = true;
-                                token = null;
-                                foregroundColor = _initialForegroundColor;
-                                backgroundColor = _initialBackgroundColor;
-                            }
-                            else
-                            {
-                                state = tokenStack.Peek();
-                            }
+                            _consoleBuffer[i] = _space;
                         }
-
-                        if (!afterLastToken)
-                        {
-                            foregroundColor = state.ForegroundColor;
-                            backgroundColor = state.BackgroundColor;
-
-                            token = state.Tokens[++state.Index];
-                        }
+                        WriteBufferLines(_consoleBuffer, ref _initialY);
                     }
-
-                    if (!afterLastToken && i == token.Extent.StartOffset)
+                    _consoleBuffer = newBuffer;
+                }
+            
+                for (int i = 0; i < text.Length; i++)
+                {
+                    SavedTokenState state = null;
+                    totalBytes = totalBytes%bufferWidth;
+                    if (!afterLastToken)
                     {
-                        GetTokenColors(token, out foregroundColor, out backgroundColor);
-
-                        var stringToken = token as StringExpandableToken;
-                        if (stringToken != null)
+                        // Figure out the color of the character - if it's in a token,
+                        // use the tokens color otherwise use the initial color.
+                        state = tokenStack.Peek();
+                        var token = state.Tokens[state.Index];
+                        if (i == token.Extent.EndOffset)
                         {
-                            // We might have nested tokens.
-                            if (stringToken.NestedTokens != null && stringToken.NestedTokens.Any())
+                            if (token == state.Tokens[state.Tokens.Length - 1])
                             {
-                                var tokens = new Token[stringToken.NestedTokens.Count + 1];
-                                stringToken.NestedTokens.CopyTo(tokens, 0);
-                                // NestedTokens doesn't have an "EOS" token, so we use
-                                // the string literal token for that purpose.
-                                tokens[tokens.Length - 1] = stringToken;
-
-                                tokenStack.Push(new SavedTokenState
+                                tokenStack.Pop();
+                                if (tokenStack.Count == 0)
                                 {
-                                    Tokens = tokens,
-                                    Index = 0,
-                                    BackgroundColor = backgroundColor,
-                                    ForegroundColor = foregroundColor
-                                });
+                                    afterLastToken = true;
+                                    token = null;
+                                    foregroundColor = _initialForegroundColor;
+                                    backgroundColor = _initialBackgroundColor;
+                                }
+                                else
+                                {
+                                    state = tokenStack.Peek();
+                                }
+                            }
+
+                            if (!afterLastToken)
+                            {
+                                foregroundColor = state.ForegroundColor;
+                                backgroundColor = state.BackgroundColor;
+
+                                token = state.Tokens[++state.Index];
+                            }
+                        }
+
+                        if (!afterLastToken && i == token.Extent.StartOffset)
+                        {
+                            GetTokenColors(token, out foregroundColor, out backgroundColor);
+
+                            var stringToken = token as StringExpandableToken;
+                            if (stringToken != null)
+                            {
+                                // We might have nested tokens.
+                                if (stringToken.NestedTokens != null && stringToken.NestedTokens.Any())
+                                {
+                                    var tokens = new Token[stringToken.NestedTokens.Count + 1];
+                                    stringToken.NestedTokens.CopyTo(tokens, 0);
+                                    // NestedTokens doesn't have an "EOS" token, so we use
+                                    // the string literal token for that purpose.
+                                    tokens[tokens.Length - 1] = stringToken;
+
+                                    tokenStack.Push(new SavedTokenState
+                                    {
+                                        Tokens = tokens,
+                                        Index = 0,
+                                        BackgroundColor = backgroundColor,
+                                        ForegroundColor = foregroundColor
+                                    });
+                                }
                             }
                         }
                     }
-                }
 
-                if (text[i] == '\n')
-                {
-                    while ((j % bufferWidth) != 0)
+                    if (text[i] == '\n')
                     {
-                        _consoleBuffer[j++] = _space;
-                    }
+                        while ((j%bufferWidth) != 0)
+                        {
+                            _consoleBuffer[j++] = _space;
+                        }
 
-                    for (int k = 0; k < Options.ContinuationPrompt.Length; k++, j++)
+                        for (int k = 0; k < Options.ContinuationPrompt.Length; k++, j++)
+                        {
+                            _consoleBuffer[j].UnicodeChar = Options.ContinuationPrompt[k];
+                            _consoleBuffer[j].ForegroundColor = Options.ContinuationPromptForegroundColor;
+                            _consoleBuffer[j].BackgroundColor = Options.ContinuationPromptBackgroundColor;
+                        }
+                    }
+                    else
                     {
-                        _consoleBuffer[j].UnicodeChar = Options.ContinuationPrompt[k];
-                        _consoleBuffer[j].ForegroundColor = Options.ContinuationPromptForegroundColor;
-                        _consoleBuffer[j].BackgroundColor = Options.ContinuationPromptBackgroundColor;
+                        int size = LengthInBufferCells(text[i]);
+                        totalBytes += size;
+
+                        //if there is no enough space for the character at the edge, fill in spaces at the end and 
+                        //put the character to next line.
+                        int filling = totalBytes > bufferWidth ? (totalBytes - bufferWidth)%size : 0;
+                        for (int f = 0; f < filling; f++)
+                        {
+                            _consoleBuffer[j++] = _space;
+                            totalBytes++;
+                        }
+
+                        if (char.IsControl(text[i]))
+                        {
+                            _consoleBuffer[j].UnicodeChar = '^';
+                            MaybeEmphasize(ref _consoleBuffer[j++], i, foregroundColor, backgroundColor);
+                            _consoleBuffer[j].UnicodeChar = (char) ('@' + text[i]);
+                            MaybeEmphasize(ref _consoleBuffer[j++], i, foregroundColor, backgroundColor);
+
+                        }
+                        else if (size > 1  && IsCJKOutputCodePage() && _trueTypeInUse)
+                        {
+                            _consoleBuffer[j].UnicodeChar = text[i];
+                            _consoleBuffer[j].Attributes = (ushort) ((uint)_consoleBuffer[j].Attributes |
+                                                           (uint) CHAR_INFO_Attributes.COMMON_LVB_LEADING_BYTE);
+                            MaybeEmphasize(ref _consoleBuffer[j++], i, foregroundColor, backgroundColor);
+                            _consoleBuffer[j].UnicodeChar = text[i];
+                            _consoleBuffer[j].Attributes = (ushort) ((uint)_consoleBuffer[j].Attributes |
+                                                           (uint) CHAR_INFO_Attributes.COMMON_LVB_TRAILING_BYTE);
+                            MaybeEmphasize(ref _consoleBuffer[j++], i, foregroundColor, backgroundColor);
+                        }
+                        else
+                        {
+                            _consoleBuffer[j].UnicodeChar = text[i];
+                            MaybeEmphasize(ref _consoleBuffer[j++], i, foregroundColor, backgroundColor);
+                        }
                     }
                 }
-                else if (char.IsControl(text[i]))
-                {
-                    _consoleBuffer[j].UnicodeChar = '^';
-                    MaybeEmphasize(ref _consoleBuffer[j++], i, foregroundColor, backgroundColor);
-                    _consoleBuffer[j].UnicodeChar = (char)('@' + text[i]);
-                    MaybeEmphasize(ref _consoleBuffer[j++], i, foregroundColor, backgroundColor);
-                }
-                else
-                {
-                    _consoleBuffer[j].UnicodeChar = text[i];
-                    MaybeEmphasize(ref _consoleBuffer[j++], i, foregroundColor, backgroundColor);
-                }
+            }
+            finally
+            {
+                if (_hwnd != (IntPtr)0 && _hDC != (IntPtr)0)  
+                 {  
+                     NativeMethods.ReleaseDC(_hwnd, _hDC);  
+                 }
             }
 
             for (; j < (_consoleBuffer.Length - (statusLineCount * _bufferWidth)); j++)
@@ -439,6 +521,22 @@ namespace PSConsoleUtilities
             return i >= start && i < end;
         }
 
+        private static CONSOLE_FONT_INFO_EX GetConsoleFontInfo(ConsoleHandle consoleHandle)
+        {
+
+            CONSOLE_FONT_INFO_EX fontInfo = new CONSOLE_FONT_INFO_EX();
+            fontInfo.cbSize = Marshal.SizeOf(fontInfo);
+            bool result = NativeMethods.GetCurrentConsoleFontEx(consoleHandle.DangerousGetHandle(), false, ref fontInfo);
+
+            if (result == false)
+            {
+                int err = Marshal.GetLastWin32Error();
+                Win32Exception innerException = new Win32Exception(err);
+                throw new Exception("Failed to get console font information.", innerException);
+            }
+            return fontInfo;
+        }
+
         private void MaybeEmphasize(ref CHAR_INFO charInfo, int i, ConsoleColor foregroundColor, ConsoleColor backgroundColor)
         {
             if (i >= _emphasisStart && i < (_emphasisStart + _emphasisLength))
@@ -494,6 +592,167 @@ namespace PSConsoleUtilities
             int y = coordinates.Y;
             PlaceCursor(coordinates.X, ref y);
         }
+        
+        private int LengthInBufferCells(char c)
+        {
+            int length = char.IsControl(c) ? 1 : 0;
+            if (c < 256 || !IsAvailableFarEastCodePage())
+            {
+                return length + 1;
+            }
+            return length + LengthInBufferCellsFE(c);
+        }
+
+        private bool IsAnyDBCSCharSet(uint charSet)
+        {
+            const uint SHIFTJIS_CHARSET = 128;
+            const uint HANGEUL_CHARSET = 129;
+            const uint CHINESEBIG5_CHARSET = 136;
+            const uint GB2312_CHARSET = 134;
+            return charSet == SHIFTJIS_CHARSET || charSet == HANGEUL_CHARSET ||
+                charSet == CHINESEBIG5_CHARSET || charSet == GB2312_CHARSET;
+        }
+
+        private uint CodePageToCharSet()
+        {
+            CHARSETINFO csi;
+            const uint TCI_SRCCODEPAGE = 2;
+            const uint OEM_CHARSET = 255;
+            if (!NativeMethods.TranslateCharsetInfo((IntPtr)_codePage, out csi, TCI_SRCCODEPAGE))
+            {
+                csi.ciCharset = OEM_CHARSET;
+            }
+            return csi.ciCharset;
+        }
+
+        /// <summary>
+        /// Check if the output buffer code page is Japanese, Simplified Chinese, Korean, or Traditional Chinese
+        /// </summary>
+        /// <returns>true if it is CJK code page; otherwise, false.</returns>
+        private bool IsCJKOutputCodePage()
+        {
+            return _codePage == 932 || // Japanese
+                _codePage == 936 || // Simplified Chinese
+                _codePage == 949 || // Korean
+                _codePage == 950;  // Traditional Chinese
+        }
+
+        private bool IsAvailableFarEastCodePage()
+        {
+            uint charSet = CodePageToCharSet();
+            return IsAnyDBCSCharSet(charSet);
+        }
+
+        private int LengthInBufferCellsFE(char c)
+        {
+            if (0x20 <= c && c <= 0x7e)
+            {
+                /* ASCII */
+                return 1;
+            }
+            else if (0x3041 <= c && c <= 0x3094)
+            {
+                /* Hiragana */
+                return 2;
+            }
+            else if (0x30a1 <= c && c <= 0x30f6)
+            {
+                /* Katakana */
+                return 2;
+            }
+            else if (0x3105 <= c && c <= 0x312c)
+            {
+                /* Bopomofo */
+                return 2;
+            }
+            else if (0x3131 <= c && c <= 0x318e)
+            {
+                /* Hangul Elements */
+                return 2;
+            }
+            else if (0xac00 <= c && c <= 0xd7a3)
+            {
+                /* Korean Hangul Syllables */
+                return 2;
+            }
+            else if (0xff01 <= c && c <= 0xff5e)
+            {
+                /* Fullwidth ASCII variants */
+                return 2;
+            }
+            else if (0xff61 <= c && c <= 0xff9f)
+            {
+                /* Halfwidth Katakana variants */
+                return 1;
+            }
+            else if ((0xffa0 <= c && c <= 0xffbe) ||
+                     (0xffc2 <= c && c <= 0xffc7) ||
+                     (0xffca <= c && c <= 0xffcf) ||
+                     (0xffd2 <= c && c <= 0xffd7) ||
+                     (0xffda <= c && c <= 0xffdc))
+            {
+                /* Halfwidth Hangule variants */
+                return 1;
+            }
+            else if (0xffe0 <= c && c <= 0xffe6)
+            {
+                /* Fullwidth symbol variants */
+                return 2;
+            }
+            else if (0x4e00 <= c && c <= 0x9fa5)
+            {
+                /* Han Ideographic */
+                return 2;
+            }
+            else if (0xf900 <= c && c <= 0xfa2d)
+            {
+                /* Han Compatibility Ideographs */
+                return 2;
+            }
+            else
+            {
+                /* Unknown character: need to use GDI*/
+                if (_hDC == (IntPtr)0)
+                {
+                    _hwnd = NativeMethods.GetConsoleWindow();
+                    if ((IntPtr)0 == _hwnd)
+                    {
+                        int err = Marshal.GetLastWin32Error();
+                        return 1;
+                    }
+                    _hDC = NativeMethods.GetDC(_hwnd);
+                    if ((IntPtr)0 == _hDC)
+                    {
+                        int err = Marshal.GetLastWin32Error();
+                        //Don't throw exception so that output can continue
+                        return 1;
+                    }
+                }
+                bool result = true;
+                if (!_istmInitialized)
+                {
+                    result = NativeMethods.GetTextMetrics(_hDC, out _tm);
+                    if (!result)
+                    {
+                        int err = Marshal.GetLastWin32Error();
+                        return 1;
+                    }
+                    _istmInitialized = true;
+                }
+                int width;
+                result = NativeMethods.GetCharWidth32(_hDC, (uint)c, (uint)c, out width);
+                if (!result)
+                {
+                    int err = Marshal.GetLastWin32Error();
+                    return 1;
+                }
+                if (width >= _tm.tmMaxCharWidth)
+                {
+                    return 2;
+                }
+            }
+            return 1;
+        }
 
         private COORD ConvertOffsetToCoordinates(int offset)
         {
@@ -502,6 +761,7 @@ namespace PSConsoleUtilities
 
             int bufferWidth = Console.BufferWidth;
             var continuationPromptLength = Options.ContinuationPrompt.Length;
+
             for (int i = 0; i < offset; i++)
             {
                 char c = _buffer[i];
@@ -512,17 +772,68 @@ namespace PSConsoleUtilities
                 }
                 else
                 {
-                    x += char.IsControl(c) ? 2 : 1;
+                    int size = LengthInBufferCells(c);
+                    x += size;
                     // Wrap?  No prompt when wrapping
                     if (x >= bufferWidth)
                     {
-                        x -= bufferWidth;
+                        int offsize = x - bufferWidth;
+                        if (offsize % size == 0)
+                        {
+                            x -= bufferWidth;
+                        }
+                        else
+                        {
+                            x = size;
+                        }
                         y += 1;
                     }
                 }
             }
 
+            //if the next character has bigger size than the remain space on this line,
+            //the cursor goes to next line where the next character is.
+            if (_buffer.Length > offset)
+            {
+                int size = LengthInBufferCells(_buffer[offset]);
+                // next one is Wrapped to next line
+                if (x + size > bufferWidth && (x + size - bufferWidth) % size != 0)
+                {
+                    x = 0;
+                    y++;
+                }
+            }
+            
             return new COORD {X = (short)x, Y = (short)y};
+        }
+
+        private int ConvertOffsetToConsoleBufferOffset(int offset, int startIndex)
+        {
+            int j = startIndex;
+            for (int i = 0; i < offset; i++)
+            {
+                char c = _buffer[i];
+                if (_buffer[i] == '\n')
+                {
+                    for (int k = 0; k < Options.ContinuationPrompt.Length; k++)
+                    {
+                        j++;
+                    }
+                }
+                else if (char.IsControl(_buffer[i]))
+                {
+                    j += 2;
+                }
+                else if (LengthInBufferCells(_buffer[i]) > 1 && IsCJKOutputCodePage() && _trueTypeInUse)
+                {
+                    j += 2;
+                }
+                else
+                {
+                    j++;
+                }
+            }
+            return j;
         }
 
         private int ConvertLineAndColumnToOffset(COORD coord)
@@ -555,18 +866,27 @@ namespace PSConsoleUtilities
                 }
                 else
                 {
-                    x += char.IsControl(c) ? 2 : 1;
+                    int size = LengthInBufferCells(c);
+                    x += size;
                     // Wrap?  No prompt when wrapping
                     if (x >= bufferWidth)
                     {
-                        x -= bufferWidth;
+                        int offsize = x - bufferWidth;
+                        if (offsize % size == 0)
+                        {
+                            x -= bufferWidth;
+                        }
+                        else
+                        {
+                            x = size;
+                        }
                         y += 1;
                     }
                 }
             }
 
             // Return -1 if y is out of range, otherwise the last line was shorter
-            // than we wanted, but still in range so just return the last offset.B
+            // than we wanted, but still in range so just return the last offset.
             return (coord.Y == y) ? offset : -1;
         }
 
