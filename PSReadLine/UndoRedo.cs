@@ -74,7 +74,7 @@ namespace PSConsoleUtilities
                 _singleton._undoEditIndex--;
                 if (_singleton._options.EditMode == EditMode.Vi && _singleton._current >= _singleton._buffer.Length)
                 {
-                    _singleton._current = _singleton._buffer.Length - 1;
+                    _singleton._current = Math.Max(0, _singleton._buffer.Length - 1);
                 }
                 _singleton.Render();
             }

@@ -197,7 +197,7 @@ namespace PSConsoleUtilities
                     _buffer.Remove(_current, qty);
                     if (_current >= _buffer.Length)
                     {
-                        _current = _buffer.Length - 1;
+                        _current = Math.Max(0, _buffer.Length - 1);
                     }
                     Render();
                 }

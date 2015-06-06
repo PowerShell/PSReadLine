@@ -220,7 +220,7 @@ namespace PSConsoleUtilities
                 arg
                 ));
             _singleton._buffer.Remove(_singleton._current, _singleton._buffer.Length - _singleton._current);
-            _singleton._current = _singleton._buffer.Length - 1;
+            _singleton._current = Math.Max(0, _singleton._buffer.Length - 1);
             _singleton.Render();
         }
 
@@ -249,9 +249,9 @@ namespace PSConsoleUtilities
                 arg
                 ));
             _singleton._buffer.Remove(_singleton._current, endPoint - _singleton._current);
-            if (_singleton._current >= _singleton._buffer.Length && _singleton._buffer.Length > 0)
+            if (_singleton._current >= _singleton._buffer.Length)
             {
-                _singleton._current = _singleton._buffer.Length - 1;
+                _singleton._current = Math.Max(0, _singleton._buffer.Length - 1);
             }
             _singleton.Render();
         }
@@ -277,9 +277,9 @@ namespace PSConsoleUtilities
                 arg
                 ));
             _singleton._buffer.Remove(_singleton._current, length);
-            if (_singleton._current >= _singleton._buffer.Length && _singleton._buffer.Length > 0)
+            if (_singleton._current >= _singleton._buffer.Length)
             {
-                _singleton._current = _singleton._buffer.Length - 1;
+                _singleton._current = Math.Max(0, _singleton._buffer.Length - 1);
             }
             _singleton.Render();
         }
@@ -311,7 +311,7 @@ namespace PSConsoleUtilities
             _singleton._buffer.Remove(_singleton._current, 1 + endPoint - _singleton._current);
             if (_singleton._current >= _singleton._buffer.Length)
             {
-                _singleton._current = _singleton._buffer.Length - 1;
+                _singleton._current = Math.Max(0,_singleton._buffer.Length - 1);
             }
             _singleton.Render();
         }
@@ -338,7 +338,7 @@ namespace PSConsoleUtilities
             _singleton._buffer.Remove(_singleton._current, 1 + endPoint - _singleton._current);
             if (_singleton._current >= _singleton._buffer.Length)
             {
-                _singleton._current = _singleton._buffer.Length - 1;
+                _singleton._current = Math.Max(0, _singleton._buffer.Length - 1);
             }
             _singleton.Render();
         }
