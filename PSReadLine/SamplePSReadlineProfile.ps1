@@ -18,6 +18,31 @@ Set-PSReadLineOption -HistorySearchCursorMovesToEnd
 Set-PSReadlineKeyHandler -Key UpArrow -Function HistorySearchBackward
 Set-PSReadlineKeyHandler -Key DownArrow -Function HistorySearchForward
 
+# Being able to search the entirety of your history in a popup makes it 
+# really easy to find a command you previously used.
+# Either press F7 to bring up your entire history, or type part of the 
+# command line and then press F7 to bring up just the commands that match.
+Set-PSReadlineKeyHandler -Key F7 `
+                         -BriefDescription History `
+                         -LongDescription 'Show history' `
+                         -ScriptBlock {
+    $history = [System.Collections.ArrayList]([System.IO.File]::ReadAllLines((Get-PSReadlineOption).HistorySavePath))
+    $history.Reverse()
+
+    $line = $null
+    $cursor = $null
+    [PSConsoleUtilities.PSConsoleReadline]::GetBufferState([ref]$line, [ref]$cursor)
+    if ($line) {
+        $history = $history -match [regex]::Escape($line)
+    }
+
+    $command = $history | Get-Unique | Out-GridView -Title History -PassThru
+    if ($command) {
+        [PSConsoleUtilities.PSConsoleReadLine]::RevertLine()
+        [PSConsoleUtilities.PSConsoleReadLine]::Insert($command)
+    }
+}
+
 # This is an example of a macro that you might use to execute a command.
 # This will add the command to history.
 Set-PSReadlineKeyHandler -Key Ctrl+B `
