@@ -7,6 +7,7 @@ using System.Linq;
 using System.Management.Automation;
 using System.Management.Automation.Runspaces;
 using System.Text;
+using System.Text.RegularExpressions;
 using PSConsoleUtilities.Internal;
 
 namespace PSConsoleUtilities
@@ -244,10 +245,18 @@ namespace PSConsoleUtilities
             _tabCommandCount += 1;
         }
 
+        private static Regex dotSlash = new Regex(@"\.\\(.*)$", RegexOptions.Compiled);
+
         private void DoReplacementForCompletion(CompletionResult completionResult, CommandCompletion completions)
         {
             var replacementText = completionResult.CompletionText;
             int cursorAdjustment = 0;
+
+            if ((completionResult.ResultType == CompletionResultType.ProviderContainer || completionResult.ResultType == CompletionResultType.ProviderItem)
+                && _singleton._options.TrimDotSlash && !dotSlash.IsMatch(_buffer.ToString()))
+            {
+                replacementText = dotSlash.Replace(replacementText, "$1");
+            }
             if (completionResult.ResultType == CompletionResultType.ProviderContainer)
             {
                 replacementText = GetReplacementTextForDirectory(replacementText, ref cursorAdjustment);

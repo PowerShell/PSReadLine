@@ -90,6 +90,11 @@ namespace PSConsoleUtilities
         public const bool DefaultShowToolTips = false;
 
         /// <summary>
+        /// Trim "./" prefix when auto completing directories or files.
+        /// </summary>
+        public const bool DefaultTrimDotSlash = false;
+
+        /// <summary>
         /// When ringing the bell, what frequency do we use?
         /// </summary>
         public const int DefaultDingTone = 1221;
@@ -124,6 +129,7 @@ namespace PSConsoleUtilities
             MaximumKillRingCount = DefaultMaximumKillRingCount;
             HistorySearchCursorMovesToEnd = DefaultHistorySearchCursorMovesToEnd;
             ShowToolTips = DefaultShowToolTips;
+            TrimDotSlash = DefaultTrimDotSlash;
             DingDuration = DefaultDingDuration;
             DingTone = DefaultDingTone;
             BellStyle = DefaultBellStyle;
@@ -201,6 +207,7 @@ namespace PSConsoleUtilities
         public int MaximumKillRingCount { get; set; }
         public bool HistorySearchCursorMovesToEnd { get; set; }
         public bool ShowToolTips { get; set; }
+        public bool TrimDotSlash { get; set; }
         public int DingTone { get; set; }
         public int CompletionQueryItems { get; set; }
         public string WordDelimiters { get; set; }
@@ -466,6 +473,14 @@ namespace PSConsoleUtilities
             set { _showToolTips = value; }
         }
         internal SwitchParameter? _showToolTips;
+
+        [Parameter(ParameterSetName = "OptionsSet")]
+        public SwitchParameter TrimDotSlash
+        {
+            get { return _trimDotSlash.GetValueOrDefault(); }
+            set { _trimDotSlash = value; }
+        }
+        internal SwitchParameter? _trimDotSlash;
 
         [Parameter(ParameterSetName = "OptionsSet")]
         public int ExtraPromptLineCount

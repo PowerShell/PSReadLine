@@ -109,6 +109,10 @@ namespace PSConsoleUtilities
             {
                 Options.ShowToolTips = options.ShowToolTips;
             }
+            if (options._trimDotSlash.HasValue)
+            {
+                Options.TrimDotSlash = options.TrimDotSlash;
+            }
             if (options._extraPromptLineCount.HasValue)
             {
                 Options.ExtraPromptLineCount = options.ExtraPromptLineCount;
