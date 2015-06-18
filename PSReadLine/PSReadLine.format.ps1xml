@@ -3,9 +3,9 @@
 <Configuration>
     <ViewDefinitions>
         <View>
-            <Name>PSConsoleUtilities.KeyHandler</Name>
+            <Name>Microsoft.PowerShell.KeyHandler</Name>
             <ViewSelectedBy>
-                <TypeName>PSConsoleUtilities.KeyHandler</TypeName>
+                <TypeName>Microsoft.PowerShell.KeyHandler</TypeName>
             </ViewSelectedBy>
 
             <TableControl>

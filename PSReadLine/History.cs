@@ -10,7 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 
-namespace PSConsoleUtilities
+namespace Microsoft.PowerShell
 {
     public partial class PSConsoleReadLine
     {

@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace PSConsoleUtilities {
+namespace Microsoft.PowerShell {
     using System;
     
     

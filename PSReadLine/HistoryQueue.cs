@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
-namespace PSConsoleUtilities
+namespace Microsoft.PowerShell
 {
     [ExcludeFromCodeCoverage]
     internal sealed class QueueDebugView<T>

@@ -82,7 +82,7 @@
     <EmbeddedResource Include="PSReadLineResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>PSReadLineResources.Designer.cs</LastGenOutput>
-      <CustomToolNamespace>PSConsoleUtilities</CustomToolNamespace>
+      <CustomToolNamespace>Microsoft.PowerShell</CustomToolNamespace>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>

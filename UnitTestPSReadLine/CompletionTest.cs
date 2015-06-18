@@ -4,7 +4,7 @@ using System.Collections.ObjectModel;
 using System.Management.Automation;
 using System.Reflection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using PSConsoleUtilities;
+using Microsoft.PowerShell;
 
 namespace UnitTestPSReadLine
 {

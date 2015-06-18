@@ -2,7 +2,7 @@
 using System.Management.Automation;
 using System.Text;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using PSConsoleUtilities;
+using Microsoft.PowerShell;
 
 namespace UnitTestPSReadLine
 {

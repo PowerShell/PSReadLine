@@ -11,9 +11,9 @@ using System.Linq;
 using System.Management.Automation;
 using System.Management.Automation.Runspaces;
 using System.Text;
-using PSConsoleUtilities.Internal;
+using Microsoft.PowerShell.Internal;
 
-namespace PSConsoleUtilities
+namespace Microsoft.PowerShell
 {
     public partial class PSConsoleReadLine
     {
@@ -24,7 +24,7 @@ namespace PSConsoleUtilities
 
         // Stub helper method so completion can be mocked
         [ExcludeFromCodeCoverage]
-        CommandCompletion IPSConsoleReadLineMockableMethods.CompleteInput(string input, int cursorIndex, Hashtable options, PowerShell powershell)
+        CommandCompletion IPSConsoleReadLineMockableMethods.CompleteInput(string input, int cursorIndex, Hashtable options, System.Management.Automation.PowerShell powershell)
         {
             return CalloutUsingDefaultConsoleMode(
                 () => CommandCompletion.CompleteInput(input, cursorIndex, options, powershell));
@@ -204,14 +204,14 @@ namespace PSConsoleUtilities
                     // Could use the overload that takes an AST as it's faster (we've already parsed the
                     // input for coloring) but that overload is a little more complicated in passing in the
                     // cursor position.
-                    PowerShell ps;
+                    System.Management.Automation.PowerShell ps;
                     if (_remoteRunspace == null)
                     {
-                        ps = PowerShell.Create(RunspaceMode.CurrentRunspace);
+                        ps = System.Management.Automation.PowerShell.Create(RunspaceMode.CurrentRunspace);
                     }
                     else
                     {
-                        ps = PowerShell.Create();
+                        ps = System.Management.Automation.PowerShell.Create();
                         ps.Runspace = _remoteRunspace;
                     }
                     _tabCompletions = _mockableMethods.CompleteInput(_buffer.ToString(), _current, null, ps);

@@ -14,9 +14,9 @@ using System.Management.Automation.Runspaces;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
-using PSConsoleUtilities.Internal;
+using Microsoft.PowerShell.Internal;
 
-namespace PSConsoleUtilities
+namespace Microsoft.PowerShell
 {
     class ExitException : Exception { }
 
@@ -123,7 +123,7 @@ namespace PSConsoleUtilities
             _singleton._readKeyWaitHandle.Set();
 
             int handleId;
-            PowerShell ps = null;
+            System.Management.Automation.PowerShell ps = null;
 
             try
             {
@@ -172,7 +172,7 @@ namespace PSConsoleUtilities
                         {
                             if (ps == null)
                             {
-                                ps = PowerShell.Create(RunspaceMode.CurrentRunspace);
+                                ps = System.Management.Automation.PowerShell.Create(RunspaceMode.CurrentRunspace);
                                 ps.AddScript("0");
                             }
 
@@ -494,7 +494,7 @@ namespace PSConsoleUtilities
             string hostName = null;
             try
             {
-                var ps = PowerShell.Create(RunspaceMode.CurrentRunspace)
+                var ps = System.Management.Automation.PowerShell.Create(RunspaceMode.CurrentRunspace)
                     .AddCommand("Get-Variable").AddParameter("Name", "host").AddParameter("ValueOnly");
                 var results = ps.Invoke();
                 dynamic host = results.Count == 1 ? results[0] : null;
@@ -765,7 +765,7 @@ namespace PSConsoleUtilities
             Console.CursorTop = _singleton._initialY;
 
             string newPrompt;
-            using (var ps = PowerShell.Create(RunspaceMode.CurrentRunspace))
+            using (var ps = System.Management.Automation.PowerShell.Create(RunspaceMode.CurrentRunspace))
             {
                 ps.AddCommand("prompt");
                 var result = ps.Invoke<string>();

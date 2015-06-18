@@ -4,7 +4,7 @@ Copyright (c) Microsoft Corporation.  All rights reserved.
 
 using System;
 
-namespace PSConsoleUtilities
+namespace Microsoft.PowerShell
 {
     public static class Keys
     {

@@ -6,7 +6,7 @@ using System;
 using System.Text;
 using System.Windows;
 
-namespace PSConsoleUtilities
+namespace Microsoft.PowerShell
 {
     public partial class PSConsoleReadLine
     {

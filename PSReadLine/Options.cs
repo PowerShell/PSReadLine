@@ -8,7 +8,7 @@ using System.Management.Automation;
 using System.Reflection;
 using System.Threading;
 
-namespace PSConsoleUtilities
+namespace Microsoft.PowerShell
 {
     public partial class PSConsoleReadLine
     {
@@ -268,7 +268,7 @@ namespace PSConsoleUtilities
         /// Helper function for the Get-PSReadlineKeyHandler cmdlet.
         /// </summary>
         /// <returns></returns>
-        public static IEnumerable<PSConsoleUtilities.KeyHandler> GetKeyHandlers(bool includeBound = true, bool includeUnbound = false)
+        public static IEnumerable<PowerShell.KeyHandler> GetKeyHandlers(bool includeBound = true, bool includeUnbound = false)
         {
             var boundFunctions = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
@@ -282,7 +282,7 @@ namespace PSConsoleUtilities
                 boundFunctions.Add(entry.Value.BriefDescription);
                 if (includeBound)
                 {
-                    yield return new PSConsoleUtilities.KeyHandler
+                    yield return new PowerShell.KeyHandler
                     {
                         Key = entry.Key.ToGestureString(),
                         Function = entry.Value.BriefDescription,
@@ -298,7 +298,7 @@ namespace PSConsoleUtilities
                     boundFunctions.Add(secondEntry.Value.BriefDescription);
                     if (includeBound)
                     {
-                        yield return new PSConsoleUtilities.KeyHandler
+                        yield return new PowerShell.KeyHandler
                         {
                             Key = entry.Key.ToGestureString() + "," + secondEntry.Key.ToGestureString(),
                             Function = secondEntry.Value.BriefDescription,
@@ -326,7 +326,7 @@ namespace PSConsoleUtilities
 
                     if (!boundFunctions.Contains(method.Name))
                     {
-                        yield return new PSConsoleUtilities.KeyHandler
+                        yield return new PowerShell.KeyHandler
                         {
                             Key = "Unbound",
                             Function = method.Name,

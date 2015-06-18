@@ -5,7 +5,7 @@ Copyright (c) Microsoft Corporation.  All rights reserved.
 using System;
 using System.Collections.Generic;
 
-namespace PSConsoleUtilities
+namespace Microsoft.PowerShell
 {
     internal class ConsoleBufferBuilder
     {

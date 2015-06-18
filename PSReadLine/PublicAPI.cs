@@ -7,7 +7,7 @@ using System.Collections;
 using System.Management.Automation;
 using System.Management.Automation.Language;
 
-namespace PSConsoleUtilities
+namespace Microsoft.PowerShell
 {
     namespace Internal
     {
@@ -16,7 +16,7 @@ namespace PSConsoleUtilities
             ConsoleKeyInfo ReadKey();
             bool KeyAvailable();
             void Ding();
-            CommandCompletion CompleteInput(string input, int cursorIndex, Hashtable options, PowerShell powershell);
+            CommandCompletion CompleteInput(string input, int cursorIndex, Hashtable options, System.Management.Automation.PowerShell powershell);
         }
     }
 

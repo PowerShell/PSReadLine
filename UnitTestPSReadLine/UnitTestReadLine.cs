@@ -10,14 +10,14 @@ using System.Reflection;
 using System.Threading;
 using System.Windows;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using PSConsoleUtilities;
+using Microsoft.PowerShell;
 
 namespace UnitTestPSReadLine
 {
     // Disgusting language hack to make it easier to read a sequence of keys.
     using _ = Keys;
 
-    internal class MockedMethods : PSConsoleUtilities.Internal.IPSConsoleReadLineMockableMethods
+    internal class MockedMethods : Microsoft.PowerShell.Internal.IPSConsoleReadLineMockableMethods
     {
         internal int index;
         internal object[] items;

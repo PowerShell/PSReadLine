@@ -11,7 +11,7 @@ using System.Management.Automation.Language;
 using System.Reflection;
 using System.Linq;
 
-namespace PSConsoleUtilities
+namespace Microsoft.PowerShell
 {
     public enum TokenClassification
     {

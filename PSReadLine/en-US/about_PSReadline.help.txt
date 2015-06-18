@@ -21,7 +21,7 @@ LONG DESCRIPTION
       * Emacs yank/kill ring
       * PowerShell token based "word" movement and kill
 
-    The following functions are available in the class [PSConsoleUtilities.PSConsoleReadLine]:
+    The following functions are available in the class [Microsoft.PowerShell.PSConsoleReadLine]:
 
   Cursor movement
   ---------------
@@ -511,13 +511,13 @@ LONG DESCRIPTION
             # We need the command line, GetBufferState gives us that (with the cursor position)
             $line = $null
             $cursor = $null
-            [PSConsoleUtilities.PSConsoleReadLine]::GetBufferState([ref]$line, [ref]$cursor)
+            [Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$line, [ref]$cursor)
 
             # AddToHistory saves the line in history, but does not execute the line.
-            [PSConsoleUtilities.PSConsoleReadLine]::AddToHistory($line)
+            [Microsoft.PowerShell.PSConsoleReadLine]::AddToHistory($line)
 
             # RevertLine is like pressing Escape.
-            [PSConsoleUtilities.PSConsoleReadLine]::RevertLine()
+            [Microsoft.PowerShell.PSConsoleReadLine]::RevertLine()
         }
 
   You can see many more examples in the file SamplePSReadlineProfile.ps1 which is installed in the
@@ -529,7 +529,7 @@ LONG DESCRIPTION
   Custom Key Binding Support APIs
   -------------------------------
 
-  The following functions are public in PSConsoleUtilities.PSConsoleReadline, but cannot be directly
+  The following functions are public in Microsoft.PowerShell.PSConsoleReadline, but cannot be directly
   bound to a key.  Most are useful in custom key bindings.
 
     void AddToHistory(string command)
@@ -555,12 +555,12 @@ LONG DESCRIPTION
         the input buffer.  The first is more commonly used for simple cases.  The
         second is used if your binding is doing something more advanced with the Ast.
 
-    IEnumerable[PSConsoleUtilities.KeyHandler] GetKeyHandlers(bool includeBound, bool includeUnbound)
+    IEnumerable[Microsoft.PowerShell.KeyHandler] GetKeyHandlers(bool includeBound, bool includeUnbound)
 
         This function is used by Get-PSReadlineKeyHandler and probably isn't useful in a custom
         key binding.
 
-    PSConsoleUtilities.PSConsoleReadlineOptions GetOptions()
+    Microsoft.PowerShell.PSConsoleReadlineOptions GetOptions()
 
         This function is used by Get-PSReadlineOption and probably isn't too useful in a custom
         key binding.
@@ -595,7 +595,7 @@ LONG DESCRIPTION
 
         Move the cursor to the given offset.  Cursor movement is not tracked for undo.
 
-    void SetOptions(PSConsoleUtilities.SetPSReadlineOption options)
+    void SetOptions(Microsoft.PowerShell.SetPSReadlineOption options)
 
         This function is a helper method used by the cmdlet Set-PSReadlineOption, but might be
         useful to a custom key binding that wants to temporarily change a setting.
@@ -606,7 +606,7 @@ LONG DESCRIPTION
         looks like:
 
             [int]$numericArg = 0
-            [PSConsoleUtilities.PSConsoleReadLine]::TryGetArgAsInt($arg, [ref]$numericArg, 1)
+            [Microsoft.PowerShell.PSConsoleReadLine]::TryGetArgAsInt($arg, [ref]$numericArg, 1)
 
 POWERSHELL COMPATIBILITY
 

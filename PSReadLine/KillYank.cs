@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Management.Automation.Language;
 using System.Windows;
 
-namespace PSConsoleUtilities
+namespace Microsoft.PowerShell
 {
     public partial class PSConsoleReadLine
     {

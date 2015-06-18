@@ -21,7 +21,7 @@ function PSConsoleHostReadline
 
         $script:firstTime = $false
 
-        $options = [PSConsoleUtilities.PSConsoleReadLine]::GetOptions()
+        $options = [Microsoft.PowerShell.PSConsoleReadLine]::GetOptions()
 
         # Honor $MaximumHistoryCount, but get it safely in case it was removed in the profile.
         $MaximumHistoryCount = Get-Variable -ea Ignore -ValueOnly MaximumHistoryCount
@@ -30,10 +30,10 @@ function PSConsoleHostReadline
             $options.MaximumHistoryCount = $MaximumHistoryCount
         }
 
-        if ($options.HistorySaveStyle -eq [PSConsoleUtilities.HistorySaveStyle]::SaveNothing)
+        if ($options.HistorySaveStyle -eq [Microsoft.PowerShell.HistorySaveStyle]::SaveNothing)
         {
             # PSReadline isn't saving history, but we might still have history to reuse
-            Get-History | ForEach-Object { [PSConsoleUtilities.PSConsoleReadLine]::AddToHistory($_.CommandLine) }
+            Get-History | ForEach-Object { [Microsoft.PowerShell.PSConsoleReadLine]::AddToHistory($_.CommandLine) }
         }
     }
 
@@ -42,6 +42,6 @@ function PSConsoleHostReadline
     Set-StrictMode -Off
     $remoteRunspace = if ($host.IsRunspacePushed) { $host.Runspace } else { $null }
 
-    [PSConsoleUtilities.PSConsoleReadLine]::ReadLine($remoteRunspace, $ExecutionContext)
+    [Microsoft.PowerShell.PSConsoleReadLine]::ReadLine($remoteRunspace, $ExecutionContext)
 }
  

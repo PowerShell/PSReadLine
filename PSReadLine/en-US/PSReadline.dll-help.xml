@@ -81,7 +81,7 @@
   <command:returnValues>
     <command:returnValue>
       <dev:type>
-        <maml:name>PSConsoleUtilities.KeyHandler</maml:name>
+        <maml:name>Microsoft.PowerShell.KeyHandler</maml:name>
         <maml:uri/>
         <maml:description>
           <maml:para></maml:para>
@@ -366,9 +366,9 @@ Using the ScriptBlock parameter, one can achieve equivalent functionality by cal
         <maml:para></maml:para>
       </maml:introduction>
       <dev:code>PS C:\&gt; Set-PSReadlineKeyHandler -Chord Shift+Ctrl+B -ScriptBlock {
-    [PSConsoleUtilities.PSConsoleReadLine]::RevertLine()
-    [PSConsoleUtilities.PSConsoleReadLine]::Insert(&apos;build&apos;)
-&gt;&gt;&gt;     [PSConsoleUtilities.PSConsoleReadLine]::AcceptLine()
+    [Microsoft.PowerShell.PSConsoleReadLine]::RevertLine()
+    [Microsoft.PowerShell.PSConsoleReadLine]::Insert(&apos;build&apos;)
+    [Microsoft.PowerShell.PSConsoleReadLine]::AcceptLine()
 }</dev:code>
       <dev:remarks>
         <maml:para>This example binds the key Ctrl+Shift+B to a script block that clears the line, inserts build, then accepts the line.  This example shows how a single key can be used to execute a command.</maml:para>

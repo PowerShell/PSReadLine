@@ -11,11 +11,11 @@ using System.Management.Automation.Host;
 using System.Management.Automation.Language;
 using System.Runtime.InteropServices;
 using System.Security;
-using PSConsoleUtilities.Internal;
 using ConsoleHandle = Microsoft.Win32.SafeHandles.SafeFileHandle;
 using System.ComponentModel;
+using Microsoft.PowerShell.Internal;
 
-namespace PSConsoleUtilities
+namespace Microsoft.PowerShell
 {
     public partial class PSConsoleReadLine
     {
