@@ -271,7 +271,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         /// <returns></returns>
         [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
-        public static IEnumerable<PowerShell.KeyHandler> GetKeyHandlers(bool includeBound = true, bool includeUnbound = false)
+        public static IEnumerable<Microsoft.PowerShell.KeyHandler> GetKeyHandlers(bool includeBound = true, bool includeUnbound = false)
         {
             var boundFunctions = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
@@ -285,7 +285,7 @@ namespace Microsoft.PowerShell
                 boundFunctions.Add(entry.Value.BriefDescription);
                 if (includeBound)
                 {
-                    yield return new PowerShell.KeyHandler
+                    yield return new Microsoft.PowerShell.KeyHandler
                     {
                         Key = entry.Key.ToGestureString(),
                         Function = entry.Value.BriefDescription,
@@ -301,7 +301,7 @@ namespace Microsoft.PowerShell
                     boundFunctions.Add(secondEntry.Value.BriefDescription);
                     if (includeBound)
                     {
-                        yield return new PowerShell.KeyHandler
+                        yield return new Microsoft.PowerShell.KeyHandler
                         {
                             Key = entry.Key.ToGestureString() + "," + secondEntry.Key.ToGestureString(),
                             Function = secondEntry.Value.BriefDescription,
@@ -329,7 +329,7 @@ namespace Microsoft.PowerShell
 
                     if (!boundFunctions.Contains(method.Name))
                     {
-                        yield return new PowerShell.KeyHandler
+                        yield return new Microsoft.PowerShell.KeyHandler
                         {
                             Key = "Unbound",
                             Function = method.Name,
