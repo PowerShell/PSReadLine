@@ -25,6 +25,7 @@ namespace Microsoft.PowerShell
         /// The name of the function that a key is bound to, if any.
         /// </summary>
         public string Function { get; set; }
+
         /// <summary>
         /// A short description of the behavior of the function.
         /// </summary>
@@ -100,7 +101,7 @@ namespace Microsoft.PowerShell
         {
             _dispatchTable = new Dictionary<ConsoleKeyInfo, KeyHandler>(new ConsoleKeyInfoComparer())
             {
-                { Keys.Enter,                  MakeKeyHandler(ValidateAndAcceptLine,     "ValidateAndAcceptLine") },
+                { Keys.Enter,                  MakeKeyHandler(AcceptLine,                "AcceptLine") },
                 { Keys.ShiftEnter,             MakeKeyHandler(AddLine,                   "AddLine") },
                 { Keys.Escape,                 MakeKeyHandler(RevertLine,                "RevertLine") },
                 { Keys.LeftArrow,              MakeKeyHandler(BackwardChar,              "BackwardChar") },
@@ -173,7 +174,7 @@ namespace Microsoft.PowerShell
             _dispatchTable = new Dictionary<ConsoleKeyInfo, KeyHandler>(new ConsoleKeyInfoComparer())
             {
                 { Keys.Backspace,       MakeKeyHandler(BackwardDeleteChar,   "BackwardDeleteChar") },
-                { Keys.Enter,           MakeKeyHandler(ValidateAndAcceptLine,"ValidateAndAcceptLine") },
+                { Keys.Enter,           MakeKeyHandler(AcceptLine,           "AcceptLine") },
                 { Keys.ShiftEnter,      MakeKeyHandler(AddLine,              "AddLine") },
                 { Keys.LeftArrow,       MakeKeyHandler(BackwardChar,         "BackwardChar") },
                 { Keys.RightArrow,      MakeKeyHandler(ForwardChar,          "ForwardChar") },
