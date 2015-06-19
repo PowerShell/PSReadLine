@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Management.Automation.Language;
-using System.Windows;
+using System.Windows.Forms;
 
 namespace Microsoft.PowerShell
 {
@@ -517,7 +517,10 @@ namespace Microsoft.PowerShell
             {
                 textToSet = _singleton._buffer.ToString(); 
             }
-            ExecuteOnSTAThread(() => Clipboard.SetText(textToSet));
+            if (!string.IsNullOrEmpty(textToSet))
+            {
+                ExecuteOnSTAThread(() => Clipboard.SetText(textToSet));
+            }
         }
 
         /// <summary>

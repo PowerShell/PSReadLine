@@ -5,7 +5,7 @@ Copyright (c) Microsoft Corporation.  All rights reserved.
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
-using System.Windows;
+using System.Windows.Forms;
 
 namespace Microsoft.PowerShell
 {
