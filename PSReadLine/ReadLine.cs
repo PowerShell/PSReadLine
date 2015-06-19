@@ -817,12 +817,32 @@ namespace Microsoft.PowerShell
             Console.CursorLeft = 0;
             Console.CursorTop = _singleton._initialY;
 
+            var runspaceIsRemote = _singleton._mockableMethods.RunspaceIsRemote(_singleton._runspace);
+            System.Management.Automation.PowerShell ps;
+            if (!runspaceIsRemote)
+            {
+                ps = System.Management.Automation.PowerShell.Create(RunspaceMode.CurrentRunspace);
+            }
+            else
+            {
+                ps = System.Management.Automation.PowerShell.Create();
+                ps.Runspace = _singleton._runspace;
+            }
             string newPrompt;
-            using (var ps = System.Management.Automation.PowerShell.Create(RunspaceMode.CurrentRunspace))
+            using (ps)
             {
                 ps.AddCommand("prompt");
                 var result = ps.Invoke<string>();
                 newPrompt = result.Count == 1 ? result[0] : "PS>";
+            }
+
+            if (runspaceIsRemote)
+            {
+                var connectionInfo = _singleton._runspace.ConnectionInfo;
+                if (!string.IsNullOrEmpty(connectionInfo.ComputerName))
+                {
+                    newPrompt = string.Format(CultureInfo.InvariantCulture, "[{0}]: {1}", connectionInfo.ComputerName, newPrompt);
+                }
             }
             Console.Write(newPrompt);
 
