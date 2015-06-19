@@ -160,11 +160,11 @@ namespace Microsoft.PowerShell
                     }
                     _consoleBuffer = newBuffer;
                 }
-            
+
                 for (int i = 0; i < text.Length; i++)
                 {
                     SavedTokenState state = null;
-                    totalBytes = totalBytes%bufferWidth;
+                    totalBytes = totalBytes % bufferWidth;
                     if (!afterLastToken)
                     {
                         // Figure out the color of the character - if it's in a token,
@@ -228,7 +228,7 @@ namespace Microsoft.PowerShell
 
                     if (text[i] == '\n')
                     {
-                        while ((j%bufferWidth) != 0)
+                        while ((j % bufferWidth) != 0)
                         {
                             _consoleBuffer[j++] = _space;
                         }
@@ -247,7 +247,7 @@ namespace Microsoft.PowerShell
 
                         //if there is no enough space for the character at the edge, fill in spaces at the end and 
                         //put the character to next line.
-                        int filling = totalBytes > bufferWidth ? (totalBytes - bufferWidth)%size : 0;
+                        int filling = totalBytes > bufferWidth ? (totalBytes - bufferWidth) % size : 0;
                         for (int f = 0; f < filling; f++)
                         {
                             _consoleBuffer[j++] = _space;
@@ -258,19 +258,19 @@ namespace Microsoft.PowerShell
                         {
                             _consoleBuffer[j].UnicodeChar = '^';
                             MaybeEmphasize(ref _consoleBuffer[j++], i, foregroundColor, backgroundColor);
-                            _consoleBuffer[j].UnicodeChar = (char) ('@' + text[i]);
+                            _consoleBuffer[j].UnicodeChar = (char)('@' + text[i]);
                             MaybeEmphasize(ref _consoleBuffer[j++], i, foregroundColor, backgroundColor);
 
                         }
-                        else if (size > 1  && IsCJKOutputCodePage() && _trueTypeInUse)
+                        else if (size > 1 && IsCJKOutputCodePage() && _trueTypeInUse)
                         {
                             _consoleBuffer[j].UnicodeChar = text[i];
-                            _consoleBuffer[j].Attributes = (ushort) ((uint)_consoleBuffer[j].Attributes |
-                                                           (uint) CHAR_INFO_Attributes.COMMON_LVB_LEADING_BYTE);
+                            _consoleBuffer[j].Attributes = (ushort)((uint)_consoleBuffer[j].Attributes |
+                                                           (uint)CHAR_INFO_Attributes.COMMON_LVB_LEADING_BYTE);
                             MaybeEmphasize(ref _consoleBuffer[j++], i, foregroundColor, backgroundColor);
                             _consoleBuffer[j].UnicodeChar = text[i];
-                            _consoleBuffer[j].Attributes = (ushort) ((uint)_consoleBuffer[j].Attributes |
-                                                           (uint) CHAR_INFO_Attributes.COMMON_LVB_TRAILING_BYTE);
+                            _consoleBuffer[j].Attributes = (ushort)((uint)_consoleBuffer[j].Attributes |
+                                                           (uint)CHAR_INFO_Attributes.COMMON_LVB_TRAILING_BYTE);
                             MaybeEmphasize(ref _consoleBuffer[j++], i, foregroundColor, backgroundColor);
                         }
                         else
@@ -283,10 +283,10 @@ namespace Microsoft.PowerShell
             }
             finally
             {
-                if (_hwnd != (IntPtr)0 && _hDC != (IntPtr)0)  
-                 {  
-                     NativeMethods.ReleaseDC(_hwnd, _hDC);  
-                 }
+                if (_hwnd != (IntPtr)0 && _hDC != (IntPtr)0)
+                {
+                    NativeMethods.ReleaseDC(_hwnd, _hDC);
+                }
             }
 
             for (; j < (_consoleBuffer.Length - (statusLineCount * _bufferWidth)); j++)
@@ -601,7 +601,7 @@ namespace Microsoft.PowerShell
             int y = coordinates.Y;
             PlaceCursor(coordinates.X, ref y);
         }
-        
+
         private int LengthInBufferCells(char c)
         {
             int length = char.IsControl(c) ? 1 : 0;
