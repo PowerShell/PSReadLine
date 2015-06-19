@@ -7,6 +7,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Linq;
 using System.Management.Automation;
 using System.Management.Automation.Runspaces;
@@ -34,6 +35,7 @@ namespace Microsoft.PowerShell
         /// Attempt to complete the text surrounding the cursor with the next
         /// available completion.
         /// </summary>
+        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void TabCompleteNext(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.Complete(forward: true);
@@ -43,6 +45,7 @@ namespace Microsoft.PowerShell
         /// Attempt to complete the text surrounding the cursor with the previous
         /// available completion.
         /// </summary>
+        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void TabCompletePrevious(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.Complete(forward: false);
@@ -87,6 +90,7 @@ namespace Microsoft.PowerShell
         /// prefix is used for completion.  If trying to complete the longest
         /// unambiguous completion, a list of possible completions is displayed.
         /// </summary>
+        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void Complete(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.CompleteImpl(key, arg, false);
@@ -98,11 +102,13 @@ namespace Microsoft.PowerShell
         /// prefix is used for completion.  If trying to complete the longest
         /// unambiguous completion, a list of possible completions is displayed.
         /// </summary>
+        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void MenuComplete(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.CompleteImpl(key, arg, true);
         }
 
+        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         private void CompleteImpl(ConsoleKeyInfo? key, object arg, bool menuSelect)
         {
             var completions = GetCompletions();
@@ -267,13 +273,13 @@ namespace Microsoft.PowerShell
 
         private static string GetReplacementTextForDirectory(string replacementText, ref int cursorAdjustment)
         {
-            if (!replacementText.EndsWith("\\"))
+            if (!replacementText.EndsWith("\\", StringComparison.Ordinal))
             {
-                if (replacementText.EndsWith("\\'") || replacementText.EndsWith("\\\""))
+                if (replacementText.EndsWith("\\'", StringComparison.Ordinal) || replacementText.EndsWith("\\\"", StringComparison.Ordinal))
                 {
                     cursorAdjustment = -1;
                 }
-                else if (replacementText.EndsWith("'") || replacementText.EndsWith("\""))
+                else if (replacementText.EndsWith("'", StringComparison.Ordinal) || replacementText.EndsWith("\"", StringComparison.Ordinal))
                 {
                     var len = replacementText.Length;
                     replacementText = replacementText.Substring(0, len - 1) + '\\' + replacementText[len - 1];
@@ -303,6 +309,7 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Display the list of possible completions.
         /// </summary>
+        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void PossibleCompletions(ConsoleKeyInfo? key = null, object arg = null)
         {
             var completions = _singleton.GetCompletions();
@@ -330,7 +337,7 @@ namespace Microsoft.PowerShell
 
             if (completions.CompletionMatches.Count >= _options.CompletionQueryItems)
             {
-                if (!PromptYesOrNo(string.Format(PSReadLineResources.DisplayAllPossibilities, completions.CompletionMatches.Count)))
+                if (!PromptYesOrNo(string.Format(CultureInfo.CurrentCulture, PSReadLineResources.DisplayAllPossibilities, completions.CompletionMatches.Count)))
                 {
                     return;
                 }

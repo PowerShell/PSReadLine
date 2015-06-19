@@ -4,15 +4,30 @@ Copyright (c) Microsoft Corporation.  All rights reserved.
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Management.Automation;
 using System.Text;
 
 namespace Microsoft.PowerShell
 {
+    /// <summary>
+    /// The class is used as the output type for the cmdlet Get-PSReadlineKeyHandler
+    /// </summary>
     public class KeyHandler
     {
+        /// <summary>
+        /// The key that is bound or unbound.
+        /// </summary>
         public string Key { get; set; }
+
+        /// <summary>
+        /// The name of the function that a key is bound to, if any.
+        /// </summary>
         public string Function { get; set; }
+        /// <summary>
+        /// A short description of the behavior of the function.
+        /// </summary>
         public string Description
         {
             get
@@ -265,11 +280,12 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Show all bound keys
         /// </summary>
+        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void ShowKeyBindings(ConsoleKeyInfo? key = null, object arg = null)
         {
             var buffer = new StringBuilder();
-            buffer.AppendFormat("{0,-20} {1,-24} {2}\n", "Key", "Function", "Description");
-            buffer.AppendFormat("{0,-20} {1,-24} {2}\n", "---", "--------", "-----------");
+            buffer.AppendFormat(CultureInfo.InvariantCulture, "{0,-20} {1,-24} {2}\n", "Key", "Function", "Description");
+            buffer.AppendFormat(CultureInfo.InvariantCulture, "{0,-20} {1,-24} {2}\n", "---", "--------", "-----------");
             var boundKeys = GetKeyHandlers(includeBound: true, includeUnbound: false);
             var maxDescriptionLength = Console.WindowWidth - 20 - 24 - 2;
             foreach (var boundKey in boundKeys)
@@ -281,7 +297,7 @@ namespace Microsoft.PowerShell
                     description = description.Substring(0, maxDescriptionLength - 3) + "...";
                     newline = "";
                 }
-                buffer.AppendFormat("{0,-20} {1,-24} {2}{3}", boundKey.Key, boundKey.Function, description, newline);
+                buffer.AppendFormat(CultureInfo.InvariantCulture, "{0,-20} {1,-24} {2}{3}", boundKey.Key, boundKey.Function, description, newline);
             }
 
             // Don't overwrite any of the line - so move to first line after the end of our buffer.
@@ -297,6 +313,7 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Read a key and tell me what the key is bound to.
         /// </summary>
+        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void WhatIsKey(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton._statusLinePrompt = "what-is-key: ";

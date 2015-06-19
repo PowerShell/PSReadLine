@@ -13,6 +13,9 @@ using System.Linq;
 
 namespace Microsoft.PowerShell
 {
+
+#pragma warning disable 1591
+
     public enum TokenClassification
     {
         None,
@@ -193,6 +196,7 @@ namespace Microsoft.PowerShell
         /// odd things with script blocks, we create a white-list of commands
         /// that do invoke the script block - this covers the most useful cases.
         /// </summary>
+        [SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public HashSet<string> CommandsToValidateScriptBlockArguments { get; set; }
 
         /// <summary>
@@ -571,6 +575,7 @@ namespace Microsoft.PowerShell
         [Parameter(Position = 0, Mandatory = true)]
         [Alias("Key")]
         [ValidateNotNullOrEmpty]
+        [SuppressMessage("Microsoft.Performance", "CA1819:PropertiesShouldNotReturnArrays")]
         public string[] Chord { get; set; }
 
         [Parameter(Position = 1, Mandatory = true, ParameterSetName = "ScriptBlock")]
@@ -692,6 +697,7 @@ namespace Microsoft.PowerShell
         [Parameter(Position = 0, Mandatory = true)]
         [Alias("Key")]
         [ValidateNotNullOrEmpty]
+        [SuppressMessage("Microsoft.Performance", "CA1819:PropertiesShouldNotReturnArrays")]
         public string[] Chord { get; set; }
 
         [ExcludeFromCodeCoverage]
@@ -700,4 +706,7 @@ namespace Microsoft.PowerShell
             PSConsoleReadLine.RemoveKeyHandler(Chord);
         }
     }
+
+#pragma warning restore 1591
+
 }

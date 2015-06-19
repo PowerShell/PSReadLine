@@ -117,7 +117,7 @@ namespace Microsoft.PowerShell
         None      = 255,
     }
 
-    public enum CHAR_INFO_Attributes : ushort
+    internal enum CHAR_INFO_Attributes : ushort
     {
         COMMON_LVB_LEADING_BYTE = 0x0100,
         COMMON_LVB_TRAILING_BYTE = 0x0200
@@ -131,14 +131,14 @@ namespace Microsoft.PowerShell
     }
 
     [Flags]
-    public enum AccessQualifiers : uint
+    internal enum AccessQualifiers : uint
     {
         // From winnt.h
         GenericRead = 0x80000000,
         GenericWrite = 0x40000000
     }
 
-    public enum CreationDisposition : uint
+    internal enum CreationDisposition : uint
     {
         // From winbase.h
         CreateNew = 1,
@@ -149,7 +149,7 @@ namespace Microsoft.PowerShell
     }
 
     [Flags]
-    public enum ShareModes : uint
+    internal enum ShareModes : uint
     {
         // From winnt.h
         ShareRead = 0x00000001,
@@ -163,14 +163,6 @@ namespace Microsoft.PowerShell
         public short Right;
         public short Bottom;
 
-        public SMALL_RECT(int left, int top, int right, int bottom)
-        {
-            Left = (short)left;
-            Top = (short)top;
-            Right = (short)right;
-            Bottom = (short)bottom;
-        }
-
         [ExcludeFromCodeCoverage]
         public override string ToString()
         {
@@ -183,12 +175,6 @@ namespace Microsoft.PowerShell
         public short X;
         public short Y;
 
-        public COORD(int x, int y)
-        {
-            X = (short)x;
-            Y = (short)y;
-        }
-
         [ExcludeFromCodeCoverage]
         public override string ToString()
         {
@@ -197,7 +183,7 @@ namespace Microsoft.PowerShell
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct FONTSIGNATURE
+    internal struct FONTSIGNATURE
     {
         //From public\sdk\inc\wingdi.h
 
@@ -247,7 +233,7 @@ namespace Microsoft.PowerShell
     }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-    public struct CONSOLE_FONT_INFO_EX
+    internal struct CONSOLE_FONT_INFO_EX
     {
         internal int cbSize;
         internal int nFont;
@@ -316,7 +302,7 @@ namespace Microsoft.PowerShell
 
     }
 
-    public static class ConsoleKeyInfoExtension 
+    internal static class ConsoleKeyInfoExtension 
     {
         public static string ToGestureString(this ConsoleKeyInfo key)
         {

@@ -29,7 +29,9 @@ namespace Microsoft.PowerShell
         private int _current;
         private int _emphasisStart;
         private int _emphasisLength;
+        [SuppressMessage("Microsoft.Reliability", "CA2006:UseSafeHandleToEncapsulateNativeResources")]
         private IntPtr _hwnd = (IntPtr)0;
+        [SuppressMessage("Microsoft.Reliability", "CA2006:UseSafeHandleToEncapsulateNativeResources")]
         private IntPtr _hDC = (IntPtr)0;
         private uint _codePage;
         private bool _istmInitialized = false;
@@ -109,6 +111,7 @@ namespace Microsoft.PowerShell
             ReallyRender();
         }
 
+        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults")]
         private void ReallyRender()
         {
             var text = ParseInput();
@@ -525,6 +528,8 @@ namespace Microsoft.PowerShell
             return i >= start && i < end;
         }
 
+        [SuppressMessage("Microsoft.Reliability", "CA2001:AvoidCallingProblematicMethods",
+            Justification = "Then the API we pass the handle to will return an error if it is invalid. They are not exposed.")]
         private static CONSOLE_FONT_INFO_EX GetConsoleFontInfo(ConsoleHandle consoleHandle)
         {
 
@@ -721,13 +726,11 @@ namespace Microsoft.PowerShell
                     _hwnd = NativeMethods.GetConsoleWindow();
                     if ((IntPtr)0 == _hwnd)
                     {
-                        int err = Marshal.GetLastWin32Error();
                         return 1;
                     }
                     _hDC = NativeMethods.GetDC(_hwnd);
                     if ((IntPtr)0 == _hDC)
                     {
-                        int err = Marshal.GetLastWin32Error();
                         //Don't throw exception so that output can continue
                         return 1;
                     }
@@ -738,7 +741,6 @@ namespace Microsoft.PowerShell
                     result = NativeMethods.GetTextMetrics(_hDC, out _tm);
                     if (!result)
                     {
-                        int err = Marshal.GetLastWin32Error();
                         return 1;
                     }
                     _istmInitialized = true;
@@ -747,7 +749,6 @@ namespace Microsoft.PowerShell
                 result = NativeMethods.GetCharWidth32(_hDC, (uint)c, (uint)c, out width);
                 if (!result)
                 {
-                    int err = Marshal.GetLastWin32Error();
                     return 1;
                 }
                 if (width >= _tm.tmMaxCharWidth)
@@ -953,6 +954,7 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Scroll the display up one screen.
         /// </summary>
+        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void ScrollDisplayUp(ConsoleKeyInfo? key = null, object arg = null)
         {
             int numericArg;
@@ -968,6 +970,7 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Scroll the display up one line.
         /// </summary>
+        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void ScrollDisplayUpLine(ConsoleKeyInfo? key = null, object arg = null)
         {
             int numericArg;
@@ -983,6 +986,7 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Scroll the display down one screen.
         /// </summary>
+        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void ScrollDisplayDown(ConsoleKeyInfo? key = null, object arg = null)
         {
             int numericArg;
@@ -998,6 +1002,7 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Scroll the display down one line.
         /// </summary>
+        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void ScrollDisplayDownLine(ConsoleKeyInfo? key = null, object arg = null)
         {
             int numericArg;
@@ -1013,6 +1018,7 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Scroll the display to the top.
         /// </summary>
+        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void ScrollDisplayTop(ConsoleKeyInfo? key = null, object arg = null)
         {
             Console.SetWindowPosition(0, 0);
@@ -1021,6 +1027,7 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Scroll the display to the cursor.
         /// </summary>
+        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void ScrollDisplayToCursor(ConsoleKeyInfo? key = null, object arg = null)
         {
             // Ideally, we'll put the last input line at the bottom of the window

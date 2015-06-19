@@ -6,8 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Linq.Expressions;
+using System.Globalization;
 using System.Management.Automation;
 using System.Management.Automation.Language;
 using System.Management.Automation.Runspaces;
@@ -16,8 +15,12 @@ using System.Text;
 using System.Threading;
 using Microsoft.PowerShell.Internal;
 
+[module: SuppressMessage("Microsoft.Design", "CA1014:MarkAssembliesWithClsCompliant")]
+
 namespace Microsoft.PowerShell
 {
+    [SuppressMessage("Microsoft.Design", "CA1032:ImplementStandardExceptionConstructors")]
+    [SuppressMessage("Microsoft.Usage", "CA2237:MarkISerializableTypesWithSerializable")]
     class ExitException : Exception { }
 
     public partial class PSConsoleReadLine : IPSConsoleReadLineMockableMethods
@@ -597,6 +600,7 @@ namespace Microsoft.PowerShell
             _killRing = new List<string>(Options.MaximumKillRingCount);
         }
 
+        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         private static void Chord(ConsoleKeyInfo? key = null, object arg = null)
         {
             if (!key.HasValue)
@@ -612,6 +616,7 @@ namespace Microsoft.PowerShell
             }
         }
 
+        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         private static void Ignore(ConsoleKeyInfo? key = null, object arg = null)
         {
         }
@@ -652,6 +657,7 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Abort current action, e.g. incremental history search
         /// </summary>
+        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void Abort(ConsoleKeyInfo? key = null, object arg = null)
         {
         }
@@ -659,6 +665,7 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Start a new digit argument to pass to other functions
         /// </summary>
+        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void DigitArgument(ConsoleKeyInfo? key = null, object arg = null)
         {
             if (!key.HasValue || char.IsControl(key.Value.KeyChar))
@@ -748,6 +755,7 @@ namespace Microsoft.PowerShell
         /// the prompt.  Useful for custom key handlers that change state, e.g.
         /// change the current directory.
         /// </summary>
+        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void InvokePrompt(ConsoleKeyInfo? key = null, object arg = null)
         {
             var currentBuffer = _singleton._buffer.ToString();
