@@ -139,7 +139,7 @@ namespace Microsoft.PowerShell
             HistorySearchCaseSensitive = DefaultHistorySearchCaseSensitive;
             HistorySaveStyle = DefaultHistorySaveStyle;
             HistorySavePath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)
-                + @"\PSReadline\" + hostName + "_history.txt";
+                + @"\Microsoft\Windows\PowerShell\PSReadline\" + hostName + "_history.txt";
             CommandValidationHandler = null;
             CommandsToValidateScriptBlockArguments = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
             {
