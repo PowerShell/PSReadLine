@@ -30,10 +30,6 @@ namespace Microsoft.PowerShell
                 ForegroundColor = Console.ForegroundColor
             };
         }
-        public void Append(char c)
-        {
-            buffer.Add(NewCharInfo(c));
-        }
 
         public void Append(string s)
         {

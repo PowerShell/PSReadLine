@@ -38,8 +38,6 @@ namespace Microsoft.PowerShell
         private ManualResetEvent _closingWaitHandle;
         private WaitHandle[] _threadProcWaitHandles;
         private WaitHandle[] _requestKeyWaitHandles;
-        private bool _captureKeys;
-        private readonly Queue<ConsoleKeyInfo> _savedKeys;
         private uint _prePSReadlineConsoleMode;
 
         private readonly StringBuilder _buffer;
@@ -210,10 +208,6 @@ namespace Microsoft.PowerShell
                 throw new OperationCanceledException();
             }
             var key = _singleton._queuedKeys.Dequeue();
-            if (_singleton._captureKeys)
-            {
-                _singleton._savedKeys.Enqueue(key);
-            }
             return key;
         }
 
@@ -490,9 +484,6 @@ namespace Microsoft.PowerShell
         private PSConsoleReadLine()
         {
             _mockableMethods = this;
-
-            _captureKeys = false;
-            _savedKeys = new Queue<ConsoleKeyInfo>();
 
             SetDefaultWindowsBindings();
 
