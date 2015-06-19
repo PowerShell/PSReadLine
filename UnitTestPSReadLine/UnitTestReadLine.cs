@@ -75,6 +75,11 @@ namespace UnitTestPSReadLine
         {
             return UnitTest.MockedCompleteInput(input, cursorIndex, options, powershell);
         }
+
+        public bool RunspaceIsRemote(Runspace runspace)
+        {
+            return false;
+        }
     }
 
     [TestClass]

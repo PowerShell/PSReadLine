@@ -7,6 +7,7 @@ using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 using System.Management.Automation;
 using System.Management.Automation.Language;
+using System.Management.Automation.Runspaces;
 
 namespace Microsoft.PowerShell
 {
@@ -24,6 +25,8 @@ namespace Microsoft.PowerShell
             void Ding();
             /// <summary/>
             CommandCompletion CompleteInput(string input, int cursorIndex, Hashtable options, System.Management.Automation.PowerShell powershell);
+            /// <summary/>
+            bool RunspaceIsRemote(Runspace runspace);
         }
     }
 

@@ -21,7 +21,7 @@ namespace Microsoft.PowerShell
         // Tab completion state
         private int _tabCommandCount;
         private CommandCompletion _tabCompletions;
-        private Runspace _remoteRunspace;
+        private Runspace _runspace;
 
         // Stub helper method so completion can be mocked
         [ExcludeFromCodeCoverage]
@@ -211,14 +211,14 @@ namespace Microsoft.PowerShell
                     // input for coloring) but that overload is a little more complicated in passing in the
                     // cursor position.
                     System.Management.Automation.PowerShell ps;
-                    if (_remoteRunspace == null)
+                    if (!_mockableMethods.RunspaceIsRemote(_runspace))
                     {
                         ps = System.Management.Automation.PowerShell.Create(RunspaceMode.CurrentRunspace);
                     }
                     else
                     {
                         ps = System.Management.Automation.PowerShell.Create();
-                        ps.Runspace = _remoteRunspace;
+                        ps.Runspace = _runspace;
                     }
                     _tabCompletions = _mockableMethods.CompleteInput(_buffer.ToString(), _current, null, ps);
 

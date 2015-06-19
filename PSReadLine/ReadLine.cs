@@ -13,6 +13,7 @@ using System.Management.Automation.Runspaces;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
+using Microsoft.PowerShell.Commands;
 using Microsoft.PowerShell.Internal;
 
 [module: SuppressMessage("Microsoft.Design", "CA1014:MarkAssembliesWithClsCompliant")]
@@ -25,13 +26,14 @@ namespace Microsoft.PowerShell
 
     public partial class PSConsoleReadLine : IPSConsoleReadLineMockableMethods
     {
-        private static readonly PSConsoleReadLine _singleton;
+        private static readonly PSConsoleReadLine _singleton = new PSConsoleReadLine();
+
         private bool _delayedOneTimeInitCompleted;
 
         private IPSConsoleReadLineMockableMethods _mockableMethods;
 
         private EngineIntrinsics _engineIntrinsics;
-        private static readonly GCHandle _breakHandlerGcHandle;
+        private static GCHandle _breakHandlerGcHandle;
         private Thread _readKeyThread;
         private AutoResetEvent _readKeyWaitHandle;
         private AutoResetEvent _keyReadWaitHandle;
@@ -51,9 +53,10 @@ namespace Microsoft.PowerShell
         private bool _inputAccepted;
         private readonly Queue<ConsoleKeyInfo> _queuedKeys;
         private Stopwatch _lastRenderTime;
+        private static Stopwatch _readkeyStopwatch = new Stopwatch();
 
         // Save a fixed # of keys so we can reconstruct a repro after a crash
-        private readonly static HistoryQueue<ConsoleKeyInfo> _lastNKeys;
+        private readonly static HistoryQueue<ConsoleKeyInfo> _lastNKeys = new HistoryQueue<ConsoleKeyInfo>(200);
 
         // Tokens etc.
         private Token[] _tokens;
@@ -74,9 +77,33 @@ namespace Microsoft.PowerShell
             return Console.KeyAvailable;
         }
 
+        bool IPSConsoleReadLineMockableMethods.RunspaceIsRemote(Runspace runspace)
+        {
+            return runspace != null && runspace.ConnectionInfo != null;
+        }
+
+        private void ReadOneOrMoreKeys()
+        {
+            _readkeyStopwatch.Restart();
+            while (_mockableMethods.KeyAvailable())
+            {
+                _queuedKeys.Enqueue(_mockableMethods.ReadKey());
+                if (_readkeyStopwatch.ElapsedMilliseconds > 2)
+                {
+                    // Don't spend too long in this loop if there are lots of queued keys
+                    break;
+                }
+            }
+
+            if (_queuedKeys.Count == 0)
+            {
+                var key = _mockableMethods.ReadKey();
+                _queuedKeys.Enqueue(key);
+            }
+        }
+
         private void ReadKeyThreadProc()
         {
-            var stopwatch = new Stopwatch();
             while (true)
             {
                 // Wait until ReadKey tells us to read a key (or it's time to exit).
@@ -84,22 +111,7 @@ namespace Microsoft.PowerShell
                 if (handleId == 1) // It was the _closingWaitHandle that was signaled.
                     break;
 
-                stopwatch.Restart();
-                while (_mockableMethods.KeyAvailable())
-                {
-                    _queuedKeys.Enqueue(_mockableMethods.ReadKey());
-                    if (stopwatch.ElapsedMilliseconds > 2)
-                    {
-                        // Don't spend too long in this loop if there are lots of queued keys
-                        break;
-                    }
-                }
-
-                if (_queuedKeys.Count == 0)
-                {
-                    var key = _mockableMethods.ReadKey();
-                    _queuedKeys.Enqueue(key);
-                }
+                ReadOneOrMoreKeys();
 
                 // One or more keys were read - let ReadKey know we're done.
                 _keyReadWaitHandle.Set();
@@ -207,6 +219,7 @@ namespace Microsoft.PowerShell
 
                 throw new OperationCanceledException();
             }
+
             var key = _singleton._queuedKeys.Dequeue();
             return key;
         }
@@ -457,38 +470,6 @@ namespace Microsoft.PowerShell
             }
         }
 
-        static PSConsoleReadLine()
-        {
-            _singleton = new PSConsoleReadLine();
-
-            _breakHandlerGcHandle = GCHandle.Alloc(new BreakHandler(_singleton.BreakHandler));
-            NativeMethods.SetConsoleCtrlHandler((BreakHandler) _breakHandlerGcHandle.Target, true);
-            _singleton._readKeyWaitHandle = new AutoResetEvent(false);
-            _singleton._keyReadWaitHandle = new AutoResetEvent(false);
-            _singleton._closingWaitHandle = new ManualResetEvent(false);
-            _singleton._requestKeyWaitHandles = new WaitHandle[] { _singleton._keyReadWaitHandle, _singleton._closingWaitHandle };
-            _singleton._threadProcWaitHandles = new WaitHandle[] { _singleton._readKeyWaitHandle, _singleton._closingWaitHandle };
-
-            // This is only used for post-mortem debugging - 200 keys should be enough to reconstruct most command lines.
-            _lastNKeys = new HistoryQueue<ConsoleKeyInfo>(200);
-
-            // This is for a "being hosted in an alternate appdomain scenario" (the
-            // DomainUnload event is not raised for the default appdomain). It allows us
-            // to exit cleanly when the appdomain is unloaded but the process is not going
-            // away.
-            if (!AppDomain.CurrentDomain.IsDefaultAppDomain())
-            {
-                AppDomain.CurrentDomain.DomainUnload += (x, y) =>
-                {
-                    _singleton._closingWaitHandle.Set();
-                    _singleton._readKeyThread.Join(); // may need to wait for history to be written
-                };
-            }
-
-            _singleton._readKeyThread = new Thread(_singleton.ReadKeyThreadProc) {IsBackground = true};
-            _singleton._readKeyThread.Start();
-        }
-
         private PSConsoleReadLine()
         {
             _mockableMethods = this;
@@ -501,19 +482,23 @@ namespace Microsoft.PowerShell
             _queuedKeys = new Queue<ConsoleKeyInfo>();
 
             string hostName = null;
-            try
+            // This works mostly by luck - we're not doing anything to guarantee the constructor for our
+            // singleton is called on a thread with a runspace, but it is happening by coincidence.
+            using (var ps = System.Management.Automation.PowerShell.Create(RunspaceMode.CurrentRunspace))
             {
-                var ps = System.Management.Automation.PowerShell.Create(RunspaceMode.CurrentRunspace)
-                    .AddCommand("Get-Variable").AddParameter("Name", "host").AddParameter("ValueOnly");
-                var results = ps.Invoke();
-                dynamic host = results.Count == 1 ? results[0] : null;
-                if (host != null)
+                try
                 {
-                    hostName = host.Name as string;
+                    ps.AddCommand("Get-Variable").AddParameter("Name", "host").AddParameter("ValueOnly");
+                    var results = ps.Invoke();
+                    dynamic host = results.Count == 1 ? results[0] : null;
+                    if (host != null)
+                    {
+                        hostName = host.Name as string;
+                    }
                 }
-            }
-            catch
-            {
+                catch
+                {
+                }
             }
             if (hostName == null)
             {
@@ -522,15 +507,17 @@ namespace Microsoft.PowerShell
             _options = new PSConsoleReadlineOptions(hostName);
         }
 
-        private void Initialize(Runspace remoteRunspace, EngineIntrinsics engineIntrinsics)
+        private void Initialize(Runspace runspace, EngineIntrinsics engineIntrinsics)
         {
+            _engineIntrinsics = engineIntrinsics;
+            _runspace = runspace;
+
             if (!_delayedOneTimeInitCompleted)
             {
                 DelayedOneTimeInitialize();
                 _delayedOneTimeInitCompleted = true;
             }
 
-            _engineIntrinsics = engineIntrinsics;
             _buffer.Clear();
             _edits = new List<EditItem>();
             _undoEditIndex = 0;
@@ -553,7 +540,6 @@ namespace Microsoft.PowerShell
             _yankLastArgCommandCount = 0;
             _tabCommandCount = 0;
             _visualSelectionCommandCount = 0;
-            _remoteRunspace = remoteRunspace;
             _statusIsErrorMessage = false;
 
             _consoleBuffer = ReadBufferLines(_initialY, 1 + Options.ExtraPromptLineCount);
@@ -595,15 +581,68 @@ namespace Microsoft.PowerShell
             // specifies a custom history save file, we don't want to try reading
             // from the default one.
 
+            var historyCountVar = _engineIntrinsics.SessionState.PSVariable.Get("MaximumHistoryCount");
+            if (historyCountVar != null && historyCountVar.Value is int)
+            {
+                _options.MaximumHistoryCount = (int)historyCountVar.Value;
+            }
+
             _historyFileMutex = new Mutex(false, GetHistorySaveFileMutexName());
 
             _history = new HistoryQueue<HistoryItem>(Options.MaximumHistoryCount);
             _currentHistoryIndex = 0;
 
-            ReadHistoryFile();
+            bool readHistoryFile = true;
+            try
+            {
+                if (_options.HistorySaveStyle == HistorySaveStyle.SaveNothing && Runspace.DefaultRunspace != null)
+                {
+                    using (var ps = System.Management.Automation.PowerShell.Create(RunspaceMode.CurrentRunspace))
+                    {
+                        ps.AddCommand("Microsoft.PowerShell.Core\\Get-History");
+                        foreach (var historyInfo in ps.Invoke<HistoryInfo>())
+                        {
+                            AddToHistory(historyInfo.CommandLine);
+                        }
+                        readHistoryFile = false;
+                    }
+                }
+            }
+            catch
+            {
+            }
+
+            if (readHistoryFile)
+            {
+                ReadHistoryFile();
+            }
 
             _killIndex = -1; // So first add indexes 0.
             _killRing = new List<string>(Options.MaximumKillRingCount);
+
+            _breakHandlerGcHandle = GCHandle.Alloc(new BreakHandler(_singleton.BreakHandler));
+            NativeMethods.SetConsoleCtrlHandler((BreakHandler)_breakHandlerGcHandle.Target, true);
+            _singleton._readKeyWaitHandle = new AutoResetEvent(false);
+            _singleton._keyReadWaitHandle = new AutoResetEvent(false);
+            _singleton._closingWaitHandle = new ManualResetEvent(false);
+            _singleton._requestKeyWaitHandles = new WaitHandle[] {_singleton._keyReadWaitHandle, _singleton._closingWaitHandle};
+            _singleton._threadProcWaitHandles = new WaitHandle[] {_singleton._readKeyWaitHandle, _singleton._closingWaitHandle};
+
+            // This is for a "being hosted in an alternate appdomain scenario" (the
+            // DomainUnload event is not raised for the default appdomain). It allows us
+            // to exit cleanly when the appdomain is unloaded but the process is not going
+            // away.
+            if (!AppDomain.CurrentDomain.IsDefaultAppDomain())
+            {
+                AppDomain.CurrentDomain.DomainUnload += (x, y) =>
+                {
+                    _singleton._closingWaitHandle.Set();
+                    _singleton._readKeyThread.Join(); // may need to wait for history to be written
+                };
+            }
+
+            _singleton._readKeyThread = new Thread(_singleton.ReadKeyThreadProc) {IsBackground = true};
+            _singleton._readKeyThread.Start();
         }
 
         [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
