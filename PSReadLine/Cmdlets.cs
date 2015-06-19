@@ -71,7 +71,7 @@ namespace Microsoft.PowerShell
 
         public const EditMode DefaultEditMode = EditMode.Windows;
 
-        public const string DefaultContinuationPrompt = ">>> ";
+        public const string DefaultContinuationPrompt = ">> ";
 
         /// <summary>
         /// The maximum number of commands to store in the history.
