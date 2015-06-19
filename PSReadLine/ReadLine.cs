@@ -243,79 +243,87 @@ namespace Microsoft.PowerShell
         /// after the prompt has been displayed.
         /// </summary>
         /// <returns>The complete command line.</returns>
-        public static string ReadLine(Runspace remoteRunspace = null, EngineIntrinsics engineIntrinsics = null)
+        public static string ReadLine(Runspace runspace, EngineIntrinsics engineIntrinsics)
         {
             var handle = NativeMethods.GetStdHandle((uint) StandardHandleId.Input);
             NativeMethods.GetConsoleMode(handle, out _singleton._prePSReadlineConsoleMode);
-            try
+            bool firstTime = true;
+            while (true)
             {
-                // Clear a couple flags so we can actually receive certain keys:
-                //     ENABLE_PROCESSED_INPUT - enables Ctrl+C
-                //     ENABLE_LINE_INPUT - enables Ctrl+S
-                // Also clear a couple flags so we don't mask the input that we ignore:
-                //     ENABLE_MOUSE_INPUT - mouse events
-                //     ENABLE_WINDOW_INPUT - window resize events
-                var mode = _singleton._prePSReadlineConsoleMode &
-                    ~(NativeMethods.ENABLE_PROCESSED_INPUT |
-                      NativeMethods.ENABLE_LINE_INPUT |
-                      NativeMethods.ENABLE_WINDOW_INPUT |
-                      NativeMethods.ENABLE_MOUSE_INPUT);
-                NativeMethods.SetConsoleMode(handle, mode);
-
-                _singleton.Initialize(remoteRunspace, engineIntrinsics);
-                return _singleton.InputLoop();
-            }
-            catch (OperationCanceledException)
-            {
-                // Console is exiting - return value isn't too critical - null or 'exit' could work equally well.
-                return "";
-            }
-            catch (ExitException)
-            {
-                return "exit";
-            }
-            catch (Exception e)
-            {
-                // If we're running tests, just throw.
-                if (_singleton._mockableMethods != _singleton)
+                try
                 {
-                    throw;
-                }
+                    // Clear a couple flags so we can actually receive certain keys:
+                    //     ENABLE_PROCESSED_INPUT - enables Ctrl+C
+                    //     ENABLE_LINE_INPUT - enables Ctrl+S
+                    // Also clear a couple flags so we don't mask the input that we ignore:
+                    //     ENABLE_MOUSE_INPUT - mouse events
+                    //     ENABLE_WINDOW_INPUT - window resize events
+                    var mode = _singleton._prePSReadlineConsoleMode &
+                        ~(NativeMethods.ENABLE_PROCESSED_INPUT |
+                          NativeMethods.ENABLE_LINE_INPUT |
+                          NativeMethods.ENABLE_WINDOW_INPUT |
+                          NativeMethods.ENABLE_MOUSE_INPUT);
+                    NativeMethods.SetConsoleMode(handle, mode);
 
-                while (e.InnerException != null)
-                {
-                    e = e.InnerException;
-                }
-                var oldColor = Console.ForegroundColor;
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine(PSReadLineResources.OopsAnErrorMessage1);
-                Console.ForegroundColor = oldColor;
-                var sb = new StringBuilder();
-                for (int i = 0; i < _lastNKeys.Count; i++)
-                {
-                    sb.Append(' ');
-                    sb.Append(_lastNKeys[i].ToGestureString());
-
-                    KeyHandler handler;
-                    if (_singleton._dispatchTable.TryGetValue(_lastNKeys[i], out handler) &&
-                        "AcceptLine".Equals(handler.BriefDescription, StringComparison.OrdinalIgnoreCase))
+                    if (firstTime)
                     {
-                        // Make it a little easier to see the keys
-                        sb.Append('\n');
+                        firstTime = false;
+                        _singleton.Initialize(runspace, engineIntrinsics);
                     }
-                    // TODO: print non-default function bindings and script blocks
-                }
 
-                Console.WriteLine(PSReadLineResources.OopsAnErrorMessage2, _lastNKeys.Count, sb, e);
-                var lineBeforeCrash = _singleton._buffer.ToString();
-                _singleton.Initialize(remoteRunspace, _singleton._engineIntrinsics);
-                InvokePrompt();
-                Insert(lineBeforeCrash);
-                return _singleton.InputLoop();
-            }
-            finally
-            {
-                NativeMethods.SetConsoleMode(handle, _singleton._prePSReadlineConsoleMode);
+                    return _singleton.InputLoop();
+                }
+                catch (OperationCanceledException)
+                {
+                    // Console is exiting - return value isn't too critical - null or 'exit' could work equally well.
+                    return "";
+                }
+                catch (ExitException)
+                {
+                    return "exit";
+                }
+                catch (Exception e)
+                {
+                    // If we're running tests, just throw.
+                    if (_singleton._mockableMethods != _singleton)
+                    {
+                        throw;
+                    }
+
+                    while (e.InnerException != null)
+                    {
+                        e = e.InnerException;
+                    }
+                    var oldColor = Console.ForegroundColor;
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine(PSReadLineResources.OopsAnErrorMessage1);
+                    Console.ForegroundColor = oldColor;
+                    var sb = new StringBuilder();
+                    for (int i = 0; i < _lastNKeys.Count; i++)
+                    {
+                        sb.Append(' ');
+                        sb.Append(_lastNKeys[i].ToGestureString());
+
+                        KeyHandler handler;
+                        if (_singleton._dispatchTable.TryGetValue(_lastNKeys[i], out handler) &&
+                            "AcceptLine".Equals(handler.BriefDescription, StringComparison.OrdinalIgnoreCase))
+                        {
+                            // Make it a little easier to see the keys
+                            sb.Append('\n');
+                        }
+                        // TODO: print non-default function bindings and script blocks
+                    }
+
+                    Console.WriteLine(PSReadLineResources.OopsAnErrorMessage2, _lastNKeys.Count, sb, e);
+                    var lineBeforeCrash = _singleton._buffer.ToString();
+                    _singleton.Initialize(runspace, _singleton._engineIntrinsics);
+                    InvokePrompt();
+                    Insert(lineBeforeCrash);
+                }
+                finally
+                {
+                    NativeMethods.SetConsoleMode(handle, _singleton._prePSReadlineConsoleMode);
+                }
             }
         }
 

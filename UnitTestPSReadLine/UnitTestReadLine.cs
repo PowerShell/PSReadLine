@@ -576,7 +576,7 @@ namespace UnitTestPSReadLine
                 .GetField("_mockableMethods", BindingFlags.Instance | BindingFlags.NonPublic)
                 .SetValue(instance, mockedMethods);
 
-            var result = PSConsoleReadLine.ReadLine();
+            var result = PSConsoleReadLine.ReadLine(null, null);
 
             if (mockedMethods.validationFailure != null)
             {
