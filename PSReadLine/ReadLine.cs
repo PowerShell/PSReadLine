@@ -258,8 +258,15 @@ namespace Microsoft.PowerShell
                 // Clear a couple flags so we can actually receive certain keys:
                 //     ENABLE_PROCESSED_INPUT - enables Ctrl+C
                 //     ENABLE_LINE_INPUT - enables Ctrl+S
-                NativeMethods.SetConsoleMode(handle,
-                    _singleton._prePSReadlineConsoleMode & ~(NativeMethods.ENABLE_PROCESSED_INPUT | NativeMethods.ENABLE_LINE_INPUT));
+                // Also clear a couple flags so we don't mask the input that we ignore:
+                //     ENABLE_MOUSE_INPUT - mouse events
+                //     ENABLE_WINDOW_INPUT - window resize events
+                var mode = _singleton._prePSReadlineConsoleMode &
+                    ~(NativeMethods.ENABLE_PROCESSED_INPUT |
+                      NativeMethods.ENABLE_LINE_INPUT |
+                      NativeMethods.ENABLE_WINDOW_INPUT |
+                      NativeMethods.ENABLE_MOUSE_INPUT);
+                NativeMethods.SetConsoleMode(handle, mode);
 
                 _singleton.Initialize(remoteRunspace, engineIntrinsics);
                 return _singleton.InputLoop();

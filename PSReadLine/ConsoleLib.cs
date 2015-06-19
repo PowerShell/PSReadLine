@@ -24,6 +24,8 @@ namespace Microsoft.PowerShell
 
         public const uint ENABLE_PROCESSED_INPUT = 0x0001;
         public const uint ENABLE_LINE_INPUT      = 0x0002;
+        public const uint ENABLE_WINDOW_INPUT    = 0x0008;
+        public const uint ENABLE_MOUSE_INPUT     = 0x0010;
 
         public const int FontTypeMask = 0x06;
         public const int TrueTypeFont = 0x04;
