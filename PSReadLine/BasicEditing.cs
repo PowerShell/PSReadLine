@@ -238,6 +238,7 @@ namespace Microsoft.PowerShell
             _emphasisStart = -1;
             _emphasisLength = 0;
 
+            var insertionPoint = _current;
             // Make sure cursor is at the end before writing the line
             _current = _buffer.Length;
 
@@ -254,6 +255,17 @@ namespace Microsoft.PowerShell
                 var errorMessage = Validate(_ast);
                 if (!string.IsNullOrWhiteSpace(errorMessage))
                 {
+                    // If there are more keys, assume the user pasted with a right click and
+                    // we should insert a newline even though validation failed.
+                    if (_queuedKeys.Count > 0)
+                    {
+                        // Validation may have moved the cursor.  Because there are queued
+                        // keys, we need to move the cursor back to the correct place, and
+                        // ignore where validation put the cursor because the queued keys
+                        // will be inserted in the wrong place.
+                        SetCursorPosition(insertionPoint);
+                        Insert('\n');
+                    }
                     _statusLinePrompt = "";
                     _statusBuffer.Append(errorMessage);
                     _statusIsErrorMessage = true;
