@@ -81,7 +81,8 @@
   <ItemGroup>
     <EmbeddedResource Include="PSReadLineResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>PSReadLineResources.Designer.cs</LastGenOutput>
+      <LogicalName>Microsoft.PowerShell.PSReadline.PSReadLineResources.resources</LogicalName>
+      <LastGenOutput>PSReadlineResources.Designer.cs</LastGenOutput>
       <CustomToolNamespace>Microsoft.PowerShell</CustomToolNamespace>
     </EmbeddedResource>
   </ItemGroup>
