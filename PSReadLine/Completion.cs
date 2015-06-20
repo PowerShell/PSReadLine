@@ -1,26 +1,31 @@
-﻿using System;
+﻿/********************************************************************++
+Copyright (c) Microsoft Corporation.  All rights reserved.
+--********************************************************************/
+
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Linq;
 using System.Management.Automation;
 using System.Management.Automation.Runspaces;
 using System.Text;
-using PSConsoleUtilities.Internal;
+using Microsoft.PowerShell.Internal;
 
-namespace PSConsoleUtilities
+namespace Microsoft.PowerShell
 {
     public partial class PSConsoleReadLine
     {
         // Tab completion state
         private int _tabCommandCount;
         private CommandCompletion _tabCompletions;
-        private Runspace _remoteRunspace;
+        private Runspace _runspace;
 
         // Stub helper method so completion can be mocked
         [ExcludeFromCodeCoverage]
-        CommandCompletion IPSConsoleReadLineMockableMethods.CompleteInput(string input, int cursorIndex, Hashtable options, PowerShell powershell)
+        CommandCompletion IPSConsoleReadLineMockableMethods.CompleteInput(string input, int cursorIndex, Hashtable options, System.Management.Automation.PowerShell powershell)
         {
             return CalloutUsingDefaultConsoleMode(
                 () => CommandCompletion.CompleteInput(input, cursorIndex, options, powershell));
@@ -30,6 +35,7 @@ namespace PSConsoleUtilities
         /// Attempt to complete the text surrounding the cursor with the next
         /// available completion.
         /// </summary>
+        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void TabCompleteNext(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.Complete(forward: true);
@@ -39,6 +45,7 @@ namespace PSConsoleUtilities
         /// Attempt to complete the text surrounding the cursor with the previous
         /// available completion.
         /// </summary>
+        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void TabCompletePrevious(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.Complete(forward: false);
@@ -83,6 +90,7 @@ namespace PSConsoleUtilities
         /// prefix is used for completion.  If trying to complete the longest
         /// unambiguous completion, a list of possible completions is displayed.
         /// </summary>
+        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void Complete(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.CompleteImpl(key, arg, false);
@@ -94,11 +102,13 @@ namespace PSConsoleUtilities
         /// prefix is used for completion.  If trying to complete the longest
         /// unambiguous completion, a list of possible completions is displayed.
         /// </summary>
+        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void MenuComplete(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.CompleteImpl(key, arg, true);
         }
 
+        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         private void CompleteImpl(ConsoleKeyInfo? key, object arg, bool menuSelect)
         {
             var completions = GetCompletions();
@@ -200,15 +210,15 @@ namespace PSConsoleUtilities
                     // Could use the overload that takes an AST as it's faster (we've already parsed the
                     // input for coloring) but that overload is a little more complicated in passing in the
                     // cursor position.
-                    PowerShell ps;
-                    if (_remoteRunspace == null)
+                    System.Management.Automation.PowerShell ps;
+                    if (!_mockableMethods.RunspaceIsRemote(_runspace))
                     {
-                        ps = PowerShell.Create(RunspaceMode.CurrentRunspace);
+                        ps = System.Management.Automation.PowerShell.Create(RunspaceMode.CurrentRunspace);
                     }
                     else
                     {
-                        ps = PowerShell.Create();
-                        ps.Runspace = _remoteRunspace;
+                        ps = System.Management.Automation.PowerShell.Create();
+                        ps.Runspace = _runspace;
                     }
                     _tabCompletions = _mockableMethods.CompleteInput(_buffer.ToString(), _current, null, ps);
 
@@ -263,13 +273,13 @@ namespace PSConsoleUtilities
 
         private static string GetReplacementTextForDirectory(string replacementText, ref int cursorAdjustment)
         {
-            if (!replacementText.EndsWith("\\"))
+            if (!replacementText.EndsWith("\\", StringComparison.Ordinal))
             {
-                if (replacementText.EndsWith("\\'") || replacementText.EndsWith("\\\""))
+                if (replacementText.EndsWith("\\'", StringComparison.Ordinal) || replacementText.EndsWith("\\\"", StringComparison.Ordinal))
                 {
                     cursorAdjustment = -1;
                 }
-                else if (replacementText.EndsWith("'") || replacementText.EndsWith("\""))
+                else if (replacementText.EndsWith("'", StringComparison.Ordinal) || replacementText.EndsWith("\"", StringComparison.Ordinal))
                 {
                     var len = replacementText.Length;
                     replacementText = replacementText.Substring(0, len - 1) + '\\' + replacementText[len - 1];
@@ -299,6 +309,7 @@ namespace PSConsoleUtilities
         /// <summary>
         /// Display the list of possible completions.
         /// </summary>
+        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void PossibleCompletions(ConsoleKeyInfo? key = null, object arg = null)
         {
             var completions = _singleton.GetCompletions();
@@ -326,7 +337,7 @@ namespace PSConsoleUtilities
 
             if (completions.CompletionMatches.Count >= _options.CompletionQueryItems)
             {
-                if (!PromptYesOrNo(string.Format(PSReadLineResources.DisplayAllPossibilities, completions.CompletionMatches.Count)))
+                if (!PromptYesOrNo(string.Format(CultureInfo.CurrentCulture, PSReadLineResources.DisplayAllPossibilities, completions.CompletionMatches.Count)))
                 {
                     return;
                 }

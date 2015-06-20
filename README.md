@@ -116,17 +116,17 @@ Set-PSReadlineKeyHandler -Chord 'Oem7','Shift+Oem7' `
 
     $line = $null
     $cursor = $null
-    [PSConsoleUtilities.PSConsoleReadline]::GetBufferState([ref]$line, [ref]$cursor)
+    [Microsoft.PowerShell.PSConsoleReadline]::GetBufferState([ref]$line, [ref]$cursor)
 
     if ($line[$cursor] -eq $key.KeyChar) {
         # Just move the cursor
-        [PSConsoleUtilities.PSConsoleReadline]::SetCursorPosition($cursor + 1)
+        [Microsoft.PowerShell.PSConsoleReadline]::SetCursorPosition($cursor + 1)
     }
     else {
         # Insert matching quotes, move cursor to be in between the quotes
-        [PSConsoleUtilities.PSConsoleReadline]::Insert("$($key.KeyChar)" * 2)
-        [PSConsoleUtilities.PSConsoleReadline]::GetBufferState([ref]$line, [ref]$cursor)
-        [PSConsoleUtilities.PSConsoleReadline]::SetCursorPosition($cursor - 1)
+        [Microsoft.PowerShell.PSConsoleReadline]::Insert("$($key.KeyChar)" * 2)
+        [Microsoft.PowerShell.PSConsoleReadline]::GetBufferState([ref]$line, [ref]$cursor)
+        [Microsoft.PowerShell.PSConsoleReadline]::SetCursorPosition($cursor - 1)
     }
 }
 ```
@@ -137,15 +137,15 @@ Note that with the handler written this way, it correctly handles Undo - both qu
 
 The [sample profile file](https://github.com/lzybkr/PSReadLine/blob/master/PSReadLine/SamplePSReadlineProfile.ps1) has a bunch of great examples to check out.  This file is included when PSReadline is installed.
 
-See the public methods of [PSConsoleUtilities.PSConsoleReadLine] to see what other built-in functionality you can modify.
+See the public methods of [Microsoft.PowerShell.PSConsoleReadLine] to see what other built-in functionality you can modify.
 
 If you want to change the command line in some unimplmented way in your custom key binding, you can use the methods:
 
 ```powershell
-    [PSConsoleUtilities.PSConsoleReadLine]::GetBufferState
-    [PSConsoleUtilities.PSConsoleReadLine]::Insert
-    [PSConsoleUtilities.PSConsoleReadLine]::Replace
-    [PSConsoleUtilities.PSConsoleReadLine]::SetCursorPosition
+    [Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState
+    [Microsoft.PowerShell.PSConsoleReadLine]::Insert
+    [Microsoft.PowerShell.PSConsoleReadLine]::Replace
+    [Microsoft.PowerShell.PSConsoleReadLine]::SetCursorPosition
 ```
 
 ##Change Log

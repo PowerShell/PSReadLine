@@ -11,7 +11,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 
-namespace PSConsoleUtilities
+namespace Microsoft.PowerShell
 {
     public partial class PSConsoleReadLine
     {

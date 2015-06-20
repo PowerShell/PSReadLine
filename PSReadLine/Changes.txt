@@ -1,4 +1,7 @@
-### Version 1.0.0.14
+### Version 1.1.0
+
+Breaking change:
+* Namespace PSConsoleUtilities has been renamed to Microsoft.PowerShell
 
 ### Version 1.0.0.13
 

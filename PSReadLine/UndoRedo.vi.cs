@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
-namespace PSConsoleUtilities
+namespace Microsoft.PowerShell
 {
     public partial class PSConsoleReadLine
     {

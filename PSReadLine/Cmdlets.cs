@@ -1,4 +1,8 @@
-﻿using System;
+﻿/********************************************************************++
+Copyright (c) Microsoft Corporation.  All rights reserved.
+--********************************************************************/
+
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
@@ -7,8 +11,11 @@ using System.Management.Automation.Language;
 using System.Reflection;
 using System.Linq;
 
-namespace PSConsoleUtilities
+namespace Microsoft.PowerShell
 {
+
+#pragma warning disable 1591
+
     public enum TokenClassification
     {
         None,
@@ -71,7 +78,7 @@ namespace PSConsoleUtilities
 
         public const EditMode DefaultEditMode = EditMode.Windows;
 
-        public const string DefaultContinuationPrompt = ">>> ";
+        public const string DefaultContinuationPrompt = ">> ";
 
         /// <summary>
         /// The maximum number of commands to store in the history.
@@ -139,7 +146,7 @@ namespace PSConsoleUtilities
             HistorySearchCaseSensitive = DefaultHistorySearchCaseSensitive;
             HistorySaveStyle = DefaultHistorySaveStyle;
             HistorySavePath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)
-                + @"\PSReadline\" + hostName + "_history.txt";
+                + @"\Microsoft\Windows\PowerShell\PSReadline\" + hostName + "_history.txt";
             CommandValidationHandler = null;
             CommandsToValidateScriptBlockArguments = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
             {
@@ -196,6 +203,7 @@ namespace PSConsoleUtilities
         /// odd things with script blocks, we create a white-list of commands
         /// that do invoke the script block - this covers the most useful cases.
         /// </summary>
+        [SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public HashSet<string> CommandsToValidateScriptBlockArguments { get; set; }
 
         /// <summary>
@@ -328,7 +336,7 @@ namespace PSConsoleUtilities
         }
     }
 
-    [Cmdlet("Get", "PSReadlineOption")]
+    [Cmdlet("Get", "PSReadlineOption", HelpUri = "http://go.microsoft.com/fwlink/?LinkId=528808")]
     [OutputType(typeof(PSConsoleReadlineOptions))]
     public class GetPSReadlineOption : PSCmdlet
     {
@@ -339,7 +347,7 @@ namespace PSConsoleUtilities
         }
     }
 
-    [Cmdlet("Set", "PSReadlineOption")]
+    [Cmdlet("Set", "PSReadlineOption", HelpUri = "http://go.microsoft.com/fwlink/?LinkId=528811")]
     public class SetPSReadlineOption : PSCmdlet
     {
         [Parameter(ParameterSetName = "OptionsSet")]
@@ -582,12 +590,13 @@ namespace PSConsoleUtilities
         }
     }
 
-    [Cmdlet("Set", "PSReadlineKeyHandler")]
+    [Cmdlet("Set", "PSReadlineKeyHandler", HelpUri = "http://go.microsoft.com/fwlink/?LinkId=528810")]
     public class SetPSReadlineKeyHandlerCommand : PSCmdlet, IDynamicParameters
     {
         [Parameter(Position = 0, Mandatory = true)]
         [Alias("Key")]
         [ValidateNotNullOrEmpty]
+        [SuppressMessage("Microsoft.Performance", "CA1819:PropertiesShouldNotReturnArrays")]
         public string[] Chord { get; set; }
 
         [Parameter(Position = 1, Mandatory = true, ParameterSetName = "ScriptBlock")]
@@ -659,7 +668,7 @@ namespace PSConsoleUtilities
         }
     }
 
-    [Cmdlet("Get", "PSReadlineKeyHandler")]
+    [Cmdlet("Get", "PSReadlineKeyHandler", HelpUri = "http://go.microsoft.com/fwlink/?LinkId=528807")]
     [OutputType(typeof(KeyHandler))]
     public class GetKeyHandlerCommand : PSCmdlet
     {
@@ -703,12 +712,13 @@ namespace PSConsoleUtilities
         }
     }
 
-    [Cmdlet("Remove", "PSReadlineKeyHandler")]
+    [Cmdlet("Remove", "PSReadlineKeyHandler", HelpUri = "http://go.microsoft.com/fwlink/?LinkId=528809")]
     public class RemoveKeyHandlerCommand : PSCmdlet
     {
         [Parameter(Position = 0, Mandatory = true)]
         [Alias("Key")]
         [ValidateNotNullOrEmpty]
+        [SuppressMessage("Microsoft.Performance", "CA1819:PropertiesShouldNotReturnArrays")]
         public string[] Chord { get; set; }
 
         [ExcludeFromCodeCoverage]
@@ -717,4 +727,7 @@ namespace PSConsoleUtilities
             PSConsoleReadLine.RemoveKeyHandler(Chord);
         }
     }
+
+#pragma warning restore 1591
+
 }

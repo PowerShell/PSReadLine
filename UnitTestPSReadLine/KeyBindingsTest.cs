@@ -1,6 +1,6 @@
 ﻿using System.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using PSConsoleUtilities;
+using Microsoft.PowerShell;
 
 namespace UnitTestPSReadLine
 {

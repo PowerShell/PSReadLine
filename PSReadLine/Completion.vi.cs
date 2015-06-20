@@ -7,9 +7,8 @@ using System.Linq;
 using System.Management.Automation;
 using System.Management.Automation.Runspaces;
 using System.Text;
-using PSConsoleUtilities.Internal;
 
-namespace PSConsoleUtilities
+namespace Microsoft.PowerShell
 {
     public partial class PSConsoleReadLine
     {

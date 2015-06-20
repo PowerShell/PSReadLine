@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace PSConsoleUtilities {
+namespace Microsoft.PowerShell {
     using System;
     
     
@@ -196,6 +196,15 @@ namespace PSConsoleUtilities {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unable to translate &apos;{0}&apos; to virtual key code: {1}..
+        /// </summary>
+        internal static string CantTranslateKey {
+            get {
+                return ResourceManager.GetString("CantTranslateKey", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Allows you to select multiple lines from the console using Shift+UpArrow/DownArrow and copy the selected lines to clipboard by pressing Enter..
         /// </summary>
         internal static string CaptureScreenDescription {
@@ -219,6 +228,15 @@ namespace PSConsoleUtilities {
         internal static string CharacterSearchDescription {
             get {
                 return ResourceManager.GetString("CharacterSearchDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Chord can have at most two keys..
+        /// </summary>
+        internal static string ChordWIthTooManyKeys {
+            get {
+                return ResourceManager.GetString("ChordWIthTooManyKeys", resourceCulture);
             }
         }
         
@@ -520,15 +538,6 @@ namespace PSConsoleUtilities {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The current Windows PowerShell host does not look like a console-based host, therefore the PSReadline module is of no use to it..
-        /// </summary>
-        internal static string HostNotSupported {
-            get {
-                return ResourceManager.GetString("HostNotSupported", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to String is not used in the UI.
         /// </summary>
         internal static string IgnoreDescription {
@@ -543,6 +552,24 @@ namespace PSConsoleUtilities {
         internal static string InsertCharacterDescription {
             get {
                 return ResourceManager.GetString("InsertCharacterDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Duplicate or invalid modifier token &apos;{0}&apos; for key &apos;{1}&apos;..
+        /// </summary>
+        internal static string InvalidModifier {
+            get {
+                return ResourceManager.GetString("InvalidModifier", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid sequence &apos;{0}&apos;..
+        /// </summary>
+        internal static string InvalidSequence {
+            get {
+                return ResourceManager.GetString("InvalidSequence", resourceCulture);
             }
         }
         
@@ -657,8 +684,7 @@ namespace PSConsoleUtilities {
         /// <summary>
         ///   Looks up a localized string similar to 
         ///Oops, something went wrong.  Please report this bug with the details below.
-        ///Report on GitHub: https://github.com/lzybkr/PSReadLine/issues/new
-        ///Or email: jason@truewheels.net.
+        ///Report on GitHub: https://github.com/lzybkr/PSReadLine/issues/new.
         /// </summary>
         internal static string OopsAnErrorMessage1 {
             get {
@@ -1159,6 +1185,15 @@ namespace PSConsoleUtilities {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid modifier token &apos;{0}&apos;. The supported modifiers are &apos;alt&apos;, &apos;shift&apos;, &apos;control&apos; or &apos;ctrl&apos;..
+        /// </summary>
+        internal static string String1 {
+            get {
+                return ResourceManager.GetString("String1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Swap the current character with the character before it..
         /// </summary>
         internal static string SwapCharactersDescription {
@@ -1209,6 +1244,15 @@ namespace PSConsoleUtilities {
         internal static string UnixWordRuboutDescription {
             get {
                 return ResourceManager.GetString("UnixWordRuboutDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unrecognized key &apos;{0}&apos;. Please use a character literal or a well-known key name from the System.ConsoleKey enumeration..
+        /// </summary>
+        internal static string UnrecognizedKey {
+            get {
+                return ResourceManager.GetString("UnrecognizedKey", resourceCulture);
             }
         }
         

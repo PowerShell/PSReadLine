@@ -1,8 +1,13 @@
-﻿using System;
-using System.Text;
-using System.Windows;
+﻿/********************************************************************++
+Copyright (c) Microsoft Corporation.  All rights reserved.
+--********************************************************************/
 
-namespace PSConsoleUtilities
+using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Text;
+using System.Windows.Forms;
+
+namespace Microsoft.PowerShell
 {
     public partial class PSConsoleReadLine
     {
@@ -21,6 +26,7 @@ namespace PSConsoleUtilities
         /// Start interactive screen capture - up/down arrows select lines, enter copies
         /// selected text to clipboard as text and html
         /// </summary>
+        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void CaptureScreen(ConsoleKeyInfo? key = null, object arg = null)
         {
             int selectionTop = Console.CursorTop;

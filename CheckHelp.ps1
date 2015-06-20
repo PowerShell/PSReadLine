@@ -2,7 +2,7 @@ Import-Module -Name PSReadline
 
 $about_topic = Get-Help -Name about_PSReadline
 
-$methods = [PSConsoleUtilities.PSConsoleReadLine].GetMethods('public,static') |
+$methods = [Microsoft.PowerShell.PSConsoleReadLine].GetMethods('public,static') |
     Where-Object {
         $method = $_
         $parameters = $method.GetParameters()

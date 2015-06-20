@@ -25,7 +25,7 @@ $files = @('PSReadline\Changes.txt',
            'PSReadline\PSReadline.psd1',
            'PSReadline\PSReadline.psm1',
            'PSReadline\PSReadline.format.ps1xml',
-           'PSReadline\bin\Release\PSReadline.dll')
+           'PSReadline\bin\Release\Microsoft.PowerShell.PSReadline.dll')
 
 foreach ($file in $files)
 {
@@ -40,7 +40,7 @@ foreach ($file in $files)
     copy $PSScriptRoot\$file $targetDir\en-us
 }
 
-$version = (Get-ChildItem -Path $targetDir\PSReadline.dll).VersionInfo.FileVersion
+$version = (Get-ChildItem -Path $targetDir\Microsoft.PowerShell.PSReadline.dll).VersionInfo.FileVersion
 
 & $PSScriptRoot\Update-ModuleManifest.ps1 $targetDir\PSReadline.psd1 $version
 

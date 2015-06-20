@@ -18,15 +18,40 @@ Set-PSReadLineOption -HistorySearchCursorMovesToEnd
 Set-PSReadlineKeyHandler -Key UpArrow -Function HistorySearchBackward
 Set-PSReadlineKeyHandler -Key DownArrow -Function HistorySearchForward
 
+# Being able to search the entirety of your history in a popup makes it 
+# really easy to find a command you previously used.
+# Either press F7 to bring up your entire history, or type part of the 
+# command line and then press F7 to bring up just the commands that match.
+Set-PSReadlineKeyHandler -Key F7 `
+                         -BriefDescription History `
+                         -LongDescription 'Show history' `
+                         -ScriptBlock {
+    $history = [System.Collections.ArrayList]([System.IO.File]::ReadAllLines((Get-PSReadlineOption).HistorySavePath))
+    $history.Reverse()
+
+    $line = $null
+    $cursor = $null
+    [Microsoft.PowerShell.PSConsoleReadline]::GetBufferState([ref]$line, [ref]$cursor)
+    if ($line) {
+        $history = $history -match [regex]::Escape($line)
+    }
+
+    $command = $history | Get-Unique | Out-GridView -Title History -PassThru
+    if ($command) {
+        [Microsoft.PowerShell.PSConsoleReadLine]::RevertLine()
+        [Microsoft.PowerShell.PSConsoleReadLine]::Insert($command)
+    }
+}
+
 # This is an example of a macro that you might use to execute a command.
 # This will add the command to history.
 Set-PSReadlineKeyHandler -Key Ctrl+B `
                          -BriefDescription BuildCurrentDirectory `
                          -LongDescription "Build the current directory" `
                          -ScriptBlock {
-    [PSConsoleUtilities.PSConsoleReadLine]::RevertLine()
-    [PSConsoleUtilities.PSConsoleReadLine]::Insert("msbuild")
-    [PSConsoleUtilities.PSConsoleReadLine]::AcceptLine()
+    [Microsoft.PowerShell.PSConsoleReadLine]::RevertLine()
+    [Microsoft.PowerShell.PSConsoleReadLine]::Insert("msbuild")
+    [Microsoft.PowerShell.PSConsoleReadLine]::AcceptLine()
 }
 
 # In Emacs mode - Tab acts like in bash, but the Windows style completion
@@ -68,17 +93,17 @@ Set-PSReadlineKeyHandler -Key '"',"'" `
 
     $line = $null
     $cursor = $null
-    [PSConsoleUtilities.PSConsoleReadLine]::GetBufferState([ref]$line, [ref]$cursor)
+    [Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$line, [ref]$cursor)
 
     if ($line[$cursor] -eq $key.KeyChar) {
         # Just move the cursor
-        [PSConsoleUtilities.PSConsoleReadLine]::SetCursorPosition($cursor + 1)
+        [Microsoft.PowerShell.PSConsoleReadLine]::SetCursorPosition($cursor + 1)
     }
     else {
         # Insert matching quotes, move cursor to be in between the quotes
-        [PSConsoleUtilities.PSConsoleReadLine]::Insert("$($key.KeyChar)" * 2)
-        [PSConsoleUtilities.PSConsoleReadLine]::GetBufferState([ref]$line, [ref]$cursor)
-        [PSConsoleUtilities.PSConsoleReadLine]::SetCursorPosition($cursor - 1)
+        [Microsoft.PowerShell.PSConsoleReadLine]::Insert("$($key.KeyChar)" * 2)
+        [Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$line, [ref]$cursor)
+        [Microsoft.PowerShell.PSConsoleReadLine]::SetCursorPosition($cursor - 1)
     }
 }
 
@@ -95,11 +120,11 @@ Set-PSReadlineKeyHandler -Key '(','{','[' `
         <#case#> '[' { [char]']'; break }
     }
 
-    [PSConsoleUtilities.PSConsoleReadLine]::Insert("$($key.KeyChar)$closeChar")
+    [Microsoft.PowerShell.PSConsoleReadLine]::Insert("$($key.KeyChar)$closeChar")
     $line = $null
     $cursor = $null
-    [PSConsoleUtilities.PSConsoleReadLine]::GetBufferState([ref]$line, [ref]$cursor)
-    [PSConsoleUtilities.PSConsoleReadLine]::SetCursorPosition($cursor - 1)        
+    [Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$line, [ref]$cursor)
+    [Microsoft.PowerShell.PSConsoleReadLine]::SetCursorPosition($cursor - 1)        
 }
 
 Set-PSReadlineKeyHandler -Key ')',']','}' `
@@ -110,15 +135,15 @@ Set-PSReadlineKeyHandler -Key ')',']','}' `
 
     $line = $null
     $cursor = $null
-    [PSConsoleUtilities.PSConsoleReadLine]::GetBufferState([ref]$line, [ref]$cursor)
+    [Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$line, [ref]$cursor)
 
     if ($line[$cursor] -eq $key.KeyChar)
     {
-        [PSConsoleUtilities.PSConsoleReadLine]::SetCursorPosition($cursor + 1)
+        [Microsoft.PowerShell.PSConsoleReadLine]::SetCursorPosition($cursor + 1)
     }
     else
     {
-        [PSConsoleUtilities.PSConsoleReadLine]::Insert("$($key.KeyChar)")
+        [Microsoft.PowerShell.PSConsoleReadLine]::Insert("$($key.KeyChar)")
     }
 }
 
@@ -130,7 +155,7 @@ Set-PSReadlineKeyHandler -Key Backspace `
 
     $line = $null
     $cursor = $null
-    [PSConsoleUtilities.PSConsoleReadLine]::GetBufferState([ref]$line, [ref]$cursor)
+    [Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$line, [ref]$cursor)
 
     if ($cursor -gt 0)
     {
@@ -146,11 +171,11 @@ Set-PSReadlineKeyHandler -Key Backspace `
 
         if ($toMatch -ne $null -and $line[$cursor-1] -eq $toMatch)
         {
-            [PSConsoleUtilities.PSConsoleReadLine]::Delete($cursor - 1, 2)
+            [Microsoft.PowerShell.PSConsoleReadLine]::Delete($cursor - 1, 2)
         }
         else
         {
-            [PSConsoleUtilities.PSConsoleReadLine]::BackwardDeleteChar($key, $arg)
+            [Microsoft.PowerShell.PSConsoleReadLine]::BackwardDeleteChar($key, $arg)
         }
     }
 }
@@ -169,9 +194,9 @@ Set-PSReadlineKeyHandler -Key Alt+w `
 
     $line = $null
     $cursor = $null
-    [PSConsoleUtilities.PSConsoleReadLine]::GetBufferState([ref]$line, [ref]$cursor)
-    [PSConsoleUtilities.PSConsoleReadLine]::AddToHistory($line)
-    [PSConsoleUtilities.PSConsoleReadLine]::RevertLine()
+    [Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$line, [ref]$cursor)
+    [Microsoft.PowerShell.PSConsoleReadLine]::AddToHistory($line)
+    [Microsoft.PowerShell.PSConsoleReadLine]::RevertLine()
 }
 
 # Insert text from the clipboard as a here string
@@ -186,11 +211,11 @@ Set-PSReadlineKeyHandler -Key Ctrl+Shift+v `
     {
         # Get clipboard text - remove trailing spaces, convert \r\n to \n, and remove the final \n.
         $text = ([System.Windows.Clipboard]::GetText() -replace "\p{Zs}*`r?`n","`n").TrimEnd()
-        [PSConsoleUtilities.PSConsoleReadLine]::Insert("@'`n$text`n'@")
+        [Microsoft.PowerShell.PSConsoleReadLine]::Insert("@'`n$text`n'@")
     }
     else
     {
-        [PSConsoleUtilities.PSConsoleReadLine]::Ding()
+        [Microsoft.PowerShell.PSConsoleReadLine]::Ding()
     }
 }
 
@@ -205,20 +230,20 @@ Set-PSReadlineKeyHandler -Key 'Alt+(' `
 
     $selectionStart = $null
     $selectionLength = $null
-    [PSConsoleUtilities.PSConsoleReadLine]::GetSelectionState([ref]$selectionStart, [ref]$selectionLength)
+    [Microsoft.PowerShell.PSConsoleReadLine]::GetSelectionState([ref]$selectionStart, [ref]$selectionLength)
 
     $line = $null
     $cursor = $null
-    [PSConsoleUtilities.PSConsoleReadLine]::GetBufferState([ref]$line, [ref]$cursor)
+    [Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$line, [ref]$cursor)
     if ($selectionStart -ne -1)
     {
-        [PSConsoleUtilities.PSConsoleReadLine]::Replace($selectionStart, $selectionLength, '(' + $line.SubString($selectionStart, $selectionLength) + ')')
-        [PSConsoleUtilities.PSConsoleReadLine]::SetCursorPosition($selectionStart + $selectionLength + 2)
+        [Microsoft.PowerShell.PSConsoleReadLine]::Replace($selectionStart, $selectionLength, '(' + $line.SubString($selectionStart, $selectionLength) + ')')
+        [Microsoft.PowerShell.PSConsoleReadLine]::SetCursorPosition($selectionStart + $selectionLength + 2)
     }
     else
     {
-        [PSConsoleUtilities.PSConsoleReadLine]::Replace(0, $line.Length, '(' + $line + ')')
-        [PSConsoleUtilities.PSConsoleReadLine]::EndOfLine()
+        [Microsoft.PowerShell.PSConsoleReadLine]::Replace(0, $line.Length, '(' + $line + ')')
+        [Microsoft.PowerShell.PSConsoleReadLine]::EndOfLine()
     }
 }
 
@@ -235,7 +260,7 @@ Set-PSReadlineKeyHandler -Key "Alt+'" `
     $tokens = $null
     $errors = $null
     $cursor = $null
-    [PSConsoleUtilities.PSConsoleReadLine]::GetBufferState([ref]$ast, [ref]$tokens, [ref]$errors, [ref]$cursor)
+    [Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$ast, [ref]$tokens, [ref]$errors, [ref]$cursor)
 
     $tokenToChange = $null
     foreach ($token in $tokens)
@@ -279,7 +304,7 @@ Set-PSReadlineKeyHandler -Key "Alt+'" `
             $replacement = "'" + $tokenText + "'"
         }
 
-        [PSConsoleUtilities.PSConsoleReadLine]::Replace(
+        [Microsoft.PowerShell.PSConsoleReadLine]::Replace(
             $extent.StartOffset,
             $tokenText.Length,
             $replacement)
@@ -297,7 +322,7 @@ Set-PSReadlineKeyHandler -Key "Alt+%" `
     $tokens = $null
     $errors = $null
     $cursor = $null
-    [PSConsoleUtilities.PSConsoleReadLine]::GetBufferState([ref]$ast, [ref]$tokens, [ref]$errors, [ref]$cursor)
+    [Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$ast, [ref]$tokens, [ref]$errors, [ref]$cursor)
 
     $startAdjustment = 0
     foreach ($token in $tokens)
@@ -312,7 +337,7 @@ Set-PSReadlineKeyHandler -Key "Alt+%" `
                 {
                     $extent = $token.Extent
                     $length = $extent.EndOffset - $extent.StartOffset
-                    [PSConsoleUtilities.PSConsoleReadLine]::Replace(
+                    [Microsoft.PowerShell.PSConsoleReadLine]::Replace(
                         $extent.StartOffset + $startAdjustment,
                         $length,
                         $resolvedCommand)
@@ -337,7 +362,7 @@ Set-PSReadlineKeyHandler -Key F1 `
     $tokens = $null
     $errors = $null
     $cursor = $null
-    [PSConsoleUtilities.PSConsoleReadLine]::GetBufferState([ref]$ast, [ref]$tokens, [ref]$errors, [ref]$cursor)
+    [Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$ast, [ref]$tokens, [ref]$errors, [ref]$cursor)
 
     $commandAst = $ast.FindAll( {
         $node = $args[0]
@@ -395,7 +420,7 @@ Set-PSReadlineKeyHandler -Key Ctrl+j `
     if ($dir)
     {
         cd $dir
-        [PSConsoleUtilities.PSConsoleReadLine]::InvokePrompt()
+        [Microsoft.PowerShell.PSConsoleReadLine]::InvokePrompt()
     }
 }
 
@@ -409,7 +434,7 @@ Set-PSReadlineKeyHandler -Key Alt+j `
         [PSCustomObject]@{Key = $_.Key; Dir = $_.Value} } |
         Format-Table -AutoSize | Out-Host
 
-    [PSConsoleUtilities.PSConsoleReadLine]::InvokePrompt()
+    [Microsoft.PowerShell.PSConsoleReadLine]::InvokePrompt()
 }
 
 Set-PSReadlineOption -CommandValidationHandler {
@@ -422,7 +447,7 @@ Set-PSReadlineOption -CommandValidationHandler {
             switch ($gitCmd.Text)
             {
                 'cmt' {
-                    [PSConsoleUtilities.PSConsoleReadLine]::Replace(
+                    [Microsoft.PowerShell.PSConsoleReadLine]::Replace(
                         $gitCmd.StartOffset, $gitCmd.EndOffset - $gitCmd.StartOffset, 'commit')
                 }
             }

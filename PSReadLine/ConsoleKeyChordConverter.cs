@@ -1,10 +1,18 @@
-﻿using System;
+﻿/********************************************************************++
+Copyright (c) Microsoft Corporation.  All rights reserved.
+--********************************************************************/
+
+using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
 
-namespace PSConsoleUtilities
+namespace Microsoft.PowerShell
 {
+    /// <summary>
+    /// A helper class for converting strings to ConsoleKey chords.
+    /// </summary>
     public static class ConsoleKeyChordConverter
     {
         /// <summary>
@@ -27,7 +35,7 @@ namespace PSConsoleUtilities
 
             if (tokens.Length > 2)
             {
-                throw new ArgumentException("Chord can have at most two keys");
+                throw new ArgumentException(PSReadLineResources.ChordWIthTooManyKeys);
             }
 
             var result = new ConsoleKeyInfo[tokens.Length];
@@ -81,8 +89,7 @@ namespace PSConsoleUtilities
                         }
                         else
                         {
-                            throw new ArgumentException("Unrecognized key '" + token + "'. Please use a character literal or a " +
-                                "well-known key name from the System.ConsoleKey enumeration.");
+                            throw new ArgumentException(String.Format(CultureInfo.CurrentCulture, PSReadLineResources.UnrecognizedKey, token));
                         }
                     }
                     // try simple parse for ConsoleKey enum name
@@ -96,15 +103,13 @@ namespace PSConsoleUtilities
 
                         if (!valid)
                         {
-                            throw new ArgumentException(String.Format("Unable to translate '{0}' to " +
-                                "virtual key code: {1}.", token[0], failReason));
+                            throw new ArgumentException(String.Format(CultureInfo.CurrentCulture, PSReadLineResources.CantTranslateKey, token[0], failReason));
                         }
                     }
 
                     if (!valid)
                     {
-                        throw new ArgumentException("Unrecognized key '" + token + "'. Please use a character literal or a " +
-                            "well-known key name from the System.ConsoleKey enumeration.");
+                        throw new ArgumentException(String.Format(CultureInfo.CurrentCulture, PSReadLineResources.UnrecognizedKey, token));
                     }
                 }
                 else
@@ -126,21 +131,20 @@ namespace PSConsoleUtilities
                             // either found duplicate modifier token or shift state
                             // was already implied from char, e.g. char is "}", which is "shift+]"
                             throw new ArgumentException(
-                                String.Format("Duplicate or invalid modifier token '{0}' for key '{1}'.", modifier, key));
+                                String.Format(CultureInfo.CurrentCulture, PSReadLineResources.InvalidModifier, modifier, key));
                         }
                         modifiers |= modifier;
                     }
                     else
                     {
-                        throw new ArgumentException("Invalid modifier token '" + token + "'. The supported modifiers are " +
-                            "'alt', 'shift', 'control' or 'ctrl'.");
+                        throw new ArgumentException(String.Format(CultureInfo.CurrentCulture, PSReadLineResources.InvalidModifier, token));
                     }
                 }
             }
 
             if (!valid)
             {
-                throw new ArgumentException("Invalid sequence '" + sequence + "'.");
+                throw new ArgumentException(String.Format(CultureInfo.CurrentCulture, PSReadLineResources.InvalidSequence, sequence));
             }
 
             char keyChar = GetCharFromConsoleKey(key, modifiers);
@@ -157,6 +161,7 @@ namespace PSConsoleUtilities
 
             // shift state will be in MSB
             short virtualKey = NativeMethods.VkKeyScan(literal);
+            int hresult = Marshal.GetLastWin32Error();
 
             if (virtualKey != 0)
             {
@@ -188,13 +193,11 @@ namespace PSConsoleUtilities
                 else
                 {
                     // haven't seen this happen yet, but possible
-                    failReason = String.Format("The virtual key code {0} does not map " +
-                        "to a known System.ConsoleKey enumerated value.", virtualKey);
+                    failReason = String.Format(CultureInfo.CurrentCulture, PSReadLineResources.UnrecognizedKey, virtualKey);
                 }                
             }
             else
             {
-                int hresult = Marshal.GetLastWin32Error();
                 Exception e = Marshal.GetExceptionForHR(hresult);
                 failReason = e.Message;
             }

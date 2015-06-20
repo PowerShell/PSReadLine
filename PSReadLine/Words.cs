@@ -1,7 +1,11 @@
-﻿using System.Collections.Generic;
+﻿/********************************************************************++
+Copyright (c) Microsoft Corporation.  All rights reserved.
+--********************************************************************/
+
+using System.Collections.Generic;
 using System.Management.Automation.Language;
 
-namespace PSConsoleUtilities
+namespace Microsoft.PowerShell
 {
     public partial class PSConsoleReadLine
     {
