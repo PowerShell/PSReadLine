@@ -1,6 +1,10 @@
-﻿using System;
+﻿/********************************************************************++
+Copyright (c) Microsoft Corporation.  All rights reserved.
+--********************************************************************/
 
-namespace PSConsoleUtilities
+using System;
+
+namespace Microsoft.PowerShell
 {
     public static class Keys
     {

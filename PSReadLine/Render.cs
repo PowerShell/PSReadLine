@@ -1,4 +1,8 @@
-﻿using System;
+﻿/********************************************************************++
+Copyright (c) Microsoft Corporation.  All rights reserved.
+--********************************************************************/
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -7,11 +11,11 @@ using System.Management.Automation.Host;
 using System.Management.Automation.Language;
 using System.Runtime.InteropServices;
 using System.Security;
-using PSConsoleUtilities.Internal;
 using ConsoleHandle = Microsoft.Win32.SafeHandles.SafeFileHandle;
 using System.ComponentModel;
+using Microsoft.PowerShell.Internal;
 
-namespace PSConsoleUtilities
+namespace Microsoft.PowerShell
 {
     public partial class PSConsoleReadLine
     {
@@ -25,7 +29,9 @@ namespace PSConsoleUtilities
         private int _current;
         private int _emphasisStart;
         private int _emphasisLength;
+        [SuppressMessage("Microsoft.Reliability", "CA2006:UseSafeHandleToEncapsulateNativeResources")]
         private IntPtr _hwnd = (IntPtr)0;
+        [SuppressMessage("Microsoft.Reliability", "CA2006:UseSafeHandleToEncapsulateNativeResources")]
         private IntPtr _hDC = (IntPtr)0;
         private uint _codePage;
         private bool _istmInitialized = false;
@@ -105,6 +111,7 @@ namespace PSConsoleUtilities
             ReallyRender();
         }
 
+        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults")]
         private void ReallyRender()
         {
             var text = ParseInput();
@@ -153,11 +160,11 @@ namespace PSConsoleUtilities
                     }
                     _consoleBuffer = newBuffer;
                 }
-            
+
                 for (int i = 0; i < text.Length; i++)
                 {
                     SavedTokenState state = null;
-                    totalBytes = totalBytes%bufferWidth;
+                    totalBytes = totalBytes % bufferWidth;
                     if (!afterLastToken)
                     {
                         // Figure out the color of the character - if it's in a token,
@@ -221,7 +228,7 @@ namespace PSConsoleUtilities
 
                     if (text[i] == '\n')
                     {
-                        while ((j%bufferWidth) != 0)
+                        while ((j % bufferWidth) != 0)
                         {
                             _consoleBuffer[j++] = _space;
                         }
@@ -240,7 +247,7 @@ namespace PSConsoleUtilities
 
                         //if there is no enough space for the character at the edge, fill in spaces at the end and 
                         //put the character to next line.
-                        int filling = totalBytes > bufferWidth ? (totalBytes - bufferWidth)%size : 0;
+                        int filling = totalBytes > bufferWidth ? (totalBytes - bufferWidth) % size : 0;
                         for (int f = 0; f < filling; f++)
                         {
                             _consoleBuffer[j++] = _space;
@@ -251,19 +258,19 @@ namespace PSConsoleUtilities
                         {
                             _consoleBuffer[j].UnicodeChar = '^';
                             MaybeEmphasize(ref _consoleBuffer[j++], i, foregroundColor, backgroundColor);
-                            _consoleBuffer[j].UnicodeChar = (char) ('@' + text[i]);
+                            _consoleBuffer[j].UnicodeChar = (char)('@' + text[i]);
                             MaybeEmphasize(ref _consoleBuffer[j++], i, foregroundColor, backgroundColor);
 
                         }
-                        else if (size > 1  && IsCJKOutputCodePage() && _trueTypeInUse)
+                        else if (size > 1 && IsCJKOutputCodePage() && _trueTypeInUse)
                         {
                             _consoleBuffer[j].UnicodeChar = text[i];
-                            _consoleBuffer[j].Attributes = (ushort) ((uint)_consoleBuffer[j].Attributes |
-                                                           (uint) CHAR_INFO_Attributes.COMMON_LVB_LEADING_BYTE);
+                            _consoleBuffer[j].Attributes = (ushort)((uint)_consoleBuffer[j].Attributes |
+                                                           (uint)CHAR_INFO_Attributes.COMMON_LVB_LEADING_BYTE);
                             MaybeEmphasize(ref _consoleBuffer[j++], i, foregroundColor, backgroundColor);
                             _consoleBuffer[j].UnicodeChar = text[i];
-                            _consoleBuffer[j].Attributes = (ushort) ((uint)_consoleBuffer[j].Attributes |
-                                                           (uint) CHAR_INFO_Attributes.COMMON_LVB_TRAILING_BYTE);
+                            _consoleBuffer[j].Attributes = (ushort)((uint)_consoleBuffer[j].Attributes |
+                                                           (uint)CHAR_INFO_Attributes.COMMON_LVB_TRAILING_BYTE);
                             MaybeEmphasize(ref _consoleBuffer[j++], i, foregroundColor, backgroundColor);
                         }
                         else
@@ -276,10 +283,10 @@ namespace PSConsoleUtilities
             }
             finally
             {
-                if (_hwnd != (IntPtr)0 && _hDC != (IntPtr)0)  
-                 {  
-                     NativeMethods.ReleaseDC(_hwnd, _hDC);  
-                 }
+                if (_hwnd != (IntPtr)0 && _hDC != (IntPtr)0)
+                {
+                    NativeMethods.ReleaseDC(_hwnd, _hDC);
+                }
             }
 
             for (; j < (_consoleBuffer.Length - (statusLineCount * _bufferWidth)); j++)
@@ -521,6 +528,8 @@ namespace PSConsoleUtilities
             return i >= start && i < end;
         }
 
+        [SuppressMessage("Microsoft.Reliability", "CA2001:AvoidCallingProblematicMethods",
+            Justification = "Then the API we pass the handle to will return an error if it is invalid. They are not exposed.")]
         private static CONSOLE_FONT_INFO_EX GetConsoleFontInfo(ConsoleHandle consoleHandle)
         {
 
@@ -592,7 +601,7 @@ namespace PSConsoleUtilities
             int y = coordinates.Y;
             PlaceCursor(coordinates.X, ref y);
         }
-        
+
         private int LengthInBufferCells(char c)
         {
             int length = char.IsControl(c) ? 1 : 0;
@@ -717,13 +726,11 @@ namespace PSConsoleUtilities
                     _hwnd = NativeMethods.GetConsoleWindow();
                     if ((IntPtr)0 == _hwnd)
                     {
-                        int err = Marshal.GetLastWin32Error();
                         return 1;
                     }
                     _hDC = NativeMethods.GetDC(_hwnd);
                     if ((IntPtr)0 == _hDC)
                     {
-                        int err = Marshal.GetLastWin32Error();
                         //Don't throw exception so that output can continue
                         return 1;
                     }
@@ -734,7 +741,6 @@ namespace PSConsoleUtilities
                     result = NativeMethods.GetTextMetrics(_hDC, out _tm);
                     if (!result)
                     {
-                        int err = Marshal.GetLastWin32Error();
                         return 1;
                     }
                     _istmInitialized = true;
@@ -743,7 +749,6 @@ namespace PSConsoleUtilities
                 result = NativeMethods.GetCharWidth32(_hDC, (uint)c, (uint)c, out width);
                 if (!result)
                 {
-                    int err = Marshal.GetLastWin32Error();
                     return 1;
                 }
                 if (width >= _tm.tmMaxCharWidth)
@@ -949,6 +954,7 @@ namespace PSConsoleUtilities
         /// <summary>
         /// Scroll the display up one screen.
         /// </summary>
+        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void ScrollDisplayUp(ConsoleKeyInfo? key = null, object arg = null)
         {
             int numericArg;
@@ -964,6 +970,7 @@ namespace PSConsoleUtilities
         /// <summary>
         /// Scroll the display up one line.
         /// </summary>
+        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void ScrollDisplayUpLine(ConsoleKeyInfo? key = null, object arg = null)
         {
             int numericArg;
@@ -979,6 +986,7 @@ namespace PSConsoleUtilities
         /// <summary>
         /// Scroll the display down one screen.
         /// </summary>
+        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void ScrollDisplayDown(ConsoleKeyInfo? key = null, object arg = null)
         {
             int numericArg;
@@ -994,6 +1002,7 @@ namespace PSConsoleUtilities
         /// <summary>
         /// Scroll the display down one line.
         /// </summary>
+        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void ScrollDisplayDownLine(ConsoleKeyInfo? key = null, object arg = null)
         {
             int numericArg;
@@ -1009,6 +1018,7 @@ namespace PSConsoleUtilities
         /// <summary>
         /// Scroll the display to the top.
         /// </summary>
+        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void ScrollDisplayTop(ConsoleKeyInfo? key = null, object arg = null)
         {
             Console.SetWindowPosition(0, 0);
@@ -1017,6 +1027,7 @@ namespace PSConsoleUtilities
         /// <summary>
         /// Scroll the display to the cursor.
         /// </summary>
+        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void ScrollDisplayToCursor(ConsoleKeyInfo? key = null, object arg = null)
         {
             // Ideally, we'll put the last input line at the bottom of the window

@@ -387,8 +387,7 @@
   <data name="OopsAnErrorMessage1" xml:space="preserve">
     <value>
 Oops, something went wrong.  Please report this bug with the details below.
-Report on GitHub: https://github.com/lzybkr/PSReadLine/issues/new
-Or email: jason@truewheels.net</value>
+Report on GitHub: https://github.com/lzybkr/PSReadLine/issues/new</value>
   </data>
   <data name="OopsAnErrorMessage2" xml:space="preserve">
     <value>-----------------------------------------------------------------------
@@ -414,5 +413,23 @@ If there are other parse errors, unresolved commands, or incorrect parameters, s
   </data>
   <data name="DeleteCharOrExitDescription" xml:space="preserve">
     <value>Delete the character under the cusor, or if the line is empty, exit the process.</value>
+  </data>
+  <data name="CantTranslateKey" xml:space="preserve">
+    <value>Unable to translate '{0}' to virtual key code: {1}.</value>
+  </data>
+  <data name="ChordWIthTooManyKeys" xml:space="preserve">
+    <value>Chord can have at most two keys.</value>
+  </data>
+  <data name="InvalidModifier" xml:space="preserve">
+    <value>Duplicate or invalid modifier token '{0}' for key '{1}'.</value>
+  </data>
+  <data name="InvalidSequence" xml:space="preserve">
+    <value>Invalid sequence '{0}'.</value>
+  </data>
+  <data name="String1" xml:space="preserve">
+    <value>Invalid modifier token '{0}'. The supported modifiers are 'alt', 'shift', 'control' or 'ctrl'.</value>
+  </data>
+  <data name="UnrecognizedKey" xml:space="preserve">
+    <value>Unrecognized key '{0}'. Please use a character literal or a well-known key name from the System.ConsoleKey enumeration.</value>
   </data>
 </root>

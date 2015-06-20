@@ -1,10 +1,14 @@
-﻿using System;
+﻿/********************************************************************++
+Copyright (c) Microsoft Corporation.  All rights reserved.
+--********************************************************************/
+
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace PSConsoleUtilities
+namespace Microsoft.PowerShell
 {
     public static class NativeMethods
     {
@@ -20,6 +24,8 @@ namespace PSConsoleUtilities
 
         public const uint ENABLE_PROCESSED_INPUT = 0x0001;
         public const uint ENABLE_LINE_INPUT      = 0x0002;
+        public const uint ENABLE_WINDOW_INPUT    = 0x0008;
+        public const uint ENABLE_MOUSE_INPUT     = 0x0010;
 
         public const int FontTypeMask = 0x06;
         public const int TrueTypeFont = 0x04;
@@ -113,7 +119,7 @@ namespace PSConsoleUtilities
         None      = 255,
     }
 
-    public enum CHAR_INFO_Attributes : ushort
+    internal enum CHAR_INFO_Attributes : ushort
     {
         COMMON_LVB_LEADING_BYTE = 0x0100,
         COMMON_LVB_TRAILING_BYTE = 0x0200
@@ -127,14 +133,14 @@ namespace PSConsoleUtilities
     }
 
     [Flags]
-    public enum AccessQualifiers : uint
+    internal enum AccessQualifiers : uint
     {
         // From winnt.h
         GenericRead = 0x80000000,
         GenericWrite = 0x40000000
     }
 
-    public enum CreationDisposition : uint
+    internal enum CreationDisposition : uint
     {
         // From winbase.h
         CreateNew = 1,
@@ -145,7 +151,7 @@ namespace PSConsoleUtilities
     }
 
     [Flags]
-    public enum ShareModes : uint
+    internal enum ShareModes : uint
     {
         // From winnt.h
         ShareRead = 0x00000001,
@@ -159,14 +165,6 @@ namespace PSConsoleUtilities
         public short Right;
         public short Bottom;
 
-        public SMALL_RECT(int left, int top, int right, int bottom)
-        {
-            Left = (short)left;
-            Top = (short)top;
-            Right = (short)right;
-            Bottom = (short)bottom;
-        }
-
         [ExcludeFromCodeCoverage]
         public override string ToString()
         {
@@ -179,12 +177,6 @@ namespace PSConsoleUtilities
         public short X;
         public short Y;
 
-        public COORD(int x, int y)
-        {
-            X = (short)x;
-            Y = (short)y;
-        }
-
         [ExcludeFromCodeCoverage]
         public override string ToString()
         {
@@ -193,7 +185,7 @@ namespace PSConsoleUtilities
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct FONTSIGNATURE
+    internal struct FONTSIGNATURE
     {
         //From public\sdk\inc\wingdi.h
 
@@ -243,7 +235,7 @@ namespace PSConsoleUtilities
     }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-    public struct CONSOLE_FONT_INFO_EX
+    internal struct CONSOLE_FONT_INFO_EX
     {
         internal int cbSize;
         internal int nFont;
@@ -312,7 +304,7 @@ namespace PSConsoleUtilities
 
     }
 
-    public static class ConsoleKeyInfoExtension 
+    internal static class ConsoleKeyInfoExtension 
     {
         public static string ToGestureString(this ConsoleKeyInfo key)
         {

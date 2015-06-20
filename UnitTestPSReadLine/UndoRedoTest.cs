@@ -1,4 +1,4 @@
-﻿using PSConsoleUtilities;
+﻿using Microsoft.PowerShell;
 
 namespace UnitTestPSReadLine
 {

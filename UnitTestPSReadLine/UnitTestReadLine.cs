@@ -10,14 +10,14 @@ using System.Reflection;
 using System.Threading;
 using System.Windows;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using PSConsoleUtilities;
+using Microsoft.PowerShell;
 
 namespace UnitTestPSReadLine
 {
     // Disgusting language hack to make it easier to read a sequence of keys.
     using _ = Keys;
 
-    internal class MockedMethods : PSConsoleUtilities.Internal.IPSConsoleReadLineMockableMethods
+    internal class MockedMethods : Microsoft.PowerShell.Internal.IPSConsoleReadLineMockableMethods
     {
         internal int index;
         internal object[] items;
@@ -74,6 +74,11 @@ namespace UnitTestPSReadLine
         public CommandCompletion CompleteInput(string input, int cursorIndex, Hashtable options, PowerShell powershell)
         {
             return UnitTest.MockedCompleteInput(input, cursorIndex, options, powershell);
+        }
+
+        public bool RunspaceIsRemote(Runspace runspace)
+        {
+            return false;
         }
     }
 
@@ -576,7 +581,7 @@ namespace UnitTestPSReadLine
                 .GetField("_mockableMethods", BindingFlags.Instance | BindingFlags.NonPublic)
                 .SetValue(instance, mockedMethods);
 
-            var result = PSConsoleReadLine.ReadLine();
+            var result = PSConsoleReadLine.ReadLine(null, null);
 
             if (mockedMethods.validationFailure != null)
             {

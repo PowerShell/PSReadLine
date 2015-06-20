@@ -1,12 +1,17 @@
-﻿using System;
+﻿/********************************************************************++
+Copyright (c) Microsoft Corporation.  All rights reserved.
+--********************************************************************/
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
 
-namespace PSConsoleUtilities
+namespace Microsoft.PowerShell
 {
     public partial class PSConsoleReadLine
     {
@@ -211,7 +216,7 @@ namespace PSConsoleUtilities
             var sb = new StringBuilder();
             foreach (var line in historyLines)
             {
-                if (line.EndsWith("`"))
+                if (line.EndsWith("`", StringComparison.Ordinal))
                 {
                     sb.Append(line, 0, line.Length - 1);
                     sb.Append('\n');
@@ -246,6 +251,7 @@ namespace PSConsoleUtilities
         /// <summary>
         /// Clears history in PSReadline.  This does not affect PowerShell history.
         /// </summary>
+        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void ClearHistory(ConsoleKeyInfo? key = null, object arg = null)
         {
             if (_singleton._history != null)
@@ -356,6 +362,7 @@ namespace PSConsoleUtilities
         /// <summary>
         /// Replace the current input with the 'previous' item from PSReadline history.
         /// </summary>
+        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void PreviousHistory(ConsoleKeyInfo? key = null, object arg = null)
         {
             int numericArg;
@@ -372,6 +379,7 @@ namespace PSConsoleUtilities
         /// <summary>
         /// Replace the current input with the 'next' item from PSReadline history.
         /// </summary>
+        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void NextHistory(ConsoleKeyInfo? key = null, object arg = null)
         {
             int numericArg;
@@ -450,6 +458,7 @@ namespace PSConsoleUtilities
         /// <summary>
         /// Move to the first item in the history.
         /// </summary>
+        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void BeginningOfHistory(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.SaveCurrentLine();
@@ -460,6 +469,7 @@ namespace PSConsoleUtilities
         /// <summary>
         /// Move to the last item (the current input) in the history.
         /// </summary>
+        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void EndOfHistory(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton._currentHistoryIndex = _singleton._history.Count;
@@ -470,6 +480,7 @@ namespace PSConsoleUtilities
         /// Replace the current input with the 'previous' item from PSReadline history
         /// that matches the characters between the start and the input and the cursor.
         /// </summary>
+        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void HistorySearchBackward(ConsoleKeyInfo? key = null, object arg = null)
         {
             int numericArg;
@@ -487,6 +498,7 @@ namespace PSConsoleUtilities
         /// Replace the current input with the 'next' item from PSReadline history
         /// that matches the characters between the start and the input and the cursor.
         /// </summary>
+        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void HistorySearchForward(ConsoleKeyInfo? key = null, object arg = null)
         {
             int numericArg;
@@ -686,6 +698,7 @@ namespace PSConsoleUtilities
         /// <summary>
         /// Perform an incremental forward search through history
         /// </summary>
+        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void ForwardSearchHistory(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.InteractiveHistorySearch(+1);
@@ -694,6 +707,7 @@ namespace PSConsoleUtilities
         /// <summary>
         /// Perform an incremental backward search through history
         /// </summary>
+        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void ReverseSearchHistory(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.InteractiveHistorySearch(-1);

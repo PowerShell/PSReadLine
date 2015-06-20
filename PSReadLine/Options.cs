@@ -1,15 +1,20 @@
-﻿using System;
+﻿/********************************************************************++
+Copyright (c) Microsoft Corporation.  All rights reserved.
+--********************************************************************/
+
+using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Management.Automation;
 using System.Reflection;
 using System.Threading;
 
-namespace PSConsoleUtilities
+namespace Microsoft.PowerShell
 {
     public partial class PSConsoleReadLine
     {
         private readonly PSConsoleReadlineOptions _options;
-        public PSConsoleReadlineOptions Options
+        private PSConsoleReadlineOptions Options
         {
             get { return _options; }
         }
@@ -246,6 +251,7 @@ namespace PSConsoleUtilities
         /// <summary>
         /// Helper function for the Set-PSReadlineKeyHandler cmdlet.
         /// </summary>
+        [SuppressMessage("Microsoft.Design", "CA1006:DoNotNestGenericTypesInMemberSignatures")]
         public static void SetKeyHandler(string[] key, Action<ConsoleKeyInfo?, object> handler, string briefDescription, string longDescription)
         {
             _singleton.SetKeyHandlerInternal(key, handler, briefDescription, longDescription, null);
@@ -264,7 +270,8 @@ namespace PSConsoleUtilities
         /// Helper function for the Get-PSReadlineKeyHandler cmdlet.
         /// </summary>
         /// <returns></returns>
-        public static IEnumerable<PSConsoleUtilities.KeyHandler> GetKeyHandlers(bool includeBound = true, bool includeUnbound = false)
+        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
+        public static IEnumerable<Microsoft.PowerShell.KeyHandler> GetKeyHandlers(bool includeBound = true, bool includeUnbound = false)
         {
             var boundFunctions = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
@@ -278,7 +285,7 @@ namespace PSConsoleUtilities
                 boundFunctions.Add(entry.Value.BriefDescription);
                 if (includeBound)
                 {
-                    yield return new PSConsoleUtilities.KeyHandler
+                    yield return new Microsoft.PowerShell.KeyHandler
                     {
                         Key = entry.Key.ToGestureString(),
                         Function = entry.Value.BriefDescription,
@@ -294,7 +301,7 @@ namespace PSConsoleUtilities
                     boundFunctions.Add(secondEntry.Value.BriefDescription);
                     if (includeBound)
                     {
-                        yield return new PSConsoleUtilities.KeyHandler
+                        yield return new Microsoft.PowerShell.KeyHandler
                         {
                             Key = entry.Key.ToGestureString() + "," + secondEntry.Key.ToGestureString(),
                             Function = secondEntry.Value.BriefDescription,
@@ -322,7 +329,7 @@ namespace PSConsoleUtilities
 
                     if (!boundFunctions.Contains(method.Name))
                     {
-                        yield return new PSConsoleUtilities.KeyHandler
+                        yield return new Microsoft.PowerShell.KeyHandler
                         {
                             Key = "Unbound",
                             Function = method.Name,

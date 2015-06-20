@@ -1,8 +1,13 @@
-﻿using System;
+﻿/********************************************************************++
+Copyright (c) Microsoft Corporation.  All rights reserved.
+--********************************************************************/
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
-namespace PSConsoleUtilities
+namespace Microsoft.PowerShell
 {
     public partial class PSConsoleReadLine
     {
@@ -60,6 +65,7 @@ namespace PSConsoleUtilities
         /// <summary>
         /// Undo a previous edit.
         /// </summary>
+        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void Undo(ConsoleKeyInfo? key = null, object arg = null)
         {
             if (_singleton._undoEditIndex > 0)
@@ -82,6 +88,7 @@ namespace PSConsoleUtilities
         /// <summary>
         /// Undo an undo.
         /// </summary>
+        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void Redo(ConsoleKeyInfo? key = null, object arg = null)
         {
             if (_singleton._undoEditIndex < _singleton._edits.Count)

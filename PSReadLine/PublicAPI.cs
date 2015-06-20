@@ -1,21 +1,36 @@
-﻿using System;
+﻿/********************************************************************++
+Copyright (c) Microsoft Corporation.  All rights reserved.
+--********************************************************************/
+
+using System;
 using System.Collections;
+using System.Diagnostics.CodeAnalysis;
 using System.Management.Automation;
 using System.Management.Automation.Language;
+using System.Management.Automation.Runspaces;
 
-namespace PSConsoleUtilities
+namespace Microsoft.PowerShell
 {
     namespace Internal
     {
+        /// <summary/>
+        [SuppressMessage("Microsoft.MSInternal", "CA903:InternalNamespaceShouldNotContainPublicTypes")]
         public interface IPSConsoleReadLineMockableMethods
         {
+            /// <summary/>
             ConsoleKeyInfo ReadKey();
+            /// <summary/>
             bool KeyAvailable();
+            /// <summary/>
             void Ding();
-            CommandCompletion CompleteInput(string input, int cursorIndex, Hashtable options, PowerShell powershell);
+            /// <summary/>
+            CommandCompletion CompleteInput(string input, int cursorIndex, Hashtable options, System.Management.Automation.PowerShell powershell);
+            /// <summary/>
+            bool RunspaceIsRemote(Runspace runspace);
         }
     }
 
+    /// <summary/>
     public partial class PSConsoleReadLine
     {
         /// <summary>
@@ -162,6 +177,12 @@ namespace PSConsoleUtilities
             _singleton.PlaceCursor();
         }
 
+        /// <summary>
+        /// A helper method when your function expects an optional int argument (e.g. from DigitArgument)
+        /// If there is not argument (it's null), returns true and sets numericArg to derfaultNumericArg.
+        /// Dings and returns false if the argument is not an int (no conversion is attempted)
+        /// Otherwise returns true, and numericArg has the result.
+        /// </summary>
         public static bool TryGetArgAsInt(object arg, out int numericArg, int defaultNumericArg)
         {
             if (arg == null)

@@ -1,15 +1,23 @@
-﻿using System;
+﻿/********************************************************************++
+Copyright (c) Microsoft Corporation.  All rights reserved.
+--********************************************************************/
+
+using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Linq;
 using System.Management.Automation;
 using System.Management.Automation.Language;
+using System.Management.Automation.Runspaces;
 
-namespace PSConsoleUtilities
+namespace Microsoft.PowerShell
 {
     public partial class PSConsoleReadLine
     {
         /// <summary>
         /// Insert the key
         /// </summary>
+        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void SelfInsert(ConsoleKeyInfo? key = null, object arg = null)
         {
             if (!key.HasValue)
@@ -55,6 +63,7 @@ namespace PSConsoleUtilities
         /// <summary>
         /// Reverts all of the input to the current input.
         /// </summary>
+        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void RevertLine(ConsoleKeyInfo? key = null, object arg = null)
         {
             if (_singleton._statusIsErrorMessage)
@@ -75,6 +84,7 @@ namespace PSConsoleUtilities
         /// Cancel the current input, leaving the input on the screen,
         /// but returns back to the host so the prompt is evaluated again.
         /// </summary>
+        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void CancelLine(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.ClearStatusMessage(false);
@@ -109,6 +119,7 @@ namespace PSConsoleUtilities
         /// Like ForwardKillLine - deletes text from the point to the end of the line,
         /// but does not put the deleted text in the kill ring.
         /// </summary>
+        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void ForwardDeleteLine(ConsoleKeyInfo? key = null, object arg = null)
         {
             var current = _singleton._current;
@@ -127,6 +138,7 @@ namespace PSConsoleUtilities
         /// Like BackwardKillLine - deletes text from the point to the start of the line,
         /// but does not put the deleted text in the kill ring.
         /// </summary>
+        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void BackwardDeleteLine(ConsoleKeyInfo? key = null, object arg = null)
         {
             if (_singleton._current > 0)
@@ -142,6 +154,7 @@ namespace PSConsoleUtilities
         /// <summary>
         /// Delete the character before the cursor.
         /// </summary>
+        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void BackwardDeleteChar(ConsoleKeyInfo? key = null, object arg = null)
         {
             if (_singleton._visualSelectionCommandCount > 0)
@@ -191,6 +204,7 @@ namespace PSConsoleUtilities
         /// <summary>
         /// Delete the character under the cursor.
         /// </summary>
+        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void DeleteChar(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.DeleteCharImpl(orExit: false);
@@ -199,6 +213,7 @@ namespace PSConsoleUtilities
         /// <summary>
         /// Delete the character under the cursor, or if the line is empty, exit the process
         /// </summary>
+        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void DeleteCharOrExit(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.DeleteCharImpl(orExit: true);
@@ -223,6 +238,7 @@ namespace PSConsoleUtilities
             _emphasisStart = -1;
             _emphasisLength = 0;
 
+            var insertionPoint = _current;
             // Make sure cursor is at the end before writing the line
             _current = _buffer.Length;
 
@@ -239,6 +255,17 @@ namespace PSConsoleUtilities
                 var errorMessage = Validate(_ast);
                 if (!string.IsNullOrWhiteSpace(errorMessage))
                 {
+                    // If there are more keys, assume the user pasted with a right click and
+                    // we should insert a newline even though validation failed.
+                    if (_queuedKeys.Count > 0)
+                    {
+                        // Validation may have moved the cursor.  Because there are queued
+                        // keys, we need to move the cursor back to the correct place, and
+                        // ignore where validation put the cursor because the queued keys
+                        // will be inserted in the wrong place.
+                        SetCursorPosition(insertionPoint);
+                        Insert('\n');
+                    }
                     _statusLinePrompt = "";
                     _statusBuffer.Append(errorMessage);
                     _statusIsErrorMessage = true;
@@ -280,7 +307,7 @@ namespace PSConsoleUtilities
                         if (commandInfo == null && !_singleton.UnresolvedCommandCouldSucceed(commandName, _rootAst))
                         {
                             _singleton._current = commandAst.CommandElements[0].Extent.EndOffset;
-                            detectedError = string.Format(PSReadLineResources.CommandNotFoundError, commandName);
+                            detectedError = string.Format(CultureInfo.CurrentCulture, PSReadLineResources.CommandNotFoundError, commandName);
                             return AstVisitAction.StopVisit;
                         }
                     }
@@ -415,6 +442,7 @@ namespace PSConsoleUtilities
         /// continuation prompt is displayed on the next line and PSReadline waits for
         /// keys to edit the current input.
         /// </summary>
+        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void AcceptLine(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.AcceptLineImpl(false);
@@ -426,6 +454,7 @@ namespace PSConsoleUtilities
         /// continuation prompt is displayed on the next line and PSReadline waits for
         /// keys to edit the current input.
         /// </summary>
+        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void ValidateAndAcceptLine(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.AcceptLineImpl(true);
@@ -435,6 +464,7 @@ namespace PSConsoleUtilities
         /// Attempt to execute the current input.  If it can be executed (like AcceptLine),
         /// then recall the next item from history the next time Readline is called.
         /// </summary>
+        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void AcceptAndGetNext(ConsoleKeyInfo? key = null, object arg = null)
         {
             if (_singleton.AcceptLineImpl(false))
@@ -455,6 +485,7 @@ namespace PSConsoleUtilities
         /// keys to edit the current input.  This is useful to enter multi-line input as
         /// a single command even when a single line is complete input by itself.
         /// </summary>
+        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void AddLine(ConsoleKeyInfo? key = null, object arg = null)
         {
             Insert('\n');
