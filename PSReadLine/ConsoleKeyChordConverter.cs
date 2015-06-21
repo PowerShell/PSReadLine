@@ -137,7 +137,7 @@ namespace Microsoft.PowerShell
                     }
                     else
                     {
-                        throw new ArgumentException(String.Format(CultureInfo.CurrentCulture, PSReadLineResources.InvalidModifier, token));
+                        throw new ArgumentException(String.Format(CultureInfo.CurrentCulture, PSReadLineResources.InvalidModifier, token, key));
                     }
                 }
             }
