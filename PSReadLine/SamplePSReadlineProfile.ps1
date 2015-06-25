@@ -33,7 +33,7 @@ Set-PSReadlineKeyHandler -Key F7 `
         $pattern = [regex]::Escape($pattern)
     }
 
-    $history = [System.Collections.ArrayList]$(
+    $history = [System.Collections.ArrayList]@(
         $last = ''
         $lines = ''
         foreach ($line in [System.IO.File]::ReadLines((Get-PSReadlineOption).HistorySavePath))
@@ -60,7 +60,8 @@ Set-PSReadlineKeyHandler -Key F7 `
 
             if (($line -cne $last) -and (!$pattern -or ($line -match $pattern)))
             {
-                ($last = $line)
+                $last = $line
+                $line
             }
         }
     )
