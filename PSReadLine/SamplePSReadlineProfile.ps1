@@ -18,28 +18,60 @@ Set-PSReadLineOption -HistorySearchCursorMovesToEnd
 Set-PSReadlineKeyHandler -Key UpArrow -Function HistorySearchBackward
 Set-PSReadlineKeyHandler -Key DownArrow -Function HistorySearchForward
 
-# Being able to search the entirety of your history in a popup makes it 
-# really easy to find a command you previously used.
-# Either press F7 to bring up your entire history, or type part of the 
-# command line and then press F7 to bring up just the commands that match.
+# This key handler shows the entire or filtered history using Out-GridView. The
+# typed text is used as the substring pattern for filtering. A selected command
+# is inserted to the command line without invoking. Multiple command selection
+# is supported, e.g. selected by Ctrl + Click.
 Set-PSReadlineKeyHandler -Key F7 `
                          -BriefDescription History `
-                         -LongDescription 'Show history' `
+                         -LongDescription 'Show command history' `
                          -ScriptBlock {
-    $history = [System.Collections.ArrayList]([System.IO.File]::ReadAllLines((Get-PSReadlineOption).HistorySavePath))
-    $history.Reverse()
-
-    $line = $null
-    $cursor = $null
-    [Microsoft.PowerShell.PSConsoleReadline]::GetBufferState([ref]$line, [ref]$cursor)
-    if ($line) {
-        $history = $history -match [regex]::Escape($line)
+    $pattern = $null
+    [Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$pattern, [ref]$null)
+    if ($pattern)
+    {
+        $pattern = [regex]::Escape($pattern)
     }
 
-    $command = $history | Get-Unique | Out-GridView -Title History -PassThru
-    if ($command) {
+    $history = [System.Collections.ArrayList]@(
+        $last = ''
+        $lines = ''
+        foreach ($line in [System.IO.File]::ReadLines((Get-PSReadlineOption).HistorySavePath))
+        {
+            if ($line.EndsWith('`'))
+            {
+                $line = $line.Substring(0, $line.Length - 1)
+                $lines = if ($lines)
+                {
+                    "$lines`n$line"
+                }
+                else
+                {
+                    $line
+                }
+                continue
+            }
+
+            if ($lines)
+            {
+                $line = "$lines`n$line"
+                $lines = ''
+            }
+
+            if (($line -cne $last) -and (!$pattern -or ($line -match $pattern)))
+            {
+                $last = $line
+                $line
+            }
+        }
+    )
+    $history.Reverse()
+
+    $command = $history | Out-GridView -Title History -PassThru
+    if ($command)
+    {
         [Microsoft.PowerShell.PSConsoleReadLine]::RevertLine()
-        [Microsoft.PowerShell.PSConsoleReadLine]::Insert($command)
+        [Microsoft.PowerShell.PSConsoleReadLine]::Insert(($command -join "`n"))
     }
 }
 
