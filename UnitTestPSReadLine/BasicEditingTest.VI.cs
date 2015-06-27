@@ -578,6 +578,7 @@ namespace UnitTestPSReadLine
                 "uu"
                 ));
         }
+
         [TestMethod]
         public void ViTestChange()
         {
@@ -666,6 +667,62 @@ namespace UnitTestPSReadLine
 
             Test("$", Keys(
                 _.Escape, _.Dollar, 'i', _.Dollar, CheckThat(() => AssertCursorLeftIs(1))
+                ));
+        }
+
+        [TestMethod]
+        public void ViTestInsertLine()
+        {
+            TestSetup(KeyMode.Vi);
+
+            Test("line1\n", Keys(
+                _.Escape, "Oline1", CheckThat(() => AssertCursorLeftIs(5))
+                ));
+
+            Test("\nline1", Keys(
+                _.Escape, "oline1", CheckThat(() => AssertCursorLeftIs(8)), CheckThat(() => AssertLineIs("\nline1")),
+                _.Escape, CheckThat(() => AssertCursorLeftIs(7))
+                ));
+
+            Test("", Keys(
+                "line2", _.Escape, CheckThat(() => AssertLineIs("line2")),
+                "Oline1", _.Escape, CheckThat(() => AssertLineIs("line1\nline2")),
+                "joline3", _.Escape, CheckThat(() => AssertLineIs("line1\nline2\nline3")),
+                'u', CheckThat(() => AssertLineIs("line1\nline2")),
+                'u', CheckThat(() => AssertLineIs("line2")),
+                'u', CheckThat(() => AssertLineIs("line")),
+                "uuuu"
+                ));
+
+            Test("", Keys(
+                "line2", _.Escape, '0', CheckThat(() => AssertLineIs("line2")),
+                "Oline1", _.Escape, CheckThat(() => AssertLineIs("line1\nline2")),
+                'j', _.Dollar, "oline3", _.Escape, CheckThat(() => AssertLineIs("line1\nline2\nline3")),
+                'u', CheckThat(() => AssertLineIs("line1\nline2")),
+                'u', CheckThat(() => AssertLineIs("line2")),
+                'u', CheckThat(() => AssertLineIs("line")),
+                "uuuu"
+                ));
+        }
+
+        [TestMethod]
+        public void ViTestJoinLines()
+        {
+            Test("", Keys(
+                "line1", _.Escape, "oline2", CheckThat(() => AssertLineIs("line1\nline2")),
+                 _.Escape, "kJ", CheckThat(() => AssertLineIs("line1 line2")),
+                'u', CheckThat(() => AssertLineIs("line1\nline2")),
+                'u', CheckThat(() => AssertLineIs("line1")),
+                'u', CheckThat(() => AssertLineIs("line")),
+                "uuuu"
+                ));
+
+            Test("", Keys(
+                "line1", _.Escape, "oline2", CheckThat(() => AssertLineIs("line1\nline2")),
+                 _.Escape, _.Dollar, "J", CheckThat(() => AssertLineIs("line1\nline2")),
+                'u', CheckThat(() => AssertLineIs("line1")),
+                'u', CheckThat(() => AssertLineIs("line")),
+                "uuuu"
                 ));
         }
     }

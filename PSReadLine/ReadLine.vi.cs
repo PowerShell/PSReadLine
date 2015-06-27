@@ -368,7 +368,7 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Switch to Insert move.
+        /// Switch to Insert mode.
         /// </summary>
         public static void ViInsertMode(ConsoleKeyInfo? key = null, object arg = null)
         {
@@ -416,7 +416,8 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Switch to Insert mode and position the cursor at the end of the line.
         /// </summary>
-        public static void ViInsertAtEnd(ConsoleKeyInfo? key = null, object arg = null)
+        public static void 
+            ViInsertAtEnd(ConsoleKeyInfo? key = null, object arg = null)
         {
             ViInsertMode(key, arg);
             EndOfLine(key, arg);
@@ -968,6 +969,107 @@ namespace Microsoft.PowerShell
             else
             {
                 ViExit(key, arg);
+            }
+        }
+
+        /// <summary>
+        /// A new line is inserted above the current line.
+        /// </summary>
+        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
+        public static void ViInsertLine(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            _singleton._groupUndoHelper.StartGroup(ViInsertLine, arg);
+            _singleton.MoveToBeginningOfPhrase();
+            _singleton._buffer.Insert(_singleton._current, '\n');
+            _singleton._current = Math.Max(0, _singleton._current - 1);
+            _singleton.SaveEditItem(EditItemInsertChar.Create( '\n', _singleton._current));
+            _singleton.Render();
+            ViInsertMode();
+        }
+
+        private void MoveToBeginningOfPhrase()
+        {
+            while (!IsAtBeginningOfPhrase())
+            {
+                _current--;
+            }
+        }
+
+        private bool IsAtBeginningOfPhrase()
+        {
+            if (_current == 0)
+            {
+                return true;
+            }
+            if (_buffer[_current - 1] == '\n')
+            {
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// A new line is inserted below the current line.
+        /// </summary>
+        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
+        public static void ViAppendLine(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            _singleton._groupUndoHelper.StartGroup(ViInsertLine, arg);
+            _singleton.MoveToEndOfPhrase();
+            if (_singleton.IsAtEndOfLine(_singleton._current))
+            {
+                _singleton._buffer.Append('\n');
+            }
+            else
+            {
+                _singleton._buffer.Insert(++_singleton._current, '\n');
+            }
+            _singleton._current++;
+            _singleton.SaveEditItem(EditItemInsertChar.Create('\n', _singleton._current));
+            _singleton.Render();
+            ViInsertWithAppend();
+        }
+
+        private void MoveToEndOfPhrase()
+        {
+            while (!IsAtEndOfPhrase())
+            {
+                _current++;
+            }
+        }
+
+        private bool IsAtEndOfPhrase()
+        {
+            if (_buffer.Length == 0 || _current == _buffer.Length + ViEndOfLineFactor)
+            {
+                return true;
+            }
+            if (_buffer[_current] == '\n')
+            {
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Joins 2 lines.
+        /// </summary>
+        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
+        public static void ViJoinLines(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            _singleton.MoveToEndOfPhrase();
+            if (_singleton.IsAtEndOfLine(_singleton._current))
+            {
+                Ding();
+            }
+            else
+            {
+                _singleton._buffer[_singleton._current] = ' ';
+                _singleton._groupUndoHelper.StartGroup(ViJoinLines, arg);
+                _singleton.SaveEditItem(EditItemDelete.Create("\n", _singleton._current));
+                _singleton.SaveEditItem(EditItemInsertChar.Create(' ', _singleton._current));
+                _singleton._groupUndoHelper.EndGroup();
+                _singleton.Render();
             }
         }
     }
