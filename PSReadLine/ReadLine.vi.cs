@@ -981,7 +981,7 @@ namespace Microsoft.PowerShell
             _singleton._groupUndoHelper.StartGroup(ViInsertLine, arg);
             _singleton.MoveToBeginningOfPhrase();
             _singleton._buffer.Insert(_singleton._current, '\n');
-            _singleton._current = Math.Max(0, _singleton._current - 1);
+            //_singleton._current = Math.Max(0, _singleton._current - 1);
             _singleton.SaveEditItem(EditItemInsertChar.Create( '\n', _singleton._current));
             _singleton.Render();
             ViInsertMode();
@@ -1016,16 +1016,19 @@ namespace Microsoft.PowerShell
         {
             _singleton._groupUndoHelper.StartGroup(ViInsertLine, arg);
             _singleton.MoveToEndOfPhrase();
+            int insertPoint = 0;
             if (_singleton.IsAtEndOfLine(_singleton._current))
             {
+                insertPoint = _singleton._buffer.Length;
                 _singleton._buffer.Append('\n');
+                _singleton._current = insertPoint;
             }
             else
             {
-                _singleton._buffer.Insert(++_singleton._current, '\n');
+                insertPoint = _singleton._current + 1;
+                _singleton._buffer.Insert(insertPoint, '\n');
             }
-            _singleton._current++;
-            _singleton.SaveEditItem(EditItemInsertChar.Create('\n', _singleton._current));
+            _singleton.SaveEditItem(EditItemInsertChar.Create('\n', insertPoint));
             _singleton.Render();
             ViInsertWithAppend();
         }

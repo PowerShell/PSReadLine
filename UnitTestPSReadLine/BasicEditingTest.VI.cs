@@ -673,6 +673,7 @@ namespace UnitTestPSReadLine
         [TestMethod]
         public void ViTestInsertLine()
         {
+            int adder = PSConsoleReadlineOptions.DefaultContinuationPrompt.Length;
             TestSetup(KeyMode.Vi);
 
             Test("line1\n", Keys(
@@ -680,13 +681,13 @@ namespace UnitTestPSReadLine
                 ));
 
             Test("\nline1", Keys(
-                _.Escape, "oline1", CheckThat(() => AssertCursorLeftIs(8)), CheckThat(() => AssertLineIs("\nline1")),
-                _.Escape, CheckThat(() => AssertCursorLeftIs(7))
+                _.Escape, "oline1", CheckThat(() => AssertCursorLeftIs(5 + adder)), CheckThat(() => AssertLineIs("\nline1")),
+                _.Escape, CheckThat(() => AssertCursorLeftIs(4 + adder))
                 ));
 
             Test("", Keys(
                 "line2", _.Escape, CheckThat(() => AssertLineIs("line2")),
-                "Oline1", _.Escape, CheckThat(() => AssertLineIs("line1\nline2")),
+                "Oline1", _.Escape, CheckThat(() => AssertLineIs("line1\nline2")), CheckThat(() => AssertCursorLeftIs(4)),
                 "joline3", _.Escape, CheckThat(() => AssertLineIs("line1\nline2\nline3")),
                 'u', CheckThat(() => AssertLineIs("line1\nline2")),
                 'u', CheckThat(() => AssertLineIs("line2")),
@@ -702,6 +703,16 @@ namespace UnitTestPSReadLine
                 'u', CheckThat(() => AssertLineIs("line2")),
                 'u', CheckThat(() => AssertLineIs("line")),
                 "uuuu"
+                ));
+
+            Test("", Keys(
+                _.Escape, "oline4", CheckThat(() => AssertLineIs("\nline4")), CheckThat(() => AssertCursorLeftIs(5 + adder)),
+                _.Escape, "Oline2", CheckThat(() => AssertLineIs("\nline2\nline4")), CheckThat(() => AssertCursorLeftIs(5 + adder)),
+                _.Escape, "oline3", CheckThat(() => AssertLineIs("\nline2\nline3\nline4")),
+                _.Escape, CheckThat(() => AssertLineIs("\nline2\nline3\nline4")), CheckThat(() => AssertCursorLeftIs(4 + adder)),
+                'u', CheckThat(() => AssertLineIs("\nline2\nline4")),
+                'u', CheckThat(() => AssertLineIs("\nline4")),
+                'u'
                 ));
         }
 
