@@ -708,4 +708,13 @@ If there are other parse errors, unresolved commands, or incorrect parameters, s
   <data name="UnrecognizedKey" xml:space="preserve">
     <value>Unrecognized key '{0}'. Please use a character literal or a well-known key name from the System.ConsoleKey enumeration.</value>
   </data>
+  <data name="ViAppendLineDescription" xml:space="preserve">
+    <value>Appends a new multi-line edit mode line to the current line.</value>
+  </data>
+  <data name="ViInsertLineDescription" xml:space="preserve">
+    <value>Inserts a new multi-line edit mode line in front of the current line.</value>
+  </data>
+  <data name="ViJoinLinesDescription" xml:space="preserve">
+    <value>Joins the current multi-line edit mode line with the next.</value>
+  </data>
 </root>

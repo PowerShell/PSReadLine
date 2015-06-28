@@ -1294,6 +1294,15 @@ namespace Microsoft.PowerShell {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Appends a new multi-line edit mode line to the current line..
+        /// </summary>
+        internal static string ViAppendLineDescription {
+            get {
+                return ResourceManager.GetString("ViAppendLineDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Delete backward to the beginning of the previous word, as delimited by white space..
         /// </summary>
         internal static string ViBackwardDeleteGlobDescription {
@@ -1456,6 +1465,15 @@ namespace Microsoft.PowerShell {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Inserts a new multi-line edit mode line in front of the current line..
+        /// </summary>
+        internal static string ViInsertLine {
+            get {
+                return ResourceManager.GetString("ViInsertLine", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Switches to insert mode..
         /// </summary>
         internal static string ViInsertModeDescription {
@@ -1479,6 +1497,15 @@ namespace Microsoft.PowerShell {
         internal static string ViInsertWithDeleteDescription {
             get {
                 return ResourceManager.GetString("ViInsertWithDeleteDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Joins the current multi-line edit mode line with the next..
+        /// </summary>
+        internal static string ViJoinLinesDescription {
+            get {
+                return ResourceManager.GetString("ViJoinLinesDescription", resourceCulture);
             }
         }
         

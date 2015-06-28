@@ -168,7 +168,7 @@ namespace Microsoft.PowerShell
                 { Keys.ucL,             MakeViKeyHandler(Ding,                 "Ignore") },
                 { Keys.ucM,             MakeViKeyHandler(Ding,                 "Ignore") },
                 { Keys.ucN,             MakeViKeyHandler(RepeatSearchBackward, "RepeatSearchBackward") },
-                { Keys.ucO,             MakeViKeyHandler(ViInsertLine,       "ViInsertPhrase") },
+                { Keys.ucO,             MakeViKeyHandler(ViInsertLine,         "ViInsertLine") },
                 { Keys.ucP,             MakeViKeyHandler(PasteBefore,          "PasteBefore") },
                 { Keys.ucQ,             MakeViKeyHandler(Ding,                 "Ignore") },
                 { Keys.ucR,             MakeViKeyHandler(ViReplaceUntilEsc,    "ViReplaceUntilEsc") },
