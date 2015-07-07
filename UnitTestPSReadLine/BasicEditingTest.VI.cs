@@ -83,6 +83,12 @@ namespace UnitTestPSReadLine
                 "lrylre", CheckThat(() => AssertLineIs("gOOD123ye")),
                 "hR45", _.Escape, CheckThat(() => AssertLineIs("gOOD12345"))
                 ));
+
+            Test("hello", Keys(
+                _.Escape, "Chello", _.Escape, CheckThat(() => AssertLineIs("hello")),
+                "0Cgoodbye", _.Escape, CheckThat(() => AssertLineIs("goodbye")),
+                'u'
+                ));
         }
 
         [TestMethod]

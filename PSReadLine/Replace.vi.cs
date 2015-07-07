@@ -129,7 +129,7 @@ namespace Microsoft.PowerShell
         {
             _singleton._groupUndoHelper.StartGroup(ViReplaceToEnd, arg);
             DeleteToEnd(key, arg);
-            _singleton._current++;
+            _singleton._current = Math.Min(_singleton._buffer.Length, _singleton._current + 1);
             _singleton.PlaceCursor();
             ViInsertMode(key, arg);
         }
