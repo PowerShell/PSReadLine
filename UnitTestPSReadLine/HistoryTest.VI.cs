@@ -102,7 +102,7 @@ namespace UnitTestPSReadLine
             SetHistory("abc def ghi", "012 456 890");
 
             Test("012 456 890", Keys(
-                _.Escape, "kbb", CheckThat(() => AssertCursorLeftIs(4))
+                _.Escape, "k", CheckThat(() => AssertCursorLeftIs(0))
                 ));
         }
 
