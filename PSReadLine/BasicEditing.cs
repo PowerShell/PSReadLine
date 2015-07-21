@@ -490,5 +490,65 @@ namespace Microsoft.PowerShell
         {
             Insert('\n');
         }
+
+        /// <summary>
+        /// A new empty line is created above the current line regardless of where the cursor
+        /// is on the current line.  The cursor moves to the beginning of the new line.
+        /// </summary>
+        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
+        public static void InsertLineAbove(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            // Move the current postion to the beginning of the current line and only the current line.
+            if (_singleton.LineIsMultiLine())
+            {
+                int i = Math.Max(0, _singleton._current - 1);
+                for (; i > 0; i--)
+                {
+                    if (_singleton._buffer[i] == '\n')
+                    {
+                        i += 1;
+                        break;
+                    }
+                }
+
+                _singleton._current = i;
+            }
+            else
+            {
+                _singleton._current = 0;
+            }
+
+            Insert('\n');
+            PreviousLine();
+        }
+
+        /// <summary>
+        /// A new empty line is created below the current line regardless of where the cursor
+        /// is on the current line.  The cursor moves to the beginning of the new line. 
+        /// </summary>
+        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
+        public static void InsertLineBelow(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            // Move the current postion to the end of the current line and only the current line.
+            if (_singleton.LineIsMultiLine())
+            {
+                int i = _singleton._current;
+                for (; i < _singleton._buffer.Length; i++)
+                {
+                    if (_singleton._buffer[i] == '\n')
+                    {
+                        break;
+                    }
+                }
+
+                _singleton._current = i;
+            }
+            else
+            {
+                _singleton._current = _singleton._buffer.Length;
+            }
+
+            Insert('\n');
+        }
     }
 }

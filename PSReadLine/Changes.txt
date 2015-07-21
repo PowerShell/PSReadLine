@@ -1,3 +1,17 @@
+### Version 1.1.1
+
+New functions:
+* InsertLineAbove
+    - A new empty line is created above the current line regardless of where the cursor
+      is on the current line.  The cursor moves to the beginning of the new line.
+* InsertLineBelow
+    - A new empty line is created below the current line regardless of where the cursor
+      is on the current line.  The cursor moves to the beginning of the new line.
+
+New key bindings:
+* Ctrl+Enter bound to InsertLineAbove in Windows mode 
+* Ctrl+Shift+Enter bound to InsertLineBelow in Windows mode
+
 ### Version 1.1.0
 
 Breaking change:

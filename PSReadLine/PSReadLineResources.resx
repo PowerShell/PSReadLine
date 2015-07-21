@@ -432,4 +432,10 @@ If there are other parse errors, unresolved commands, or incorrect parameters, s
   <data name="UnrecognizedKey" xml:space="preserve">
     <value>Unrecognized key '{0}'. Please use a character literal or a well-known key name from the System.ConsoleKey enumeration.</value>
   </data>
+  <data name="InsertLineAboveDescription" xml:space="preserve">
+    <value>Inserts a new empty line above the current line without attempting to execute the input</value>
+  </data>
+  <data name="InsertLineBelowDescription" xml:space="preserve">
+    <value>Inserts a new empty line below the current line without attempting to execute the input</value>
+  </data>
 </root>

@@ -230,8 +230,11 @@ namespace Microsoft.PowerShell
         public static ConsoleKeyInfo ShiftCtrlLeftArrow  = new ConsoleKeyInfo((char)0, ConsoleKey.LeftArrow, true, false, true);
         public static ConsoleKeyInfo ShiftCtrlRightArrow = new ConsoleKeyInfo((char)0, ConsoleKey.RightArrow, true, false, true);
 
-        public static ConsoleKeyInfo ShiftTab   = new ConsoleKeyInfo((char)9, ConsoleKey.Tab, true, false, false);
-        public static ConsoleKeyInfo ShiftEnter = new ConsoleKeyInfo((char)13, ConsoleKey.Enter, true, false, false);
+        public static ConsoleKeyInfo ShiftTab = new ConsoleKeyInfo((char)9, ConsoleKey.Tab, true, false, false);
+
+        public static ConsoleKeyInfo CtrlEnter      = new ConsoleKeyInfo((char)10, ConsoleKey.Enter, false, false, true);
+        public static ConsoleKeyInfo CtrlShiftEnter = new ConsoleKeyInfo((char)0,  ConsoleKey.Enter, true, false, true);
+        public static ConsoleKeyInfo ShiftEnter     = new ConsoleKeyInfo((char)13, ConsoleKey.Enter, true, false, false);
 
         public static ConsoleKeyInfo F1 = new ConsoleKeyInfo((char)0, ConsoleKey.F1, false, false, false);
         public static ConsoleKeyInfo F2 = new ConsoleKeyInfo((char)0, ConsoleKey.F2, false, false, false);
@@ -286,7 +289,7 @@ namespace Microsoft.PowerShell
         public static ConsoleKeyInfo ShiftF3 = new ConsoleKeyInfo((char)0, ConsoleKey.F3, true, false, false);
         public static ConsoleKeyInfo ShiftF8 = new ConsoleKeyInfo((char)0, ConsoleKey.F8, true, false, false);
 
-        // Keys to ignore
+        // Keys to ignore 
         public static ConsoleKeyInfo VolumeUp   = new ConsoleKeyInfo((char)0, ConsoleKey.VolumeUp, false, false, false);
         public static ConsoleKeyInfo VolumeDown = new ConsoleKeyInfo((char)0, ConsoleKey.VolumeDown, false, false, false);
         public static ConsoleKeyInfo VolumeMute = new ConsoleKeyInfo((char)0, ConsoleKey.VolumeMute, false, false, false);

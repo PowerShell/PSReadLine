@@ -579,12 +579,15 @@ namespace Microsoft.PowerShell
             // after the constuctor but have an affect before the user starts
             // editing their first command line.  For example, if the user
             // specifies a custom history save file, we don't want to try reading
-            // from the default one.
-
-            var historyCountVar = _engineIntrinsics.SessionState.PSVariable.Get("MaximumHistoryCount");
-            if (historyCountVar != null && historyCountVar.Value is int)
+            // from the default one.  
+            // For unit testing _engineIntrinsics is null, so check for that.
+            if (_engineIntrinsics != null)
             {
-                _options.MaximumHistoryCount = (int)historyCountVar.Value;
+                var historyCountVar = _engineIntrinsics.SessionState.PSVariable.Get("MaximumHistoryCount");
+                if (historyCountVar != null && historyCountVar.Value is int)
+                {
+                    _options.MaximumHistoryCount = (int) historyCountVar.Value;
+                }
             }
 
             _historyFileMutex = new Mutex(false, GetHistorySaveFileMutexName());

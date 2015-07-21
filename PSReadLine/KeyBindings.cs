@@ -103,6 +103,8 @@ namespace Microsoft.PowerShell
             {
                 { Keys.Enter,                  MakeKeyHandler(AcceptLine,                "AcceptLine") },
                 { Keys.ShiftEnter,             MakeKeyHandler(AddLine,                   "AddLine") },
+                { Keys.CtrlEnter,              MakeKeyHandler(InsertLineAbove,           "InsertLineAbove") },
+                { Keys.CtrlShiftEnter,         MakeKeyHandler(InsertLineBelow,           "InsertLineBelow") },
                 { Keys.Escape,                 MakeKeyHandler(RevertLine,                "RevertLine") },
                 { Keys.LeftArrow,              MakeKeyHandler(BackwardChar,              "BackwardChar") },
                 { Keys.RightArrow,             MakeKeyHandler(ForwardChar,               "ForwardChar") },
@@ -370,6 +372,5 @@ namespace Microsoft.PowerShell
             _singleton._initialY = Console.CursorTop;
             _singleton.Render();
         }
-
     }
 }
