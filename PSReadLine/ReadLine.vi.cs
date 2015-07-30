@@ -76,6 +76,25 @@ namespace Microsoft.PowerShell
                 Ding();
             }
 
+            public static void SearchDelete(char keyChar, object arg, bool backoff, Action<ConsoleKeyInfo?, object> instigator)
+            {
+                int qty = (arg is int) ? (int) arg : 1;
+
+                for (int i = _singleton._current + 1; i < _singleton._buffer.Length; i++)
+                {
+                    if (_singleton._buffer[i] == keyChar)
+                    {
+                        qty -= 1;
+                        if (qty == 0)
+                        {
+                            DeleteToEndPoint(arg, backoff ? i : i + 1, instigator);
+                            return;
+                        }
+                    }
+                }
+                Ding();
+            }
+
             public static void SearchBackward(char keyChar, object arg, bool backoff)
             {
                 Set(keyChar, isBackward: true, isBackoff: backoff);
@@ -90,6 +109,26 @@ namespace Microsoft.PowerShell
                         {
                             _singleton._current = backoff ? i + 1 : i;
                             _singleton.PlaceCursor();
+                            return;
+                        }
+                    }
+                }
+                Ding();
+            }
+
+            public static void SearchBackwardDelete(char keyChar, object arg, bool backoff, Action<ConsoleKeyInfo?, object> instigator)
+            {
+                Set(keyChar, isBackward: true, isBackoff: backoff);
+                int qty = (arg is int) ? (int) arg : 1;
+
+                for (int i = _singleton._current - 1; i >= 0; i--)
+                {
+                    if (_singleton._buffer[i] == keyChar)
+                    {
+                        qty -= 1;
+                        if (qty == 0)
+                        {
+                            DeleteBackwardToEndPoint(arg, backoff ? i + 1 : i, instigator);
                             return;
                         }
                     }
@@ -241,11 +280,17 @@ namespace Microsoft.PowerShell
                 Ding();
                 return;
             }
+
+            DeleteToEndPoint(arg, endPoint, DeleteWord);
+        }
+
+        private static void DeleteToEndPoint(object arg, int endPoint, Action<ConsoleKeyInfo?, object> instigator)
+        {
             _singleton.SaveToClipboard(_singleton._current, endPoint - _singleton._current);
             _singleton.SaveEditItem(EditItemDelete.Create(
                 _singleton._clipboard,
                 _singleton._current,
-                DeleteWord,
+                instigator,
                 arg
                 ));
             _singleton._buffer.Remove(_singleton._current, endPoint - _singleton._current);
@@ -253,6 +298,20 @@ namespace Microsoft.PowerShell
             {
                 _singleton._current = Math.Max(0, _singleton._buffer.Length - 1);
             }
+            _singleton.Render();
+        }
+
+        private static void DeleteBackwardToEndPoint(object arg, int endPoint, Action<ConsoleKeyInfo?, object> instigator)
+        {
+            _singleton.SaveToClipboard(endPoint, _singleton._current - endPoint);
+            _singleton.SaveEditItem(EditItemDelete.Create(
+                _singleton._clipboard,
+                endPoint,
+                instigator,
+                arg
+                ));
+            _singleton._buffer.Remove(endPoint, _singleton._current - endPoint);
+            _singleton._current = endPoint;
             _singleton.Render();
         }
 
@@ -341,6 +400,78 @@ namespace Microsoft.PowerShell
                 _singleton._current = Math.Max(0, _singleton._buffer.Length - 1);
             }
             _singleton.Render();
+        }
+
+        /// <summary>
+        /// Deletes until given character
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="arg"></param>
+        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
+        private static void ViDeleteToChar(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            var keyChar = ReadKey().KeyChar;
+            ViDeleteToChar(keyChar, key, arg);
+        }
+
+        private static void ViDeleteToChar(char keyChar, ConsoleKeyInfo? key = null, object arg = null)
+        {
+            ViCharacterSearcher.Set(keyChar, isBackward: false, isBackoff: false);
+            ViCharacterSearcher.SearchDelete(keyChar, arg, backoff: false, instigator: (_key, _arg) => ViDeleteToChar(keyChar, _key, _arg));
+        }
+
+        /// <summary>
+        /// Deletes until given character
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="arg"></param>
+        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
+        private static void ViDeleteToCharBackward(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            var keyChar = ReadKey().KeyChar;
+            ViDeleteToCharBack(keyChar, key, arg);
+        }
+
+        private static void ViDeleteToCharBack(char keyChar, ConsoleKeyInfo? key = null, object arg = null)
+        {
+            ViCharacterSearcher.Set(keyChar, isBackward: true, isBackoff: false);
+            ViCharacterSearcher.SearchBackwardDelete(keyChar, arg, backoff: false, instigator: (_key, _arg) => ViDeleteToCharBack(keyChar, _key, _arg));
+        }
+
+        /// <summary>
+        /// Deletes until given character
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="arg"></param>
+        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
+        private static void ViDeleteToBeforeChar(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            var keyChar = ReadKey().KeyChar;
+            ViDeleteToBeforeChar(keyChar, key, arg);
+        }
+
+        private static void ViDeleteToBeforeChar(char keyChar, ConsoleKeyInfo? key = null, object arg = null)
+        {
+            ViCharacterSearcher.Set(keyChar, isBackward: false, isBackoff: true);
+            ViCharacterSearcher.SearchDelete(keyChar, arg, backoff: true, instigator: (_key, _arg) => ViDeleteToBeforeChar(keyChar, _key, _arg));
+        }
+
+        /// <summary>
+        /// Deletes until given character
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="arg"></param>
+        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
+        private static void ViDeleteToBeforeCharBackward(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            var keyChar = ReadKey().KeyChar;
+            ViDeleteToBeforeCharBack(keyChar, key, arg);
+        }
+
+        private static void ViDeleteToBeforeCharBack(char keyChar, ConsoleKeyInfo? key = null, object arg = null)
+        {
+            ViCharacterSearcher.Set(keyChar, isBackward: true, isBackoff: true);
+            ViCharacterSearcher.SearchBackwardDelete(keyChar, arg, backoff: true, instigator: (_key, _arg) => ViDeleteToBeforeCharBack(keyChar, _key, _arg));
         }
 
         /// <summary>

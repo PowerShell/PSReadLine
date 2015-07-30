@@ -245,5 +245,83 @@ namespace Microsoft.PowerShell
                 Ding();
             }
         }
+
+        /// <summary>
+        /// Deletes until given character
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="arg"></param>
+        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
+        private static void ViReplaceToChar(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            var keyChar = ReadKey().KeyChar;
+            ViReplaceToChar(keyChar, key, arg);
+        }
+
+        private static void ViReplaceToChar(char keyChar, ConsoleKeyInfo? key = null, object arg = null)
+        {
+            ViCharacterSearcher.Set(keyChar, isBackward: false, isBackoff: false);
+            ViCharacterSearcher.SearchDelete(keyChar, arg, backoff: false, instigator: (_key, _arg) => ViReplaceToChar(keyChar, _key, _arg));
+            ViInsertMode(key, arg);
+        }
+
+        /// <summary>
+        /// Replaces until given character
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="arg"></param>
+        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
+        private static void ViReplaceToCharBackward(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            var keyChar = ReadKey().KeyChar;
+            ViReplaceToCharBack(keyChar, key, arg);
+        }
+
+        private static void ViReplaceToCharBack(char keyChar, ConsoleKeyInfo? key = null, object arg = null)
+        {
+            ViCharacterSearcher.Set(keyChar, isBackward: true, isBackoff: false);
+            ViCharacterSearcher.SearchBackwardDelete(keyChar, arg, backoff: false, instigator: (_key, _arg) => ViReplaceToCharBack(keyChar, _key, _arg));
+            ViInsertMode(key, arg);
+        }
+
+        /// <summary>
+        /// Replaces until given character
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="arg"></param>
+        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
+        private static void ViReplaceToBeforeChar(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            var keyChar = ReadKey().KeyChar;
+            ViReplaceToBeforeChar(keyChar, key, arg);
+        }
+
+        private static void ViReplaceToBeforeChar(char keyChar, ConsoleKeyInfo? key = null, object arg = null)
+        {
+            ViCharacterSearcher.Set(keyChar, isBackward: false, isBackoff: true);
+            ViCharacterSearcher.SearchDelete(keyChar, arg, backoff: true, instigator: (_key, _arg) => ViReplaceToBeforeChar(keyChar, _key, _arg));
+            ViInsertMode(key, arg);
+        }
+
+        /// <summary>
+        /// Replaces until given character
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="arg"></param>
+        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
+        private static void ViReplaceToBeforeCharBackward(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            var keyChar = ReadKey().KeyChar;
+            ViReplaceToBeforeCharBack(keyChar, key, arg);
+        }
+
+        private static void ViReplaceToBeforeCharBack(char keyChar, ConsoleKeyInfo? key = null, object arg = null)
+        {
+            ViCharacterSearcher.Set(keyChar, isBackward: true, isBackoff: true);
+            ViCharacterSearcher.SearchBackwardDelete(keyChar, arg, backoff: true, instigator: (_key, _arg) => ViReplaceToBeforeCharBack(keyChar, _key, _arg));
+            ViInsertMode(key, arg);
+        }
+
+
     }
 }
