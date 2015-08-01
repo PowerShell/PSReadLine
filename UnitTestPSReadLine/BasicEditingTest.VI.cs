@@ -725,6 +725,8 @@ namespace UnitTestPSReadLine
         [TestMethod]
         public void ViTestJoinLines()
         {
+            TestSetup(KeyMode.Vi);
+
             Test("", Keys(
                 "line1", _.Escape, "oline2", CheckThat(() => AssertLineIs("line1\nline2")),
                  _.Escape, "kJ", CheckThat(() => AssertLineIs("line1 line2")),
@@ -740,6 +742,18 @@ namespace UnitTestPSReadLine
                 'u', CheckThat(() => AssertLineIs("line1")),
                 'u', CheckThat(() => AssertLineIs("line")),
                 "uuuu"
+                ));
+        }
+
+        [TestMethod]
+        public void ViTestComplete()
+        {
+            TestSetup(KeyMode.Vi);
+
+            Test("ambiguousness", Keys(
+                "ambag", CheckThat(() => AssertLineIs("ambag")),
+                _.Escape, "hCig", _.Tab, CheckThat(() => AssertLineIs("ambiguous1")),
+                _.Escape, "Cness"
                 ));
         }
     }
