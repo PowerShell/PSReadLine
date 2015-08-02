@@ -76,7 +76,7 @@ namespace Microsoft.PowerShell
                 Ding();
             }
 
-            public static void SearchDelete(char keyChar, object arg, bool backoff, Action<ConsoleKeyInfo?, object> instigator)
+            public static bool SearchDelete(char keyChar, object arg, bool backoff, Action<ConsoleKeyInfo?, object> instigator)
             {
                 int qty = (arg is int) ? (int) arg : 1;
 
@@ -88,11 +88,12 @@ namespace Microsoft.PowerShell
                         if (qty == 0)
                         {
                             DeleteToEndPoint(arg, backoff ? i : i + 1, instigator);
-                            return;
+                            return true;
                         }
                     }
                 }
                 Ding();
+                return false;
             }
 
             public static void SearchBackward(char keyChar, object arg, bool backoff)
@@ -116,7 +117,7 @@ namespace Microsoft.PowerShell
                 Ding();
             }
 
-            public static void SearchBackwardDelete(char keyChar, object arg, bool backoff, Action<ConsoleKeyInfo?, object> instigator)
+            public static bool SearchBackwardDelete(char keyChar, object arg, bool backoff, Action<ConsoleKeyInfo?, object> instigator)
             {
                 Set(keyChar, isBackward: true, isBackoff: backoff);
                 int qty = (arg is int) ? (int) arg : 1;
@@ -129,11 +130,12 @@ namespace Microsoft.PowerShell
                         if (qty == 0)
                         {
                             DeleteBackwardToEndPoint(arg, backoff ? i + 1 : i, instigator);
-                            return;
+                            return true;
                         }
                     }
                 }
                 Ding();
+                return false;
             }
         }
 
@@ -303,14 +305,16 @@ namespace Microsoft.PowerShell
 
         private static void DeleteBackwardToEndPoint(object arg, int endPoint, Action<ConsoleKeyInfo?, object> instigator)
         {
-            _singleton.SaveToClipboard(endPoint, _singleton._current - endPoint);
+            int deleteLength = _singleton._current - endPoint + 1;
+
+            _singleton.SaveToClipboard(endPoint, deleteLength);
             _singleton.SaveEditItem(EditItemDelete.Create(
                 _singleton._clipboard,
                 endPoint,
                 instigator,
                 arg
                 ));
-            _singleton._buffer.Remove(endPoint, _singleton._current - endPoint);
+            _singleton._buffer.Remove(endPoint, deleteLength);
             _singleton._current = endPoint;
             _singleton.Render();
         }
@@ -434,7 +438,6 @@ namespace Microsoft.PowerShell
 
         private static void ViDeleteToCharBack(char keyChar, ConsoleKeyInfo? key = null, object arg = null)
         {
-            ViCharacterSearcher.Set(keyChar, isBackward: true, isBackoff: false);
             ViCharacterSearcher.SearchBackwardDelete(keyChar, arg, backoff: false, instigator: (_key, _arg) => ViDeleteToCharBack(keyChar, _key, _arg));
         }
 
