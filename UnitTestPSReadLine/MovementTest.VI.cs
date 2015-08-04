@@ -572,5 +572,50 @@ namespace UnitTestPSReadLine
                 _.Escape, 'h', _.Space, "ih"
                 ));
         }
+
+        [TestMethod]
+        public void ViTestCharDelete()
+        {
+            TestSetup(KeyMode.Vi);
+
+            Test("", Keys(
+                "abcdefg", _.Escape, CheckThat(()=> AssertLineIs("abcdefg")),
+                "0dfg", CheckThat(() => AssertLineIs("")),
+                'u', CheckThat(() => AssertLineIs("abcdefg")), CheckThat(() => AssertCursorLeftIs(6)),
+                "0dff", CheckThat(() => AssertLineIs("g")),
+                'u', CheckThat(() => AssertLineIs("abcdefg")), CheckThat(() => AssertCursorLeftIs(6)),
+                "0dfg"
+                ));
+
+            Test("", Keys(
+                "abcdefg", _.Escape, CheckThat(() => AssertLineIs("abcdefg")),
+                "dFa", _.Escape, CheckThat(() => AssertLineIs("")),
+                'u', CheckThat(() => AssertCursorLeftIs(6)),
+                "dFb", CheckThat(() => AssertLineIs("a")),
+                'u', CheckThat(() => AssertCursorLeftIs(6)),
+                "dFa"
+                ));
+
+            Test("0123456", Keys(
+                "0123456", _.Escape, CheckThat(() => AssertLineIs("0123456")),
+                "0dt6", CheckThat(() => AssertLineIs("6")),
+                'u', CheckThat(() => AssertLineIs("0123456")), CheckThat(() => AssertCursorLeftIs(6)),
+                "0dt5", CheckThat(() => AssertLineIs("56")),
+                'u', CheckThat(() => AssertLineIs("0123456")),
+                "0ldt6", CheckThat(() => AssertLineIs("06")),
+                'u', CheckThat(() => AssertLineIs("0123456")),
+                "0ldt5", CheckThat(() => AssertLineIs("056")),
+                'u'
+                ));
+
+            Test("0123456", Keys(
+                "0123456", _.Escape, CheckThat(() => AssertLineIs("0123456")),
+                "dT0", CheckThat(() => AssertLineIs("0")),
+                'u', CheckThat(() => AssertLineIs("0123456")), CheckThat(() => AssertCursorLeftIs(6)),
+                "hdT0", CheckThat(() => AssertLineIs("06")),
+                'u', CheckThat(() => AssertLineIs("0123456")), CheckThat(() => AssertCursorLeftIs(6)),
+                "0dT0"
+                ));
+        }
     }
 }
