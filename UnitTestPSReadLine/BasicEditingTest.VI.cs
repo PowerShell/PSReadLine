@@ -514,7 +514,7 @@ namespace UnitTestPSReadLine
                 _.Percent, CheckThat(() => AssertCursorLeftIs(9)),
                 'd', _.Percent, CheckThat(() => AssertLineIs("012  bc")),
                 "uh", CheckThat(() => AssertLineIs("012 [ 67 ] bc")), CheckThat(() => AssertCursorLeftIs(9)),
-                'c', _.Percent, "99", _.Escape, CheckThat(() => AssertLineIs( "012 99 bc")),
+                'c', _.Percent, "99", _.Escape, CheckThat(() => AssertLineIs("012 99 bc")),
                 'u'
                 ));
 
@@ -794,6 +794,20 @@ namespace UnitTestPSReadLine
                 'u', CheckThat(() => AssertLineIs("0123456")), CheckThat(() => AssertCursorLeftIs(6)),
                 "0cT0abc", _.Escape, CheckThat(() => AssertLineIs("0bc123456")),
                 'u'
+                ));
+        }
+
+        [TestMethod]
+        public void ViTestComplete()
+        {
+            TestSetup(KeyMode.Vi);
+
+            PSConsoleReadLine.SetKeyHandler(new[] { "Tab" }, PSConsoleReadLine.Complete, "", "");
+
+            Test("ambiguousness", Keys(
+                "ambag", CheckThat(() => AssertLineIs("ambag")),
+                _.Escape, "hCig", _.Tab, CheckThat(() => AssertLineIs("ambiguous1")),
+                _.Escape, "Cness"
                 ));
         }
     }
