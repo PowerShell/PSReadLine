@@ -104,8 +104,11 @@ namespace Microsoft.PowerShell
 
             bool useEditGroup = (_singleton._editGroupStart == -1);
 
-            if(useEditGroup)
+            if (useEditGroup)
+            {
                 _singleton.StartEditGroup();
+            }
+
             var str = _singleton._buffer.ToString(start, length);
             _singleton.SaveEditItem(EditItemDelete.Create(str, start));
             _singleton._buffer.Remove(start, length);
@@ -119,9 +122,12 @@ namespace Microsoft.PowerShell
             {
                 _singleton._current = start;
             }
-            if(useEditGroup)
+
+            if (useEditGroup)
+            {
                 _singleton.EndEditGroup(instigator, instigatorArg); // Instigator is needed for VI undo
-            _singleton.Render();
+                _singleton.Render();
+            }
         }
 
         /// <summary>

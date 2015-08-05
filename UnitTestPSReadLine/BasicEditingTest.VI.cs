@@ -806,8 +806,8 @@ namespace UnitTestPSReadLine
 
             Test("ambiguousness", Keys(
                 "ambag", CheckThat(() => AssertLineIs("ambag")),
-                _.Escape, "hCig", _.Tab, CheckThat(() => AssertLineIs("ambiguous1")),
-                _.Escape, "Cness"
+                _.Escape, "hCig", _.Tab, CheckThat(() => AssertLineIs("ambiguous")),
+                _.Escape, "Csness"
                 ));
         }
     }
