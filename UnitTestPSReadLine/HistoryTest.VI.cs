@@ -92,6 +92,14 @@ namespace UnitTestPSReadLine
                 "nn"
                 ) );
 
+            Test("anyway", Keys(
+                _.Escape, _.Slash, "way", _.Tab, CheckThat(() => AssertLineIs("anyway")),
+                "nnnn", CheckThat(() => AssertLineIs("that way")),
+                "N", CheckThat(() => AssertLineIs("anyway")),
+                "N", CheckThat(() => AssertLineIs("no way")),
+                "n"
+                ));
+
         }
 
         [TestMethod]

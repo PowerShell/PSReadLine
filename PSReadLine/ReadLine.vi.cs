@@ -866,7 +866,7 @@ namespace Microsoft.PowerShell
             while (true)
             {
                 var nextKey = ReadKey();
-                if (nextKey.Key == Keys.Enter.Key)
+                if (nextKey.Key == Keys.Enter.Key || nextKey.Key == Keys.Tab.Key)
                 {
                     _searchHistoryPrefix = argBuffer.ToString();
                     _searchHistoryBackward = backward;
