@@ -25,15 +25,27 @@ Ed Wilson (Scripting Guy) wrote a series on PSReadline, starting [here](http://b
 
 ##Installation
 
-PSReadline builds are available in two places, GitHub and the PowerShell Gallery.  The most recent builds will be published to the PowerShell Gallery until they are considered stable and then will be published on GitHub.
+There are multiple ways to install PSReadline.
 
-To install from the PowerShell Gallery, you will need a recent build of [WMF5](http://go.microsoft.com/fwlink/?LinkId=398175).  If you have WMF5 already, you can just run `Install-Module PSReadline`.
+### Install from PowerShellGallery (preferred)
 
-To install the build from GitHub, you can install using [PsGet](http://psget.net) (very easy to install), and run `Install-Module PSReadline`.  Note that Install-Module from PsGet is different than Install-Module with WMF5.
+You will need PowerShellGet.  It is included in Windows 10 and [WMF5](http://go.microsoft.com/fwlink/?LinkId=398175). If you are using PowerShell V3 or V4, you will need to install [PowerShellGet](https://www.microsoft.com/en-us/download/details.aspx?id=49186).
 
-Alternatively, download the file [PSReadline.zip](https://github.com/lzybkr/PSReadLine/releases/download/Latest/PSReadline.zip) and extract the contents into your `C:\Users\[User]\Documents\WindowsPowerShell\modules\PSReadline` folder. (You may have to create these directories if they don't exist.)
+After installing PowerShellGet, you can simply run `Install-Module PSReadline`.
 
-Next edit your profile to import the module.  There are two common profile files commonly used and the instructions are slightly different for each.
+If you are on Windows 10, PSReadline is already installed.  At this time, you should not use Install-Module or Update-Module because there is not a newer version available for Windows 10.
+
+### Install from GitHub (deprecated)
+
+With the preview release of PowerShellGet for PowerShell V3/V4, I am deprecating downloads from GitHub.  I don't intend to update releases on GitHub, and may remove the release entirely from GitHub at some point.
+
+To install the build from GitHub, you can install using [PsGet](http://psget.net) (very easy to install), and run `Install-Module PSReadline`.  Note that PsGet and PowerShellGet both have a Install-Module command, but they are very different despite having similar names and commands. PowerShellGet is implemented and supported by the PowerShell team at Microsoft, PsGet is a 3rd party tool that was a source of inspiration for PowerShellGet.
+
+If you'd rather not use PsGet, you can just download the file [PSReadline.zip](https://github.com/lzybkr/PSReadLine/releases/download/Latest/PSReadline.zip) and extract the contents into your `C:\Users\[User]\Documents\WindowsPowerShell\modules\PSReadline` folder. (You may have to create these directories if they don't exist.)
+
+### Post Installation
+
+Edit your profile to import the module. This step is optional with PowerShell V5 and greater. There are two common profile files commonly used and the instructions are slightly different for each.
 
 The file `C:\Users\[User]\Documents\WindowsPowerShell\profile.ps1` is used for all hosts (e.g. the ISE and powershell.exe).  If you already have this file, then you should add the following:
 
@@ -54,9 +66,11 @@ In either case, you can create the appropriate file if you don't already have on
 
 ##Upgrading
 
-If you installed with `PSGet` or WMF5, you can run `Update-Module PSReadLine`.
+If you are on Windows 10, there is no upgrade available yet.  When an upgrade is available, these instructions will be updated.
 
-If you've added it to your `$PROFILE`, when you run `Update-Module PSReadLine` you will get the following error
+If you installed with `PSGet` or WMF5, you should exit from all instances of PowerShell that have loaded PSReadline, then run (from cmd.exe, or the Win+R run shortcut) `powershell -noprofile -command "Update-Module PSReadline"`.
+
+If you get an error like:
 
 ```
 Remove-Item : Cannot remove item
@@ -65,9 +79,7 @@ C:\Users\{yourName}\Documents\WindowsPowerShell\Modules\PSReadLine\PSReadline.dl
 At C:\Users\{yourName}\Documents\WindowsPowerShell\Modules\PsGet\PsGet.psm1:1009 char:52
 ```
 
-1. Run `cmd.exe`
-2. `powershell -noprofile`
-3. `Update-Module PSReadLine`
+Then you didn't kill all the processes that loaded PSReadline.
 
 ##Usage
 
