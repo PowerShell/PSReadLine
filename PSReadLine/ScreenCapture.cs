@@ -5,6 +5,7 @@ Copyright (c) Microsoft Corporation.  All rights reserved.
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace Microsoft.PowerShell
@@ -245,7 +246,31 @@ namespace Microsoft.PowerShell
 
             dataObject.SetData(DataFormats.Text, textBuffer.ToString());
             dataObject.SetData(DataFormats.Rtf, rtfBuffer.ToString());
-            Clipboard.SetDataObject(dataObject, copy: true);
+            SetClipboardDataObject(dataObject);
+        }
+
+
+        // Clipboard.SetDataObject must be called from an STA thread, else it will throw.
+        //
+        // Depending on runspace configuration, we might be on an MTA thread.
+        private static void SetClipboardDataObject(DataObject dataObject)
+        {
+            if (Thread.CurrentThread.GetApartmentState() == ApartmentState.STA)
+            {
+                Clipboard.SetDataObject(dataObject, copy: true);
+            }
+            else
+            {
+                Thread staThread = new Thread(StaThread);
+                staThread.SetApartmentState(ApartmentState.STA);
+                staThread.Start(new Action(() => SetClipboardDataObject(dataObject)));
+                staThread.Join();
+            }
+        }
+
+        private static void StaThread(object obj)
+        {
+            ((Action) obj)();
         }
     }
 }
