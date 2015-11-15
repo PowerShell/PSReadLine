@@ -150,6 +150,8 @@ namespace Microsoft.PowerShell
                     handleId = WaitHandle.WaitAny(_singleton._requestKeyWaitHandles, 300);
                     if (handleId != WaitHandle.WaitTimeout)
                         break;
+                    if (_singleton._engineIntrinsics == null)
+                        continue;
 
                     // If we timed out, check for event subscribers (which is just
                     // a hint that there might be an event waiting to be processed.)
@@ -581,10 +583,13 @@ namespace Microsoft.PowerShell
             // specifies a custom history save file, we don't want to try reading
             // from the default one.
 
-            var historyCountVar = _engineIntrinsics.SessionState.PSVariable.Get("MaximumHistoryCount");
-            if (historyCountVar != null && historyCountVar.Value is int)
+            if (_engineIntrinsics != null)
             {
-                _options.MaximumHistoryCount = (int)historyCountVar.Value;
+                var historyCountVar = _engineIntrinsics.SessionState.PSVariable.Get("MaximumHistoryCount");
+                if (historyCountVar != null && historyCountVar.Value is int)
+                {
+                    _options.MaximumHistoryCount = (int)historyCountVar.Value;
+                }
             }
 
             _historyFileMutex = new Mutex(false, GetHistorySaveFileMutexName());
