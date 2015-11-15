@@ -143,8 +143,8 @@ namespace Microsoft.PowerShell
         {
             if (_singleton._current > 0)
             {
-                var str = _singleton._buffer.ToString(0, _singleton._current);
-                _singleton.SaveEditItem(EditItemDelete.Create(str, 0));
+                _singleton._clipboard = _singleton._buffer.ToString(0, _singleton._current);
+                _singleton.SaveEditItem(EditItemDelete.Create(_singleton._clipboard, 0));
                 _singleton._buffer.Remove(0, _singleton._current);
                 _singleton._current = 0;
                 _singleton.Render();
@@ -167,17 +167,32 @@ namespace Microsoft.PowerShell
 
             if (_singleton._buffer.Length > 0 && _singleton._current > 0)
             {
-                int startDeleteIndex = _singleton._current - 1;
+                int qty = (arg is int) ? (int) arg : 1;
+                qty = Math.Min(qty, _singleton._current);
+
+                int startDeleteIndex = _singleton._current - qty;
                 _singleton.SaveEditItem(
-                    EditItemDelete.Create(new string(_singleton._buffer[startDeleteIndex], 1), startDeleteIndex));
-                _singleton._buffer.Remove(startDeleteIndex, 1);
-                _singleton._current--;
+                    EditItemDelete.Create(
+                        _singleton._buffer.ToString(startDeleteIndex, qty),
+                        startDeleteIndex,
+                        BackwardDeleteChar,
+                        arg)
+                        );
+                _singleton.SaveToClipboard(startDeleteIndex, qty);
+                _singleton._buffer.Remove(startDeleteIndex, qty);
+                _singleton._current = startDeleteIndex;
                 _singleton.Render();
+            }
+            else
+            {
+                Ding();
             }
         }
 
-        private void DeleteCharImpl(bool orExit)
+        private void DeleteCharImpl(int qty, bool orExit)
         {
+            qty = Math.Min(qty, _singleton._buffer.Length + 1 + ViEndOfLineFactor - _singleton._current);
+
             if (_visualSelectionCommandCount > 0)
             {
                 int start, length;
@@ -190,8 +205,13 @@ namespace Microsoft.PowerShell
             {
                 if (_current < _buffer.Length)
                 {
-                    SaveEditItem(EditItemDelete.Create(new string(_buffer[_current], 1), _current));
-                    _buffer.Remove(_current, 1);
+                    SaveEditItem(EditItemDelete.Create(_buffer.ToString(_current, qty), _current, DeleteChar, qty));
+                    SaveToClipboard(_current, qty);
+                    _buffer.Remove(_current, qty);
+                    if (_current >= _buffer.Length)
+                    {
+                        _current = Math.Max(0, _buffer.Length - 1);
+                    }
                     Render();
                 }
             }
@@ -207,7 +227,9 @@ namespace Microsoft.PowerShell
         [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void DeleteChar(ConsoleKeyInfo? key = null, object arg = null)
         {
-            _singleton.DeleteCharImpl(orExit: false);
+            int qty = (arg is int) ? (int)arg : 1;
+
+            _singleton.DeleteCharImpl(qty, orExit: false);
         }
 
         /// <summary>
@@ -216,7 +238,7 @@ namespace Microsoft.PowerShell
         [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void DeleteCharOrExit(ConsoleKeyInfo? key = null, object arg = null)
         {
-            _singleton.DeleteCharImpl(orExit: true);
+            _singleton.DeleteCharImpl(1, orExit: true);
         }
 
         private bool AcceptLineImpl(bool validate)

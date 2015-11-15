@@ -35,9 +35,7 @@ namespace Microsoft.PowerShell
     {
         Windows,
         Emacs,
-#if FALSE
         Vi,
-#endif
     }
 
     public enum BellStyle
@@ -46,6 +44,15 @@ namespace Microsoft.PowerShell
         Visual,
         Audible
     }
+
+    #region vi
+    public enum ViModeStyle
+    {
+        None,
+        Prompt,
+        Cursor
+    }
+    #endregion vi
 
     public enum HistorySaveStyle
     {
@@ -106,7 +113,7 @@ namespace Microsoft.PowerShell
         public const int DefaultCompletionQueryItems = 100;
 
         // Default includes all characters PowerShell treats like a dash - em dash, en dash, horizontal bar
-        public const string DefaultWordDelimiters = @";:,.[]{}()/\|^&*-=+" + "\u2013\u2014\u2015";
+        public const string DefaultWordDelimiters = @";:,.[]{}()/\|^&*-=+'""" + "\u2013\u2014\u2015";
 
         /// <summary>
         /// When ringing the bell, what should be done?
@@ -224,6 +231,10 @@ namespace Microsoft.PowerShell
         {
             get { return HistorySearchCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase; }
         }
+
+        #region vi
+        public ViModeStyle ViModeIndicator { get; set; }
+        #endregion vi
 
         /// <summary>
         /// The path to the saved history.
@@ -537,6 +548,16 @@ namespace Microsoft.PowerShell
         [Parameter(ParameterSetName = "OptionsSet")]
         [ValidateNotNullOrEmpty]
         public string HistorySavePath { get; set; }
+
+        #region vi
+        [Parameter(ParameterSetName = "OptionsSet")]
+        public ViModeStyle ViModeIndicator
+        {
+            get { return _viModeIndicator.GetValueOrDefault(); }
+            set { _viModeIndicator = value; }
+        }
+        internal ViModeStyle? _viModeIndicator;
+        #endregion vi
 
         [Parameter(ParameterSetName = "ColorSet", Position = 0, Mandatory = true)]
         public TokenClassification TokenKind

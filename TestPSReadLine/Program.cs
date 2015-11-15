@@ -70,6 +70,8 @@ namespace TestPSReadLine
                     PSConsoleReadLine.SetOptions(new SetPSReadlineOption {EditMode = EditMode.Windows});
                 if (line.Equals("emacs"))
                     PSConsoleReadLine.SetOptions(new SetPSReadlineOption {EditMode = EditMode.Emacs});
+                if (line.Equals("vi"))
+                    PSConsoleReadLine.SetOptions(new SetPSReadlineOption {EditMode = EditMode.Vi});
                 if (line.Equals("nodupes"))
                     PSConsoleReadLine.SetOptions(new SetPSReadlineOption {HistoryNoDuplicates = true});
             }

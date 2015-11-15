@@ -9,9 +9,9 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>PSReadLine</RootNamespace>
     <AssemblyName>Microsoft.PowerShell.PSReadLine</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
+    <TargetFrameworkProfile></TargetFrameworkProfile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -53,15 +53,18 @@
     <Compile Include="BasicEditing.cs" />
     <Compile Include="Cmdlets.cs" />
     <Compile Include="Completion.cs" />
+    <Compile Include="Completion.vi.cs" />
     <Compile Include="ConsoleBufferBuilder.cs" />
     <Compile Include="ConsoleKeyChordConverter.cs" />
     <Compile Include="ConsoleLib.cs" />
     <Compile Include="History.cs" />
     <Compile Include="HistoryQueue.cs" />
     <Compile Include="KeyBindings.cs" />
+    <Compile Include="KeyBindings.vi.cs" />
     <Compile Include="Keys.cs" />
     <Compile Include="KillYank.cs" />
     <Compile Include="Movement.cs" />
+    <Compile Include="Movement.vi.cs" />
     <Compile Include="Options.cs" />
     <Compile Include="PSReadLineResources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -70,10 +73,16 @@
     </Compile>
     <Compile Include="PublicAPI.cs" />
     <Compile Include="ReadLine.cs" />
+    <Compile Include="Replace.vi.cs" />
+    <Compile Include="ReadLine.vi.cs" />
     <Compile Include="Render.cs" />
     <Compile Include="ScreenCapture.cs" />
+    <Compile Include="UndoRedo.vi.cs" />
     <Compile Include="UndoRedo.cs" />
+    <Compile Include="VisualEditing.vi.cs" />
     <Compile Include="Words.cs" />
+    <Compile Include="Words.vi.cs" />
+    <Compile Include="YankPaste.vi.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />
@@ -82,7 +91,6 @@
     <EmbeddedResource Include="PSReadLineResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LogicalName>Microsoft.PowerShell.PSReadline.PSReadLineResources.resources</LogicalName>
-      <LastGenOutput>PSReadlineResources.Designer.cs</LastGenOutput>
       <CustomToolNamespace>Microsoft.PowerShell</CustomToolNamespace>
     </EmbeddedResource>
   </ItemGroup>
@@ -119,6 +127,11 @@
     </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>IF EXIST ..\..\CopyDLL.cmd (
+    ..\..\CopyDLL.cmd $(TargetPath)
+)</PostBuildEvent>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

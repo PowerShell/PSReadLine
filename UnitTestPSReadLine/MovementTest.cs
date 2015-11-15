@@ -70,7 +70,7 @@ namespace UnitTestPSReadLine
                 _.UpArrow, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 3)),
                 _.UpArrow, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 2)),
                 _.UpArrow, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 1)),
-                _.UpArrow, CheckThat(() => AssertCursorLeftTopIs(4, 0)),
+                _.UpArrow, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 0)),    // was (4,0), but seems wrong
 
                 // Make sure that movement between lines stays at the end of a line if it starts
                 // at the end of a line

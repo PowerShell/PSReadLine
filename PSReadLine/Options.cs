@@ -70,18 +70,18 @@ namespace Microsoft.PowerShell
                 Options.MaximumHistoryCount = options.MaximumHistoryCount;
                 if (_history != null)
                 {
-                    var newHistory = new HistoryQueue<HistoryItem>(Options.MaximumHistoryCount);
-                    while (_history.Count > Options.MaximumHistoryCount)
-                    {
-                        _history.Dequeue();
-                    }
-                    while (_history.Count > 0)
-                    {
-                        newHistory.Enqueue(_history.Dequeue());
-                    }
-                    _history = newHistory;
-                    _currentHistoryIndex = _history.Count;
+                var newHistory = new HistoryQueue<HistoryItem>(Options.MaximumHistoryCount);
+                while (_history.Count > Options.MaximumHistoryCount)
+                {
+                    _history.Dequeue();
                 }
+                while (_history.Count > 0)
+                {
+                    newHistory.Enqueue(_history.Dequeue());
+                }
+                _history = newHistory;
+                _currentHistoryIndex = _history.Count;
+            }
             }
             if (options._maximumKillRingCount.HasValue)
             {
@@ -100,11 +100,9 @@ namespace Microsoft.PowerShell
                 case EditMode.Emacs:
                     SetDefaultEmacsBindings();
                     break;
-#if FALSE
                 case EditMode.Vi:
-                    //TODO: _dispatchTable = _viKeyMap;
+                    SetDefaultViBindings();
                     break;
-#endif
                 case EditMode.Windows:
                     SetDefaultWindowsBindings();
                     break;
@@ -146,6 +144,12 @@ namespace Microsoft.PowerShell
             {
                 Options.HistorySaveStyle = options.HistorySaveStyle;
             }
+            #region vi
+            if (options._viModeIndicator.HasValue)
+            {
+                Options.ViModeIndicator = options.ViModeIndicator;
+            }
+            #endregion
             if (options.HistorySavePath != null)
             {
                 Options.HistorySavePath = options.HistorySavePath;
@@ -294,11 +298,34 @@ namespace Microsoft.PowerShell
                 }
             }
 
-            foreach (var entry in _singleton._chordDispatchTable)
+            // Added to support vi command mode mappings
+            if (_singleton._options.EditMode == EditMode.Vi)
             {
-                foreach (var secondEntry in entry.Value)
+                foreach (var entry in _viCmdKeyMap)
                 {
-                    boundFunctions.Add(secondEntry.Value.BriefDescription);
+                    if (entry.Value.BriefDescription == "Ignore"
+                        || entry.Value.BriefDescription == "ChordFirstKey")
+                    {
+                        continue;
+                    }
+                    boundFunctions.Add(entry.Value.BriefDescription);
+                    if (includeBound)
+                    {
+                        yield return new Microsoft.PowerShell.KeyHandler
+                        {
+                            Key = "<" + entry.Key.ToGestureString() + ">",
+                            Function = entry.Value.BriefDescription,
+                            Description = entry.Value.LongDescription,
+                        };
+                    }
+                }
+            }
+
+            foreach( var entry in _singleton._chordDispatchTable )
+            {
+                foreach( var secondEntry in entry.Value )
+                {
+                    boundFunctions.Add( secondEntry.Value.BriefDescription );
                     if (includeBound)
                     {
                         yield return new Microsoft.PowerShell.KeyHandler
@@ -307,6 +334,31 @@ namespace Microsoft.PowerShell
                             Function = secondEntry.Value.BriefDescription,
                             Description = secondEntry.Value.LongDescription,
                         };
+                    }
+                }
+            }
+
+            // Added to support vi command mode chorded mappings
+            if (_singleton._options.EditMode == EditMode.Vi)
+            {
+                foreach (var entry in _viCmdChordTable)
+                {
+                    foreach (var secondEntry in entry.Value)
+                    {
+                        if (secondEntry.Value.BriefDescription == "Ignore")
+                        {
+                            continue;
+                        }
+                        boundFunctions.Add(secondEntry.Value.BriefDescription);
+                        if (includeBound)
+                        {
+                            yield return new Microsoft.PowerShell.KeyHandler
+                            {
+                                Key = "<" + entry.Key.ToGestureString() + "," + secondEntry.Key.ToGestureString() + ">",
+                                Function = secondEntry.Value.BriefDescription,
+                                Description = secondEntry.Value.LongDescription
+                            };
+                        }
                     }
                 }
             }

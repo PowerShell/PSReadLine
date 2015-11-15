@@ -432,4 +432,289 @@ If there are other parse errors, unresolved commands, or incorrect parameters, s
   <data name="UnrecognizedKey" xml:space="preserve">
     <value>Unrecognized key '{0}'. Please use a character literal or a well-known key name from the System.ConsoleKey enumeration.</value>
   </data>
+  <data name="ViAcceptLineDescription" xml:space="preserve">
+    <value>Accept the line and switch to Vi's insert mode.</value>
+  </data>
+  <data name="BackwardDeleteWordDescription" xml:space="preserve">
+    <value>Delete the previous word in the line.</value>
+  </data>
+  <data name="ViCommandModeDescription" xml:space="preserve">
+    <value>Switch to VI's command mode.</value>
+  </data>
+  <data name="MoveToEndOfLineDescription" xml:space="preserve">
+    <value>Move to the end of the line.</value>
+  </data>
+  <data name="ViInsertWithAppendDescription" xml:space="preserve">
+    <value>Switch to insert mode, appending at the current line position.</value>
+  </data>
+  <data name="SwapCharactersDescription" xml:space="preserve">
+    <value>Swap the current character with the character before it.</value>
+  </data>
+  <data name="RepeatLastSearchDescription" xml:space="preserve">
+    <value>Repeats the last search.</value>
+  </data>
+  <data name="SearchBackwardCharDescription" xml:space="preserve">
+    <value>Searches backward for the perscribed character.</value>
+  </data>
+  <data name="SearchDescription" xml:space="preserve">
+    <value>Searches for the perscribed character in the perscribed direction.</value>
+  </data>
+  <data name="ViAppendAtEndDescription" xml:space="preserve">
+    <value>Switches to insert mode after positioning the cursor past the end of the line.</value>
+  </data>
+  <data name="DeleteLineToFirstCharDescription" xml:space="preserve">
+    <value>Deletes all of the line except for leading whitespace.</value>
+  </data>
+  <data name="BackwardReplaceCharDescription" xml:space="preserve">
+    <value>Replaces the character in front of the cursor.</value>
+  </data>
+  <data name="ViBackwardReplaceLineDescription" xml:space="preserve">
+    <value>Replaces the line left of the cursor and all of the way to the beginning.</value>
+  </data>
+  <data name="ViBackwardReplaceLineToFirstCharDescription" xml:space="preserve">
+    <value>Replaces the line left of the cursor and all but one character to the beginning of the line.</value>
+  </data>
+  <data name="PrependAndAcceptDescription" xml:space="preserve">
+    <value>Inserts the entered character at the beginning and accepts the line.</value>
+  </data>
+  <data name="DeleteBraceDescription" xml:space="preserve">
+    <value>Deletes all characters between the cursor and the matching brace.</value>
+  </data>
+  <data name="DeleteLineDescription" xml:space="preserve">
+    <value>Deletes the current line.</value>
+  </data>
+  <data name="DeleteToEndDescription" xml:space="preserve">
+    <value>Deletes from the cursor to the end of the line.</value>
+  </data>
+  <data name="DeleteToEndOfWordDescription" xml:space="preserve">
+    <value>Deletes from the cursor to the end of the current word.</value>
+  </data>
+  <data name="DeleteWordDescription" xml:space="preserve">
+    <value>Deletes the current word.</value>
+  </data>
+  <data name="GotoFirstNonBlankOfLineDescription" xml:space="preserve">
+    <value>Positions the cursor at the first non-blank character.</value>
+  </data>
+  <data name="NextWordEndDescription" xml:space="preserve">
+    <value>Moves the cursor forward to the end of the next word.</value>
+  </data>
+  <data name="GotoColumnDescription" xml:space="preserve">
+    <value>Moves the cursor to the perscribed column.</value>
+  </data>
+  <data name="ViInsertModeDescription" xml:space="preserve">
+    <value>Switches to insert mode.</value>
+  </data>
+  <data name="ViInsertAtBeginingDescription" xml:space="preserve">
+    <value>Moves the cursor to the beginning of the line and switches to insert mode.</value>
+  </data>
+  <data name="ViInsertAtEndDescription" xml:space="preserve">
+    <value>Moves the cursor to the end of the line and switches to insert mode.</value>
+  </data>
+  <data name="ViInsertWithDeleteDescription" xml:space="preserve">
+    <value>Deletes the current character and switches to insert mode.</value>
+  </data>
+  <data name="InvertCaseDescription" xml:space="preserve">
+    <value>Inverts the case of the current character and advances the cursor.</value>
+  </data>
+  <data name="RepeatLastCommandDescription" xml:space="preserve">
+    <value>Repeats the last modification command.</value>
+  </data>
+  <data name="RepeatSearchBackwardDescription" xml:space="preserve">
+    <value>Repeat the last search, but in the opposite direction.</value>
+  </data>
+  <data name="RepeatSearchDescription" xml:space="preserve">
+    <value>Repeat the last search.</value>
+  </data>
+  <data name="ViReplaceBraceDescription" xml:space="preserve">
+    <value>Replace all characters between the current brace character and it's matching partner.</value>
+  </data>
+  <data name="ReplaceCharDescription" xml:space="preserve">
+    <value>Replace the current character with the next set of characters typed.</value>
+  </data>
+  <data name="ReplaceCharInPlaceDescription" xml:space="preserve">
+    <value>Replace the current character with only one character.</value>
+  </data>
+  <data name="ViReplaceLineDescription" xml:space="preserve">
+    <value>Repace the current line with the next set of characters typed.</value>
+  </data>
+  <data name="ViReplaceToEndDescription" xml:space="preserve">
+    <value>Replace the characters from the cursor position to the end of the line.</value>
+  </data>
+  <data name="ViReplaceUntilEscDescription" xml:space="preserve">
+    <value>Replace the current character until an escape is entered or the line is accepted.</value>
+  </data>
+  <data name="ViReplaceWordDescription" xml:space="preserve">
+    <value>Replace the current word.</value>
+  </data>
+  <data name="InsertCharacterDescription" xml:space="preserve">
+    <value>Delete the current character and insert the next character.</value>
+  </data>
+  <data name="SearchBackwardDescription" xml:space="preserve">
+    <value>Starts a new seach backward in the history.</value>
+  </data>
+  <data name="ViTransposeCharsDescription" xml:space="preserve">
+    <value>Transposes the current character with the next character in the line.</value>
+  </data>
+  <data name="UndoAllDescription" xml:space="preserve">
+    <value>Undoes all commands for this line.</value>
+  </data>
+  <data name="SearchForwardDescription" xml:space="preserve">
+    <value>Prompts for a search string and initiates a search upon AcceptLine.</value>
+  </data>
+  <data name="RepeatLastCharSearchBackwardsDescription" xml:space="preserve">
+    <value>Repeat the last recorded character search in the opposite direction.</value>
+  </data>
+  <data name="RepeatLastCharSearchDescription" xml:space="preserve">
+    <value>Repeat the last recorded character search.</value>
+  </data>
+  <data name="SearchCharBackwardDescription" xml:space="preserve">
+    <value>Move to the previous occurance of the specified character.</value>
+  </data>
+  <data name="SearchCharBackwardWithBackoffDescription" xml:space="preserve">
+    <value>Move to the previous occurance of the specified character and then forward one character.</value>
+  </data>
+  <data name="SearchCharDescription" xml:space="preserve">
+    <value>Move to the next occurance of the specified character.</value>
+  </data>
+  <data name="SearchCharWithBackoffDescription" xml:space="preserve">
+    <value>Move to he next occurance of the specified character and then back one character.</value>
+  </data>
+  <data name="ViBackwardReplaceWordDescription" xml:space="preserve">
+    <value>Replace the previous word.</value>
+  </data>
+  <data name="ViBackwardWordDescription" xml:space="preserve">
+    <value>Delete backward to the beginning of the previous word, as delimited by white space and common delimiters, and enter insert mode.</value>
+  </data>
+  <data name="PasteAfterDescription" xml:space="preserve">
+    <value>Write the contents of the local clipboard after the cursor.</value>
+  </data>
+  <data name="ViNextWordDescription" xml:space="preserve">
+    <value>Move the cursor to the beginning of the next word, as delimited by white space and common delimiters.</value>
+  </data>
+  <data name="ViBackwardGlobDescription" xml:space="preserve">
+    <value>Move the cursor to the beginning of the previous word, as delimited by white space.</value>
+  </data>
+  <data name="ViEndOfGlobDescription" xml:space="preserve">
+    <value>Move the cursor to the end this word, as delimited by white space.</value>
+  </data>
+  <data name="PasteBeforeDescription" xml:space="preserve">
+    <value>Write the contents of the local clipboard before the cursor.</value>
+  </data>
+  <data name="ViNextGlobDescription" xml:space="preserve">
+    <value>Move the cursor to the beginning of the next word, as delimited by white space.</value>
+  </data>
+  <data name="ViGotoBraceDescription" xml:space="preserve">
+    <value>Move the cursor to the matching brace.</value>
+  </data>
+  <data name="ViBackwardDeleteGlobDescription" xml:space="preserve">
+    <value>Delete backward to the beginning of the previous word, as delimited by white space.</value>
+  </data>
+  <data name="ViDeleteGlobDescription" xml:space="preserve">
+    <value>Delete the current word, as delimited by white space.</value>
+  </data>
+  <data name="DeleteEndOfWordDescription" xml:space="preserve">
+    <value>Delete to the end of the current word, as delimited by white space and common delimiters.</value>
+  </data>
+  <data name="ViDeleteEndOfGlobDescription" xml:space="preserve">
+    <value>Delete to the end of this word, as delimited by white space.</value>
+  </data>
+  <data name="ViBackwardReplaceGlobDescription" xml:space="preserve">
+    <value>Delete backward to the beginning of the previous word, as delimited by white space, and enter insert mode.</value>
+  </data>
+  <data name="ViReplaceGlobDescription" xml:space="preserve">
+    <value>Delete to the beginning of the next word, as delimited by white space, and enter insert mode.</value>
+  </data>
+  <data name="ViReplaceEndOfWordDescription" xml:space="preserve">
+    <value>Delete to the end of the word, as delimited by white space and common delimters, and enter insert mode.</value>
+  </data>
+  <data name="ViReplaceEndOfGlobDescription" xml:space="preserve">
+    <value>Delete to the end of the word, as delimited by white space, and enter insert mode.</value>
+  </data>
+  <data name="ViYankLineDescription" xml:space="preserve">
+    <value>Place all characters in the current line into the local clipboard.</value>
+  </data>
+  <data name="ViYankToEndOfLineDescription" xml:space="preserve">
+    <value>Place all characters at and after the cursor into the local clipboard.</value>
+  </data>
+  <data name="ViYankPreviousWordDescription" xml:space="preserve">
+    <value>Place all characters from before the cursor to the beginning of the previous word, as delimted by white space and common delimiters, into the local clipboard.</value>
+  </data>
+  <data name="ViYankPreviousGlobDescription" xml:space="preserve">
+    <value>Place all characters from before the cursor to the beginning of the previous word, as delimited by white space, into the local clipboard.</value>
+  </data>
+  <data name="ViYankNextWordDescription" xml:space="preserve">
+    <value>Place all characters from the cursor to the end of the word, as delimited by white space and common delimiters, into the local clipboard.</value>
+  </data>
+  <data name="ViYankNextGlobDescription" xml:space="preserve">
+    <value>Place all characters from the cursor to the end of the word, as delimited by white space, into the local clipboard.</value>
+  </data>
+  <data name="ViYankEndOfWordDescription" xml:space="preserve">
+    <value>Place the characters from the cursor to the end of the next word, as delimited by white space and common delimiters, into the local clipboard.</value>
+  </data>
+  <data name="ViYankEndOfGlobDescription" xml:space="preserve">
+    <value>Place the characters from the cursor to the end of the next white space delimited word into the local clipboard.</value>
+  </data>
+  <data name="ViYankLeftDescription" xml:space="preserve">
+    <value>Place the character to the left of the cursor into the local clipboard.</value>
+  </data>
+  <data name="ViYankRightDescription" xml:space="preserve">
+    <value>Place the character at the cursor into the local clipboard.</value>
+  </data>
+  <data name="ViYankBeginningOfLineDescription" xml:space="preserve">
+    <value>Place the characters before the cursor into the local clipboard.</value>
+  </data>
+  <data name="ViYankToFirstCharDescription" xml:space="preserve">
+    <value>Place all characters before the cursor and to the 1st non-white space character into the local clipboard.</value>
+  </data>
+  <data name="ViYankPercentDescription" xml:space="preserve">
+    <value>Place all characters between the matching brace and the cursor into the local clipboard.</value>
+  </data>
+  <data name="ViDeleteBraceDescription" xml:space="preserve">
+    <value>Deletes all characters between the cursor position and the matching brace.</value>
+  </data>
+  <data name="ViAcceptLineOrExitDescription" xml:space="preserve">
+    <value>If the line is empty, exit, otherwise accept the line as input.</value>
+  </data>
+  <data name="ViDigitArgumentInChordDescription" xml:space="preserve">
+    <value>Handles the processing of a number argument after the first key of a chord.</value>
+  </data>
+  <data name="ViExitDescription" xml:space="preserve">
+    <value>Exit the shell.</value>
+  </data>
+  <data name="ViTabCompleteNextDescription" xml:space="preserve">
+    <value>Invokes TabCompleteNext after doing some vi-specific clean up.</value>
+  </data>
+  <data name="ViTabCompletePreviousDescription" xml:space="preserve">
+    <value>Invokes TabCompletePrevious after doing some vi-specific clean up.</value>
+  </data>
+  <data name="ViEditVisuallyDescription" xml:space="preserve">
+    <value>Invokes the console compatible editor specified by $env:VISUAL or $env:$EDITOR on the current command line.</value>
+  </data>
+  <data name="CantTranslateKey" xml:space="preserve">
+    <value>Unable to translate '{0}' to virtual key code: {1}.</value>
+  </data>
+  <data name="ChordWIthTooManyKeys" xml:space="preserve">
+    <value>Chord can have at most two keys.</value>
+  </data>
+  <data name="InvalidModifier" xml:space="preserve">
+    <value>Duplicate or invalid modifier token '{0}' for key '{1}'.</value>
+  </data>
+  <data name="InvalidSequence" xml:space="preserve">
+    <value>Invalid sequence '{0}'.</value>
+  </data>
+  <data name="String1" xml:space="preserve">
+    <value>Invalid modifier token '{0}'. The supported modifiers are 'alt', 'shift', 'control' or 'ctrl'.</value>
+  </data>
+  <data name="UnrecognizedKey" xml:space="preserve">
+    <value>Unrecognized key '{0}'. Please use a character literal or a well-known key name from the System.ConsoleKey enumeration.</value>
+  </data>
+  <data name="ViAppendLineDescription" xml:space="preserve">
+    <value>Appends a new multi-line edit mode line to the current line.</value>
+  </data>
+  <data name="ViInsertLineDescription" xml:space="preserve">
+    <value>Inserts a new multi-line edit mode line in front of the current line.</value>
+  </data>
+  <data name="ViJoinLinesDescription" xml:space="preserve">
+    <value>Joins the current multi-line edit mode line with the next.</value>
+  </data>
 </root>
