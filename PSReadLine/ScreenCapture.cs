@@ -4,6 +4,7 @@ Copyright (c) Microsoft Corporation.  All rights reserved.
 
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Forms;
 
@@ -163,6 +164,47 @@ namespace Microsoft.PowerShell
 \red255\green255\blue255;
 ";
 
+        private static string GetRTFColorFromColorRef(NativeMethods.COLORREF colorref)
+        {
+            return string.Concat("\\red", colorref.R.ToString("D"),
+                                 "\\green", colorref.G.ToString("D"),
+                                 "\\blue", colorref.B.ToString("D"), ";");
+        }
+
+        private static string GetColorTable()
+        {
+            var handle = NativeMethods.GetStdHandle((uint) StandardHandleId.Output);
+            var csbe = new NativeMethods.CONSOLE_SCREEN_BUFFER_INFO_EX
+            {
+                cbSize = Marshal.SizeOf(typeof(NativeMethods.CONSOLE_SCREEN_BUFFER_INFO_EX))
+            };
+            if (NativeMethods.GetConsoleScreenBufferInfoEx(handle, ref csbe))
+            {
+                return GetRTFColorFromColorRef(csbe.Black) +
+                       GetRTFColorFromColorRef(csbe.DarkBlue) +
+                       GetRTFColorFromColorRef(csbe.DarkGreen) +
+                       GetRTFColorFromColorRef(csbe.DarkCyan) +
+                       GetRTFColorFromColorRef(csbe.DarkRed) +
+                       GetRTFColorFromColorRef(csbe.DarkMagenta) +
+                       GetRTFColorFromColorRef(csbe.DarkYellow) +
+                       GetRTFColorFromColorRef(csbe.Gray) +
+                       GetRTFColorFromColorRef(csbe.DarkGray) +
+                       GetRTFColorFromColorRef(csbe.Blue) +
+                       GetRTFColorFromColorRef(csbe.Green) +
+                       GetRTFColorFromColorRef(csbe.Cyan) +
+                       GetRTFColorFromColorRef(csbe.Red) +
+                       GetRTFColorFromColorRef(csbe.Magenta) +
+                       GetRTFColorFromColorRef(csbe.Yellow) +
+                       GetRTFColorFromColorRef(csbe.White);
+            }
+
+            // A bit of a hack if the above failed - assume PowerShell's color scheme if the
+            // background color is Magenta, otherwise we assume the default scheme.
+            return Console.BackgroundColor == ConsoleColor.DarkMagenta
+                ? PowerShellColorTable
+                : CmdColorTable;
+        }
+
         private static void DumpScreenToClipboard(int top, int count)
         {
             var buffer = ReadBufferLines(top, count);
@@ -174,12 +216,7 @@ namespace Microsoft.PowerShell
             var rtfBuffer = new StringBuilder();
             rtfBuffer.Append(@"{\rtf\ansi{\fonttbl{\f0 Consolas;}}");
 
-            // A bit of a hack because I don't know how to find the shortcut used to start
-            // the current console.  We assume if the background color is Magenta, then
-            // PowerShell's color scheme is being used, otherwise we assume the default scheme.
-            var colorTable = Console.BackgroundColor == ConsoleColor.DarkMagenta
-                                 ? PowerShellColorTable
-                                 : CmdColorTable;
+            var colorTable = GetColorTable();
             rtfBuffer.AppendFormat(@"{{\colortbl;{0}}}{1}", colorTable, Environment.NewLine);
             rtfBuffer.Append(@"\f0 \fs18 ");
 
