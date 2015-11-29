@@ -70,18 +70,18 @@ namespace Microsoft.PowerShell
                 Options.MaximumHistoryCount = options.MaximumHistoryCount;
                 if (_history != null)
                 {
-                var newHistory = new HistoryQueue<HistoryItem>(Options.MaximumHistoryCount);
-                while (_history.Count > Options.MaximumHistoryCount)
-                {
-                    _history.Dequeue();
+                    var newHistory = new HistoryQueue<HistoryItem>(Options.MaximumHistoryCount);
+                    while (_history.Count > Options.MaximumHistoryCount)
+                    {
+                        _history.Dequeue();
+                    }
+                    while (_history.Count > 0)
+                    {
+                        newHistory.Enqueue(_history.Dequeue());
+                    }
+                    _history = newHistory;
+                    _currentHistoryIndex = _history.Count;
                 }
-                while (_history.Count > 0)
-                {
-                    newHistory.Enqueue(_history.Dequeue());
-                }
-                _history = newHistory;
-                _currentHistoryIndex = _history.Count;
-            }
             }
             if (options._maximumKillRingCount.HasValue)
             {
