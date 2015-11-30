@@ -282,7 +282,7 @@ namespace Microsoft.PowerShell
 
             dataObject.SetData(DataFormats.Text, textBuffer.ToString());
             dataObject.SetData(DataFormats.Rtf, rtfBuffer.ToString());
-            Clipboard.SetDataObject(dataObject, copy: true);
+            ExecuteOnSTAThread(() => Clipboard.SetDataObject(dataObject, copy: true));
         }
     }
 }
