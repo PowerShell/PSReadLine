@@ -85,21 +85,21 @@ namespace Microsoft.PowerShell
         private void ReadOneOrMoreKeys()
         {
             _readkeyStopwatch.Restart();
-            while (_mockableMethods.KeyAvailable())
-            {
-                _queuedKeys.Enqueue(_mockableMethods.ReadKey());
-                if (_readkeyStopwatch.ElapsedMilliseconds > 2)
+                while (_mockableMethods.KeyAvailable())
                 {
-                    // Don't spend too long in this loop if there are lots of queued keys
-                    break;
+                    _queuedKeys.Enqueue(_mockableMethods.ReadKey());
+                if (_readkeyStopwatch.ElapsedMilliseconds > 2)
+                    {
+                        // Don't spend too long in this loop if there are lots of queued keys
+                        break;
+                    }
                 }
-            }
 
-            if (_queuedKeys.Count == 0)
-            {
-                var key = _mockableMethods.ReadKey();
-                _queuedKeys.Enqueue(key);
-            }
+                if (_queuedKeys.Count == 0)
+                {
+                    var key = _mockableMethods.ReadKey();
+                    _queuedKeys.Enqueue(key);
+                }
         }
 
         private void ReadKeyThreadProc()
@@ -150,6 +150,8 @@ namespace Microsoft.PowerShell
                     handleId = WaitHandle.WaitAny(_singleton._requestKeyWaitHandles, 300);
                     if (handleId != WaitHandle.WaitTimeout)
                         break;
+                    if (_singleton._engineIntrinsics == null)
+                        continue;
 
                     // If we timed out, check for event subscribers (which is just
                     // a hint that there might be an event waiting to be processed.)
@@ -263,11 +265,11 @@ namespace Microsoft.PowerShell
             bool firstTime = true;
             while (true)
             {
-                try
-                {
-                    // Clear a couple flags so we can actually receive certain keys:
-                    //     ENABLE_PROCESSED_INPUT - enables Ctrl+C
-                    //     ENABLE_LINE_INPUT - enables Ctrl+S
+            try
+            {
+                // Clear a couple flags so we can actually receive certain keys:
+                //     ENABLE_PROCESSED_INPUT - enables Ctrl+C
+                //     ENABLE_LINE_INPUT - enables Ctrl+S
                     // Also clear a couple flags so we don't mask the input that we ignore:
                     //     ENABLE_MOUSE_INPUT - mouse events
                     //     ENABLE_WINDOW_INPUT - window resize events
@@ -284,64 +286,66 @@ namespace Microsoft.PowerShell
                         _singleton.Initialize(runspace, engineIntrinsics);
                     }
 
-                    return _singleton.InputLoop();
-                }
-                catch (OperationCanceledException)
-                {
-                    // Console is exiting - return value isn't too critical - null or 'exit' could work equally well.
-                    return "";
-                }
-                catch (ExitException)
-                {
-                    return "exit";
-                }
-                catch (Exception e)
-                {
-                    // If we're running tests, just throw.
-                    if (_singleton._mockableMethods != _singleton)
-                    {
-                        throw;
-                    }
-
-                    while (e.InnerException != null)
-                    {
-                        e = e.InnerException;
-                    }
-                    var oldColor = Console.ForegroundColor;
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine(PSReadLineResources.OopsAnErrorMessage1);
-                    Console.ForegroundColor = oldColor;
-                    var sb = new StringBuilder();
-                    for (int i = 0; i < _lastNKeys.Count; i++)
-                    {
-                        sb.Append(' ');
-                        sb.Append(_lastNKeys[i].ToGestureString());
-
-                        KeyHandler handler;
-                        if (_singleton._dispatchTable.TryGetValue(_lastNKeys[i], out handler) &&
-                            "AcceptLine".Equals(handler.BriefDescription, StringComparison.OrdinalIgnoreCase))
-                        {
-                            // Make it a little easier to see the keys
-                            sb.Append('\n');
-                        }
-                        // TODO: print non-default function bindings and script blocks
-                    }
-
-                    Console.WriteLine(PSReadLineResources.OopsAnErrorMessage2, _lastNKeys.Count, sb, e);
-                    var lineBeforeCrash = _singleton._buffer.ToString();
-                    _singleton.Initialize(runspace, _singleton._engineIntrinsics);
-                    InvokePrompt();
-                    Insert(lineBeforeCrash);
-                }
-                finally
-                {
-                    NativeMethods.SetConsoleMode(handle, _singleton._prePSReadlineConsoleMode);
-                }
+                return _singleton.InputLoop();
             }
+            catch (OperationCanceledException)
+            {
+                // Console is exiting - return value isn't too critical - null or 'exit' could work equally well.
+                return "";
+            }
+            catch (ExitException)
+            {
+                return "exit";
+            }
+            catch (Exception e)
+            {
+                // If we're running tests, just throw.
+                if (_singleton._mockableMethods != _singleton)
+                {
+                    throw;
+                }
+
+                while (e.InnerException != null)
+                {
+                    e = e.InnerException;
+                }
+                var oldColor = Console.ForegroundColor;
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine(PSReadLineResources.OopsAnErrorMessage1);
+                Console.ForegroundColor = oldColor;
+                var sb = new StringBuilder();
+                for (int i = 0; i < _lastNKeys.Count; i++)
+                {
+                    sb.Append(' ');
+                    sb.Append(_lastNKeys[i].ToGestureString());
+
+                    KeyHandler handler;
+                    if (_singleton._dispatchTable.TryGetValue(_lastNKeys[i], out handler) &&
+                        "AcceptLine".Equals(handler.BriefDescription, StringComparison.OrdinalIgnoreCase))
+                    {
+                        // Make it a little easier to see the keys
+                        sb.Append('\n');
+                    }
+                    // TODO: print non-default function bindings and script blocks
+                }
+
+                Console.WriteLine(PSReadLineResources.OopsAnErrorMessage2, _lastNKeys.Count, sb, e);
+                var lineBeforeCrash = _singleton._buffer.ToString();
+                    _singleton.Initialize(runspace, _singleton._engineIntrinsics);
+                InvokePrompt();
+                Insert(lineBeforeCrash);
+            }
+            finally
+            {
+                NativeMethods.SetConsoleMode(handle, _singleton._prePSReadlineConsoleMode);
+            }
+        }
         }
 
         private string InputLoop()
         {
+            ProcessViVisualEditing();
+
             while (true)
             {
                 var killCommandCount = _killCommandCount;
@@ -486,19 +490,19 @@ namespace Microsoft.PowerShell
             // singleton is called on a thread with a runspace, but it is happening by coincidence.
             using (var ps = System.Management.Automation.PowerShell.Create(RunspaceMode.CurrentRunspace))
             {
-                try
-                {
+            try
+            {
                     ps.AddCommand("Get-Variable").AddParameter("Name", "host").AddParameter("ValueOnly");
-                    var results = ps.Invoke();
-                    dynamic host = results.Count == 1 ? results[0] : null;
-                    if (host != null)
-                    {
-                        hostName = host.Name as string;
-                    }
-                }
-                catch
+                var results = ps.Invoke();
+                dynamic host = results.Count == 1 ? results[0] : null;
+                if (host != null)
                 {
+                    hostName = host.Name as string;
                 }
+            }
+            catch
+            {
+            }
             }
             if (hostName == null)
             {
@@ -581,10 +585,13 @@ namespace Microsoft.PowerShell
             // specifies a custom history save file, we don't want to try reading
             // from the default one.
 
-            var historyCountVar = _engineIntrinsics.SessionState.PSVariable.Get("MaximumHistoryCount");
-            if (historyCountVar != null && historyCountVar.Value is int)
+            if (_engineIntrinsics != null)
             {
-                _options.MaximumHistoryCount = (int)historyCountVar.Value;
+                var historyCountVar = _engineIntrinsics.SessionState.PSVariable.Get("MaximumHistoryCount");
+                if (historyCountVar != null && historyCountVar.Value is int)
+                {
+                    _options.MaximumHistoryCount = (int)historyCountVar.Value;
+                }
             }
 
             _historyFileMutex = new Mutex(false, GetHistorySaveFileMutexName());
@@ -614,7 +621,7 @@ namespace Microsoft.PowerShell
 
             if (readHistoryFile)
             {
-                ReadHistoryFile();
+            ReadHistoryFile();
             }
 
             _killIndex = -1; // So first add indexes 0.
@@ -719,6 +726,14 @@ namespace Microsoft.PowerShell
                 return;
             }
 
+            #region VI special case
+            if (_singleton._options.EditMode == EditMode.Vi && key.Value.KeyChar == '0')
+            {
+                BeginningOfLine();
+                return;
+            }
+            #endregion VI special case
+
             bool sawDigit = false;
             _singleton._statusLinePrompt = "digit-argument: ";
             var argBuffer = _singleton._statusBuffer;
@@ -815,7 +830,7 @@ namespace Microsoft.PowerShell
             }
             _singleton.Render();
             Console.CursorLeft = 0;
-            Console.CursorTop = _singleton._initialY;
+            Console.CursorTop = _singleton._initialY - _singleton.Options.ExtraPromptLineCount;
 
             var runspaceIsRemote = _singleton._mockableMethods.RunspaceIsRemote(_singleton._runspace);
             System.Management.Automation.PowerShell ps;

@@ -91,7 +91,7 @@ namespace Microsoft.PowerShell
         /// <param name="start">The start position to replace</param>
         /// <param name="length">The length to replace</param>
         /// <param name="replacement">The replacement text</param>
-        public static void Replace(int start, int length, string replacement)
+        public static void Replace(int start, int length, string replacement, Action<ConsoleKeyInfo?, object> instigator = null, object instigatorArg = null)
         {
             if (start < 0 || start > _singleton._buffer.Length)
             {
@@ -102,7 +102,13 @@ namespace Microsoft.PowerShell
                 throw new ArgumentException(PSReadLineResources.ReplacementLengthTooBig, "length");
             }
 
-            _singleton.StartEditGroup();
+            bool useEditGroup = (_singleton._editGroupStart == -1);
+
+            if (useEditGroup)
+            {
+                _singleton.StartEditGroup();
+            }
+
             var str = _singleton._buffer.ToString(start, length);
             _singleton.SaveEditItem(EditItemDelete.Create(str, start));
             _singleton._buffer.Remove(start, length);
@@ -116,8 +122,12 @@ namespace Microsoft.PowerShell
             {
                 _singleton._current = start;
             }
-            _singleton.EndEditGroup();
-            _singleton.Render();
+
+            if (useEditGroup)
+            {
+                _singleton.EndEditGroup(instigator, instigatorArg); // Instigator is needed for VI undo
+                _singleton.Render();
+            }
         }
 
         /// <summary>
@@ -164,11 +174,11 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void SetCursorPosition(int cursor)
         {
-            if (cursor > _singleton._buffer.Length)
+            if (cursor > _singleton._buffer.Length + ViEndOfLineFactor)
             {
-                cursor = _singleton._buffer.Length;
+                cursor = _singleton._buffer.Length + ViEndOfLineFactor;
             }
-            else if (cursor < 0)
+            if (cursor < 0)
             {
                 cursor = 0;
             }

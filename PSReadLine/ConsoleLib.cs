@@ -105,6 +105,64 @@ namespace Microsoft.PowerShell
 
         [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
         internal static extern bool GetCurrentConsoleFontEx(IntPtr consoleOutput, bool bMaximumWindow, ref CONSOLE_FONT_INFO_EX consoleFontInfo);
+
+        [StructLayout(LayoutKind.Sequential)]
+        internal struct COLORREF
+        {
+            internal uint ColorDWORD;
+
+            internal uint R
+            {
+                get { return ColorDWORD & 0xff; }
+            }
+
+            internal uint G
+            {
+                get { return (ColorDWORD >> 8) & 0xff; }
+            }
+
+            internal uint B
+            {
+                get { return (ColorDWORD >> 16) & 0xff; }
+            }
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        internal struct CONSOLE_SCREEN_BUFFER_INFO_EX
+        {
+            internal int cbSize;
+            internal COORD dwSize;
+            internal COORD dwCursorPosition;
+            internal ushort wAttributes;
+            internal SMALL_RECT srWindow;
+            internal COORD dwMaximumWindowSize;
+            internal ushort wPopupAttributes;
+            internal bool bFullscreenSupported;
+            internal COLORREF Black;
+            internal COLORREF DarkBlue;
+            internal COLORREF DarkGreen;
+            internal COLORREF DarkCyan;
+            internal COLORREF DarkRed;
+            internal COLORREF DarkMagenta;
+            internal COLORREF DarkYellow;
+            internal COLORREF Gray;
+            internal COLORREF DarkGray;
+            internal COLORREF Blue;
+            internal COLORREF Green;
+            internal COLORREF Cyan;
+            internal COLORREF Red;
+            internal COLORREF Magenta;
+            internal COLORREF Yellow;
+            internal COLORREF White;
+        }
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        internal static extern bool GetConsoleScreenBufferInfoEx(IntPtr hConsoleOutput,
+            ref CONSOLE_SCREEN_BUFFER_INFO_EX csbe);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        internal static extern bool SetConsoleScreenBufferInfoEx(IntPtr hConsoleOutput,
+            ref CONSOLE_SCREEN_BUFFER_INFO_EX csbe);
     }
 
     public delegate bool BreakHandler(ConsoleBreakSignal ConsoleBreakSignal);

@@ -280,11 +280,11 @@ namespace Microsoft.PowerShell
             _buffer.Append(line);
             if (moveCursor)
             {
-                _current = _buffer.Length;
+                _current = _options.EditMode == EditMode.Vi ? 0 : Math.Max(0, _buffer.Length + ViEndOfLineFactor);
             }
             else if (_current > _buffer.Length)
             {
-                _current = _buffer.Length;
+                _current = Math.Max(0, _buffer.Length + ViEndOfLineFactor);
             }
             Render();
         }

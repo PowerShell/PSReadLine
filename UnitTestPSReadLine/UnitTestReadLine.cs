@@ -134,9 +134,7 @@ namespace UnitTestPSReadLine
         {
             Cmd,
             Emacs,
-#if FALSE
             Vi
-#endif
         };
 
         // These colors are random - we just use these colors instead of the defaults
@@ -649,11 +647,9 @@ namespace UnitTestPSReadLine
             case KeyMode.Emacs:
                 options.EditMode = EditMode.Emacs;
                 break;
-#if FALSE
             case KeyMode.Vi:
                 options.EditMode = EditMode.Vi;
                 break;
-#endif
             }
 
             PSConsoleReadLine.SetOptions(options);

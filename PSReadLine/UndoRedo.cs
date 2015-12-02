@@ -53,12 +53,12 @@ namespace Microsoft.PowerShell
             _editGroupStart = _edits.Count;
         }
 
-        private void EndEditGroup()
+        private void EndEditGroup(Action<ConsoleKeyInfo?, object> instigator = null, object instigatorArg = null)
         {
             var groupEditCount = _edits.Count - _editGroupStart;
             var groupedEditItems = _edits.GetRange(_editGroupStart, groupEditCount);
             _edits.RemoveRange(_editGroupStart, groupEditCount);
-            SaveEditItem(GroupedEdit.Create(groupedEditItems));
+            SaveEditItem(GroupedEdit.Create(groupedEditItems, instigator, instigatorArg));
             _editGroupStart = -1;
         }
 
@@ -76,7 +76,12 @@ namespace Microsoft.PowerShell
                     _singleton.ClearStatusMessage(render: false);
                 }
                 _singleton._edits[_singleton._undoEditIndex - 1].Undo();
+                _singleton._edits.RemoveAt(_singleton._undoEditIndex - 1);
                 _singleton._undoEditIndex--;
+                if (_singleton._options.EditMode == EditMode.Vi && _singleton._current >= _singleton._buffer.Length)
+                {
+                    _singleton._current = Math.Max(0, _singleton._buffer.Length - 1);
+                }
                 _singleton.Render();
             }
             else
@@ -105,6 +110,9 @@ namespace Microsoft.PowerShell
 
         abstract class EditItem
         {
+            public Action<ConsoleKeyInfo?, object> _instigator = null;
+            public object _instigatorArg = null;
+
             public abstract void Undo();
             public abstract void Redo();
         }
@@ -177,12 +185,14 @@ namespace Microsoft.PowerShell
             private string _deletedString;
             private int _deleteStartPosition;
 
-            public static EditItem Create(string str, int position)
+            public static EditItem Create(string str, int position, Action<ConsoleKeyInfo?, object> instigator = null, object instigatorArg = null)
             {
                 return new EditItemDelete
                 {
                     _deletedString = str,
-                    _deleteStartPosition = position
+                    _deleteStartPosition = position,
+                    _instigator = instigator,
+                    _instigatorArg = instigatorArg
                 };
             }
 
@@ -203,9 +213,14 @@ namespace Microsoft.PowerShell
         {
             internal List<EditItem> _groupedEditItems;
 
-            public static EditItem Create(List<EditItem> groupedEditItems)
+            public static EditItem Create(List<EditItem> groupedEditItems, Action<ConsoleKeyInfo?, object> instigator = null, object instigatorArg = null)
             {
-                return new GroupedEdit {_groupedEditItems = groupedEditItems};
+                return new GroupedEdit
+                {
+                    _groupedEditItems = groupedEditItems,
+                    _instigator = instigator,
+                    _instigatorArg = instigatorArg
+                };
             }
 
             public override void Undo()
