@@ -182,7 +182,7 @@ namespace UnitTestPSReadLine
 
             var options = PSConsoleReadLine.GetOptions();
             var emphasisColors = Tuple.Create(options.EmphasisForegroundColor, options.EmphasisBackgroundColor);
-            var statusColors = Tuple.Create(Console.ForegroundColor, Console.BackgroundColor);
+            var statusColors = Tuple.Create(_console.ForegroundColor, _console.BackgroundColor);
 
             // Test entering multiple characters and the line is updated with new matches
             SetHistory("zz1", "echo abc", "zz2", "echo abb", "zz3", "echo aaa", "zz4");

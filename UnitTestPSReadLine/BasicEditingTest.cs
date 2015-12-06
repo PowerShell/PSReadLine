@@ -43,34 +43,34 @@ namespace UnitTestPSReadLine
             Test("", Keys("oops", _.CtrlC,
                 CheckThat(() => AssertScreenIs(1,
                     TokenClassification.Command, "oops",
-                    Tuple.Create(ConsoleColor.Red, Console.BackgroundColor), "^C")),
+                    Tuple.Create(ConsoleColor.Red, _console.BackgroundColor), "^C")),
                 InputAcceptedNow));
 
             Test("", Keys("exit", _.CtrlC,
                 CheckThat(() => AssertScreenIs(1,
                     TokenClassification.Keyword, "exit",
-                    Tuple.Create(ConsoleColor.Red, Console.BackgroundColor), "^C")),
+                    Tuple.Create(ConsoleColor.Red, _console.BackgroundColor), "^C")),
                 InputAcceptedNow));
 
             // Test near/at/over buffer width input
-            var width = Console.BufferWidth;
+            var width = _console.BufferWidth;
             var line = new string('a', width - 2);
             Test("", Keys(line, _.CtrlC,
                 CheckThat(() => AssertScreenIs(1,
                     TokenClassification.Command, line,
-                    Tuple.Create(ConsoleColor.Red, Console.BackgroundColor), "^C")),
+                    Tuple.Create(ConsoleColor.Red, _console.BackgroundColor), "^C")),
                 InputAcceptedNow));
             line = new string('a', width - 1);
             Test("", Keys(line, _.CtrlC,
                 CheckThat(() => AssertScreenIs(2,
                     TokenClassification.Command, line,
-                    Tuple.Create(ConsoleColor.Red, Console.BackgroundColor), "^C")),
+                    Tuple.Create(ConsoleColor.Red, _console.BackgroundColor), "^C")),
                 InputAcceptedNow));
             line = new string('a', width);
             Test("", Keys(line, _.CtrlC,
                 CheckThat(() => AssertScreenIs(2,
                     TokenClassification.Command, line,
-                    Tuple.Create(ConsoleColor.Red, Console.BackgroundColor), "^C")),
+                    Tuple.Create(ConsoleColor.Red, _console.BackgroundColor), "^C")),
                 InputAcceptedNow));
         }
 

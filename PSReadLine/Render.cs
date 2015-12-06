@@ -4,16 +4,13 @@ Copyright (c) Microsoft Corporation.  All rights reserved.
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Management.Automation;
-using System.Management.Automation.Host;
 using System.Management.Automation.Language;
 using System.Runtime.InteropServices;
-using System.Security;
-using ConsoleHandle = Microsoft.Win32.SafeHandles.SafeFileHandle;
-using System.ComponentModel;
 using Microsoft.PowerShell.Internal;
+using ConsoleHandle = Microsoft.Win32.SafeHandles.SafeFileHandle;
 
 namespace Microsoft.PowerShell
 {
@@ -128,7 +125,7 @@ namespace Microsoft.PowerShell
             var foregroundColor = _initialForegroundColor;
             bool afterLastToken = false;
             int totalBytes = j;
-            int bufferWidth = Console.BufferWidth;
+            int bufferWidth = _console.BufferWidth;
 
             var tokenStack = new Stack<SavedTokenState>();
             tokenStack.Push(new SavedTokenState
@@ -156,7 +153,7 @@ namespace Microsoft.PowerShell
                         {
                             _consoleBuffer[i] = _space;
                         }
-                        WriteBufferLines(_consoleBuffer, ref _initialY);
+                        _console.WriteBufferLines(_consoleBuffer, ref _initialY);
                     }
                     _consoleBuffer = newBuffer;
                 }
@@ -296,8 +293,8 @@ namespace Microsoft.PowerShell
 
             if (_statusLinePrompt != null)
             {
-                foregroundColor = _statusIsErrorMessage ? Options.ErrorForegroundColor : Console.ForegroundColor;
-                backgroundColor = _statusIsErrorMessage ? Options.ErrorBackgroundColor : Console.BackgroundColor;
+                foregroundColor = _statusIsErrorMessage ? Options.ErrorForegroundColor : _console.ForegroundColor;
+                backgroundColor = _statusIsErrorMessage ? Options.ErrorBackgroundColor : _console.BackgroundColor;
 
                 for (int i = 0; i < _statusLinePrompt.Length; i++, j++)
                 {
@@ -334,7 +331,7 @@ namespace Microsoft.PowerShell
 
                     ConsoleColor prevColor = _consoleBuffer[promptChar].ForegroundColor;
                     _consoleBuffer[promptChar].ForegroundColor = ConsoleColor.Red;
-                    WriteBufferLines(_consoleBuffer, ref _initialY);
+                    _console.WriteBufferLines(_consoleBuffer, ref _initialY);
                     rendered = true;
                     _consoleBuffer[promptChar].ForegroundColor = prevColor;
                     break;
@@ -343,86 +340,35 @@ namespace Microsoft.PowerShell
 
             if (!rendered)
             {
-                WriteBufferLines(_consoleBuffer, ref _initialY);
+                _console.WriteBufferLines(_consoleBuffer, ref _initialY);
             }
 
             PlaceCursor();
 
-            if ((_initialY + bufferLineCount) > (Console.WindowTop + Console.WindowHeight))
+            if ((_initialY + bufferLineCount) > (_console.WindowTop + _console.WindowHeight))
             {
-                Console.WindowTop = _initialY + bufferLineCount - Console.WindowHeight;
+                _console.WindowTop = _initialY + bufferLineCount - _console.WindowHeight;
             }
 
             _lastRenderTime.Restart();
         }
 
-        private static void WriteBufferLines(CHAR_INFO[] buffer, ref int top)
-        {
-            var handle = NativeMethods.GetStdHandle((uint) StandardHandleId.Output);
-
-            int bufferWidth = Console.BufferWidth;
-            int bufferLineCount = buffer.Length / bufferWidth;
-            if ((top + bufferLineCount) > Console.BufferHeight)
-            {
-                var scrollCount = (top + bufferLineCount) - Console.BufferHeight;
-                ScrollBuffer(scrollCount);
-                top -= scrollCount;
-            }
-            var bufferSize = new COORD
-            {
-                X = (short) bufferWidth,
-                Y = (short) bufferLineCount
-            };
-            var bufferCoord = new COORD {X = 0, Y = 0};
-            var bottom = top + bufferLineCount - 1;
-            var writeRegion = new SMALL_RECT
-            {
-                Top = (short) top,
-                Left = 0,
-                Bottom = (short) bottom,
-                Right = (short) (bufferWidth - 1)
-            };
-            NativeMethods.WriteConsoleOutput(handle, buffer,
-                                             bufferSize, bufferCoord, ref writeRegion);
-
-            // Now make sure the bottom line is visible
-            if (bottom >= (Console.WindowTop + Console.WindowHeight))
-            {
-                Console.CursorTop = bottom;
-            }
-        }
-
         private static void WriteBlankLines(int count, int top)
         {
-            var blanks = new CHAR_INFO[count * Console.BufferWidth];
+            var console = _singleton._console;
+            var blanks = new CHAR_INFO[count * console.BufferWidth];
             for (int i = 0; i < blanks.Length; i++)
             {
-                blanks[i].BackgroundColor = Console.BackgroundColor;
-                blanks[i].ForegroundColor = Console.ForegroundColor;
+                blanks[i].BackgroundColor = console.BackgroundColor;
+                blanks[i].ForegroundColor = console.ForegroundColor;
                 blanks[i].UnicodeChar = ' ';
             }
-            WriteBufferLines(blanks, ref top);
+            console.WriteBufferLines(blanks, ref top);
         }
 
         private static CHAR_INFO[] ReadBufferLines(int top, int count)
         {
-            var result = new CHAR_INFO[Console.BufferWidth * count];
-            var handle = NativeMethods.GetStdHandle((uint) StandardHandleId.Output);
-
-            var readBufferSize = new COORD {
-                X = (short)Console.BufferWidth,
-                Y = (short)count};
-            var readBufferCoord = new COORD {X = 0, Y = 0};
-            var readRegion = new SMALL_RECT
-            {
-                Top = (short)top,
-                Left = 0,
-                Bottom = (short)(top + count),
-                Right = (short)(Console.BufferWidth - 1)
-            };
-            NativeMethods.ReadConsoleOutput(handle, result,
-                readBufferSize, readBufferCoord, ref readRegion);
-            return result;
+            return _singleton._console.ReadBufferLines(top, count);
         }
 
         private void GetTokenColors(Token token, out ConsoleColor foregroundColor, out ConsoleColor backgroundColor)
@@ -568,31 +514,15 @@ namespace Microsoft.PowerShell
             charInfo.BackgroundColor = backgroundColor;
         }
 
-        private static void ScrollBuffer(int lines)
-        {
-            var handle = NativeMethods.GetStdHandle((uint) StandardHandleId.Output);
-
-            var scrollRectangle = new SMALL_RECT
-            {
-                Top = (short) lines,
-                Left = 0,
-                Bottom = (short) (Console.BufferHeight - 1),
-                Right = (short)Console.BufferWidth
-            };
-            var destinationOrigin = new COORD {X = 0, Y = 0};
-            var fillChar = new CHAR_INFO(' ', Console.ForegroundColor, Console.BackgroundColor);
-            NativeMethods.ScrollConsoleScreenBuffer(handle, ref scrollRectangle, IntPtr.Zero, destinationOrigin, ref fillChar);
-        }
-
         private void PlaceCursor(int x, ref int y)
         {
             int statusLineCount = GetStatusLineCount();
-            if ((y + statusLineCount) >= Console.BufferHeight)
+            if ((y + statusLineCount) >= _console.BufferHeight)
             {
-                ScrollBuffer((y + statusLineCount) - Console.BufferHeight + 1);
-                y = Console.BufferHeight - 1;
+                _console.ScrollBuffer((y + statusLineCount) - _console.BufferHeight + 1);
+                y = _console.BufferHeight - 1;
             }
-            Console.SetCursorPosition(x, y);
+            _console.SetCursorPosition(x, y);
         }
 
         private void PlaceCursor()
@@ -764,7 +694,7 @@ namespace Microsoft.PowerShell
             int x = _initialX;
             int y = _initialY + Options.ExtraPromptLineCount;
 
-            int bufferWidth = Console.BufferWidth;
+            int bufferWidth = _console.BufferWidth;
             var continuationPromptLength = Options.ContinuationPrompt.Length;
 
             for (int i = 0; i < offset; i++)
@@ -847,7 +777,7 @@ namespace Microsoft.PowerShell
             int x = _initialX;
             int y = _initialY + Options.ExtraPromptLineCount;
 
-            int bufferWidth = Console.BufferWidth;
+            int bufferWidth = _console.BufferWidth;
             var continuationPromptLength = Options.ContinuationPrompt.Length;
             for (offset = 0; offset < _buffer.Length; offset++)
             {
@@ -910,7 +840,7 @@ namespace Microsoft.PowerShell
             if (_statusLinePrompt == null)
                 return 0;
 
-            return (_statusLinePrompt.Length + _statusBuffer.Length) / Console.BufferWidth + 1;
+            return (_statusLinePrompt.Length + _statusBuffer.Length) / _console.BufferWidth + 1;
         }
 
         [ExcludeFromCodeCoverage]
@@ -959,12 +889,13 @@ namespace Microsoft.PowerShell
         {
             int numericArg;
             TryGetArgAsInt(arg, out numericArg, +1);
-            var newTop = Console.WindowTop - (numericArg * Console.WindowHeight);
+            var console = _singleton._console;
+            var newTop = console.WindowTop - (numericArg * console.WindowHeight);
             if (newTop < 0)
             {
                 newTop = 0;
             }
-            Console.SetWindowPosition(0, newTop);
+            console.SetWindowPosition(0, newTop);
         }
 
         /// <summary>
@@ -975,12 +906,13 @@ namespace Microsoft.PowerShell
         {
             int numericArg;
             TryGetArgAsInt(arg, out numericArg, +1);
-            var newTop = Console.WindowTop - numericArg;
+            var console = _singleton._console;
+            var newTop = console.WindowTop - numericArg;
             if (newTop < 0)
             {
                 newTop = 0;
             }
-            Console.SetWindowPosition(0, newTop);
+            console.SetWindowPosition(0, newTop);
         }
 
         /// <summary>
@@ -991,12 +923,13 @@ namespace Microsoft.PowerShell
         {
             int numericArg;
             TryGetArgAsInt(arg, out numericArg, +1);
-            var newTop = Console.WindowTop + (numericArg * Console.WindowHeight);
-            if (newTop > (Console.BufferHeight - Console.WindowHeight))
+            var console = _singleton._console;
+            var newTop = console.WindowTop + (numericArg * console.WindowHeight);
+            if (newTop > (console.BufferHeight - console.WindowHeight))
             {
-                newTop = (Console.BufferHeight - Console.WindowHeight);
+                newTop = (console.BufferHeight - console.WindowHeight);
             }
-            Console.SetWindowPosition(0, newTop);
+            console.SetWindowPosition(0, newTop);
         }
 
         /// <summary>
@@ -1007,12 +940,13 @@ namespace Microsoft.PowerShell
         {
             int numericArg;
             TryGetArgAsInt(arg, out numericArg, +1);
-            var newTop = Console.WindowTop + numericArg;
-            if (newTop > (Console.BufferHeight - Console.WindowHeight))
+            var console = _singleton._console;
+            var newTop = console.WindowTop + numericArg;
+            if (newTop > (console.BufferHeight - console.WindowHeight))
             {
-                newTop = (Console.BufferHeight - Console.WindowHeight);
+                newTop = (console.BufferHeight - console.WindowHeight);
             }
-            Console.SetWindowPosition(0, newTop);
+            console.SetWindowPosition(0, newTop);
         }
 
         /// <summary>
@@ -1021,7 +955,7 @@ namespace Microsoft.PowerShell
         [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void ScrollDisplayTop(ConsoleKeyInfo? key = null, object arg = null)
         {
-            Console.SetWindowPosition(0, 0);
+            _singleton._console.SetWindowPosition(0, 0);
         }
 
         /// <summary>
@@ -1033,22 +967,23 @@ namespace Microsoft.PowerShell
             // Ideally, we'll put the last input line at the bottom of the window
             var coordinates = _singleton.ConvertOffsetToCoordinates(_singleton._buffer.Length);
 
-            var newTop = coordinates.Y - Console.WindowHeight + 1;
+            var console = _singleton._console;
+            var newTop = coordinates.Y - console.WindowHeight + 1;
 
             // But if the cursor won't be visible, make sure it is.
-            if (newTop > Console.CursorTop)
+            if (newTop > console.CursorTop)
             {
                 // Add 10 for some extra context instead of putting the
                 // cursor on the bottom line.
-                newTop = Console.CursorTop - Console.WindowHeight + 10;
+                newTop = console.CursorTop - console.WindowHeight + 10;
             }
 
             // But we can't go past the end of the buffer.
-            if (newTop > (Console.BufferHeight - Console.WindowHeight))
+            if (newTop > (console.BufferHeight - console.WindowHeight))
             {
-                newTop = (Console.BufferHeight - Console.WindowHeight);
+                newTop = (console.BufferHeight - console.WindowHeight);
             }
-            Console.SetWindowPosition(0, newTop);
+            console.SetWindowPosition(0, newTop);
         }
 
         #endregion Screen scrolling

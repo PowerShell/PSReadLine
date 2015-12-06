@@ -42,10 +42,13 @@ namespace UnitTestPSReadLine
             // just run it a few times to make sure nothing crashes.
 
             TestSetup(KeyMode.Cmd);
-            Test("", Keys(Enumerable.Repeat(_.CtrlAltQuestion, 10)));
+            Test("", Keys(Enumerable.Repeat(_.CtrlAltQuestion, 3)));
 
             TestSetup(KeyMode.Emacs);
-            Test("", Keys(Enumerable.Repeat(_.CtrlAltQuestion, 10)));
+            Test("", Keys(Enumerable.Repeat(_.CtrlAltQuestion, 3)));
+
+            TestSetup(KeyMode.Vi);
+            Test("", Keys(Enumerable.Repeat(_.CtrlAltQuestion, 3)));
         }
     }
 }

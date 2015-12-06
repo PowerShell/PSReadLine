@@ -31,6 +31,7 @@ namespace Microsoft.PowerShell
         private bool _delayedOneTimeInitCompleted;
 
         private IPSConsoleReadLineMockableMethods _mockableMethods;
+        private IConsole _console;
 
         private EngineIntrinsics _engineIntrinsics;
         private static GCHandle _breakHandlerGcHandle;
@@ -63,20 +64,6 @@ namespace Microsoft.PowerShell
         private Ast _ast;
         private ParseError[] _parseErrors;
 
-        [ExcludeFromCodeCoverage]
-        ConsoleKeyInfo IPSConsoleReadLineMockableMethods.ReadKey()
-        {
-            var key = Console.ReadKey(true);
-            _lastNKeys.Enqueue(key);
-            return key;
-        }
-
-        [ExcludeFromCodeCoverage]
-        bool IPSConsoleReadLineMockableMethods.KeyAvailable()
-        {
-            return Console.KeyAvailable;
-        }
-
         bool IPSConsoleReadLineMockableMethods.RunspaceIsRemote(Runspace runspace)
         {
             return runspace != null && runspace.ConnectionInfo != null;
@@ -85,21 +72,24 @@ namespace Microsoft.PowerShell
         private void ReadOneOrMoreKeys()
         {
             _readkeyStopwatch.Restart();
-                while (_mockableMethods.KeyAvailable())
-                {
-                    _queuedKeys.Enqueue(_mockableMethods.ReadKey());
+            while (_console.KeyAvailable)
+            {
+                var key = _console.ReadKey();
+                _lastNKeys.Enqueue(key);
+                _queuedKeys.Enqueue(key);
                 if (_readkeyStopwatch.ElapsedMilliseconds > 2)
-                    {
-                        // Don't spend too long in this loop if there are lots of queued keys
-                        break;
-                    }
-                }
-
-                if (_queuedKeys.Count == 0)
                 {
-                    var key = _mockableMethods.ReadKey();
-                    _queuedKeys.Enqueue(key);
+                    // Don't spend too long in this loop if there are lots of queued keys
+                    break;
                 }
+            }
+
+            if (_queuedKeys.Count == 0)
+            {
+                var key = _console.ReadKey();
+                _lastNKeys.Enqueue(key);
+                _queuedKeys.Enqueue(key);
+            }
         }
 
         private void ReadKeyThreadProc()
@@ -193,11 +183,12 @@ namespace Microsoft.PowerShell
 
                             // To detect output during possible event processing, see if the cursor moved
                             // and rerender if so.
-                            var y = Console.CursorTop;
+                            var console = _singleton._console;
+                            var y = console.CursorTop;
                             ps.Invoke();
-                            if (y != Console.CursorTop)
+                            if (y != console.CursorTop)
                             {
-                                _singleton._initialY = Console.CursorTop;
+                                _singleton._initialY = console.CursorTop;
                                 _singleton.Render();
                             }
                         }
@@ -260,16 +251,16 @@ namespace Microsoft.PowerShell
         /// <returns>The complete command line.</returns>
         public static string ReadLine(Runspace runspace, EngineIntrinsics engineIntrinsics)
         {
-            var handle = NativeMethods.GetStdHandle((uint) StandardHandleId.Input);
-            NativeMethods.GetConsoleMode(handle, out _singleton._prePSReadlineConsoleMode);
+            var console1 = _singleton._console;
+            _singleton._prePSReadlineConsoleMode = console1.GetConsoleInputMode();
             bool firstTime = true;
             while (true)
             {
-            try
-            {
-                // Clear a couple flags so we can actually receive certain keys:
-                //     ENABLE_PROCESSED_INPUT - enables Ctrl+C
-                //     ENABLE_LINE_INPUT - enables Ctrl+S
+                try
+                {
+                    // Clear a couple flags so we can actually receive certain keys:
+                    //     ENABLE_PROCESSED_INPUT - enables Ctrl+C
+                    //     ENABLE_LINE_INPUT - enables Ctrl+S
                     // Also clear a couple flags so we don't mask the input that we ignore:
                     //     ENABLE_MOUSE_INPUT - mouse events
                     //     ENABLE_WINDOW_INPUT - window resize events
@@ -278,7 +269,7 @@ namespace Microsoft.PowerShell
                           NativeMethods.ENABLE_LINE_INPUT |
                           NativeMethods.ENABLE_WINDOW_INPUT |
                           NativeMethods.ENABLE_MOUSE_INPUT);
-                    NativeMethods.SetConsoleMode(handle, mode);
+                    console1.SetConsoleInputMode(mode);
 
                     if (firstTime)
                     {
@@ -286,60 +277,61 @@ namespace Microsoft.PowerShell
                         _singleton.Initialize(runspace, engineIntrinsics);
                     }
 
-                return _singleton.InputLoop();
-            }
-            catch (OperationCanceledException)
-            {
-                // Console is exiting - return value isn't too critical - null or 'exit' could work equally well.
-                return "";
-            }
-            catch (ExitException)
-            {
-                return "exit";
-            }
-            catch (Exception e)
-            {
-                // If we're running tests, just throw.
-                if (_singleton._mockableMethods != _singleton)
-                {
-                    throw;
+                    return _singleton.InputLoop();
                 }
-
-                while (e.InnerException != null)
+                catch (OperationCanceledException)
                 {
-                    e = e.InnerException;
+                    // Console is exiting - return value isn't too critical - null or 'exit' could work equally well.
+                    return "";
                 }
-                var oldColor = Console.ForegroundColor;
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine(PSReadLineResources.OopsAnErrorMessage1);
-                Console.ForegroundColor = oldColor;
-                var sb = new StringBuilder();
-                for (int i = 0; i < _lastNKeys.Count; i++)
+                catch (ExitException)
                 {
-                    sb.Append(' ');
-                    sb.Append(_lastNKeys[i].ToGestureString());
-
-                    KeyHandler handler;
-                    if (_singleton._dispatchTable.TryGetValue(_lastNKeys[i], out handler) &&
-                        "AcceptLine".Equals(handler.BriefDescription, StringComparison.OrdinalIgnoreCase))
+                    return "exit";
+                }
+                catch (Exception e)
+                {
+                    // If we're running tests, just throw.
+                    if (_singleton._mockableMethods != _singleton)
                     {
-                        // Make it a little easier to see the keys
-                        sb.Append('\n');
+                        throw;
                     }
-                    // TODO: print non-default function bindings and script blocks
-                }
 
-                Console.WriteLine(PSReadLineResources.OopsAnErrorMessage2, _lastNKeys.Count, sb, e);
-                var lineBeforeCrash = _singleton._buffer.ToString();
-                    _singleton.Initialize(runspace, _singleton._engineIntrinsics);
-                InvokePrompt();
-                Insert(lineBeforeCrash);
+                    while (e.InnerException != null)
+                    {
+                        e = e.InnerException;
+                    }
+                    var console = console1;
+                    var oldColor = console.ForegroundColor;
+                    console.ForegroundColor = ConsoleColor.Red;
+                    console.WriteLine(PSReadLineResources.OopsAnErrorMessage1);
+                    console.ForegroundColor = oldColor;
+                    var sb = new StringBuilder();
+                    for (int i = 0; i < _lastNKeys.Count; i++)
+                    {
+                        sb.Append(' ');
+                        sb.Append(_lastNKeys[i].ToGestureString());
+
+                        KeyHandler handler;
+                        if (_singleton._dispatchTable.TryGetValue(_lastNKeys[i], out handler) &&
+                            "AcceptLine".Equals(handler.BriefDescription, StringComparison.OrdinalIgnoreCase))
+                        {
+                            // Make it a little easier to see the keys
+                            sb.Append('\n');
+                        }
+                        // TODO: print non-default function bindings and script blocks
+                    }
+
+                    console.WriteLine(string.Format(CultureInfo.CurrentUICulture, PSReadLineResources.OopsAnErrorMessage2, _lastNKeys.Count, sb, e));
+                    var lineBeforeCrash = _singleton._buffer.ToString();
+                        _singleton.Initialize(runspace, _singleton._engineIntrinsics);
+                    InvokePrompt();
+                    Insert(lineBeforeCrash);
+                }
+                finally
+                {
+                    console1.SetConsoleInputMode(_singleton._prePSReadlineConsoleMode);
+                }
             }
-            finally
-            {
-                NativeMethods.SetConsoleMode(handle, _singleton._prePSReadlineConsoleMode);
-            }
-        }
         }
 
         private string InputLoop()
@@ -425,17 +417,15 @@ namespace Microsoft.PowerShell
 
         T CalloutUsingDefaultConsoleMode<T>(Func<T> func)
         {
-            var handle = NativeMethods.GetStdHandle((uint) StandardHandleId.Input);
-            uint psReadlineConsoleMode;
-            NativeMethods.GetConsoleMode(handle, out psReadlineConsoleMode);
+            uint psReadlineConsoleMode = _console.GetConsoleInputMode();
             try
             {
-                NativeMethods.SetConsoleMode(handle, _prePSReadlineConsoleMode);
+                _console.SetConsoleInputMode(_prePSReadlineConsoleMode);
                 return func();
             }
             finally
             {
-                NativeMethods.SetConsoleMode(handle, psReadlineConsoleMode);
+                _console.SetConsoleInputMode(psReadlineConsoleMode);
             }
         }
 
@@ -477,6 +467,7 @@ namespace Microsoft.PowerShell
         private PSConsoleReadLine()
         {
             _mockableMethods = this;
+            _console = new ConhostConsole();
 
             SetDefaultWindowsBindings();
 
@@ -533,12 +524,12 @@ namespace Microsoft.PowerShell
             _tokens = null;
             _parseErrors = null;
             _inputAccepted = false;
-            _initialX = Console.CursorLeft;
-            _initialY = Console.CursorTop - Options.ExtraPromptLineCount;
-            _initialBackgroundColor = Console.BackgroundColor;
-            _initialForegroundColor = Console.ForegroundColor;
+            _initialX = _console.CursorLeft;
+            _initialY = _console.CursorTop - Options.ExtraPromptLineCount;
+            _initialBackgroundColor = _console.BackgroundColor;
+            _initialForegroundColor = _console.ForegroundColor;
             _space = new CHAR_INFO(' ', _initialForegroundColor, _initialBackgroundColor);
-            _bufferWidth = Console.BufferWidth;
+            _bufferWidth = _console.BufferWidth;
             _killCommandCount = 0;
             _yankCommandCount = 0;
             _yankLastArgCommandCount = 0;
@@ -621,7 +612,7 @@ namespace Microsoft.PowerShell
 
             if (readHistoryFile)
             {
-            ReadHistoryFile();
+                ReadHistoryFile();
             }
 
             _killIndex = -1; // So first add indexes 0.
@@ -825,12 +816,12 @@ namespace Microsoft.PowerShell
             for (int i = 0; i < _singleton._consoleBuffer.Length; i++)
             {
                 _singleton._consoleBuffer[i].UnicodeChar = ' ';
-                _singleton._consoleBuffer[i].ForegroundColor = Console.ForegroundColor;
-                _singleton._consoleBuffer[i].BackgroundColor = Console.BackgroundColor;
+                _singleton._consoleBuffer[i].ForegroundColor = _singleton._console.ForegroundColor;
+                _singleton._consoleBuffer[i].BackgroundColor = _singleton._console.BackgroundColor;
             }
             _singleton.Render();
-            Console.CursorLeft = 0;
-            Console.CursorTop = _singleton._initialY - _singleton.Options.ExtraPromptLineCount;
+            _singleton._console.CursorLeft = 0;
+            _singleton._console.CursorTop = _singleton._initialY - _singleton.Options.ExtraPromptLineCount;
 
             var runspaceIsRemote = _singleton._mockableMethods.RunspaceIsRemote(_singleton._runspace);
             System.Management.Automation.PowerShell ps;
@@ -859,9 +850,9 @@ namespace Microsoft.PowerShell
                     newPrompt = string.Format(CultureInfo.InvariantCulture, "[{0}]: {1}", connectionInfo.ComputerName, newPrompt);
                 }
             }
-            Console.Write(newPrompt);
+            _singleton._console.Write(newPrompt);
 
-            _singleton._initialX = Console.CursorLeft;
+            _singleton._initialX = _singleton._console.CursorLeft;
             _singleton._consoleBuffer = ReadBufferLines(_singleton._initialY, 1 + _singleton.Options.ExtraPromptLineCount);
             _singleton._buffer.Append(currentBuffer);
             _singleton._current = currentPos;

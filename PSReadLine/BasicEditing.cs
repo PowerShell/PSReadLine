@@ -9,6 +9,7 @@ using System.Linq;
 using System.Management.Automation;
 using System.Management.Automation.Language;
 using System.Management.Automation.Runspaces;
+using Microsoft.PowerShell.Internal;
 
 namespace Microsoft.PowerShell
 {
@@ -98,14 +99,16 @@ namespace Microsoft.PowerShell
             // Now that we've rendered with this extra spaces, go back and replace the spaces
             // with ^C colored in red (so it stands out.)
             var coordinates = _singleton.ConvertOffsetToCoordinates(_singleton._current);
-            int i = (coordinates.Y - _singleton._initialY) * Console.BufferWidth + coordinates.X;
-            _singleton._consoleBuffer[i].UnicodeChar = '^';
-            _singleton._consoleBuffer[i].ForegroundColor = ConsoleColor.Red;
-            _singleton._consoleBuffer[i].BackgroundColor = Console.BackgroundColor;
-            _singleton._consoleBuffer[i+1].UnicodeChar = 'C';
-            _singleton._consoleBuffer[i+1].ForegroundColor = ConsoleColor.Red;
-            _singleton._consoleBuffer[i+1].BackgroundColor = Console.BackgroundColor;
-            WriteBufferLines(_singleton._consoleBuffer, ref _singleton._initialY);
+            var console = _singleton._console;
+            var consoleBuffer = _singleton._consoleBuffer;
+            int i = (coordinates.Y - _singleton._initialY) * console.BufferWidth + coordinates.X;
+            consoleBuffer[i].UnicodeChar = '^';
+            consoleBuffer[i].ForegroundColor = ConsoleColor.Red;
+            consoleBuffer[i].BackgroundColor = console.BackgroundColor;
+            consoleBuffer[i+1].UnicodeChar = 'C';
+            consoleBuffer[i+1].ForegroundColor = ConsoleColor.Red;
+            consoleBuffer[i+1].BackgroundColor = console.BackgroundColor;
+            console.WriteBufferLines(consoleBuffer, ref _singleton._initialY);
 
             var y = coordinates.Y + 1;
             _singleton.PlaceCursor(0, ref y);

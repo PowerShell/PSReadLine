@@ -97,14 +97,14 @@ namespace UnitTestPSReadLine
                 _.Backspace, CheckThat(() => AssertScreenIs(2, TokenClassification.None, '{', NextLine)),
                 '}'));
 
-            Console.Clear();
+            _console.Clear();
             string promptLine = "PS> ";
             Test("\"\"", Keys(
                 '"',
                 CheckThat(() => AssertScreenIs(1,
                                    TokenClassification.None,
                                    promptLine.Substring(0, promptLine.IndexOf('>')),
-                                   Tuple.Create(ConsoleColor.Red, Console.BackgroundColor), ">",
+                                   Tuple.Create(ConsoleColor.Red, _console.BackgroundColor), ">",
                                    TokenClassification.None, " ",
                                    TokenClassification.String, "\"")),
                 '"'), prompt: promptLine);
@@ -150,7 +150,7 @@ namespace UnitTestPSReadLine
 
             var sb = new StringBuilder();
             sb.Append('"');
-            sb.Append('z', Console.BufferWidth);
+            sb.Append('z', _console.BufferWidth);
             sb.Append('"');
 
             var input = sb.ToString();
@@ -171,7 +171,7 @@ namespace UnitTestPSReadLine
             Test("dir", Keys(
                 "dir", _.CtrlZ,
                 CheckThat(() => AssertScreenIs(1,
-                    Tuple.Create(Console.ForegroundColor, Console.BackgroundColor), "PS>",
+                    Tuple.Create(_console.ForegroundColor, _console.BackgroundColor), "PS>",
                     TokenClassification.Command, "dir"))));
 
             // Test a boring prompt function
@@ -183,21 +183,23 @@ namespace UnitTestPSReadLine
             Test("dir", Keys(
                 "dir", _.CtrlZ,
                 CheckThat(() => AssertScreenIs(1,
-                    Tuple.Create(Console.ForegroundColor, Console.BackgroundColor), "PSREADLINE> ",
+                    Tuple.Create(_console.ForegroundColor, _console.BackgroundColor), "PSREADLINE> ",
                     TokenClassification.Command, "dir"))));
 
             // Tricky prompt - writes to console directly with colors, uses ^H trick to eliminate trailng space.
             using (var ps = PowerShell.Create(RunspaceMode.CurrentRunspace))
             {
+                ps.AddCommand("New-Variable").AddParameter("Name", "__console").AddParameter("Value", _console).Invoke();
+                ps.Commands.Clear();
                 ps.AddScript(@"
 function prompt {
-    $fg = [Console]::ForegroundColor
-    $bg = [Console]::BackgroundColor
-    [Console]::ForegroundColor = [ConsoleColor]::Blue
-    [Console]::BackgroundColor = [ConsoleColor]::Magenta
-    [Console]::Write('PSREADLINE>')
-    [Console]::ForegroundColor = $fg
-    [Console]::BackgroundColor = $bg
+    $fg = $__console.ForegroundColor
+    $bg = $__console.BackgroundColor
+    $__console.ForegroundColor = [ConsoleColor]::Blue
+    $__console.BackgroundColor = [ConsoleColor]::Magenta
+    $__console.Write('PSREADLINE>')
+    $__console.ForegroundColor = $fg
+    $__console.BackgroundColor = $bg
     return ' ' + ([char]8)
 }");
                 ps.Invoke();

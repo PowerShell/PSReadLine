@@ -17,7 +17,7 @@ namespace UnitTestPSReadLine
 
             Test("", Keys( _.End, CheckThat(() => AssertCursorLeftIs(0)) ));
 
-            var buffer = new string(' ', Console.BufferWidth);
+            var buffer = new string(' ', _console.BufferWidth);
             Test(buffer, Keys(
                 buffer,
                 _.Home,
@@ -26,7 +26,7 @@ namespace UnitTestPSReadLine
                 CheckThat(() => AssertCursorLeftTopIs(0, 1))
                 ));
 
-            buffer = new string(' ', Console.BufferWidth + 5);
+            buffer = new string(' ', _console.BufferWidth + 5);
             Test(buffer, Keys(
                 buffer,
                 _.Home,

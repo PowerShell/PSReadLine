@@ -56,7 +56,7 @@ namespace UnitTestPSReadLine
                 CheckThat(() => AssertScreenCaptureClipboardIs(line[0], line[1])),
 
                 // Test trying to arrow down past end of buffer (arrowing past top of buffer covered above)
-                _.CtrlZ, Enumerable.Repeat(_.DownArrow, Console.BufferHeight), _.Escape),
+                _.CtrlZ, Enumerable.Repeat(_.DownArrow, _console.BufferHeight), _.Escape),
                 resetCursor: false);
 
             // Test that we ding input that doesn't do anything

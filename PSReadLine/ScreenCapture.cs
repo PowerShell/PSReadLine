@@ -20,7 +20,7 @@ namespace Microsoft.PowerShell
                 buffer[i].ForegroundColor = (ConsoleColor)((int)buffer[i].ForegroundColor ^ 7);
                 buffer[i].BackgroundColor = (ConsoleColor)((int)buffer[i].BackgroundColor ^ 7);
             }
-            WriteBufferLines(buffer, ref start);
+            _singleton._console.WriteBufferLines(buffer, ref start);
         }
 
         /// <summary>
@@ -30,7 +30,7 @@ namespace Microsoft.PowerShell
         [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void CaptureScreen(ConsoleKeyInfo? key = null, object arg = null)
         {
-            int selectionTop = Console.CursorTop;
+            int selectionTop = _singleton._console.CursorTop;
             int selectionHeight = 1;
             int currentY = selectionTop;
 
@@ -68,7 +68,7 @@ namespace Microsoft.PowerShell
                     break;
 
                 case ConsoleKey.DownArrow:
-                    if (currentY < (Console.BufferHeight - 1))
+                    if (currentY < (_singleton._console.BufferHeight - 1))
                     {
                         currentY += 1;
                         if ((k.Modifiers & ConsoleModifiers.Shift) == ConsoleModifiers.Shift)
@@ -200,7 +200,7 @@ namespace Microsoft.PowerShell
 
             // A bit of a hack if the above failed - assume PowerShell's color scheme if the
             // background color is Magenta, otherwise we assume the default scheme.
-            return Console.BackgroundColor == ConsoleColor.DarkMagenta
+            return _singleton._console.BackgroundColor == ConsoleColor.DarkMagenta
                 ? PowerShellColorTable
                 : CmdColorTable;
         }
@@ -208,7 +208,7 @@ namespace Microsoft.PowerShell
         private static void DumpScreenToClipboard(int top, int count)
         {
             var buffer = ReadBufferLines(top, count);
-            var bufferWidth = Console.BufferWidth;
+            var bufferWidth = _singleton._console.BufferWidth;
 
             var dataObject = new DataObject();
             var textBuffer = new StringBuilder(buffer.Length + count);

@@ -58,7 +58,7 @@ namespace UnitTestPSReadLine
         {
             TestSetup(KeyMode.Emacs);
 
-            Console.Clear();
+            _console.Clear();
             // Test empty input, make sure line after the cursor is blank and cursor didn't move
             Test("", Keys(
                 _.AltEquals,
@@ -70,7 +70,7 @@ namespace UnitTestPSReadLine
 
             const string promptLine1 = "c:\\windows";
             const string promptLine2 = "PS> ";
-            Console.Clear();
+            _console.Clear();
             Test("psvar", Keys(
                 "psvar",
                 _.AltEquals,
@@ -88,7 +88,7 @@ namespace UnitTestPSReadLine
                                                TokenClassification.Command, "psvar"))),
                 prompt: promptLine1 + "\n" + promptLine2);
 
-            Console.Clear();
+            _console.Clear();
             TestMustDing("none", Keys(
                 "none",
                 _.AltEquals,
@@ -101,7 +101,7 @@ namespace UnitTestPSReadLine
             TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+Spacebar", PSConsoleReadLine.PossibleCompletions));
 
             PSConsoleReadLine.GetOptions().CompletionQueryItems = 10;
-            Console.Clear();
+            _console.Clear();
             Test("Get-Many", Keys(
                 "Get-Many", _.CtrlSpace,
                 CheckThat(() => AssertScreenIs(2,
@@ -109,7 +109,7 @@ namespace UnitTestPSReadLine
                     TokenClassification.None, "Display all 15 possibilities? (y or n) _")),
                 "n"));
 
-            Console.Clear();
+            _console.Clear();
             Test("Get-Many", Keys(
                 "Get-Many", _.CtrlSpace,
                 CheckThat(() => AssertScreenIs(2,
@@ -130,7 +130,7 @@ namespace UnitTestPSReadLine
             TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+Spacebar", PSConsoleReadLine.PossibleCompletions));
 
             PSConsoleReadLine.GetOptions().ShowToolTips = true;
-            Console.Clear();
+            _console.Clear();
             Test("Get-Tooltips", Keys(
                 "Get-Tooltips", _.CtrlSpace,
                 CheckThat(() => AssertScreenIs(2,

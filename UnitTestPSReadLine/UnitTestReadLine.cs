@@ -2,7 +2,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using System.Linq;
 using System.Management.Automation;
 using System.Management.Automation.Runspaces;
@@ -11,32 +10,68 @@ using System.Threading;
 using System.Windows;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.PowerShell;
+using Microsoft.PowerShell.Internal;
 
 namespace UnitTestPSReadLine
 {
     // Disgusting language hack to make it easier to read a sequence of keys.
     using _ = Keys;
 
-    internal class MockedMethods : Microsoft.PowerShell.Internal.IPSConsoleReadLineMockableMethods
+    internal class MockedMethods : IPSConsoleReadLineMockableMethods
     {
-        internal int index;
-        internal object[] items;
-        internal Exception validationFailure;
         internal bool didDing;
 
-        internal MockedMethods(object[] items)
+        public void Ding()
+        {
+            didDing = true;
+        }
+
+        public CommandCompletion CompleteInput(string input, int cursorIndex, Hashtable options, PowerShell powershell)
+        {
+            return UnitTest.MockedCompleteInput(input, cursorIndex, options, powershell);
+        }
+
+        public bool RunspaceIsRemote(Runspace runspace)
+        {
+            return false;
+        }
+    }
+
+    internal class TestConsole : IConsole
+    {
+        internal int index;
+        internal object[] inputOrValidateItems;
+        internal Exception validationFailure;
+        private CHAR_INFO[] buffer;
+        private readonly int _bufferWidth;
+        private readonly int _bufferHeight;
+        private readonly int _windowWidth;
+        private readonly int _windowHeight;
+
+        internal TestConsole()
+        {
+            BackgroundColor = UnitTest.BackgroundColors[0];
+            ForegroundColor = UnitTest.ForegroundColors[0];
+            CursorLeft = 0;
+            CursorTop = 0;
+            _bufferWidth = _windowWidth = 60;
+            _bufferHeight = _windowHeight = 1000; // big enough to avoid the need to implement scrolling
+            buffer = new CHAR_INFO[BufferWidth * BufferHeight];
+            ClearBuffer();
+        }
+
+        internal void Init(object[] items)
         {
             this.index = 0;
-            this.items = items;
+            this.inputOrValidateItems = items;
             this.validationFailure = null;
-            this.didDing = false;
         }
 
         public ConsoleKeyInfo ReadKey()
         {
-            while (index < items.Length)
+            while (index < inputOrValidateItems.Length)
             {
-                var item = items[index++];
+                var item = inputOrValidateItems[index++];
                 if (item is ConsoleKeyInfo)
                 {
                     return (ConsoleKeyInfo)item;
@@ -61,24 +96,142 @@ namespace UnitTestPSReadLine
             return _.CtrlC;
         }
 
-        public bool KeyAvailable()
+        public bool KeyAvailable
         {
-            return index < items.Length && items[index] is ConsoleKeyInfo;
+            get { return index < inputOrValidateItems.Length && inputOrValidateItems[index] is ConsoleKeyInfo; }
         }
 
-        public void Ding()
+        public int CursorLeft { get; set; }
+        public int CursorTop { get; set; }
+
+        public int CursorSize { get; set; }
+
+        public int BufferWidth
         {
-            didDing = true;
+            get { return _bufferWidth; }
+            set { throw new NotImplementedException(); }
         }
 
-        public CommandCompletion CompleteInput(string input, int cursorIndex, Hashtable options, PowerShell powershell)
+        public int BufferHeight
         {
-            return UnitTest.MockedCompleteInput(input, cursorIndex, options, powershell);
+            get { return _bufferHeight; }
+            set { throw new NotImplementedException(); }
         }
 
-        public bool RunspaceIsRemote(Runspace runspace)
+        public int WindowWidth
         {
-            return false;
+            get { return _windowWidth; }
+            set { throw new NotImplementedException(); }
+        }
+
+        public int WindowHeight
+        {
+            get { return _windowHeight; }
+            set { throw new NotImplementedException(); }
+        }
+
+        public int WindowTop { get; set; }
+        public ConsoleColor BackgroundColor { get; set; }
+        public ConsoleColor ForegroundColor { get; set; }
+
+        public void SetWindowPosition(int left, int top)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SetCursorPosition(int left, int top)
+        {
+            CursorLeft = left;
+            CursorTop = top;
+        }
+
+        public void WriteLine(string s)
+        {
+            // Crappy code here - no checks for a string that's too long, no scrolling.
+            Write(s);
+            CursorLeft = 0;
+            CursorTop += 1;
+        }
+
+        public void Write(string s)
+        {
+            // Crappy code here - no checks for a string that's too long, no scrolling.
+            var writePos = CursorTop * BufferWidth + CursorLeft;
+            for (int i = 0; i < s.Length; i++)
+            {
+                if (s[i] == '\b')
+                {
+                    CursorLeft -= 1;
+                    if (CursorLeft < 0)
+                    {
+                        CursorTop -= 1;
+                        CursorLeft = BufferWidth - 1;
+                    }
+                }
+                else if (s[i] == '\n')
+                {
+                    CursorTop += 1;
+                    CursorLeft = 0;
+                    writePos = CursorTop * BufferWidth;
+                }
+                else
+                {
+                    CursorLeft += 1;
+                    if (CursorLeft == BufferWidth)
+                    {
+                        CursorLeft = 0;
+                        CursorTop += 1;
+                    }
+                    buffer[writePos].UnicodeChar = s[i];
+                    buffer[writePos].BackgroundColor = BackgroundColor;
+                    buffer[writePos].ForegroundColor = ForegroundColor;
+                    writePos += 1;
+                }
+            }
+        }
+
+        public void WriteBufferLines(CHAR_INFO[] bufferToWrite, ref int top)
+        {
+            var startPos = top * BufferWidth;
+            for (int i = 0; i < bufferToWrite.Length; i++)
+            {
+                buffer[startPos + i] = bufferToWrite[i];
+            }
+        }
+
+        public void ScrollBuffer(int lines)
+        {
+        }
+
+        public uint GetConsoleInputMode()
+        {
+            return 0;
+        }
+
+        public void SetConsoleInputMode(uint mode)
+        {
+        }
+
+        public void Clear()
+        {
+            SetCursorPosition(0, 0);
+            ClearBuffer();
+        }
+
+        void ClearBuffer()
+        {
+            for (int i = 0; i < buffer.Length; i++)
+            {
+                buffer[i] = new CHAR_INFO(' ', ForegroundColor, BackgroundColor);
+            }
+        }
+
+        public CHAR_INFO[] ReadBufferLines(int top, int count)
+        {
+            var toCopy = BufferWidth * count;
+            var result = new CHAR_INFO[toCopy];
+            Array.Copy(buffer, top * BufferWidth, result, 0, toCopy);
+            return result;
         }
     }
 
@@ -139,9 +292,9 @@ namespace UnitTestPSReadLine
 
         // These colors are random - we just use these colors instead of the defaults
         // so the tests aren't sensitive to tweaks to the default colors.
-        private static readonly ConsoleColor[] ForegroundColors = new []
+        internal static readonly ConsoleColor[] ForegroundColors = new []
         {
-        /*None*/      Console.ForegroundColor,
+        /*None*/      ConsoleColor.DarkRed,
         /*Comment*/   ConsoleColor.Blue,
         /*Keyword*/   ConsoleColor.Cyan,
         /*String*/    ConsoleColor.Gray,
@@ -154,9 +307,9 @@ namespace UnitTestPSReadLine
         /*Member*/    ConsoleColor.DarkMagenta,
         };
 
-        private static readonly ConsoleColor[] BackgroundColors = new[]
+        internal static readonly ConsoleColor[] BackgroundColors = new[]
         {
-        /*None*/      Console.BackgroundColor,
+        /*None*/      ConsoleColor.DarkGray,
         /*Comment*/   ConsoleColor.DarkBlue,
         /*Keyword*/   ConsoleColor.DarkCyan,
         /*String*/    ConsoleColor.DarkGray,
@@ -191,12 +344,12 @@ namespace UnitTestPSReadLine
 
         private void AssertCursorLeftIs(int expected)
         {
-            Assert.AreEqual(expected, Console.CursorLeft);
+            Assert.AreEqual(expected, _console.CursorLeft);
         }
 
         private void AssertCursorTopIs(int expected)
         {
-            Assert.AreEqual(expected, Console.CursorTop);
+            Assert.AreEqual(expected, _console.CursorTop);
         }
 
         private void AssertLineIs(string expected)
@@ -285,8 +438,8 @@ namespace UnitTestPSReadLine
         private CHAR_INFO[] CreateCharInfoBuffer(int lines, params object[] items)
         {
             var result = new List<CHAR_INFO>();
-            var fg = Console.ForegroundColor;
-            var bg = Console.BackgroundColor;
+            var fg = _console.ForegroundColor;
+            var bg = _console.BackgroundColor;
 
             foreach (var i in items)
             {
@@ -304,9 +457,9 @@ namespace UnitTestPSReadLine
                 }
                 if (item is NextLineToken)
                 {
-                    item = new string(' ', Console.BufferWidth - (result.Count % Console.BufferWidth));
-                    fg = Console.ForegroundColor;
-                    bg = Console.BackgroundColor;
+                    item = new string(' ', _console.BufferWidth - (result.Count % _console.BufferWidth));
+                    fg = _console.ForegroundColor;
+                    bg = _console.BackgroundColor;
                     // Fallthrough to string case.
                 }
                 var str = item as string;
@@ -331,10 +484,10 @@ namespace UnitTestPSReadLine
                 throw new ArgumentException("Unexpected type");
             }
 
-            var extraSpacesNeeded = (lines * Console.BufferWidth) - result.Count;
+            var extraSpacesNeeded = (lines * _console.BufferWidth) - result.Count;
             if (extraSpacesNeeded > 0)
             {
-                var space = new CHAR_INFO(' ', Console.ForegroundColor, Console.BackgroundColor);
+                var space = new CHAR_INFO(' ', _console.ForegroundColor, _console.BackgroundColor);
                 result.AddRange(Enumerable.Repeat(space, extraSpacesNeeded));
             }
 
@@ -426,75 +579,9 @@ namespace UnitTestPSReadLine
             }
         }
 
-        private static CHAR_INFO[] ReadBufferLines(int top, int count)
-        {
-            var result = new CHAR_INFO[Console.BufferWidth * count];
-            var handle = NativeMethods.GetStdHandle((uint) StandardHandleId.Output);
-
-            var readBufferSize = new COORD {
-                X = (short)Console.BufferWidth,
-                Y = (short)count};
-            var readBufferCoord = new COORD {X = 0, Y = 0};
-            var readRegion = new SMALL_RECT
-            {
-                Top = (short)top,
-                Left = 0,
-                Bottom = (short)(top + count),
-                Right = (short)(Console.BufferWidth - 1)
-            };
-            NativeMethods.ReadConsoleOutput(handle, result,
-                readBufferSize, readBufferCoord, ref readRegion);
-            return result;
-        }
-
-        private static void ScrollBuffer(int lines)
-        {
-            var handle = NativeMethods.GetStdHandle((uint) StandardHandleId.Output);
-
-            var scrollRectangle = new SMALL_RECT
-            {
-                Top = (short) lines,
-                Left = 0,
-                Bottom = (short) (lines + Console.BufferHeight - 1),
-                Right = (short)Console.BufferWidth
-            };
-            var destinationOrigin = new COORD {X = 0, Y = 0};
-            var fillChar = new CHAR_INFO(' ', Console.ForegroundColor, Console.BackgroundColor);
-            NativeMethods.ScrollConsoleScreenBuffer(handle, ref scrollRectangle, IntPtr.Zero, destinationOrigin, ref fillChar);
-        }
-
-        private static void WriteBufferLines(CHAR_INFO[] buffer, ref int top)
-        {
-            var handle = NativeMethods.GetStdHandle((uint) StandardHandleId.Output);
-
-            int bufferWidth = Console.BufferWidth;
-            int bufferLineCount = buffer.Length / bufferWidth;
-            if ((top + bufferLineCount) > Console.BufferHeight)
-            {
-                var scrollCount = (top + bufferLineCount) - Console.BufferHeight;
-                ScrollBuffer(scrollCount);
-                top -= scrollCount;
-            }
-            var bufferSize = new COORD
-            {
-                X = (short) bufferWidth,
-                Y = (short) bufferLineCount
-            };
-            var bufferCoord = new COORD {X = 0, Y = 0};
-            var writeRegion = new SMALL_RECT
-            {
-                Top = (short) top,
-                Left = 0,
-                Bottom = (short) (top + bufferLineCount - 1),
-                Right = (short) bufferWidth
-            };
-            NativeMethods.WriteConsoleOutput(handle, buffer,
-                                             bufferSize, bufferCoord, ref writeRegion);
-        }
-
         private void AssertScreenIs(int lines, params object[] items)
         {
-            var consoleBuffer = ReadBufferLines(0, lines);
+            var consoleBuffer = _console.ReadBufferLines(0, lines);
 
             var expectedBuffer = CreateCharInfoBuffer(lines, items);
             Assert.AreEqual(expectedBuffer.Length, consoleBuffer.Length);
@@ -509,12 +596,14 @@ namespace UnitTestPSReadLine
             }
         }
 
-        static private void SetPrompt(string prompt)
+        private void SetPrompt(string prompt)
         {
             if (string.IsNullOrEmpty(prompt))
+            {
+                var options = new SetPSReadlineOption {ExtraPromptLineCount = 0};
+                PSConsoleReadLine.SetOptions(options);
                 return;
-
-            var handle = NativeMethods.GetStdHandle((uint) StandardHandleId.Output);
+            }
 
             var lineCount = 1 + prompt.Count(c => c == '\n');
             if (lineCount > 1)
@@ -522,73 +611,40 @@ namespace UnitTestPSReadLine
                 var options = new SetPSReadlineOption {ExtraPromptLineCount = lineCount - 1};
                 PSConsoleReadLine.SetOptions(options);
             }
-            int bufferWidth = Console.BufferWidth;
-            var consoleBuffer = new CHAR_INFO[lineCount * bufferWidth];
-            int j = 0;
-            for (int i = 0; i < prompt.Length; i++, j++)
-            {
-                if (prompt[i] == '\n')
-                {
-                    for (; j % Console.BufferWidth != 0; j++)
-                    {
-                        consoleBuffer[j] = new CHAR_INFO(' ', Console.ForegroundColor, Console.BackgroundColor);
-                    }
-                    Console.CursorTop += 1;
-                    Console.CursorLeft = 0;
-                    j -= 1;  // We don't actually write the newline
-                }
-                else
-                {
-                    consoleBuffer[j] = new CHAR_INFO(prompt[i], Console.ForegroundColor, Console.BackgroundColor);
-                    Console.CursorLeft += 1;
-                }
-            }
-
-            var bufferSize = new COORD
-                             {
-                                 X = (short) bufferWidth,
-                                 Y = (short) lineCount
-                             };
-            var bufferCoord = new COORD {X = 0, Y = 0};
-            var writeRegion = new SMALL_RECT
-                              {
-                                  Top = 0,
-                                  Left = 0,
-                                  Bottom = (short) (lineCount - 1),
-                                  Right = (short) bufferWidth
-                              };
-            NativeMethods.WriteConsoleOutput(handle, consoleBuffer, bufferSize, bufferCoord, ref writeRegion);
+            _console.Write(prompt);
         }
 
         [ExcludeFromCodeCoverage]
-        static private void Test(string expectedResult, object[] items, bool resetCursor = true, string prompt = null, bool mustDing = false)
+        private void Test(string expectedResult, object[] items, bool resetCursor = true, string prompt = null, bool mustDing = false)
         {
             if (resetCursor)
             {
-                Console.CursorLeft = 0;
-                Console.CursorTop = 0;
-                Console.BufferWidth = Console.WindowWidth = 60;
-                Console.BufferHeight = Console.WindowHeight = 40;
+                _console.CursorLeft = 0;
+                _console.CursorTop = 0;
             }
             SetPrompt(prompt);
 
-            var mockedMethods = new MockedMethods(items);
+            _console.Init(items);
+            var mockedMethods = new MockedMethods();
             var instance = (PSConsoleReadLine)typeof(PSConsoleReadLine)
                 .GetField("_singleton", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
             typeof(PSConsoleReadLine)
                 .GetField("_mockableMethods", BindingFlags.Instance | BindingFlags.NonPublic)
                 .SetValue(instance, mockedMethods);
+            typeof(PSConsoleReadLine)
+                .GetField("_console", BindingFlags.Instance | BindingFlags.NonPublic)
+                .SetValue(instance, _console);
 
             var result = PSConsoleReadLine.ReadLine(null, null);
 
-            if (mockedMethods.validationFailure != null)
+            if (_console.validationFailure != null)
             {
-                throw new Exception("", mockedMethods.validationFailure);
+                throw new Exception("", _console.validationFailure);
             }
 
-            while (mockedMethods.index < mockedMethods.items.Length)
+            while (_console.index < _console.inputOrValidateItems.Length)
             {
-                var item = mockedMethods.items[mockedMethods.index++];
+                var item = _console.inputOrValidateItems[_console.index++];
                 ((Action)item)();
             }
 
@@ -600,20 +656,19 @@ namespace UnitTestPSReadLine
             }
         }
 
-        static private void TestMustDing(string expectedResult, object[] items, bool resetCursor = true, string prompt = null)
+        private void TestMustDing(string expectedResult, object[] items, bool resetCursor = true, string prompt = null)
         {
             Test(expectedResult, items, resetCursor, prompt, true);
         }
 
+        private TestConsole _console;
+
         private void TestSetup(KeyMode keyMode, params KeyHandler[] keyHandlers)
         {
-            Console.Clear();
+            _console = new TestConsole();
+
             PSConsoleReadLine.ClearHistory();
             PSConsoleReadLine.ClearKillRing();
-
-            // We don't want stdout redirected, we want it sent to the screen.
-            var standardOutput = new StreamWriter(Console.OpenStandardOutput()) {AutoFlush = true};
-            Console.SetOut(standardOutput);
 
             var options = new SetPSReadlineOption
             {
@@ -621,12 +676,14 @@ namespace UnitTestPSReadLine
                 BellStyle                         = PSConsoleReadlineOptions.DefaultBellStyle,
                 CompletionQueryItems              = PSConsoleReadlineOptions.DefaultCompletionQueryItems,
                 ContinuationPrompt                = PSConsoleReadlineOptions.DefaultContinuationPrompt,
-                ContinuationPromptBackgroundColor = Console.BackgroundColor,
-                ContinuationPromptForegroundColor = Console.ForegroundColor,
+                ContinuationPromptBackgroundColor = _console.BackgroundColor,
+                ContinuationPromptForegroundColor = _console.ForegroundColor,
                 DingDuration                      = 1,  // Make tests virtually silent when they ding
                 DingTone                          = 37, // Make tests virtually silent when they ding
-                EmphasisBackgroundColor           = Console.BackgroundColor,
+                EmphasisBackgroundColor           = _console.BackgroundColor,
                 EmphasisForegroundColor           = PSConsoleReadlineOptions.DefaultEmphasisForegroundColor,
+                ErrorBackgroundColor              = ConsoleColor.DarkRed,
+                ErrorForegroundColor              = ConsoleColor.Red,
                 ExtraPromptLineCount              = PSConsoleReadlineOptions.DefaultExtraPromptLineCount,
                 HistoryNoDuplicates               = PSConsoleReadlineOptions.DefaultHistoryNoDuplicates,
                 HistorySaveStyle                  = HistorySaveStyle.SaveNothing,

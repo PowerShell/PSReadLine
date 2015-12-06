@@ -6,6 +6,7 @@ using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Management.Automation.Language;
+using Microsoft.PowerShell.Internal;
 
 namespace Microsoft.PowerShell
 {
@@ -432,16 +433,17 @@ namespace Microsoft.PowerShell
         [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void ClearScreen(ConsoleKeyInfo? key = null, object arg = null)
         {
-            if (_singleton._initialY + Console.WindowHeight > Console.BufferHeight)
+            var console = _singleton._console;
+            if (_singleton._initialY + console.WindowHeight > console.BufferHeight)
             {
-                var scrollCount = _singleton._initialY - Console.WindowTop;
-                ScrollBuffer(scrollCount);
+                var scrollCount = _singleton._initialY - console.WindowTop;
+                console.ScrollBuffer(scrollCount);
                 _singleton._initialY -= scrollCount;
-                Console.SetCursorPosition(Console.CursorLeft, Console.CursorTop - scrollCount);
+                console.SetCursorPosition(console.CursorLeft, console.CursorTop - scrollCount);
             }
             else
             {
-                Console.SetWindowPosition(0, _singleton._initialY);
+                console.SetWindowPosition(0, _singleton._initialY);
             }
         }
 

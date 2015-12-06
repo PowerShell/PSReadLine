@@ -3,10 +3,13 @@ Copyright (c) Microsoft Corporation.  All rights reserved.
 --********************************************************************/
 
 using System;
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Text;
+using Microsoft.PowerShell.Internal;
+using Microsoft.Win32.SafeHandles;
 
 namespace Microsoft.PowerShell
 {
@@ -401,6 +404,208 @@ namespace Microsoft.PowerShell
                 sb.Append(c);
             }
             return sb.ToString();
+        }
+    }
+
+    internal class ConhostConsole : IConsole
+    {
+        private readonly Lazy<SafeFileHandle> _inputHandle = new Lazy<SafeFileHandle>(() =>
+        {
+            // We use CreateFile here instead of GetStdWin32Handle, as GetStdWin32Handle will return redirected handles
+            var handle = NativeMethods.CreateFile(
+                "CONIN$",
+                (UInt32)(AccessQualifiers.GenericRead | AccessQualifiers.GenericWrite),
+                (UInt32)ShareModes.ShareWrite,
+                (IntPtr)0,
+                (UInt32)CreationDisposition.OpenExisting,
+                0,
+                (IntPtr)0);
+
+            if (handle == NativeMethods.INVALID_HANDLE_VALUE)
+            {
+                int err = Marshal.GetLastWin32Error();
+                Win32Exception innerException = new Win32Exception(err);
+                throw new Exception("Failed to retreive the input console handle.", innerException);
+            }
+
+            return new SafeFileHandle(handle, true);
+        });
+
+        public uint GetConsoleInputMode()
+        {
+            var handle = _inputHandle.Value.DangerousGetHandle();
+            uint result;
+            NativeMethods.GetConsoleMode(handle, out result);
+            return result;
+        }
+
+        public void SetConsoleInputMode(uint mode)
+        {
+            var handle = _inputHandle.Value.DangerousGetHandle();
+            NativeMethods.SetConsoleMode(handle, mode);
+        }
+
+        public ConsoleKeyInfo ReadKey()
+        {
+            return Console.ReadKey(true);
+        }
+
+        public bool KeyAvailable
+        {
+            get { return Console.KeyAvailable; }
+        }
+
+        public int CursorLeft
+        {
+            get { return Console.CursorLeft; }
+            set { Console.CursorLeft = value; }
+        }
+
+        public int CursorTop
+        {
+            get { return Console.CursorTop; }
+            set { Console.CursorTop = value; }
+        }
+
+        public int CursorSize
+        {
+            get { return Console.CursorSize; }
+            set { Console.CursorSize = value; }
+        }
+
+        public int BufferWidth
+        {
+            get { return Console.BufferWidth; }
+            set { Console.BufferWidth = value; }
+        }
+
+        public int BufferHeight
+        {
+            get { return Console.BufferHeight; }
+            set { Console.BufferHeight = value; }
+        }
+
+        public int WindowWidth
+        {
+            get { return Console.WindowWidth; }
+            set { Console.WindowWidth = value; }
+        }
+
+        public int WindowHeight
+        {
+            get { return Console.WindowHeight; }
+            set { Console.WindowHeight = value; }
+        }
+
+        public int WindowTop
+        {
+            get { return Console.WindowTop; }
+            set { Console.WindowTop = value; }
+        }
+
+        public ConsoleColor BackgroundColor
+        {
+            get { return Console.BackgroundColor; }
+            set { Console.BackgroundColor = value; }
+        }
+
+        public ConsoleColor ForegroundColor
+        {
+            get { return Console.ForegroundColor; }
+            set { Console.ForegroundColor = value; }
+        }
+
+        public void SetWindowPosition(int left, int top)
+        {
+            Console.SetWindowPosition(left, top);
+        }
+
+        public void SetCursorPosition(int left, int top)
+        {
+            Console.SetCursorPosition(left, top);
+        }
+
+        public void Write(string value)
+        {
+            Console.Write(value);
+        }
+
+        public void WriteLine(string value)
+        {
+            Console.WriteLine(value);
+        }
+
+        public void WriteBufferLines(CHAR_INFO[] buffer, ref int top)
+        {
+            var handle = NativeMethods.GetStdHandle((uint) StandardHandleId.Output);
+
+            int bufferWidth = Console.BufferWidth;
+            int bufferLineCount = buffer.Length / bufferWidth;
+            if ((top + bufferLineCount) > Console.BufferHeight)
+            {
+                var scrollCount = (top + bufferLineCount) - Console.BufferHeight;
+                ScrollBuffer(scrollCount);
+                top -= scrollCount;
+            }
+            var bufferSize = new COORD
+            {
+                X = (short) bufferWidth,
+                Y = (short) bufferLineCount
+            };
+            var bufferCoord = new COORD {X = 0, Y = 0};
+            var bottom = top + bufferLineCount - 1;
+            var writeRegion = new SMALL_RECT
+            {
+                Top = (short) top,
+                Left = 0,
+                Bottom = (short) bottom,
+                Right = (short) (bufferWidth - 1)
+            };
+            NativeMethods.WriteConsoleOutput(handle, buffer,
+                                             bufferSize, bufferCoord, ref writeRegion);
+
+            // Now make sure the bottom line is visible
+            if (bottom >= (Console.WindowTop + Console.WindowHeight))
+            {
+                Console.CursorTop = bottom;
+            }
+        }
+
+        public void ScrollBuffer(int lines)
+        {
+            var handle = NativeMethods.GetStdHandle((uint) StandardHandleId.Output);
+
+            var scrollRectangle = new SMALL_RECT
+            {
+                Top = (short) lines,
+                Left = 0,
+                Bottom = (short)(Console.BufferHeight - 1),
+                Right = (short)Console.BufferWidth
+            };
+            var destinationOrigin = new COORD {X = 0, Y = 0};
+            var fillChar = new CHAR_INFO(' ', Console.ForegroundColor, Console.BackgroundColor);
+            NativeMethods.ScrollConsoleScreenBuffer(handle, ref scrollRectangle, IntPtr.Zero, destinationOrigin, ref fillChar);
+        }
+
+        public CHAR_INFO[] ReadBufferLines(int top, int count)
+        {
+            var result = new CHAR_INFO[BufferWidth * count];
+            var handle = NativeMethods.GetStdHandle((uint) StandardHandleId.Output);
+
+            var readBufferSize = new COORD {
+                X = (short)BufferWidth,
+                Y = (short)count};
+            var readBufferCoord = new COORD {X = 0, Y = 0};
+            var readRegion = new SMALL_RECT
+            {
+                Top = (short)top,
+                Left = 0,
+                Bottom = (short)(top + count),
+                Right = (short)(BufferWidth - 1)
+            };
+            NativeMethods.ReadConsoleOutput(handle, result,
+                readBufferSize, readBufferCoord, ref readRegion);
+            return result;
         }
     }
 }

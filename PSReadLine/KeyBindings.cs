@@ -8,6 +8,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Management.Automation;
 using System.Text;
+using Microsoft.PowerShell.Internal;
 
 namespace Microsoft.PowerShell
 {
@@ -288,7 +289,8 @@ namespace Microsoft.PowerShell
             buffer.AppendFormat(CultureInfo.InvariantCulture, "{0,-20} {1,-24} {2}\n", "Key", "Function", "Description");
             buffer.AppendFormat(CultureInfo.InvariantCulture, "{0,-20} {1,-24} {2}\n", "---", "--------", "-----------");
             var boundKeys = GetKeyHandlers(includeBound: true, includeUnbound: false);
-            var maxDescriptionLength = Console.WindowWidth - 20 - 24 - 2;
+            var console = _singleton._console;
+            var maxDescriptionLength = console.WindowWidth - 20 - 24 - 2;
             foreach (var boundKey in boundKeys)
             {
                 var description = boundKey.Description;
@@ -306,8 +308,8 @@ namespace Microsoft.PowerShell
             var y = coords.Y + 1;
             _singleton.PlaceCursor(0, ref y);
 
-            Console.WriteLine(buffer.ToString());
-            _singleton._initialY = Console.CursorTop;
+            console.WriteLine(buffer.ToString());
+            _singleton._initialY = console.CursorTop;
             _singleton.Render();
         }
 
@@ -366,8 +368,8 @@ namespace Microsoft.PowerShell
             var y = coords.Y + 1;
             _singleton.PlaceCursor(0, ref y);
 
-            Console.WriteLine(buffer.ToString());
-            _singleton._initialY = Console.CursorTop;
+            _singleton._console.WriteLine(buffer.ToString());
+            _singleton._initialY = _singleton._console.CursorTop;
             _singleton.Render();
         }
 

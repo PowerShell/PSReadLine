@@ -285,8 +285,8 @@ namespace Microsoft.PowerShell
             _viCmdChordTable[Keys.C] = _viChordCTable;
             _viCmdChordTable[Keys.Y] = _viChordYTable;
 
-            _normalCursorSize = Console.CursorSize;
-            _normalBackground = Console.BackgroundColor;
+            _normalCursorSize = _console.CursorSize;
+            _normalBackground = _console.BackgroundColor;
         }
     }
 }

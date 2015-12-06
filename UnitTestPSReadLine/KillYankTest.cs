@@ -317,7 +317,7 @@ namespace UnitTestPSReadLine
             Test("", Keys("oops", _.CtrlC,
                 CheckThat(() => AssertScreenIs(1,
                     TokenClassification.Command, "oops",
-                    Tuple.Create(ConsoleColor.Red, Console.BackgroundColor), "^C")),
+                    Tuple.Create(ConsoleColor.Red, _console.BackgroundColor), "^C")),
                 InputAcceptedNow));
         }
 

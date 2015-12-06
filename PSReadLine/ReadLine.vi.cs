@@ -515,14 +515,14 @@ namespace Microsoft.PowerShell
         {
             if (_options.ViModeIndicator == ViModeStyle.Cursor)
             {
-                Console.CursorSize = _normalCursorSize < 50 ? 100 : 25;
+                _console.CursorSize = _normalCursorSize < 50 ? 100 : 25;
             }
             else if (_options.ViModeIndicator == ViModeStyle.Prompt)
             {
-                ConsoleColor savedBackground = Console.BackgroundColor;
-                Console.BackgroundColor = BackgroundColorMapper.AlternateBackground(Console.BackgroundColor);
+                ConsoleColor savedBackground = _console.BackgroundColor;
+                _console.BackgroundColor = BackgroundColorMapper.AlternateBackground(_console.BackgroundColor);
                 InvokePrompt();
-                Console.BackgroundColor = savedBackground;
+                _console.BackgroundColor = savedBackground;
             }
         }
 
@@ -530,7 +530,7 @@ namespace Microsoft.PowerShell
         {
             if (_options.ViModeIndicator == ViModeStyle.Cursor)
             {
-                Console.CursorSize = _normalCursorSize;
+                _console.CursorSize = _normalCursorSize;
             }
             else if (_options.ViModeIndicator == ViModeStyle.Prompt)
             {

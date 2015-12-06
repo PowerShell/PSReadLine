@@ -297,7 +297,7 @@ namespace Microsoft.PowerShell
         {
             var selectedX = selectedItem / menuRows;
             var selectedY = selectedItem - (selectedX * menuRows);
-            var start = selectedY * Console.BufferWidth + selectedX * menuColumnWidth;
+            var start = selectedY * _singleton._console.BufferWidth + selectedX * menuColumnWidth;
             for (int i = 0; i < menuColumnWidth; i++)
             {
                 int j = i + start;
@@ -349,7 +349,7 @@ namespace Microsoft.PowerShell
             var menuColumnWidth = minColWidth;
 
             int displayRows;
-            var bufferWidth = Console.BufferWidth;
+            var bufferWidth = _console.BufferWidth;
             ConsoleBufferBuilder cb;
             if (Options.ShowToolTips)
             {
@@ -357,7 +357,7 @@ namespace Microsoft.PowerShell
                 var maxTooltipWidth = bufferWidth - minColWidth - seperator.Length;
 
                 displayRows = matches.Count;
-                cb = new ConsoleBufferBuilder(displayRows * bufferWidth);
+                cb = new ConsoleBufferBuilder(displayRows * bufferWidth, _console);
                 for (int index = 0; index < matches.Count; index++)
                 {
                     var match = matches[index];
@@ -389,7 +389,7 @@ namespace Microsoft.PowerShell
                 var screenColumns = bufferWidth;
                 var displayColumns = Math.Max(1, screenColumns / minColWidth);
                 displayRows = (completions.CompletionMatches.Count + displayColumns - 1) / displayColumns;
-                cb = new ConsoleBufferBuilder(displayRows * bufferWidth);
+                cb = new ConsoleBufferBuilder(displayRows * bufferWidth, _console);
                 for (var row = 0; row < displayRows; row++)
                 {
                     for (var col = 0; col < displayColumns; col++)
@@ -421,7 +421,7 @@ namespace Microsoft.PowerShell
 
                 var endBufferCoords = ConvertOffsetToCoordinates(_buffer.Length);
                 var bufferLines = endBufferCoords.Y - _initialY + 1;
-                if ((bufferLines + displayRows) > Console.WindowHeight)
+                if ((bufferLines + displayRows) > _console.WindowHeight)
                 {
                     menuSelect = false;
                 }
@@ -444,7 +444,7 @@ namespace Microsoft.PowerShell
                 var previousMenuTop = menuAreaTop;
 
                 InvertSelectedCompletion(menuBuffer, selectedItem, menuColumnWidth, displayRows);
-                WriteBufferLines(menuBuffer, ref menuAreaTop);
+                _console.WriteBufferLines(menuBuffer, ref menuAreaTop);
 
                 // Showing the menu may have scrolled the screen or moved the cursor, update initialY to reflect that.
                 _initialY -= (previousMenuTop - menuAreaTop);
@@ -505,7 +505,7 @@ namespace Microsoft.PowerShell
 
                         InvertSelectedCompletion(menuBuffer, previousItem, menuColumnWidth, displayRows);
                         InvertSelectedCompletion(menuBuffer, selectedItem, menuColumnWidth, displayRows);
-                        WriteBufferLines(menuBuffer, ref menuAreaTop);
+                        _console.WriteBufferLines(menuBuffer, ref menuAreaTop);
                         previousItem = selectedItem;
 
                         if (previousMenuTop > menuAreaTop)
@@ -544,7 +544,7 @@ namespace Microsoft.PowerShell
                 var endBufferCoords = ConvertOffsetToCoordinates(_buffer.Length);
                 var menuAreaTop = endBufferCoords.Y + 1;
 
-                WriteBufferLines(menuBuffer, ref menuAreaTop);
+                _console.WriteBufferLines(menuBuffer, ref menuAreaTop);
                 _initialY = menuAreaTop + displayRows;
                 Render();
             }

@@ -21,7 +21,7 @@ namespace UnitTestPSReadLine
                     AssertScreenIs(2,
                         TokenClassification.None, '{',
                         NextLine,
-                        Tuple.Create(Console.ForegroundColor, Console.BackgroundColor),
+                        Tuple.Create(_console.ForegroundColor, _console.BackgroundColor),
                         PSConsoleReadlineOptions.DefaultContinuationPrompt,
                         TokenClassification.None, '}')),
                 _.CtrlC,
@@ -109,17 +109,6 @@ namespace UnitTestPSReadLine
                           + getKeyHandlerCommand.Unbound.GetHashCode();
             // This assertion just avoids annoying warnings about unused variables.
             Assert.AreNotEqual(Math.PI, useless);
-
-            bool exception = false;
-            try
-            {
-                CreateCharInfoBuffer(0, new object());
-            }
-            catch (ArgumentException)
-            {
-                exception = true;
-            }
-            Assert.IsTrue(exception, "CreateCharBuffer invalid arugment raised an exception");
         }
     }
 }

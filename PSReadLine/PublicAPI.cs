@@ -18,15 +18,37 @@ namespace Microsoft.PowerShell
         public interface IPSConsoleReadLineMockableMethods
         {
             /// <summary/>
-            ConsoleKeyInfo ReadKey();
-            /// <summary/>
-            bool KeyAvailable();
-            /// <summary/>
             void Ding();
             /// <summary/>
             CommandCompletion CompleteInput(string input, int cursorIndex, Hashtable options, System.Management.Automation.PowerShell powershell);
             /// <summary/>
             bool RunspaceIsRemote(Runspace runspace);
+
+        }
+
+        public interface IConsole
+        {
+            uint GetConsoleInputMode();
+            void SetConsoleInputMode(uint mode);
+            ConsoleKeyInfo ReadKey();
+            bool KeyAvailable { get; }
+            int CursorLeft { get; set; }
+            int CursorTop { get; set;}
+            int CursorSize { get; set; }
+            int BufferWidth { get; set; }
+            int BufferHeight { get; set;}
+            int WindowWidth { get; set; }
+            int WindowHeight { get; set; }
+            int WindowTop { get; set; }
+            ConsoleColor BackgroundColor { get; set; }
+            ConsoleColor ForegroundColor { get; set; }
+            void SetWindowPosition(int left, int top);
+            void SetCursorPosition(int left, int top);
+            void WriteLine(string s);
+            void Write(string s);
+            void WriteBufferLines(CHAR_INFO[] buffer, ref int top);
+            void ScrollBuffer(int lines);
+            CHAR_INFO[] ReadBufferLines(int top, int count);
         }
     }
 
