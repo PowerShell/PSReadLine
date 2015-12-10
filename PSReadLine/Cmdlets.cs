@@ -596,7 +596,7 @@ namespace Microsoft.PowerShell
         }
     }
 
-    public class ChangePSReadlineKeyHandlerCommand : PSCmdlet
+    public class ChangePSReadlineKeyHandlerCommandBase : PSCmdlet
     {
         [Parameter(Position = 0, Mandatory = true)]
         [Alias("Key")]
@@ -623,12 +623,10 @@ namespace Microsoft.PowerShell
                     WriteWarning(PSReadLineResources.NotInViMode);
                 }
 
-                if (ViMode == ViMode.Insert) // default if -ViMode not specified
-                    return PSConsoleReadLine.UseViInsertModeTables();
-                else if (ViMode == ViMode.Command)
+                if (ViMode == ViMode.Command)
                     return PSConsoleReadLine.UseViCommandModeTables();
-                else
-                    System.Diagnostics.Debug.Fail("unexpected ViMode");
+                else // default if -ViMode not specified, invalid, or "Insert"
+                    return PSConsoleReadLine.UseViInsertModeTables();
             }
 
             return null;
@@ -636,7 +634,7 @@ namespace Microsoft.PowerShell
     }
 
     [Cmdlet("Set", "PSReadlineKeyHandler", HelpUri = "http://go.microsoft.com/fwlink/?LinkId=528810")]
-    public class SetPSReadlineKeyHandlerCommand : ChangePSReadlineKeyHandlerCommand, IDynamicParameters
+    public class SetPSReadlineKeyHandlerCommand : ChangePSReadlineKeyHandlerCommandBase, IDynamicParameters
     {
         [Parameter(Position = 1, Mandatory = true, ParameterSetName = "ScriptBlock")]
         [ValidateNotNull]
@@ -755,7 +753,7 @@ namespace Microsoft.PowerShell
     }
 
     [Cmdlet("Remove", "PSReadlineKeyHandler", HelpUri = "http://go.microsoft.com/fwlink/?LinkId=528809")]
-    public class RemoveKeyHandlerCommand : ChangePSReadlineKeyHandlerCommand
+    public class RemoveKeyHandlerCommand : ChangePSReadlineKeyHandlerCommandBase
     {
         [ExcludeFromCodeCoverage]
         protected override void EndProcessing()
