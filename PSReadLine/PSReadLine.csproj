@@ -57,6 +57,7 @@
     <Compile Include="ConsoleBufferBuilder.cs" />
     <Compile Include="ConsoleKeyChordConverter.cs" />
     <Compile Include="ConsoleLib.cs" />
+    <Compile Include="Disposable.cs" />
     <Compile Include="History.cs" />
     <Compile Include="HistoryQueue.cs" />
     <Compile Include="KeyBindings.cs" />

@@ -682,6 +682,15 @@ namespace Microsoft.PowerShell {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The -ViMode parameter was used, but the current EditMode is not Vi..
+        /// </summary>
+        internal static string NotInViMode {
+            get {
+                return ResourceManager.GetString("NotInViMode", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to 
         ///Oops, something went wrong.  Please report this bug with the details below.
         ///Report on GitHub: https://github.com/lzybkr/PSReadLine/issues/new.
