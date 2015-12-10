@@ -218,6 +218,11 @@ namespace Microsoft.PowerShell
                                         BackgroundColor = backgroundColor,
                                         ForegroundColor = foregroundColor
                                     });
+
+                                    if (i == tokens[0].Extent.StartOffset)
+                                    {
+                                        GetTokenColors(tokens[0], out foregroundColor, out backgroundColor);
+                                    }
                                 }
                             }
                         }
