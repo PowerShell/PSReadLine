@@ -511,6 +511,42 @@ namespace Microsoft.PowerShell
             _singleton.ViIndicateInsertMode();
         }
 
+        /// <summary>
+        /// Temporarily swap in Vi-Command dispatch tables. Used for setting handlers.
+        /// </summary>
+        internal static IDisposable UseViCommandModeTables()
+        {
+            var oldDispatchTable = _singleton._dispatchTable;
+            var oldChordDispatchTable = _singleton._chordDispatchTable;
+
+            _singleton._dispatchTable = _viCmdKeyMap;
+            _singleton._chordDispatchTable = _viCmdChordTable;
+
+            return new Disposable( () =>
+            {
+                _singleton._dispatchTable = oldDispatchTable;
+                _singleton._chordDispatchTable = oldChordDispatchTable;
+            } );
+        }
+
+        /// <summary>
+        /// Temporarily swap in Vi-Insert dispatch tables. Used for setting handlers.
+        /// </summary>
+        internal static IDisposable UseViInsertModeTables()
+        {
+            var oldDispatchTable = _singleton._dispatchTable;
+            var oldChordDispatchTable = _singleton._chordDispatchTable;
+
+            _singleton._dispatchTable = _viInsKeyMap;
+            _singleton._chordDispatchTable = _viInsChordTable;
+
+            return new Disposable( () =>
+            {
+                _singleton._dispatchTable = oldDispatchTable;
+                _singleton._chordDispatchTable = oldChordDispatchTable;
+            } );
+        }
+
         private void ViIndicateCommandMode()
         {
             if (_options.ViModeIndicator == ViModeStyle.Cursor)

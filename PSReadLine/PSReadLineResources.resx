@@ -717,4 +717,7 @@ If there are other parse errors, unresolved commands, or incorrect parameters, s
   <data name="ViJoinLinesDescription" xml:space="preserve">
     <value>Joins the current multi-line edit mode line with the next.</value>
   </data>
+  <data name="NotInViMode" xml:space="preserve">
+    <value>The -ViMode parameter was used, but the current EditMode is not Vi.</value>
+  </data>
 </root>
