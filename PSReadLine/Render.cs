@@ -975,6 +975,19 @@ namespace Microsoft.PowerShell
             var console = _singleton._console;
             var newTop = coordinates.Y - console.WindowHeight + 1;
 
+            // If the cursor is already visible, and we're on the first
+            // page-worth of the buffer, then just scroll to the top (we can't
+            // scroll to before the beginning of the buffer).
+            //
+            // Note that we don't want to just return, because the window may
+            // have been scrolled way past the end of the content, so we really
+            // do need to set the new window top to 0 to bring it back into
+            // view.
+            if (newTop < 0)
+            {
+                newTop = 0;
+            }
+
             // But if the cursor won't be visible, make sure it is.
             if (newTop > console.CursorTop)
             {
