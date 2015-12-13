@@ -52,6 +52,12 @@ namespace Microsoft.PowerShell
         Prompt,
         Cursor
     }
+
+    public enum ViMode
+    {
+        Insert,
+        Command
+    }
     #endregion vi
 
     public enum HistorySaveStyle
@@ -590,8 +596,7 @@ namespace Microsoft.PowerShell
         }
     }
 
-    [Cmdlet("Set", "PSReadlineKeyHandler", HelpUri = "http://go.microsoft.com/fwlink/?LinkId=528810")]
-    public class SetPSReadlineKeyHandlerCommand : PSCmdlet, IDynamicParameters
+    public class ChangePSReadlineKeyHandlerCommandBase : PSCmdlet
     {
         [Parameter(Position = 0, Mandatory = true)]
         [Alias("Key")]
@@ -599,6 +604,38 @@ namespace Microsoft.PowerShell
         [SuppressMessage("Microsoft.Performance", "CA1819:PropertiesShouldNotReturnArrays")]
         public string[] Chord { get; set; }
 
+        [Parameter]
+        public ViMode ViMode { get; set; }
+
+        [ExcludeFromCodeCoverage]
+        protected IDisposable UseRequestedDispatchTables()
+        {
+            bool inViMode = PSConsoleReadLine.GetOptions().EditMode == EditMode.Vi;
+            bool viModeParamPresent = MyInvocation.BoundParameters.ContainsKey("ViMode");
+
+            if (inViMode || viModeParamPresent)
+            {
+                if (!inViMode)
+                {
+                    // "-ViMode" must have been specified explicitly. Well, okay... we can
+                    // modify the Vi tables... but isn't that an odd thing to do from
+                    // not-vi mode?
+                    WriteWarning(PSReadLineResources.NotInViMode);
+                }
+
+                if (ViMode == ViMode.Command)
+                    return PSConsoleReadLine.UseViCommandModeTables();
+                else // default if -ViMode not specified, invalid, or "Insert"
+                    return PSConsoleReadLine.UseViInsertModeTables();
+            }
+
+            return null;
+        }
+    }
+
+    [Cmdlet("Set", "PSReadlineKeyHandler", HelpUri = "http://go.microsoft.com/fwlink/?LinkId=528810")]
+    public class SetPSReadlineKeyHandlerCommand : ChangePSReadlineKeyHandlerCommandBase, IDynamicParameters
+    {
         [Parameter(Position = 1, Mandatory = true, ParameterSetName = "ScriptBlock")]
         [ValidateNotNull]
         public ScriptBlock ScriptBlock { get; set; }
@@ -616,18 +653,21 @@ namespace Microsoft.PowerShell
         [ExcludeFromCodeCoverage]
         protected override void EndProcessing()
         {
-            if (ParameterSetName.Equals(FunctionParameterSet))
+            using (UseRequestedDispatchTables())
             {
-                var function = (string)_dynamicParameters.Value[FunctionParameter].Value;
-                var keyHandler = (Action<ConsoleKeyInfo?, object>)
-                    Delegate.CreateDelegate(typeof (Action<ConsoleKeyInfo?, object>),
-                        typeof (PSConsoleReadLine).GetMethod(function));
-                BriefDescription = function;
-                PSConsoleReadLine.SetKeyHandler(Chord, keyHandler, BriefDescription, Description);
-            }
-            else
-            {
-                PSConsoleReadLine.SetKeyHandler(Chord, ScriptBlock, BriefDescription, Description);
+                if (ParameterSetName.Equals(FunctionParameterSet))
+                {
+                    var function = (string)_dynamicParameters.Value[FunctionParameter].Value;
+                    var keyHandler = (Action<ConsoleKeyInfo?, object>)
+                        Delegate.CreateDelegate(typeof (Action<ConsoleKeyInfo?, object>),
+                            typeof (PSConsoleReadLine).GetMethod(function));
+                    BriefDescription = function;
+                    PSConsoleReadLine.SetKeyHandler(Chord, keyHandler, BriefDescription, Description);
+                }
+                else
+                {
+                    PSConsoleReadLine.SetKeyHandler(Chord, ScriptBlock, BriefDescription, Description);
+                }
             }
         }
 
@@ -713,18 +753,15 @@ namespace Microsoft.PowerShell
     }
 
     [Cmdlet("Remove", "PSReadlineKeyHandler", HelpUri = "http://go.microsoft.com/fwlink/?LinkId=528809")]
-    public class RemoveKeyHandlerCommand : PSCmdlet
+    public class RemoveKeyHandlerCommand : ChangePSReadlineKeyHandlerCommandBase
     {
-        [Parameter(Position = 0, Mandatory = true)]
-        [Alias("Key")]
-        [ValidateNotNullOrEmpty]
-        [SuppressMessage("Microsoft.Performance", "CA1819:PropertiesShouldNotReturnArrays")]
-        public string[] Chord { get; set; }
-
         [ExcludeFromCodeCoverage]
         protected override void EndProcessing()
         {
-            PSConsoleReadLine.RemoveKeyHandler(Chord);
+            using (UseRequestedDispatchTables())
+            {
+                PSConsoleReadLine.RemoveKeyHandler(Chord);
+            }
         }
     }
 
