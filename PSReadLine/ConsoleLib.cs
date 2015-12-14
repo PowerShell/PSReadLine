@@ -537,6 +537,11 @@ namespace Microsoft.PowerShell
 
         public void WriteBufferLines(CHAR_INFO[] buffer, ref int top)
         {
+            WriteBufferLines(buffer, ref top, true);
+        }
+
+        public void WriteBufferLines(CHAR_INFO[] buffer, ref int top, bool ensureBottomLineVisible)
+        {
             var handle = NativeMethods.GetStdHandle((uint) StandardHandleId.Output);
 
             int bufferWidth = Console.BufferWidth;
@@ -565,7 +570,8 @@ namespace Microsoft.PowerShell
                                              bufferSize, bufferCoord, ref writeRegion);
 
             // Now make sure the bottom line is visible
-            if (bottom >= (Console.WindowTop + Console.WindowHeight))
+            if (ensureBottomLineVisible &&
+                (bottom >= (Console.WindowTop + Console.WindowHeight)))
             {
                 Console.CursorTop = bottom;
             }
