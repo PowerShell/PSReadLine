@@ -20,7 +20,7 @@ namespace Microsoft.PowerShell
                 buffer[i].ForegroundColor = (ConsoleColor)((int)buffer[i].ForegroundColor ^ 7);
                 buffer[i].BackgroundColor = (ConsoleColor)((int)buffer[i].BackgroundColor ^ 7);
             }
-            _singleton._console.WriteBufferLines(buffer, ref start);
+            _singleton._console.WriteBufferLines(buffer, ref start, false);
         }
 
         /// <summary>
@@ -33,6 +33,13 @@ namespace Microsoft.PowerShell
             int selectionTop = _singleton._console.CursorTop;
             int selectionHeight = 1;
             int currentY = selectionTop;
+            Internal.IConsole console = _singleton._console;
+
+            // We'll keep the current selection line (currentY) at least 4 lines
+            // away from the top or bottom of the window.
+            const int margin = 5;
+            Func<bool> tooCloseToTop = () => { return (currentY - console.WindowTop) < margin; };
+            Func<bool> tooCloseToBottom = () => { return ((console.WindowTop + console.WindowHeight) - currentY) < margin; };
 
             // Current lines starts out selected
             InvertLines(selectionTop, selectionHeight);
@@ -42,7 +49,11 @@ namespace Microsoft.PowerShell
                 var k = ReadKey();
                 switch (k.Key)
                 {
+                case ConsoleKey.K:
                 case ConsoleKey.UpArrow:
+                    if (tooCloseToTop())
+                        ScrollDisplayUpLine();
+
                     if (currentY > 0)
                     {
                         currentY -= 1;
@@ -67,8 +78,12 @@ namespace Microsoft.PowerShell
                     }
                     break;
 
+                case ConsoleKey.J:
                 case ConsoleKey.DownArrow:
-                    if (currentY < (_singleton._console.BufferHeight - 1))
+                    if (tooCloseToBottom())
+                        ScrollDisplayDownLine();
+
+                    if (currentY < (console.BufferHeight - 1))
                     {
                         currentY += 1;
                         if ((k.Modifiers & ConsoleModifiers.Shift) == ConsoleModifiers.Shift)
@@ -103,6 +118,7 @@ namespace Microsoft.PowerShell
                 case ConsoleKey.Enter:
                     InvertLines(selectionTop, selectionHeight);
                     DumpScreenToClipboard(selectionTop, selectionHeight);
+                    ScrollDisplayToCursor();
                     return;
 
                 case ConsoleKey.Escape:
@@ -124,6 +140,7 @@ namespace Microsoft.PowerShell
                 }
             }
             InvertLines(selectionTop, selectionHeight);
+            ScrollDisplayToCursor();
         }
 
         private const string CmdColorTable = @"

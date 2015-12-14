@@ -192,6 +192,11 @@ namespace UnitTestPSReadLine
 
         public void WriteBufferLines(CHAR_INFO[] bufferToWrite, ref int top)
         {
+            WriteBufferLines(bufferToWrite, ref top, true);
+        }
+
+        public void WriteBufferLines(CHAR_INFO[] bufferToWrite, ref int top, bool ensureBottomLineVisible)
+        {
             var startPos = top * BufferWidth;
             for (int i = 0; i < bufferToWrite.Length; i++)
             {
