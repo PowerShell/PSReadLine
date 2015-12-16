@@ -136,7 +136,6 @@ namespace UnitTestPSReadLine
 
         public void SetWindowPosition(int left, int top)
         {
-            throw new NotImplementedException();
         }
 
         public void SetCursorPosition(int left, int top)
