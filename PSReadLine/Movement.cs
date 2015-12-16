@@ -54,7 +54,7 @@ namespace Microsoft.PowerShell
             if (_singleton.LineIsMultiLine())
             {
                 int i = Math.Max(0, _singleton._current - 1);
-                for (; i > 1; i--)
+                for (; i > 0; i--)
                 {
                     if (_singleton._buffer[i] == '\n')
                     {
