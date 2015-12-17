@@ -50,6 +50,10 @@ namespace Microsoft.PowerShell
             void WriteBufferLines(CHAR_INFO[] buffer, ref int top, bool ensureBottomLineVisible);
             void ScrollBuffer(int lines);
             CHAR_INFO[] ReadBufferLines(int top, int count);
+
+            void StartRender();
+            int LengthInBufferCells(char c);
+            void EndRender();
         }
     }
 

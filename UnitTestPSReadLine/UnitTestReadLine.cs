@@ -237,6 +237,19 @@ namespace UnitTestPSReadLine
             Array.Copy(buffer, top * BufferWidth, result, 0, toCopy);
             return result;
         }
+
+        public void StartRender()
+        {
+        }
+
+        public int LengthInBufferCells(char c)
+        {
+            return 1;
+        }
+
+        public void EndRender()
+        {
+        }
     }
 
     [TestClass]
