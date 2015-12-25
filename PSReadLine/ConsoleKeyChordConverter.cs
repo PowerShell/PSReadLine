@@ -35,7 +35,7 @@ namespace Microsoft.PowerShell
 
             if (tokens.Length > 2)
             {
-                throw new ArgumentException(PSReadLineResources.ChordWIthTooManyKeys);
+                throw new ArgumentException(PSReadLineResources.ChordWithTooManyKeys);
             }
 
             var result = new ConsoleKeyInfo[tokens.Length];

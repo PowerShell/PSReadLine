@@ -234,9 +234,9 @@ namespace Microsoft.PowerShell {
         /// <summary>
         ///   Looks up a localized string similar to Chord can have at most two keys..
         /// </summary>
-        internal static string ChordWIthTooManyKeys {
+        internal static string ChordWithTooManyKeys {
             get {
-                return ResourceManager.GetString("ChordWIthTooManyKeys", resourceCulture);
+                return ResourceManager.GetString("ChordWithTooManyKeys", resourceCulture);
             }
         }
         
@@ -1208,15 +1208,6 @@ namespace Microsoft.PowerShell {
         internal static string StartOutOfRange {
             get {
                 return ResourceManager.GetString("StartOutOfRange", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Invalid modifier token &apos;{0}&apos;. The supported modifiers are &apos;alt&apos;, &apos;shift&apos;, &apos;control&apos; or &apos;ctrl&apos;..
-        /// </summary>
-        internal static string String1 {
-            get {
-                return ResourceManager.GetString("String1", resourceCulture);
             }
         }
         
