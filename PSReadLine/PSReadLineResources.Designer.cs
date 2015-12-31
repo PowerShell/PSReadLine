@@ -520,6 +520,27 @@ namespace Microsoft.PowerShell {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to This error will not be reported again in this session. Consider using a different path with:
+        ///    Set-PSReadlineOption -HistorySavePath &lt;Path&gt;
+        ///Or not saving history with:
+        ///    Set-PSReadlineOption -HistorySaveStyle SaveNothing.
+        /// </summary>
+        internal static string HistoryFileErrorFinalMessage {
+            get {
+                return ResourceManager.GetString("HistoryFileErrorFinalMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error reading or writing history file &apos;{0}&apos;: {1}.
+        /// </summary>
+        internal static string HistoryFileErrorMessage {
+            get {
+                return ResourceManager.GetString("HistoryFileErrorMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Search for the previous item in the history that starts with the current input - like PreviousHistory if the input is empty.
         /// </summary>
         internal static string HistorySearchBackwardDescription {

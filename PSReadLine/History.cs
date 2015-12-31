@@ -105,110 +105,135 @@ namespace Microsoft.PowerShell
             WriteHistoryRange(0, _history.Count - 1, File.CreateText);
         }
 
-        private void WriteHistoryRange(int start, int end, Func<string, StreamWriter> fileOpener)
+
+        private int historyErrorReportedCount;
+        private void ReportHistoryFileError(Exception e)
         {
-            if (_historyFileMutex.WaitOne(100))
+            if (historyErrorReportedCount == 2)
+                return;
+
+            historyErrorReportedCount += 1;
+            var fgColor = Console.ForegroundColor;
+            var bgColor = Console.BackgroundColor;
+            Console.ForegroundColor = Options.ErrorForegroundColor;
+            Console.WriteLine(PSReadLineResources.HistoryFileErrorMessage, Options.HistorySavePath, e.Message);
+            if (historyErrorReportedCount == 2)
+            {
+                Console.WriteLine(PSReadLineResources.HistoryFileErrorFinalMessage);
+            }
+            Console.ForegroundColor = fgColor;
+            Console.BackgroundColor = bgColor;
+        }
+
+        private bool WithHistoryFileMutexDo(int timeout, Action action)
+        {
+            if (_historyFileMutex.WaitOne(timeout))
             {
                 try
                 {
-                    MaybeReadHistoryFile();
-
-                    bool retry = true;
-                retry_after_creating_directory:
-                    try
-                    {
-                        using (var file = fileOpener(Options.HistorySavePath))
-                        {
-                            for (var i = start; i <= end; i++)
-                            {
-                                _history[i]._saved = true;
-                                var line = _history[i]._line.Replace("\n", "`\n");
-                                file.WriteLine(line);
-                            }
-                        }
-                        var fileInfo = new FileInfo(Options.HistorySavePath);
-                        _historyFileLastSavedSize = fileInfo.Length;
-                    }
-                    catch (DirectoryNotFoundException)
-                    {
-                        // Try making the directory, but just once
-                        if (retry)
-                        {
-                            retry = false;
-                            Directory.CreateDirectory(Path.GetDirectoryName(Options.HistorySavePath));
-                            goto retry_after_creating_directory;
-                        }
-                    }
+                    action();
+                }
+                catch (UnauthorizedAccessException uae)
+                {
+                    ReportHistoryFileError(uae);
+                    return false;
+                }
+                catch (IOException ioe)
+                {
+                    ReportHistoryFileError(ioe);
+                    return false;
                 }
                 finally
                 {
                     _historyFileMutex.ReleaseMutex();
                 }
             }
+
+            // No errors to report, so consider it a success even if we timed out on the mutex.
+            return true;
         }
 
-        private void MaybeReadHistoryFile()
+        private void WriteHistoryRange(int start, int end, Func<string, StreamWriter> fileOpener)
+        {
+            WithHistoryFileMutexDo(100, () =>
+            {
+                if (!MaybeReadHistoryFile())
+                    return;
+
+                bool retry = true;
+                retry_after_creating_directory:
+                try
+                {
+                    using (var file = fileOpener(Options.HistorySavePath))
+                    {
+                        for (var i = start; i <= end; i++)
+                        {
+                            _history[i]._saved = true;
+                            var line = _history[i]._line.Replace("\n", "`\n");
+                            file.WriteLine(line);
+                        }
+                    }
+                    var fileInfo = new FileInfo(Options.HistorySavePath);
+                    _historyFileLastSavedSize = fileInfo.Length;
+                }
+                catch (DirectoryNotFoundException)
+                {
+                    // Try making the directory, but just once
+                    if (retry)
+                    {
+                        retry = false;
+                        Directory.CreateDirectory(Path.GetDirectoryName(Options.HistorySavePath));
+                        goto retry_after_creating_directory;
+                    }
+                }
+            });
+        }
+
+        private bool MaybeReadHistoryFile()
         {
             if (Options.HistorySaveStyle == HistorySaveStyle.SaveIncrementally)
             {
-                if (_historyFileMutex.WaitOne(1000))
+                return WithHistoryFileMutexDo(1000, () =>
                 {
-                    try
+                    var fileInfo = new FileInfo(Options.HistorySavePath);
+                    if (fileInfo.Length != _historyFileLastSavedSize)
                     {
-                        try
+                        var historyLines = new List<string>();
+                        using (var fs = new FileStream(Options.HistorySavePath, FileMode.Open))
+                        using (var sr = new StreamReader(fs))
                         {
-                            var fileInfo = new FileInfo(Options.HistorySavePath);
-                            if (fileInfo.Length != _historyFileLastSavedSize)
+                            fs.Seek(_historyFileLastSavedSize, SeekOrigin.Begin);
+
+                            while (!sr.EndOfStream)
                             {
-                                var historyLines = new List<string>();
-                                using (var fs = new FileStream(Options.HistorySavePath, FileMode.Open))
-                                using (var sr = new StreamReader(fs))
-                                {
-                                    fs.Seek(_historyFileLastSavedSize, SeekOrigin.Begin);
-
-                                    while (!sr.EndOfStream)
-                                    {
-                                        historyLines.Add(sr.ReadLine());
-                                    }
-                                }
-                                UpdateHistoryFromFile(historyLines, fromDifferentSession: true);
-
-                                _historyFileLastSavedSize = fileInfo.Length;
+                                historyLines.Add(sr.ReadLine());
                             }
                         }
-                        catch (FileNotFoundException)
-                        {
-                        }
+                        UpdateHistoryFromFile(historyLines, fromDifferentSession: true);
+
+                        _historyFileLastSavedSize = fileInfo.Length;
                     }
-                    finally
-                    {
-                        _historyFileMutex.ReleaseMutex();
-                    }
-                }
+                });
             }
+
+            // true means no errors, not that we actually read the file
+            return true;
         }
 
         private void ReadHistoryFile()
         {
-            if (_historyFileMutex.WaitOne(1000))
+            WithHistoryFileMutexDo(1000, () =>
             {
-                try
+                if (!File.Exists(Options.HistorySavePath))
                 {
-                    if (!File.Exists(Options.HistorySavePath))
-                    {
-                        return;
-                    }
+                    return;
+                }
 
-                    var historyLines = File.ReadAllLines(Options.HistorySavePath);
-                    UpdateHistoryFromFile(historyLines, fromDifferentSession: false);
-                    var fileInfo = new FileInfo(Options.HistorySavePath);
-                    _historyFileLastSavedSize = fileInfo.Length;
-                }
-                finally
-                {
-                    _historyFileMutex.ReleaseMutex();
-                }
-            }
+                var historyLines = File.ReadAllLines(Options.HistorySavePath);
+                UpdateHistoryFromFile(historyLines, fromDifferentSession: false);
+                var fileInfo = new FileInfo(Options.HistorySavePath);
+                _historyFileLastSavedSize = fileInfo.Length;
+            });
         }
 
         void UpdateHistoryFromFile(IEnumerable<string> historyLines, bool fromDifferentSession)
