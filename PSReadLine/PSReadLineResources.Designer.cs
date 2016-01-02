@@ -990,15 +990,6 @@ namespace Microsoft.PowerShell {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Starts a new seach backward in the history..
-        /// </summary>
-        internal static string SearchBackwardDescription {
-            get {
-                return ResourceManager.GetString("SearchBackwardDescription", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Move to the previous occurance of the specified character..
         /// </summary>
         internal static string SearchCharBackwardDescription {
@@ -1635,6 +1626,15 @@ namespace Microsoft.PowerShell {
         internal static string ViReplaceWordDescription {
             get {
                 return ResourceManager.GetString("ViReplaceWordDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Starts a new seach backward in the history..
+        /// </summary>
+        internal static string ViSearchHistoryBackwardDescription {
+            get {
+                return ResourceManager.GetString("ViSearchHistoryBackwardDescription", resourceCulture);
             }
         }
         

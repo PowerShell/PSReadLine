@@ -1,4 +1,8 @@
-﻿using System;
+﻿/********************************************************************++
+Copyright (c) Microsoft Corporation.  All rights reserved.
+--********************************************************************/
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -36,7 +40,6 @@ namespace Microsoft.PowerShell
         }
 
         private int _normalCursorSize = 10;
-        private ConsoleColor _normalBackground = ConsoleColor.Black;
 
         private static KeyHandler MakeViKeyHandler(Action<ConsoleKeyInfo?, object> action, string briefDescription, string longDescription = null)
         {
@@ -196,7 +199,7 @@ namespace Microsoft.PowerShell
                 { Keys.Pipe,            MakeViKeyHandler(GotoColumn,           "GotoColumn") },
                 { Keys.Uphat,           MakeViKeyHandler(GotoFirstNonBlankOfLine, "GotoFirstNonBlankOfLine") },
                 { Keys.Tilde,           MakeViKeyHandler(InvertCase,           "InvertCase") },
-                { Keys.Slash,           MakeViKeyHandler(SearchBackward,       "SearchBackward") },
+                { Keys.Slash,           MakeViKeyHandler(ViSearchHistoryBackward,       "SearchBackward") },
                 { Keys.CtrlR,           MakeViKeyHandler(SearchCharBackward,   "SearchCharBackward") },
                 { Keys.Question,        MakeViKeyHandler(SearchForward,        "SearchForward") },
                 { Keys.CtrlS,           MakeViKeyHandler(SearchForward,        "SearchForward") },
@@ -286,7 +289,6 @@ namespace Microsoft.PowerShell
             _viCmdChordTable[Keys.Y] = _viChordYTable;
 
             _normalCursorSize = _console.CursorSize;
-            _normalBackground = _console.BackgroundColor;
         }
     }
 }

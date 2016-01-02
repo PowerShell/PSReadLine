@@ -1,4 +1,8 @@
-﻿using System;
+﻿/********************************************************************++
+Copyright (c) Microsoft Corporation.  All rights reserved.
+--********************************************************************/
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -231,15 +235,6 @@ namespace Microsoft.PowerShell
         public static void ViExit(ConsoleKeyInfo? key = null, object arg = null)
         {
             throw new ExitException();
-        }
-
-        /// <summary>
-        /// Insert the next key entered.
-        /// </summary>
-        private static void InsertCharacter(object arg = null)
-        {
-            ConsoleKeyInfo secondKey = ReadKey();
-            _singleton.ProcessOneKey(secondKey, _viInsKeyMap, ignoreIfNoAction: false, arg: arg);
         }
 
         /// <summary>
@@ -840,7 +835,7 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Prompts for a search string and initiates search upon AcceptLine.
         /// </summary>
-        public static void SearchBackward(ConsoleKeyInfo? key = null, object arg = null)
+        public static void ViSearchHistoryBackward(ConsoleKeyInfo? key = null, object arg = null)
         {
             if (!key.HasValue || char.IsControl(key.Value.KeyChar))
             {
