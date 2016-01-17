@@ -192,13 +192,16 @@ Set-PSReadlineKeyHandler -Key Backspace `
     if ($cursor -gt 0)
     {
         $toMatch = $null
-        switch ($line[$cursor])
+        if ($cursor -lt $line.Length)
         {
-            <#case#> '"' { $toMatch = '"'; break }
-            <#case#> "'" { $toMatch = "'"; break }
-            <#case#> ')' { $toMatch = '('; break }
-            <#case#> ']' { $toMatch = '['; break }
-            <#case#> '}' { $toMatch = '{'; break }
+            switch ($line[$cursor])
+            {
+                <#case#> '"' { $toMatch = '"'; break }
+                <#case#> "'" { $toMatch = "'"; break }
+                <#case#> ')' { $toMatch = '('; break }
+                <#case#> ']' { $toMatch = '['; break }
+                <#case#> '}' { $toMatch = '{'; break }
+            }
         }
 
         if ($toMatch -ne $null -and $line[$cursor-1] -eq $toMatch)

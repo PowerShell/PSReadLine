@@ -756,6 +756,15 @@ namespace Microsoft.PowerShell {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to An exception occurred in custom key handler, see $error for more information: {0}.
+        /// </summary>
+        internal static string OopsCustomHandlerException {
+            get {
+                return ResourceManager.GetString("OopsCustomHandlerException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Write the contents of the local clipboard after the cursor..
         /// </summary>
         internal static string PasteAfterDescription {

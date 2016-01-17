@@ -714,4 +714,7 @@ If there are other parse errors, unresolved commands, or incorrect parameters, s
 Or not saving history with:
     Set-PSReadlineOption -HistorySaveStyle SaveNothing</value>
   </data>
+  <data name="OopsCustomHandlerException" xml:space="preserve">
+    <value>An exception occurred in custom key handler, see $error for more information: {0}</value>
+  </data>
 </root>

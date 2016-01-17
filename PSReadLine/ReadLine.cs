@@ -251,8 +251,8 @@ namespace Microsoft.PowerShell
         /// <returns>The complete command line.</returns>
         public static string ReadLine(Runspace runspace, EngineIntrinsics engineIntrinsics)
         {
-            var console1 = _singleton._console;
-            _singleton._prePSReadlineConsoleMode = console1.GetConsoleInputMode();
+            var console = _singleton._console;
+            _singleton._prePSReadlineConsoleMode = console.GetConsoleInputMode();
             bool firstTime = true;
             while (true)
             {
@@ -265,11 +265,11 @@ namespace Microsoft.PowerShell
                     //     ENABLE_MOUSE_INPUT - mouse events
                     //     ENABLE_WINDOW_INPUT - window resize events
                     var mode = _singleton._prePSReadlineConsoleMode &
-                        ~(NativeMethods.ENABLE_PROCESSED_INPUT |
-                          NativeMethods.ENABLE_LINE_INPUT |
-                          NativeMethods.ENABLE_WINDOW_INPUT |
-                          NativeMethods.ENABLE_MOUSE_INPUT);
-                    console1.SetConsoleInputMode(mode);
+                               ~(NativeMethods.ENABLE_PROCESSED_INPUT |
+                                 NativeMethods.ENABLE_LINE_INPUT |
+                                 NativeMethods.ENABLE_WINDOW_INPUT |
+                                 NativeMethods.ENABLE_MOUSE_INPUT);
+                    console.SetConsoleInputMode(mode);
 
                     if (firstTime)
                     {
@@ -288,6 +288,19 @@ namespace Microsoft.PowerShell
                 {
                     return "exit";
                 }
+                catch (CustomHandlerException e)
+                {
+                    var oldColor = console.ForegroundColor;
+                    console.ForegroundColor = ConsoleColor.Red;
+                    console.WriteLine(
+                        string.Format(CultureInfo.CurrentUICulture, PSReadLineResources.OopsCustomHandlerException, e.InnerException.Message));
+                    console.ForegroundColor = oldColor;
+
+                    var lineBeforeCrash = _singleton._buffer.ToString();
+                    _singleton.Initialize(runspace, _singleton._engineIntrinsics);
+                    InvokePrompt();
+                    Insert(lineBeforeCrash);
+                }
                 catch (Exception e)
                 {
                     // If we're running tests, just throw.
@@ -300,7 +313,6 @@ namespace Microsoft.PowerShell
                     {
                         e = e.InnerException;
                     }
-                    var console = console1;
                     var oldColor = console.ForegroundColor;
                     console.ForegroundColor = ConsoleColor.Red;
                     console.WriteLine(PSReadLineResources.OopsAnErrorMessage1);
@@ -318,18 +330,17 @@ namespace Microsoft.PowerShell
                             // Make it a little easier to see the keys
                             sb.Append('\n');
                         }
-                        // TODO: print non-default function bindings and script blocks
                     }
 
                     console.WriteLine(string.Format(CultureInfo.CurrentUICulture, PSReadLineResources.OopsAnErrorMessage2, _lastNKeys.Count, sb, e));
                     var lineBeforeCrash = _singleton._buffer.ToString();
-                        _singleton.Initialize(runspace, _singleton._engineIntrinsics);
+                    _singleton.Initialize(runspace, _singleton._engineIntrinsics);
                     InvokePrompt();
                     Insert(lineBeforeCrash);
                 }
                 finally
                 {
-                    console1.SetConsoleInputMode(_singleton._prePSReadlineConsoleMode);
+                    console.SetConsoleInputMode(_singleton._prePSReadlineConsoleMode);
                 }
             }
         }

@@ -243,13 +243,31 @@ namespace Microsoft.PowerShell
             return _singleton._options;
         }
 
+        class CustomHandlerException : Exception
+        {
+            internal CustomHandlerException(Exception innerException)
+                : base("", innerException)
+            {
+            }
+        }
+
         /// <summary>
         /// Helper function for the Set-PSReadlineKeyHandler cmdlet.
         /// </summary>
         public static void SetKeyHandler(string[] key, ScriptBlock scriptBlock, string briefDescription, string longDescription)
         {
-            Action<ConsoleKeyInfo?, object> handler =
-                (k, arg) => scriptBlock.Invoke(k, arg);
+            Action<ConsoleKeyInfo?, object> handler = (k, arg) =>
+            {
+                try
+                {
+                    scriptBlock.Invoke(k, arg);
+                }
+                catch (Exception e)
+                {
+                    throw new CustomHandlerException(e);
+                }
+            };
+
             _singleton.SetKeyHandlerInternal(key, handler, briefDescription, longDescription, scriptBlock);
         }
 
