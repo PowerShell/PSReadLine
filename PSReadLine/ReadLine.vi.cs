@@ -1125,6 +1125,9 @@ namespace Microsoft.PowerShell
             }
         }
 
+        /// <summary>
+        /// Like DeleteCharOrExit in Emacs mode, but accepts the line instead of deleting a character.
+        /// </summary>
         public static void ViAcceptLineOrExit(ConsoleKeyInfo? key = null, object arg = null)
         {
             if (_singleton._buffer.Length > 0)

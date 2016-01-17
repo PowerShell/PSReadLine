@@ -15,6 +15,9 @@ namespace Microsoft.PowerShell
         private string _visualEditTemporaryFilename = null;
         private Func<string, bool> _savedAddToHistoryHandler = null;
 
+        /// <summary>
+        /// Edit the command line in a text editor specified by $env:EDITOR or $env:VISUAL
+        /// </summary>
         public static void ViEditVisually(ConsoleKeyInfo? key = null, object arg = null)
         {
             string editorOfChoice = GetPreferredEditor();

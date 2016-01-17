@@ -233,6 +233,9 @@ namespace Microsoft.PowerShell
             }
         }
 
+        /// <summary>
+        /// Similar to <see cref="GotoBrace"/>, but is character based instead of token based.
+        /// </summary>
         public static void ViGotoBrace(ConsoleKeyInfo? key = null, object arg = null)
         {
             int i = _singleton.ViFindBrace(_singleton._current);

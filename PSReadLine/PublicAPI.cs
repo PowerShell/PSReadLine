@@ -120,6 +120,8 @@ namespace Microsoft.PowerShell
         /// <param name="start">The start position to replace</param>
         /// <param name="length">The length to replace</param>
         /// <param name="replacement">The replacement text</param>
+        /// <param name="instigator">The action that initiated the replace (used for undo)</param>
+        /// <param name="instigatorArg">The argument to the action that initiaed the replace (used for undo)</param>
         public static void Replace(int start, int length, string replacement, Action<ConsoleKeyInfo?, object> instigator = null, object instigatorArg = null)
         {
             if (start < 0 || start > _singleton._buffer.Length)
