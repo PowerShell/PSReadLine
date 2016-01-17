@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
+using Microsoft.PowerShell.Internal;
 
 namespace Microsoft.PowerShell
 {

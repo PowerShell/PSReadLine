@@ -8,12 +8,13 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Text;
-using Microsoft.PowerShell.Internal;
 using Microsoft.Win32.SafeHandles;
 
-namespace Microsoft.PowerShell
+namespace Microsoft.PowerShell.Internal
 {
-    public static class NativeMethods
+#pragma warning disable 1591
+
+    internal static class NativeMethods
     {
         public const uint MAPVK_VK_TO_VSC   = 0x00;
         public const uint MAPVK_VSC_TO_VK   = 0x01;
@@ -233,7 +234,7 @@ namespace Microsoft.PowerShell
         }
     }
 
-    public struct COORD
+    internal struct COORD
     {
         public short X;
         public short Y;
@@ -261,7 +262,7 @@ namespace Microsoft.PowerShell
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    public struct CHARSETINFO
+    internal struct CHARSETINFO
     {
         //From public\sdk\inc\wingdi.h
         internal uint ciCharset;   // Character set value.
@@ -270,7 +271,7 @@ namespace Microsoft.PowerShell
     }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-    public struct TEXTMETRIC
+    internal struct TEXTMETRIC
     {
         //From public\sdk\inc\wingdi.h
         public int tmHeight;
@@ -838,4 +839,6 @@ namespace Microsoft.PowerShell
             }
         }
     }
+
+#pragma warning restore 1591
 }

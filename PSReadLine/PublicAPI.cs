@@ -9,23 +9,23 @@ using System.Management.Automation;
 using System.Management.Automation.Language;
 using System.Management.Automation.Runspaces;
 
+
 namespace Microsoft.PowerShell
 {
     namespace Internal
     {
-        /// <summary/>
+#pragma warning disable 1591
+
         [SuppressMessage("Microsoft.MSInternal", "CA903:InternalNamespaceShouldNotContainPublicTypes")]
         public interface IPSConsoleReadLineMockableMethods
         {
-            /// <summary/>
             void Ding();
-            /// <summary/>
             CommandCompletion CompleteInput(string input, int cursorIndex, Hashtable options, System.Management.Automation.PowerShell powershell);
-            /// <summary/>
             bool RunspaceIsRemote(Runspace runspace);
 
         }
 
+        [SuppressMessage("Microsoft.MSInternal", "CA903:InternalNamespaceShouldNotContainPublicTypes")]
         public interface IConsole
         {
             uint GetConsoleInputMode();
@@ -55,6 +55,8 @@ namespace Microsoft.PowerShell
             int LengthInBufferCells(char c);
             void EndRender();
         }
+
+#pragma warning restore 1591
     }
 
     /// <summary/>

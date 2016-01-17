@@ -6,7 +6,7 @@ using System;
 
 namespace Microsoft.PowerShell
 {
-    public static class Keys
+    internal static class Keys
     {
         public static ConsoleKeyInfo A = new ConsoleKeyInfo('a', ConsoleKey.A, false, false, false);
         public static ConsoleKeyInfo B = new ConsoleKeyInfo('b', ConsoleKey.B, false, false, false);

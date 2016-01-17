@@ -55,6 +55,9 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="..\PSReadLine\Keys.cs">
+      <Link>Keys.cs</Link>
+    </Compile>
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="BasicEditingTest.VI.cs" />
     <Compile Include="CompletionTest.cs" />
