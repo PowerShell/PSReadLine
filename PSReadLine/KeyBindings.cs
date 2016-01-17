@@ -64,7 +64,17 @@ namespace Microsoft.PowerShell
             // (e.g. as a repeat count) or a string.  Most actions will ignore this argument.
             public Action<ConsoleKeyInfo?, object> Action;
             public string BriefDescription;
-            public string LongDescription;
+            public string LongDescription
+            {
+                get
+                {
+                    return _longDescription ??
+                           (_longDescription =
+                               PSReadLineResources.ResourceManager.GetString(BriefDescription + "Description"));
+                }
+                set { _longDescription = value; }
+            }
+            private string _longDescription;
             public ScriptBlock ScriptBlock;
         }
 
@@ -83,9 +93,6 @@ namespace Microsoft.PowerShell
 
         static KeyHandler MakeKeyHandler(Action<ConsoleKeyInfo?, object> action, string briefDescription, string longDescription = null, ScriptBlock scriptBlock = null)
         {
-            if (string.IsNullOrWhiteSpace(longDescription))
-                longDescription = PSReadLineResources.ResourceManager.GetString(briefDescription + "Description");
-
             return new KeyHandler
             {
                 Action = action,

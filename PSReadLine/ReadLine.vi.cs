@@ -551,7 +551,7 @@ namespace Microsoft.PowerShell
             else if (_options.ViModeIndicator == ViModeStyle.Prompt)
             {
                 ConsoleColor savedBackground = _console.BackgroundColor;
-                _console.BackgroundColor = BackgroundColorMapper.AlternateBackground(_console.BackgroundColor);
+                _console.BackgroundColor = AlternateBackground(_console.BackgroundColor);
                 InvokePrompt();
                 _console.BackgroundColor = savedBackground;
             }

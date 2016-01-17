@@ -24,7 +24,6 @@ $files = @('PSReadline\Changes.txt',
            'PSReadline\SamplePSReadlineProfile.ps1',
            'PSReadline\PSReadline.psd1',
            'PSReadline\PSReadline.psm1',
-           'PSReadline\PSReadline.format.ps1xml',
            'PSReadline\bin\Release\Microsoft.PowerShell.PSReadline.dll')
 
 foreach ($file in $files)
