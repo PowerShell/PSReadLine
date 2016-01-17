@@ -127,27 +127,38 @@ namespace Microsoft.PowerShell
 
         private bool WithHistoryFileMutexDo(int timeout, Action action)
         {
-            if (_historyFileMutex.WaitOne(timeout))
+            int retryCount = 0;
+            do
             {
                 try
                 {
-                    action();
+                    if (_historyFileMutex.WaitOne(timeout))
+                    {
+                        try
+                        {
+                            action();
+                        }
+                        catch (UnauthorizedAccessException uae)
+                        {
+                            ReportHistoryFileError(uae);
+                            return false;
+                        }
+                        catch (IOException ioe)
+                        {
+                            ReportHistoryFileError(ioe);
+                            return false;
+                        }
+                        finally
+                        {
+                            _historyFileMutex.ReleaseMutex();
+                        }
+                    }
                 }
-                catch (UnauthorizedAccessException uae)
+                catch (AbandonedMutexException)
                 {
-                    ReportHistoryFileError(uae);
-                    return false;
+                    retryCount += 1;
                 }
-                catch (IOException ioe)
-                {
-                    ReportHistoryFileError(ioe);
-                    return false;
-                }
-                finally
-                {
-                    _historyFileMutex.ReleaseMutex();
-                }
-            }
+            } while (retryCount > 0 && retryCount < 3);
 
             // No errors to report, so consider it a success even if we timed out on the mutex.
             return true;
@@ -196,7 +207,7 @@ namespace Microsoft.PowerShell
                 return WithHistoryFileMutexDo(1000, () =>
                 {
                     var fileInfo = new FileInfo(Options.HistorySavePath);
-                    if (fileInfo.Length != _historyFileLastSavedSize)
+                    if (fileInfo.Exists && fileInfo.Length != _historyFileLastSavedSize)
                     {
                         var historyLines = new List<string>();
                         using (var fs = new FileStream(Options.HistorySavePath, FileMode.Open))
