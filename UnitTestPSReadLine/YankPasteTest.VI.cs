@@ -364,20 +364,32 @@ namespace UnitTestPSReadLine
 
             Test("012{45}78", Keys(
                 "012{45}78", _.Escape, "hh",
-                "y", _.Percent, "p", CheckThat(() => AssertLineIs("012{45}{4578")), CheckThat(() => AssertCursorLeftIs(9)),
+                "y", _.Percent, "p", CheckThat(() => AssertLineIs("012{45}{45}78")), CheckThat(() => AssertCursorLeftIs(10)),
                 "u", CheckThat(() => AssertCursorLeftIs(7))
                 ));
 
             Test("012(45)78", Keys(
                 "012(45)78", _.Escape, "hh",
-                "y", _.Percent, "p", CheckThat(() => AssertLineIs("012(45)(4578")), CheckThat(() => AssertCursorLeftIs(9)),
+                "y", _.Percent, "p", CheckThat(() => AssertLineIs("012(45)(45)78")), CheckThat(() => AssertCursorLeftIs(10)),
                 "u", CheckThat(() => AssertCursorLeftIs(7))
                 ));
 
             Test("012[45]78", Keys(
                 "012[45]78", _.Escape, "hh",
-                "y", _.Percent, "p", CheckThat(() => AssertLineIs("012[45][4578")), CheckThat(() => AssertCursorLeftIs(9)),
+                "y", _.Percent, "p", CheckThat(() => AssertLineIs("012[45][45]78")), CheckThat(() => AssertCursorLeftIs(10)),
                 "u", CheckThat(() => AssertCursorLeftIs(7))
+                ));
+
+            Test("012{45}", Keys(
+                "012{45}", _.Escape, "hhh", CheckThat(() => AssertCursorLeftIs(3)),
+                "y", _.Percent, "P", CheckThat(() => AssertLineIs("012{45}{45}")),
+                "u"
+                ));
+
+            Test("{123}56", Keys(
+                "{123}56", _.Escape, "hh", CheckThat(() => AssertCursorLeftIs(4)),
+                "y", _.Percent, "p", CheckThat(() => AssertLineIs("{123}{123}56")),
+                "u"
                 ));
         }
 
