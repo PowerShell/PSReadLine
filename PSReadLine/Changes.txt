@@ -1,4 +1,7 @@
-### Version 1.1.1
+### Version 1.2
+
+New features:
+* Vi editing mode
 
 New functions:
 * InsertLineAbove
@@ -12,10 +15,21 @@ New key bindings:
 * Ctrl+Enter bound to InsertLineAbove in Windows mode 
 * Ctrl+Shift+Enter bound to InsertLineBelow in Windows mode
 
-### Version 1.1.0
+Bug fixes:
+* Home the first line of multi-line input fixed
+* CaptureScreen captures colors colors correctly instead of guessing
+* CaptureScreen scrolls the screen to ensure the selected line is visible
+* CaptureScreen allows j/k for up/down (for the vi fans)
+* Fixed uncommon syntax coloring bug with bare words that start with a variable
+* Added sample handler for F7 emulation
+* Fixed sample handler for Set-StrictMode error
+* Improved error message when errors occur in custom handlers
+
+### Version 1.1 (shipped w/ Windows 10)
 
 Breaking change:
 * Namespace PSConsoleUtilities has been renamed to Microsoft.PowerShell
+* Default history file location changed to match Windows 10
 
 ### Version 1.0.0.13
 
