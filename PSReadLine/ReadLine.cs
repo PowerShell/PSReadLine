@@ -492,19 +492,19 @@ namespace Microsoft.PowerShell
             // singleton is called on a thread with a runspace, but it is happening by coincidence.
             using (var ps = System.Management.Automation.PowerShell.Create(RunspaceMode.CurrentRunspace))
             {
-            try
-            {
-                    ps.AddCommand("Get-Variable").AddParameter("Name", "host").AddParameter("ValueOnly");
-                var results = ps.Invoke();
-                dynamic host = results.Count == 1 ? results[0] : null;
-                if (host != null)
+                try
                 {
-                    hostName = host.Name as string;
+                    ps.AddCommand("Get-Variable").AddParameter("Name", "host").AddParameter("ValueOnly");
+                    var results = ps.Invoke();
+                    dynamic host = results.Count == 1 ? results[0] : null;
+                    if (host != null)
+                    {
+                        hostName = host.Name as string;
+                    }
                 }
-            }
-            catch
-            {
-            }
+                catch
+                {
+                }
             }
             if (hostName == null)
             {
