@@ -1,3 +1,5 @@
+[![Build status](https://ci.appveyor.com/api/projects/status/0xu8r817dl6qt0g4?svg=true)](https://ci.appveyor.com/project/lzybkr/psreadline)
+
 #PSReadLine
 
 This module replaces the command line editing experience in PowerShell.exe for versions 3 and up.
