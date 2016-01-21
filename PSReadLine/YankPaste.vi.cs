@@ -278,11 +278,11 @@ namespace Microsoft.PowerShell
             int start = _singleton.ViFindBrace(_singleton._current);
             if (_singleton._current < start)
             {
-                _singleton.SaveToClipboard(_singleton._current, start - _singleton._current);
+                _singleton.SaveToClipboard(_singleton._current, start - _singleton._current + 1);
             }
             else if (start < _singleton._current)
             {
-                _singleton.SaveToClipboard(start, _singleton._current - start);
+                _singleton.SaveToClipboard(start, _singleton._current - start + 1);
             }
             else
             {
