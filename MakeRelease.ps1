@@ -1,5 +1,17 @@
 param([switch]$Install, [switch]$BuildChocolatey)
 
+# generate external help
+if (-not (Get-Module platyPS))
+{
+    Write-Warning -Message "Requires platyPS to generate help: Install-Module platyPS; Import-Module platyPS"
+}
+else
+{
+    $maml = Get-PlatyPSExternalHelp -markdown (cat -raw $PSScriptRoot\PSReadline\en-US\PSReadline.md)
+    Set-Content -Value $maml -Path $PSScriptRoot\PSReadline\en-US\PSReadline.dll-help.xml -Encoding UTF8
+}
+# end generate external help
+
 add-type -AssemblyName System.IO.Compression.FileSystem
 
 if (-not(Get-Command -Name msbuild -ErrorAction Ignore))
@@ -32,6 +44,7 @@ foreach ($file in $files)
 }
 
 $files = @('PSReadline\en-US\about_PSReadline.help.txt',
+           'PSReadline\en-US\PSReadline.md',
            'PSReadline\en-US\PSReadline.dll-help.xml')
 
 foreach ($file in $files)
