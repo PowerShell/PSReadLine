@@ -1,0 +1,10 @@
+# use before_build to produce xml help
+# then auto-build will make the build and auto-test will run all the tests and report result
+before_build:
+  - ps: |
+      nuget install platyPS -source https://www.powershellgallery.com/api/v2 -outputDirectory . -ExcludeVersion
+      Import-Module .\platyPS
+      .\MakeRelease.ps1
+
+artifacts:
+  - path: PSReadline.zip

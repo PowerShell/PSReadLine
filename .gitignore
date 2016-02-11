@@ -1,3 +1,6 @@
+# External help files
+*.dll-help.xml
+
 # Built binary placed in the root
 PSReadline.zip
 
