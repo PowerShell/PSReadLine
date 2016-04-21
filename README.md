@@ -35,7 +35,7 @@ You will need PowerShellGet.  It is included in Windows 10 and [WMF5](http://go.
 
 After installing PowerShellGet, you can simply run `Install-Module PSReadline`.
 
-If you are on Windows 10, PSReadline is already installed.  At this time, you should not use Install-Module or Update-Module because there is not a newer version available for Windows 10.
+If you are on Windows 10, PSReadline is already installed. Windows 10 RTM and the November update have version 1.1, later builds have version 1.2 (which includes vi mode). See below for how to upgrade.
 
 ### Install from GitHub (deprecated)
 
@@ -68,9 +68,11 @@ In either case, you can create the appropriate file if you don't already have on
 
 ##Upgrading
 
-If you are on Windows 10, there is no upgrade available yet.  When an upgrade is available, these instructions will be updated.
+When running one of the suggested commands below, be sure to exit all instances of powershell.exe, then run the suggested command from cmd.exe, powershell_ise.exe, or via the Win+R shortcut to make sure PSReadline isn't loaded.
 
-If you installed with `PSGet` or WMF5, you should exit from all instances of PowerShell that have loaded PSReadline, then run (from cmd.exe, or the Win+R run shortcut) `powershell -noprofile -command "Update-Module PSReadline"`.
+If you are using the version of PSReadline that ships with Windows 10, you need to run: `powershell -noprofile -command "Install-Module PSReadline -Force"`.
+
+If you've installed PSReadline yourself from the PowerShell Gallery or with `PSGet` (this is less common on Windows 10), you can simply run: `powershell -noprofile -command "Update-Module PSReadline"`.
 
 If you get an error like:
 
