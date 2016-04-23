@@ -19,7 +19,7 @@ namespace Microsoft.PowerShell.Internal
         public const uint MAPVK_VK_TO_VSC   = 0x00;
         public const uint MAPVK_VSC_TO_VK   = 0x01;
         public const uint MAPVK_VK_TO_CHAR  = 0x02;
-        
+
         public const byte VK_SHIFT          = 0x10;
         public const byte VK_CONTROL        = 0x11;
         public const byte VK_ALT            = 0x12;
@@ -366,7 +366,7 @@ namespace Microsoft.PowerShell.Internal
 
     }
 
-    internal static class ConsoleKeyInfoExtension 
+    internal static class ConsoleKeyInfoExtension
     {
         public static string ToGestureString(this ConsoleKeyInfo key)
         {
@@ -825,10 +825,17 @@ namespace Microsoft.PowerShell.Internal
             _codePage = NativeMethods.GetConsoleOutputCP();
             _istmInitialized = false;
             var consoleHandle = _outputHandle.Value;
-            CONSOLE_FONT_INFO_EX fontInfo = ConhostConsole.GetConsoleFontInfo(consoleHandle);
-            int fontType = fontInfo.FontFamily & NativeMethods.FontTypeMask;
-            _trueTypeInUse = (fontType & NativeMethods.TrueTypeFont) == NativeMethods.TrueTypeFont;
-
+            try
+            {
+                CONSOLE_FONT_INFO_EX fontInfo = ConhostConsole.GetConsoleFontInfo(consoleHandle);
+                int fontType = fontInfo.FontFamily & NativeMethods.FontTypeMask;
+                _trueTypeInUse = (fontType & NativeMethods.TrueTypeFont) == NativeMethods.TrueTypeFont;
+            }
+            catch (Exception e)
+            {
+                // Ignore failures to get font information. In Windows Server containers,
+                // the font information cannot be queried.
+            }
         }
 
         public void EndRender()
