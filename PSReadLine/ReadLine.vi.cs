@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Management.Automation;
@@ -640,7 +641,7 @@ namespace Microsoft.PowerShell
                 char c = _singleton._buffer[_singleton._current];
                 if (Char.IsLetter(c))
                 {
-                    char newChar = Char.IsUpper(c) ? Char.ToLower(c) : char.ToUpper(c);
+                    char newChar = Char.IsUpper(c) ? Char.ToLower(c, CultureInfo.CurrentCulture) : char.ToUpper(c, CultureInfo.CurrentCulture);
                     EditItem delEditItem = EditItemDelete.Create(c.ToString(), _singleton._current);
                     EditItem insEditItem = EditItemInsertChar.Create(newChar, _singleton._current);
                     _singleton.SaveEditItem(GroupedEdit.Create(new List<EditItem> 
