@@ -87,9 +87,6 @@ namespace Microsoft.PowerShell.Internal
         public static extern IntPtr GetDC(IntPtr hwnd);
 
         [DllImport("GDI32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-        public static extern bool TranslateCharsetInfo(IntPtr src, out CHARSETINFO Cs, uint options);
-
-        [DllImport("GDI32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
         public static extern bool GetTextMetrics(IntPtr hdc, out TEXTMETRIC tm);
 
         [DllImport("GDI32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
@@ -259,15 +256,6 @@ namespace Microsoft.PowerShell.Internal
         // fsCsb*: A 64-bit, code-page bitfield (CPB) that identifies a specific character set or code page.
         internal uint fsCsb0;
         internal uint fsCsb1;
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    internal struct CHARSETINFO
-    {
-        //From public\sdk\inc\wingdi.h
-        internal uint ciCharset;   // Character set value.
-        internal uint ciACP;       // ANSI code-page identifier.
-        internal FONTSIGNATURE fs;
     }
 
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
@@ -673,28 +661,6 @@ namespace Microsoft.PowerShell.Internal
             return LengthInBufferCellsFE(c);
         }
 
-        internal static bool IsAnyDBCSCharSet(uint charSet)
-        {
-            const uint SHIFTJIS_CHARSET = 128;
-            const uint HANGEUL_CHARSET = 129;
-            const uint CHINESEBIG5_CHARSET = 136;
-            const uint GB2312_CHARSET = 134;
-            return charSet == SHIFTJIS_CHARSET || charSet == HANGEUL_CHARSET ||
-                   charSet == CHINESEBIG5_CHARSET || charSet == GB2312_CHARSET;
-        }
-
-        internal uint CodePageToCharSet()
-        {
-            CHARSETINFO csi;
-            const uint TCI_SRCCODEPAGE = 2;
-            const uint OEM_CHARSET = 255;
-            if (!NativeMethods.TranslateCharsetInfo((IntPtr)_codePage, out csi, TCI_SRCCODEPAGE))
-            {
-                csi.ciCharset = OEM_CHARSET;
-            }
-            return csi.ciCharset;
-        }
-
         /// <summary>
         /// Check if the output buffer code page is Japanese, Simplified Chinese, Korean, or Traditional Chinese
         /// </summary>
@@ -705,12 +671,6 @@ namespace Microsoft.PowerShell.Internal
                    _codePage == 936 || // Simplified Chinese
                    _codePage == 949 || // Korean
                    _codePage == 950;  // Traditional Chinese
-        }
-
-        internal bool IsAvailableFarEastCodePage()
-        {
-            uint charSet = CodePageToCharSet();
-            return IsAnyDBCSCharSet(charSet);
         }
 
         internal int LengthInBufferCellsFE(char c)
