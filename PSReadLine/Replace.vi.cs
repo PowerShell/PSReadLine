@@ -255,7 +255,6 @@ namespace Microsoft.PowerShell
         /// </summary>
         /// <param name="key"></param>
         /// <param name="arg"></param>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         private static void ViReplaceToChar(ConsoleKeyInfo? key = null, object arg = null)
         {
             var keyChar = ReadKey().KeyChar;
@@ -286,7 +285,6 @@ namespace Microsoft.PowerShell
         /// </summary>
         /// <param name="key"></param>
         /// <param name="arg"></param>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         private static void ViReplaceToCharBackward(ConsoleKeyInfo? key = null, object arg = null)
         {
             var keyChar = ReadKey().KeyChar;
@@ -307,7 +305,6 @@ namespace Microsoft.PowerShell
         /// </summary>
         /// <param name="key"></param>
         /// <param name="arg"></param>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         private static void ViReplaceToBeforeChar(ConsoleKeyInfo? key = null, object arg = null)
         {
             var keyChar = ReadKey().KeyChar;
@@ -329,7 +326,6 @@ namespace Microsoft.PowerShell
         /// </summary>
         /// <param name="key"></param>
         /// <param name="arg"></param>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         private static void ViReplaceToBeforeCharBackward(ConsoleKeyInfo? key = null, object arg = null)
         {
             var keyChar = ReadKey().KeyChar;

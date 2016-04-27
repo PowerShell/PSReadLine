@@ -20,7 +20,6 @@ namespace Microsoft.PowerShell
         /// or if already at the end of the line, move to the end of the input.
         /// If the input has a single line, move to the end of the input.
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void EndOfLine(ConsoleKeyInfo? key = null, object arg = null)
         {
             if (_singleton.LineIsMultiLine())
@@ -48,7 +47,6 @@ namespace Microsoft.PowerShell
         /// or if already at the start of the line, move to the start of the input.
         /// If the input has a single line, move to the start of the input.
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void BeginningOfLine(ConsoleKeyInfo? key = null, object arg = null)
         {
             if (_singleton.LineIsMultiLine())
@@ -76,7 +74,6 @@ namespace Microsoft.PowerShell
         /// Move the cursor one character to the right.  This may move the cursor to the next
         /// line of multi-line input.
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void ForwardChar(ConsoleKeyInfo? key = null, object arg = null)
         {
             int numericArg;
@@ -90,7 +87,6 @@ namespace Microsoft.PowerShell
         /// Move the cursor one character to the left.  This may move the cursor to the previous
         /// line of multi-line input.
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void BackwardChar(ConsoleKeyInfo? key = null, object arg = null)
         {
             int numericArg;
@@ -141,7 +137,6 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Move the cursor to the previous line.
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void PreviousLine(ConsoleKeyInfo? key = null, object arg = null)
         {
             int numericArg;
@@ -154,7 +149,6 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Move the cursor to the next line.
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void NextLine(ConsoleKeyInfo? key = null, object arg = null)
         {
             int numericArg;
@@ -168,7 +162,6 @@ namespace Microsoft.PowerShell
         /// Move the cursor forward to the start of the next word.
         /// Word boundaries are defined by a configurable set of characters.
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void NextWord(ConsoleKeyInfo? key = null, object arg = null)
         {
             int numericArg;
@@ -195,7 +188,6 @@ namespace Microsoft.PowerShell
         /// Move the cursor forward to the end of the current word, or if between words,
         /// to the end of the next word.  Word boundaries are defined by PowerShell tokens.
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void ShellNextWord(ConsoleKeyInfo? key = null, object arg = null)
         {
             int numericArg;
@@ -228,7 +220,6 @@ namespace Microsoft.PowerShell
         /// to the end of the next word.  Word boundaries are defined by a configurable
         /// set of characters.
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void ForwardWord(ConsoleKeyInfo? key = null, object arg = null)
         {
             int numericArg;
@@ -255,7 +246,6 @@ namespace Microsoft.PowerShell
         /// Move the cursor forward to the start of the next word.
         /// Word boundaries are defined by PowerShell tokens.
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void ShellForwardWord(ConsoleKeyInfo? key = null, object arg = null)
         {
             int numericArg;
@@ -298,7 +288,6 @@ namespace Microsoft.PowerShell
         /// the start of the previous word.  Word boundaries are defined by a configurable
         /// set of characters.
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void BackwardWord(ConsoleKeyInfo? key = null, object arg = null)
         {
             int numericArg;
@@ -332,7 +321,6 @@ namespace Microsoft.PowerShell
         /// Move the cursor back to the start of the current word, or if between words,
         /// the start of the previous word.  Word boundaries are defined by PowerShell tokens.
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void ShellBackwardWord(ConsoleKeyInfo? key = null, object arg = null)
         {
             int numericArg;
@@ -366,7 +354,6 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Go to the matching brace, paren, or square bracket
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void GotoBrace(ConsoleKeyInfo? key = null, object arg = null)
         {
             if (_singleton._current >= _singleton._buffer.Length)
@@ -430,7 +417,6 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Clear the screen and draw the current line at the top of the screen.
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void ClearScreen(ConsoleKeyInfo? key = null, object arg = null)
         {
             var console = _singleton._console;
@@ -469,7 +455,6 @@ namespace Microsoft.PowerShell
         /// If an argument is specified, search forward (or backward if negative) for the
         /// nth occurence.
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void CharacterSearch(ConsoleKeyInfo? key = null, object arg = null)
         {
             int occurence = (arg is int) ? (int)arg : 1;
@@ -509,7 +494,6 @@ namespace Microsoft.PowerShell
         /// If an argument is specified, search backward (or forward if negative) for the
         /// nth occurence.
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void CharacterSearchBackward(ConsoleKeyInfo? key = null, object arg = null)
         {
             int occurence = (arg is int) ? (int)arg : 1;

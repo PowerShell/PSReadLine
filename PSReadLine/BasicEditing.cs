@@ -18,7 +18,6 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Insert the key
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void SelfInsert(ConsoleKeyInfo? key = null, object arg = null)
         {
             if (!key.HasValue)
@@ -64,7 +63,6 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Reverts all of the input to the current input.
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void RevertLine(ConsoleKeyInfo? key = null, object arg = null)
         {
             if (_singleton._statusIsErrorMessage)
@@ -85,7 +83,6 @@ namespace Microsoft.PowerShell
         /// Cancel the current input, leaving the input on the screen,
         /// but returns back to the host so the prompt is evaluated again.
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void CancelLine(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.ClearStatusMessage(false);
@@ -122,7 +119,6 @@ namespace Microsoft.PowerShell
         /// Like ForwardKillLine - deletes text from the point to the end of the line,
         /// but does not put the deleted text in the kill ring.
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void ForwardDeleteLine(ConsoleKeyInfo? key = null, object arg = null)
         {
             var current = _singleton._current;
@@ -141,7 +137,6 @@ namespace Microsoft.PowerShell
         /// Like BackwardKillLine - deletes text from the point to the start of the line,
         /// but does not put the deleted text in the kill ring.
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void BackwardDeleteLine(ConsoleKeyInfo? key = null, object arg = null)
         {
             if (_singleton._current > 0)
@@ -157,7 +152,6 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Delete the character before the cursor.
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void BackwardDeleteChar(ConsoleKeyInfo? key = null, object arg = null)
         {
             if (_singleton._visualSelectionCommandCount > 0)
@@ -227,7 +221,6 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Delete the character under the cursor.
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void DeleteChar(ConsoleKeyInfo? key = null, object arg = null)
         {
             int qty = (arg is int) ? (int)arg : 1;
@@ -238,7 +231,6 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Delete the character under the cursor, or if the line is empty, exit the process
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void DeleteCharOrExit(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.DeleteCharImpl(1, orExit: true);
@@ -467,7 +459,6 @@ namespace Microsoft.PowerShell
         /// continuation prompt is displayed on the next line and PSReadline waits for
         /// keys to edit the current input.
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void AcceptLine(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.AcceptLineImpl(false);
@@ -479,7 +470,6 @@ namespace Microsoft.PowerShell
         /// continuation prompt is displayed on the next line and PSReadline waits for
         /// keys to edit the current input.
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void ValidateAndAcceptLine(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.AcceptLineImpl(true);
@@ -489,7 +479,6 @@ namespace Microsoft.PowerShell
         /// Attempt to execute the current input.  If it can be executed (like AcceptLine),
         /// then recall the next item from history the next time Readline is called.
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void AcceptAndGetNext(ConsoleKeyInfo? key = null, object arg = null)
         {
             if (_singleton.AcceptLineImpl(false))
@@ -510,7 +499,6 @@ namespace Microsoft.PowerShell
         /// keys to edit the current input.  This is useful to enter multi-line input as
         /// a single command even when a single line is complete input by itself.
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void AddLine(ConsoleKeyInfo? key = null, object arg = null)
         {
             Insert('\n');
@@ -520,7 +508,6 @@ namespace Microsoft.PowerShell
         /// A new empty line is created above the current line regardless of where the cursor
         /// is on the current line.  The cursor moves to the beginning of the new line.
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void InsertLineAbove(ConsoleKeyInfo? key = null, object arg = null)
         {
             // Move the current postion to the beginning of the current line and only the current line.
@@ -551,7 +538,6 @@ namespace Microsoft.PowerShell
         /// A new empty line is created below the current line regardless of where the cursor
         /// is on the current line.  The cursor moves to the beginning of the new line. 
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void InsertLineBelow(ConsoleKeyInfo? key = null, object arg = null)
         {
             // Move the current postion to the end of the current line and only the current line.

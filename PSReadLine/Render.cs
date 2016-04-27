@@ -679,7 +679,6 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Scroll the display up one screen.
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void ScrollDisplayUp(ConsoleKeyInfo? key = null, object arg = null)
         {
             int numericArg;
@@ -696,7 +695,6 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Scroll the display up one line.
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void ScrollDisplayUpLine(ConsoleKeyInfo? key = null, object arg = null)
         {
             int numericArg;
@@ -713,7 +711,6 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Scroll the display down one screen.
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void ScrollDisplayDown(ConsoleKeyInfo? key = null, object arg = null)
         {
             int numericArg;
@@ -730,7 +727,6 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Scroll the display down one line.
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void ScrollDisplayDownLine(ConsoleKeyInfo? key = null, object arg = null)
         {
             int numericArg;
@@ -747,7 +743,6 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Scroll the display to the top.
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void ScrollDisplayTop(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton._console.SetWindowPosition(0, 0);
@@ -756,7 +751,6 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Scroll the display to the cursor.
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void ScrollDisplayToCursor(ConsoleKeyInfo? key = null, object arg = null)
         {
             // Ideally, we'll put the last input line at the bottom of the window

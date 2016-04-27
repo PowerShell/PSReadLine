@@ -28,7 +28,6 @@ namespace Microsoft.PowerShell
         /// Start interactive screen capture - up/down arrows select lines, enter copies
         /// selected text to clipboard as text and html
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void CaptureScreen(ConsoleKeyInfo? key = null, object arg = null)
         {
             int selectionTop = _singleton._console.CursorTop;

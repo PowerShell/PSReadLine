@@ -406,7 +406,6 @@ namespace Microsoft.PowerShell
         /// </summary>
         /// <param name="key"></param>
         /// <param name="arg"></param>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         private static void ViDeleteToChar(ConsoleKeyInfo? key = null, object arg = null)
         {
             var keyChar = ReadKey().KeyChar;
@@ -424,7 +423,6 @@ namespace Microsoft.PowerShell
         /// </summary>
         /// <param name="key"></param>
         /// <param name="arg"></param>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         private static void ViDeleteToCharBackward(ConsoleKeyInfo? key = null, object arg = null)
         {
             var keyChar = ReadKey().KeyChar;
@@ -441,7 +439,6 @@ namespace Microsoft.PowerShell
         /// </summary>
         /// <param name="key"></param>
         /// <param name="arg"></param>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         private static void ViDeleteToBeforeChar(ConsoleKeyInfo? key = null, object arg = null)
         {
             var keyChar = ReadKey().KeyChar;
@@ -459,7 +456,6 @@ namespace Microsoft.PowerShell
         /// </summary>
         /// <param name="key"></param>
         /// <param name="arg"></param>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         private static void ViDeleteToBeforeCharBackward(ConsoleKeyInfo? key = null, object arg = null)
         {
             var keyChar = ReadKey().KeyChar;
@@ -1143,7 +1139,6 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// A new line is inserted above the current line.
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void ViInsertLine(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton._groupUndoHelper.StartGroup(ViInsertLine, arg);
@@ -1179,7 +1174,6 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// A new line is inserted below the current line.
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void ViAppendLine(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton._groupUndoHelper.StartGroup(ViInsertLine, arg);
@@ -1225,7 +1219,6 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Joins 2 lines.
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void ViJoinLines(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.MoveToEndOfPhrase();

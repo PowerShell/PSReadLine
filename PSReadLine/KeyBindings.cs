@@ -291,7 +291,6 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Show all bound keys
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void ShowKeyBindings(ConsoleKeyInfo? key = null, object arg = null)
         {
             var buffer = new StringBuilder();
@@ -325,7 +324,6 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Read a key and tell me what the key is bound to.
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void WhatIsKey(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton._statusLinePrompt = "what-is-key: ";
