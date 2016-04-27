@@ -798,6 +798,8 @@ namespace Microsoft.PowerShell.Internal
             }
         }
 
+        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults",
+            MessageId = "Microsoft.PowerShell.Internal.NativeMethods.ReleaseDC(System.IntPtr,System.IntPtr)")]
         public void EndRender()
         {
             if (_hwnd != (IntPtr)0 && _hDC != (IntPtr)0)
