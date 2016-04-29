@@ -78,12 +78,25 @@ namespace Microsoft.PowerShell
         {
             public bool Equals(ConsoleKeyInfo x, ConsoleKeyInfo y)
             {
-                return x.Key == y.Key && x.KeyChar == y.KeyChar && x.Modifiers == y.Modifiers;
+                // We *must not* compare the KeyChar field as its value is platform-dependent.
+                // We compare exactly the ConsoleKey enum field (which is platform-agnostic)
+                // and the modifiers.
+
+                return x.Key == y.Key && x.Modifiers == y.Modifiers;
             }
 
             public int GetHashCode(ConsoleKeyInfo obj)
             {
-                return obj.GetHashCode();
+                // Because a comparison of two ConsoleKeyInfo objects is a comparison of the
+                // combination of the ConsoleKey and Modifiers, we must combine their hashes.
+                // Note that if the ConsoleKey is default, we must fall back to the KeyChar,
+                // otherwise every non-special key will compare as the same.
+                int h1 = obj.Key == default(ConsoleKey)
+                    ? obj.KeyChar.GetHashCode()
+                    : obj.Key.GetHashCode();
+                int h2 = obj.Modifiers.GetHashCode();
+                // This is based on Tuple.GetHashCode
+                return unchecked(((h1 << 5) + h1) ^ h2);
             }
         }
 
