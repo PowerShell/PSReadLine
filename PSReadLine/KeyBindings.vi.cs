@@ -64,7 +64,7 @@ namespace Microsoft.PowerShell
                 { Keys.DownArrow,       MakeKeyHandler(NextHistory,            "NextHistory") },
                 { Keys.Home,            MakeKeyHandler(BeginningOfLine,        "BeginningOfLine") },
                 { Keys.End,             MakeKeyHandler(EndOfLine,              "EndOfLine") },
-                { Keys.Delete,          MakeKeyHandler(DeleteChar,             "DeleteChar") },
+                { Keys.Delete,          MakeKeyHandler(ViDeleteChar,           "ViDeleteChar") },
                 { Keys.Backspace,       MakeKeyHandler(BackwardDeleteChar,     "BackwardDeleteChar") },
                 { Keys.CtrlSpace,       MakeKeyHandler(PossibleCompletions,    "PossibleCompletions") },
                 { Keys.Tab,             MakeKeyHandler(ViTabCompleteNext,      "ViTabCompleteNext") },
