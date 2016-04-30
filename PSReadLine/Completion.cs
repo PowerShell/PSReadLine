@@ -38,6 +38,9 @@ namespace Microsoft.PowerShell
 
         private static readonly char[] EolChars = {'\r', '\n'};
 
+        // String helper for directory paths
+        private static string DirectorySeparatorString = System.IO.Path.DirectorySeparatorChar.ToString();
+
         // Stub helper method so completion can be mocked
         [ExcludeFromCodeCoverage]
         CommandCompletion IPSConsoleReadLineMockableMethods.CompleteInput(string input, int cursorIndex, Hashtable options, System.Management.Automation.PowerShell powershell)
@@ -340,21 +343,23 @@ namespace Microsoft.PowerShell
 
         private static string GetReplacementTextForDirectory(string replacementText, ref int cursorAdjustment)
         {
-            if (!replacementText.EndsWith("\\", StringComparison.Ordinal))
+            if (!replacementText.EndsWith(DirectorySeparatorString , StringComparison.Ordinal))
             {
-                if (replacementText.EndsWith("\\'", StringComparison.Ordinal) || replacementText.EndsWith("\\\"", StringComparison.Ordinal))
+                if (replacementText.EndsWith(String.Format("{0}\'", DirectorySeparatorString), StringComparison.Ordinal) ||
+                    replacementText.EndsWith(String.Format("{0}\"", DirectorySeparatorString), StringComparison.Ordinal))
                 {
                     cursorAdjustment = -1;
                 }
-                else if (replacementText.EndsWith("'", StringComparison.Ordinal) || replacementText.EndsWith("\"", StringComparison.Ordinal))
+                else if (replacementText.EndsWith("'", StringComparison.Ordinal) ||
+                         replacementText.EndsWith("\"", StringComparison.Ordinal))
                 {
                     var len = replacementText.Length;
-                    replacementText = replacementText.Substring(0, len - 1) + '\\' + replacementText[len - 1];
+                    replacementText = replacementText.Substring(0, len - 1) + System.IO.Path.DirectorySeparatorChar + replacementText[len - 1];
                     cursorAdjustment = -1;
                 }
                 else
                 {
-                    replacementText = replacementText + '\\';
+                    replacementText = replacementText + System.IO.Path.DirectorySeparatorChar;
                 }
             }
             return replacementText;
