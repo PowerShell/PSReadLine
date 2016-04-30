@@ -51,7 +51,6 @@
   <ItemGroup>
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="BasicEditing.cs" />
-    <Compile Include="BasicEditing.vi.cs" />
     <Compile Include="Cmdlets.cs" />
     <Compile Include="Completion.cs" />
     <Compile Include="Completion.vi.cs" />
