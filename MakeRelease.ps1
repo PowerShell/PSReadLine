@@ -1,13 +1,14 @@
+[CmdletBinding()]
 param([switch]$Install, [switch]$BuildChocolatey)
 
 # generate external help
-if (-not (Get-Module platyPS))
+if (-not (Get-Module platyPS -List))
 {
     Write-Warning -Message "Requires platyPS to generate help: Install-Module platyPS; Import-Module platyPS"
 }
 else
 {
-    $maml = Get-PlatyPSExternalHelp -markdown (cat -raw $PSScriptRoot\PSReadline\en-US\PSReadline.md)
+    $maml = platyPS\Get-PlatyPSExternalHelp -markdown (cat -raw $PSScriptRoot\PSReadline\en-US\PSReadline.md)
     Set-Content -Value $maml -Path $PSScriptRoot\PSReadline\en-US\PSReadline.dll-help.xml -Encoding UTF8
 }
 # end generate external help
@@ -25,7 +26,7 @@ $targetDir = "${env:Temp}\PSReadline"
 
 if (Test-Path -Path $targetDir)
 {
-    rmdir -Recurse $targetDir
+    rmdir -Recurse -Force $targetDir
 }
 
 $null = mkdir $targetDir
@@ -50,6 +51,11 @@ $files = @('PSReadline\en-US\about_PSReadline.help.txt',
 foreach ($file in $files)
 {
     copy $PSScriptRoot\$file $targetDir\en-us
+}
+
+foreach ($file in (dir -re -af $targetDir))
+{
+    $file.IsReadOnly = $false
 }
 
 $version = (Get-ChildItem -Path $targetDir\Microsoft.PowerShell.PSReadline.dll).VersionInfo.FileVersion
