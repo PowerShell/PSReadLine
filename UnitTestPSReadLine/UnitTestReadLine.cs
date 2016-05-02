@@ -250,6 +250,11 @@ namespace UnitTestPSReadLine
         public void EndRender()
         {
         }
+
+        public bool IsHandleRedirected(bool stdin)
+        {
+            return false;
+        }
     }
 
     [TestClass]
