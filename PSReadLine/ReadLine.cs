@@ -827,7 +827,7 @@ namespace Microsoft.PowerShell
             }
             _singleton.Render();
             _singleton._console.CursorLeft = 0;
-            _singleton._console.CursorTop = _singleton._initialY - _singleton.Options.ExtraPromptLineCount;
+            _singleton._console.CursorTop = _singleton._initialY;
 
             var runspaceIsRemote = _singleton._mockableMethods.RunspaceIsRemote(_singleton._runspace);
             System.Management.Automation.PowerShell ps;
