@@ -164,6 +164,10 @@ namespace Microsoft.PowerShell.Internal
         [DllImport("kernel32.dll", SetLastError = true)]
         internal static extern bool SetConsoleScreenBufferInfoEx(IntPtr hConsoleOutput,
             ref CONSOLE_SCREEN_BUFFER_INFO_EX csbe);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        internal static extern int GetFileType(IntPtr handle);
+        internal const int FILE_TYPE_CHAR = 0x0002;
     }
 
     public delegate bool BreakHandler(ConsoleBreakSignal ConsoleBreakSignal);
@@ -806,6 +810,20 @@ namespace Microsoft.PowerShell.Internal
             {
                 NativeMethods.ReleaseDC(_hwnd, _hDC);
             }
+        }
+
+        public bool IsHandleRedirected(bool stdIn)
+        {
+            var handle = NativeMethods.GetStdHandle((uint)(stdIn ? StandardHandleId.Input : StandardHandleId.Output));
+
+            // If handle is not to a character device, we must be redirected:
+            int fileType = NativeMethods.GetFileType(handle);
+            if ((fileType & NativeMethods.FILE_TYPE_CHAR) != NativeMethods.FILE_TYPE_CHAR)
+                return true;
+
+            // Char device - if GetConsoleMode succeeds, we are NOT redirected.
+            uint mode;
+            return !NativeMethods.GetConsoleMode(handle, out mode);
         }
     }
 

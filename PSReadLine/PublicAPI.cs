@@ -54,6 +54,8 @@ namespace Microsoft.PowerShell
             void StartRender();
             int LengthInBufferCells(char c);
             void EndRender();
+
+            bool IsHandleRedirected(bool stdin);
         }
 
 #pragma warning restore 1591
