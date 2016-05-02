@@ -791,7 +791,7 @@ namespace Microsoft.PowerShell.Internal
                 int fontType = fontInfo.FontFamily & NativeMethods.FontTypeMask;
                 _trueTypeInUse = (fontType & NativeMethods.TrueTypeFont) == NativeMethods.TrueTypeFont;
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 // Ignore failures to get font information. In Windows Server containers,
                 // the font information cannot be queried.
