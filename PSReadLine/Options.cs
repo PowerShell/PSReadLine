@@ -293,7 +293,6 @@ namespace Microsoft.PowerShell
         /// Helper function for the Get-PSReadlineKeyHandler cmdlet.
         /// </summary>
         /// <returns></returns>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static IEnumerable<Microsoft.PowerShell.KeyHandler> GetKeyHandlers(bool includeBound = true, bool includeUnbound = false)
         {
             var boundFunctions = new HashSet<string>(StringComparer.OrdinalIgnoreCase);

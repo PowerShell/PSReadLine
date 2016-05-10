@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Management.Automation;
@@ -406,7 +407,6 @@ namespace Microsoft.PowerShell
         /// </summary>
         /// <param name="key"></param>
         /// <param name="arg"></param>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         private static void ViDeleteToChar(ConsoleKeyInfo? key = null, object arg = null)
         {
             var keyChar = ReadKey().KeyChar;
@@ -424,7 +424,6 @@ namespace Microsoft.PowerShell
         /// </summary>
         /// <param name="key"></param>
         /// <param name="arg"></param>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         private static void ViDeleteToCharBackward(ConsoleKeyInfo? key = null, object arg = null)
         {
             var keyChar = ReadKey().KeyChar;
@@ -441,7 +440,6 @@ namespace Microsoft.PowerShell
         /// </summary>
         /// <param name="key"></param>
         /// <param name="arg"></param>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         private static void ViDeleteToBeforeChar(ConsoleKeyInfo? key = null, object arg = null)
         {
             var keyChar = ReadKey().KeyChar;
@@ -459,7 +457,6 @@ namespace Microsoft.PowerShell
         /// </summary>
         /// <param name="key"></param>
         /// <param name="arg"></param>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         private static void ViDeleteToBeforeCharBackward(ConsoleKeyInfo? key = null, object arg = null)
         {
             var keyChar = ReadKey().KeyChar;
@@ -644,7 +641,7 @@ namespace Microsoft.PowerShell
                 char c = _singleton._buffer[_singleton._current];
                 if (Char.IsLetter(c))
                 {
-                    char newChar = Char.IsUpper(c) ? Char.ToLower(c) : char.ToUpper(c);
+                    char newChar = Char.IsUpper(c) ? Char.ToLower(c, CultureInfo.CurrentCulture) : char.ToUpper(c, CultureInfo.CurrentCulture);
                     EditItem delEditItem = EditItemDelete.Create(c.ToString(), _singleton._current);
                     EditItem insEditItem = EditItemInsertChar.Create(newChar, _singleton._current);
                     _singleton.SaveEditItem(GroupedEdit.Create(new List<EditItem> 
@@ -1143,7 +1140,6 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// A new line is inserted above the current line.
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void ViInsertLine(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton._groupUndoHelper.StartGroup(ViInsertLine, arg);
@@ -1179,7 +1175,6 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// A new line is inserted below the current line.
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void ViAppendLine(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton._groupUndoHelper.StartGroup(ViInsertLine, arg);
@@ -1225,7 +1220,6 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Joins 2 lines.
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void ViJoinLines(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.MoveToEndOfPhrase();

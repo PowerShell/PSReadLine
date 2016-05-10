@@ -10,6 +10,7 @@ Description = 'Great command line editing in the PowerShell console host'
 PowerShellVersion = '3.0'
 DotNetFrameworkVersion = '4.0'
 CLRVersion = '4.0'
+AliasesToExport = @()
 FunctionsToExport = 'PSConsoleHostReadline'
 CmdletsToExport = 'Get-PSReadlineKeyHandler','Set-PSReadlineKeyHandler','Remove-PSReadlineKeyHandler',
                   'Get-PSReadlineOption','Set-PSReadlineOption'

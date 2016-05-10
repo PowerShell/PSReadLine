@@ -1,4 +1,17 @@
+[CmdletBinding()]
 param([switch]$Install, [switch]$BuildChocolatey)
+
+# generate external help
+if (!(Get-Module platyPS -List) -and !(Get-Module platyPS))
+{
+    Write-Warning -Message "Requires platyPS to generate help: Install-Module platyPS; Import-Module platyPS"
+}
+else
+{
+    $maml = platyPS\Get-PlatyPSExternalHelp -markdown (cat -raw $PSScriptRoot\PSReadline\en-US\PSReadline.md)
+    Set-Content -Value $maml -Path $PSScriptRoot\PSReadline\en-US\PSReadline.dll-help.xml -Encoding UTF8
+}
+# end generate external help
 
 add-type -AssemblyName System.IO.Compression.FileSystem
 
@@ -13,7 +26,7 @@ $targetDir = "${env:Temp}\PSReadline"
 
 if (Test-Path -Path $targetDir)
 {
-    rmdir -Recurse $targetDir
+    rmdir -Recurse -Force $targetDir
 }
 
 $null = mkdir $targetDir
@@ -32,11 +45,17 @@ foreach ($file in $files)
 }
 
 $files = @('PSReadline\en-US\about_PSReadline.help.txt',
+           'PSReadline\en-US\PSReadline.md',
            'PSReadline\en-US\PSReadline.dll-help.xml')
 
 foreach ($file in $files)
 {
     copy $PSScriptRoot\$file $targetDir\en-us
+}
+
+foreach ($file in (dir -re -af $targetDir))
+{
+    $file.IsReadOnly = $false
 }
 
 $version = (Get-ChildItem -Path $targetDir\Microsoft.PowerShell.PSReadline.dll).VersionInfo.FileVersion

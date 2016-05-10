@@ -654,7 +654,6 @@ namespace Microsoft.PowerShell
             _singleton._readKeyThread.Start();
         }
 
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         private static void Chord(ConsoleKeyInfo? key = null, object arg = null)
         {
             if (!key.HasValue)
@@ -670,7 +669,6 @@ namespace Microsoft.PowerShell
             }
         }
 
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         private static void Ignore(ConsoleKeyInfo? key = null, object arg = null)
         {
         }
@@ -711,7 +709,6 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Abort current action, e.g. incremental history search
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void Abort(ConsoleKeyInfo? key = null, object arg = null)
         {
         }
@@ -719,7 +716,6 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Start a new digit argument to pass to other functions
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void DigitArgument(ConsoleKeyInfo? key = null, object arg = null)
         {
             if (!key.HasValue || char.IsControl(key.Value.KeyChar))
@@ -817,7 +813,6 @@ namespace Microsoft.PowerShell
         /// the prompt.  Useful for custom key handlers that change state, e.g.
         /// change the current directory.
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void InvokePrompt(ConsoleKeyInfo? key = null, object arg = null)
         {
             var currentBuffer = _singleton._buffer.ToString();
@@ -832,7 +827,7 @@ namespace Microsoft.PowerShell
             }
             _singleton.Render();
             _singleton._console.CursorLeft = 0;
-            _singleton._console.CursorTop = _singleton._initialY - _singleton.Options.ExtraPromptLineCount;
+            _singleton._console.CursorTop = _singleton._initialY;
 
             var runspaceIsRemote = _singleton._mockableMethods.RunspaceIsRemote(_singleton._runspace);
             System.Management.Automation.PowerShell ps;

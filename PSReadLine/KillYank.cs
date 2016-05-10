@@ -32,7 +32,6 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Mark the current loction of the cursor for use in a subsequent editing command.
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void SetMark(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton._mark = _singleton._current;
@@ -42,7 +41,6 @@ namespace Microsoft.PowerShell
         /// The cursor is placed at the location of the mark and the mark is moved
         /// to the location of the cursor.
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void ExchangePointAndMark(ConsoleKeyInfo? key = null, object arg = null)
         {
             var tmp = _singleton._mark;
@@ -108,7 +106,6 @@ namespace Microsoft.PowerShell
         /// Clear the input from the cursor to the end of the input.  The cleared text is placed
         /// in the kill ring.
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void KillLine(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.Kill(_singleton._current, _singleton._buffer.Length - _singleton._current, false);
@@ -118,7 +115,6 @@ namespace Microsoft.PowerShell
         /// Clear the input from the start of the input to the cursor.  The cleared text is placed
         /// in the kill ring.
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void BackwardKillLine(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.Kill(0, _singleton._current, true);
@@ -129,7 +125,6 @@ namespace Microsoft.PowerShell
         /// is between words, the input is cleared from the cursor to the end of the next word.
         /// The cleared text is placed in the kill ring.
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void KillWord(ConsoleKeyInfo? key = null, object arg = null)
         {
             int i = _singleton.FindForwardWordPoint(_singleton.Options.WordDelimiters);
@@ -141,7 +136,6 @@ namespace Microsoft.PowerShell
         /// is between words, the input is cleared from the cursor to the end of the next word.
         /// The cleared text is placed in the kill ring.
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void ShellKillWord(ConsoleKeyInfo? key = null, object arg = null)
         {
             var token = _singleton.FindToken(_singleton._current, FindTokenMode.CurrentOrNext);
@@ -156,7 +150,6 @@ namespace Microsoft.PowerShell
         /// is between words, the input is cleared from the start of the previous word to the
         /// cursor.  The cleared text is placed in the kill ring.
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void BackwardKillWord(ConsoleKeyInfo? key = null, object arg = null)
         {
             int i = _singleton.FindBackwardWordPoint(_singleton.Options.WordDelimiters);
@@ -168,7 +161,6 @@ namespace Microsoft.PowerShell
         /// is between words, the input is cleared from the start of the previous word to the
         /// cursor.  The cleared text is placed in the kill ring.
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void UnixWordRubout(ConsoleKeyInfo? key = null, object arg = null)
         {
             int i = _singleton.FindBackwardWordPoint("");
@@ -180,7 +172,6 @@ namespace Microsoft.PowerShell
         /// is between words, the input is cleared from the start of the previous word to the
         /// cursor.  The cleared text is placed in the kill ring.
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void ShellBackwardKillWord(ConsoleKeyInfo? key = null, object arg = null)
         {
             var token = _singleton.FindToken(_singleton._current, FindTokenMode.Previous);
@@ -193,7 +184,6 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Kill the text between the cursor and the mark.
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void KillRegion(ConsoleKeyInfo? key = null, object arg = null)
         {
             int start, length;
@@ -217,7 +207,6 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Add the most recently killed text to the input.
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void Yank(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.YankImpl();
@@ -242,7 +231,6 @@ namespace Microsoft.PowerShell
         /// If the previous operation was Yank or YankPop, replace the previously yanked
         /// text with the next killed text from the kill ring.
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void YankPop(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.YankPopImpl();
@@ -287,7 +275,6 @@ namespace Microsoft.PowerShell
         /// With an argument, yank the nth argument (starting from 0), if the argument
         /// is negative, start from the last argument.
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void YankNthArg(ConsoleKeyInfo? key = null, object arg = null)
         {
             var yankLastArgState = new YankLastArgState
@@ -304,7 +291,6 @@ namespace Microsoft.PowerShell
         /// multiple times, instead it iterates through history and arg sets the direction
         /// (negative reverses the direction.)
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void YankLastArg(ConsoleKeyInfo? key = null, object arg = null)
         {
             if (arg != null && !(arg is int))
@@ -371,7 +357,6 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Adjust the current selection to include the previous character
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void SelectBackwardChar(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.VisualSelectionCommon(() => BackwardChar(key, arg));
@@ -380,7 +365,6 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Adjust the current selection to include the next character
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void SelectForwardChar(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.VisualSelectionCommon(() => ForwardChar(key, arg));
@@ -389,7 +373,6 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Adjust the current selection to include the previous word
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void SelectBackwardWord(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.VisualSelectionCommon(() => BackwardWord(key, arg));
@@ -398,7 +381,6 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Adjust the current selection to include the next word
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void SelectNextWord(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.VisualSelectionCommon(() => NextWord(key, arg));
@@ -407,7 +389,6 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Adjust the current selection to include the next word using ForwardWord
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void SelectForwardWord(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.VisualSelectionCommon(() => ForwardWord(key, arg));
@@ -416,7 +397,6 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Adjust the current selection to include the next word using ShellForwardWord
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void SelectShellForwardWord(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.VisualSelectionCommon(() => ShellForwardWord(key, arg));
@@ -425,7 +405,6 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Adjust the current selection to include the next word using ShellNextWord
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void SelectShellNextWord(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.VisualSelectionCommon(() => ShellNextWord(key, arg));
@@ -434,7 +413,6 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Adjust the current selection to include the previous word using ShellBackwardWord
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void SelectShellBackwardWord(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.VisualSelectionCommon(() => ShellBackwardWord(key, arg));
@@ -443,7 +421,6 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Select the entire line
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void SelectAll(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton._visualSelectionCommandCount += 1;
@@ -455,7 +432,6 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Adjust the current selection to include from the cursor to the end of the line
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void SelectLine(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.VisualSelectionCommon(() => EndOfLine(key, arg));
@@ -464,7 +440,6 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Adjust the current selection to include from the cursor to the start of the line
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void SelectBackwardsLine(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.VisualSelectionCommon(() => BeginningOfLine(key, arg));
@@ -473,7 +448,6 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Paste text from the system clipboard.
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void Paste(ConsoleKeyInfo? key = null, object arg = null)
         {
             string textToPaste = null;
@@ -503,7 +477,6 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Copy selected region to the system clipboard.  If no region is selected, copy the whole line.
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void Copy(ConsoleKeyInfo? key = null, object arg = null)
         {
             string textToSet;
@@ -526,7 +499,6 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// If text is selected, copy to the clipboard, otherwise cancel the line.
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void CopyOrCancelLine(ConsoleKeyInfo? key = null, object arg = null)
         {
             if (_singleton._visualSelectionCommandCount > 0)
@@ -542,7 +514,6 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Delete selected region placing deleted text in the system clipboard.
         /// </summary>
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
         public static void Cut(ConsoleKeyInfo? key = null, object arg = null)
         {
             if (_singleton._visualSelectionCommandCount > 0)

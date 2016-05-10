@@ -403,6 +403,25 @@ namespace UnitTestPSReadLine
                 "ud3B", CheckThat(() => AssertLineIs("m")),
                 'u'
                 ));
+
+            Test("Ins delete", Keys(
+                "Ins delete1", CheckThat(() => AssertLineIs("Ins delete1")), CheckThat(() => AssertCursorLeftIs(11)),
+                _.LeftArrow, CheckThat(() => AssertLineIs("Ins delete1")), CheckThat(() => AssertCursorLeftIs(10)),
+                _.Delete, CheckThat(() => AssertLineIs("Ins delete")), CheckThat(() => AssertCursorLeftIs(10)),
+                _.Delete, CheckThat(() => AssertCursorLeftIs(10))
+                ));
+
+            Test("Ins delete", Keys(
+                "Ins x delete", _.LeftArrow, _.LeftArrow, _.LeftArrow, _.LeftArrow, _.LeftArrow, _.LeftArrow, _.LeftArrow, _.LeftArrow,
+                _.Delete, _.Delete, CheckThat(() => AssertCursorLeftIs(4))
+                ));
+
+            Test("Ins delete", Keys(
+                "xxIns delete", _.LeftArrow, _.LeftArrow, _.LeftArrow, _.LeftArrow, _.LeftArrow, _.LeftArrow, 
+                _.LeftArrow, _.LeftArrow, _.LeftArrow, _.LeftArrow, _.LeftArrow, _.LeftArrow,
+                CheckThat(() => AssertCursorLeftIs(0)),
+                _.Delete, _.Delete, CheckThat(() => AssertCursorLeftIs(0))
+                ));
         }
 
         [TestMethod]
