@@ -8,8 +8,7 @@ if (!(Get-Module platyPS -List) -and !(Get-Module platyPS))
 }
 else
 {
-    $maml = platyPS\Get-PlatyPSExternalHelp -markdown (cat -raw $PSScriptRoot\PSReadline\en-US\PSReadline.md)
-    Set-Content -Value $maml -Path $PSScriptRoot\PSReadline\en-US\PSReadline.dll-help.xml -Encoding UTF8
+    platyPS\New-ExternalHelp $PSScriptRoot\docs -Force -OutputPath $PSScriptRoot\PSReadline\en-US
 }
 # end generate external help
 
@@ -45,7 +44,6 @@ foreach ($file in $files)
 }
 
 $files = @('PSReadline\en-US\about_PSReadline.help.txt',
-           'PSReadline\en-US\PSReadline.md',
            'PSReadline\en-US\PSReadline.dll-help.xml')
 
 foreach ($file in $files)
