@@ -152,8 +152,44 @@ namespace Microsoft.PowerShell
             WordDelimiters = DefaultWordDelimiters;
             HistorySearchCaseSensitive = DefaultHistorySearchCaseSensitive;
             HistorySaveStyle = DefaultHistorySaveStyle;
-            HistorySavePath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)
-                + @"\Microsoft\Windows\PowerShell\PSReadline\" + hostName + "_history.txt";
+
+            var historyFileName = hostName + "_history.txt";
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                HistorySavePath = System.IO.Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                    "Microsoft",
+                    "Windows",
+                    "PowerShell",
+                    "PSReadLine",
+                    historyFileName);
+            }
+            else
+            {
+                // PSReadline can't use Utils.CorePSPlatform (6.0+ only), so do the equivalent:
+                string historyPath = Environment.GetEnvironmentVariable("XDG_DATA_HOME");
+
+                if (!String.IsNullOrEmpty(historyPath))
+                {
+                    HistorySavePath = System.IO.Path.Combine(
+                        historyPath,
+                        "powershell",
+                        "PSReadLine",
+                        historyFileName);
+                }
+                else
+                {
+                    // History is data, so it goes into .local/share/powershell folder
+                    HistorySavePath = System.IO.Path.Combine(
+                        Environment.GetEnvironmentVariable("HOME"),
+                        ".local",
+                        "share",
+                        "powershell",
+                        "PSReadLine",
+                        historyFileName);
+                }
+            }
+
             CommandValidationHandler = null;
             CommandsToValidateScriptBlockArguments = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
             {
