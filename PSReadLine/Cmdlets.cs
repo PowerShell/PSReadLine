@@ -11,6 +11,7 @@ using System.Management.Automation;
 using System.Management.Automation.Language;
 using System.Reflection;
 using System.Linq;
+using System.Runtime.InteropServices;
 
 namespace Microsoft.PowerShell
 {
@@ -81,7 +82,9 @@ namespace Microsoft.PowerShell
         public const ConsoleColor DefaultEmphasisColor  = ConsoleColor.Cyan;
         public const ConsoleColor DefaultErrorColor     = ConsoleColor.Red;
 
-        public const EditMode DefaultEditMode = EditMode.Windows;
+        public static EditMode DefaultEditMode = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+            ? EditMode.Windows
+            : EditMode.Emacs;
 
         public const string DefaultContinuationPrompt = ">> ";
 
