@@ -127,7 +127,12 @@ Set-PSReadlineKeyHandler -Key '"',"'" `
     $cursor = $null
     [Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$line, [ref]$cursor)
 
-    if ($line[$cursor] -eq $key.KeyChar) {
+    $quoteNumber = Select-String -InputObject $line -Pattern $key.KeyChar -AllMatches
+    if ($quoteNumber.Matches.Count % 2 -eq 1) {
+        # Oneven amount of quotes, put just one quote
+        [PSConsoleUtilities.PSConsoleReadline]::Insert($key.KeyChar)
+    }
+    elseif ($line[$cursor] -eq $key.KeyChar) {
         # Just move the cursor
         [Microsoft.PowerShell.PSConsoleReadLine]::SetCursorPosition($cursor + 1)
     }
