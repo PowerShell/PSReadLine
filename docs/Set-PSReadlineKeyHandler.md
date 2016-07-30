@@ -35,9 +35,9 @@ This command binds the up arrow key to the function HistorySearchBackward which 
 ### --------------  Example 2  --------------
 ```
 PS C:\> Set-PSReadlineKeyHandler -Chord Shift+Ctrl+B -ScriptBlock {
-    [PSConsoleUtilities.PSConsoleReadLine]::RevertLine()
-    [PSConsoleUtilities.PSConsoleReadLine]::Insert('build')
->>>     [PSConsoleUtilities.PSConsoleReadLine]::AcceptLine()
+    [Microsoft.PowerShell.PSConsoleReadLine]::RevertLine()
+    [Microsoft.PowerShell.PSConsoleReadLine]::Insert('build')
+>>>     [Microsoft.PowerShell.PSConsoleReadLine]::AcceptLine()
 }
 ```
 
