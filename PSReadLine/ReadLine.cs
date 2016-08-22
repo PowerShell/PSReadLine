@@ -17,6 +17,7 @@ using Microsoft.PowerShell.Commands;
 using Microsoft.PowerShell.Internal;
 
 [module: SuppressMessage("Microsoft.Design", "CA1014:MarkAssembliesWithClsCompliant")]
+[module: SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
 
 namespace Microsoft.PowerShell
 {
