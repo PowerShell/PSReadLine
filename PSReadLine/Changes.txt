@@ -1,3 +1,15 @@
+### Version 1.?
+
+Bug fixes:
+
+* DeleteChar no longer deletes any text left of the cursor in Windows/Emacs
+  and matches vim behavior of working like <x> in command mode.
+* Fix InvokePrompt when the prompt is > 1 line.
+* Avoid reporting an error when stdin/stdout is redirected. There is still
+  no support for redirected stdin/stdout though.
+* Fix YankToPercent off by 1 error.
+* Fix error reported when running in container.
+
 ### Version 1.2
 
 New features:
