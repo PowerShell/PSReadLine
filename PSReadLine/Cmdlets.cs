@@ -387,7 +387,7 @@ namespace Microsoft.PowerShell
         }
     }
 
-    [Cmdlet("Get", "PSReadlineOption", HelpUri = "http://go.microsoft.com/fwlink/?LinkId=528808")]
+    [Cmdlet("Get", "PSReadlineOption", HelpUri = "https://go.microsoft.com/fwlink/?LinkId=528808")]
     [OutputType(typeof(PSConsoleReadlineOptions))]
     public class GetPSReadlineOption : PSCmdlet
     {
@@ -398,7 +398,7 @@ namespace Microsoft.PowerShell
         }
     }
 
-    [Cmdlet("Set", "PSReadlineOption", HelpUri = "http://go.microsoft.com/fwlink/?LinkId=528811")]
+    [Cmdlet("Set", "PSReadlineOption", HelpUri = "https://go.microsoft.com/fwlink/?LinkId=528811")]
     public class SetPSReadlineOption : PSCmdlet
     {
         [Parameter(ParameterSetName = "OptionsSet")]
@@ -649,7 +649,7 @@ namespace Microsoft.PowerShell
         }
     }
 
-    [Cmdlet("Set", "PSReadlineKeyHandler", HelpUri = "http://go.microsoft.com/fwlink/?LinkId=528810")]
+    [Cmdlet("Set", "PSReadlineKeyHandler", HelpUri = "https://go.microsoft.com/fwlink/?LinkId=528810")]
     public class SetPSReadlineKeyHandlerCommand : ChangePSReadlineKeyHandlerCommandBase, IDynamicParameters
     {
         [Parameter(Position = 1, Mandatory = true, ParameterSetName = "ScriptBlock")]
@@ -724,7 +724,7 @@ namespace Microsoft.PowerShell
         }
     }
 
-    [Cmdlet("Get", "PSReadlineKeyHandler", HelpUri = "http://go.microsoft.com/fwlink/?LinkId=528807")]
+    [Cmdlet("Get", "PSReadlineKeyHandler", HelpUri = "https://go.microsoft.com/fwlink/?LinkId=528807")]
     [OutputType(typeof(KeyHandler))]
     public class GetKeyHandlerCommand : PSCmdlet
     {
@@ -768,7 +768,7 @@ namespace Microsoft.PowerShell
         }
     }
 
-    [Cmdlet("Remove", "PSReadlineKeyHandler", HelpUri = "http://go.microsoft.com/fwlink/?LinkId=528809")]
+    [Cmdlet("Remove", "PSReadlineKeyHandler", HelpUri = "https://go.microsoft.com/fwlink/?LinkId=528809")]
     public class RemoveKeyHandlerCommand : ChangePSReadlineKeyHandlerCommandBase
     {
         [ExcludeFromCodeCoverage]
