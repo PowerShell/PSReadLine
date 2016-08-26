@@ -170,7 +170,7 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Read the next character and then find it, going backard, and then back off a character.
+        /// Read the next character and then find it, going backward, and then back off a character.
         /// This is for 'T' functionality.
         /// </summary>
         public static void SearchCharBackward(ConsoleKeyInfo? key = null, object arg = null)
@@ -192,7 +192,7 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Read the next character and then find it, going backard, and then back off a character.
+        /// Read the next character and then find it, going backward, and then back off a character.
         /// This is for 'T' functionality.
         /// </summary>
         public static void SearchCharBackwardWithBackoff(ConsoleKeyInfo? key = null, object arg = null)
@@ -538,7 +538,7 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Switch to Insert mode and position the cursor at the begining of the line.
+        /// Switch to Insert mode and position the cursor at the beginning of the line.
         /// </summary>
         public static void ViInsertAtBegining(ConsoleKeyInfo? key = null, object arg = null)
         {
@@ -846,7 +846,7 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Prompts for a string for history searching.
         /// </summary>
-        /// <param name="backward">True for seaching backward in the history.</param>
+        /// <param name="backward">True for searching backward in the history.</param>
         private void StartSearch(bool backward)
         {
             _statusLinePrompt = "find: ";

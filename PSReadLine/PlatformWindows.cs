@@ -163,7 +163,7 @@ static class PlatformWindows
         {
             int err = Marshal.GetLastWin32Error();
             Win32Exception innerException = new Win32Exception(err);
-            throw new Exception("Failed to retreive the input console handle.", innerException);
+            throw new Exception("Failed to retrieve the input console handle.", innerException);
         }
 
         return new SafeFileHandle(handle, true);

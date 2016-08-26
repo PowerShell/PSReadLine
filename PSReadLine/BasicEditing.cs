@@ -465,7 +465,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void InsertLineAbove(ConsoleKeyInfo? key = null, object arg = null)
         {
-            // Move the current postion to the beginning of the current line and only the current line.
+            // Move the current position to the beginning of the current line and only the current line.
             if (_singleton.LineIsMultiLine())
             {
                 int i = Math.Max(0, _singleton._current - 1);
@@ -495,7 +495,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void InsertLineBelow(ConsoleKeyInfo? key = null, object arg = null)
         {
-            // Move the current postion to the end of the current line and only the current line.
+            // Move the current position to the end of the current line and only the current line.
             if (_singleton.LineIsMultiLine())
             {
                 int i = _singleton._current;
