@@ -4,7 +4,7 @@ param([switch]$Install, [switch]$BuildChocolatey)
 # generate external help
 if (!(Get-Module platyPS -List) -and !(Get-Module platyPS))
 {
-    Write-Warning -Message "Requires platyPS to generate help: Install-Module platyPS; Import-Module platyPS"
+    Write-Error -Message "Requires platyPS to generate help: Install-Module platyPS; Import-Module platyPS"
 }
 else
 {
