@@ -1,6 +1,18 @@
 [CmdletBinding()]
 param([switch]$Install, [switch]$BuildChocolatey)
 
+# restore nuget packages
+$nugetExe = (Get-Command nuget.exe -ea Ignore).Path
+if ($null -eq $nugetExe)
+{
+    $nugetExe = "${env:TEMP}\nuget.exe"
+    if (!(Test-Path $nugetExe))
+    {
+        iwr http://nuget.org/nuget.exe -OutFile $nugetExe
+    }
+}
+& $nugetExe restore $PSScriptRoot\PSReadline\PSReadline.sln
+
 # generate external help
 if (!(Get-Module platyPS -List) -and !(Get-Module platyPS))
 {
