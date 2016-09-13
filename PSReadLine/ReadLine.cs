@@ -775,18 +775,6 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void InvokePrompt(ConsoleKeyInfo? key = null, object arg = null)
         {
-            var runspaceIsRemote = _singleton._mockableMethods.RunspaceIsRemote(_singleton._runspace);
-            System.Management.Automation.PowerShell ps;
-            if (!runspaceIsRemote)
-            {
-                ps = System.Management.Automation.PowerShell.Create(RunspaceMode.CurrentRunspace);
-            }
-            else
-            {
-                ps = System.Management.Automation.PowerShell.Create();
-                ps.Runspace = _singleton._runspace;
-            }
-
             var console = _singleton._console;
             console.CursorVisible = false;
 
@@ -817,22 +805,7 @@ namespace Microsoft.PowerShell
                 console.SetCursorPosition(0, newY);
             }
 
-            string newPrompt;
-            using (ps)
-            {
-                ps.AddCommand("prompt");
-                var result = ps.Invoke<string>();
-                newPrompt = result.Count == 1 ? result[0] : "PS>";
-            }
-
-            if (runspaceIsRemote)
-            {
-                var connectionInfo = _singleton._runspace.ConnectionInfo;
-                if (!string.IsNullOrEmpty(connectionInfo.ComputerName))
-                {
-                    newPrompt = string.Format(CultureInfo.InvariantCulture, "[{0}]: {1}", connectionInfo.ComputerName, newPrompt);
-                }
-            }
+            string newPrompt = GetPrompt();
 
             console.Write(newPrompt);
             _singleton._initialX = console.CursorLeft;
@@ -840,6 +813,63 @@ namespace Microsoft.PowerShell
 
             _singleton.Render();
             console.CursorVisible = true;
+        }
+
+        private static string GetPrompt()
+        {
+            string newPrompt = null;
+            if (_singleton._runspace?.Debugger != null && _singleton._runspace.Debugger.InBreakpoint)
+            {
+                // Run prompt command in debugger API to ensure it is run correctly on the runspace.
+                // This handles remote runspace debugging and nested debugger scenarios.
+                PSDataCollection<PSObject> results = new PSDataCollection<PSObject>();
+                var command = new PSCommand();
+                command.AddCommand("prompt");
+                _singleton._runspace.Debugger.ProcessCommand(
+                    command,
+                    results);
+
+                if (results.Count == 1)
+                    newPrompt = results[0].BaseObject as string;
+            }
+            else
+            {
+                var runspaceIsRemote = _singleton._mockableMethods.RunspaceIsRemote(_singleton._runspace);
+
+                System.Management.Automation.PowerShell ps;
+                if (!runspaceIsRemote)
+                {
+                    ps = System.Management.Automation.PowerShell.Create(RunspaceMode.CurrentRunspace);
+                }
+                else
+                {
+                    ps = System.Management.Automation.PowerShell.Create();
+                    ps.Runspace = _singleton._runspace;
+                }
+
+                using (ps)
+                {
+                    ps.AddCommand("prompt");
+                    var result = ps.Invoke<string>();
+                    if (result.Count == 1)
+                    {
+                        newPrompt = result[0];
+
+                        if (runspaceIsRemote)
+                        {
+                            if (!string.IsNullOrEmpty(_singleton._runspace?.ConnectionInfo?.ComputerName))
+                            {
+                                newPrompt = "[" + (_singleton._runspace?.ConnectionInfo).ComputerName + "]: " + newPrompt;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (string.IsNullOrEmpty(newPrompt))
+                newPrompt = "PS>";
+
+            return newPrompt;
         }
     }
 }
