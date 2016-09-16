@@ -43,6 +43,7 @@ x64/
 *.vspscc
 *.vssscc
 .builds
+project.lock.json
 
 # Visual C++ cache files
 ipch/
