@@ -407,13 +407,13 @@ namespace Microsoft.PowerShell
         /// </summary>
         /// <param name="key"></param>
         /// <param name="arg"></param>
-        private static void ViDeleteToChar(ConsoleKeyInfo? key = null, object arg = null)
+        public static void ViDeleteToChar(ConsoleKeyInfo? key = null, object arg = null)
         {
             var keyChar = ReadKey().KeyChar;
             ViDeleteToChar(keyChar, key, arg);
         }
 
-        private static void ViDeleteToChar(char keyChar, ConsoleKeyInfo? key = null, object arg = null)
+        public static void ViDeleteToChar(char keyChar, ConsoleKeyInfo? key = null, object arg = null)
         {
             ViCharacterSearcher.Set(keyChar, isBackward: false, isBackoff: false);
             ViCharacterSearcher.SearchDelete(keyChar, arg, backoff: false, instigator: (_key, _arg) => ViDeleteToChar(keyChar, _key, _arg));
@@ -424,13 +424,13 @@ namespace Microsoft.PowerShell
         /// </summary>
         /// <param name="key"></param>
         /// <param name="arg"></param>
-        private static void ViDeleteToCharBackward(ConsoleKeyInfo? key = null, object arg = null)
+        public static void ViDeleteToCharBackward(ConsoleKeyInfo? key = null, object arg = null)
         {
             var keyChar = ReadKey().KeyChar;
             ViDeleteToCharBack(keyChar, key, arg);
         }
 
-        private static void ViDeleteToCharBack(char keyChar, ConsoleKeyInfo? key = null, object arg = null)
+        public static void ViDeleteToCharBack(char keyChar, ConsoleKeyInfo? key = null, object arg = null)
         {
             ViCharacterSearcher.SearchBackwardDelete(keyChar, arg, backoff: false, instigator: (_key, _arg) => ViDeleteToCharBack(keyChar, _key, _arg));
         }
@@ -440,13 +440,13 @@ namespace Microsoft.PowerShell
         /// </summary>
         /// <param name="key"></param>
         /// <param name="arg"></param>
-        private static void ViDeleteToBeforeChar(ConsoleKeyInfo? key = null, object arg = null)
+        public static void ViDeleteToBeforeChar(ConsoleKeyInfo? key = null, object arg = null)
         {
             var keyChar = ReadKey().KeyChar;
             ViDeleteToBeforeChar(keyChar, key, arg);
         }
 
-        private static void ViDeleteToBeforeChar(char keyChar, ConsoleKeyInfo? key = null, object arg = null)
+        public static void ViDeleteToBeforeChar(char keyChar, ConsoleKeyInfo? key = null, object arg = null)
         {
             ViCharacterSearcher.Set(keyChar, isBackward: false, isBackoff: true);
             ViCharacterSearcher.SearchDelete(keyChar, arg, backoff: true, instigator: (_key, _arg) => ViDeleteToBeforeChar(keyChar, _key, _arg));
@@ -457,7 +457,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         /// <param name="key"></param>
         /// <param name="arg"></param>
-        private static void ViDeleteToBeforeCharBackward(ConsoleKeyInfo? key = null, object arg = null)
+        public static void ViDeleteToBeforeCharBackward(ConsoleKeyInfo? key = null, object arg = null)
         {
             var keyChar = ReadKey().KeyChar;
             ViDeleteToBeforeCharBack(keyChar, key, arg);
@@ -578,8 +578,7 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Switch to Insert mode and position the cursor at the end of the line.
         /// </summary>
-        public static void 
-            ViInsertAtEnd(ConsoleKeyInfo? key = null, object arg = null)
+        public static void ViInsertAtEnd(ConsoleKeyInfo? key = null, object arg = null)
         {
             ViInsertMode(key, arg);
             EndOfLine(key, arg);

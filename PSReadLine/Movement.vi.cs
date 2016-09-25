@@ -91,7 +91,7 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Moves to the next word, using only white space as a word delimiter.
         /// </summary>
-        private static void ViNextGlob(ConsoleKeyInfo? key = null, object arg = null)
+        public static void ViNextGlob(ConsoleKeyInfo? key = null, object arg = null)
         {
             int numericArg;
             if (!TryGetArgAsInt(arg, out numericArg, 1))
@@ -109,7 +109,7 @@ namespace Microsoft.PowerShell
             _singleton.PlaceCursor();
         }
 
-        private static void ViEndOfGlob(ConsoleKeyInfo? key = null, object arg = null)
+        public static void ViEndOfGlob(ConsoleKeyInfo? key = null, object arg = null)
         {
             int numericArg;
             if (!TryGetArgAsInt(arg, out numericArg, 1))
@@ -131,7 +131,7 @@ namespace Microsoft.PowerShell
             }
         }
 
-        private static void ViEndOfPreviousGlob(ConsoleKeyInfo? key = null, object arg = null)
+        public static void ViEndOfPreviousGlob(ConsoleKeyInfo? key = null, object arg = null)
         {
             int numericArg;
             if (!TryGetArgAsInt(arg, out numericArg, 1))
