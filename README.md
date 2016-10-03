@@ -70,7 +70,7 @@ In either case, you can create the appropriate file if you don't already have on
 
 When running one of the suggested commands below, be sure to exit all instances of powershell.exe, then run the suggested command from cmd.exe, powershell_ise.exe, or via the Win+R shortcut to make sure PSReadline isn't loaded.
 
-If you are using the version of PSReadline that ships with Windows 10, you need to run: `powershell -noprofile -command "Install-Module PSReadline -Force"`.
+If you are using the version of PSReadline that ships with Windows 10, you need to run: `powershell -noprofile -command "Install-Module PSReadline -Force -SkipPublisherCheck"`.
 
 If you've installed PSReadline yourself from the PowerShell Gallery or with `PSGet` (this is less common on Windows 10), you can simply run: `powershell -noprofile -command "Update-Module PSReadline"`.
 
