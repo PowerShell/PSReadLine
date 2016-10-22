@@ -67,12 +67,21 @@ namespace UnitTestPSReadLine
                 _.Slash, "some", _.Enter, 'h'   // need 'h' here to avoid bogus failure
                 ) );
 
-            // ** TODO figure out how to get ctrl-R & ctrl-S to work **
-            //Test( "dosomething", Keys(
-            //    _.Escape, _.CtrlR, "some", _.Enter, CheckThat( () => AssertLineIs( "dosomething" ) ),
-            //    _.CtrlS, "yah", _.Enter, CheckThat( () => AssertLineIs( "yah way" ) ),
-            //    _.CtrlR, "some", _.Enter, 'h'   // need 'h' here to avoid bogus failure
-            //    ) );
+            SetHistory("dosomething", "this way", "that way", "anyway", "no way", "yah way");
+
+            Test("dosomething", Keys(
+                _.Escape, _.CtrlR, "some", _.Enter, CheckThat(() => AssertLineIs("dosomething")),
+                _.CtrlS, "yah", _.Enter, CheckThat(() => AssertLineIs("yah way")),
+                _.CtrlR, "some", _.Enter, 'h'   // need 'h' here to avoid bogus failure
+                ));
+
+            SetHistory("dosomething", "this way", "that way", "anyway", "no way", "yah way");
+
+            Test("dosomething", Keys(
+                _.CtrlR, "some", _.Enter, CheckThat(() => AssertLineIs("dosomething")),
+                _.CtrlS, "yah", _.Enter, CheckThat(() => AssertLineIs("yah way")),
+                _.CtrlR, "some", _.Enter, _.Escape  // new esc here to avoid bogus failure
+                ));
         }
 
         [TestMethod]

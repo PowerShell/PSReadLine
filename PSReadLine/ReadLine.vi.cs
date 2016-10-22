@@ -833,11 +833,11 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void ViSearchHistoryBackward(ConsoleKeyInfo? key = null, object arg = null)
         {
-            if (!key.HasValue || char.IsControl(key.Value.KeyChar))
-            {
-                Ding();
-                return;
-            }
+            //if (!key.HasValue || char.IsControl(key.Value.KeyChar))
+            //{
+            //    Ding();
+            //    return;
+            //}
 
             _singleton.StartSearch(backward: true);
         }
@@ -847,11 +847,11 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void SearchForward(ConsoleKeyInfo? key = null, object arg = null)
         {
-            if (!key.HasValue || char.IsControl(key.Value.KeyChar))
-            {
-                Ding();
-                return;
-            }
+            //if (!key.HasValue || char.IsControl(key.Value.KeyChar))
+            //{
+            //    Ding();
+            //    return;
+            //}
 
             _singleton.StartSearch(backward: false);
         }
