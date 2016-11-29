@@ -36,7 +36,7 @@ namespace Microsoft.PowerShell
                 {
                     i += ViEndOfLineFactor;
                 }
-                _singleton._current = i;
+                _singleton._current = Math.Max(i, 0);
                 _singleton.PlaceCursor();
             }
         }

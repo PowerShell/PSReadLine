@@ -84,7 +84,9 @@ namespace Microsoft.PowerShell
                 { Keys.CtrlRBracket,    MakeKeyHandler(GotoBrace,              "GotoBrace") },
                 { Keys.F3,              MakeKeyHandler(CharacterSearch,        "CharacterSearch") },
                 { Keys.ShiftF3,         MakeKeyHandler(CharacterSearchBackward,"CharacterSearchBackward") },
-                { Keys.CtrlAltQuestion, MakeKeyHandler(ShowKeyBindings,        "ShowKeyBindings") }
+                { Keys.CtrlAltQuestion, MakeKeyHandler(ShowKeyBindings,        "ShowKeyBindings") },
+                { Keys.CtrlR,           MakeKeyHandler(ViSearchHistoryBackward,"ViSearchHistoryBackward") },
+                { Keys.CtrlS,           MakeKeyHandler(SearchForward,          "SearchForward") }
             };
             _viCmdKeyMap = new Dictionary<ConsoleKeyInfo, KeyHandler>(new ConsoleKeyInfoComparer())
             {
@@ -192,8 +194,8 @@ namespace Microsoft.PowerShell
                 { Keys.Pipe,            MakeKeyHandler(GotoColumn,           "GotoColumn") },
                 { Keys.Uphat,           MakeKeyHandler(GotoFirstNonBlankOfLine, "GotoFirstNonBlankOfLine") },
                 { Keys.Tilde,           MakeKeyHandler(InvertCase,           "InvertCase") },
-                { Keys.Slash,           MakeKeyHandler(ViSearchHistoryBackward,       "SearchBackward") },
-                { Keys.CtrlR,           MakeKeyHandler(SearchCharBackward,   "SearchCharBackward") },
+                { Keys.Slash,           MakeKeyHandler(ViSearchHistoryBackward,   "ViSearchHistoryBackward") },
+                { Keys.CtrlR,           MakeKeyHandler(ViSearchHistoryBackward,   "ViSearchHistoryBackward") },
                 { Keys.Question,        MakeKeyHandler(SearchForward,        "SearchForward") },
                 { Keys.CtrlS,           MakeKeyHandler(SearchForward,        "SearchForward") },
                 { Keys.Plus,            MakeKeyHandler(NextHistory,          "NextHistory") },
