@@ -833,12 +833,6 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void ViSearchHistoryBackward(ConsoleKeyInfo? key = null, object arg = null)
         {
-            //if (!key.HasValue || char.IsControl(key.Value.KeyChar))
-            //{
-            //    Ding();
-            //    return;
-            //}
-
             _singleton.StartSearch(backward: true);
         }
 
