@@ -32,7 +32,7 @@ namespace Microsoft.PowerShell
             if (_statusIsErrorMessage)
             {
                 // After an edit, clear the error message
-                ClearStatusMessage(render: true);
+                ClearStatusMessage();
             }
 
             RemoveEditsAfterUndo();
@@ -72,7 +72,7 @@ namespace Microsoft.PowerShell
                 if (_singleton._statusIsErrorMessage)
                 {
                     // After an edit, clear the error message
-                    _singleton.ClearStatusMessage(render: false);
+                    _singleton.ClearStatusMessage();
                 }
                 _singleton._edits[_singleton._undoEditIndex - 1].Undo();
                 _singleton._edits.RemoveAt(_singleton._undoEditIndex - 1);

@@ -1031,7 +1031,7 @@ namespace Microsoft.PowerShell
                         Ding();
                     }
                     argBuffer.Clear();
-                    _singleton.ClearStatusMessage(render: true);
+                    _singleton.ClearStatusMessage();
                 }
             }
         }

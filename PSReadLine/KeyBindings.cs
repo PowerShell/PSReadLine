@@ -368,7 +368,7 @@ namespace Microsoft.PowerShell
                 buffer.Append(PSReadLineResources.KeyIsUnbound);
             }
 
-            _singleton.ClearStatusMessage(render: false);
+            _singleton.ClearStatusMessage();
 
             // Don't overwrite any of the line - so move to first line after the end of our buffer.
             var coords = _singleton.ConvertOffsetToCoordinates(_singleton._buffer.Length);

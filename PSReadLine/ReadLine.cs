@@ -546,10 +546,6 @@ namespace Microsoft.PowerShell
             _inputAccepted = false;
             _initialX = _console.CursorLeft;
             _initialY = _console.CursorTop - Options.ExtraPromptLineCount;
-            _initialBackgroundColor = _console.BackgroundColor;
-            _initialForegroundColor = _console.ForegroundColor;
-            _space = new CHAR_INFO(' ', _initialForegroundColor, _initialBackgroundColor);
-            _bufferWidth = _console.BufferWidth;
             _killCommandCount = 0;
             _yankCommandCount = 0;
             _yankLastArgCommandCount = 0;
@@ -557,7 +553,6 @@ namespace Microsoft.PowerShell
             _visualSelectionCommandCount = 0;
             _statusIsErrorMessage = false;
 
-            _consoleBuffer = ReadBufferLines(_initialY, 1 + Options.ExtraPromptLineCount);
             _lastRenderTime = Stopwatch.StartNew();
 
             _killCommandCount = 0;
@@ -813,7 +808,7 @@ namespace Microsoft.PowerShell
 
             // Remove our status line
             argBuffer.Clear();
-            _singleton.ClearStatusMessage(render: true);
+            _singleton.ClearStatusMessage();
         }
 
 
@@ -824,6 +819,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void InvokePrompt(ConsoleKeyInfo? key = null, object arg = null)
         {
+#if FALSE
             var currentBuffer = _singleton._buffer.ToString();
             var currentPos = _singleton._current;
             _singleton._buffer.Clear();
@@ -868,10 +864,10 @@ namespace Microsoft.PowerShell
             _singleton._console.Write(newPrompt);
 
             _singleton._initialX = _singleton._console.CursorLeft;
-            _singleton._consoleBuffer = ReadBufferLines(_singleton._initialY, 1 + _singleton.Options.ExtraPromptLineCount);
             _singleton._buffer.Append(currentBuffer);
             _singleton._current = currentPos;
             _singleton.Render();
+#endif
         }
 
         #endregion Miscellaneous bindable functions

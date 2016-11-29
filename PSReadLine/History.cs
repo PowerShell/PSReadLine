@@ -720,8 +720,7 @@ namespace Microsoft.PowerShell
             _emphasisStart = -1;
             _emphasisLength = 0;
 
-            // Remove our status line, this will render
-            ClearStatusMessage(render: true);
+            ClearStatusMessage();
         }
 
         /// <summary>

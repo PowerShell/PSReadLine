@@ -15,7 +15,7 @@ namespace Microsoft.PowerShell
     {
         private static void InvertLines(int start, int count)
         {
-            var buffer = ReadBufferLines(start, count);
+            var buffer = _singleton._console.ReadBufferLines(start, count);
             for (int i = 0; i < buffer.Length; i++)
             {
                 buffer[i].ForegroundColor = (ConsoleColor)((int)buffer[i].ForegroundColor ^ 7);
@@ -224,7 +224,7 @@ namespace Microsoft.PowerShell
 
         private static void DumpScreenToClipboard(int top, int count)
         {
-            var buffer = ReadBufferLines(top, count);
+            var buffer = _singleton._console.ReadBufferLines(top, count);
             var bufferWidth = _singleton._console.BufferWidth;
 
             var dataObject = new DataObject();

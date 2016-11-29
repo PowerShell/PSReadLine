@@ -68,7 +68,7 @@ namespace Microsoft.PowerShell
             if (_singleton._statusIsErrorMessage)
             {
                 // After an edit, clear the error message
-                _singleton.ClearStatusMessage(render: false);
+                _singleton.ClearStatusMessage();
             }
 
             while (_singleton._undoEditIndex > 0)
@@ -85,7 +85,8 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void CancelLine(ConsoleKeyInfo? key = null, object arg = null)
         {
-            _singleton.ClearStatusMessage(false);
+#if FALSE
+            _singleton.ClearStatusMessage();
             _singleton._current = _singleton._buffer.Length;
             // We want to display ^C to show the line was canceled.  Instead of appending ^C
             // (or (char)3), we append 2 spaces so we don't affect tokenization too much, e.g.
@@ -113,6 +114,7 @@ namespace Microsoft.PowerShell
             _singleton._current = 0; // If Render is called, _current must be correct.
             _singleton._currentHistoryIndex = _singleton._history.Count;
             _singleton._inputAccepted = true;
+#endif
         }
 
         /// <summary>
@@ -293,7 +295,7 @@ namespace Microsoft.PowerShell
 
             if (_statusIsErrorMessage)
             {
-                ClearStatusMessage(render: true);
+                ClearStatusMessage();
             }
 
             var coordinates = ConvertOffsetToCoordinates(_current);
