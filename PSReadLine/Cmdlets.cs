@@ -461,6 +461,7 @@ namespace Microsoft.PowerShell
         internal SwitchParameter? _historySearchCursorMovesToEnd;
 
         [Parameter(ParameterSetName = "OptionsSet")]
+        [ValidateRange(1, int.MaxValue)]
         public int MaximumHistoryCount
         {
             get { return _maximumHistoryCount.GetValueOrDefault(); }
