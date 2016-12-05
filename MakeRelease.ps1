@@ -1,5 +1,5 @@
 [CmdletBinding()]
-param([switch]$Install, [switch]$BuildChocolatey)
+param([switch]$Install)
 
 # restore nuget packages
 $nugetExe = (Get-Command nuget.exe -ea Ignore).Path
@@ -71,23 +71,6 @@ foreach ($file in (dir -re -af $targetDir))
 $version = (Get-ChildItem -Path $targetDir\Microsoft.PowerShell.PSReadline.dll).VersionInfo.FileVersion
 
 & $PSScriptRoot\Update-ModuleManifest.ps1 $targetDir\PSReadline.psd1 $version
-
-#make sure chocolatey is installed and in the path
-if ($BuildChocolatey -and (Get-Command -Name cpack -ErrorAction Ignore))
-{
-    $chocolateyDir = "$PSScriptRoot\ChocolateyPackage"
-
-    if (Test-Path -Path $chocolateyDir\PSReadline)
-    {
-        rmdir -Recurse $chocolateyDir\PSReadline
-    }
-
-    & $PSScriptRoot\Update-NuspecVersion.ps1 "$chocolateyDir\PSReadline.nuspec" $version
-
-    copy -Recurse $targetDir $chocolateyDir\PSReadline
-
-    cpack "$chocolateyDir\PSReadline.nuspec"
-}
 
 del $PSScriptRoot\PSReadline.zip -ErrorAction Ignore
 [System.IO.Compression.ZipFile]::CreateFromDirectory($targetDir, "$PSScriptRoot\PSReadline.zip")
