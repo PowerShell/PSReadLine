@@ -1,13 +1,16 @@
-# use before_build to produce xml help
-# then auto-build will make the build and auto-test will run all the tests and report result
+
 before_build:
   - ps: |
       nuget install platyPS -Version 0.4.0 -source https://www.powershellgallery.com/api/v2 -outputDirectory . -ExcludeVersion
+      nuget install InvokeBuild -Version 3.1.0 -source https://www.powershellgallery.com/api/v2 -outputDirectory . -ExcludeVersion
       Import-Module .\platyPS
-      .\MakeRelease.ps1
-      # Store help output for the module as PSReadline.txt artifact
-      Get-HelpPreview .\PSReadline\en-US\PSReadline.dll-help.xml > PSReadline.txt
+      Import-Module .\InvokeBuild
+
+build_script:
+  - ps: |
+      Invoke-Build -Task ZipRelease -Configuration Release
+      platyPS\Get-HelpPreview .\bin\Release\PSReadline\en-US\PSReadline.dll-help.xml > .\bin\Release\PSReadline.txt
 
 artifacts:
-  - path: PSReadline.zip
-  - path: PSReadline.txt
+  - path: .\bin\Release\PSReadline.zip
+  - path: .\bin\Release\PSReadline.txt
