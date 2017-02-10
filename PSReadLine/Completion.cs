@@ -504,12 +504,12 @@ namespace Microsoft.PowerShell
 
                         if (previousMenuTop > menuAreaTop)
                         {
-                            WriteBlankLines(previousMenuTop - menuAreaTop, menuAreaTop + displayRows);
+                            WriteBlankLines(menuAreaTop + displayRows);
                         }
                     }
                 }
 
-                WriteBlankLines(displayRows, menuAreaTop);
+                WriteBlankLines(displayRows);
 
                 var lastInsert = ((GroupedEdit)_edits[_edits.Count - 1])._groupedEditItems[1];
                 Debug.Assert(lastInsert is EditItemInsertString, "The only edits possible here are pairs of Delete/Insert");
@@ -540,6 +540,7 @@ namespace Microsoft.PowerShell
 
                 _console.WriteBufferLines(menuBuffer, ref menuAreaTop);
                 _initialY = menuAreaTop + displayRows;
+                ClearRenderInstList();
                 Render();
             }
         }

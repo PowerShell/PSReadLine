@@ -65,6 +65,7 @@ namespace Microsoft.PowerShell
         private Ast _ast;
         private ParseError[] _parseErrors;
 
+        private static string _prompt;
         bool IPSConsoleReadLineMockableMethods.RunspaceIsRemote(Runspace runspace)
         {
             return runspace != null && runspace.ConnectionInfo != null;
@@ -285,7 +286,7 @@ namespace Microsoft.PowerShell
                         firstTime = false;
                         _singleton.Initialize(runspace, engineIntrinsics);
                     }
-
+                    _prompt = GetPrompt();
                     return _singleton.InputLoop();
                 }
                 catch (OperationCanceledException)
@@ -495,7 +496,6 @@ namespace Microsoft.PowerShell
             _statusBuffer = new StringBuilder(256);
             _savedCurrentLine = new HistoryItem();
             _queuedKeys = new Queue<ConsoleKeyInfo>();
-
             string hostName = null;
             // This works mostly by luck - we're not doing anything to guarantee the constructor for our
             // singleton is called on a thread with a runspace, but it is happening by coincidence.
@@ -834,6 +834,18 @@ namespace Microsoft.PowerShell
             _singleton._console.CursorLeft = 0;
             _singleton._console.CursorTop = _singleton._initialY;
 
+            string newPrompt = GetPrompt();
+            _singleton._console.Write(newPrompt);
+
+            _singleton._initialX = _singleton._console.CursorLeft;
+            _singleton._buffer.Append(currentBuffer);
+            _singleton._current = currentPos;
+            _singleton.Render();
+#endif
+        }
+
+        private static string GetPrompt()
+        {
             var runspaceIsRemote = _singleton._mockableMethods.RunspaceIsRemote(_singleton._runspace);
             System.Management.Automation.PowerShell ps;
             if (!runspaceIsRemote)
@@ -861,15 +873,8 @@ namespace Microsoft.PowerShell
                     newPrompt = string.Format(CultureInfo.InvariantCulture, "[{0}]: {1}", connectionInfo.ComputerName, newPrompt);
                 }
             }
-            _singleton._console.Write(newPrompt);
-
-            _singleton._initialX = _singleton._console.CursorLeft;
-            _singleton._buffer.Append(currentBuffer);
-            _singleton._current = currentPos;
-            _singleton.Render();
-#endif
+            return newPrompt;
         }
-
         #endregion Miscellaneous bindable functions
 
     }

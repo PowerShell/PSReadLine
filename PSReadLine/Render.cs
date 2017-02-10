@@ -43,7 +43,6 @@ namespace Microsoft.PowerShell
             _ast = Parser.ParseInput(text, out _tokens, out _parseErrors);
             return text;
         }
-
         private void ClearStatusMessage()
         {
             _statusBuffer.Clear();
@@ -357,16 +356,17 @@ namespace Microsoft.PowerShell
 
         private void ReallyRender()
         {
+            string text = null;
+            ParseError[] prevParseErrors = _parseErrors;
             try
             {
                 _console.StartRender();
-
                 var tmp = _renderInst;
                 _renderInst = _prevRenderInst;
                 _renderInst.Clear();
                 _prevRenderInst = tmp;
 
-                var text = ParseInput();
+                text = ParseInput();
 
                 var consoleBgColor = Console.BackgroundColor;
                 var consoleFgColor = Console.ForegroundColor;
@@ -573,9 +573,58 @@ namespace Microsoft.PowerShell
 
             Dump(_renderInst);
 
+            //Render prompt
+            RenderPrompt(text, _parseErrors, prevParseErrors);
             _lastRenderTime.Restart();
         }
 
+        private void RenderPrompt(string currtxt, ParseError[] parseErrors, ParseError[] prevParseErrors)
+        {
+            var newFgColor = _options.DefaultTokenForegroundColor;
+            var prevFgColor = Options.DefaultTokenForegroundColor;
+            if(_parseErrors.Length > 0)
+            {
+                newFgColor = _options.ErrorForegroundColor;
+            }
+            if(null !=prevParseErrors && prevParseErrors.Length > 0)
+            {
+                prevFgColor = _options.ErrorForegroundColor;
+            }
+            if(newFgColor != prevFgColor)
+            {
+                // Render
+                string prompt = _prompt;
+                int i = prompt.LastIndexOf(Environment.NewLine);
+                if(i > -1)
+                {
+                    prompt = prompt.Substring(i+ Environment.NewLine.Length);
+                }
+
+                int x = prompt.Length - 1 ;
+                int y = _singleton._console.CursorTop;
+                while (x >= 0)
+                {
+
+                    char c = prompt[x];
+                    if (char.IsWhiteSpace(c))
+                    {
+                        x -= 1;
+                        continue;
+                    }
+                    
+                    int oldX = _singleton._console.CursorLeft;
+                    int oldY = _singleton._console.CursorTop;
+                    
+                    _singleton._console.SetCursorPosition(x, y);
+                    var consoleOldFGColor = _console.ForegroundColor;
+                    _console.ForegroundColor = newFgColor;
+                    _console.Write(c.ToString());
+                    _singleton._console.SetCursorPosition(oldX, oldY);
+                    _singleton._console.ForegroundColor = consoleOldFGColor;
+                    break;
+                }
+            }
+        }
         private int LengthInBufferCells(char c)
         {
             int length = Char.IsControl(c) ? 1 : 0;
@@ -585,17 +634,15 @@ namespace Microsoft.PowerShell
             }
             return _console.LengthInBufferCells(c);
         }
-
-        private static void WriteBlankLines(int count, int top)
+        private static void WriteBlankLines(int count)
         {
             var console = _singleton._console;
             var line = new string(' ', console.BufferWidth);
-            while (count-- > 0)
+            while (count-- >= 0)
             {
                 console.Write(line);
             }
         }
-
         private static CHAR_INFO[] ReadBufferLines(int top, int count)
         {
             return _singleton._console.ReadBufferLines(top, count);
@@ -704,6 +751,10 @@ namespace Microsoft.PowerShell
             return i >= start && i < end;
         }
 
+        private void ClearRenderInstList()
+        {
+            _renderInst.Clear();
+        }
         private void PlaceCursor(int x, ref int y)
         {
             int statusLineCount = GetStatusLineCount();

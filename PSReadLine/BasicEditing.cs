@@ -302,6 +302,7 @@ namespace Microsoft.PowerShell
             var y = coordinates.Y + 1;
             PlaceCursor(0, ref y);
             _inputAccepted = true;
+            ClearRenderInstList();
             return true;
         }
 

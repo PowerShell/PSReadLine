@@ -49,7 +49,9 @@ namespace TestPSReadLine
             {
                 executionContext =
                     ps.AddScript("$ExecutionContext").Invoke<EngineIntrinsics>().FirstOrDefault();
-
+                string promptFn = @"function global:prompt {'TestHostPS> '} ";
+                ps.AddScript(promptFn);
+                ps.Invoke();
                 // This is a workaround to ensure the command analysis cache has been created before
                 // we enter into ReadLine.  It's a little slow and infrequently needed, so just
                 // uncomment if you hit a hang, run it once, then comment it out again.
