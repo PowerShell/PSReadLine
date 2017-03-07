@@ -432,6 +432,12 @@ namespace Microsoft.PowerShell
                 {
                     _moveToLineCommandCount = 0;
                 }
+                if (_InvokeMenuCompleteCounter > 0) {
+                    _InvokeMenuCompleteCounter--;
+                    if (_InvokeMenuCompleteCounter == 0) {
+                        MenuComplete();
+                    }
+                }
             }
         }
 
@@ -567,6 +573,7 @@ namespace Microsoft.PowerShell
             _recallHistoryCommandCount = 0;
             _visualSelectionCommandCount = 0;
             _hashedHistory = null;
+            _InvokeMenuCompleteCounter = 0;
 
             if (_getNextHistoryIndex > 0)
             {

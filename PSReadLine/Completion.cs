@@ -22,6 +22,7 @@ namespace Microsoft.PowerShell
         private int _tabCommandCount;
         private CommandCompletion _tabCompletions;
         private Runspace _runspace;
+        private int _InvokeMenuCompleteCounter;
 
         // Stub helper method so completion can be mocked
         [ExcludeFromCodeCoverage]
@@ -429,8 +430,16 @@ namespace Microsoft.PowerShell
                 int selectedItem = 0;
                 bool undo = false;
 
-                DoReplacementForCompletion(matches[0], completions);
-
+                if (Options.IncrementalMenuComplete) {
+                    VisualSelectionCommon(() => {
+                        DoReplacementForCompletion(matches[0], completions);
+                        ExchangePointAndMark();
+                    });
+                }
+                else {
+                    DoReplacementForCompletion(matches[0], completions);
+                }
+                
                 // Recompute end of buffer coordinates as the replacement could have
                 // added a line.
                 var endBufferCoords = ConvertOffsetToCoordinates(_buffer.Length);
@@ -484,15 +493,39 @@ namespace Microsoft.PowerShell
                         undo = true;
                         processingKeys = false;
                     }
+                    else if (Options.IncrementalMenuComplete && (nextKey == Keys.Space || nextKey == Keys.Enter)) {
+                        if (nextKey == Keys.Space)
+                            PrependQueuedKeys(nextKey);
+                        else
+                            PrependQueuedKeys(Keys.Backspace);
+                        processingKeys = false;
+                        ExchangePointAndMark();
+                        SetMark();
+                    }
                     else
                     {
                         PrependQueuedKeys(nextKey);
                         processingKeys = false;
+                        if (Options.IncrementalMenuComplete) {
+                            //TODO: here we need to request another MenuSelect call. Need more efficient way!
+                            // Dumb variant - add another Keys.CtrlSpace key to key queue
+                            if (nextKey != Keys.Backspace) {
+                                //_queuedKeys.Enqueue(Keys.CtrlSpace);
+                                _InvokeMenuCompleteCounter = 2;
+                            }
+                        }
                     }
 
                     if (selectedItem != previousItem)
                     {
-                        DoReplacementForCompletion(matches[selectedItem], completions);
+                        if (Options.IncrementalMenuComplete) {
+                            SetMark();
+                            DoReplacementForCompletion(matches[selectedItem], completions);
+                            ExchangePointAndMark();
+                        }
+                        else {
+                            DoReplacementForCompletion(matches[selectedItem], completions);
+                        }
 
                         endBufferCoords = ConvertOffsetToCoordinates(_buffer.Length);
                         menuAreaTop = endBufferCoords.Y + 1;

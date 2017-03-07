@@ -113,6 +113,10 @@ namespace Microsoft.PowerShell
             {
                 Options.ShowToolTips = options.ShowToolTips;
             }
+            if (options._incrementalMenuComplete.HasValue)
+            {
+                Options.IncrementalMenuComplete = options.IncrementalMenuComplete;
+            }
             if (options._extraPromptLineCount.HasValue)
             {
                 Options.ExtraPromptLineCount = options.ExtraPromptLineCount;
