@@ -492,6 +492,7 @@ namespace Microsoft.PowerShell
                     {
                         undo = true;
                         processingKeys = false;
+                        _visualSelectionCommandCount = 0;
                     }
                     else if (Options.IncrementalMenuComplete && (nextKey == Keys.Space || nextKey == Keys.Enter)) {
                         if (nextKey == Keys.Space)
@@ -507,12 +508,9 @@ namespace Microsoft.PowerShell
                         PrependQueuedKeys(nextKey);
                         processingKeys = false;
                         if (Options.IncrementalMenuComplete) {
-                            //TODO: here we need to request another MenuSelect call. Need more efficient way!
-                            // Dumb variant - add another Keys.CtrlSpace key to key queue
-                            if (nextKey != Keys.Backspace) {
-                                //_queuedKeys.Enqueue(Keys.CtrlSpace);
+                            //here we need to request another MenuSelect call.
+                            if (nextKey != Keys.Backspace)
                                 _InvokeMenuCompleteCounter = 2;
-                            }
                         }
                     }
 

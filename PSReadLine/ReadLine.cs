@@ -392,7 +392,7 @@ namespace Microsoft.PowerShell
                     _yankLastArgCommandCount = 0;
                     _yankLastArgState = null;
                 }
-                if (tabCommandCount == _tabCommandCount)
+                if (tabCommandCount == _tabCommandCount && _InvokeMenuCompleteCounter == 0) // reset _tabCompletitions only if not awaits next IncrementalMenuComplete call
                 {
                     // Reset tab command count if it didn't change
                     _tabCommandCount = 0;
@@ -432,10 +432,48 @@ namespace Microsoft.PowerShell
                 {
                     _moveToLineCommandCount = 0;
                 }
-                if (_InvokeMenuCompleteCounter > 0) {
+                if (_InvokeMenuCompleteCounter > 0)
+                {
                     _InvokeMenuCompleteCounter--;
-                    if (_InvokeMenuCompleteCounter == 0) {
-                        MenuComplete();
+                    //here we need to filter out completions.CompletionMatches
+                    if (_InvokeMenuCompleteCounter == 0 && _tabCompletions != null && _tabCompletions.CompletionMatches.Count > 0)
+                    {
+                        // set current replacement length
+                        _tabCompletions.ReplacementLength = _current - _tabCompletions.ReplacementIndex;
+                        // useless check ?
+                        if (_buffer.Length <= _tabCompletions.ReplacementIndex + _tabCompletions.ReplacementLength)
+                        {
+                            string textToComplete = _buffer.ToString().Substring(_tabCompletions.ReplacementIndex, _tabCompletions.ReplacementLength);
+                            /*
+                            //var filtered = from item in _tabCompletions.CompletionMatches
+                            //                where (GetUnquotedText(item.CompletionText, true).StartsWith(textToComplete, StringComparison.InvariantCultureIgnoreCase))
+                            //                select item;
+                            System.Collections.ObjectModel.Collection<CompletionResult> filtered = new System.Collections.ObjectModel.Collection<CompletionResult>();
+                            foreach (var item in _tabCompletions.CompletionMatches)
+                            {
+                                if (GetUnquotedText(item.CompletionText, true).StartsWith(textToComplete, StringComparison.InvariantCultureIgnoreCase))
+                                    filtered.Add(item);
+                            }
+                            // invalid constructor. wtf ????
+                            _tabCompletions = new CommandCompletion(filtered, 0, _tabCompletions.ReplacementIndex, _tabCompletions.ReplacementLength);
+                            */
+                            int index = 0;
+                            while (index < _tabCompletions.CompletionMatches.Count)
+                            {
+                                if (GetUnquotedText(_tabCompletions.CompletionMatches[index].CompletionText, true).StartsWith(textToComplete, StringComparison.InvariantCultureIgnoreCase))
+                                    index++;
+                                else
+                                    _tabCompletions.CompletionMatches.RemoveAt(index);
+                            }
+                            _tabCompletions.CurrentMatchIndex = 0;
+
+                            if (_tabCompletions.CompletionMatches.Count > 0)
+                            {
+                                PossibleCompletionsImpl(_tabCompletions, true);
+                                if (_InvokeMenuCompleteCounter > 0)
+                                    _InvokeMenuCompleteCounter = 1;
+                            }
+                        }
                     }
                 }
             }
