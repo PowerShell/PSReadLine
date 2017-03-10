@@ -452,13 +452,13 @@ namespace Microsoft.PowerShell
                 // Showing the menu may have scrolled the screen or moved the cursor, update initialY to reflect that.
                 _initialY -= (previousMenuTop - menuAreaTop);
                 PlaceCursor();
-                previousMenuTop = menuAreaTop;
 
                 int previousItem = selectedItem;
 
                 bool processingKeys = true;
                 while (processingKeys)
                 {
+                    previousMenuTop = menuAreaTop;
                     var nextKey = ReadKey();
                     if (nextKey == Keys.RightArrow)
                     {
