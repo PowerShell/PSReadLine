@@ -430,16 +430,18 @@ namespace Microsoft.PowerShell
                 int selectedItem = 0;
                 bool undo = false;
 
-                if (Options.IncrementalMenuComplete) {
+                if (Options.IncrementalMenuComplete)
+                {
                     VisualSelectionCommon(() => {
                         DoReplacementForCompletion(matches[0], completions);
                         ExchangePointAndMark();
                     });
                 }
-                else {
+                else
+                {
                     DoReplacementForCompletion(matches[0], completions);
                 }
-                
+
                 // Recompute end of buffer coordinates as the replacement could have
                 // added a line.
                 var endBufferCoords = ConvertOffsetToCoordinates(_buffer.Length);

@@ -444,26 +444,14 @@ namespace Microsoft.PowerShell
                         if (_buffer.Length <= _tabCompletions.ReplacementIndex + _tabCompletions.ReplacementLength)
                         {
                             string textToComplete = _buffer.ToString().Substring(_tabCompletions.ReplacementIndex, _tabCompletions.ReplacementLength);
-                            /*
-                            //var filtered = from item in _tabCompletions.CompletionMatches
-                            //                where (GetUnquotedText(item.CompletionText, true).StartsWith(textToComplete, StringComparison.InvariantCultureIgnoreCase))
-                            //                select item;
-                            System.Collections.ObjectModel.Collection<CompletionResult> filtered = new System.Collections.ObjectModel.Collection<CompletionResult>();
-                            foreach (var item in _tabCompletions.CompletionMatches)
+
+                            CompletionResult[] tmpMatches = new CompletionResult[_tabCompletions.CompletionMatches.Count];
+                            _tabCompletions.CompletionMatches.CopyTo(tmpMatches, 0);
+                            _tabCompletions.CompletionMatches.Clear();
+                            foreach (CompletionResult item in tmpMatches)
                             {
                                 if (GetUnquotedText(item.CompletionText, true).StartsWith(textToComplete, StringComparison.InvariantCultureIgnoreCase))
-                                    filtered.Add(item);
-                            }
-                            // invalid constructor. wtf ????
-                            _tabCompletions = new CommandCompletion(filtered, 0, _tabCompletions.ReplacementIndex, _tabCompletions.ReplacementLength);
-                            */
-                            int index = 0;
-                            while (index < _tabCompletions.CompletionMatches.Count)
-                            {
-                                if (GetUnquotedText(_tabCompletions.CompletionMatches[index].CompletionText, true).StartsWith(textToComplete, StringComparison.InvariantCultureIgnoreCase))
-                                    index++;
-                                else
-                                    _tabCompletions.CompletionMatches.RemoveAt(index);
+                                    _tabCompletions.CompletionMatches.Add(item);
                             }
                             _tabCompletions.CurrentMatchIndex = 0;
 
