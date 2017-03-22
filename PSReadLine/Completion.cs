@@ -23,6 +23,7 @@ namespace Microsoft.PowerShell
         private CommandCompletion _tabCompletions;
         private Runspace _runspace;
         private int _InvokeMenuCompleteCounter;
+        private int _InvokeMenuCompleteUserMark;
 
         // Stub helper method so completion can be mocked
         [ExcludeFromCodeCoverage]
@@ -430,6 +431,8 @@ namespace Microsoft.PowerShell
                 int selectedItem = 0;
                 bool undo = false;
 
+                _InvokeMenuCompleteUserMark = _singleton._mark;
+
                 if (Options.IncrementalMenuComplete)
                 {
                     VisualSelectionCommon(() => {
@@ -495,24 +498,36 @@ namespace Microsoft.PowerShell
                         undo = true;
                         processingKeys = false;
                         _visualSelectionCommandCount = 0;
+                        _singleton._mark = _InvokeMenuCompleteUserMark;
+                    }
+                    else if (nextKey == Keys.Backspace)
+                    {
+                        // Esc alternative:
+                        // stay string beginning as in current replacement but don't replace to full string
+                        CompletionResult r = new CompletionResult(matches[selectedItem].CompletionText.Substring(0, _current - completions.ReplacementIndex));
+                        DoReplacementForCompletion(r, completions);
+                        processingKeys = false;
+                        _visualSelectionCommandCount = 0;
+                        _singleton._mark = _InvokeMenuCompleteUserMark;
+                        Render();
                     }
                     else if (Options.IncrementalMenuComplete && (nextKey == Keys.Space || nextKey == Keys.Enter)) {
+                        ExchangePointAndMark();
+                        processingKeys = false;
+                        _singleton._mark = _InvokeMenuCompleteUserMark;
+                        _visualSelectionCommandCount = 0;
                         if (nextKey == Keys.Space)
                             PrependQueuedKeys(nextKey);
                         else
-                            PrependQueuedKeys(Keys.Backspace);
-                        processingKeys = false;
-                        ExchangePointAndMark();
-                        SetMark();
+                            Render();
                     }
                     else
                     {
                         PrependQueuedKeys(nextKey);
                         processingKeys = false;
                         if (Options.IncrementalMenuComplete) {
-                            //here we need to request another MenuSelect call.
-                            if (nextKey != Keys.Backspace)
-                                _InvokeMenuCompleteCounter = 2;
+                          //here we need to request another MenuSelect call.
+                          _InvokeMenuCompleteCounter = 2;
                         }
                     }
 

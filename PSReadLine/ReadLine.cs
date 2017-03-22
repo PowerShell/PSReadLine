@@ -436,13 +436,16 @@ namespace Microsoft.PowerShell
                 {
                     _InvokeMenuCompleteCounter--;
                     //here we need to filter out completions.CompletionMatches
-                    if (_InvokeMenuCompleteCounter == 0 && _tabCompletions != null && _tabCompletions.CompletionMatches.Count > 0)
+                    if (_InvokeMenuCompleteCounter == 0)
                     {
-                        // set current replacement length
-                        _tabCompletions.ReplacementLength = _current - _tabCompletions.ReplacementIndex;
-                        // useless check ?
-                        if (_buffer.Length <= _tabCompletions.ReplacementIndex + _tabCompletions.ReplacementLength)
+                        _singleton._mark = _InvokeMenuCompleteUserMark;
+                        if (_tabCompletions != null && _tabCompletions.CompletionMatches.Count > 0)
                         {
+                            // set current replacement length
+                            _tabCompletions.ReplacementLength = _current - _tabCompletions.ReplacementIndex;
+                            // useless check ? it never be true?
+                            if (_buffer.Length < _tabCompletions.ReplacementIndex + _tabCompletions.ReplacementLength)
+                                _tabCompletions.ReplacementLength = _buffer.Length - _tabCompletions.ReplacementIndex;
                             string textToComplete = _buffer.ToString().Substring(_tabCompletions.ReplacementIndex, _tabCompletions.ReplacementLength);
 
                             CompletionResult[] tmpMatches = new CompletionResult[_tabCompletions.CompletionMatches.Count];
