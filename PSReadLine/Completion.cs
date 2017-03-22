@@ -433,17 +433,10 @@ namespace Microsoft.PowerShell
 
                 _InvokeMenuCompleteUserMark = _singleton._mark;
 
-                if (Options.IncrementalMenuComplete)
-                {
-                    VisualSelectionCommon(() => {
-                        DoReplacementForCompletion(matches[0], completions);
-                        ExchangePointAndMark();
-                    });
-                }
-                else
-                {
+                VisualSelectionCommon(() => {
                     DoReplacementForCompletion(matches[0], completions);
-                }
+                    ExchangePointAndMark();
+                });
 
                 // Recompute end of buffer coordinates as the replacement could have
                 // added a line.
@@ -511,7 +504,7 @@ namespace Microsoft.PowerShell
                         _singleton._mark = _InvokeMenuCompleteUserMark;
                         Render();
                     }
-                    else if (Options.IncrementalMenuComplete && (nextKey == Keys.Space || nextKey == Keys.Enter)) {
+                    else if (nextKey == Keys.Space || nextKey == Keys.Enter) {
                         ExchangePointAndMark();
                         processingKeys = false;
                         _singleton._mark = _InvokeMenuCompleteUserMark;
@@ -525,22 +518,15 @@ namespace Microsoft.PowerShell
                     {
                         PrependQueuedKeys(nextKey);
                         processingKeys = false;
-                        if (Options.IncrementalMenuComplete) {
-                          //here we need to request another MenuSelect call.
-                          _InvokeMenuCompleteCounter = 2;
-                        }
+                        //here we need to request another MenuSelect call.
+                        _InvokeMenuCompleteCounter = 2;
                     }
 
                     if (selectedItem != previousItem)
                     {
-                        if (Options.IncrementalMenuComplete) {
-                            SetMark();
-                            DoReplacementForCompletion(matches[selectedItem], completions);
-                            ExchangePointAndMark();
-                        }
-                        else {
-                            DoReplacementForCompletion(matches[selectedItem], completions);
-                        }
+                        SetMark();
+                        DoReplacementForCompletion(matches[selectedItem], completions);
+                        ExchangePointAndMark();
 
                         endBufferCoords = ConvertOffsetToCoordinates(_buffer.Length);
                         menuAreaTop = endBufferCoords.Y + 1;

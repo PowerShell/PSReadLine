@@ -101,7 +101,6 @@ namespace UnitTestPSReadLine
                           + options.BellStyle.GetHashCode()
                           + options.ExtraPromptLineCount.GetHashCode()
                           + options.ShowToolTips.GetHashCode()
-                          + options.IncrementalMenuComplete.GetHashCode()
                           + options.CompletionQueryItems.GetHashCode()
                           + options.EmphasisBackgroundColor.GetHashCode()
                           + options.EmphasisForegroundColor.GetHashCode()

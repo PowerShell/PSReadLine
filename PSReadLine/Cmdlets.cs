@@ -110,11 +110,6 @@ namespace Microsoft.PowerShell
         public const bool DefaultShowToolTips = false;
 
         /// <summary>
-        /// Enables Incremental MenuComplete style
-        /// </summary>
-        public const bool DefaultIncrementalMenuComplete = false;
-
-        /// <summary>
         /// When ringing the bell, what frequency do we use?
         /// </summary>
         public const int DefaultDingTone = 1221;
@@ -149,7 +144,6 @@ namespace Microsoft.PowerShell
             MaximumKillRingCount = DefaultMaximumKillRingCount;
             HistorySearchCursorMovesToEnd = DefaultHistorySearchCursorMovesToEnd;
             ShowToolTips = DefaultShowToolTips;
-            IncrementalMenuComplete = DefaultIncrementalMenuComplete;
             DingDuration = DefaultDingDuration;
             DingTone = DefaultDingTone;
             BellStyle = DefaultBellStyle;
@@ -228,7 +222,6 @@ namespace Microsoft.PowerShell
         public int MaximumKillRingCount { get; set; }
         public bool HistorySearchCursorMovesToEnd { get; set; }
         public bool ShowToolTips { get; set; }
-        public bool IncrementalMenuComplete { get; set; }
         public int DingTone { get; set; }
         public int CompletionQueryItems { get; set; }
         public string WordDelimiters { get; set; }
@@ -499,14 +492,6 @@ namespace Microsoft.PowerShell
             set { _showToolTips = value; }
         }
         internal SwitchParameter? _showToolTips;
-
-        [Parameter(ParameterSetName = "OptionsSet")]
-        public SwitchParameter IncrementalMenuComplete
-        {
-            get { return _incrementalMenuComplete.GetValueOrDefault(); }
-            set { _incrementalMenuComplete = value; }
-        }
-        internal SwitchParameter? _incrementalMenuComplete;
 
         [Parameter(ParameterSetName = "OptionsSet")]
         public int ExtraPromptLineCount
