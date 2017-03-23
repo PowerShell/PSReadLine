@@ -433,10 +433,11 @@ namespace Microsoft.PowerShell
 
                 _InvokeMenuCompleteUserMark = _singleton._mark;
 
-                VisualSelectionCommon(() => {
-                    DoReplacementForCompletion(matches[0], completions);
-                    ExchangePointAndMark();
-                });
+                SetMark();
+                _visualSelectionCommandCount += 1;
+                DoReplacementForCompletion(matches[0], completions);
+                ExchangePointAndMark();
+                Render();
 
                 // Recompute end of buffer coordinates as the replacement could have
                 // added a line.
