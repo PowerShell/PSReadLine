@@ -597,6 +597,7 @@ namespace Microsoft.PowerShell
                     }
                     else
                     {
+                        _current = _mark;
                         Ding();
                     }
 
