@@ -439,6 +439,7 @@ namespace Microsoft.PowerShell
                 _visualSelectionCommandCount += 1;
 
                 string userCompletionText = _buffer.ToString().Substring(completions.ReplacementIndex, _current - completions.ReplacementIndex);
+                int userInitialCompletionLength = userCompletionText.Length;
                 DoReplacementForCompletion(matches[0], completions);
 
                 // Recompute end of buffer coordinates as the replacement could have
@@ -518,7 +519,7 @@ namespace Microsoft.PowerShell
                         _visualSelectionCommandCount = 0;
                         _singleton._mark = savedUserMark;
                     }
-                    else if (nextKey == Keys.Backspace)
+                    else if (nextKey == Keys.Delete)
                     {
                         // Esc alternative:
                         // stay string beginning as in current replacement but don't replace to full string
@@ -545,36 +546,53 @@ namespace Microsoft.PowerShell
                         else
                             Render();
                     }
-                    else if (nextKey.KeyChar != 0)
+                    else if (nextKey == Keys.Backspace || nextKey.KeyChar != 0)
                     {
-                        userCompletionText += nextKey.KeyChar;
                         string replacementText = matches[selectedItem].CompletionText;
-                        // filter out matches and redraw menu
-                        WriteBlankLines(displayRows, menuAreaTop);
-                        matches = new System.Collections.ObjectModel.Collection<CompletionResult>();
 
-                        foreach (CompletionResult item in completions.CompletionMatches)
+                        if (userInitialCompletionLength == userCompletionText.Length && nextKey == Keys.Backspace)
                         {
-                            if (item.ListItemText.StartsWith(userCompletionText, StringComparison.OrdinalIgnoreCase) ||
-                                GetUnquotedText(item.CompletionText, false).StartsWith(userCompletionText, StringComparison.OrdinalIgnoreCase)
-                               )
-                               matches.Add(item);
-                        }
-                        if (matches.Count > 0)
-                        {
-                            menuBuffer = CreateCompletionMenu(matches, _console, Options.ShowToolTips, out menuColumnWidth, out displayRows);
-                            previousItem = selectedItem = 0;
-                            InvertSelectedCompletion(menuBuffer, previousItem, menuColumnWidth, displayRows);
-                            _console.WriteBufferLines(menuBuffer, ref menuAreaTop);
-                            DoReplacementForCompletion(matches[0], completions);
+                            _current = _mark;
+                            Ding();
                         }
                         else
                         {
-                            CompletionResult r = new CompletionResult(replacementText.Substring(0, _current - completions.ReplacementIndex)+nextKey.KeyChar);
-                            DoReplacementForCompletion(r, completions);
-                            _singleton._mark = savedUserMark;
-                            _visualSelectionCommandCount = 0;
-                            processingKeys = false;
+                            if (nextKey == Keys.Backspace)
+                            {
+                                userCompletionText = userCompletionText.Substring(0, userCompletionText.Length - 1);
+                            }
+                            else
+                            {
+                                userCompletionText += nextKey.KeyChar;
+                            }
+
+                            // filter out matches and redraw menu
+
+                            var tmpMatches = new System.Collections.ObjectModel.Collection<CompletionResult>();
+
+                            foreach (CompletionResult item in completions.CompletionMatches)
+                            {
+                                if (item.ListItemText.StartsWith(userCompletionText, StringComparison.OrdinalIgnoreCase) ||
+                                    GetUnquotedText(item.CompletionText, false).StartsWith(userCompletionText, StringComparison.OrdinalIgnoreCase)
+                                   )
+                                    tmpMatches.Add(item);
+                            }
+                            if (tmpMatches.Count > 0)
+                            {
+                                WriteBlankLines(displayRows, menuAreaTop);
+                                matches = tmpMatches;
+                                previousItem = selectedItem = 0;
+                                menuBuffer = CreateCompletionMenu(matches, _console, Options.ShowToolTips, out menuColumnWidth, out displayRows);
+                                InvertSelectedCompletion(menuBuffer, previousItem, menuColumnWidth, displayRows);
+                                _console.WriteBufferLines(menuBuffer, ref menuAreaTop);
+                                DoReplacementForCompletion(matches[0], completions);
+                            }
+                            else
+                            {
+                                _current = _mark;
+                                Ding();
+                                userCompletionText = userCompletionText.Substring(0, userCompletionText.Length - 1);
+                            }
                         }
                     }
                     else
