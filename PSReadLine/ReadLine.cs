@@ -392,7 +392,7 @@ namespace Microsoft.PowerShell
                     _yankLastArgCommandCount = 0;
                     _yankLastArgState = null;
                 }
-                if (tabCommandCount == _tabCommandCount && _InvokeMenuCompleteCounter == 0) // reset _tabCompletitions only if not awaits next IncrementalMenuComplete call
+                if (tabCommandCount == _tabCommandCount)
                 {
                     // Reset tab command count if it didn't change
                     _tabCommandCount = 0;
@@ -431,41 +431,6 @@ namespace Microsoft.PowerShell
                 if (movingAtEndOfLineCount == _moveToLineCommandCount)
                 {
                     _moveToLineCommandCount = 0;
-                }
-                if (_InvokeMenuCompleteCounter > 0)
-                {
-                    _InvokeMenuCompleteCounter--;
-                    //here we need to filter out completions.CompletionMatches
-                    if (_InvokeMenuCompleteCounter == 0)
-                    {
-                        _singleton._mark = _InvokeMenuCompleteUserMark;
-                        if (_tabCompletions != null && _tabCompletions.CompletionMatches.Count > 0)
-                        {
-                            // set current replacement length
-                            _tabCompletions.ReplacementLength = _current - _tabCompletions.ReplacementIndex;
-                            // useless check ? it never be true?
-                            if (_buffer.Length < _tabCompletions.ReplacementIndex + _tabCompletions.ReplacementLength)
-                                _tabCompletions.ReplacementLength = _buffer.Length - _tabCompletions.ReplacementIndex;
-                            string textToComplete = _buffer.ToString().Substring(_tabCompletions.ReplacementIndex, _tabCompletions.ReplacementLength);
-
-                            CompletionResult[] tmpMatches = new CompletionResult[_tabCompletions.CompletionMatches.Count];
-                            _tabCompletions.CompletionMatches.CopyTo(tmpMatches, 0);
-                            _tabCompletions.CompletionMatches.Clear();
-                            foreach (CompletionResult item in tmpMatches)
-                            {
-                                if (GetUnquotedText(item.CompletionText, true).StartsWith(textToComplete, StringComparison.InvariantCultureIgnoreCase))
-                                    _tabCompletions.CompletionMatches.Add(item);
-                            }
-                            _tabCompletions.CurrentMatchIndex = 0;
-
-                            if (_tabCompletions.CompletionMatches.Count > 0)
-                            {
-                                PossibleCompletionsImpl(_tabCompletions, true);
-                                if (_InvokeMenuCompleteCounter > 0)
-                                    _InvokeMenuCompleteCounter = 1;
-                            }
-                        }
-                    }
                 }
             }
         }
@@ -602,7 +567,6 @@ namespace Microsoft.PowerShell
             _recallHistoryCommandCount = 0;
             _visualSelectionCommandCount = 0;
             _hashedHistory = null;
-            _InvokeMenuCompleteCounter = 0;
 
             if (_getNextHistoryIndex > 0)
             {

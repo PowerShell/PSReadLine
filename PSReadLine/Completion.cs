@@ -22,8 +22,6 @@ namespace Microsoft.PowerShell
         private int _tabCommandCount;
         private CommandCompletion _tabCompletions;
         private Runspace _runspace;
-        private int _InvokeMenuCompleteCounter;
-        private int _InvokeMenuCompleteUserMark;
 
         // Stub helper method so completion can be mocked
         [ExcludeFromCodeCoverage]
@@ -323,37 +321,19 @@ namespace Microsoft.PowerShell
             return s;
         }
 
-        private void PossibleCompletionsImpl(CommandCompletion completions, bool menuSelect)
+        private static CHAR_INFO[] CreateCompletionMenu(System.Collections.ObjectModel.Collection<CompletionResult> matches, IConsole console, bool showToolTips, out int MenuColumnWidth, out int DisplayRows)
         {
-            if (completions == null || completions.CompletionMatches.Count == 0)
-            {
-                Ding();
-                return;
-            }
-
-            if (completions.CompletionMatches.Count >= _options.CompletionQueryItems)
-            {
-                if (!PromptYesOrNo(string.Format(CultureInfo.CurrentCulture, PSReadLineResources.DisplayAllPossibilities, completions.CompletionMatches.Count)))
-                {
-                    return;
-                }
-            }
-
-            var matches = completions.CompletionMatches;
             var minColWidth = matches.Max(c => c.ListItemText.Length);
             minColWidth += 2;
-            var menuColumnWidth = minColWidth;
-
-            int displayRows;
-            var bufferWidth = _console.BufferWidth;
+            var bufferWidth = console.BufferWidth;
             ConsoleBufferBuilder cb;
-            if (Options.ShowToolTips)
+            if (showToolTips)
             {
                 const string seperator = "- ";
                 var maxTooltipWidth = bufferWidth - minColWidth - seperator.Length;
 
-                displayRows = matches.Count;
-                cb = new ConsoleBufferBuilder(displayRows * bufferWidth, _console);
+                DisplayRows = matches.Count;
+                cb = new ConsoleBufferBuilder(DisplayRows * bufferWidth, console);
                 for (int index = 0; index < matches.Count; index++)
                 {
                     var match = matches[index];
@@ -378,19 +358,19 @@ namespace Microsoft.PowerShell
                         cb.Append(' ', spacesNeeded);
                     }
                 }
-                menuColumnWidth = bufferWidth;
+                MenuColumnWidth = bufferWidth;
             }
             else
             {
                 var screenColumns = bufferWidth;
                 var displayColumns = Math.Max(1, screenColumns / minColWidth);
-                displayRows = (completions.CompletionMatches.Count + displayColumns - 1) / displayColumns;
-                cb = new ConsoleBufferBuilder(displayRows * bufferWidth, _console);
-                for (var row = 0; row < displayRows; row++)
+                DisplayRows = (matches.Count + displayColumns - 1) / displayColumns;
+                cb = new ConsoleBufferBuilder(DisplayRows * bufferWidth, console);
+                for (var row = 0; row < DisplayRows; row++)
                 {
                     for (var col = 0; col < displayColumns; col++)
                     {
-                        var index = row + (displayRows * col);
+                        var index = row + (DisplayRows * col);
                         if (index >= matches.Count)
                             break;
                         var match = matches[index];
@@ -406,9 +386,33 @@ namespace Microsoft.PowerShell
                         cb.Append(' ', spacesNeeded);
                     }
                 }
+                MenuColumnWidth = minColWidth;
             }
 
-            var menuBuffer = cb.ToArray();
+            return cb.ToArray();
+        }
+
+        private void PossibleCompletionsImpl(CommandCompletion completions, bool menuSelect)
+        {
+            if (completions == null || completions.CompletionMatches.Count == 0)
+            {
+                Ding();
+                return;
+            }
+
+            if (completions.CompletionMatches.Count >= _options.CompletionQueryItems)
+            {
+                if (!PromptYesOrNo(string.Format(CultureInfo.CurrentCulture, PSReadLineResources.DisplayAllPossibilities, completions.CompletionMatches.Count)))
+                {
+                    return;
+                }
+            }
+
+            var matches = completions.CompletionMatches;
+
+            int menuColumnWidth;
+            int displayRows;
+            var menuBuffer = CreateCompletionMenu(matches, _console, Options.ShowToolTips, out menuColumnWidth, out displayRows);
 
             if (menuSelect)
             {
@@ -431,13 +435,11 @@ namespace Microsoft.PowerShell
                 int selectedItem = 0;
                 bool undo = false;
 
-                _InvokeMenuCompleteUserMark = _singleton._mark;
-
-                SetMark();
+                int savedUserMark = _singleton._mark;
                 _visualSelectionCommandCount += 1;
+
+                string userCompletionText = _buffer.ToString().Substring(completions.ReplacementIndex, _current - completions.ReplacementIndex);
                 DoReplacementForCompletion(matches[0], completions);
-                ExchangePointAndMark();
-                Render();
 
                 // Recompute end of buffer coordinates as the replacement could have
                 // added a line.
@@ -458,8 +460,22 @@ namespace Microsoft.PowerShell
                 while (processingKeys)
                 {
                     previousMenuTop = menuAreaTop;
+                    SetMark(); // set mark to cursor
+                    int curPos = matches[selectedItem].CompletionText.IndexOf(userCompletionText, StringComparison.OrdinalIgnoreCase);
+                    // set cursor to the end of UserCompletion but in real completion (because of .\ and so on)
+                    _current = completions.ReplacementIndex + curPos + userCompletionText.Length;
+                    Render();
+
                     var nextKey = ReadKey();
-                    if (nextKey == Keys.RightArrow)
+                    if (nextKey == Keys.Home)
+                    {
+                        selectedItem = 0;
+                    }
+                    else if (nextKey == Keys.End)
+                    {
+                        selectedItem = matches.Count - 1;
+                    }
+                    else if (nextKey == Keys.RightArrow)
                     {
                         selectedItem = Math.Min(selectedItem + displayRows, matches.Count - 1);
                     }
@@ -474,6 +490,14 @@ namespace Microsoft.PowerShell
                     else if (nextKey == Keys.UpArrow)
                     {
                         selectedItem = Math.Max(selectedItem - 1, 0);
+                    }
+                    else if (nextKey == Keys.PageDown)
+                    {
+                        selectedItem = Math.Min(selectedItem + displayRows - (selectedItem % displayRows) - 1, matches.Count - 1);
+                    }
+                    else if (nextKey == Keys.PageUp)
+                    {
+                        selectedItem = Math.Max(selectedItem - (selectedItem % displayRows), 0);
                     }
                     else if (nextKey == Keys.Tab)
                     {
@@ -492,7 +516,7 @@ namespace Microsoft.PowerShell
                         undo = true;
                         processingKeys = false;
                         _visualSelectionCommandCount = 0;
-                        _singleton._mark = _InvokeMenuCompleteUserMark;
+                        _singleton._mark = savedUserMark;
                     }
                     else if (nextKey == Keys.Backspace)
                     {
@@ -502,32 +526,65 @@ namespace Microsoft.PowerShell
                         DoReplacementForCompletion(r, completions);
                         processingKeys = false;
                         _visualSelectionCommandCount = 0;
-                        _singleton._mark = _InvokeMenuCompleteUserMark;
+                        _singleton._mark = savedUserMark;
                         Render();
                     }
-                    else if (nextKey == Keys.Space || nextKey == Keys.Enter) {
+                    else if (nextKey == Keys.Space || nextKey == Keys.Enter)
+                    {
                         ExchangePointAndMark();
                         processingKeys = false;
-                        _singleton._mark = _InvokeMenuCompleteUserMark;
+                        _singleton._mark = savedUserMark;
                         _visualSelectionCommandCount = 0;
-                        if (nextKey == Keys.Space)
+                        if (nextKey == Keys.Space) {
+                            int cursorAdjustment = 0;
+                            if (matches[selectedItem].ResultType == CompletionResultType.ProviderContainer)
+                                userCompletionText = GetReplacementTextForDirectory(matches[selectedItem].CompletionText, ref cursorAdjustment);
+                            _current -= cursorAdjustment;
                             PrependQueuedKeys(nextKey);
+                        }
                         else
                             Render();
                     }
+                    else if (nextKey.KeyChar != 0)
+                    {
+                        userCompletionText += nextKey.KeyChar;
+                        string replacementText = matches[selectedItem].CompletionText;
+                        // filter out matches and redraw menu
+                        WriteBlankLines(displayRows, menuAreaTop);
+                        matches = new System.Collections.ObjectModel.Collection<CompletionResult>();
+
+                        foreach (CompletionResult item in completions.CompletionMatches)
+                        {
+                            if (item.ListItemText.StartsWith(userCompletionText, StringComparison.OrdinalIgnoreCase) ||
+                                GetUnquotedText(item.CompletionText, false).StartsWith(userCompletionText, StringComparison.OrdinalIgnoreCase)
+                               )
+                               matches.Add(item);
+                        }
+                        if (matches.Count > 0)
+                        {
+                            menuBuffer = CreateCompletionMenu(matches, _console, Options.ShowToolTips, out menuColumnWidth, out displayRows);
+                            previousItem = selectedItem = 0;
+                            InvertSelectedCompletion(menuBuffer, previousItem, menuColumnWidth, displayRows);
+                            _console.WriteBufferLines(menuBuffer, ref menuAreaTop);
+                            DoReplacementForCompletion(matches[0], completions);
+                        }
+                        else
+                        {
+                            CompletionResult r = new CompletionResult(replacementText.Substring(0, _current - completions.ReplacementIndex)+nextKey.KeyChar);
+                            DoReplacementForCompletion(r, completions);
+                            _singleton._mark = savedUserMark;
+                            _visualSelectionCommandCount = 0;
+                            processingKeys = false;
+                        }
+                    }
                     else
                     {
-                        PrependQueuedKeys(nextKey);
-                        processingKeys = false;
-                        //here we need to request another MenuSelect call.
-                        _InvokeMenuCompleteCounter = 2;
+                        Ding();
                     }
 
                     if (selectedItem != previousItem)
                     {
-                        SetMark();
                         DoReplacementForCompletion(matches[selectedItem], completions);
-                        ExchangePointAndMark();
 
                         endBufferCoords = ConvertOffsetToCoordinates(_buffer.Length);
                         menuAreaTop = endBufferCoords.Y + 1;
