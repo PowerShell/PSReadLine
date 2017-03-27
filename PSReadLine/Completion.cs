@@ -448,24 +448,36 @@ namespace Microsoft.PowerShell
                 var menuAreaTop = endBufferCoords.Y + 1;
                 var previousMenuTop = menuAreaTop;
 
-                InvertSelectedCompletion(menuBuffer, selectedItem, menuColumnWidth, displayRows);
-                _console.WriteBufferLines(menuBuffer, ref menuAreaTop);
-
                 // Showing the menu may have scrolled the screen or moved the cursor, update initialY to reflect that.
                 _initialY -= (previousMenuTop - menuAreaTop);
-                PlaceCursor();
 
-                int previousItem = selectedItem;
+                int previousItem = -1;
 
                 bool processingKeys = true;
                 while (processingKeys)
                 {
+                    if (selectedItem != previousItem)
+                    {
+                        int curPos = matches[selectedItem].CompletionText.IndexOf(userCompletionText, StringComparison.OrdinalIgnoreCase);
+                        // set mark to the end of UserCompletion but in real completion (because of .\ and so on)
+                        _mark = completions.ReplacementIndex + curPos + userCompletionText.Length;
+                        DoReplacementForCompletion(matches[selectedItem], completions);
+                        ExchangePointAndMark();
+
+                        endBufferCoords = ConvertOffsetToCoordinates(_buffer.Length);
+                        menuAreaTop = endBufferCoords.Y + 1;
+                        if (previousItem != -1)
+                            InvertSelectedCompletion(menuBuffer, previousItem, menuColumnWidth, displayRows);
+                        InvertSelectedCompletion(menuBuffer, selectedItem, menuColumnWidth, displayRows);
+                        _console.WriteBufferLines(menuBuffer, ref menuAreaTop);
+                        previousItem = selectedItem;
+
+                        if (previousMenuTop > menuAreaTop)
+                        {
+                            WriteBlankLines(previousMenuTop - menuAreaTop, menuAreaTop + displayRows);
+                        }
+                    }
                     previousMenuTop = menuAreaTop;
-                    SetMark(); // set mark to cursor
-                    int curPos = matches[selectedItem].CompletionText.IndexOf(userCompletionText, StringComparison.OrdinalIgnoreCase);
-                    // set cursor to the end of UserCompletion but in real completion (because of .\ and so on)
-                    _current = completions.ReplacementIndex + curPos + userCompletionText.Length;
-                    Render();
 
                     var nextKey = ReadKey();
                     if (nextKey == Keys.Home)
@@ -523,8 +535,15 @@ namespace Microsoft.PowerShell
                     {
                         // Esc alternative:
                         // stay string beginning as in current replacement but don't replace to full string
-                        CompletionResult r = new CompletionResult(matches[selectedItem].CompletionText.Substring(0, _current - completions.ReplacementIndex));
-                        DoReplacementForCompletion(r, completions);
+                        if (_current == completions.ReplacementIndex)
+                        {
+                            undo = true;
+                        }
+                        else
+                        {
+                            CompletionResult r = new CompletionResult(matches[selectedItem].CompletionText.Substring(0, _current - completions.ReplacementIndex));
+                            DoReplacementForCompletion(r, completions);
+                        }
                         processingKeys = false;
                         _visualSelectionCommandCount = 0;
                         _singleton._mark = savedUserMark;
@@ -534,8 +553,8 @@ namespace Microsoft.PowerShell
                     {
                         ExchangePointAndMark();
                         processingKeys = false;
-                        _singleton._mark = savedUserMark;
                         _visualSelectionCommandCount = 0;
+                        _singleton._mark = savedUserMark;
                         if (nextKey == Keys.Space) {
                             int cursorAdjustment = 0;
                             if (matches[selectedItem].ResultType == CompletionResultType.ProviderContainer)
@@ -552,7 +571,6 @@ namespace Microsoft.PowerShell
 
                         if (userInitialCompletionLength == userCompletionText.Length && nextKey == Keys.Backspace)
                         {
-                            _current = _mark;
                             Ding();
                         }
                         else
@@ -569,11 +587,13 @@ namespace Microsoft.PowerShell
                             // filter out matches and redraw menu
 
                             var tmpMatches = new System.Collections.ObjectModel.Collection<CompletionResult>();
-
                             foreach (CompletionResult item in completions.CompletionMatches)
                             {
+                                string unQuoted = GetUnquotedText(item.CompletionText, false);
+                                if (item.CompletionText.StartsWith("& ")) // mask special cases
+                                    unQuoted = GetUnquotedText(item.CompletionText.Substring(2), false);
                                 if (item.ListItemText.StartsWith(userCompletionText, StringComparison.OrdinalIgnoreCase) ||
-                                    GetUnquotedText(item.CompletionText, false).StartsWith(userCompletionText, StringComparison.OrdinalIgnoreCase)
+                                    unQuoted.StartsWith(userCompletionText, StringComparison.OrdinalIgnoreCase)
                                    )
                                     tmpMatches.Add(item);
                             }
@@ -581,15 +601,12 @@ namespace Microsoft.PowerShell
                             {
                                 WriteBlankLines(displayRows, menuAreaTop);
                                 matches = tmpMatches;
-                                previousItem = selectedItem = 0;
+                                previousItem = -1;
+                                selectedItem = 0;
                                 menuBuffer = CreateCompletionMenu(matches, _console, Options.ShowToolTips, out menuColumnWidth, out displayRows);
-                                InvertSelectedCompletion(menuBuffer, previousItem, menuColumnWidth, displayRows);
-                                _console.WriteBufferLines(menuBuffer, ref menuAreaTop);
-                                DoReplacementForCompletion(matches[0], completions);
                             }
                             else
                             {
-                                _current = _mark;
                                 Ding();
                                 userCompletionText = userCompletionText.Substring(0, userCompletionText.Length - 1);
                             }
@@ -597,27 +614,9 @@ namespace Microsoft.PowerShell
                     }
                     else
                     {
-                        _current = _mark;
                         Ding();
                     }
 
-                    if (selectedItem != previousItem)
-                    {
-                        DoReplacementForCompletion(matches[selectedItem], completions);
-
-                        endBufferCoords = ConvertOffsetToCoordinates(_buffer.Length);
-                        menuAreaTop = endBufferCoords.Y + 1;
-
-                        InvertSelectedCompletion(menuBuffer, previousItem, menuColumnWidth, displayRows);
-                        InvertSelectedCompletion(menuBuffer, selectedItem, menuColumnWidth, displayRows);
-                        _console.WriteBufferLines(menuBuffer, ref menuAreaTop);
-                        previousItem = selectedItem;
-
-                        if (previousMenuTop > menuAreaTop)
-                        {
-                            WriteBlankLines(previousMenuTop - menuAreaTop, menuAreaTop + displayRows);
-                        }
-                    }
                 }
 
                 WriteBlankLines(displayRows, menuAreaTop);
