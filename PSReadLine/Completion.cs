@@ -438,7 +438,7 @@ namespace Microsoft.PowerShell
                 int savedUserMark = _singleton._mark;
                 _visualSelectionCommandCount += 1;
 
-                string userCompletionText = _buffer.ToString().Substring(completions.ReplacementIndex, _current - completions.ReplacementIndex);
+                string userCompletionText = _buffer.ToString().Substring(completions.ReplacementIndex, Math.Max(_current - completions.ReplacementIndex,0));
                 int userInitialCompletionLength = userCompletionText.Length;
                 DoReplacementForCompletion(matches[0], completions);
 
