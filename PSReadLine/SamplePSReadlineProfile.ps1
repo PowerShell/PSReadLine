@@ -14,7 +14,7 @@ Set-PSReadLineOption -EditMode Emacs
 # without that option, the cursor will remain at the position it was
 # when you used up arrow, which can be useful if you forget the exact
 # string you started the search on.
-Set-PSReadLineOption -HistorySearchCursorMovesToEnd 
+Set-PSReadLineOption -HistorySearchCursorMovesToEnd
 Set-PSReadlineKeyHandler -Key UpArrow -Function HistorySearchBackward
 Set-PSReadlineKeyHandler -Key DownArrow -Function HistorySearchForward
 
@@ -127,8 +127,8 @@ Set-PSReadlineKeyHandler -Key '"',"'" `
     $cursor = $null
     [Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$line, [ref]$cursor)
 
-    $quoteNumber = Select-String -InputObject $line -Pattern $key.KeyChar -AllMatches
-    if ($quoteNumber.Matches.Count % 2 -eq 1) {
+    $quotesAmount = (Select-String -InputObject $line -Pattern $key.KeyChar -AllMatches).Matches.Count
+    if ($quotesAmount % 2 -eq 1) {
         # Oneven amount of quotes, put just one quote
         [Microsoft.PowerShell.PSConsoleReadline]::Insert($key.KeyChar)
     }
@@ -137,10 +137,22 @@ Set-PSReadlineKeyHandler -Key '"',"'" `
         [Microsoft.PowerShell.PSConsoleReadLine]::SetCursorPosition($cursor + 1)
     }
     else {
-        # Insert matching quotes, move cursor to be in between the quotes
-        [Microsoft.PowerShell.PSConsoleReadLine]::Insert("$($key.KeyChar)" * 2)
-        [Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$line, [ref]$cursor)
-        [Microsoft.PowerShell.PSConsoleReadLine]::SetCursorPosition($cursor - 1)
+        $otherQuote = if ($key.KeyChar -eq "'") {'"'} Else {"'"}
+        $lineBeforeCursor = $line.Substring(0, $cursor)
+        $quotesBeforeAmount = (Select-String -InputObject $lineBeforeCursor -Pattern $otherQuote -AllMatches).Matches.Count
+        $lineAfterCursor = $line.Substring($cursor)
+        $quotesAfterAmount = (Select-String -InputObject $lineAfterCursor -Pattern $otherQuote -AllMatches).Matches.Count
+
+        if ($quotesBeforeAmount % 2 -eq 1 -and $quotesAfterAmount % 2 -eq 1) {
+            # Insert one quote if inside the other quotes
+            [Microsoft.PowerShell.PSConsoleReadLine]::Insert($key.KeyChar)
+        }
+        else {
+            # Insert matching quotes, move cursor to be in between the quotes
+            [Microsoft.PowerShell.PSConsoleReadLine]::Insert("$($key.KeyChar)" * 2)
+            [Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$line, [ref]$cursor)
+            [Microsoft.PowerShell.PSConsoleReadLine]::SetCursorPosition($cursor - 1)
+        }
     }
 }
 
@@ -161,7 +173,7 @@ Set-PSReadlineKeyHandler -Key '(','{','[' `
     $line = $null
     $cursor = $null
     [Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$line, [ref]$cursor)
-    [Microsoft.PowerShell.PSConsoleReadLine]::SetCursorPosition($cursor - 1)        
+    [Microsoft.PowerShell.PSConsoleReadLine]::SetCursorPosition($cursor - 1)
 }
 
 Set-PSReadlineKeyHandler -Key ')',']','}' `
@@ -372,7 +384,7 @@ Set-PSReadlineKeyHandler -Key "Alt+%" `
             $alias = $ExecutionContext.InvokeCommand.GetCommand($token.Extent.Text, 'Alias')
             if ($alias -ne $null)
             {
-                $resolvedCommand = $alias.ResolvedCommandName 
+                $resolvedCommand = $alias.ResolvedCommandName
                 if ($resolvedCommand -ne $null)
                 {
                     $extent = $token.Extent
