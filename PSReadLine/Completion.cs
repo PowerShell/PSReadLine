@@ -440,6 +440,10 @@ namespace Microsoft.PowerShell
 
                 string userCompletionText = _buffer.ToString().Substring(completions.ReplacementIndex, Math.Max(_current - completions.ReplacementIndex,0));
                 int userInitialCompletionLength = userCompletionText.Length;
+                // Period added to 'done competion' keys if Result type allow dots after it but does not allow inside
+                bool doneOnPeriod = matches[0].ResultType == CompletionResultType.Namespace ||
+                                    matches[0].ResultType == CompletionResultType.Property ||
+                                    matches[0].ResultType == CompletionResultType.Variable;
                 DoReplacementForCompletion(matches[0], completions);
 
                 // Recompute end of buffer coordinates as the replacement could have
@@ -454,8 +458,10 @@ namespace Microsoft.PowerShell
                 int previousItem = -1;
 
                 bool processingKeys = true;
+                int backspaceCounter = 0;
                 while (processingKeys)
                 {
+                    int _backspaceCounter = backspaceCounter;
                     if (selectedItem != previousItem)
                     {
                         int curPos = matches[selectedItem].CompletionText.IndexOf(userCompletionText, StringComparison.OrdinalIgnoreCase);
@@ -534,7 +540,7 @@ namespace Microsoft.PowerShell
                     else if (nextKey == Keys.Delete)
                     {
                         // Esc alternative:
-                        // stay string beginning as in current replacement but don't replace to full string
+                        // leave string beginning as in current replacement but don't replace to full completion
                         if (_current == completions.ReplacementIndex)
                         {
                             undo = true;
@@ -549,13 +555,13 @@ namespace Microsoft.PowerShell
                         _singleton._mark = savedUserMark;
                         Render();
                     }
-                    else if (nextKey == Keys.Space || nextKey == Keys.Enter)
+                    else if (nextKey == Keys.Space || nextKey == Keys.Enter || (doneOnPeriod && nextKey == Keys.Period))
                     {
                         ExchangePointAndMark();
                         processingKeys = false;
                         _visualSelectionCommandCount = 0;
                         _singleton._mark = savedUserMark;
-                        if (nextKey == Keys.Space) {
+                        if (nextKey == Keys.Space || nextKey == Keys.Period) {
                             int cursorAdjustment = 0;
                             if (matches[selectedItem].ResultType == CompletionResultType.ProviderContainer)
                                 userCompletionText = GetReplacementTextForDirectory(matches[selectedItem].CompletionText, ref cursorAdjustment);
@@ -571,7 +577,16 @@ namespace Microsoft.PowerShell
 
                         if (userInitialCompletionLength == userCompletionText.Length && nextKey == Keys.Backspace)
                         {
-                            Ding();
+                            if (backspaceCounter == 0)
+                            {
+                                Ding();
+                                backspaceCounter++;
+                            }
+                            else
+                            {
+                                // Double Backspace, exit on next cycle
+                                PrependQueuedKeys(Keys.Delete);
+                            }
                         }
                         else
                         {
@@ -616,7 +631,8 @@ namespace Microsoft.PowerShell
                     {
                         Ding();
                     }
-
+                    if (backspaceCounter == _backspaceCounter)
+                        backspaceCounter = 0;
                 }
 
                 WriteBlankLines(displayRows, menuAreaTop);
