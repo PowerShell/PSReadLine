@@ -63,7 +63,8 @@ namespace Microsoft.PowerShell
         {
             if (s.Length >= 2)
             {
-                var first = s[0];
+                //consider possible '& ' prefix
+                var first = (s.Length > 4 && s.StartsWith("& ")) ? s[2] : s[0];
                 var last = s[s.Length - 1];
 
                 return ((IsSingleQuote(first) && IsSingleQuote(last))
@@ -77,7 +78,9 @@ namespace Microsoft.PowerShell
         {
             if (!consistentQuoting && IsQuoted(s))
             {
-                s = s.Substring(1, s.Length - 2);
+                //consider possible '& ' prefix
+                int startindex = (s.StartsWith("& ")) ? 3 : 1;
+                s = s.Substring(startindex, s.Length - startindex - 1);
             }
             return s;
         }
@@ -102,6 +105,49 @@ namespace Microsoft.PowerShell
         public static void MenuComplete(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.CompleteImpl(key, arg, true);
+        }
+
+        private bool IsConsistentQuoting(System.Collections.ObjectModel.Collection<CompletionResult> matches)
+        {
+            int quotedCompletions = matches.Count(match => IsQuoted(match.CompletionText));
+            return
+                quotedCompletions == 0 ||
+                (quotedCompletions == matches.Count &&
+                 quotedCompletions == matches.Count(
+                    m => m.CompletionText[0] == matches[0].CompletionText[0]));
+        }
+
+        private string GetUnambiguousPrefix(System.Collections.ObjectModel.Collection<CompletionResult> matches, out bool ambiguous)
+        {
+            // Find the longest unambiguous prefix.  This might be the empty
+            // string, in which case we don't want to remove any of the users input,
+            // instead we'll immediately show possible completions.
+            // For the purposes of unambiguous prefix, we'll ignore quotes if
+            // some completions aren't quoted.
+            ambiguous = false;
+            var firstResult = matches[0];
+            bool consistentQuoting = IsConsistentQuoting(matches);
+
+            var replacementText = GetUnquotedText(firstResult.CompletionText, consistentQuoting);
+            foreach (var match in matches.Skip(1))
+            {
+                var matchText = GetUnquotedText(match.CompletionText, consistentQuoting);
+                for (int i = 0; i < replacementText.Length; i++)
+                {
+                    if (i == matchText.Length
+                        || char.ToLowerInvariant(replacementText[i]) != char.ToLowerInvariant(matchText[i]))
+                    {
+                        ambiguous = true;
+                        replacementText = replacementText.Substring(0, i);
+                        break;
+                    }
+                }
+                if (replacementText.Length == 0)
+                {
+                    break;
+                }
+            }
+            return replacementText;
         }
 
         private void CompleteImpl(ConsoleKeyInfo? key, object arg, bool menuSelect)
@@ -140,39 +186,8 @@ namespace Microsoft.PowerShell
                 return;
             }
 
-            // Find the longest unambiguous prefix.  This might be the empty
-            // string, in which case we don't want to remove any of the users input,
-            // instead we'll immediately show possible completions.
-            // For the purposes of unambiguous prefix, we'll ignore quotes if
-            // some completions aren't quoted.
-            var firstResult = completions.CompletionMatches[0];
-            int quotedCompletions = completions.CompletionMatches.Count(match => IsQuoted(match.CompletionText));
-            bool consistentQuoting =
-                quotedCompletions == 0 ||
-                (quotedCompletions == completions.CompletionMatches.Count &&
-                 quotedCompletions == completions.CompletionMatches.Count(
-                    m => m.CompletionText[0] == firstResult.CompletionText[0]));
-
-            bool ambiguous = false;
-            var replacementText = GetUnquotedText(firstResult.CompletionText, consistentQuoting);
-            foreach (var match in completions.CompletionMatches.Skip(1)) 
-            {
-                var matchText = GetUnquotedText(match.CompletionText, consistentQuoting);
-                for (int i = 0; i < replacementText.Length; i++)
-                {
-                    if (i == matchText.Length
-                        || char.ToLowerInvariant(replacementText[i]) != char.ToLowerInvariant(matchText[i]))
-                    {
-                        ambiguous = true;
-                        replacementText = replacementText.Substring(0, i);
-                        break;
-                    }
-                }
-                if (replacementText.Length == 0)
-                {
-                    break;
-                }
-            }
+            bool ambiguous;
+            var replacementText = GetUnambiguousPrefix(completions.CompletionMatches, out ambiguous);
 
             if (replacementText.Length > 0)
             {
@@ -439,6 +454,15 @@ namespace Microsoft.PowerShell
                 _visualSelectionCommandCount += 1;
 
                 string userCompletionText = _buffer.ToString().Substring(completions.ReplacementIndex, Math.Max(_current - completions.ReplacementIndex,0));
+                // remove possible first quote
+                if (userCompletionText.Length > 0 &&
+                    ( IsSingleQuote(userCompletionText[0])
+                    || IsDoubleQuote(userCompletionText[0])
+                    )
+                   )
+                {
+                    userCompletionText = userCompletionText.Substring(1);
+                }
                 int userInitialCompletionLength = userCompletionText.Length;
                 // Period added to 'done competion' keys if Result type allow dots after it but does not allow inside
                 bool doneOnPeriod = matches[0].ResultType == CompletionResultType.Namespace ||
@@ -465,6 +489,12 @@ namespace Microsoft.PowerShell
                     if (selectedItem != previousItem)
                     {
                         int curPos = matches[selectedItem].CompletionText.IndexOf(userCompletionText, StringComparison.OrdinalIgnoreCase);
+                        if (userCompletionText.Length == 0 &&
+                            ( IsSingleQuote(matches[selectedItem].CompletionText[0])
+                            || IsDoubleQuote(matches[selectedItem].CompletionText[0])
+                            )
+                           )
+                            curPos++;
                         // set mark to the end of UserCompletion but in real completion (because of .\ and so on)
                         _mark = completions.ReplacementIndex + curPos + userCompletionText.Length;
                         DoReplacementForCompletion(matches[selectedItem], completions);
@@ -520,7 +550,20 @@ namespace Microsoft.PowerShell
                     }
                     else if (nextKey == Keys.Tab)
                     {
-                        selectedItem = (selectedItem + 1) % matches.Count;
+                        bool ambiguous;
+                        var replacementText = GetUnambiguousPrefix(matches, out ambiguous);
+                        int p = replacementText.IndexOf(userCompletionText, StringComparison.OrdinalIgnoreCase);
+                        if (replacementText.Length > 0 && p >= 0 && replacementText.Length > (p + userCompletionText.Length))
+                        {
+                            userCompletionText = replacementText.Substring(p);
+                            _current = completions.ReplacementIndex + p + userCompletionText.Length;
+                            Render();
+                            Ding();
+                        }
+                        else
+                        {
+                            selectedItem = (selectedItem + 1) % matches.Count;
+                        }
                     }
                     else if (nextKey == Keys.ShiftTab)
                     {
@@ -600,15 +643,22 @@ namespace Microsoft.PowerShell
                             }
 
                             // filter out matches and redraw menu
-
                             var tmpMatches = new System.Collections.ObjectModel.Collection<CompletionResult>();
+                            bool consistentQuoting = IsConsistentQuoting(matches);
+                            string completionFilter = userCompletionText;
+                            // add possible first quote to userCompletionText
+                            if (consistentQuoting &&
+                                ( IsSingleQuote(matches[0].CompletionText[0])
+                                || IsDoubleQuote(matches[0].CompletionText[0])
+                                )
+                               )
+                            {
+                                completionFilter = matches[0].CompletionText[0] + completionFilter;
+                            }
                             foreach (CompletionResult item in completions.CompletionMatches)
                             {
-                                string unQuoted = GetUnquotedText(item.CompletionText, false);
-                                if (item.CompletionText.StartsWith("& ")) // mask special cases
-                                    unQuoted = GetUnquotedText(item.CompletionText.Substring(2), false);
                                 if (item.ListItemText.StartsWith(userCompletionText, StringComparison.OrdinalIgnoreCase) ||
-                                    unQuoted.StartsWith(userCompletionText, StringComparison.OrdinalIgnoreCase)
+                                    GetUnquotedText(item.CompletionText, consistentQuoting).StartsWith(completionFilter, StringComparison.OrdinalIgnoreCase)
                                    )
                                     tmpMatches.Add(item);
                             }
