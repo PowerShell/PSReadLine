@@ -23,6 +23,14 @@ namespace Microsoft.PowerShell
         private CommandCompletion _tabCompletions;
         private Runspace _runspace;
 
+        private Dictionary<CompletionResultType, ConsoleKeyInfo []> doneCompletionKeys = new Dictionary<CompletionResultType, ConsoleKeyInfo []>()
+        {
+            { CompletionResultType.Variable, new ConsoleKeyInfo[]  { Keys.Period } },
+            { CompletionResultType.Namespace, new ConsoleKeyInfo[]  { Keys.Period } },
+            { CompletionResultType.Property, new ConsoleKeyInfo[]  { Keys.Period } },
+            { CompletionResultType.ProviderContainer, new ConsoleKeyInfo[]  { Keys.Backslash, Keys.Slash } },
+        };
+
         // Stub helper method so completion can be mocked
         [ExcludeFromCodeCoverage]
         CommandCompletion IPSConsoleReadLineMockableMethods.CompleteInput(string input, int cursorIndex, Hashtable options, System.Management.Automation.PowerShell powershell)
@@ -453,7 +461,8 @@ namespace Microsoft.PowerShell
                 int savedUserMark = _singleton._mark;
                 _visualSelectionCommandCount += 1;
 
-                string userCompletionText = _buffer.ToString().Substring(completions.ReplacementIndex, Math.Max(_current - completions.ReplacementIndex,0));
+                bool ambiguous;
+                var userCompletionText = GetUnambiguousPrefix(matches, out ambiguous);
                 // remove possible first quote
                 if (userCompletionText.Length > 0 &&
                     ( IsSingleQuote(userCompletionText[0])
@@ -464,10 +473,7 @@ namespace Microsoft.PowerShell
                     userCompletionText = userCompletionText.Substring(1);
                 }
                 int userInitialCompletionLength = userCompletionText.Length;
-                // Period added to 'done competion' keys if Result type allow dots after it but does not allow inside
-                bool doneOnPeriod = matches[0].ResultType == CompletionResultType.Namespace ||
-                                    matches[0].ResultType == CompletionResultType.Property ||
-                                    matches[0].ResultType == CompletionResultType.Variable;
+
                 DoReplacementForCompletion(matches[0], completions);
 
                 // Recompute end of buffer coordinates as the replacement could have
@@ -550,13 +556,12 @@ namespace Microsoft.PowerShell
                     }
                     else if (nextKey == Keys.Tab)
                     {
-                        bool ambiguous;
-                        var replacementText = GetUnambiguousPrefix(matches, out ambiguous);
-                        int p = replacementText.IndexOf(userCompletionText, StringComparison.OrdinalIgnoreCase);
-                        if (replacementText.Length > 0 && p >= 0 && replacementText.Length > (p + userCompletionText.Length))
+                        string unAmbiguousText = GetUnambiguousPrefix(matches, out ambiguous);
+                        int userComplPos = unAmbiguousText.IndexOf(userCompletionText, StringComparison.OrdinalIgnoreCase);
+                        if (unAmbiguousText.Length > 0 && userComplPos >= 0 && unAmbiguousText.Length > (userComplPos + userCompletionText.Length))
                         {
-                            userCompletionText = replacementText.Substring(p);
-                            _current = completions.ReplacementIndex + p + userCompletionText.Length;
+                            userCompletionText = unAmbiguousText.Substring(userComplPos);
+                            _current = completions.ReplacementIndex + userComplPos + userCompletionText.Length;
                             Render();
                             Ding();
                         }
@@ -598,21 +603,26 @@ namespace Microsoft.PowerShell
                         _singleton._mark = savedUserMark;
                         Render();
                     }
-                    else if (nextKey == Keys.Space || nextKey == Keys.Enter || (doneOnPeriod && nextKey == Keys.Period))
+                    else if (nextKey == Keys.Space || nextKey == Keys.Enter ||
+                        (doneCompletionKeys.ContainsKey(matches[selectedItem].ResultType) &&
+                         doneCompletionKeys[matches[selectedItem].ResultType].Contains<ConsoleKeyInfo>(nextKey)
+                        ))
                     {
                         ExchangePointAndMark();
                         processingKeys = false;
                         _visualSelectionCommandCount = 0;
                         _singleton._mark = savedUserMark;
-                        if (nextKey == Keys.Space || nextKey == Keys.Period) {
+                        if (nextKey == Keys.Enter)
+                        {
+                            Render();
+                        }
+                        else {
                             int cursorAdjustment = 0;
                             if (matches[selectedItem].ResultType == CompletionResultType.ProviderContainer)
                                 userCompletionText = GetReplacementTextForDirectory(matches[selectedItem].CompletionText, ref cursorAdjustment);
                             _current -= cursorAdjustment;
                             PrependQueuedKeys(nextKey);
                         }
-                        else
-                            Render();
                     }
                     else if (nextKey == Keys.Backspace || nextKey.KeyChar != 0)
                     {
