@@ -125,7 +125,7 @@ namespace Microsoft.PowerShell
                     m => m.CompletionText[0] == matches[0].CompletionText[0]));
         }
 
-        private string GetUnambiguousPrefix(System.Collections.ObjectModel.Collection<CompletionResult> matches, out bool ambiguous)
+        private string GetUnambiguousPrefix(System.Collections.ObjectModel.Collection<CompletionResult> matches, bool useCompletionText, out bool ambiguous)
         {
             // Find the longest unambiguous prefix.  This might be the empty
             // string, in which case we don't want to remove any of the users input,
@@ -136,10 +136,10 @@ namespace Microsoft.PowerShell
             var firstResult = matches[0];
             bool consistentQuoting = IsConsistentQuoting(matches);
 
-            var replacementText = GetUnquotedText(firstResult.CompletionText, consistentQuoting);
+            var replacementText = (useCompletionText) ? GetUnquotedText(firstResult.CompletionText, consistentQuoting) : firstResult.ListItemText;
             foreach (var match in matches.Skip(1))
             {
-                var matchText = GetUnquotedText(match.CompletionText, consistentQuoting);
+                var matchText = (useCompletionText) ? GetUnquotedText(match.CompletionText, consistentQuoting) : match.ListItemText;
                 for (int i = 0; i < replacementText.Length; i++)
                 {
                     if (i == matchText.Length
@@ -195,7 +195,7 @@ namespace Microsoft.PowerShell
             }
 
             bool ambiguous;
-            var replacementText = GetUnambiguousPrefix(completions.CompletionMatches, out ambiguous);
+            var replacementText = GetUnambiguousPrefix(completions.CompletionMatches, true, out ambiguous);
 
             if (replacementText.Length > 0)
             {
@@ -353,7 +353,7 @@ namespace Microsoft.PowerShell
             if (showToolTips)
             {
                 const string seperator = "- ";
-                var maxTooltipWidth = bufferWidth - minColWidth - seperator.Length;
+                var maxTooltipWidth = Math.Max(bufferWidth - minColWidth - seperator.Length, 0);
 
                 DisplayRows = matches.Count;
                 cb = new ConsoleBufferBuilder(DisplayRows * bufferWidth, console);
@@ -462,7 +462,9 @@ namespace Microsoft.PowerShell
                 _visualSelectionCommandCount += 1;
 
                 bool ambiguous;
-                var userCompletionText = GetUnambiguousPrefix(matches, out ambiguous);
+                var userCompletionText = GetUnambiguousPrefix(matches, true, out ambiguous);
+                if (userCompletionText.Length == 0)
+                    userCompletionText = GetUnambiguousPrefix(matches, false, out ambiguous);
                 // remove possible first quote
                 if (userCompletionText.Length > 0 &&
                     ( IsSingleQuote(userCompletionText[0])
@@ -475,15 +477,11 @@ namespace Microsoft.PowerShell
                 int userInitialCompletionLength = userCompletionText.Length;
 
                 DoReplacementForCompletion(matches[0], completions);
-
                 // Recompute end of buffer coordinates as the replacement could have
                 // added a line.
                 var endBufferCoords = ConvertOffsetToCoordinates(_buffer.Length);
                 var menuAreaTop = endBufferCoords.Y + 1;
                 var previousMenuTop = menuAreaTop;
-
-                // Showing the menu may have scrolled the screen or moved the cursor, update initialY to reflect that.
-                _initialY -= (previousMenuTop - menuAreaTop);
 
                 int previousItem = -1;
 
@@ -508,18 +506,28 @@ namespace Microsoft.PowerShell
 
                         endBufferCoords = ConvertOffsetToCoordinates(_buffer.Length);
                         menuAreaTop = endBufferCoords.Y + 1;
+
                         if (previousItem != -1)
                             InvertSelectedCompletion(menuBuffer, previousItem, menuColumnWidth, displayRows);
                         InvertSelectedCompletion(menuBuffer, selectedItem, menuColumnWidth, displayRows);
-                        _console.WriteBufferLines(menuBuffer, ref menuAreaTop);
-                        previousItem = selectedItem;
 
-                        if (previousMenuTop > menuAreaTop)
+                        var blanklinesCount = previousMenuTop - menuAreaTop;
+                        previousMenuTop = menuAreaTop;
+                        _console.WriteBufferLines(menuBuffer, ref menuAreaTop);
+
+                        // Showing the menu may have scrolled the screen or moved the cursor, update initialY to reflect that.
+                        _initialY -= (previousMenuTop - menuAreaTop);
+                        // return cursor in place if screen was scrolled
+                        if (previousMenuTop != menuAreaTop)
+                            PlaceCursor();
+
+                        if (previousItem != -1 && blanklinesCount > 0)
                         {
-                            WriteBlankLines(previousMenuTop - menuAreaTop, menuAreaTop + displayRows);
+                            WriteBlankLines(blanklinesCount, menuAreaTop + displayRows);
                         }
+                        previousMenuTop = menuAreaTop;
+                        previousItem = selectedItem;
                     }
-                    previousMenuTop = menuAreaTop;
 
                     var nextKey = ReadKey();
                     if (nextKey == Keys.Home)
@@ -556,7 +564,9 @@ namespace Microsoft.PowerShell
                     }
                     else if (nextKey == Keys.Tab)
                     {
-                        string unAmbiguousText = GetUnambiguousPrefix(matches, out ambiguous);
+                        string unAmbiguousText = GetUnambiguousPrefix(matches, true, out ambiguous);
+                        if (unAmbiguousText.Length == 0)
+                            unAmbiguousText = GetUnambiguousPrefix(matches, false, out ambiguous);
                         int userComplPos = unAmbiguousText.IndexOf(userCompletionText, StringComparison.OrdinalIgnoreCase);
                         if (unAmbiguousText.Length > 0 && userComplPos >= 0 && unAmbiguousText.Length > (userComplPos + userCompletionText.Length))
                         {
