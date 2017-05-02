@@ -29,6 +29,8 @@ namespace Microsoft.PowerShell
             { CompletionResultType.Namespace, new ConsoleKeyInfo[]  { Keys.Period } },
             { CompletionResultType.Property, new ConsoleKeyInfo[]  { Keys.Period } },
             { CompletionResultType.ProviderContainer, new ConsoleKeyInfo[]  { Keys.Backslash, Keys.Slash } },
+            { CompletionResultType.Method, new ConsoleKeyInfo[] { Keys.LParen } },
+            { CompletionResultType.Type, new ConsoleKeyInfo[] { Keys.RBracket } },
         };
 
         // Stub helper method so completion can be mocked
@@ -195,7 +197,7 @@ namespace Microsoft.PowerShell
             }
 
             bool ambiguous;
-            var replacementText = GetUnambiguousPrefix(completions.CompletionMatches, true, out ambiguous);
+            var replacementText = GetUnambiguousPrefix(completions.CompletionMatches, useCompletionText: true, ambiguous: out ambiguous);
 
             if (replacementText.Length > 0)
             {
@@ -343,36 +345,58 @@ namespace Microsoft.PowerShell
             }
             return s;
         }
+        private static string ShortenLongCompletions(string s, int maxLength)
+        {
+            if (s.Length <= maxLength) return s;
+            // position of split point where ... inserted
+            int splitPos = 10;
+            ///TODO: is it needed ?
+            // insert '.'
+            //if (s.Length - maxLength <= 2)
+            //    return s.Substring(0, maxLength - splitPos - 1) + '.' + s.Substring(s.Length - 10, 10);
+            // insert '...'
+            return s.Substring(0, maxLength - splitPos - 3) + "..." + s.Substring(s.Length - 10, 10);
+        }
 
         private static CHAR_INFO[] CreateCompletionMenu(System.Collections.ObjectModel.Collection<CompletionResult> matches, IConsole console, bool showToolTips, out int MenuColumnWidth, out int DisplayRows)
         {
             var minColWidth = matches.Max(c => c.ListItemText.Length);
             minColWidth += 2;
             var bufferWidth = console.BufferWidth;
+            var displayColumns = Math.Max(1, bufferWidth / minColWidth);
+
             ConsoleBufferBuilder cb;
-            if (showToolTips)
+            if (displayColumns == 1 || showToolTips)
             {
                 const string seperator = "- ";
-                var maxTooltipWidth = Math.Max(bufferWidth - minColWidth - seperator.Length, 0);
-
+                var maxTooltipWidth = bufferWidth - minColWidth - seperator.Length;
+                // switch off tooltips if it too short
+                if (maxTooltipWidth < 5)
+                {
+                    minColWidth = bufferWidth;
+                    showToolTips = false;
+                }
                 DisplayRows = matches.Count;
                 cb = new ConsoleBufferBuilder(DisplayRows * bufferWidth, console);
                 for (int index = 0; index < matches.Count; index++)
                 {
                     var match = matches[index];
-                    var listItemText = HandleNewlinesForPossibleCompletions(match.ListItemText);
+                    var listItemText = ShortenLongCompletions(HandleNewlinesForPossibleCompletions(match.ListItemText), minColWidth);
                     cb.Append(listItemText);
                     var spacesNeeded = minColWidth - listItemText.Length;
                     if (spacesNeeded > 0)
                     {
                         cb.Append(' ', spacesNeeded);
                     }
-                    cb.Append(seperator);
-                    var toolTip = HandleNewlinesForPossibleCompletions(match.ToolTip);
-                    toolTip = toolTip.Length <= maxTooltipWidth
-                                  ? toolTip
-                                  : toolTip.Substring(0, maxTooltipWidth);
-                    cb.Append(toolTip);
+                    if (showToolTips)
+                    {
+                        cb.Append(seperator);
+                        var toolTip = HandleNewlinesForPossibleCompletions(match.ToolTip);
+                        toolTip = toolTip.Length <= maxTooltipWidth
+                                      ? toolTip
+                                      : toolTip.Substring(0, maxTooltipWidth);
+                        cb.Append(toolTip);
+                    }
 
                     // Make sure we always write out exactly 1 buffer width
                     spacesNeeded = (bufferWidth * (index + 1)) - cb.Length;
@@ -385,8 +409,6 @@ namespace Microsoft.PowerShell
             }
             else
             {
-                var screenColumns = bufferWidth;
-                var displayColumns = Math.Max(1, screenColumns / minColWidth);
                 DisplayRows = (matches.Count + displayColumns - 1) / displayColumns;
                 cb = new ConsoleBufferBuilder(DisplayRows * bufferWidth, console);
                 for (var row = 0; row < DisplayRows; row++)
@@ -413,6 +435,17 @@ namespace Microsoft.PowerShell
             }
 
             return cb.ToArray();
+        }
+
+        private bool IsDoneWithCompletions(CompletionResult currentCompletion, ConsoleKeyInfo nextKey)
+        {
+            if (nextKey == Keys.Space || nextKey == Keys.Enter) return true;
+            ConsoleKeyInfo[] doneKeys;
+            if (doneCompletionKeys.TryGetValue(currentCompletion.ResultType, out doneKeys))
+            {
+                return doneKeys.Contains<ConsoleKeyInfo>(nextKey);
+            }
+            else return false;
         }
 
         private void PossibleCompletionsImpl(CommandCompletion completions, bool menuSelect)
@@ -458,13 +491,13 @@ namespace Microsoft.PowerShell
                 int selectedItem = 0;
                 bool undo = false;
 
-                int savedUserMark = _singleton._mark;
+                int savedUserMark = _mark;
                 _visualSelectionCommandCount += 1;
 
                 bool ambiguous;
-                var userCompletionText = GetUnambiguousPrefix(matches, true, out ambiguous);
+                var userCompletionText = GetUnambiguousPrefix(matches, useCompletionText: true, ambiguous: out ambiguous);
                 if (userCompletionText.Length == 0)
-                    userCompletionText = GetUnambiguousPrefix(matches, false, out ambiguous);
+                    userCompletionText = GetUnambiguousPrefix(matches, useCompletionText: false, ambiguous: out ambiguous);
                 // remove possible first quote
                 if (userCompletionText.Length > 0 &&
                     ( IsSingleQuote(userCompletionText[0])
@@ -489,7 +522,7 @@ namespace Microsoft.PowerShell
                 int backspaceCounter = 0;
                 while (processingKeys)
                 {
-                    int _backspaceCounter = backspaceCounter;
+                    int cycleBackspaceCounter = backspaceCounter;
                     if (selectedItem != previousItem)
                     {
                         int curPos = matches[selectedItem].CompletionText.IndexOf(userCompletionText, StringComparison.OrdinalIgnoreCase);
@@ -530,15 +563,7 @@ namespace Microsoft.PowerShell
                     }
 
                     var nextKey = ReadKey();
-                    if (nextKey == Keys.Home)
-                    {
-                        selectedItem = 0;
-                    }
-                    else if (nextKey == Keys.End)
-                    {
-                        selectedItem = matches.Count - 1;
-                    }
-                    else if (nextKey == Keys.RightArrow)
+                    if (nextKey == Keys.RightArrow)
                     {
                         selectedItem = Math.Min(selectedItem + displayRows, matches.Count - 1);
                     }
@@ -564,9 +589,9 @@ namespace Microsoft.PowerShell
                     }
                     else if (nextKey == Keys.Tab)
                     {
-                        string unAmbiguousText = GetUnambiguousPrefix(matches, true, out ambiguous);
+                        string unAmbiguousText = GetUnambiguousPrefix(matches, useCompletionText: true, ambiguous: out ambiguous);
                         if (unAmbiguousText.Length == 0)
-                            unAmbiguousText = GetUnambiguousPrefix(matches, false, out ambiguous);
+                            unAmbiguousText = GetUnambiguousPrefix(matches, useCompletionText: false, ambiguous: out ambiguous);
                         int userComplPos = unAmbiguousText.IndexOf(userCompletionText, StringComparison.OrdinalIgnoreCase);
                         if (unAmbiguousText.Length > 0 && userComplPos >= 0 && unAmbiguousText.Length > (userComplPos + userCompletionText.Length))
                         {
@@ -593,7 +618,7 @@ namespace Microsoft.PowerShell
                         undo = true;
                         processingKeys = false;
                         _visualSelectionCommandCount = 0;
-                        _singleton._mark = savedUserMark;
+                        _mark = savedUserMark;
                     }
                     else if (nextKey == Keys.Delete)
                     {
@@ -610,34 +635,37 @@ namespace Microsoft.PowerShell
                         }
                         processingKeys = false;
                         _visualSelectionCommandCount = 0;
-                        _singleton._mark = savedUserMark;
+                        _mark = savedUserMark;
                         Render();
                     }
-                    else if (nextKey == Keys.Space || nextKey == Keys.Enter ||
-                        (doneCompletionKeys.ContainsKey(matches[selectedItem].ResultType) &&
-                         doneCompletionKeys[matches[selectedItem].ResultType].Contains<ConsoleKeyInfo>(nextKey)
-                        ))
+                    else if (IsDoneWithCompletions(matches[selectedItem], nextKey))
                     {
                         ExchangePointAndMark();
                         processingKeys = false;
                         _visualSelectionCommandCount = 0;
-                        _singleton._mark = savedUserMark;
+                        _mark = savedUserMark;
                         if (nextKey == Keys.Enter)
                         {
                             Render();
                         }
                         else {
+                            // do not append the same char as last char in CompletionText (works for for '(', '\')
+                            userCompletionText = GetUnquotedText(matches[selectedItem].CompletionText, consistentQuoting: false);
+                            bool prependNextKey = userCompletionText[userCompletionText.Length - 1] != nextKey.KeyChar;
+
                             int cursorAdjustment = 0;
                             if (matches[selectedItem].ResultType == CompletionResultType.ProviderContainer)
                                 userCompletionText = GetReplacementTextForDirectory(matches[selectedItem].CompletionText, ref cursorAdjustment);
                             _current -= cursorAdjustment;
-                            PrependQueuedKeys(nextKey);
+
+                            if (prependNextKey)
+                                PrependQueuedKeys(nextKey);
+                            else
+                                Render();
                         }
                     }
                     else if (nextKey == Keys.Backspace || nextKey.KeyChar != 0)
                     {
-                        string replacementText = matches[selectedItem].CompletionText;
-
                         if (userInitialCompletionLength == userCompletionText.Length && nextKey == Keys.Backspace)
                         {
                             if (backspaceCounter == 0)
@@ -701,7 +729,7 @@ namespace Microsoft.PowerShell
                     {
                         Ding();
                     }
-                    if (backspaceCounter == _backspaceCounter)
+                    if (backspaceCounter == cycleBackspaceCounter)
                         backspaceCounter = 0;
                 }
 
