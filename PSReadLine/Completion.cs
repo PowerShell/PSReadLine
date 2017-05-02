@@ -596,7 +596,7 @@ namespace Microsoft.PowerShell
                         if (unAmbiguousText.Length > 0 && userComplPos >= 0 && unAmbiguousText.Length > (userComplPos + userCompletionText.Length))
                         {
                             userCompletionText = unAmbiguousText.Substring(userComplPos);
-                            _current = completions.ReplacementIndex + userComplPos + userCompletionText.Length;
+                            _current = completions.ReplacementIndex + matches[selectedItem].CompletionText.IndexOf(userCompletionText, StringComparison.OrdinalIgnoreCase) + userCompletionText.Length;
                             Render();
                             Ding();
                         }
@@ -649,17 +649,19 @@ namespace Microsoft.PowerShell
                             Render();
                         }
                         else {
+                            int cursorAdjustment = 0;
                             // do not append the same char as last char in CompletionText (works for for '(', '\')
-                            userCompletionText = GetUnquotedText(matches[selectedItem].CompletionText, consistentQuoting: false);
+                            if (matches[selectedItem].ResultType == CompletionResultType.ProviderContainer)
+                                userCompletionText = GetUnquotedText(GetReplacementTextForDirectory(matches[selectedItem].CompletionText, ref cursorAdjustment), consistentQuoting: false);
+                            else
+                                userCompletionText = GetUnquotedText(matches[selectedItem].CompletionText, consistentQuoting: false);
+
                             bool prependNextKey = userCompletionText[userCompletionText.Length - 1] != nextKey.KeyChar;
 
-                            int cursorAdjustment = 0;
-                            if (matches[selectedItem].ResultType == CompletionResultType.ProviderContainer)
-                                userCompletionText = GetReplacementTextForDirectory(matches[selectedItem].CompletionText, ref cursorAdjustment);
-                            _current -= cursorAdjustment;
-
-                            if (prependNextKey)
+                            if (prependNextKey) {
+                                _current -= cursorAdjustment;
                                 PrependQueuedKeys(nextKey);
+                            }
                             else
                                 Render();
                         }
