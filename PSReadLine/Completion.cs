@@ -515,8 +515,7 @@ namespace Microsoft.PowerShell
 
                 int savedUserMark = _mark;
                 // if user have selection fefore CompletionMenu, SetMark was not used, so do not restore it
-                bool restoreUserMark = _visualSelectionCommandCount == 0;
-                _visualSelectionCommandCount += 1;
+                _visualSelectionCommandCount++;
 
                 bool ambiguous;
                 var userCompletionText = GetUnambiguousPrefix(matches, useCompletionText: true, ambiguous: out ambiguous);
@@ -652,6 +651,7 @@ namespace Microsoft.PowerShell
                         bool prependNextKey = false;
                         int cursorAdjustment = 0;
                         bool truncateCurrentCompletion = false;
+                        bool keepSelection = false;
 
                         if (IsDoneWithCompletions(matches[selectedItem], nextKey))
                         {
@@ -725,7 +725,7 @@ namespace Microsoft.PowerShell
                             // but DeleteChar, Copy, Cut and Paste can be on different Chord...
                             if (nextKey == Keys.Delete || nextKey == Keys.CtrlC || nextKey == Keys.CtrlX || nextKey == Keys.CtrlV)
                             {
-                                restoreUserMark = false;
+                                keepSelection = true;
                             }
                         }
                         if (!processingKeys) // time to exit loop
@@ -735,11 +735,15 @@ namespace Microsoft.PowerShell
                                 CompletionResult r = new CompletionResult(matches[selectedItem].CompletionText.Substring(0, _current - completions.ReplacementIndex));
                                 DoReplacementForCompletion(r, completions);
                             }
-                            if (restoreUserMark)
+                            if (keepSelection)
+                            {
+                                _visualSelectionCommandCount = 1;
+                            }
+                            else
                             {
                                 _visualSelectionCommandCount = 0;
                                 // if mark was set after cursor, it restored in uninspected position, because text before mark now longer
-                                // should we corrent it ? I think not, beause any other text insertion does not correct it
+                                // should we correct it ? I think not, beause any other text insertion does not correct it
                                 _mark = savedUserMark;
                             }
                             // without render all key chords that just move cursor leave selection visible, but it can be wrong
