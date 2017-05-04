@@ -350,20 +350,23 @@ namespace Microsoft.PowerShell
             if (s.Length <= maxLength) return s;
             // position of split point where ... inserted
             int splitPos = 10;
+			// TODO: will crash for console width < splitPos + 3
+
             ///TODO: is it needed ?
             // insert '.'
             //if (s.Length - maxLength <= 2)
-            //    return s.Substring(0, maxLength - splitPos - 1) + '.' + s.Substring(s.Length - 10, 10);
+            //    return s.Substring(0, maxLength - splitPos - 1) + '.' + s.Substring(s.Length - splitPos, splitPos);
             // insert '...'
-            return s.Substring(0, maxLength - splitPos - 3) + "..." + s.Substring(s.Length - 10, 10);
+            return s.Substring(0, maxLength - splitPos - 3) + "..." + s.Substring(s.Length - splitPos, splitPos);
         }
 
-        private static CHAR_INFO[] CreateCompletionMenu(System.Collections.ObjectModel.Collection<CompletionResult> matches, IConsole console, bool showToolTips, out int MenuColumnWidth, out int DisplayRows)
+        private static CHAR_INFO[] CreateCompletionMenu(System.Collections.ObjectModel.Collection<CompletionResult> matches, IConsole console, bool showToolTips, string currentCompletionText, out int currentCompletionIndex, out int MenuColumnWidth, out int DisplayRows)
         {
             var minColWidth = matches.Max(c => c.ListItemText.Length);
             minColWidth += 2;
             var bufferWidth = console.BufferWidth;
             var displayColumns = Math.Max(1, bufferWidth / minColWidth);
+            currentCompletionIndex = 0;
 
             ConsoleBufferBuilder cb;
             if (displayColumns == 1 || showToolTips)
@@ -381,6 +384,7 @@ namespace Microsoft.PowerShell
                 for (int index = 0; index < matches.Count; index++)
                 {
                     var match = matches[index];
+                    if (match.CompletionText.Equals(currentCompletionText)) currentCompletionIndex = index;
                     var listItemText = ShortenLongCompletions(HandleNewlinesForPossibleCompletions(match.ListItemText), minColWidth);
                     cb.Append(listItemText);
                     var spacesNeeded = minColWidth - listItemText.Length;
@@ -419,6 +423,7 @@ namespace Microsoft.PowerShell
                         if (index >= matches.Count)
                             break;
                         var match = matches[index];
+                        if (match.CompletionText.Equals(currentCompletionText)) currentCompletionIndex = index;
                         var item = HandleNewlinesForPossibleCompletions(match.ListItemText);
                         cb.Append(item);
                         cb.Append(' ', minColWidth - item.Length);
@@ -490,7 +495,10 @@ namespace Microsoft.PowerShell
 
             int menuColumnWidth;
             int displayRows;
-            var menuBuffer = CreateCompletionMenu(matches, _console, Options.ShowToolTips, out menuColumnWidth, out displayRows);
+            int selectedItem;
+            var menuBuffer = CreateCompletionMenu(matches, _console, Options.ShowToolTips,
+                "", out selectedItem,
+                out menuColumnWidth, out displayRows);
 
             if (menuSelect)
             {
@@ -510,11 +518,9 @@ namespace Microsoft.PowerShell
                 RemoveEditsAfterUndo();
                 var undoPoint = _edits.Count;
 
-                int selectedItem = 0;
                 bool undo = false;
 
                 int savedUserMark = _mark;
-                // if user have selection fefore CompletionMenu, SetMark was not used, so do not restore it
                 _visualSelectionCommandCount++;
 
                 bool ambiguous;
@@ -702,10 +708,12 @@ namespace Microsoft.PowerShell
                                 if (tmpMatches.Count > 0)
                                 {
                                     WriteBlankLines(displayRows, menuAreaTop);
+                                    var selectedCompletionText = matches[selectedItem].CompletionText;
                                     matches = tmpMatches;
                                     previousItem = -1;
-                                    selectedItem = 0;
-                                    menuBuffer = CreateCompletionMenu(matches, _console, Options.ShowToolTips, out menuColumnWidth, out displayRows);
+                                    menuBuffer = CreateCompletionMenu(matches, _console, Options.ShowToolTips,
+                                        selectedCompletionText, out selectedItem,
+                                        out menuColumnWidth, out displayRows);
                                 }
                                 else
                                 {
