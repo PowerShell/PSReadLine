@@ -31,6 +31,8 @@ namespace Microsoft.PowerShell
             { CompletionResultType.ProviderContainer, new ConsoleKeyInfo[]  { Keys.Backslash, Keys.Slash } },
             { CompletionResultType.Method, new ConsoleKeyInfo[] { Keys.LParen } },
             { CompletionResultType.Type, new ConsoleKeyInfo[] { Keys.RBracket } },
+            { CompletionResultType.ParameterName, new ConsoleKeyInfo[] { Keys.Colon } },
+            { CompletionResultType.ParameterValue, new ConsoleKeyInfo[] { Keys.Comma } },
         };
 
         // Stub helper method so completion can be mocked
