@@ -697,6 +697,8 @@ namespace Microsoft.PowerShell
                                     prependNextKey = true;
                                     // we exit loop with current completion up to cursor
                                     truncateCurrentCompletion = true;
+                                    if (userInitialCompletionLength == 0)
+                                        undo = true;
                                 }
                             }
                             else
@@ -740,7 +742,7 @@ namespace Microsoft.PowerShell
                         }
                         if (!processingKeys) // time to exit loop
                         {
-                            if (truncateCurrentCompletion)
+                            if (truncateCurrentCompletion && ! undo)
                             {
                                 CompletionResult r = new CompletionResult(matches[selectedItem].CompletionText.Substring(0, _current - completions.ReplacementIndex));
                                 DoReplacementForCompletion(r, completions);
@@ -757,7 +759,7 @@ namespace Microsoft.PowerShell
                                 _mark = savedUserMark;
                             }
                             // without render all key chords that just move cursor leave selection visible, but it can be wrong
-                            Render();
+                            if (!undo) Render();
                             if (prependNextKey)
                             {
                                 _current -= cursorAdjustment;
