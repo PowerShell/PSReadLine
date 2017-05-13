@@ -759,7 +759,7 @@ namespace Microsoft.PowerShell
                                 _mark = savedUserMark;
                             }
                             // without render all key chords that just move cursor leave selection visible, but it can be wrong
-                            if (!undo) Render();
+                            if (!undo && !keepSelection) Render();
                             if (prependNextKey)
                             {
                                 _current -= cursorAdjustment;
