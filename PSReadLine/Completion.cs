@@ -29,7 +29,7 @@ namespace Microsoft.PowerShell
             { CompletionResultType.Namespace, new ConsoleKeyInfo[]  { Keys.Period } },
             { CompletionResultType.Property, new ConsoleKeyInfo[]  { Keys.Period } },
             { CompletionResultType.ProviderContainer, new ConsoleKeyInfo[]  { Keys.Backslash, Keys.Slash } },
-            { CompletionResultType.Method, new ConsoleKeyInfo[] { Keys.LParen } },
+            { CompletionResultType.Method, new ConsoleKeyInfo[] { Keys.LParen, Keys.RParen } },
             { CompletionResultType.Type, new ConsoleKeyInfo[] { Keys.RBracket } },
             { CompletionResultType.ParameterName, new ConsoleKeyInfo[] { Keys.Colon } },
             { CompletionResultType.ParameterValue, new ConsoleKeyInfo[] { Keys.Comma } },
@@ -725,6 +725,8 @@ namespace Microsoft.PowerShell
                                     prependNextKey = true;
                                     // we exit loop with current completion up to cursor
                                     truncateCurrentCompletion = true;
+                                    if (userInitialCompletionLength == 0)
+                                        undo = true;
                                 }
                             }
                         }
