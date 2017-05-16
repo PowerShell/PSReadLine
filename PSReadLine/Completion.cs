@@ -750,10 +750,17 @@ namespace Microsoft.PowerShell
                         {
                             processingKeys = false;
                             prependNextKey = true;
+
                             // without this branch experience doesnt look naturally
-                            // Ctrl+C always do CTRL+C, never clipboard copy. and Ctrl+X too
-                            // but DeleteChar, Copy, Cut and Paste can be on different Chord...
-                            if (nextKey == Keys.Delete || nextKey == Keys.CtrlC || nextKey == Keys.CtrlX || nextKey == Keys.CtrlV)
+                            KeyHandler handler;
+                            if (_dispatchTable.TryGetValue(nextKey, out handler) &&
+                                 (
+                                   handler.Action == CopyOrCancelLine ||
+                                   handler.Action == Cut ||
+                                   handler.Action == DeleteChar ||
+                                   handler.Action == Paste
+                                 )
+                               )
                             {
                                 keepSelection = true;
                             }
