@@ -423,7 +423,9 @@ namespace Microsoft.PowerShell
                     {
                         var index = row + (DisplayRows * col);
                         if (index >= matches.Count)
+                        {
                             break;
+                        }
                         var match = matches[index];
                         if (match.CompletionText.Equals(currentCompletionText)) currentCompletionIndex = index;
                         var item = HandleNewlinesForPossibleCompletions(match.ListItemText);
@@ -461,7 +463,9 @@ namespace Microsoft.PowerShell
                 if (item.ListItemText.StartsWith(completionFilter, StringComparison.OrdinalIgnoreCase) ||
                     GetUnquotedText(item.CompletionText, consistentQuoting).StartsWith(completionFilter, StringComparison.OrdinalIgnoreCase)
                    )
+                {
                     result.Add(item);
+                }
             }
             return result;
         }
@@ -528,7 +532,9 @@ namespace Microsoft.PowerShell
                 bool ambiguous;
                 var userCompletionText = GetUnambiguousPrefix(matches, useCompletionText: true, ambiguous: out ambiguous);
                 if (userCompletionText.Length == 0)
+                {
                     userCompletionText = GetUnambiguousPrefix(matches, useCompletionText: false, ambiguous: out ambiguous);
+                }
                 // remove possible first quote
                 if (userCompletionText.Length > 0 &&
                     ( IsSingleQuote(userCompletionText[0])
@@ -562,7 +568,9 @@ namespace Microsoft.PowerShell
                             || IsDoubleQuote(matches[selectedItem].CompletionText[0])
                             )
                            )
+                        {
                             curPos++;
+                        }
                         // set mark to the end of UserCompletion but in real completion (because of .\ and so on)
                         _mark = completions.ReplacementIndex + curPos + userCompletionText.Length;
                         DoReplacementForCompletion(matches[selectedItem], completions);
@@ -583,7 +591,9 @@ namespace Microsoft.PowerShell
                         _initialY -= (previousMenuTop - menuAreaTop);
                         // return cursor in place if screen was scrolled
                         if (previousMenuTop != menuAreaTop)
+                        {
                             PlaceCursor();
+                        }
 
                         if (previousItem != -1 && blanklinesCount > 0)
                         {
@@ -623,7 +633,9 @@ namespace Microsoft.PowerShell
                         // Search for possible unAmbiguous common prefix. ...
                         string unAmbiguousText = GetUnambiguousPrefix(matches, useCompletionText: true, ambiguous: out ambiguous);
                         if (unAmbiguousText.Length == 0)
+                        {
                             unAmbiguousText = GetUnambiguousPrefix(matches, useCompletionText: false, ambiguous: out ambiguous);
+                        }
                         int userComplPos = unAmbiguousText.IndexOf(userCompletionText, StringComparison.OrdinalIgnoreCase);
                         // ... If found - advance IncrementalCompletion ...
                         if (unAmbiguousText.Length > 0 && userComplPos >= 0 && unAmbiguousText.Length > (userComplPos + userCompletionText.Length))
@@ -698,7 +710,9 @@ namespace Microsoft.PowerShell
                                     // we exit loop with current completion up to cursor
                                     truncateCurrentCompletion = true;
                                     if (userInitialCompletionLength == 0)
+                                    {
                                         undo = true;
+                                    }
                                 }
                             }
                             else
@@ -726,7 +740,9 @@ namespace Microsoft.PowerShell
                                     // we exit loop with current completion up to cursor
                                     truncateCurrentCompletion = true;
                                     if (userInitialCompletionLength == 0)
+                                    {
                                         undo = true;
+                                    }
                                 }
                             }
                         }
@@ -761,7 +777,10 @@ namespace Microsoft.PowerShell
                                 _mark = savedUserMark;
                             }
                             // without render all key chords that just move cursor leave selection visible, but it can be wrong
-                            if (!undo && !keepSelection) Render();
+                            if (!undo && !keepSelection)
+                            {
+                                Render();
+                            }
                             if (prependNextKey)
                             {
                                 _current -= cursorAdjustment;
