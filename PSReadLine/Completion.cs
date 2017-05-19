@@ -574,7 +574,6 @@ namespace Microsoft.PowerShell
                         // set mark to the end of UserCompletion but in real completion (because of .\ and so on)
                         _mark = completions.ReplacementIndex + curPos + userCompletionText.Length;
                         DoReplacementForCompletion(matches[selectedItem], completions);
-                        ExchangePointAndMark();
 
                         endBufferCoords = ConvertOffsetToCoordinates(_buffer.Length);
                         menuAreaTop = endBufferCoords.Y + 1;
@@ -589,11 +588,8 @@ namespace Microsoft.PowerShell
 
                         // Showing the menu may have scrolled the screen or moved the cursor, update initialY to reflect that.
                         _initialY -= (previousMenuTop - menuAreaTop);
-                        // return cursor in place if screen was scrolled
-                        if (previousMenuTop != menuAreaTop)
-                        {
-                            PlaceCursor();
-                        }
+                        // return cursor in place even if screen was scrolled
+                        ExchangePointAndMark();
 
                         if (previousItem != -1 && blanklinesCount > 0)
                         {
