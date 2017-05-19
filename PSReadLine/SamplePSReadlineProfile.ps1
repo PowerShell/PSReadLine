@@ -1,3 +1,5 @@
+using namespace System.Management.Automation
+using namespace System.Management.Automation.Language
 
 # This is an example profile for PSReadline.
 #
@@ -14,7 +16,7 @@ Set-PSReadLineOption -EditMode Emacs
 # without that option, the cursor will remain at the position it was
 # when you used up arrow, which can be useful if you forget the exact
 # string you started the search on.
-Set-PSReadLineOption -HistorySearchCursorMovesToEnd 
+Set-PSReadLineOption -HistorySearchCursorMovesToEnd
 Set-PSReadlineKeyHandler -Key UpArrow -Function HistorySearchBackward
 Set-PSReadlineKeyHandler -Key DownArrow -Function HistorySearchForward
 
@@ -123,25 +125,93 @@ Set-PSReadlineKeyHandler -Key '"',"'" `
                          -ScriptBlock {
     param($key, $arg)
 
+    $quote = $key.KeyChar
+
+    $selectionStart = $null
+    $selectionLength = $null
+    [Microsoft.PowerShell.PSConsoleReadLine]::GetSelectionState([ref]$selectionStart, [ref]$selectionLength)
+
     $line = $null
     $cursor = $null
     [Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$line, [ref]$cursor)
 
-    $quoteNumber = Select-String -InputObject $line -Pattern $key.KeyChar -AllMatches
-    if ($quoteNumber.Matches.Count % 2 -eq 1) {
-        # Oneven amount of quotes, put just one quote
-        [Microsoft.PowerShell.PSConsoleReadline]::Insert($key.KeyChar)
+    # If text is selected, just quote it without any smarts
+    if ($selectionStart -ne -1)
+    {
+        [Microsoft.PowerShell.PSConsoleReadLine]::Replace($selectionStart, $selectionLength, $quote + $line.SubString($selectionStart, $selectionLength) + $quote)
+        [Microsoft.PowerShell.PSConsoleReadLine]::SetCursorPosition($selectionStart + $selectionLength + 2)
+        return
     }
-    elseif ($line[$cursor] -eq $key.KeyChar) {
-        # Just move the cursor
-        [Microsoft.PowerShell.PSConsoleReadLine]::SetCursorPosition($cursor + 1)
+
+    $ast = $null
+    $tokens = $null
+    $parseErrors = $null
+    [Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$ast, [ref]$tokens, [ref]$parseErrors, [ref]$null)
+
+    function FindToken
+    {
+        param($tokens, $cursor)
+
+        foreach ($token in $tokens)
+        {
+            if ($cursor -lt $token.Extent.StartOffset) { continue }
+            if ($cursor -lt $token.Extent.EndOffset) {
+                $result = $token
+                $token = $token -as [StringExpandableToken]
+                if ($token) {
+                    $nested = FindToken $token.NestedTokens $cursor
+                    if ($nested) { $result = $nested }
+                }
+
+                return $result
+            }
+        }
+        return $null
     }
-    else {
-        # Insert matching quotes, move cursor to be in between the quotes
-        [Microsoft.PowerShell.PSConsoleReadLine]::Insert("$($key.KeyChar)" * 2)
-        [Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$line, [ref]$cursor)
-        [Microsoft.PowerShell.PSConsoleReadLine]::SetCursorPosition($cursor - 1)
+
+    $token = FindToken $tokens $cursor
+
+    # If we're on or inside a **quoted** string token (so not generic), we need to be smarter
+    if ($token -is [StringToken] -and $token.Kind -ne [TokenKind]::Generic) {
+        # If we're at the start of the string, assume we're inserting a new string
+        if ($token.Extent.StartOffset -eq $cursor) {
+            [Microsoft.PowerShell.PSConsoleReadLine]::Insert("$quote$quote ")
+            [Microsoft.PowerShell.PSConsoleReadLine]::SetCursorPosition($cursor + 1)
+            return
+        }
+
+        # If we're at the end of the string, move over the closing quote if present.
+        if ($token.Extent.EndOffset -eq ($cursor + 1) -and $line[$cursor] -eq $quote) {
+            [Microsoft.PowerShell.PSConsoleReadLine]::SetCursorPosition($cursor + 1)
+            return
+        }
     }
+
+    if ($null -eq $token) {
+        if ($line[0..$cursor].Where{$_ -eq $quote}.Count % 2 -eq 1) {
+            # Odd number of quotes before the cursor, insert a single quote
+            [Microsoft.PowerShell.PSConsoleReadLine]::Insert($quote)
+        }
+        else {
+            # Insert matching quotes, move cursor to be in between the quotes
+            [Microsoft.PowerShell.PSConsoleReadLine]::Insert("$quote$quote")
+            [Microsoft.PowerShell.PSConsoleReadLine]::SetCursorPosition($cursor + 1)
+        }
+        return
+    }
+
+    if ($token.Extent.StartOffset -eq $cursor) {
+        if ($token.Kind -eq [TokenKind]::Generic -or $token.Kind -eq [TokenKind]::Identifier) {
+            $end = $token.Extent.EndOffset
+            $len = $end - $cursor
+            [Microsoft.PowerShell.PSConsoleReadLine]::Replace($cursor, $len, $quote + $line.SubString($cursor, $len) + $quote)
+            [Microsoft.PowerShell.PSConsoleReadLine]::SetCursorPosition($end + 2)
+        }
+        return
+    }
+
+    # We failed to be smart, so just insert a single quote
+    [Microsoft.PowerShell.PSConsoleReadLine]::Insert($quote)
 }
 
 Set-PSReadlineKeyHandler -Key '(','{','[' `
@@ -161,7 +231,7 @@ Set-PSReadlineKeyHandler -Key '(','{','[' `
     $line = $null
     $cursor = $null
     [Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$line, [ref]$cursor)
-    [Microsoft.PowerShell.PSConsoleReadLine]::SetCursorPosition($cursor - 1)        
+    [Microsoft.PowerShell.PSConsoleReadLine]::SetCursorPosition($cursor - 1)
 }
 
 Set-PSReadlineKeyHandler -Key ')',']','}' `
@@ -367,12 +437,12 @@ Set-PSReadlineKeyHandler -Key "Alt+%" `
     $startAdjustment = 0
     foreach ($token in $tokens)
     {
-        if ($token.TokenFlags -band [System.Management.Automation.Language.TokenFlags]::CommandName)
+        if ($token.TokenFlags -band [TokenFlags]::CommandName)
         {
             $alias = $ExecutionContext.InvokeCommand.GetCommand($token.Extent.Text, 'Alias')
             if ($alias -ne $null)
             {
-                $resolvedCommand = $alias.ResolvedCommandName 
+                $resolvedCommand = $alias.ResolvedCommandName
                 if ($resolvedCommand -ne $null)
                 {
                     $extent = $token.Extent
@@ -406,7 +476,7 @@ Set-PSReadlineKeyHandler -Key F1 `
 
     $commandAst = $ast.FindAll( {
         $node = $args[0]
-        $node -is [System.Management.Automation.Language.CommandAst] -and
+        $node -is [CommandAst] -and
             $node.Extent.StartOffset -le $cursor -and
             $node.Extent.EndOffset -ge $cursor
         }, $true) | Select-Object -Last 1
@@ -417,7 +487,7 @@ Set-PSReadlineKeyHandler -Key F1 `
         if ($commandName -ne $null)
         {
             $command = $ExecutionContext.InvokeCommand.GetCommand($commandName, 'All')
-            if ($command -is [System.Management.Automation.AliasInfo])
+            if ($command -is [AliasInfo])
             {
                 $commandName = $command.ResolvedCommandName
             }
@@ -478,7 +548,7 @@ Set-PSReadlineKeyHandler -Key Alt+j `
 }
 
 Set-PSReadlineOption -CommandValidationHandler {
-    param([System.Management.Automation.Language.CommandAst]$CommandAst)
+    param([CommandAst]$CommandAst)
 
     switch ($CommandAst.GetCommandName())
     {
