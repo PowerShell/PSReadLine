@@ -129,37 +129,61 @@ namespace Microsoft.PowerShell
                     m => m.CompletionText[0] == matches[0].CompletionText[0]));
         }
 
-        private string GetUnambiguousPrefix(System.Collections.ObjectModel.Collection<CompletionResult> matches, bool useCompletionText, out bool ambiguous)
+        private string GetUnambiguousPrefix(System.Collections.ObjectModel.Collection<CompletionResult> matches, out bool ambiguous)
         {
             // Find the longest unambiguous prefix.  This might be the empty
             // string, in which case we don't want to remove any of the users input,
             // instead we'll immediately show possible completions.
             // For the purposes of unambiguous prefix, we'll ignore quotes if
             // some completions aren't quoted.
-            ambiguous = false;
+            bool ambiguous1 = false;
+            bool ambiguous2 = false;
             var firstResult = matches[0];
             bool consistentQuoting = IsConsistentQuoting(matches);
 
-            var replacementText = (useCompletionText) ? GetUnquotedText(firstResult.CompletionText, consistentQuoting) : firstResult.ListItemText;
+            var replacementText1 = GetUnquotedText(firstResult.CompletionText, consistentQuoting);
+            var replacementText2 = firstResult.ListItemText;
             foreach (var match in matches.Skip(1))
             {
-                var matchText = (useCompletionText) ? GetUnquotedText(match.CompletionText, consistentQuoting) : match.ListItemText;
-                for (int i = 0; i < replacementText.Length; i++)
+                var matchText = GetUnquotedText(match.CompletionText, consistentQuoting);
+                for (int i = 0; i < replacementText1.Length; i++)
                 {
                     if (i == matchText.Length
-                        || char.ToLowerInvariant(replacementText[i]) != char.ToLowerInvariant(matchText[i]))
+                        || char.ToLowerInvariant(replacementText1[i]) != char.ToLowerInvariant(matchText[i]))
                     {
-                        ambiguous = true;
-                        replacementText = replacementText.Substring(0, i);
+                        ambiguous1 = true;
+                        replacementText1 = replacementText1.Substring(0, i);
                         break;
                     }
                 }
-                if (replacementText.Length == 0)
+                if (replacementText1.Length == 0) {
+                    matchText = match.ListItemText;
+                    for (int i = 0; i < replacementText2.Length; i++)
+                    {
+                        if (i == matchText.Length
+                            || char.ToLowerInvariant(replacementText2[i]) != char.ToLowerInvariant(matchText[i]))
+                        {
+                            ambiguous2 = true;
+                            replacementText2 = replacementText2.Substring(0, i);
+                            break;
+                        }
+                    }
+                }
+                if (replacementText1.Length == 0 && replacementText2.Length == 0)
                 {
                     break;
                 }
             }
-            return replacementText;
+            if (string.IsNullOrEmpty(replacementText1))
+            {
+                ambiguous = ambiguous2;
+                return replacementText2;
+            }
+            else
+            {
+                ambiguous = ambiguous1;
+                return replacementText1;
+            }
         }
 
         private void CompleteImpl(ConsoleKeyInfo? key, object arg, bool menuSelect)
@@ -199,7 +223,7 @@ namespace Microsoft.PowerShell
             }
 
             bool ambiguous;
-            var replacementText = GetUnambiguousPrefix(completions.CompletionMatches, useCompletionText: true, ambiguous: out ambiguous);
+            var replacementText = GetUnambiguousPrefix(completions.CompletionMatches, ambiguous: out ambiguous);
 
             if (replacementText.Length > 0)
             {
@@ -530,11 +554,7 @@ namespace Microsoft.PowerShell
                 _visualSelectionCommandCount++;
 
                 bool ambiguous;
-                var userCompletionText = GetUnambiguousPrefix(matches, useCompletionText: true, ambiguous: out ambiguous);
-                if (userCompletionText.Length == 0)
-                {
-                    userCompletionText = GetUnambiguousPrefix(matches, useCompletionText: false, ambiguous: out ambiguous);
-                }
+                var userCompletionText = GetUnambiguousPrefix(matches, ambiguous: out ambiguous);
                 // remove possible first quote
                 if (userCompletionText.Length > 0 &&
                     ( IsSingleQuote(userCompletionText[0])
@@ -627,11 +647,7 @@ namespace Microsoft.PowerShell
                     else if (nextKey == Keys.Tab)
                     {
                         // Search for possible unAmbiguous common prefix. ...
-                        string unAmbiguousText = GetUnambiguousPrefix(matches, useCompletionText: true, ambiguous: out ambiguous);
-                        if (unAmbiguousText.Length == 0)
-                        {
-                            unAmbiguousText = GetUnambiguousPrefix(matches, useCompletionText: false, ambiguous: out ambiguous);
-                        }
+                        string unAmbiguousText = GetUnambiguousPrefix(matches, ambiguous: out ambiguous);
                         int userComplPos = unAmbiguousText.IndexOf(userCompletionText, StringComparison.OrdinalIgnoreCase);
                         // ... If found - advance IncrementalCompletion ...
                         if (unAmbiguousText.Length > 0 && userComplPos >= 0 && unAmbiguousText.Length > (userComplPos + userCompletionText.Length))
