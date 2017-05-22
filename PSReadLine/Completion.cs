@@ -174,16 +174,8 @@ namespace Microsoft.PowerShell
                     break;
                 }
             }
-            if (string.IsNullOrEmpty(replacementText1))
-            {
-                ambiguous = ambiguous2;
-                return replacementText2;
-            }
-            else
-            {
-                ambiguous = ambiguous1;
-                return replacementText1;
-            }
+            ambiguous = ambiguous1 || ambiguous2;
+            return (string.IsNullOrEmpty(replacementText1)) ? replacementText2 : replacementText1;
         }
 
         private void CompleteImpl(ConsoleKeyInfo? key, object arg, bool menuSelect)
