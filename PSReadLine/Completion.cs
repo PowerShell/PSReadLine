@@ -85,6 +85,15 @@ namespace Microsoft.PowerShell
             }
             return false;
         }
+        private static bool IsQuotedVariable(string s)
+        {
+            // variable can be "quoted" like ${env:CommonProgramFiles(x86)}
+            if (s.Length > 2)
+            {
+                return (s[1] == '{' && s[s.Length - 1] == '}');
+            }
+            return false;
+        }
 
         private static string GetUnquotedText(string s, bool consistentQuoting)
         {
@@ -95,6 +104,26 @@ namespace Microsoft.PowerShell
                 s = s.Substring(startindex, s.Length - startindex - 1);
             }
             return s;
+        }
+
+        private static string GetUnquotedText(CompletionResult match, bool consistentQuoting)
+        {
+            var s = match.CompletionText;
+            if (match.ResultType == CompletionResultType.Variable)
+            {
+                if (IsQuotedVariable(s))
+                {
+                    return '$' + s.Substring(2, s.Length - 3);
+                }
+                else
+                {
+                    return s;
+                }
+            }
+            else
+            {
+                return GetUnquotedText(s, consistentQuoting);
+            }
         }
 
         /// <summary>
@@ -141,11 +170,11 @@ namespace Microsoft.PowerShell
             var firstResult = matches[0];
             bool consistentQuoting = IsConsistentQuoting(matches);
 
-            var replacementText1 = GetUnquotedText(firstResult.CompletionText, consistentQuoting);
+            var replacementText1 = GetUnquotedText(firstResult, consistentQuoting);
             var replacementText2 = firstResult.ListItemText;
             foreach (var match in matches.Skip(1))
             {
-                var matchText = GetUnquotedText(match.CompletionText, consistentQuoting);
+                var matchText = GetUnquotedText(match, consistentQuoting);
                 for (int i = 0; i < replacementText1.Length; i++)
                 {
                     if (i == matchText.Length
@@ -477,13 +506,26 @@ namespace Microsoft.PowerShell
             foreach (CompletionResult item in matches)
             {
                 if (item.ListItemText.StartsWith(completionFilter, StringComparison.OrdinalIgnoreCase) ||
-                    GetUnquotedText(item.CompletionText, consistentQuoting).StartsWith(completionFilter, StringComparison.OrdinalIgnoreCase)
+                    GetUnquotedText(item, consistentQuoting).StartsWith(completionFilter, StringComparison.OrdinalIgnoreCase)
                    )
                 {
                     result.Add(item);
                 }
             }
             return result;
+        }
+        private int FindUserCompletinTextPosition(CompletionResult match, string userCompletionText)
+        {
+            if (match.ResultType == CompletionResultType.Variable &&
+                                match.CompletionText[1] == '{'
+                                )
+            {
+                return match.CompletionText.IndexOf(userCompletionText.Substring(1), StringComparison.OrdinalIgnoreCase) - 1;
+            }
+            else
+            {
+                return match.CompletionText.IndexOf(userCompletionText, StringComparison.OrdinalIgnoreCase);
+            }
         }
 
         private bool IsDoneWithCompletions(CompletionResult currentCompletion, ConsoleKeyInfo nextKey)
@@ -574,7 +616,7 @@ namespace Microsoft.PowerShell
                     int cycleBackspaceCounter = backspaceCounter;
                     if (selectedItem != previousItem)
                     {
-                        int curPos = matches[selectedItem].CompletionText.IndexOf(userCompletionText, StringComparison.OrdinalIgnoreCase);
+                        int curPos = FindUserCompletinTextPosition(matches[selectedItem], userCompletionText);
                         if (userCompletionText.Length == 0 &&
                             ( IsSingleQuote(matches[selectedItem].CompletionText[0])
                             || IsDoubleQuote(matches[selectedItem].CompletionText[0])
@@ -645,7 +687,7 @@ namespace Microsoft.PowerShell
                         if (unAmbiguousText.Length > 0 && userComplPos >= 0 && unAmbiguousText.Length > (userComplPos + userCompletionText.Length))
                         {
                             userCompletionText = unAmbiguousText.Substring(userComplPos);
-                            _current = completions.ReplacementIndex + matches[selectedItem].CompletionText.IndexOf(userCompletionText, StringComparison.OrdinalIgnoreCase) + userCompletionText.Length;
+                            _current = completions.ReplacementIndex + FindUserCompletinTextPosition(matches[selectedItem], userCompletionText) + userCompletionText.Length;
                             Render();
                             Ding();
                         }
@@ -686,7 +728,7 @@ namespace Microsoft.PowerShell
                                 if (matches[selectedItem].ResultType == CompletionResultType.ProviderContainer)
                                     userCompletionText = GetUnquotedText(GetReplacementTextForDirectory(matches[selectedItem].CompletionText, ref cursorAdjustment), consistentQuoting: false);
                                 else
-                                    userCompletionText = GetUnquotedText(matches[selectedItem].CompletionText, consistentQuoting: false);
+                                    userCompletionText = GetUnquotedText(matches[selectedItem], consistentQuoting: false);
 
                                 // do not append the same char as last char in CompletionText (works for for '(', '\')
                                 prependNextKey = userCompletionText[userCompletionText.Length - 1] != nextKey.KeyChar;
