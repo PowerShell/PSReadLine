@@ -165,44 +165,52 @@ namespace Microsoft.PowerShell
             // instead we'll immediately show possible completions.
             // For the purposes of unambiguous prefix, we'll ignore quotes if
             // some completions aren't quoted.
-            bool ambiguous1 = false;
-            bool ambiguous2 = false;
+            ambiguous = false;
             var firstResult = matches[0];
             bool consistentQuoting = IsConsistentQuoting(matches);
 
-            var replacementText1 = GetUnquotedText(firstResult, consistentQuoting);
-            var replacementText2 = firstResult.ListItemText;
+            var replacementText = GetUnquotedText(firstResult, consistentQuoting);
             foreach (var match in matches.Skip(1))
             {
                 var matchText = GetUnquotedText(match, consistentQuoting);
-                for (int i = 0; i < replacementText1.Length; i++)
+                for (int i = 0; i < replacementText.Length; i++)
                 {
                     if (i == matchText.Length
-                        || char.ToLowerInvariant(replacementText1[i]) != char.ToLowerInvariant(matchText[i]))
+                        || char.ToLowerInvariant(replacementText[i]) != char.ToLowerInvariant(matchText[i]))
                     {
-                        ambiguous1 = true;
-                        replacementText1 = replacementText1.Substring(0, i);
+                        ambiguous = true;
+                        replacementText = replacementText.Substring(0, i);
                         break;
                     }
                 }
-                matchText = match.ListItemText;
-                for (int i = 0; i < replacementText2.Length; i++)
-                {
-                    if (i == matchText.Length
-                        || char.ToLowerInvariant(replacementText2[i]) != char.ToLowerInvariant(matchText[i]))
-                    {
-                        ambiguous2 = true;
-                        replacementText2 = replacementText2.Substring(0, i);
-                        break;
-                    }
-                }
-                if (replacementText1.Length == 0 && replacementText2.Length == 0)
+                if (replacementText.Length == 0)
                 {
                     break;
                 }
             }
-            ambiguous = ambiguous1 || ambiguous2;
-            return (string.IsNullOrEmpty(replacementText1)) ? replacementText2 : replacementText1;
+            if (replacementText.Length == 0)
+            {
+                replacementText = firstResult.ListItemText;
+                foreach (var match in matches.Skip(1))
+                {
+                    var matchText = match.ListItemText;
+                    for (int i = 0; i < replacementText.Length; i++)
+                    {
+                        if (i == matchText.Length
+                            || char.ToLowerInvariant(replacementText[i]) != char.ToLowerInvariant(matchText[i]))
+                        {
+                            ambiguous = true;
+                            replacementText = replacementText.Substring(0, i);
+                            break;
+                        }
+                    }
+                    if (replacementText.Length == 0)
+                    {
+                        break;
+                    }
+                }
+            }
+            return replacementText;
         }
 
         private void CompleteImpl(ConsoleKeyInfo? key, object arg, bool menuSelect)
