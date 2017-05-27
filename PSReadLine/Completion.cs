@@ -185,17 +185,15 @@ namespace Microsoft.PowerShell
                         break;
                     }
                 }
-                if (replacementText1.Length == 0) {
-                    matchText = match.ListItemText;
-                    for (int i = 0; i < replacementText2.Length; i++)
+                matchText = match.ListItemText;
+                for (int i = 0; i < replacementText2.Length; i++)
+                {
+                    if (i == matchText.Length
+                        || char.ToLowerInvariant(replacementText2[i]) != char.ToLowerInvariant(matchText[i]))
                     {
-                        if (i == matchText.Length
-                            || char.ToLowerInvariant(replacementText2[i]) != char.ToLowerInvariant(matchText[i]))
-                        {
-                            ambiguous2 = true;
-                            replacementText2 = replacementText2.Substring(0, i);
-                            break;
-                        }
+                        ambiguous2 = true;
+                        replacementText2 = replacementText2.Substring(0, i);
+                        break;
                     }
                 }
                 if (replacementText1.Length == 0 && replacementText2.Length == 0)
