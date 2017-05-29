@@ -23,6 +23,18 @@ namespace Microsoft.PowerShell
         private CommandCompletion _tabCompletions;
         private Runspace _runspace;
 
+        private Dictionary<CompletionResultType, ConsoleKeyInfo []> doneCompletionKeys = new Dictionary<CompletionResultType, ConsoleKeyInfo []>()
+        {
+            { CompletionResultType.Variable, new ConsoleKeyInfo[]  { Keys.Period } },
+            { CompletionResultType.Namespace, new ConsoleKeyInfo[]  { Keys.Period } },
+            { CompletionResultType.Property, new ConsoleKeyInfo[]  { Keys.Period } },
+            { CompletionResultType.ProviderContainer, new ConsoleKeyInfo[]  { Keys.Backslash, Keys.Slash } },
+            { CompletionResultType.Method, new ConsoleKeyInfo[] { Keys.LParen, Keys.RParen } },
+            { CompletionResultType.Type, new ConsoleKeyInfo[] { Keys.RBracket } },
+            { CompletionResultType.ParameterName, new ConsoleKeyInfo[] { Keys.Colon } },
+            { CompletionResultType.ParameterValue, new ConsoleKeyInfo[] { Keys.Comma } },
+        };
+
         // Stub helper method so completion can be mocked
         [ExcludeFromCodeCoverage]
         CommandCompletion IPSConsoleReadLineMockableMethods.CompleteInput(string input, int cursorIndex, Hashtable options, System.Management.Automation.PowerShell powershell)
@@ -63,7 +75,8 @@ namespace Microsoft.PowerShell
         {
             if (s.Length >= 2)
             {
-                var first = s[0];
+                //consider possible '& ' prefix
+                var first = (s.Length > 4 && s.StartsWith("& ")) ? s[2] : s[0];
                 var last = s[s.Length - 1];
 
                 return ((IsSingleQuote(first) && IsSingleQuote(last))
@@ -72,14 +85,45 @@ namespace Microsoft.PowerShell
             }
             return false;
         }
+        private static bool IsQuotedVariable(string s)
+        {
+            // variable can be "quoted" like ${env:CommonProgramFiles(x86)}
+            if (s.Length > 2)
+            {
+                return (s[1] == '{' && s[s.Length - 1] == '}');
+            }
+            return false;
+        }
 
         private static string GetUnquotedText(string s, bool consistentQuoting)
         {
             if (!consistentQuoting && IsQuoted(s))
             {
-                s = s.Substring(1, s.Length - 2);
+                //consider possible '& ' prefix
+                int startindex = (s.StartsWith("& ")) ? 3 : 1;
+                s = s.Substring(startindex, s.Length - startindex - 1);
             }
             return s;
+        }
+
+        private static string GetUnquotedText(CompletionResult match, bool consistentQuoting)
+        {
+            var s = match.CompletionText;
+            if (match.ResultType == CompletionResultType.Variable)
+            {
+                if (IsQuotedVariable(s))
+                {
+                    return '$' + s.Substring(2, s.Length - 3);
+                }
+                else
+                {
+                    return s;
+                }
+            }
+            else
+            {
+                return GetUnquotedText(s, consistentQuoting);
+            }
         }
 
         /// <summary>
@@ -102,6 +146,71 @@ namespace Microsoft.PowerShell
         public static void MenuComplete(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.CompleteImpl(key, arg, true);
+        }
+
+        private bool IsConsistentQuoting(System.Collections.ObjectModel.Collection<CompletionResult> matches)
+        {
+            int quotedCompletions = matches.Count(match => IsQuoted(match.CompletionText));
+            return
+                quotedCompletions == 0 ||
+                (quotedCompletions == matches.Count &&
+                 quotedCompletions == matches.Count(
+                    m => m.CompletionText[0] == matches[0].CompletionText[0]));
+        }
+
+        private string GetUnambiguousPrefix(System.Collections.ObjectModel.Collection<CompletionResult> matches, out bool ambiguous)
+        {
+            // Find the longest unambiguous prefix.  This might be the empty
+            // string, in which case we don't want to remove any of the users input,
+            // instead we'll immediately show possible completions.
+            // For the purposes of unambiguous prefix, we'll ignore quotes if
+            // some completions aren't quoted.
+            ambiguous = false;
+            var firstResult = matches[0];
+            bool consistentQuoting = IsConsistentQuoting(matches);
+
+            var replacementText = GetUnquotedText(firstResult, consistentQuoting);
+            foreach (var match in matches.Skip(1))
+            {
+                var matchText = GetUnquotedText(match, consistentQuoting);
+                for (int i = 0; i < replacementText.Length; i++)
+                {
+                    if (i == matchText.Length
+                        || char.ToLowerInvariant(replacementText[i]) != char.ToLowerInvariant(matchText[i]))
+                    {
+                        ambiguous = true;
+                        replacementText = replacementText.Substring(0, i);
+                        break;
+                    }
+                }
+                if (replacementText.Length == 0)
+                {
+                    break;
+                }
+            }
+            if (replacementText.Length == 0)
+            {
+                replacementText = firstResult.ListItemText;
+                foreach (var match in matches.Skip(1))
+                {
+                    var matchText = match.ListItemText;
+                    for (int i = 0; i < replacementText.Length; i++)
+                    {
+                        if (i == matchText.Length
+                            || char.ToLowerInvariant(replacementText[i]) != char.ToLowerInvariant(matchText[i]))
+                        {
+                            ambiguous = true;
+                            replacementText = replacementText.Substring(0, i);
+                            break;
+                        }
+                    }
+                    if (replacementText.Length == 0)
+                    {
+                        break;
+                    }
+                }
+            }
+            return replacementText;
         }
 
         private void CompleteImpl(ConsoleKeyInfo? key, object arg, bool menuSelect)
@@ -140,39 +249,8 @@ namespace Microsoft.PowerShell
                 return;
             }
 
-            // Find the longest unambiguous prefix.  This might be the empty
-            // string, in which case we don't want to remove any of the users input,
-            // instead we'll immediately show possible completions.
-            // For the purposes of unambiguous prefix, we'll ignore quotes if
-            // some completions aren't quoted.
-            var firstResult = completions.CompletionMatches[0];
-            int quotedCompletions = completions.CompletionMatches.Count(match => IsQuoted(match.CompletionText));
-            bool consistentQuoting =
-                quotedCompletions == 0 ||
-                (quotedCompletions == completions.CompletionMatches.Count &&
-                 quotedCompletions == completions.CompletionMatches.Count(
-                    m => m.CompletionText[0] == firstResult.CompletionText[0]));
-
-            bool ambiguous = false;
-            var replacementText = GetUnquotedText(firstResult.CompletionText, consistentQuoting);
-            foreach (var match in completions.CompletionMatches.Skip(1)) 
-            {
-                var matchText = GetUnquotedText(match.CompletionText, consistentQuoting);
-                for (int i = 0; i < replacementText.Length; i++)
-                {
-                    if (i == matchText.Length
-                        || char.ToLowerInvariant(replacementText[i]) != char.ToLowerInvariant(matchText[i]))
-                    {
-                        ambiguous = true;
-                        replacementText = replacementText.Substring(0, i);
-                        break;
-                    }
-                }
-                if (replacementText.Length == 0)
-                {
-                    break;
-                }
-            }
+            bool ambiguous;
+            var replacementText = GetUnambiguousPrefix(completions.CompletionMatches, ambiguous: out ambiguous);
 
             if (replacementText.Length > 0)
             {
@@ -320,6 +398,152 @@ namespace Microsoft.PowerShell
             }
             return s;
         }
+        private static string ShortenLongCompletions(string s, int maxLength)
+        {
+            if (s.Length <= maxLength) return s;
+            // position of split point where ... inserted
+            int splitPos = 10;
+			// TODO: will crash for console width < splitPos + 3
+
+            ///TODO: is it needed ?
+            // insert '.'
+            //if (s.Length - maxLength <= 2)
+            //    return s.Substring(0, maxLength - splitPos - 1) + '.' + s.Substring(s.Length - splitPos, splitPos);
+            // insert '...'
+            return s.Substring(0, maxLength - splitPos - 3) + "..." + s.Substring(s.Length - splitPos, splitPos);
+        }
+
+        private static CHAR_INFO[] CreateCompletionMenu(System.Collections.ObjectModel.Collection<CompletionResult> matches, IConsole console, bool showToolTips, string currentCompletionText, out int currentCompletionIndex, out int MenuColumnWidth, out int DisplayRows)
+        {
+            var minColWidth = matches.Max(c => c.ListItemText.Length);
+            minColWidth += 2;
+            var bufferWidth = console.BufferWidth;
+            var displayColumns = Math.Max(1, bufferWidth / minColWidth);
+            currentCompletionIndex = 0;
+
+            ConsoleBufferBuilder cb;
+            if (displayColumns == 1 || showToolTips)
+            {
+                const string seperator = "- ";
+                var maxTooltipWidth = bufferWidth - minColWidth - seperator.Length;
+                // switch off tooltips if it too short
+                if (maxTooltipWidth < 5)
+                {
+                    minColWidth = bufferWidth;
+                    showToolTips = false;
+                }
+                DisplayRows = matches.Count;
+                cb = new ConsoleBufferBuilder(DisplayRows * bufferWidth, console);
+                for (int index = 0; index < matches.Count; index++)
+                {
+                    var match = matches[index];
+                    if (match.CompletionText.Equals(currentCompletionText)) currentCompletionIndex = index;
+                    var listItemText = ShortenLongCompletions(HandleNewlinesForPossibleCompletions(match.ListItemText), minColWidth);
+                    cb.Append(listItemText);
+                    var spacesNeeded = minColWidth - listItemText.Length;
+                    if (spacesNeeded > 0)
+                    {
+                        cb.Append(' ', spacesNeeded);
+                    }
+                    if (showToolTips)
+                    {
+                        cb.Append(seperator);
+                        var toolTip = HandleNewlinesForPossibleCompletions(match.ToolTip);
+                        toolTip = toolTip.Length <= maxTooltipWidth
+                                      ? toolTip
+                                      : toolTip.Substring(0, maxTooltipWidth);
+                        cb.Append(toolTip);
+                    }
+
+                    // Make sure we always write out exactly 1 buffer width
+                    spacesNeeded = (bufferWidth * (index + 1)) - cb.Length;
+                    if (spacesNeeded > 0)
+                    {
+                        cb.Append(' ', spacesNeeded);
+                    }
+                }
+                MenuColumnWidth = bufferWidth;
+            }
+            else
+            {
+                DisplayRows = (matches.Count + displayColumns - 1) / displayColumns;
+                cb = new ConsoleBufferBuilder(DisplayRows * bufferWidth, console);
+                for (var row = 0; row < DisplayRows; row++)
+                {
+                    for (var col = 0; col < displayColumns; col++)
+                    {
+                        var index = row + (DisplayRows * col);
+                        if (index >= matches.Count)
+                        {
+                            break;
+                        }
+                        var match = matches[index];
+                        if (match.CompletionText.Equals(currentCompletionText)) currentCompletionIndex = index;
+                        var item = HandleNewlinesForPossibleCompletions(match.ListItemText);
+                        cb.Append(item);
+                        cb.Append(' ', minColWidth - item.Length);
+                    }
+
+                    // Make sure we always write out exactly 1 buffer width
+                    var spacesNeeded = (bufferWidth * (row + 1)) - cb.Length;
+                    if (spacesNeeded > 0)
+                    {
+                        cb.Append(' ', spacesNeeded);
+                    }
+                }
+                MenuColumnWidth = minColWidth;
+            }
+
+            return cb.ToArray();
+        }
+        private System.Collections.ObjectModel.Collection<CompletionResult> FilterCompletions(System.Collections.ObjectModel.Collection<CompletionResult> matches, string completionFilter)
+        {
+            var result = new System.Collections.ObjectModel.Collection<CompletionResult>();
+            bool consistentQuoting = IsConsistentQuoting(matches);
+            // add possible first quote to userCompletionText
+            if (consistentQuoting &&
+                (IsSingleQuote(matches[0].CompletionText[0])
+                || IsDoubleQuote(matches[0].CompletionText[0])
+                )
+               )
+            {
+                completionFilter = matches[0].CompletionText[0] + completionFilter;
+            }
+            foreach (CompletionResult item in matches)
+            {
+                if (item.ListItemText.StartsWith(completionFilter, StringComparison.OrdinalIgnoreCase) ||
+                    GetUnquotedText(item, consistentQuoting).StartsWith(completionFilter, StringComparison.OrdinalIgnoreCase)
+                   )
+                {
+                    result.Add(item);
+                }
+            }
+            return result;
+        }
+        private int FindUserCompletinTextPosition(CompletionResult match, string userCompletionText)
+        {
+            if (match.ResultType == CompletionResultType.Variable &&
+                                match.CompletionText[1] == '{'
+                                )
+            {
+                return match.CompletionText.IndexOf(userCompletionText.Substring(1), StringComparison.OrdinalIgnoreCase) - 1;
+            }
+            else
+            {
+                return match.CompletionText.IndexOf(userCompletionText, StringComparison.OrdinalIgnoreCase);
+            }
+        }
+
+        private bool IsDoneWithCompletions(CompletionResult currentCompletion, ConsoleKeyInfo nextKey)
+        {
+            if (nextKey == Keys.Space || nextKey == Keys.Enter) return true;
+            ConsoleKeyInfo[] doneKeys;
+            if (doneCompletionKeys.TryGetValue(currentCompletion.ResultType, out doneKeys))
+            {
+                return doneKeys.Contains<ConsoleKeyInfo>(nextKey);
+            }
+            else return false;
+        }
 
         private void PossibleCompletionsImpl(CommandCompletion completions, bool menuSelect)
         {
@@ -338,75 +562,13 @@ namespace Microsoft.PowerShell
             }
 
             var matches = completions.CompletionMatches;
-            var minColWidth = matches.Max(c => c.ListItemText.Length);
-            minColWidth += 2;
-            var menuColumnWidth = minColWidth;
 
+            int menuColumnWidth;
             int displayRows;
-            var bufferWidth = _console.BufferWidth;
-            ConsoleBufferBuilder cb;
-            if (Options.ShowToolTips)
-            {
-                const string seperator = "- ";
-                var maxTooltipWidth = bufferWidth - minColWidth - seperator.Length;
-
-                displayRows = matches.Count;
-                cb = new ConsoleBufferBuilder(displayRows * bufferWidth, _console);
-                for (int index = 0; index < matches.Count; index++)
-                {
-                    var match = matches[index];
-                    var listItemText = HandleNewlinesForPossibleCompletions(match.ListItemText);
-                    cb.Append(listItemText);
-                    var spacesNeeded = minColWidth - listItemText.Length;
-                    if (spacesNeeded > 0)
-                    {
-                        cb.Append(' ', spacesNeeded);
-                    }
-                    cb.Append(seperator);
-                    var toolTip = HandleNewlinesForPossibleCompletions(match.ToolTip);
-                    toolTip = toolTip.Length <= maxTooltipWidth
-                                  ? toolTip
-                                  : toolTip.Substring(0, maxTooltipWidth);
-                    cb.Append(toolTip);
-
-                    // Make sure we always write out exactly 1 buffer width
-                    spacesNeeded = (bufferWidth * (index + 1)) - cb.Length;
-                    if (spacesNeeded > 0)
-                    {
-                        cb.Append(' ', spacesNeeded);
-                    }
-                }
-                menuColumnWidth = bufferWidth;
-            }
-            else
-            {
-                var screenColumns = bufferWidth;
-                var displayColumns = Math.Max(1, screenColumns / minColWidth);
-                displayRows = (completions.CompletionMatches.Count + displayColumns - 1) / displayColumns;
-                cb = new ConsoleBufferBuilder(displayRows * bufferWidth, _console);
-                for (var row = 0; row < displayRows; row++)
-                {
-                    for (var col = 0; col < displayColumns; col++)
-                    {
-                        var index = row + (displayRows * col);
-                        if (index >= matches.Count)
-                            break;
-                        var match = matches[index];
-                        var item = HandleNewlinesForPossibleCompletions(match.ListItemText);
-                        cb.Append(item);
-                        cb.Append(' ', minColWidth - item.Length);
-                    }
-
-                    // Make sure we always write out exactly 1 buffer width
-                    var spacesNeeded = (bufferWidth * (row + 1)) - cb.Length;
-                    if (spacesNeeded > 0)
-                    {
-                        cb.Append(' ', spacesNeeded);
-                    }
-                }
-            }
-
-            var menuBuffer = cb.ToArray();
+            int selectedItem;
+            var menuBuffer = CreateCompletionMenu(matches, _console, Options.ShowToolTips,
+                "", out selectedItem,
+                out menuColumnWidth, out displayRows);
 
             if (menuSelect)
             {
@@ -426,30 +588,77 @@ namespace Microsoft.PowerShell
                 RemoveEditsAfterUndo();
                 var undoPoint = _edits.Count;
 
-                int selectedItem = 0;
                 bool undo = false;
 
-                DoReplacementForCompletion(matches[0], completions);
+                int savedUserMark = _mark;
+                _visualSelectionCommandCount++;
 
+                bool ambiguous;
+                var userCompletionText = GetUnambiguousPrefix(matches, ambiguous: out ambiguous);
+                // remove possible first quote
+                if (userCompletionText.Length > 0 &&
+                    ( IsSingleQuote(userCompletionText[0])
+                    || IsDoubleQuote(userCompletionText[0])
+                    )
+                   )
+                {
+                    userCompletionText = userCompletionText.Substring(1);
+                }
+                int userInitialCompletionLength = userCompletionText.Length;
+
+                DoReplacementForCompletion(matches[0], completions);
                 // Recompute end of buffer coordinates as the replacement could have
                 // added a line.
                 var endBufferCoords = ConvertOffsetToCoordinates(_buffer.Length);
                 var menuAreaTop = endBufferCoords.Y + 1;
                 var previousMenuTop = menuAreaTop;
 
-                InvertSelectedCompletion(menuBuffer, selectedItem, menuColumnWidth, displayRows);
-                _console.WriteBufferLines(menuBuffer, ref menuAreaTop);
-
-                // Showing the menu may have scrolled the screen or moved the cursor, update initialY to reflect that.
-                _initialY -= (previousMenuTop - menuAreaTop);
-                PlaceCursor();
-                previousMenuTop = menuAreaTop;
-
-                int previousItem = selectedItem;
+                int previousItem = -1;
 
                 bool processingKeys = true;
+                int backspaceCounter = 0;
                 while (processingKeys)
                 {
+                    int cycleBackspaceCounter = backspaceCounter;
+                    if (selectedItem != previousItem)
+                    {
+                        int curPos = FindUserCompletinTextPosition(matches[selectedItem], userCompletionText);
+                        if (userCompletionText.Length == 0 &&
+                            ( IsSingleQuote(matches[selectedItem].CompletionText[0])
+                            || IsDoubleQuote(matches[selectedItem].CompletionText[0])
+                            )
+                           )
+                        {
+                            curPos++;
+                        }
+                        // set mark to the end of UserCompletion but in real completion (because of .\ and so on)
+                        _mark = completions.ReplacementIndex + curPos + userCompletionText.Length;
+                        DoReplacementForCompletion(matches[selectedItem], completions);
+
+                        endBufferCoords = ConvertOffsetToCoordinates(_buffer.Length);
+                        menuAreaTop = endBufferCoords.Y + 1;
+
+                        if (previousItem != -1)
+                            InvertSelectedCompletion(menuBuffer, previousItem, menuColumnWidth, displayRows);
+                        InvertSelectedCompletion(menuBuffer, selectedItem, menuColumnWidth, displayRows);
+
+                        var blanklinesCount = previousMenuTop - menuAreaTop;
+                        previousMenuTop = menuAreaTop;
+                        _console.WriteBufferLines(menuBuffer, ref menuAreaTop);
+
+                        // Showing the menu may have scrolled the screen or moved the cursor, update initialY to reflect that.
+                        _initialY -= (previousMenuTop - menuAreaTop);
+                        // return cursor in place even if screen was scrolled
+                        ExchangePointAndMark();
+
+                        if (previousItem != -1 && blanklinesCount > 0)
+                        {
+                            WriteBlankLines(blanklinesCount, menuAreaTop + displayRows);
+                        }
+                        previousMenuTop = menuAreaTop;
+                        previousItem = selectedItem;
+                    }
+
                     var nextKey = ReadKey();
                     if (nextKey == Keys.RightArrow)
                     {
@@ -467,9 +676,32 @@ namespace Microsoft.PowerShell
                     {
                         selectedItem = Math.Max(selectedItem - 1, 0);
                     }
+                    else if (nextKey == Keys.PageDown)
+                    {
+                        selectedItem = Math.Min(selectedItem + displayRows - (selectedItem % displayRows) - 1, matches.Count - 1);
+                    }
+                    else if (nextKey == Keys.PageUp)
+                    {
+                        selectedItem = Math.Max(selectedItem - (selectedItem % displayRows), 0);
+                    }
                     else if (nextKey == Keys.Tab)
                     {
-                        selectedItem = (selectedItem + 1) % matches.Count;
+                        // Search for possible unAmbiguous common prefix. ...
+                        string unAmbiguousText = GetUnambiguousPrefix(matches, ambiguous: out ambiguous);
+                        int userComplPos = unAmbiguousText.IndexOf(userCompletionText, StringComparison.OrdinalIgnoreCase);
+                        // ... If found - advance IncrementalCompletion ...
+                        if (unAmbiguousText.Length > 0 && userComplPos >= 0 && unAmbiguousText.Length > (userComplPos + userCompletionText.Length))
+                        {
+                            userCompletionText = unAmbiguousText.Substring(userComplPos);
+                            _current = completions.ReplacementIndex + FindUserCompletinTextPosition(matches[selectedItem], userCompletionText) + userCompletionText.Length;
+                            Render();
+                            Ding();
+                        }
+                        // ... if no - usual Tab behaviour
+                        else
+                        {
+                            selectedItem = (selectedItem + 1) % matches.Count;
+                        }
                     }
                     else if (nextKey == Keys.ShiftTab)
                     {
@@ -483,30 +715,140 @@ namespace Microsoft.PowerShell
                     {
                         undo = true;
                         processingKeys = false;
+                        _visualSelectionCommandCount = 0;
+                        _mark = savedUserMark;
                     }
                     else
                     {
-                        PrependQueuedKeys(nextKey);
-                        processingKeys = false;
-                    }
+                        bool prependNextKey = false;
+                        int cursorAdjustment = 0;
+                        bool truncateCurrentCompletion = false;
+                        bool keepSelection = false;
 
-                    if (selectedItem != previousItem)
-                    {
-                        DoReplacementForCompletion(matches[selectedItem], completions);
-
-                        endBufferCoords = ConvertOffsetToCoordinates(_buffer.Length);
-                        menuAreaTop = endBufferCoords.Y + 1;
-
-                        InvertSelectedCompletion(menuBuffer, previousItem, menuColumnWidth, displayRows);
-                        InvertSelectedCompletion(menuBuffer, selectedItem, menuColumnWidth, displayRows);
-                        _console.WriteBufferLines(menuBuffer, ref menuAreaTop);
-                        previousItem = selectedItem;
-
-                        if (previousMenuTop > menuAreaTop)
+                        if (IsDoneWithCompletions(matches[selectedItem], nextKey))
                         {
-                            WriteBlankLines(previousMenuTop - menuAreaTop, menuAreaTop + displayRows);
+                            processingKeys = false;
+                            ExchangePointAndMark(); // cursor to the end of Completion
+                            if (nextKey != Keys.Enter)
+                            {
+                                if (matches[selectedItem].ResultType == CompletionResultType.ProviderContainer)
+                                    userCompletionText = GetUnquotedText(GetReplacementTextForDirectory(matches[selectedItem].CompletionText, ref cursorAdjustment), consistentQuoting: false);
+                                else
+                                    userCompletionText = GetUnquotedText(matches[selectedItem], consistentQuoting: false);
+
+                                // do not append the same char as last char in CompletionText (works for for '(', '\')
+                                prependNextKey = userCompletionText[userCompletionText.Length - 1] != nextKey.KeyChar;
+                            }
+                        }
+                        else if (nextKey == Keys.Backspace ||
+                                (nextKey.KeyChar > 0 && !char.IsControl(nextKey.KeyChar) ))
+                        {
+                            // TODO: Shift + Backspace does not fall here ?
+                            if (nextKey == Keys.Backspace)
+                            {
+                                if (userCompletionText.Length > userInitialCompletionLength)
+                                {
+                                    userCompletionText = userCompletionText.Substring(0, userCompletionText.Length - 1);
+                                }
+                                else if (backspaceCounter == 0)
+                                {
+                                    Ding();
+                                    backspaceCounter++;
+                                }
+                                else
+                                {
+                                    processingKeys = false;
+                                    prependNextKey = true;
+                                    // we exit loop with current completion up to cursor
+                                    truncateCurrentCompletion = true;
+                                    if (userInitialCompletionLength == 0)
+                                    {
+                                        undo = true;
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                userCompletionText += nextKey.KeyChar;
+                            }
+                            if (processingKeys && backspaceCounter == 0) // do not rebuild menu on backspace with Ding()
+                            {
+                                // filter out matches and redraw menu
+                                var tmpMatches = FilterCompletions(completions.CompletionMatches, userCompletionText);
+                                if (tmpMatches.Count > 0)
+                                {
+                                    WriteBlankLines(displayRows, menuAreaTop);
+                                    var selectedCompletionText = matches[selectedItem].CompletionText;
+                                    matches = tmpMatches;
+                                    previousItem = -1;
+                                    menuBuffer = CreateCompletionMenu(matches, _console, Options.ShowToolTips,
+                                        selectedCompletionText, out selectedItem,
+                                        out menuColumnWidth, out displayRows);
+                                }
+                                else
+                                {
+                                    processingKeys = false;
+                                    prependNextKey = true;
+                                    // we exit loop with current completion up to cursor
+                                    truncateCurrentCompletion = true;
+                                    if (userInitialCompletionLength == 0)
+                                    {
+                                        undo = true;
+                                    }
+                                }
+                            }
+                        }
+                        else // exit with any other Key chord
+                        {
+                            processingKeys = false;
+                            prependNextKey = true;
+
+                            // without this branch experience doesnt look naturally
+                            KeyHandler handler;
+                            if (_dispatchTable.TryGetValue(nextKey, out handler) &&
+                                 (
+                                   handler.Action == CopyOrCancelLine ||
+                                   handler.Action == Cut ||
+                                   handler.Action == DeleteChar ||
+                                   handler.Action == Paste
+                                 )
+                               )
+                            {
+                                keepSelection = true;
+                            }
+                        }
+                        if (!processingKeys) // time to exit loop
+                        {
+                            if (truncateCurrentCompletion && ! undo)
+                            {
+                                CompletionResult r = new CompletionResult(matches[selectedItem].CompletionText.Substring(0, _current - completions.ReplacementIndex));
+                                DoReplacementForCompletion(r, completions);
+                            }
+                            if (keepSelection)
+                            {
+                                _visualSelectionCommandCount = 1;
+                            }
+                            else
+                            {
+                                _visualSelectionCommandCount = 0;
+                                // if mark was set after cursor, it restored in uninspected position, because text before mark now longer
+                                // should we correct it ? I think not, beause any other text insertion does not correct it
+                                _mark = savedUserMark;
+                            }
+                            // without render all key chords that just move cursor leave selection visible, but it can be wrong
+                            if (!undo && !keepSelection)
+                            {
+                                Render();
+                            }
+                            if (prependNextKey)
+                            {
+                                _current -= cursorAdjustment;
+                                PrependQueuedKeys(nextKey);
+                            }
                         }
                     }
+                    if (backspaceCounter == cycleBackspaceCounter)
+                        backspaceCounter = 0;
                 }
 
                 WriteBlankLines(displayRows, menuAreaTop);
