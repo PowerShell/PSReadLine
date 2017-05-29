@@ -315,7 +315,11 @@ namespace Microsoft.PowerShell
             _buffer.Append(line);
             if (moveCursor)
             {
-                _current = _options.EditMode == EditMode.Vi ? 0 : Math.Max(0, _buffer.Length + ViEndOfLineFactor);
+                _current = Math.Max(0, _buffer.Length + ViEndOfLineFactor);
+            }
+            else if (_options.EditMode == EditMode.Vi)
+            {
+                _current = 0;
             }
             else if (_current > _buffer.Length)
             {
@@ -390,7 +394,7 @@ namespace Microsoft.PowerShell
             if (newHistoryIndex >= 0 && newHistoryIndex <= _history.Count)
             {
                 _currentHistoryIndex = newHistoryIndex;
-                UpdateFromHistory(moveCursor: true);
+                UpdateFromHistory(moveCursor: Options.HistorySearchCursorMovesToEnd);
             }
         }
 

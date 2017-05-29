@@ -115,11 +115,12 @@ namespace UnitTestPSReadLine
         public void ViTestMovementAfterHistory()
         {
             TestSetup(KeyMode.Vi);
+            PSConsoleReadLine.SetOptions(new SetPSReadlineOption { HistorySearchCursorMovesToEnd = true });
 
             SetHistory("abc def ghi", "012 456 890");
 
             Test("012 456 890", Keys(
-                _.Escape, "k", CheckThat(() => AssertCursorLeftIs(0))
+                _.Escape, "k", CheckThat(() => AssertCursorLeftIs(10))
                 ));
         }
 
@@ -152,6 +153,21 @@ namespace UnitTestPSReadLine
                 _.Escape, "kj", CheckThat(() => AssertLineIs("")),
                 "Axyz", _.Escape
                 ));
+        }
+
+        [TestMethod]
+        public void ViTestHistoryCursorPosition()
+        {
+            TestSetup(KeyMode.Vi);
+            PSConsoleReadLine.SetOptions(new SetPSReadlineOption { HistorySearchCursorMovesToEnd = false });
+
+            SetHistory("abc def ghi", "012 456 890");
+
+            Test("012 456 890", Keys(
+                _.Escape, "k", CheckThat(() => AssertLineIs("012 456 890")),
+                CheckThat(() => AssertCursorLeftIs(0))
+                ));
+
         }
     }
 }
