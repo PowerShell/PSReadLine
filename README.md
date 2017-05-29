@@ -1,6 +1,6 @@
 [![Build status](https://ci.appveyor.com/api/projects/status/0xu8r817dl6qt0g4?svg=true)](https://ci.appveyor.com/project/lzybkr/psreadline)
 
-#PSReadLine
+# PSReadLine
 
 This module replaces the command line editing experience in PowerShell.exe for versions 3 and up.
 It provides:
@@ -25,7 +25,7 @@ Keith Hill wrote a great introduction to PSReadline [here](http://rkeithhill.wor
 
 Ed Wilson (Scripting Guy) wrote a series on PSReadline, starting [here](http://blogs.technet.com/b/heyscriptingguy/archive/2014/06/16/the-search-for-a-better-powershell-console-experience.aspx)
 
-##Installation
+## Installation
 
 There are multiple ways to install PSReadline.
 
@@ -66,7 +66,7 @@ Import-Module PSReadLine
 
 In either case, you can create the appropriate file if you don't already have one.
 
-##Upgrading
+## Upgrading
 
 When running one of the suggested commands below, be sure to exit all instances of powershell.exe, then run the suggested command from cmd.exe, powershell_ise.exe, or via the Win+R shortcut to make sure PSReadline isn't loaded.
 
@@ -85,7 +85,7 @@ At C:\Users\{yourName}\Documents\WindowsPowerShell\Modules\PsGet\PsGet.psm1:1009
 
 Then you didn't kill all the processes that loaded PSReadline.
 
-##Usage
+## Usage
 
 To start using, just import the module:
 
@@ -164,10 +164,10 @@ If you want to change the command line in some unimplmented way in your custom k
     [Microsoft.PowerShell.PSConsoleReadLine]::SetCursorPosition
 ```
 
-##Change Log
+## Change Log
 
 The change log is available [here](https://github.com/lzybkr/PSReadLine/blob/master/PSReadLine/Changes.txt).
 
-##License
+## License
 
 The license is available [here](https://github.com/lzybkr/PSReadLine/blob/master/PSReadLine/License.txt).
