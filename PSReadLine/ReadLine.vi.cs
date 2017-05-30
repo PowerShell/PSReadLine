@@ -665,24 +665,28 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void SwapCharacters(ConsoleKeyInfo? key = null, object arg = null)
         {
-            if (_singleton._current <= 0 || _singleton._current >= _singleton._buffer.Length)
+            if (_singleton._current <= 0 || _singleton._current > _singleton._buffer.Length)
             {
                 Ding();
                 return;
             }
 
-            char current = _singleton._buffer[_singleton._current];
-            char previous = _singleton._buffer[_singleton._current - 1];
+            int cursor = _singleton._current;
+            if (cursor == _singleton._buffer.Length)
+                --cursor; // if at end of line, swap previous two chars
+
+            char current = _singleton._buffer[cursor];
+            char previous = _singleton._buffer[cursor - 1];
 
             _singleton.StartEditGroup();
-            _singleton.SaveEditItem(EditItemDelete.Create(_singleton._buffer.ToString(_singleton._current - 1, 2), _singleton._current - 1));
-            _singleton.SaveEditItem(EditItemInsertChar.Create(current, _singleton._current - 1));
-            _singleton.SaveEditItem(EditItemInsertChar.Create(previous, _singleton._current));
+            _singleton.SaveEditItem(EditItemDelete.Create(_singleton._buffer.ToString(cursor - 1, 2), cursor - 1));
+            _singleton.SaveEditItem(EditItemInsertChar.Create(current, cursor - 1));
+            _singleton.SaveEditItem(EditItemInsertChar.Create(previous, cursor));
             _singleton.EndEditGroup();
 
-            _singleton._buffer[_singleton._current] = previous;
-            _singleton._buffer[_singleton._current - 1] = current;
-            _singleton._current = Math.Min(_singleton._current + 1, _singleton._buffer.Length - 1);
+            _singleton._buffer[cursor] = previous;
+            _singleton._buffer[cursor - 1] = current;
+            _singleton._current = cursor + 1;
             _singleton.PlaceCursor();
             _singleton.Render();
         }
