@@ -137,6 +137,7 @@ namespace Microsoft.PowerShell
                         try
                         {
                             action();
+                            return true;
                         }
                         catch (UnauthorizedAccessException uae)
                         {
