@@ -665,8 +665,9 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void SwapCharacters(ConsoleKeyInfo? key = null, object arg = null)
         {
-            int cursorRightLimit = (_singleton._options.EditMode == EditMode.Emacs) ?
-                _singleton._buffer.Length : _singleton._buffer.Length - 1;
+            // if in vi command mode, the cursor can't go as far
+            int cursorRightLimit = (_singleton._dispatchTable == _viCmdKeyMap) ?
+                _singleton._buffer.Length - 1 : _singleton._buffer.Length;
             if (_singleton._current <= 0 || _singleton._current > cursorRightLimit)
             {
                 Ding();
