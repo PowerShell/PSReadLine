@@ -600,6 +600,8 @@ namespace UnitTestPSReadLine
                 "abcd", _.Escape, CheckThat(() => AssertLineIs("abcd")),
                 "h", _.CtrlT, CheckThat(() => AssertLineIs("acbd")),
                 _.CtrlT, CheckThat(() => AssertLineIs("acdb")),
+                CheckThat(() => AssertCursorLeftIs(3)),
+                "0", _.CtrlT, CheckThat(() => AssertLineIs("acdb")),
                 "uu"
                 ));
         }
