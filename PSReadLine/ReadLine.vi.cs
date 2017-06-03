@@ -665,7 +665,9 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void SwapCharacters(ConsoleKeyInfo? key = null, object arg = null)
         {
-            if (_singleton._current <= 0 || _singleton._current > _singleton._buffer.Length)
+            int cursorRightLimit = (_singleton._options.EditMode == EditMode.Emacs) ?
+                _singleton._buffer.Length : _singleton._buffer.Length - 1;
+            if (_singleton._current <= 0 || _singleton._current > cursorRightLimit)
             {
                 Ding();
                 return;
@@ -686,7 +688,7 @@ namespace Microsoft.PowerShell
 
             _singleton._buffer[cursor] = previous;
             _singleton._buffer[cursor - 1] = current;
-            _singleton._current = cursor + 1;
+            _singleton._current = Math.Min(cursor + 1, cursorRightLimit);
             _singleton.PlaceCursor();
             _singleton.Render();
         }
