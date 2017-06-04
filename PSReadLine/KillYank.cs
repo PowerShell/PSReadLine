@@ -70,7 +70,7 @@ namespace Microsoft.PowerShell
                 _buffer.Remove(start, length);
                 _current = start;
                 Render();
-                if (_killCommandCount > 0)
+                if (_killCommandCount > 0 && _killIndex >= 0)
                 {
                     if (prepend)
                     {
