@@ -666,9 +666,7 @@ namespace Microsoft.PowerShell
         public static void SwapCharacters(ConsoleKeyInfo? key = null, object arg = null)
         {
             // if in vi command mode, the cursor can't go as far
-            int cursorRightLimit = _singleton._dispatchTable == _viCmdKeyMap
-                ? _singleton._buffer.Length - 1
-                : _singleton._buffer.Length;
+            int cursorRightLimit = _singleton._buffer.Length + ViEndOfLineFactor;
             if (_singleton._current <= 0 || _singleton._current > cursorRightLimit)
             {
                 Ding();
