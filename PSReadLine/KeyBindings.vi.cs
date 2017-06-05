@@ -75,6 +75,7 @@ namespace Microsoft.PowerShell
                 { Keys.VolumeMute,      MakeKeyHandler(Ignore,                 "Ignore") },
                 { Keys.CtrlC,           MakeKeyHandler(CancelLine,             "CancelLine") },
                 { Keys.CtrlL,           MakeKeyHandler(ClearScreen,            "ClearScreen") },
+                { Keys.CtrlT,           MakeKeyHandler(SwapCharacters,         "SwapCharacters") },
                 { Keys.CtrlY,           MakeKeyHandler(Redo,                   "Redo") },
                 { Keys.CtrlZ,           MakeKeyHandler(Undo,                   "Undo") },
                 { Keys.CtrlBackspace,   MakeKeyHandler(BackwardKillWord,       "BackwardKillWord") },
