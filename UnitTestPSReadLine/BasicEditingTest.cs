@@ -163,6 +163,26 @@ namespace UnitTestPSReadLine
         }
 
         [TestMethod]
+        public void TestSwapCharacters()
+        {
+            TestSetup(KeyMode.Emacs);
+
+            Test("abc", Keys(
+                "abc", CheckThat(() => AssertLineIs("abc")),
+                _.CtrlT, CheckThat(() => AssertLineIs("acb")),
+                _.CtrlUnderbar
+                ));
+
+            Test("abcd", Keys(
+                "abcd", CheckThat(() => AssertLineIs("abcd")),
+                _.CtrlA, _.CtrlT, CheckThat(() => AssertLineIs("abcd")),
+                _.CtrlF, Enumerable.Repeat(_.CtrlT, 3), CheckThat(() => AssertLineIs("bcda")),
+                _.CtrlT, CheckThat(() => AssertLineIs("bcad")),
+                Enumerable.Repeat(_.CtrlUnderbar, 4)
+                ));
+        }
+
+        [TestMethod]
         public void TestAcceptAndGetNext()
         {
             TestSetup(KeyMode.Emacs);
