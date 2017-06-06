@@ -217,6 +217,7 @@ namespace Microsoft.PowerShell
                 { Keys.CtrlP,           MakeKeyHandler(PreviousHistory,      "PreviousHistory") },
                 { Keys.CtrlR,           MakeKeyHandler(ReverseSearchHistory, "ReverseSearchHistory") },
                 { Keys.CtrlS,           MakeKeyHandler(ForwardSearchHistory, "ForwardSearchHistory") },
+                { Keys.CtrlT,           MakeKeyHandler(SwapCharacters,       "SwapCharacters") },
                 { Keys.CtrlU,           MakeKeyHandler(BackwardKillLine,     "BackwardKillLine") },
                 { Keys.CtrlX,           MakeKeyHandler(Chord,                "ChordFirstKey") },
                 { Keys.CtrlW,           MakeKeyHandler(UnixWordRubout,       "UnixWordRubout") },
