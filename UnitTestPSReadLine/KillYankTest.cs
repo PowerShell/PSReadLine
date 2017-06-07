@@ -86,6 +86,17 @@ namespace UnitTestPSReadLine
 
             // Make sure an empty kill doesn't end up in the kill ring
             Test("a", Keys("a", _.CtrlU, _.CtrlU, "b", _.CtrlU, _.CtrlY, _.AltY));
+
+            // Make sure an empty kill doesn't end up in the kill ring after movement commands
+            Test("abc def", Keys(
+                "abc def",
+                _.CtrlW, // remove 'def'
+                _.CtrlA, _.CtrlU, // empty kill at beginning of line
+                _.CtrlE, // back to end of line
+                "ghi",
+                _.CtrlW, // remove 'ghi'
+                _.CtrlY, // yank 'ghi'
+                _.AltY)); // replace busy with previous text in kill ring
         }
 
         [TestMethod]
@@ -134,6 +145,30 @@ namespace UnitTestPSReadLine
 
             // Test empty kill doesn't affect kill append
             Test("ab", Keys("ab", _.LeftArrow, _.CtrlK, _.CtrlK, _.CtrlU, _.CtrlY));
+
+            // test empty kill then good kill
+            Test("abc", Keys(
+                "abc",
+                _.CtrlK,
+                _.CtrlU,
+                _.CtrlY));
+
+            // test undo/redo history after empty kill
+            Test("abc def ghi", Keys(
+                "abc def ghi",
+                _.CtrlW, // remove ghi
+                _.CtrlK, // empty kill
+                _.CtrlW, // remove def
+                _.CtrlUnderbar, // bring back def
+                _.CtrlUnderbar)); // bring back ghi
+
+            // startup edge condition
+            TestSetup(KeyMode.Emacs);
+            Test("abc", Keys(
+                "abc",
+                _.CtrlK,
+                _.CtrlU,
+                _.CtrlY));
         }
 
         [TestMethod]
