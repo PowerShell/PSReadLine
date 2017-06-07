@@ -63,40 +63,47 @@ namespace Microsoft.PowerShell
 
         private void Kill(int start, int length, bool prepend)
         {
-            if (length > 0)
+            if (length <= 0)
             {
-                var killText = _buffer.ToString(start, length);
-                SaveEditItem(EditItemDelete.Create(killText, start));
-                _buffer.Remove(start, length);
-                _current = start;
-                Render();
-                if (_killCommandCount > 0 && _killIndex >= 0)
+                // if we're already in the middle of some kills,
+                // change _killCommandCount so it isn't zeroed out.
+                // If, OTOH, _killCommandCount was 0 to begin with,
+                // we won't append to something we're not supposed to.
+                if (_killCommandCount > 0)
+                    _killCommandCount++;
+                return;
+            }
+            var killText = _buffer.ToString(start, length);
+            SaveEditItem(EditItemDelete.Create(killText, start));
+            _buffer.Remove(start, length);
+            _current = start;
+            Render();
+            if (_killCommandCount > 0)
+            {
+                if (prepend)
                 {
-                    if (prepend)
-                    {
-                        _killRing[_killIndex] = killText + _killRing[_killIndex];
-                    }
-                    else
-                    {
-                        _killRing[_killIndex] += killText;
-                    }
+                    _killRing[_killIndex] = killText + _killRing[_killIndex];
                 }
                 else
                 {
-                    if (_killRing.Count < Options.MaximumKillRingCount)
+                    _killRing[_killIndex] += killText;
+                }
+            }
+            else
+            {
+                if (_killRing.Count < Options.MaximumKillRingCount)
+                {
+                    _killRing.Add(killText);
+                    _killIndex = _killRing.Count - 1;
+                }
+                else
+                {
+                    _killIndex += 1;
+                    if (_killIndex == _killRing.Count)
                     {
-                        _killRing.Add(killText);
-                        _killIndex = _killRing.Count - 1;
+                        _killIndex = 0;
                     }
-                    else
-                    {
-                        _killIndex += 1;
-                        if (_killIndex == _killRing.Count)
-                        {
-                            _killIndex = 0;
-                        }
-                        _killRing[_killIndex] = killText;
-                    }
+                    _killRing[_killIndex] = killText;
                 }
             }
             _killCommandCount += 1;
