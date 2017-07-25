@@ -230,7 +230,7 @@ namespace UnitTestPSReadLine
                 "x", CheckThat(() => AssertCursorLeftIs(0))
                 ));
 
-            TestMustDing("0123", Keys(
+            Test("0123", Keys(
                 "0123", _.Escape,
                 "0X", CheckThat(() => AssertCursorLeftIs(0))
                 ));

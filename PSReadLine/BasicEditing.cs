@@ -180,10 +180,6 @@ namespace Microsoft.PowerShell
                 _singleton._current = startDeleteIndex;
                 _singleton.Render();
             }
-            else
-            {
-                Ding();
-            }
         }
 
         private void DeleteCharImpl(int qty, bool orExit)
