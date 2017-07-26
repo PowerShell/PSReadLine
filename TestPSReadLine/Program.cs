@@ -1,22 +1,43 @@
-﻿using System;
 using System.Linq;
 using System.Management.Automation;
 using System.Management.Automation.Runspaces;
+using System.Runtime.InteropServices;
 using Microsoft.PowerShell;
 
 namespace TestPSReadLine
 {
+    public enum StandardHandleId : uint
+    {
+        Error  = unchecked((uint)-12),
+        Output = unchecked((uint)-11),
+        Input  = unchecked((uint)-10),
+    }
+
     class Program
     {
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        public static extern bool GetConsoleMode(IntPtr hConsoleOutput, out uint dwMode);
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        public static extern bool SetConsoleMode(IntPtr hConsoleOutput, uint dwMode);
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        public static extern IntPtr GetStdHandle(uint handleId);
+
         static void CauseCrash(ConsoleKeyInfo? key = null, object arg = null)
         {
             throw new Exception("intentional crash for test purposes");
         }
 
+        public const uint ENABLE_VIRTUAL_TERMINAL_PROCESSING = 0x04;
+
         [STAThread]
         static void Main()
         {
-            //Box(new List<string> {"abc", "  def", "this is something coo"});
+            var handle = GetStdHandle((uint)StandardHandleId.Output);
+            uint mode;
+            GetConsoleMode(handle, out mode);
+            var b = SetConsoleMode(handle, mode | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
 
             var iss = InitialSessionState.CreateDefault2();
             var rs = RunspaceFactory.CreateRunspace(iss);
