@@ -31,8 +31,7 @@ namespace Microsoft.PowerShell
                 if (OffsetWithinToken(offset, tokens[i]))
                 {
                     token = tokens[i];
-                    var strToken = token as StringExpandableToken;
-                    if (strToken != null && strToken.NestedTokens != null)
+                    if (token is StringExpandableToken strToken && strToken.NestedTokens != null)
                     {
                         var nestedToken = FindNestedToken(offset, strToken.NestedTokens, mode);
                         if (nestedToken != null)

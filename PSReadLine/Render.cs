@@ -160,8 +160,7 @@ namespace Microsoft.PowerShell
                         {
                             GetTokenColors(token, out foregroundColor, out backgroundColor);
 
-                            var stringToken = token as StringExpandableToken;
-                            if (stringToken != null)
+                            if (token is StringExpandableToken stringToken)
                             {
                                 // We might have nested tokens.
                                 if (stringToken.NestedTokens != null && stringToken.NestedTokens.Any())

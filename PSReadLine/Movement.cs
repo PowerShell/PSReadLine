@@ -426,13 +426,12 @@ namespace Microsoft.PowerShell
         // Try to convert the arg to a char, return 0 for failure
         private static char TryGetArgAsChar(object arg)
         {
-            if (arg is char)
+            if (arg is char c)
             {
-                return (char)arg;
+                return c;
             }
 
-            var s = arg as string;
-            if (s != null && s.Length == 1)
+            if (arg is string s && s.Length == 1)
             {
                 return s[0];
             }

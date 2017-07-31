@@ -25,9 +25,8 @@ namespace Microsoft.PowerShell
                 return;
             }
 
-            if (arg is int)
+            if (arg is int count)
             {
-                var count = (int)arg;
                 if (count <= 0)
                     return;
                 if (count > 1)
@@ -431,9 +430,7 @@ namespace Microsoft.PowerShell
 
         static bool StaticParameterBindingSupported(CommandInfo commandInfo)
         {
-            var aliasInfo = commandInfo as AliasInfo;
-
-            if (aliasInfo != null)
+            if (commandInfo is AliasInfo aliasInfo)
             {
                 commandInfo = aliasInfo.ResolvedCommand;
             }
