@@ -81,8 +81,7 @@ namespace Microsoft.PowerShell
                     // Enum.TryParse accepts arbitrary integers.  We shouldn't,
                     // but single digits need to map to the correct key, e.g.
                     // ConsoleKey.D1
-                    long tokenAsLong;
-                    if (long.TryParse(token, out tokenAsLong))
+                    if (long.TryParse(token, out var tokenAsLong))
                     {
                         if (tokenAsLong >= 0 && tokenAsLong <= 9)
                         {
@@ -99,8 +98,7 @@ namespace Microsoft.PowerShell
                     // doesn't map to ConsoleKey so convert to virtual key from char
                     if (!valid && token.Length == 1)
                     {
-                        string failReason;
-                        valid = TryParseCharLiteral(token[0], ref modifiers, ref key, out failReason);
+                        valid = TryParseCharLiteral(token[0], ref modifiers, ref key, out var failReason);
 
                         if (!valid)
                         {
@@ -116,7 +114,6 @@ namespace Microsoft.PowerShell
                 else
                 {
                     // now, parse modifier(s)
-                    ConsoleModifiers modifier;
 
                     // courtesy translation
                     if (token == "ctrl")
@@ -124,7 +121,7 @@ namespace Microsoft.PowerShell
                         token = "control";
                     }
 
-                    if (Enum.TryParse(token, ignoreCase: true, result: out modifier))
+                    if (Enum.TryParse<ConsoleModifiers>(token, ignoreCase: true, result: out var modifier))
                     {
                         // modifier already set?
                         if ((modifiers & modifier) != 0)

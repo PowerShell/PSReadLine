@@ -17,8 +17,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void ViNextWord(ConsoleKeyInfo? key = null, object arg = null)
         {
-            int numericArg;
-            if (!TryGetArgAsInt(arg, out numericArg, 1))
+            if (!TryGetArgAsInt(arg, out var numericArg, 1))
             {
                 return;
             }
@@ -48,8 +47,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void ViBackwardWord(ConsoleKeyInfo? key = null, object arg = null)
         {
-            int numericArg;
-            if (!TryGetArgAsInt(arg, out numericArg, 1))
+            if (!TryGetArgAsInt(arg, out var numericArg, 1))
             {
                 return;
             }
@@ -73,8 +71,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void ViBackwardGlob(ConsoleKeyInfo? key = null, object arg = null)
         {
-            int numericArg;
-            if (!TryGetArgAsInt(arg, out numericArg, 1))
+            if (!TryGetArgAsInt(arg, out var numericArg, 1))
             {
                 return;
             }
@@ -93,8 +90,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void ViNextGlob(ConsoleKeyInfo? key = null, object arg = null)
         {
-            int numericArg;
-            if (!TryGetArgAsInt(arg, out numericArg, 1))
+            if (!TryGetArgAsInt(arg, out var numericArg, 1))
             {
                 return;
             }
@@ -111,8 +107,7 @@ namespace Microsoft.PowerShell
 
         public static void ViEndOfGlob(ConsoleKeyInfo? key = null, object arg = null)
         {
-            int numericArg;
-            if (!TryGetArgAsInt(arg, out numericArg, 1))
+            if (!TryGetArgAsInt(arg, out var numericArg, 1))
             {
                 return;
             }
@@ -133,8 +128,7 @@ namespace Microsoft.PowerShell
 
         public static void ViEndOfPreviousGlob(ConsoleKeyInfo? key = null, object arg = null)
         {
-            int numericArg;
-            if (!TryGetArgAsInt(arg, out numericArg, 1))
+            if (!TryGetArgAsInt(arg, out var numericArg, 1))
             {
                 return;
             }

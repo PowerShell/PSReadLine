@@ -76,8 +76,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void ForwardChar(ConsoleKeyInfo? key = null, object arg = null)
         {
-            int numericArg;
-            if (TryGetArgAsInt(arg, out numericArg, 1))
+            if (TryGetArgAsInt(arg, out var numericArg, 1))
             {
                 SetCursorPosition(_singleton._current + numericArg);
             }
@@ -89,8 +88,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void BackwardChar(ConsoleKeyInfo? key = null, object arg = null)
         {
-            int numericArg;
-            if (TryGetArgAsInt(arg, out numericArg, 1))
+            if (TryGetArgAsInt(arg, out var numericArg, 1))
             {
                 SetCursorPosition(_singleton._current - numericArg);
             }
@@ -139,8 +137,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void PreviousLine(ConsoleKeyInfo? key = null, object arg = null)
         {
-            int numericArg;
-            if (TryGetArgAsInt(arg, out numericArg, 1))
+            if (TryGetArgAsInt(arg, out var numericArg, 1))
             {
                 _singleton.MoveToLine(-numericArg);
             }
@@ -151,8 +148,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void NextLine(ConsoleKeyInfo? key = null, object arg = null)
         {
-            int numericArg;
-            if (TryGetArgAsInt(arg, out numericArg, 1))
+            if (TryGetArgAsInt(arg, out var numericArg, 1))
             {
                 _singleton.MoveToLine(numericArg);
             }
@@ -164,8 +160,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void NextWord(ConsoleKeyInfo? key = null, object arg = null)
         {
-            int numericArg;
-            if (!TryGetArgAsInt(arg, out numericArg, 1))
+            if (!TryGetArgAsInt(arg, out var numericArg, 1))
             {
                 return;
             }
@@ -190,8 +185,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void ShellNextWord(ConsoleKeyInfo? key = null, object arg = null)
         {
-            int numericArg;
-            if (!TryGetArgAsInt(arg, out numericArg, 1))
+            if (!TryGetArgAsInt(arg, out var numericArg, 1))
             {
                 return;
             }
@@ -222,8 +216,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void ForwardWord(ConsoleKeyInfo? key = null, object arg = null)
         {
-            int numericArg;
-            if (!TryGetArgAsInt(arg, out numericArg, 1))
+            if (!TryGetArgAsInt(arg, out var numericArg, 1))
             {
                 return;
             }
@@ -248,8 +241,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void ShellForwardWord(ConsoleKeyInfo? key = null, object arg = null)
         {
-            int numericArg;
-            if (!TryGetArgAsInt(arg, out numericArg, 1))
+            if (!TryGetArgAsInt(arg, out var numericArg, 1))
             {
                 return;
             }
@@ -290,8 +282,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void BackwardWord(ConsoleKeyInfo? key = null, object arg = null)
         {
-            int numericArg;
-            if (!TryGetArgAsInt(arg, out numericArg, 1))
+            if (!TryGetArgAsInt(arg, out var numericArg, 1))
             {
                 return;
             }
@@ -323,8 +314,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void ShellBackwardWord(ConsoleKeyInfo? key = null, object arg = null)
         {
-            int numericArg;
-            if (!TryGetArgAsInt(arg, out numericArg, 1))
+            if (!TryGetArgAsInt(arg, out var numericArg, 1))
             {
                 return;
             }

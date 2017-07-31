@@ -73,8 +73,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void ViYankRight(ConsoleKeyInfo? key = null, object arg = null)
         {
-            int numericArg;
-            if (!TryGetArgAsInt(arg, out numericArg, 1))
+            if (!TryGetArgAsInt(arg, out var numericArg, 1))
             {
                 return;
             }
@@ -95,8 +94,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void ViYankLeft(ConsoleKeyInfo? key = null, object arg = null)
         {
-            int numericArg;
-            if (!TryGetArgAsInt(arg, out numericArg, 1))
+            if (!TryGetArgAsInt(arg, out var numericArg, 1))
             {
                 return;
             }
@@ -137,8 +135,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void ViYankPreviousWord(ConsoleKeyInfo? key = null, object arg = null)
         {
-            int numericArg;
-            if (!TryGetArgAsInt(arg, out numericArg, 1))
+            if (!TryGetArgAsInt(arg, out var numericArg, 1))
             {
                 return;
             }
@@ -162,8 +159,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void ViYankNextWord(ConsoleKeyInfo? key = null, object arg = null)
         {
-            int numericArg;
-            if (!TryGetArgAsInt(arg, out numericArg, 1))
+            if (!TryGetArgAsInt(arg, out var numericArg, 1))
             {
                 return;
             }
@@ -191,8 +187,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void ViYankEndOfWord(ConsoleKeyInfo? key = null, object arg = null)
         {
-            int numericArg;
-            if (!TryGetArgAsInt(arg, out numericArg, 1))
+            if (!TryGetArgAsInt(arg, out var numericArg, 1))
             {
                 return;
             }
@@ -216,8 +211,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void ViYankEndOfGlob(ConsoleKeyInfo? key = null, object arg = null)
         {
-            int numericArg;
-            if (!TryGetArgAsInt(arg, out numericArg, 1))
+            if (!TryGetArgAsInt(arg, out var numericArg, 1))
             {
                 return;
             }
@@ -295,8 +289,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void ViYankPreviousGlob(ConsoleKeyInfo? key = null, object arg = null)
         {
-            int numericArg;
-            if (!TryGetArgAsInt(arg, out numericArg, 1))
+            if (!TryGetArgAsInt(arg, out var numericArg, 1))
             {
                 return;
             }
@@ -321,8 +314,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void ViYankNextGlob(ConsoleKeyInfo? key = null, object arg = null)
         {
-            int numericArg;
-            if (!TryGetArgAsInt(arg, out numericArg, 1))
+            if (!TryGetArgAsInt(arg, out var numericArg, 1))
             {
                 return;
             }

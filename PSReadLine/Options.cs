@@ -190,8 +190,7 @@ namespace Microsoft.PowerShell
                 else
                 {
                     _dispatchTable[chord[0]] = MakeKeyHandler(Chord, "ChordFirstKey");
-                    Dictionary<ConsoleKeyInfo, KeyHandler> secondDispatchTable;
-                    if (!_chordDispatchTable.TryGetValue(chord[0], out secondDispatchTable))
+                    if (!_chordDispatchTable.TryGetValue(chord[0], out var secondDispatchTable))
                     {
                         secondDispatchTable = new Dictionary<ConsoleKeyInfo, KeyHandler>();
                         _chordDispatchTable[chord[0]] = secondDispatchTable;
@@ -212,8 +211,7 @@ namespace Microsoft.PowerShell
                 }
                 else
                 {
-                    Dictionary<ConsoleKeyInfo, KeyHandler> secondDispatchTable;
-                    if (_chordDispatchTable.TryGetValue(chord[0], out secondDispatchTable))
+                    if (_chordDispatchTable.TryGetValue(chord[0], out var secondDispatchTable))
                     {
                         secondDispatchTable.Remove(chord[1]);
                         if (secondDispatchTable.Count == 0)

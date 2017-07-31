@@ -680,8 +680,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void ScrollDisplayUp(ConsoleKeyInfo? key = null, object arg = null)
         {
-            int numericArg;
-            TryGetArgAsInt(arg, out numericArg, +1);
+            TryGetArgAsInt(arg, out var numericArg, +1);
             var console = _singleton._console;
             var newTop = console.WindowTop - (numericArg * console.WindowHeight);
             if (newTop < 0)
@@ -696,8 +695,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void ScrollDisplayUpLine(ConsoleKeyInfo? key = null, object arg = null)
         {
-            int numericArg;
-            TryGetArgAsInt(arg, out numericArg, +1);
+            TryGetArgAsInt(arg, out var numericArg, +1);
             var console = _singleton._console;
             var newTop = console.WindowTop - numericArg;
             if (newTop < 0)
@@ -712,8 +710,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void ScrollDisplayDown(ConsoleKeyInfo? key = null, object arg = null)
         {
-            int numericArg;
-            TryGetArgAsInt(arg, out numericArg, +1);
+            TryGetArgAsInt(arg, out var numericArg, +1);
             var console = _singleton._console;
             var newTop = console.WindowTop + (numericArg * console.WindowHeight);
             if (newTop > (console.BufferHeight - console.WindowHeight))
@@ -728,8 +725,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void ScrollDisplayDownLine(ConsoleKeyInfo? key = null, object arg = null)
         {
-            int numericArg;
-            TryGetArgAsInt(arg, out numericArg, +1);
+            TryGetArgAsInt(arg, out var numericArg, +1);
             var console = _singleton._console;
             var newTop = console.WindowTop + numericArg;
             if (newTop > (console.BufferHeight - console.WindowHeight))

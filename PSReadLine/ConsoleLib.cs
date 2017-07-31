@@ -459,8 +459,7 @@ namespace Microsoft.PowerShell.Internal
         public uint GetConsoleInputMode()
         {
             var handle = _inputHandle.Value.DangerousGetHandle();
-            uint result;
-            NativeMethods.GetConsoleMode(handle, out result);
+            NativeMethods.GetConsoleMode(handle, out var result);
             return result;
         }
 
@@ -770,8 +769,7 @@ namespace Microsoft.PowerShell.Internal
                     }
                     _istmInitialized = true;
                 }
-                int width;
-                result = NativeMethods.GetCharWidth32(_hDC, (uint)c, (uint)c, out width);
+                result = NativeMethods.GetCharWidth32(_hDC, (uint)c, (uint)c, out var width);
                 if (!result)
                 {
                     return 1;
@@ -822,8 +820,7 @@ namespace Microsoft.PowerShell.Internal
                 return true;
 
             // Char device - if GetConsoleMode succeeds, we are NOT redirected.
-            uint mode;
-            return !NativeMethods.GetConsoleMode(handle, out mode);
+            return !NativeMethods.GetConsoleMode(handle, out var mode);
         }
     }
 

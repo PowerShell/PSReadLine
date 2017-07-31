@@ -332,8 +332,7 @@ namespace Microsoft.PowerShell
                         sb.Append(' ');
                         sb.Append(_lastNKeys[i].ToGestureString());
 
-                        KeyHandler handler;
-                        if (_singleton._dispatchTable.TryGetValue(_lastNKeys[i], out handler) &&
+                        if (_singleton._dispatchTable.TryGetValue(_lastNKeys[i], out var handler) &&
                             "AcceptLine".Equals(handler.BriefDescription, StringComparison.OrdinalIgnoreCase))
                         {
                             // Make it a little easier to see the keys
@@ -456,8 +455,7 @@ namespace Microsoft.PowerShell
 
         void ProcessOneKey(ConsoleKeyInfo key, Dictionary<ConsoleKeyInfo, KeyHandler> dispatchTable, bool ignoreIfNoAction, object arg)
         {
-            KeyHandler handler;
-            if (!dispatchTable.TryGetValue(key, out handler))
+            if (!dispatchTable.TryGetValue(key, out var handler))
             {
                 // If we see a control character where Ctrl wasn't used but shift was, treat that like
                 // shift hadn't be pressed.  This cleanly allows Shift+Backspace without adding a key binding.
@@ -670,8 +668,7 @@ namespace Microsoft.PowerShell
                 throw new ArgumentNullException("key");
             }
 
-            Dictionary<ConsoleKeyInfo, KeyHandler> secondKeyDispatchTable;
-            if (_singleton._chordDispatchTable.TryGetValue(key.Value, out secondKeyDispatchTable))
+            if (_singleton._chordDispatchTable.TryGetValue(key.Value, out var secondKeyDispatchTable))
             {
                 var secondKey = ReadKey();
                 _singleton.ProcessOneKey(secondKey, secondKeyDispatchTable, ignoreIfNoAction: true, arg: arg);
@@ -758,8 +755,7 @@ namespace Microsoft.PowerShell
             while (true)
             {
                 var nextKey = ReadKey();
-                KeyHandler handler;
-                if (_singleton._dispatchTable.TryGetValue(nextKey, out handler))
+                if (_singleton._dispatchTable.TryGetValue(nextKey, out var handler))
                 {
                     if (handler.Action == DigitArgument)
                     {
@@ -799,8 +795,7 @@ namespace Microsoft.PowerShell
                     }
                 }
 
-                int intArg;
-                if (int.TryParse(argBuffer.ToString(), out intArg))
+                if (int.TryParse(argBuffer.ToString(), out var intArg))
                 {
                     _singleton.ProcessOneKey(nextKey, _singleton._dispatchTable, ignoreIfNoAction: false, arg: intArg);
                 }

@@ -193,8 +193,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void KillRegion(ConsoleKeyInfo? key = null, object arg = null)
         {
-            int start, length;
-            _singleton.GetRegion(out start, out length);
+            _singleton.GetRegion(out var start, out var length);
             _singleton.Kill(start, length, true);
         }
 
@@ -251,10 +250,8 @@ namespace Microsoft.PowerShell
                 return;
             }
 
-            Token[] tokens;
-            ParseError[] errors;
             var buffer = _history[yankLastArgState.historyIndex];
-            Parser.ParseInput(buffer._line, out tokens, out errors);
+            Parser.ParseInput(buffer._line, out var tokens, out var errors);
 
             int arg = (yankLastArgState.argument < 0)
                           ? tokens.Length + yankLastArgState.argument - 1
@@ -470,8 +467,7 @@ namespace Microsoft.PowerShell
                 textToPaste = textToPaste.Replace("\r", "");
                 if (_singleton._visualSelectionCommandCount > 0)
                 {
-                    int start, length;
-                    _singleton.GetRegion(out start, out length);
+                    _singleton.GetRegion(out var start, out var length);
                     Replace(start, length, textToPaste);
                 }
                 else
@@ -489,8 +485,7 @@ namespace Microsoft.PowerShell
             string textToSet;
             if (_singleton._visualSelectionCommandCount > 0)
             {
-                int start, length;
-                _singleton.GetRegion(out start, out length);
+                _singleton.GetRegion(out var start, out var length);
                 textToSet = _singleton._buffer.ToString(start, length);
             }
             else
@@ -525,8 +520,7 @@ namespace Microsoft.PowerShell
         {
             if (_singleton._visualSelectionCommandCount > 0)
             {
-                int start, length;
-                _singleton.GetRegion(out start, out length);
+                _singleton.GetRegion(out var start, out var length);
                 ExecuteOnSTAThread(() => Clipboard.SetText(_singleton._buffer.ToString(start, length)));
                 Delete(start, length);
             }

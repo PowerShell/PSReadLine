@@ -35,8 +35,7 @@ namespace Microsoft.PowerShell
                     var toInsert = new string(key.Value.KeyChar, count);
                     if (_singleton._visualSelectionCommandCount > 0)
                     {
-                        int start, length;
-                        _singleton.GetRegion(out start, out length);
+                        _singleton.GetRegion(out var start, out var length);
                         Replace(start, length, toInsert);
                     }
                     else
@@ -49,8 +48,7 @@ namespace Microsoft.PowerShell
 
             if (_singleton._visualSelectionCommandCount > 0)
             {
-                int start, length;
-                _singleton.GetRegion(out start, out length);
+                _singleton.GetRegion(out var start, out var length);
                 Replace(start, length, new string(key.Value.KeyChar, 1));
             }
             else
@@ -155,8 +153,7 @@ namespace Microsoft.PowerShell
         {
             if (_singleton._visualSelectionCommandCount > 0)
             {
-                int start, length;
-                _singleton.GetRegion(out start, out length);
+                _singleton.GetRegion(out var start, out var length);
                 Delete(start, length);
                 return;
             }
@@ -187,8 +184,7 @@ namespace Microsoft.PowerShell
 
             if (_visualSelectionCommandCount > 0)
             {
-                int start, length;
-                GetRegion(out start, out length);
+                GetRegion(out var start, out var length);
                 Delete(start, length);
                 return;
             }

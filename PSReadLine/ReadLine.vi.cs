@@ -985,8 +985,7 @@ namespace Microsoft.PowerShell
                 return;
             }
 
-            Dictionary<ConsoleKeyInfo, KeyHandler> secondKeyDispatchTable;
-            if (_singleton._chordDispatchTable.TryGetValue(key.Value, out secondKeyDispatchTable))
+            if (_singleton._chordDispatchTable.TryGetValue(key.Value, out var secondKeyDispatchTable))
             {
                 //if (_singleton._demoMode)
                 //{
@@ -994,8 +993,7 @@ namespace Microsoft.PowerShell
                 //    _singleton.Render();
                 //}
                 var secondKey = ReadKey();
-                KeyHandler handler;
-                if (secondKeyDispatchTable.TryGetValue(secondKey, out handler))
+                if (secondKeyDispatchTable.TryGetValue(secondKey, out var handler))
                 {
                     _singleton.ProcessOneKey(secondKey, secondKeyDispatchTable, ignoreIfNoAction: true, arg: arg);
                 }
@@ -1070,8 +1068,7 @@ namespace Microsoft.PowerShell
             while (true)
             {
                 var nextKey = ReadKey();
-                KeyHandler handler;
-                if (_singleton._dispatchTable.TryGetValue(nextKey, out handler) && handler.Action == DigitArgument)
+                if (_singleton._dispatchTable.TryGetValue(nextKey, out var handler) && handler.Action == DigitArgument)
                 {
                     if (nextKey.KeyChar == '-')
                     {
@@ -1102,8 +1099,7 @@ namespace Microsoft.PowerShell
                     }
                 }
 
-                int intArg;
-                if (int.TryParse(argBuffer.ToString(), out intArg))
+                if (int.TryParse(argBuffer.ToString(), out var intArg))
                 {
                     _singleton.ProcessOneKey(nextKey, _singleton._dispatchTable, ignoreIfNoAction: false, arg: intArg);
                 }

@@ -375,8 +375,7 @@ namespace Microsoft.PowerShell
                 if (Options.HistoryNoDuplicates)
                 {
                     var line = _history[newHistoryIndex]._line;
-                    int index;
-                    if (!_hashedHistory.TryGetValue(line, out index))
+                    if (!_hashedHistory.TryGetValue(line, out var index))
                     {
                         _hashedHistory.Add(line, newHistoryIndex);
                         --count;
@@ -404,8 +403,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void PreviousHistory(ConsoleKeyInfo? key = null, object arg = null)
         {
-            int numericArg;
-            TryGetArgAsInt(arg, out numericArg, -1);
+            TryGetArgAsInt(arg, out var numericArg, -1);
             if (numericArg > 0)
             {
                 numericArg = -numericArg;
@@ -420,8 +418,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void NextHistory(ConsoleKeyInfo? key = null, object arg = null)
         {
-            int numericArg;
-            TryGetArgAsInt(arg, out numericArg, +1);
+            TryGetArgAsInt(arg, out var numericArg, +1);
 
             _singleton.SaveCurrentLine();
             _singleton.HistoryRecall(numericArg);
@@ -468,8 +465,7 @@ namespace Microsoft.PowerShell
                 {
                     if (Options.HistoryNoDuplicates)
                     {
-                        int index;
-                        if (!_hashedHistory.TryGetValue(line, out index))
+                        if (!_hashedHistory.TryGetValue(line, out var index))
                         {
                             _hashedHistory.Add(line, newHistoryIndex);
                             --count;
@@ -518,8 +514,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void HistorySearchBackward(ConsoleKeyInfo? key = null, object arg = null)
         {
-            int numericArg;
-            TryGetArgAsInt(arg, out numericArg, -1);
+            TryGetArgAsInt(arg, out var numericArg, -1);
             if (numericArg > 0)
             {
                 numericArg = -numericArg;
@@ -535,8 +530,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void HistorySearchForward(ConsoleKeyInfo? key = null, object arg = null)
         {
-            int numericArg;
-            TryGetArgAsInt(arg, out numericArg, +1);
+            TryGetArgAsInt(arg, out var numericArg, +1);
 
             _singleton.SaveCurrentLine();
             _singleton.HistorySearch(numericArg);
@@ -553,8 +547,7 @@ namespace Microsoft.PowerShell
                 {
                     if (Options.HistoryNoDuplicates)
                     {
-                        int index;
-                        if (!_hashedHistory.TryGetValue(line, out index))
+                        if (!_hashedHistory.TryGetValue(line, out var index))
                         {
                             _hashedHistory.Add(line, searchFromPoint);
                         }
@@ -601,8 +594,7 @@ namespace Microsoft.PowerShell
             while (true)
             {
                 var key = ReadKey();
-                KeyHandler handler;
-                _dispatchTable.TryGetValue(key, out handler);
+                _dispatchTable.TryGetValue(key, out var handler);
                 var function = handler != null ? handler.Action : null;
                 if (function == ReverseSearchHistory)
                 {

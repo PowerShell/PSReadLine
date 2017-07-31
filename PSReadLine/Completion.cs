@@ -249,8 +249,7 @@ namespace Microsoft.PowerShell
                 return;
             }
 
-            bool ambiguous;
-            var replacementText = GetUnambiguousPrefix(completions.CompletionMatches, ambiguous: out ambiguous);
+            var replacementText = GetUnambiguousPrefix(completions.CompletionMatches, out var ambiguous);
 
             if (replacementText.Length > 0)
             {
@@ -537,8 +536,7 @@ namespace Microsoft.PowerShell
         private bool IsDoneWithCompletions(CompletionResult currentCompletion, ConsoleKeyInfo nextKey)
         {
             if (nextKey == Keys.Space || nextKey == Keys.Enter) return true;
-            ConsoleKeyInfo[] doneKeys;
-            if (doneCompletionKeys.TryGetValue(currentCompletion.ResultType, out doneKeys))
+            if (doneCompletionKeys.TryGetValue(currentCompletion.ResultType, out var doneKeys))
             {
                 return doneKeys.Contains<ConsoleKeyInfo>(nextKey);
             }
@@ -563,12 +561,8 @@ namespace Microsoft.PowerShell
 
             var matches = completions.CompletionMatches;
 
-            int menuColumnWidth;
-            int displayRows;
-            int selectedItem;
             var menuBuffer = CreateCompletionMenu(matches, _console, Options.ShowToolTips,
-                "", out selectedItem,
-                out menuColumnWidth, out displayRows);
+                "", out var selectedItem, out var menuColumnWidth, out var displayRows);
 
             if (menuSelect)
             {
@@ -593,8 +587,7 @@ namespace Microsoft.PowerShell
                 int savedUserMark = _mark;
                 _visualSelectionCommandCount++;
 
-                bool ambiguous;
-                var userCompletionText = GetUnambiguousPrefix(matches, ambiguous: out ambiguous);
+                var userCompletionText = GetUnambiguousPrefix(matches, out var ambiguous);
                 // remove possible first quote
                 if (userCompletionText.Length > 0 &&
                     ( IsSingleQuote(userCompletionText[0])
@@ -687,7 +680,7 @@ namespace Microsoft.PowerShell
                     else if (nextKey == Keys.Tab)
                     {
                         // Search for possible unAmbiguous common prefix. ...
-                        string unAmbiguousText = GetUnambiguousPrefix(matches, ambiguous: out ambiguous);
+                        string unAmbiguousText = GetUnambiguousPrefix(matches, out ambiguous);
                         int userComplPos = unAmbiguousText.IndexOf(userCompletionText, StringComparison.OrdinalIgnoreCase);
                         // ... If found - advance IncrementalCompletion ...
                         if (unAmbiguousText.Length > 0 && userComplPos >= 0 && unAmbiguousText.Length > (userComplPos + userCompletionText.Length))
@@ -782,8 +775,7 @@ namespace Microsoft.PowerShell
                                     matches = tmpMatches;
                                     previousItem = -1;
                                     menuBuffer = CreateCompletionMenu(matches, _console, Options.ShowToolTips,
-                                        selectedCompletionText, out selectedItem,
-                                        out menuColumnWidth, out displayRows);
+                                        selectedCompletionText, out selectedItem, out menuColumnWidth, out displayRows);
                                 }
                                 else
                                 {
@@ -804,8 +796,7 @@ namespace Microsoft.PowerShell
                             prependNextKey = true;
 
                             // without this branch experience doesnt look naturally
-                            KeyHandler handler;
-                            if (_dispatchTable.TryGetValue(nextKey, out handler) &&
+                            if (_dispatchTable.TryGetValue(nextKey, out var handler) &&
                                  (
                                    handler.Action == CopyOrCancelLine ||
                                    handler.Action == Cut ||

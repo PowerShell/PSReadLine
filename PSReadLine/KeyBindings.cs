@@ -329,16 +329,14 @@ namespace Microsoft.PowerShell
             _singleton._statusLinePrompt = "what-is-key: ";
             _singleton.Render();
             var toLookup = ReadKey();
-            KeyHandler keyHandler;
             var buffer = new StringBuilder();
-            _singleton._dispatchTable.TryGetValue(toLookup, out keyHandler);
+            _singleton._dispatchTable.TryGetValue(toLookup, out var keyHandler);
             buffer.Append(toLookup.ToGestureString());
             if (keyHandler != null)
             {
                 if (keyHandler.BriefDescription == "ChordFirstKey")
                 {
-                    Dictionary<ConsoleKeyInfo, KeyHandler> secondKeyDispatchTable;
-                    if (_singleton._chordDispatchTable.TryGetValue(toLookup, out secondKeyDispatchTable))
+                    if (_singleton._chordDispatchTable.TryGetValue(toLookup, out var secondKeyDispatchTable))
                     {
                         toLookup = ReadKey();
                         secondKeyDispatchTable.TryGetValue(toLookup, out keyHandler);
