@@ -595,7 +595,7 @@ namespace Microsoft.PowerShell
             {
                 var key = ReadKey();
                 _dispatchTable.TryGetValue(key, out var handler);
-                var function = handler != null ? handler.Action : null;
+                var function = handler?.Action;
                 if (function == ReverseSearchHistory)
                 {
                     UpdateHistoryDuringInteractiveSearch(toMatch.ToString(), -1, ref searchFromPoint);

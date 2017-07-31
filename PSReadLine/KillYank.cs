@@ -182,9 +182,7 @@ namespace Microsoft.PowerShell
         public static void ShellBackwardKillWord(ConsoleKeyInfo? key = null, object arg = null)
         {
             var token = _singleton.FindToken(_singleton._current, FindTokenMode.Previous);
-            var start = token == null 
-                ? 0
-                : token.Extent.StartOffset;
+            var start = token?.Extent.StartOffset ?? 0;
             _singleton.Kill(start, _singleton._current - start, true);
         }
 
@@ -283,7 +281,7 @@ namespace Microsoft.PowerShell
         {
             var yankLastArgState = new YankLastArgState
             {
-                argument = (arg is int) ? (int)arg : 1,
+                argument = arg as int? ?? 1,
                 historyIndex = _singleton._currentHistoryIndex - 1,
             };
             _singleton.YankArgImpl(yankLastArgState);
@@ -309,7 +307,7 @@ namespace Microsoft.PowerShell
             {
                 _singleton._yankLastArgState = new YankLastArgState
                 {
-                    argument = (arg != null) ? (int)arg : -1,
+                    argument = (int?) arg ?? -1,
                     historyIncrement = -1,
                     historyIndex = _singleton._currentHistoryIndex - 1
                 };

@@ -159,7 +159,7 @@ namespace Microsoft.PowerShell
 
             if (_singleton._buffer.Length > 0 && _singleton._current > 0)
             {
-                int qty = (arg is int) ? (int) arg : 1;
+                int qty = arg as int? ?? 1;
                 qty = Math.Min(qty, _singleton._current);
 
                 int startDeleteIndex = _singleton._current - qty;
@@ -213,7 +213,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void DeleteChar(ConsoleKeyInfo? key = null, object arg = null)
         {
-            int qty = (arg is int) ? (int)arg : 1;
+            int qty = arg as int? ?? 1;
 
             _singleton.DeleteCharImpl(qty, orExit: false);
         }

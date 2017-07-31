@@ -63,7 +63,7 @@ namespace Microsoft.PowerShell
 
             public static void Search(char keyChar, object arg, bool backoff)
             {
-                int qty = (arg is int) ? (int) arg : 1;
+                int qty = arg as int? ?? 1;
 
                 for (int i = _singleton._current + 1; i < _singleton._buffer.Length; i++)
                 {
@@ -83,7 +83,7 @@ namespace Microsoft.PowerShell
 
             public static bool SearchDelete(char keyChar, object arg, bool backoff, Action<ConsoleKeyInfo?, object> instigator)
             {
-                int qty = (arg is int) ? (int) arg : 1;
+                int qty = arg as int? ?? 1;
 
                 for (int i = _singleton._current + 1; i < _singleton._buffer.Length; i++)
                 {
@@ -104,7 +104,7 @@ namespace Microsoft.PowerShell
             public static void SearchBackward(char keyChar, object arg, bool backoff)
             {
                 Set(keyChar, isBackward: true, isBackoff: backoff);
-                int qty = (arg is int) ? (int) arg : 1;
+                int qty = arg as int? ?? 1;
 
                 for (int i = _singleton._current - 1; i >= 0; i--)
                 {
@@ -125,7 +125,7 @@ namespace Microsoft.PowerShell
             public static bool SearchBackwardDelete(char keyChar, object arg, bool backoff, Action<ConsoleKeyInfo?, object> instigator)
             {
                 Set(keyChar, isBackward: true, isBackoff: backoff);
-                int qty = (arg is int) ? (int) arg : 1;
+                int qty = arg as int? ?? 1;
 
                 for (int i = _singleton._current - 1; i >= 0; i--)
                 {
@@ -266,7 +266,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void DeleteWord(ConsoleKeyInfo? key = null, object arg = null)
         {
-            int qty = (arg is int) ? (int)arg : 1;
+            int qty = arg as int? ?? 1;
             int endPoint = _singleton._current;
             for (int i = 0; i < qty; i++)
             {
@@ -320,7 +320,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void ViDeleteGlob(ConsoleKeyInfo? key = null, object arg = null)
         {
-            int qty = (arg is int) ? (int)arg : 1;
+            int qty = arg as int? ?? 1;
             int endPoint = _singleton._current;
             while (qty-- > 0)
             {
@@ -348,7 +348,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void DeleteEndOfWord(ConsoleKeyInfo? key = null, object arg = null)
         {
-            int qty = (arg is int) ? (int)arg : 1;
+            int qty = arg as int? ?? 1;
             int endPoint = _singleton._current;
             for (int i = 0; i < qty; i++)
             {
@@ -380,7 +380,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void ViDeleteEndOfGlob(ConsoleKeyInfo? key = null, object arg = null)
         {
-            int qty = (arg is int) ? (int)arg : 1;
+            int qty = arg as int? ?? 1;
             int endPoint = _singleton._current;
             for (int i = 0; i < qty; i++)
             {
@@ -633,7 +633,7 @@ namespace Microsoft.PowerShell
                 return;
             }
 
-            int qty = (arg is int) ? (int) arg : 1;
+            int qty = arg as int? ?? 1;
 
             for (; qty > 0 && _singleton._current < _singleton._buffer.Length; qty--)
             {
@@ -739,7 +739,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void BackwardDeleteWord(ConsoleKeyInfo? key = null, object arg = null)
         {
-            int qty = (arg is int) ? (int) arg : 1;
+            int qty = arg as int? ?? 1;
             int deletePoint = _singleton._current;
             for (int i = 0; i < qty; i++)
             {
@@ -772,7 +772,7 @@ namespace Microsoft.PowerShell
                 Ding();
                 return;
             }
-            int qty = (arg is int) ? (int)arg : 1;
+            int qty = arg as int? ?? 1;
             int deletePoint = _singleton._current;
             for (int i = 0; i < qty && deletePoint > 0; i++)
             {

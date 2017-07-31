@@ -336,7 +336,7 @@ namespace Microsoft.PowerShell
             {
                 var token = _singleton.FindToken(_singleton._current, FindTokenMode.Previous);
 
-                _singleton._current = (token != null) ? token.Extent.StartOffset : 0;
+                _singleton._current = token?.Extent.StartOffset ?? 0;
                 _singleton.PlaceCursor();
             }
         }
@@ -446,7 +446,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void CharacterSearch(ConsoleKeyInfo? key = null, object arg = null)
         {
-            int occurence = (arg is int) ? (int)arg : 1;
+            int occurence = arg as int? ?? 1;
             if (occurence < 0)
             {
                 CharacterSearchBackward(key, -occurence);
@@ -485,7 +485,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void CharacterSearchBackward(ConsoleKeyInfo? key = null, object arg = null)
         {
-            int occurence = (arg is int) ? (int)arg : 1;
+            int occurence = arg as int? ?? 1;
             if (occurence < 0)
             {
                 CharacterSearch(key, -occurence);

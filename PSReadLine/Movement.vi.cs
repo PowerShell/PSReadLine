@@ -179,7 +179,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void NextWordEnd(ConsoleKeyInfo? key = null, object arg = null)
         {
-            int qty = (arg is int) ? (int)arg : 1;
+            int qty = arg as int? ?? 1;
             for (; qty > 0 && _singleton._current < _singleton._buffer.Length - 1; qty--)
             {
                 int i = _singleton.ViFindNextWordEnd(_singleton.Options.WordDelimiters);
@@ -193,7 +193,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void GotoColumn(ConsoleKeyInfo? key = null, object arg = null)
         {
-            int col = (arg is int) ? (int) arg : -1;
+            int col = arg as int? ?? -1;
             if (col < 0 ) {
                 Ding();
                 return;
