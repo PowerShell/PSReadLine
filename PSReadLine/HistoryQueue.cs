@@ -15,10 +15,7 @@ namespace Microsoft.PowerShell
         private readonly HistoryQueue<T> _queue;
 
         [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
-        public T[] Items
-        {
-            get { return this._queue.ToArray(); }
-        }
+        public T[] Items => this._queue.ToArray();
 
         public QueueDebugView(HistoryQueue<T> queue)
         {

@@ -49,10 +49,7 @@ namespace Microsoft.PowerShell
             return buffer.ToArray();
         }
 
-        public int Length
-        {
-            get { return buffer.Count; }
-        }
+        public int Length => buffer.Count;
     }
 }
 

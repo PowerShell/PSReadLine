@@ -96,10 +96,7 @@ namespace UnitTestPSReadLine
             return _.CtrlC;
         }
 
-        public bool KeyAvailable
-        {
-            get { return index < inputOrValidateItems.Length && inputOrValidateItems[index] is ConsoleKeyInfo; }
-        }
+        public bool KeyAvailable => index < inputOrValidateItems.Length && inputOrValidateItems[index] is ConsoleKeyInfo;
 
         public int CursorLeft { get; set; }
         public int CursorTop { get; set; }
@@ -108,26 +105,26 @@ namespace UnitTestPSReadLine
 
         public int BufferWidth
         {
-            get { return _bufferWidth; }
-            set { throw new NotImplementedException(); }
+            get => _bufferWidth;
+            set => throw new NotImplementedException();
         }
 
         public int BufferHeight
         {
-            get { return _bufferHeight; }
-            set { throw new NotImplementedException(); }
+            get => _bufferHeight;
+            set => throw new NotImplementedException();
         }
 
         public int WindowWidth
         {
-            get { return _windowWidth; }
-            set { throw new NotImplementedException(); }
+            get => _windowWidth;
+            set => throw new NotImplementedException();
         }
 
         public int WindowHeight
         {
-            get { return _windowHeight; }
-            set { throw new NotImplementedException(); }
+            get => _windowHeight;
+            set => throw new NotImplementedException();
         }
 
         public int WindowTop { get; set; }

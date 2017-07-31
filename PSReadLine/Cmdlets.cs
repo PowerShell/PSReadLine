@@ -233,10 +233,7 @@ namespace Microsoft.PowerShell
         public BellStyle BellStyle { get; set; }
 
         public bool HistorySearchCaseSensitive { get; set; }
-        internal StringComparison HistoryStringComparison
-        {
-            get { return HistorySearchCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase; }
-        }
+        internal StringComparison HistoryStringComparison => HistorySearchCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
 
         #region vi
         public ViModeStyle ViModeIndicator { get; set; }
@@ -359,8 +356,8 @@ namespace Microsoft.PowerShell
         [Parameter(ParameterSetName = "OptionsSet")]
         public EditMode EditMode
         {
-            get { return _editMode.GetValueOrDefault(); }
-            set { _editMode = value; }
+            get => _editMode.GetValueOrDefault();
+            set => _editMode = value;
         }
         internal EditMode? _editMode;
 
@@ -371,56 +368,56 @@ namespace Microsoft.PowerShell
         [Parameter(ParameterSetName = "OptionsSet")]
         public ConsoleColor ContinuationPromptForegroundColor
         {
-            get { return _continuationPromptForegroundColor.GetValueOrDefault(); }
-            set { _continuationPromptForegroundColor = value; }
+            get => _continuationPromptForegroundColor.GetValueOrDefault();
+            set => _continuationPromptForegroundColor = value;
         }
         internal ConsoleColor? _continuationPromptForegroundColor;
 
         [Parameter(ParameterSetName = "OptionsSet")]
         public ConsoleColor ContinuationPromptBackgroundColor
         {
-            get { return _continuationPromptBackgroundColor.GetValueOrDefault(); }
-            set { _continuationPromptBackgroundColor = value; }
+            get => _continuationPromptBackgroundColor.GetValueOrDefault();
+            set => _continuationPromptBackgroundColor = value;
         }
         internal ConsoleColor? _continuationPromptBackgroundColor;
 
         [Parameter(ParameterSetName = "OptionsSet")]
         public ConsoleColor EmphasisForegroundColor
         {
-            get { return _emphasisForegroundColor.GetValueOrDefault(); }
-            set { _emphasisForegroundColor = value; }
+            get => _emphasisForegroundColor.GetValueOrDefault();
+            set => _emphasisForegroundColor = value;
         }
         internal ConsoleColor? _emphasisForegroundColor;
 
         [Parameter(ParameterSetName = "OptionsSet")]
         public ConsoleColor EmphasisBackgroundColor
         {
-            get { return _emphasisBackgroundColor.GetValueOrDefault(); }
-            set { _emphasisBackgroundColor = value; }
+            get => _emphasisBackgroundColor.GetValueOrDefault();
+            set => _emphasisBackgroundColor = value;
         }
         internal ConsoleColor? _emphasisBackgroundColor;
 
         [Parameter(ParameterSetName = "OptionsSet")]
         public ConsoleColor ErrorForegroundColor
         {
-            get { return _errorForegroundColor.GetValueOrDefault(); }
-            set { _errorForegroundColor = value; }
+            get => _errorForegroundColor.GetValueOrDefault();
+            set => _errorForegroundColor = value;
         }
         internal ConsoleColor? _errorForegroundColor;
 
         [Parameter(ParameterSetName = "OptionsSet")]
         public ConsoleColor ErrorBackgroundColor
         {
-            get { return _errorBackgroundColor.GetValueOrDefault(); }
-            set { _errorBackgroundColor = value; }
+            get => _errorBackgroundColor.GetValueOrDefault();
+            set => _errorBackgroundColor = value;
         }
         internal ConsoleColor? _errorBackgroundColor;
 
         [Parameter(ParameterSetName = "OptionsSet")]
         public SwitchParameter HistoryNoDuplicates
         {
-            get { return _historyNoDuplicates.GetValueOrDefault(); }
-            set { _historyNoDuplicates = value; }
+            get => _historyNoDuplicates.GetValueOrDefault();
+            set => _historyNoDuplicates = value;
         }
         internal SwitchParameter? _historyNoDuplicates;
 
@@ -428,7 +425,7 @@ namespace Microsoft.PowerShell
         [AllowNull]
         public Func<string, bool> AddToHistoryHandler
         {
-            get { return _addToHistoryHandler; }
+            get => _addToHistoryHandler;
             set
             {
                 _addToHistoryHandler = value;
@@ -442,7 +439,7 @@ namespace Microsoft.PowerShell
         [AllowNull]
         public Action<CommandAst> CommandValidationHandler
         {
-            get { return _commandValidationHandler; }
+            get => _commandValidationHandler;
             set
             {
                 _commandValidationHandler = value;
@@ -455,8 +452,8 @@ namespace Microsoft.PowerShell
         [Parameter(ParameterSetName = "OptionsSet")]
         public SwitchParameter HistorySearchCursorMovesToEnd
         {
-            get { return _historySearchCursorMovesToEnd.GetValueOrDefault(); }
-            set { _historySearchCursorMovesToEnd = value; }
+            get => _historySearchCursorMovesToEnd.GetValueOrDefault();
+            set => _historySearchCursorMovesToEnd = value;
         }
         internal SwitchParameter? _historySearchCursorMovesToEnd;
 
@@ -464,72 +461,72 @@ namespace Microsoft.PowerShell
         [ValidateRange(1, int.MaxValue)]
         public int MaximumHistoryCount
         {
-            get { return _maximumHistoryCount.GetValueOrDefault(); }
-            set { _maximumHistoryCount = value; }
+            get => _maximumHistoryCount.GetValueOrDefault();
+            set => _maximumHistoryCount = value;
         }
         internal int? _maximumHistoryCount;
 
         [Parameter(ParameterSetName = "OptionsSet")]
         public int MaximumKillRingCount
         {
-            get { return _maximumKillRingCount.GetValueOrDefault(); }
-            set { _maximumKillRingCount = value; }
+            get => _maximumKillRingCount.GetValueOrDefault();
+            set => _maximumKillRingCount = value;
         }
         internal int? _maximumKillRingCount;
 
         [Parameter(ParameterSetName = "OptionsSet")]
         public SwitchParameter ResetTokenColors
         {
-            get { return _resetTokenColors.GetValueOrDefault(); }
-            set { _resetTokenColors = value; }
+            get => _resetTokenColors.GetValueOrDefault();
+            set => _resetTokenColors = value;
         }
         internal SwitchParameter? _resetTokenColors;
 
         [Parameter(ParameterSetName = "OptionsSet")]
         public SwitchParameter ShowToolTips
         {
-            get { return _showToolTips.GetValueOrDefault(); }
-            set { _showToolTips = value; }
+            get => _showToolTips.GetValueOrDefault();
+            set => _showToolTips = value;
         }
         internal SwitchParameter? _showToolTips;
 
         [Parameter(ParameterSetName = "OptionsSet")]
         public int ExtraPromptLineCount
         {
-            get { return _extraPromptLineCount.GetValueOrDefault(); }
-            set { _extraPromptLineCount = value; }
+            get => _extraPromptLineCount.GetValueOrDefault();
+            set => _extraPromptLineCount = value;
         }
         internal int? _extraPromptLineCount;
 
         [Parameter(ParameterSetName = "OptionsSet")]
         public int DingTone
         {
-            get { return _dingTone.GetValueOrDefault(); }
-            set { _dingTone = value; }
+            get => _dingTone.GetValueOrDefault();
+            set => _dingTone = value;
         }
         internal int? _dingTone;
 
         [Parameter(ParameterSetName = "OptionsSet")]
         public int DingDuration
         {
-            get { return _dingDuration.GetValueOrDefault(); }
-            set { _dingDuration = value; }
+            get => _dingDuration.GetValueOrDefault();
+            set => _dingDuration = value;
         }
         internal int? _dingDuration;
 
         [Parameter(ParameterSetName = "OptionsSet")]
         public BellStyle BellStyle
         {
-            get { return _bellStyle.GetValueOrDefault(); }
-            set { _bellStyle = value; }
+            get => _bellStyle.GetValueOrDefault();
+            set => _bellStyle = value;
         }
         internal BellStyle? _bellStyle;
 
         [Parameter(ParameterSetName = "OptionsSet")]
         public int CompletionQueryItems
         {
-            get { return _completionQueryItems.GetValueOrDefault(); }
-            set { _completionQueryItems = value; }
+            get => _completionQueryItems.GetValueOrDefault();
+            set => _completionQueryItems = value;
         }
         internal int? _completionQueryItems;
 
@@ -539,16 +536,16 @@ namespace Microsoft.PowerShell
         [Parameter(ParameterSetName = "OptionsSet")]
         public SwitchParameter HistorySearchCaseSensitive
         {
-            get { return _historySearchCaseSensitive.GetValueOrDefault(); }
-            set { _historySearchCaseSensitive = value; }
+            get => _historySearchCaseSensitive.GetValueOrDefault();
+            set => _historySearchCaseSensitive = value;
         }
         internal SwitchParameter? _historySearchCaseSensitive;
 
         [Parameter(ParameterSetName = "OptionsSet")]
         public HistorySaveStyle HistorySaveStyle
         {
-            get { return _historySaveStyle.GetValueOrDefault(); }
-            set { _historySaveStyle = value; }
+            get => _historySaveStyle.GetValueOrDefault();
+            set => _historySaveStyle = value;
         }
         internal HistorySaveStyle? _historySaveStyle;
 
@@ -560,8 +557,8 @@ namespace Microsoft.PowerShell
         [Parameter(ParameterSetName = "OptionsSet")]
         public ViModeStyle ViModeIndicator
         {
-            get { return _viModeIndicator.GetValueOrDefault(); }
-            set { _viModeIndicator = value; }
+            get => _viModeIndicator.GetValueOrDefault();
+            set => _viModeIndicator = value;
         }
         internal ViModeStyle? _viModeIndicator;
         #endregion vi
@@ -569,24 +566,24 @@ namespace Microsoft.PowerShell
         [Parameter(ParameterSetName = "ColorSet", Position = 0, Mandatory = true)]
         public TokenClassification TokenKind
         {
-            get { return _tokenKind.GetValueOrDefault(); }
-            set { _tokenKind = value; }
+            get => _tokenKind.GetValueOrDefault();
+            set => _tokenKind = value;
         }
         internal TokenClassification? _tokenKind;
 
         [Parameter(ParameterSetName = "ColorSet", Position = 1)]
         public ConsoleColor ForegroundColor
         {
-            get { return _foregroundColor.GetValueOrDefault(); }
-            set { _foregroundColor = value; }
+            get => _foregroundColor.GetValueOrDefault();
+            set => _foregroundColor = value;
         }
         internal ConsoleColor? _foregroundColor;
 
         [Parameter(ParameterSetName = "ColorSet", Position = 2)]
         public ConsoleColor BackgroundColor
         {
-            get { return _backgroundColor.GetValueOrDefault(); }
-            set { _backgroundColor = value; }
+            get => _backgroundColor.GetValueOrDefault();
+            set => _backgroundColor = value;
         }
         internal ConsoleColor? _backgroundColor;
 
@@ -716,16 +713,16 @@ namespace Microsoft.PowerShell
         [Parameter]
         public SwitchParameter Bound
         {
-            get { return _bound.GetValueOrDefault(); }
-            set { _bound = value; }
+            get => _bound.GetValueOrDefault();
+            set => _bound = value;
         }
         private SwitchParameter? _bound;
 
         [Parameter]
         public SwitchParameter Unbound
         {
-            get { return _unbound.GetValueOrDefault(); }
-            set { _unbound = value; }
+            get => _unbound.GetValueOrDefault();
+            set => _unbound = value;
         }
         private SwitchParameter? _unbound;
 

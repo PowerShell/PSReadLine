@@ -15,10 +15,7 @@ namespace Microsoft.PowerShell
     public partial class PSConsoleReadLine
     {
         private readonly PSConsoleReadlineOptions _options;
-        private PSConsoleReadlineOptions Options
-        {
-            get { return _options; }
-        }
+        private PSConsoleReadlineOptions Options => _options;
 
         private void SetOptionsInternal(SetPSReadlineOption options)
         {

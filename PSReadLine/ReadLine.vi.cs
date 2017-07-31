@@ -23,25 +23,10 @@ namespace Microsoft.PowerShell
 
             public static ViCharacterSearcher instance = new ViCharacterSearcher();
 
-            public static bool IsRepeatable
-            {
-                get { return instance.searchChar != '\0'; }
-            }
-
-            public static char SearchChar
-            {
-                get { return instance.searchChar; }
-            }
-
-            public static bool WasBackward
-            {
-                get { return instance.wasBackward; }
-            }
-
-            public static bool WasBackoff
-            {
-                get { return instance.wasBackoff; }
-            }
+            public static bool IsRepeatable => instance.searchChar != '\0';
+            public static char SearchChar => instance.searchChar;
+            public static bool WasBackward => instance.wasBackward;
+            public static bool WasBackoff => instance.wasBackoff;
 
             public static void Set(char theChar, bool isBackward = false, bool isBackoff = false)
             {
@@ -49,7 +34,6 @@ namespace Microsoft.PowerShell
                 instance.wasBackward = isBackward;
                 instance.wasBackoff = isBackoff;
             }
-
 
             public static void Search(char keyChar, object arg, bool backoff)
             {

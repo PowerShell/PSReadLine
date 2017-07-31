@@ -112,20 +112,9 @@ namespace Microsoft.PowerShell.Internal
         {
             internal uint ColorDWORD;
 
-            internal uint R
-            {
-                get { return ColorDWORD & 0xff; }
-            }
-
-            internal uint G
-            {
-                get { return (ColorDWORD >> 8) & 0xff; }
-            }
-
-            internal uint B
-            {
-                get { return (ColorDWORD >> 16) & 0xff; }
-            }
+            internal uint R => ColorDWORD & 0xff;
+            internal uint G => (ColorDWORD >> 8) & 0xff;
+            internal uint B => (ColorDWORD >> 16) & 0xff;
         }
 
         [StructLayout(LayoutKind.Sequential)]
@@ -315,15 +304,15 @@ namespace Microsoft.PowerShell.Internal
         [ExcludeFromCodeCoverage]
         public ConsoleColor ForegroundColor
         {
-            get { return (ConsoleColor)(Attributes & 0xf); }
-            set { Attributes = (ushort)((Attributes & 0xfff0) | ((int)value & 0xf)); }
+            get => (ConsoleColor)(Attributes & 0xf);
+            set => Attributes = (ushort)((Attributes & 0xfff0) | ((int)value & 0xf));
         }
 
         [ExcludeFromCodeCoverage]
         public ConsoleColor BackgroundColor
         {
-            get { return (ConsoleColor)((Attributes & 0xf0) >> 4); }
-            set { Attributes = (ushort)((Attributes & 0xff0f) | (((int)value & 0xf) << 4)); }
+            get => (ConsoleColor)((Attributes & 0xf0) >> 4);
+            set => Attributes = (ushort)((Attributes & 0xff0f) | (((int)value & 0xf) << 4));
         }
 
         [ExcludeFromCodeCoverage]
@@ -474,69 +463,66 @@ namespace Microsoft.PowerShell.Internal
             return Console.ReadKey(true);
         }
 
-        public bool KeyAvailable
-        {
-            get { return Console.KeyAvailable; }
-        }
+        public bool KeyAvailable => Console.KeyAvailable;
 
         public int CursorLeft
         {
-            get { return Console.CursorLeft; }
-            set { Console.CursorLeft = value; }
+            get => Console.CursorLeft;
+            set => Console.CursorLeft = value;
         }
 
         public int CursorTop
         {
-            get { return Console.CursorTop; }
-            set { Console.CursorTop = value; }
+            get => Console.CursorTop;
+            set => Console.CursorTop = value;
         }
 
         public int CursorSize
         {
-            get { return Console.CursorSize; }
-            set { Console.CursorSize = value; }
+            get => Console.CursorSize;
+            set => Console.CursorSize = value;
         }
 
         public int BufferWidth
         {
-            get { return Console.BufferWidth; }
-            set { Console.BufferWidth = value; }
+            get => Console.BufferWidth;
+            set => Console.BufferWidth = value;
         }
 
         public int BufferHeight
         {
-            get { return Console.BufferHeight; }
-            set { Console.BufferHeight = value; }
+            get => Console.BufferHeight;
+            set => Console.BufferHeight = value;
         }
 
         public int WindowWidth
         {
-            get { return Console.WindowWidth; }
-            set { Console.WindowWidth = value; }
+            get => Console.WindowWidth;
+            set => Console.WindowWidth = value;
         }
 
         public int WindowHeight
         {
-            get { return Console.WindowHeight; }
-            set { Console.WindowHeight = value; }
+            get => Console.WindowHeight;
+            set => Console.WindowHeight = value;
         }
 
         public int WindowTop
         {
-            get { return Console.WindowTop; }
-            set { Console.WindowTop = value; }
+            get => Console.WindowTop;
+            set => Console.WindowTop = value;
         }
 
         public ConsoleColor BackgroundColor
         {
-            get { return Console.BackgroundColor; }
-            set { Console.BackgroundColor = value; }
+            get => Console.BackgroundColor;
+            set => Console.BackgroundColor = value;
         }
 
         public ConsoleColor ForegroundColor
         {
-            get { return Console.ForegroundColor; }
-            set { Console.ForegroundColor = value; }
+            get => Console.ForegroundColor;
+            set => Console.ForegroundColor = value;
         }
 
         public void SetWindowPosition(int left, int top)

@@ -40,7 +40,7 @@ namespace Microsoft.PowerShell
                     result = Function;
                 return result;
             }
-            set { _description = value; }
+            set => _description = value;
         }
         private string _description;
     }
@@ -65,13 +65,10 @@ namespace Microsoft.PowerShell
             public string BriefDescription;
             public string LongDescription
             {
-                get
-                {
-                    return _longDescription ??
-                           (_longDescription =
-                               PSReadLineResources.ResourceManager.GetString(BriefDescription + "Description"));
-                }
-                set { _longDescription = value; }
+                get => _longDescription ??
+                       (_longDescription =
+                           PSReadLineResources.ResourceManager.GetString(BriefDescription + "Description"));
+                set => _longDescription = value;
             }
             private string _longDescription;
             public ScriptBlock ScriptBlock;
