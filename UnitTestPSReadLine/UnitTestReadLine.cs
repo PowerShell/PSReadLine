@@ -354,8 +354,8 @@ namespace UnitTestPSReadLine
                 this.Handler = handler;
             }
 
-            public string Chord { get; private set; }
-            public Action<ConsoleKeyInfo?, object> Handler { get; private set; }
+            public string Chord { get; }
+            public Action<ConsoleKeyInfo?, object> Handler { get; }
         }
 
         private void AssertCursorLeftTopIs(int left, int top)
