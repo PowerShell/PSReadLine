@@ -470,7 +470,7 @@ namespace Microsoft.PowerShell
             charInfo.BackgroundColor = backgroundColor;
         }
 
-        private void PlaceCursor(int x, ref int y)
+        private void PlaceCursor(int x, int y)
         {
             int statusLineCount = GetStatusLineCount();
             if ((y + statusLineCount) >= _console.BufferHeight)
@@ -484,8 +484,7 @@ namespace Microsoft.PowerShell
         private void PlaceCursor()
         {
             var coordinates = ConvertOffsetToCoordinates(_current);
-            int y = coordinates.Y;
-            PlaceCursor(coordinates.X, ref y);
+            PlaceCursor(coordinates.X, coordinates.Y);
         }
 
         private COORD ConvertOffsetToCoordinates(int offset)

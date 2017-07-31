@@ -107,8 +107,7 @@ namespace Microsoft.PowerShell
             consoleBuffer[i+1].BackgroundColor = console.BackgroundColor;
             console.WriteBufferLines(consoleBuffer, ref _singleton._initialY);
 
-            var y = coordinates.Y + 1;
-            _singleton.PlaceCursor(0, ref y);
+            _singleton.PlaceCursor(0, coordinates.Y + 1);
             _singleton._buffer.Clear(); // Clear so we don't actually run the input
             _singleton._current = 0; // If Render is called, _current must be correct.
             _singleton._currentHistoryIndex = _singleton._history.Count;
@@ -293,8 +292,7 @@ namespace Microsoft.PowerShell
             }
 
             var coordinates = ConvertOffsetToCoordinates(_current);
-            var y = coordinates.Y + 1;
-            PlaceCursor(0, ref y);
+            PlaceCursor(0, coordinates.Y + 1);
             _inputAccepted = true;
             return true;
         }
