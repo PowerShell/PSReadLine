@@ -4,9 +4,7 @@ Copyright (c) Microsoft Corporation.  All rights reserved.
 
 using System;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Management.Automation.Language;
-using Microsoft.PowerShell.Internal;
 
 namespace Microsoft.PowerShell
 {

@@ -3,13 +3,10 @@ Copyright (c) Microsoft Corporation.  All rights reserved.
 --********************************************************************/
 
 using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Management.Automation;
 using System.Management.Automation.Language;
-using System.Management.Automation.Runspaces;
-using Microsoft.PowerShell.Internal;
 
 namespace Microsoft.PowerShell
 {

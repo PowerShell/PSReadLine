@@ -2,9 +2,6 @@
 Copyright (c) Microsoft Corporation.  All rights reserved.
 --********************************************************************/
 
-using System.Collections.Generic;
-using System.Management.Automation.Language;
-
 namespace Microsoft.PowerShell
 {
     public partial class PSConsoleReadLine
