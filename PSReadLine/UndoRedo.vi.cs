@@ -10,8 +10,8 @@ namespace Microsoft.PowerShell
     {
         private class GroupUndoHelper
         {
-            public Action<ConsoleKeyInfo?, object> _instigator = null;
-            public object _instigatorArg = null;
+            public Action<ConsoleKeyInfo?, object> _instigator;
+            public object _instigatorArg;
 
             public GroupUndoHelper()
             {

@@ -396,9 +396,9 @@ namespace Microsoft.PowerShell.Internal
         [SuppressMessage("Microsoft.Reliability", "CA2006:UseSafeHandleToEncapsulateNativeResources")]
         private IntPtr _hDC = (IntPtr)0;
         private uint _codePage;
-        private bool _istmInitialized = false;
-        private TEXTMETRIC _tm = new TEXTMETRIC();
-        private bool _trueTypeInUse = false;
+        private bool _istmInitialized;
+        private TEXTMETRIC _tm;
+        private bool _trueTypeInUse;
 
         private readonly Lazy<SafeFileHandle> _outputHandle = new Lazy<SafeFileHandle>(() =>
         {

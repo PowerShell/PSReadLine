@@ -9,8 +9,8 @@ namespace Microsoft.PowerShell
 {
     public partial class PSConsoleReadLine
     {
-        private string _visualEditTemporaryFilename = null;
-        private Func<string, bool> _savedAddToHistoryHandler = null;
+        private string _visualEditTemporaryFilename;
+        private Func<string, bool> _savedAddToHistoryHandler;
 
         /// <summary>
         /// Edit the command line in a text editor specified by $env:EDITOR or $env:VISUAL

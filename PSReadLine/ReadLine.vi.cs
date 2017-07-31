@@ -18,8 +18,8 @@ namespace Microsoft.PowerShell
         private class ViCharacterSearcher
         {
             private char searchChar = '\0';
-            private bool wasBackward = false;
-            private bool wasBackoff = false;
+            private bool wasBackward;
+            private bool wasBackoff;
 
             public static ViCharacterSearcher instance = new ViCharacterSearcher();
 

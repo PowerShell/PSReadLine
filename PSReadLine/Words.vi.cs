@@ -7,7 +7,7 @@ namespace Microsoft.PowerShell
     public partial class PSConsoleReadLine
     {
         private char _lastWordDelimiter = char.MinValue;
-        private bool _shouldAppend = false;
+        private bool _shouldAppend;
 
         /// <summary>
         /// Returns the position of the beginning of the next word as delimited by white space and delimiters.
