@@ -28,7 +28,7 @@ namespace Microsoft.PowerShell
             public static bool WasBackward => instance.wasBackward;
             public static bool WasBackoff => instance.wasBackoff;
 
-            public static void Set(char theChar, bool isBackward = false, bool isBackoff = false)
+            public static void Set(char theChar, bool isBackward, bool isBackoff)
             {
                 instance.searchChar = theChar;
                 instance.wasBackward = isBackward;

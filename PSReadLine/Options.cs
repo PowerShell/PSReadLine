@@ -285,10 +285,18 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
+        /// Return all bound key handlers.
+        /// </summary>
+        public static IEnumerable<Microsoft.PowerShell.KeyHandler> GetKeyHandlers()
+        {
+            return GetKeyHandlers(includeBound: true, includeUnbound: false);
+        }
+
+        /// <summary>
         /// Helper function for the Get-PSReadlineKeyHandler cmdlet.
         /// </summary>
         /// <returns></returns>
-        public static IEnumerable<Microsoft.PowerShell.KeyHandler> GetKeyHandlers(bool includeBound = true, bool includeUnbound = false)
+        public static IEnumerable<Microsoft.PowerShell.KeyHandler> GetKeyHandlers(bool includeBound, bool includeUnbound)
         {
             var boundFunctions = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
