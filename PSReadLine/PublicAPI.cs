@@ -51,10 +51,6 @@ namespace Microsoft.PowerShell
             void ScrollBuffer(int lines);
             CHAR_INFO[] ReadBufferLines(int top, int count);
 
-            void StartRender();
-            int LengthInBufferCells(char c);
-            void EndRender();
-
             bool IsHandleRedirected(bool stdin);
         }
 

@@ -235,19 +235,6 @@ namespace UnitTestPSReadLine
             return result;
         }
 
-        public void StartRender()
-        {
-        }
-
-        public int LengthInBufferCells(char c)
-        {
-            return 1;
-        }
-
-        public void EndRender()
-        {
-        }
-
         public bool IsHandleRedirected(bool stdin)
         {
             return false;
