@@ -160,7 +160,7 @@ namespace UnitTestPSReadLine
                 _.CtrlC, InputAcceptedNow));
         }
 
-        static internal CommandCompletion MockedCompleteInput(string input, int cursor, Hashtable options, PowerShell powerShell)
+        internal static CommandCompletion MockedCompleteInput(string input, int cursor, Hashtable options, PowerShell powerShell)
         {
             var ctor = typeof (CommandCompletion).GetConstructor(
                 BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance, null, 

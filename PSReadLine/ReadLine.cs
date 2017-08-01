@@ -58,7 +58,7 @@ namespace Microsoft.PowerShell
         private static Stopwatch _readkeyStopwatch = new Stopwatch();
 
         // Save a fixed # of keys so we can reconstruct a repro after a crash
-        private readonly static HistoryQueue<ConsoleKeyInfo> _lastNKeys = new HistoryQueue<ConsoleKeyInfo>(200);
+        private static readonly HistoryQueue<ConsoleKeyInfo> _lastNKeys = new HistoryQueue<ConsoleKeyInfo>(200);
 
         // Tokens etc.
         private Token[] _tokens;
