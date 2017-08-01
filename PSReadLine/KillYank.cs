@@ -53,10 +53,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void ClearKillRing()
         {
-            if (_singleton._killRing != null)
-            {
-                _singleton._killRing.Clear();
-            }
+            _singleton._killRing?.Clear();
             _singleton._killIndex = -1;    // So first add indexes 0.
         }
 
@@ -317,12 +314,9 @@ namespace Microsoft.PowerShell
 
             var yankLastArgState = _singleton._yankLastArgState;
 
-            if (arg != null)
+            if ((int?) arg < 0)
             {
-                if ((int)arg < 0)
-                {
-                    yankLastArgState.historyIncrement = -yankLastArgState.historyIncrement;
-                }
+                yankLastArgState.historyIncrement = -yankLastArgState.historyIncrement;
             }
 
             yankLastArgState.historyIndex += yankLastArgState.historyIncrement;

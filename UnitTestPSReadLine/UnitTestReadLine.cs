@@ -42,7 +42,7 @@ namespace UnitTestPSReadLine
         internal int index;
         internal object[] inputOrValidateItems;
         internal Exception validationFailure;
-        private CHAR_INFO[] buffer;
+        private readonly CHAR_INFO[] buffer;
         private readonly int _bufferWidth;
         private readonly int _bufferHeight;
         private readonly int _windowWidth;
@@ -341,7 +341,7 @@ namespace UnitTestPSReadLine
         /*Member*/    ConsoleColor.Yellow,
         };
 
-        static Dictionary<char, ConsoleKeyInfo> CharToKeyInfo = new Dictionary<char, ConsoleKeyInfo>();
+        static readonly Dictionary<char, ConsoleKeyInfo> CharToKeyInfo = new Dictionary<char, ConsoleKeyInfo>();
 
         class KeyHandler
         {
@@ -447,10 +447,10 @@ namespace UnitTestPSReadLine
         }
 
         private class NextLineToken { }
-        static NextLineToken NextLine = new NextLineToken();
+        static readonly NextLineToken NextLine = new NextLineToken();
 
         private class InvertedToken { }
-        static InvertedToken Inverted = new InvertedToken();
+        static readonly InvertedToken Inverted = new InvertedToken();
 
         private CHAR_INFO[] CreateCharInfoBuffer(int lines, params object[] items)
         {

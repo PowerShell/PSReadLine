@@ -22,7 +22,7 @@ namespace Microsoft.PowerShell
         private CommandCompletion _tabCompletions;
         private Runspace _runspace;
 
-        private Dictionary<CompletionResultType, ConsoleKeyInfo []> doneCompletionKeys = new Dictionary<CompletionResultType, ConsoleKeyInfo []>()
+        private readonly Dictionary<CompletionResultType, ConsoleKeyInfo []> doneCompletionKeys = new Dictionary<CompletionResultType, ConsoleKeyInfo []>()
         {
             { CompletionResultType.Variable, new ConsoleKeyInfo[]  { Keys.Period } },
             { CompletionResultType.Namespace, new ConsoleKeyInfo[]  { Keys.Period } },

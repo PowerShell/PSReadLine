@@ -289,10 +289,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void ClearHistory(ConsoleKeyInfo? key = null, object arg = null)
         {
-            if (_singleton._history != null)
-            {
-                _singleton._history.Clear();
-            }
+            _singleton._history?.Clear();
             _singleton._currentHistoryIndex = 0;
         }
 

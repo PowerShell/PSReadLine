@@ -55,7 +55,7 @@ namespace Microsoft.PowerShell
         private bool _inputAccepted;
         private readonly Queue<ConsoleKeyInfo> _queuedKeys;
         private Stopwatch _lastRenderTime;
-        private static Stopwatch _readkeyStopwatch = new Stopwatch();
+        private static readonly Stopwatch _readkeyStopwatch = new Stopwatch();
 
         // Save a fixed # of keys so we can reconstruct a repro after a crash
         private static readonly HistoryQueue<ConsoleKeyInfo> _lastNKeys = new HistoryQueue<ConsoleKeyInfo>(200);
@@ -67,7 +67,7 @@ namespace Microsoft.PowerShell
 
         bool IPSConsoleReadLineMockableMethods.RunspaceIsRemote(Runspace runspace)
         {
-            return runspace != null && runspace.ConnectionInfo != null;
+            return runspace?.ConnectionInfo != null;
         }
 
         private void ReadOneOrMoreKeys()
@@ -141,13 +141,11 @@ namespace Microsoft.PowerShell
                     handleId = WaitHandle.WaitAny(_singleton._requestKeyWaitHandles, 300);
                     if (handleId != WaitHandle.WaitTimeout)
                         break;
-                    if (_singleton._engineIntrinsics == null)
-                        continue;
 
                     // If we timed out, check for event subscribers (which is just
                     // a hint that there might be an event waiting to be processed.)
-                    var eventSubscribers = _singleton._engineIntrinsics.Events.Subscribers;
-                    if (eventSubscribers.Count > 0)
+                    var eventSubscribers = _singleton._engineIntrinsics?.Events.Subscribers;
+                    if (eventSubscribers?.Count > 0)
                     {
                         bool runPipelineForEventProcessing = false;
                         foreach (var sub in eventSubscribers)
@@ -198,7 +196,7 @@ namespace Microsoft.PowerShell
             }
             finally
             {
-                if (ps != null) { ps.Dispose(); }
+                ps?.Dispose();
             }
 
             if (handleId == 1)
@@ -594,13 +592,10 @@ namespace Microsoft.PowerShell
             // specifies a custom history save file, we don't want to try reading
             // from the default one.
 
-            if (_engineIntrinsics != null)
+            var historyCountVar = _engineIntrinsics?.SessionState.PSVariable.Get("MaximumHistoryCount");
+            if (historyCountVar?.Value is int historyCountValue)
             {
-                var historyCountVar = _engineIntrinsics.SessionState.PSVariable.Get("MaximumHistoryCount");
-                if (historyCountVar != null && historyCountVar.Value is int)
-                {
-                    _options.MaximumHistoryCount = (int)historyCountVar.Value;
-                }
+                _options.MaximumHistoryCount = historyCountValue;
             }
 
             _historyFileMutex = new Mutex(false, GetHistorySaveFileMutexName());

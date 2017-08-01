@@ -21,7 +21,7 @@ namespace Microsoft.PowerShell
             private bool wasBackward;
             private bool wasBackoff;
 
-            public static ViCharacterSearcher instance = new ViCharacterSearcher();
+            public static readonly ViCharacterSearcher instance = new ViCharacterSearcher();
 
             public static bool IsRepeatable => instance.searchChar != '\0';
             public static char SearchChar => instance.searchChar;

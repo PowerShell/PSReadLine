@@ -9,8 +9,8 @@ namespace Microsoft.PowerShell
 {
     internal class ConsoleBufferBuilder
     {
-        private List<CHAR_INFO> buffer;
-        private IConsole _console;
+        private readonly List<CHAR_INFO> buffer;
+        private readonly IConsole _console;
 
         public ConsoleBufferBuilder(int capacity, IConsole console)
         {

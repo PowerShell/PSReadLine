@@ -41,7 +41,7 @@ namespace Microsoft.PowerShell
                 Clear();
             }
         }
-        private GroupUndoHelper _groupUndoHelper = new GroupUndoHelper();
+        private readonly GroupUndoHelper _groupUndoHelper = new GroupUndoHelper();
 
         /// <summary>
         /// Undo all previous edits for line.

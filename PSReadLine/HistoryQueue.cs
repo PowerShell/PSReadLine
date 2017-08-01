@@ -19,9 +19,7 @@ namespace Microsoft.PowerShell
 
         public QueueDebugView(HistoryQueue<T> queue)
         {
-            if (queue == null)
-                throw new ArgumentNullException(nameof(queue));
-            this._queue = queue;
+            this._queue = queue ?? throw new ArgumentNullException(nameof(queue));
         }
     }
 
