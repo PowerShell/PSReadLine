@@ -22,16 +22,16 @@ namespace Microsoft.PowerShell
         private CommandCompletion _tabCompletions;
         private Runspace _runspace;
 
-        private readonly Dictionary<CompletionResultType, ConsoleKeyInfo []> doneCompletionKeys = new Dictionary<CompletionResultType, ConsoleKeyInfo []>()
+        private readonly Dictionary<CompletionResultType, ConsoleKeyInfo []> doneCompletionKeys = new Dictionary<CompletionResultType, ConsoleKeyInfo []>
         {
-            { CompletionResultType.Variable, new ConsoleKeyInfo[]  { Keys.Period } },
-            { CompletionResultType.Namespace, new ConsoleKeyInfo[]  { Keys.Period } },
-            { CompletionResultType.Property, new ConsoleKeyInfo[]  { Keys.Period } },
-            { CompletionResultType.ProviderContainer, new ConsoleKeyInfo[]  { Keys.Backslash, Keys.Slash } },
-            { CompletionResultType.Method, new ConsoleKeyInfo[] { Keys.LParen, Keys.RParen } },
-            { CompletionResultType.Type, new ConsoleKeyInfo[] { Keys.RBracket } },
-            { CompletionResultType.ParameterName, new ConsoleKeyInfo[] { Keys.Colon } },
-            { CompletionResultType.ParameterValue, new ConsoleKeyInfo[] { Keys.Comma } },
+            { CompletionResultType.Variable,          new[] { Keys.Period } },
+            { CompletionResultType.Namespace,         new[] { Keys.Period } },
+            { CompletionResultType.Property,          new[] { Keys.Period } },
+            { CompletionResultType.ProviderContainer, new[] { Keys.Backslash, Keys.Slash } },
+            { CompletionResultType.Method,            new[] { Keys.LParen, Keys.RParen } },
+            { CompletionResultType.Type,              new[] { Keys.RBracket } },
+            { CompletionResultType.ParameterName,     new[] { Keys.Colon } },
+            { CompletionResultType.ParameterValue,    new[] { Keys.Comma } },
         };
 
         // Stub helper method so completion can be mocked
