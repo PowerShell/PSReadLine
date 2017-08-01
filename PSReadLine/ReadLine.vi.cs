@@ -951,7 +951,7 @@ namespace Microsoft.PowerShell
         {
             if (!key.HasValue)
             {
-                throw new ArgumentNullException("key");
+                throw new ArgumentNullException(nameof(key));
             }
             if (arg != null)
             {

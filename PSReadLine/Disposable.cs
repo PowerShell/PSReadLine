@@ -9,7 +9,7 @@ namespace Microsoft.PowerShell
         public Disposable(Action onDispose)
         {
             if (onDispose == null)
-                throw new ArgumentNullException("onDispose");
+                throw new ArgumentNullException(nameof(onDispose));
 
             m_onDispose = onDispose;
         }

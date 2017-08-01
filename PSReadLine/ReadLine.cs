@@ -665,7 +665,7 @@ namespace Microsoft.PowerShell
         {
             if (!key.HasValue)
             {
-                throw new ArgumentNullException("key");
+                throw new ArgumentNullException(nameof(key));
             }
 
             if (_singleton._chordDispatchTable.TryGetValue(key.Value, out var secondKeyDispatchTable))

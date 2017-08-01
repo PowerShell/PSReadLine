@@ -128,11 +128,11 @@ namespace Microsoft.PowerShell
         {
             if (start < 0 || start > _singleton._buffer.Length)
             {
-                throw new ArgumentException(PSReadLineResources.StartOutOfRange, "start");
+                throw new ArgumentException(PSReadLineResources.StartOutOfRange, nameof(start));
             }
             if (length > (_singleton._buffer.Length - start))
             {
-                throw new ArgumentException(PSReadLineResources.ReplacementLengthTooBig, "length");
+                throw new ArgumentException(PSReadLineResources.ReplacementLengthTooBig, nameof(length));
             }
 
             bool useEditGroup = (_singleton._editGroupStart == -1);

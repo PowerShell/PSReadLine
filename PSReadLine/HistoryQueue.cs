@@ -20,12 +20,12 @@ namespace Microsoft.PowerShell
         public QueueDebugView(HistoryQueue<T> queue)
         {
             if (queue == null)
-                throw new ArgumentNullException("queue");
+                throw new ArgumentNullException(nameof(queue));
             this._queue = queue;
         }
     }
 
-    [DebuggerDisplay("Count = {Count}")]
+    [DebuggerDisplay("Count = {" + nameof(Count) + "}")]
     [DebuggerTypeProxy(typeof(QueueDebugView<>))]
     internal class HistoryQueue<T>
     {

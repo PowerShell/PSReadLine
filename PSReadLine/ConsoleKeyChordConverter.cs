@@ -29,7 +29,7 @@ namespace Microsoft.PowerShell
         {
             if (string.IsNullOrEmpty(chord))
             {
-                throw new ArgumentNullException("chord");
+                throw new ArgumentNullException(nameof(chord));
             }
 
             var tokens = chord.Split(new[] {','});

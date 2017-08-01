@@ -14,7 +14,7 @@ namespace Microsoft.PowerShell
 {
     public partial class PSConsoleReadLine
     {
-        [DebuggerDisplay("{_line}")]
+        [DebuggerDisplay("{" + nameof(_line) + "}")]
         class HistoryItem
         {
             public string _line;
