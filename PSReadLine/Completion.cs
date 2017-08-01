@@ -403,7 +403,7 @@ namespace Microsoft.PowerShell
             int splitPos = 10;
 			// TODO: will crash for console width < splitPos + 3
 
-            ///TODO: is it needed ?
+            // TODO: is it needed ?
             // insert '.'
             //if (s.Length - maxLength <= 2)
             //    return s.Substring(0, maxLength - splitPos - 1) + '.' + s.Substring(s.Length - splitPos, splitPos);
