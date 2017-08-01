@@ -481,8 +481,7 @@ namespace UnitTestPSReadLine
                     bg = _console.BackgroundColor;
                     // Fallthrough to string case.
                 }
-                var str = item as string;
-                if (str != null)
+                if (item is string str)
                 {
                     result.AddRange(str.Select(c => new CHAR_INFO(c, fg, bg)));
                     continue;
@@ -493,8 +492,7 @@ namespace UnitTestPSReadLine
                     bg = BackgroundColors[(int)(TokenClassification)item];
                     continue;
                 }
-                var tuple = item as Tuple<ConsoleColor, ConsoleColor>;
-                if (tuple != null)
+                if (item is Tuple<ConsoleColor, ConsoleColor> tuple)
                 {
                     fg = tuple.Item1;
                     bg = tuple.Item2;
@@ -528,8 +526,7 @@ namespace UnitTestPSReadLine
             var list = new List<object>();
             foreach (var t in input)
             {
-                var enumerable = t as IEnumerable;
-                if (enumerable != null && !(t is string))
+                if (t is IEnumerable enumerable && !(t is string))
                 {
                     foreach (var i in enumerable)
                     {
@@ -575,8 +572,7 @@ namespace UnitTestPSReadLine
 
         private static void NewAddSingleKeyToList(object t, List<object> list)
         {
-            var s = t as string;
-            if (s != null)
+            if (t is string s)
             {
                 foreach (var c in s)
                 {
