@@ -373,9 +373,7 @@ namespace UnitTestPSReadLine
 
         private void AssertLineIs(string expected)
         {
-            string input;
-            int unused;
-            PSConsoleReadLine.GetBufferState(out input, out unused);
+            PSConsoleReadLine.GetBufferState(out var input, out var unused);
             Assert.AreEqual(expected, input);
         }
 
