@@ -18,7 +18,7 @@
 param([switch]$Install,
       [string]$Configuration = (property Configuration Release))
 
-use 4.0 MSBuild
+use 15.0 MSBuild
 
 # Final bits to release go here
 $targetDir = "bin/$Configuration/PSReadline"
