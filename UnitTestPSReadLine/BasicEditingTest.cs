@@ -54,22 +54,22 @@ namespace UnitTestPSReadLine
 
             // Test near/at/over buffer width input
             var width = _console.BufferWidth;
-            var line = new string('a', width - 2);
-            Test("", Keys(line, _.CtrlC,
+            var line1 = new string('a', width - 2);
+            Test("", Keys(line1, _.CtrlC,
                 CheckThat(() => AssertScreenIs(1,
-                    TokenClassification.Command, line,
+                    TokenClassification.Command, line1,
                     Tuple.Create(ConsoleColor.Red, _console.BackgroundColor), "^C")),
                 InputAcceptedNow));
-            line = new string('a', width - 1);
-            Test("", Keys(line, _.CtrlC,
+            var line2 = new string('a', width - 1);
+            Test("", Keys(line2, _.CtrlC,
                 CheckThat(() => AssertScreenIs(2,
-                    TokenClassification.Command, line,
+                    TokenClassification.Command, line2,
                     Tuple.Create(ConsoleColor.Red, _console.BackgroundColor), "^C")),
                 InputAcceptedNow));
-            line = new string('a', width);
-            Test("", Keys(line, _.CtrlC,
+            var line3 = new string('a', width);
+            Test("", Keys(line3, _.CtrlC,
                 CheckThat(() => AssertScreenIs(2,
-                    TokenClassification.Command, line,
+                    TokenClassification.Command, line3,
                     Tuple.Create(ConsoleColor.Red, _console.BackgroundColor), "^C")),
                 InputAcceptedNow));
         }
