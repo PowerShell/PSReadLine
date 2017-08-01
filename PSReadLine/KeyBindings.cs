@@ -260,28 +260,29 @@ namespace Microsoft.PowerShell
                 { Keys.CtrlEnd,         MakeKeyHandler(ScrollDisplayToCursor,"ScrollDisplayToCursor") },
             };
 
-            _chordDispatchTable = new Dictionary<ConsoleKeyInfo, Dictionary<ConsoleKeyInfo, KeyHandler>>();
-
-            // Escape,<key> table (meta key)
-            _chordDispatchTable[Keys.Escape] = new Dictionary<ConsoleKeyInfo, KeyHandler>(new ConsoleKeyInfoComparer())
+            _chordDispatchTable = new Dictionary<ConsoleKeyInfo, Dictionary<ConsoleKeyInfo, KeyHandler>>
             {
-                { Keys.B,               MakeKeyHandler(BackwardWord,         "BackwardWord") },
-                { Keys.D,               MakeKeyHandler(KillWord,             "KillWord") },
-                { Keys.F,               MakeKeyHandler(ForwardWord,          "ForwardWord") },
-                { Keys.R,               MakeKeyHandler(RevertLine,           "RevertLine") },
-                { Keys.Y,               MakeKeyHandler(YankPop,              "YankPop") },
-                { Keys.CtrlY,           MakeKeyHandler(YankNthArg,           "YankNthArg") },
-                { Keys.Backspace,       MakeKeyHandler(BackwardKillWord,     "BackwardKillWord") },
-                { Keys.Period,          MakeKeyHandler(YankLastArg,          "YankLastArg") },
-                { Keys.Underbar,        MakeKeyHandler(YankLastArg,          "YankLastArg") },
-            };
+                // Escape,<key> table (meta key)
+                [Keys.Escape] = new Dictionary<ConsoleKeyInfo, KeyHandler>(new ConsoleKeyInfoComparer())
+                {
+                    { Keys.B,         MakeKeyHandler(BackwardWord,     "BackwardWord") },
+                    { Keys.D,         MakeKeyHandler(KillWord,         "KillWord")},
+                    { Keys.F,         MakeKeyHandler(ForwardWord,      "ForwardWord")},
+                    { Keys.R,         MakeKeyHandler(RevertLine,       "RevertLine")},
+                    { Keys.Y,         MakeKeyHandler(YankPop,          "YankPop")},
+                    { Keys.CtrlY,     MakeKeyHandler(YankNthArg,       "YankNthArg")},
+                    { Keys.Backspace, MakeKeyHandler(BackwardKillWord, "BackwardKillWord")},
+                    { Keys.Period,    MakeKeyHandler(YankLastArg,      "YankLastArg")},
+                    { Keys.Underbar,  MakeKeyHandler(YankLastArg,      "YankLastArg")},
+                },
 
-            // Ctrl+X,<key> table
-            _chordDispatchTable[Keys.CtrlX] = new Dictionary<ConsoleKeyInfo, KeyHandler>(new ConsoleKeyInfoComparer())
-            {
-                { Keys.Backspace,       MakeKeyHandler(BackwardKillLine,     "BackwardKillLine") },
-                { Keys.CtrlU,           MakeKeyHandler(Undo,                 "Undo") },
-                { Keys.CtrlX,           MakeKeyHandler(ExchangePointAndMark, "ExchangePointAndMark") },
+                // Ctrl+X,<key> table
+                [Keys.CtrlX] = new Dictionary<ConsoleKeyInfo, KeyHandler>(new ConsoleKeyInfoComparer())
+                {
+                    { Keys.Backspace, MakeKeyHandler(BackwardKillLine,     "BackwardKillLine") },
+                    { Keys.CtrlU,     MakeKeyHandler(Undo,                 "Undo") },
+                    { Keys.CtrlX,     MakeKeyHandler(ExchangePointAndMark, "ExchangePointAndMark") },
+                }
             };
         }
 
