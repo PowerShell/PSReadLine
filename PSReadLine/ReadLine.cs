@@ -542,10 +542,6 @@ namespace Microsoft.PowerShell
             _inputAccepted = false;
             _initialX = _console.CursorLeft;
             _initialY = _console.CursorTop - Options.ExtraPromptLineCount;
-            _initialBackgroundColor = _console.BackgroundColor;
-            _initialForegroundColor = _console.ForegroundColor;
-            _space = new CHAR_INFO(' ', _initialForegroundColor, _initialBackgroundColor);
-            _bufferWidth = _console.BufferWidth;
             _killCommandCount = 0;
             _yankCommandCount = 0;
             _yankLastArgCommandCount = 0;
@@ -553,7 +549,6 @@ namespace Microsoft.PowerShell
             _visualSelectionCommandCount = 0;
             _statusIsErrorMessage = false;
 
-            _consoleBuffer = ReadBufferLines(_initialY, 1 + Options.ExtraPromptLineCount);
             _lastRenderTime = Stopwatch.StartNew();
 
             _killCommandCount = 0;
@@ -814,20 +809,6 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void InvokePrompt(ConsoleKeyInfo? key = null, object arg = null)
         {
-            var currentBuffer = _singleton._buffer.ToString();
-            var currentPos = _singleton._current;
-            _singleton._buffer.Clear();
-            _singleton._current = 0;
-            for (int i = 0; i < _singleton._consoleBuffer.Length; i++)
-            {
-                _singleton._consoleBuffer[i].UnicodeChar = ' ';
-                _singleton._consoleBuffer[i].ForegroundColor = _singleton._console.ForegroundColor;
-                _singleton._consoleBuffer[i].BackgroundColor = _singleton._console.BackgroundColor;
-            }
-            _singleton.Render();
-            _singleton._console.CursorLeft = 0;
-            _singleton._console.CursorTop = _singleton._initialY;
-
             var runspaceIsRemote = _singleton._mockableMethods.RunspaceIsRemote(_singleton._runspace);
             System.Management.Automation.PowerShell ps;
             if (!runspaceIsRemote)
@@ -839,6 +820,8 @@ namespace Microsoft.PowerShell
                 ps = System.Management.Automation.PowerShell.Create();
                 ps.Runspace = _singleton._runspace;
             }
+
+            // TODO: move cursor to newline
             string newPrompt;
             using (ps)
             {
@@ -857,10 +840,6 @@ namespace Microsoft.PowerShell
             }
             _singleton._console.Write(newPrompt);
 
-            _singleton._initialX = _singleton._console.CursorLeft;
-            _singleton._consoleBuffer = ReadBufferLines(_singleton._initialY, 1 + _singleton.Options.ExtraPromptLineCount);
-            _singleton._buffer.Append(currentBuffer);
-            _singleton._current = currentPos;
             _singleton.Render();
         }
 

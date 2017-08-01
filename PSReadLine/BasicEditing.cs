@@ -81,27 +81,10 @@ namespace Microsoft.PowerShell
         {
             _singleton.ClearStatusMessage(false);
             _singleton._current = _singleton._buffer.Length;
-            // We want to display ^C to show the line was canceled.  Instead of appending ^C
-            // (or (char)3), we append 2 spaces so we don't affect tokenization too much, e.g.
-            // changing a keyword to a command.
-            _singleton._buffer.Append("  ");
             _singleton.ReallyRender();
 
-            // Now that we've rendered with this extra spaces, go back and replace the spaces
-            // with ^C colored in red (so it stands out.)
-            var coordinates = _singleton.ConvertOffsetToCoordinates(_singleton._current);
-            var console = _singleton._console;
-            var consoleBuffer = _singleton._consoleBuffer;
-            int i = (coordinates.Y - _singleton._initialY) * console.BufferWidth + coordinates.X;
-            consoleBuffer[i].UnicodeChar = '^';
-            consoleBuffer[i].ForegroundColor = ConsoleColor.Red;
-            consoleBuffer[i].BackgroundColor = console.BackgroundColor;
-            consoleBuffer[i+1].UnicodeChar = 'C';
-            consoleBuffer[i+1].ForegroundColor = ConsoleColor.Red;
-            consoleBuffer[i+1].BackgroundColor = console.BackgroundColor;
-            console.WriteBufferLines(consoleBuffer, ref _singleton._initialY);
+            _singleton._console.Write("\x1b[91m^C\x1b[0m");
 
-            _singleton.PlaceCursor(0, coordinates.Y + 1);
             _singleton._buffer.Clear(); // Clear so we don't actually run the input
             _singleton._current = 0; // If Render is called, _current must be correct.
             _singleton._currentHistoryIndex = _singleton._history.Count;
