@@ -961,11 +961,6 @@ namespace Microsoft.PowerShell
 
             if (_singleton._chordDispatchTable.TryGetValue(key.Value, out var secondKeyDispatchTable))
             {
-                //if (_singleton._demoMode)
-                //{
-                //    // Render so the first key of the chord appears in the demo window
-                //    _singleton.Render();
-                //}
                 var secondKey = ReadKey();
                 if (secondKeyDispatchTable.TryGetValue(secondKey, out var handler))
                 {
