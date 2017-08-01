@@ -75,7 +75,7 @@ namespace UnitTestPSReadLine
             {
                 var line = new string('a', i);
                 var digitArgKey = new ConsoleKeyInfo(
-                    (char)((int)'0' + i), (ConsoleKey)(ConsoleKey.D0 + i), false, true, false);
+                    (char)('0' + i), ConsoleKey.D0 + i, false, true, false);
                 Test(line, Keys(digitArgKey, 'a'));
 
                 line = new string('z', i * 10);

@@ -755,7 +755,7 @@ namespace Microsoft.PowerShell.Internal
                     }
                     _istmInitialized = true;
                 }
-                result = NativeMethods.GetCharWidth32(_hDC, (uint)c, (uint)c, out var width);
+                result = NativeMethods.GetCharWidth32(_hDC, c, c, out var width);
                 if (!result)
                 {
                     return 1;
