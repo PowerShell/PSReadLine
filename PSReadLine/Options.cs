@@ -287,7 +287,7 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Return all bound key handlers.
         /// </summary>
-        public static IEnumerable<Microsoft.PowerShell.KeyHandler> GetKeyHandlers()
+        public static IEnumerable<PowerShell.KeyHandler> GetKeyHandlers()
         {
             return GetKeyHandlers(includeBound: true, includeUnbound: false);
         }
@@ -296,7 +296,7 @@ namespace Microsoft.PowerShell
         /// Helper function for the Get-PSReadlineKeyHandler cmdlet.
         /// </summary>
         /// <returns></returns>
-        public static IEnumerable<Microsoft.PowerShell.KeyHandler> GetKeyHandlers(bool includeBound, bool includeUnbound)
+        public static IEnumerable<PowerShell.KeyHandler> GetKeyHandlers(bool includeBound, bool includeUnbound)
         {
             var boundFunctions = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
@@ -310,7 +310,7 @@ namespace Microsoft.PowerShell
                 boundFunctions.Add(entry.Value.BriefDescription);
                 if (includeBound)
                 {
-                    yield return new Microsoft.PowerShell.KeyHandler
+                    yield return new PowerShell.KeyHandler
                     {
                         Key = entry.Key.ToGestureString(),
                         Function = entry.Value.BriefDescription,
@@ -332,7 +332,7 @@ namespace Microsoft.PowerShell
                     boundFunctions.Add(entry.Value.BriefDescription);
                     if (includeBound)
                     {
-                        yield return new Microsoft.PowerShell.KeyHandler
+                        yield return new PowerShell.KeyHandler
                         {
                             Key = "<" + entry.Key.ToGestureString() + ">",
                             Function = entry.Value.BriefDescription,
@@ -349,7 +349,7 @@ namespace Microsoft.PowerShell
                     boundFunctions.Add( secondEntry.Value.BriefDescription );
                     if (includeBound)
                     {
-                        yield return new Microsoft.PowerShell.KeyHandler
+                        yield return new PowerShell.KeyHandler
                         {
                             Key = entry.Key.ToGestureString() + "," + secondEntry.Key.ToGestureString(),
                             Function = secondEntry.Value.BriefDescription,
@@ -373,7 +373,7 @@ namespace Microsoft.PowerShell
                         boundFunctions.Add(secondEntry.Value.BriefDescription);
                         if (includeBound)
                         {
-                            yield return new Microsoft.PowerShell.KeyHandler
+                            yield return new PowerShell.KeyHandler
                             {
                                 Key = "<" + entry.Key.ToGestureString() + "," + secondEntry.Key.ToGestureString() + ">",
                                 Function = secondEntry.Value.BriefDescription,
@@ -402,7 +402,7 @@ namespace Microsoft.PowerShell
 
                     if (!boundFunctions.Contains(method.Name))
                     {
-                        yield return new Microsoft.PowerShell.KeyHandler
+                        yield return new PowerShell.KeyHandler
                         {
                             Key = "Unbound",
                             Function = method.Name,

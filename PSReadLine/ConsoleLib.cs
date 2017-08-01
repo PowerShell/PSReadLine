@@ -775,7 +775,7 @@ namespace Microsoft.PowerShell.Internal
             var consoleHandle = _outputHandle.Value;
             try
             {
-                CONSOLE_FONT_INFO_EX fontInfo = ConhostConsole.GetConsoleFontInfo(consoleHandle);
+                CONSOLE_FONT_INFO_EX fontInfo = GetConsoleFontInfo(consoleHandle);
                 int fontType = fontInfo.FontFamily & NativeMethods.FontTypeMask;
                 _trueTypeInUse = (fontType & NativeMethods.TrueTypeFont) == NativeMethods.TrueTypeFont;
             }

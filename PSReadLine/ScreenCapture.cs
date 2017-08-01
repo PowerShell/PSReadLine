@@ -32,7 +32,7 @@ namespace Microsoft.PowerShell
             int selectionTop = _singleton._console.CursorTop;
             int selectionHeight = 1;
             int currentY = selectionTop;
-            Internal.IConsole console = _singleton._console;
+            IConsole console = _singleton._console;
 
             // We'll keep the current selection line (currentY) at least 4 lines
             // away from the top or bottom of the window.
