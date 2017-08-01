@@ -806,7 +806,7 @@ namespace Microsoft.PowerShell.Internal
                 return true;
 
             // Char device - if GetConsoleMode succeeds, we are NOT redirected.
-            return !NativeMethods.GetConsoleMode(handle, out var mode);
+            return !NativeMethods.GetConsoleMode(handle, out var unused);
         }
     }
 

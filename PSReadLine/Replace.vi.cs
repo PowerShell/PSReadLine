@@ -18,7 +18,6 @@ namespace Microsoft.PowerShell
             }
 
             int startingCursor = _singleton._current;
-            int maxDeleteLength = _singleton._buffer.Length - _singleton._current;
             StringBuilder deletedStr = new StringBuilder();
 
             ConsoleKeyInfo nextKey = ReadKey();

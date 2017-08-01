@@ -130,7 +130,7 @@ namespace UnitTestPSReadLine
         [ExpectedException(typeof(ArgumentException))]        
         public void TestKeyInfoConverterInvalidKey()
         {
-            var result = ConsoleKeyChordConverter.Convert("escrape");
+            ConsoleKeyChordConverter.Convert("escrape");
         }
 
         [TestMethod]
@@ -138,7 +138,7 @@ namespace UnitTestPSReadLine
         [ExpectedException(typeof(ArgumentException))]
         public void TestKeyInfoConverterInvalidModifierTypo()
         {
-            var result = ConsoleKeyChordConverter.Convert("alt+shuft+x");
+            ConsoleKeyChordConverter.Convert("alt+shuft+x");
         }
 
         [TestMethod]
@@ -146,7 +146,7 @@ namespace UnitTestPSReadLine
         [ExpectedException(typeof(ArgumentException))]
         public void TestKeyInfoConverterInvalidModifierInapplicable()
         {
-            var result = ConsoleKeyChordConverter.Convert("shift+}");
+            ConsoleKeyChordConverter.Convert("shift+}");
         }
 
         [TestMethod]
@@ -154,7 +154,7 @@ namespace UnitTestPSReadLine
         [ExpectedException(typeof (ArgumentException))]
         public void TestKeyInfoConverterInvalidSubsequence1()
         {
-            var result = ConsoleKeyChordConverter.Convert("x,");
+            ConsoleKeyChordConverter.Convert("x,");
         }
 
         [TestMethod]
@@ -162,7 +162,7 @@ namespace UnitTestPSReadLine
         [ExpectedException(typeof (ArgumentException))]
         public void TestKeyInfoConverterInvalidSubsequence2()
         {
-            var result = ConsoleKeyChordConverter.Convert(",x");
+            ConsoleKeyChordConverter.Convert(",x");
         }
 
         [TestMethod]
@@ -170,7 +170,7 @@ namespace UnitTestPSReadLine
         [ExpectedException(typeof(ArgumentException))]
         public void TestKeyInfoConverterInvalidDigits()
         {
-            var result = ConsoleKeyChordConverter.Convert("Ctrl+10");
+            ConsoleKeyChordConverter.Convert("Ctrl+10");
         }
     }
 }
