@@ -306,7 +306,8 @@ namespace Microsoft.PowerShell
                 _console.WriteBufferLines(_consoleBuffer, ref _initialY);
             }
 
-            PlaceCursor();
+            var coordinates = ConvertOffsetToCoordinates(_current);
+            PlaceCursor(coordinates.X, coordinates.Y);
 
             if ((_initialY + bufferLineCount) > (_console.WindowTop + _console.WindowHeight))
             {
@@ -480,10 +481,11 @@ namespace Microsoft.PowerShell
             _console.SetCursorPosition(x, y);
         }
 
-        private void PlaceCursor()
+        private void MoveCursor(int newCursor)
         {
-            var coordinates = ConvertOffsetToCoordinates(_current);
+            var coordinates = ConvertOffsetToCoordinates(newCursor);
             PlaceCursor(coordinates.X, coordinates.Y);
+            _current = newCursor;
         }
 
         private COORD ConvertOffsetToCoordinates(int offset)

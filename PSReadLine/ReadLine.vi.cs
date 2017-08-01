@@ -46,8 +46,7 @@ namespace Microsoft.PowerShell
                         qty -= 1;
                         if (qty == 0)
                         {
-                            _singleton._current = backoff ? i - 1 : i;
-                            _singleton.PlaceCursor();
+                            _singleton.MoveCursor(backoff ? i - 1 : i);
                             return;
                         }
                     }
@@ -87,8 +86,7 @@ namespace Microsoft.PowerShell
                         qty -= 1;
                         if (qty == 0)
                         {
-                            _singleton._current = backoff ? i + 1 : i;
-                            _singleton.PlaceCursor();
+                            _singleton.MoveCursor(backoff ? i + 1 : i);
                             return;
                         }
                     }
@@ -463,7 +461,6 @@ namespace Microsoft.PowerShell
             _singleton._dispatchTable = _viCmdKeyMap;
             _singleton._chordDispatchTable = _viCmdChordTable;
             BackwardChar();
-            _singleton.PlaceCursor();
             _singleton.ViIndicateCommandMode();
         }
 
@@ -628,8 +625,7 @@ namespace Microsoft.PowerShell
 
                     _singleton._buffer[_singleton._current] = newChar;
                 }
-                _singleton._current = Math.Min(_singleton._current + 1, _singleton._buffer.Length);
-                _singleton.PlaceCursor();
+                _singleton.MoveCursor(Math.Min(_singleton._current + 1, _singleton._buffer.Length));
             }
             _singleton.Render();
         }
@@ -662,8 +658,7 @@ namespace Microsoft.PowerShell
 
             _singleton._buffer[cursor] = previous;
             _singleton._buffer[cursor - 1] = current;
-            _singleton._current = Math.Min(cursor + 1, cursorRightLimit);
-            _singleton.PlaceCursor();
+            _singleton.MoveCursor(Math.Min(cursor + 1, cursorRightLimit));
             _singleton.Render();
         }
 

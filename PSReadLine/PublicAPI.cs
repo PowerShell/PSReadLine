@@ -216,8 +216,7 @@ namespace Microsoft.PowerShell
                 cursor = 0;
             }
 
-            _singleton._current = cursor;
-            _singleton.PlaceCursor();
+            _singleton.MoveCursor(cursor);
         }
 
         /// <summary>

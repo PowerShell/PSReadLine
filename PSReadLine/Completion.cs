@@ -336,8 +336,7 @@ namespace Microsoft.PowerShell
             Replace(completions.ReplacementIndex, completions.ReplacementLength, replacementText);
             if (cursorAdjustment != 0)
             {
-                _current += cursorAdjustment;
-                PlaceCursor();
+                MoveCursor(_current + cursorAdjustment);
             }
             completions.ReplacementLength = replacementText.Length;
         }

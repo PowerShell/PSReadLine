@@ -122,8 +122,7 @@ namespace Microsoft.PowerShell
         {
             _singleton._groupUndoHelper.StartGroup(ViReplaceToEnd, arg);
             DeleteToEnd(key, arg);
-            _singleton._current = Math.Min(_singleton._buffer.Length, _singleton._current + 1);
-            _singleton.PlaceCursor();
+            _singleton.MoveCursor(Math.Min(_singleton._buffer.Length, _singleton._current + 1));
             ViInsertMode(key, arg);
         }
 
@@ -145,10 +144,9 @@ namespace Microsoft.PowerShell
                 if (char.IsWhiteSpace(_singleton._lastWordDelimiter))
                 {
                     Insert(_singleton._lastWordDelimiter);
-                    _singleton._current--;
+                    _singleton.MoveCursor(_singleton._current - 1);
                 }
                 _singleton._lastWordDelimiter = char.MinValue;
-                _singleton.PlaceCursor();
             }
             if (_singleton._current == _singleton._buffer.Length - 1 
                 && !_singleton.IsDelimiter(_singleton._lastWordDelimiter, _singleton.Options.WordDelimiters)
@@ -169,8 +167,7 @@ namespace Microsoft.PowerShell
             if (_singleton._current < _singleton._buffer.Length - 1)
             {
                 Insert(' ');
-                _singleton._current--;
-                _singleton.PlaceCursor();
+                _singleton.MoveCursor(_singleton._current - 1);
             }
             if (_singleton._current == _singleton._buffer.Length - 1)
             {

@@ -31,13 +31,12 @@ namespace Microsoft.PowerShell
                     }
                 }
 
-                _singleton._current = (i == _singleton._current) ? _singleton._buffer.Length : i;
+                _singleton.MoveCursor((i == _singleton._current) ? _singleton._buffer.Length : i);
             }
             else
             {
-                _singleton._current = _singleton._buffer.Length;
+                _singleton.MoveCursor(_singleton._buffer.Length);
             }
-            _singleton.PlaceCursor();
         }
 
         /// <summary>
@@ -59,13 +58,12 @@ namespace Microsoft.PowerShell
                     }
                 }
 
-                _singleton._current = (i == _singleton._current) ? 0 : i;
+                _singleton.MoveCursor((i == _singleton._current) ? 0 : i);
             }
             else
             {
-                _singleton._current = 0;
+                _singleton.MoveCursor(0);
             }
-            _singleton.PlaceCursor();
         }
 
         /// <summary>
@@ -118,15 +116,14 @@ namespace Microsoft.PowerShell
             var newCurrent = ConvertLineAndColumnToOffset(coords);
             if (newCurrent != -1)
             {
-                _current = newCurrent;
                 if (_moveToLineDesiredColumn == endOfLine)
                 {
-                    while (_current < _buffer.Length && _buffer[_current] != '\n')
+                    while (newCurrent < _buffer.Length && _buffer[newCurrent] != '\n')
                     {
-                        _current += 1;
+                        newCurrent += 1;
                     }
                 }
-                PlaceCursor();
+                MoveCursor(newCurrent);
             }
         }
 
@@ -171,9 +168,7 @@ namespace Microsoft.PowerShell
 
             while (numericArg-- > 0)
             {
-                int i = _singleton.FindNextWordPoint(_singleton.Options.WordDelimiters);
-                _singleton._current = i;
-                _singleton.PlaceCursor();
+                _singleton.MoveCursor(_singleton.FindNextWordPoint(_singleton.Options.WordDelimiters));
             }
         }
 
@@ -200,10 +195,9 @@ namespace Microsoft.PowerShell
 
                 Debug.Assert(token != null, "We'll always find EOF");
 
-                _singleton._current = token.Kind == TokenKind.EndOfInput
-                                          ? _singleton._buffer.Length
-                                          : token.Extent.StartOffset;
-                _singleton.PlaceCursor();
+                _singleton.MoveCursor(token.Kind == TokenKind.EndOfInput
+                    ? _singleton._buffer.Length
+                    : token.Extent.StartOffset);
             }
         }
 
@@ -227,9 +221,7 @@ namespace Microsoft.PowerShell
 
             while (numericArg-- > 0)
             {
-                int i = _singleton.FindForwardWordPoint(_singleton.Options.WordDelimiters);
-                _singleton._current = i;
-                _singleton.PlaceCursor();
+                _singleton.MoveCursor(_singleton.FindForwardWordPoint(_singleton.Options.WordDelimiters));
             }
         }
 
@@ -256,10 +248,9 @@ namespace Microsoft.PowerShell
 
                 Debug.Assert(token != null, "We'll always find EOF");
 
-                _singleton._current = token.Kind == TokenKind.EndOfInput
-                                          ? _singleton._buffer.Length
-                                          : token.Extent.EndOffset;
-                _singleton.PlaceCursor();
+                _singleton.MoveCursor(token.Kind == TokenKind.EndOfInput
+                    ? _singleton._buffer.Length
+                    : token.Extent.EndOffset);
             }
         }
 
@@ -300,9 +291,7 @@ namespace Microsoft.PowerShell
 
             while (numericArg-- > 0)
             {
-                int i = _singleton.FindBackwardWordPoint(_singleton.Options.WordDelimiters);
-                _singleton._current = i;
-                _singleton.PlaceCursor();
+                _singleton.MoveCursor(_singleton.FindBackwardWordPoint(_singleton.Options.WordDelimiters));
             }
         }
 
@@ -333,9 +322,7 @@ namespace Microsoft.PowerShell
             while (numericArg-- > 0)
             {
                 var token = _singleton.FindToken(_singleton._current, FindTokenMode.Previous);
-
-                _singleton._current = token?.Extent.StartOffset ?? 0;
-                _singleton.PlaceCursor();
+                _singleton.MoveCursor(token?.Extent.StartOffset ?? 0);
             }
         }
 
@@ -393,8 +380,7 @@ namespace Microsoft.PowerShell
                     matchCount--;
                     if (matchCount == 0)
                     {
-                        _singleton._current = t.Extent.StartOffset;
-                        _singleton.PlaceCursor();
+                        _singleton.MoveCursor(t.Extent.StartOffset);
                         return;
                     }
                 }
@@ -464,8 +450,7 @@ namespace Microsoft.PowerShell
                     occurence -= 1;
                     if (occurence == 0)
                     {
-                        _singleton._current = i;
-                        _singleton.PlaceCursor();
+                        _singleton.MoveCursor(i);
                         break;
                     }
                 }
@@ -503,8 +488,7 @@ namespace Microsoft.PowerShell
                     occurence -= 1;
                     if (occurence == 0)
                     {
-                        _singleton._current = i;
-                        _singleton.PlaceCursor();
+                        _singleton.MoveCursor(i);
                         return;
                     }
                 }

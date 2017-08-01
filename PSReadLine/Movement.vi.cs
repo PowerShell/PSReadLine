@@ -32,8 +32,7 @@ namespace Microsoft.PowerShell
                 {
                     i += ViEndOfLineFactor;
                 }
-                _singleton._current = Math.Max(i, 0);
-                _singleton.PlaceCursor();
+                _singleton.MoveCursor(Math.Max(i, 0));
             }
         }
 
@@ -57,9 +56,7 @@ namespace Microsoft.PowerShell
 
             while (numericArg-- > 0)
             {
-                int i = _singleton.ViFindPreviousWordPoint(_singleton.Options.WordDelimiters);
-                _singleton._current = i;
-                _singleton.PlaceCursor();
+                _singleton.MoveCursor(_singleton.ViFindPreviousWordPoint(_singleton.Options.WordDelimiters));
             }
         }
 
@@ -78,8 +75,7 @@ namespace Microsoft.PowerShell
             {
                 i = _singleton.ViFindPreviousGlob(i - 1);
             }
-            _singleton._current = i;
-            _singleton.PlaceCursor();
+            _singleton.MoveCursor(i);
         }
 
         /// <summary>
@@ -98,8 +94,7 @@ namespace Microsoft.PowerShell
                 i = _singleton.ViFindNextGlob(i);
             }
 
-            _singleton._current = Math.Min(i, _singleton._buffer.Length - 1);
-            _singleton.PlaceCursor();
+            _singleton.MoveCursor(Math.Min(i, _singleton._buffer.Length - 1));
         }
 
         public static void ViEndOfGlob(ConsoleKeyInfo? key = null, object arg = null)
@@ -117,9 +112,7 @@ namespace Microsoft.PowerShell
 
             while (numericArg-- > 0)
             {
-                int i = _singleton.ViFindEndOfGlob();
-                _singleton._current = i;
-                _singleton.PlaceCursor();
+                _singleton.MoveCursor(_singleton.ViFindEndOfGlob());
             }
         }
 
@@ -138,9 +131,7 @@ namespace Microsoft.PowerShell
 
             while (numericArg-- > 0)
             {
-                int i = _singleton.ViFindEndOfPreviousGlob();
-                _singleton._current = i;
-                _singleton.PlaceCursor();
+                _singleton.MoveCursor(_singleton.ViFindEndOfPreviousGlob());
             }
         }
 
@@ -165,8 +156,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void MoveToEndOfLine(ConsoleKeyInfo? key = null, object arg = null)
         {
-            _singleton._current = Math.Max(0, _singleton._buffer.Length + ViEndOfLineFactor);
-            _singleton.PlaceCursor();
+            _singleton.MoveCursor(Math.Max(0, _singleton._buffer.Length + ViEndOfLineFactor));
         }
 
         /// <summary>
@@ -179,9 +169,7 @@ namespace Microsoft.PowerShell
             int qty = arg as int? ?? 1;
             for (; qty > 0 && _singleton._current < _singleton._buffer.Length - 1; qty--)
             {
-                int i = _singleton.ViFindNextWordEnd(_singleton.Options.WordDelimiters);
-                _singleton._current = i;
-                _singleton.PlaceCursor();
+                _singleton.MoveCursor(_singleton.ViFindNextWordEnd(_singleton.Options.WordDelimiters));
             }
         }
 
@@ -198,14 +186,13 @@ namespace Microsoft.PowerShell
 
             if (col < _singleton._buffer.Length + ViEndOfLineFactor)
             {
-                _singleton._current = Math.Min(col, _singleton._buffer.Length) - 1;
+                _singleton.MoveCursor(Math.Min(col, _singleton._buffer.Length) - 1);
             }
             else
             {
-                _singleton._current = _singleton._buffer.Length + ViEndOfLineFactor;
+                _singleton.MoveCursor(_singleton._buffer.Length + ViEndOfLineFactor);
                 Ding();
             }
-            _singleton.PlaceCursor();
         }
 
         /// <summary>
@@ -217,8 +204,7 @@ namespace Microsoft.PowerShell
             {
                 if (!Char.IsWhiteSpace(_singleton._buffer[i]))
                 {
-                    _singleton._current = i;
-                    _singleton.PlaceCursor();
+                    _singleton.MoveCursor(i);
                     return;
                 }
             }
@@ -235,8 +221,7 @@ namespace Microsoft.PowerShell
                 Ding();
                 return;
             }
-            _singleton._current = i;
-            _singleton.PlaceCursor();
+            _singleton.MoveCursor(i);
         }
 
         private int ViFindBrace(int i)
