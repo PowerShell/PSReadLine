@@ -37,8 +37,8 @@ namespace Microsoft.PowerShell
             // We'll keep the current selection line (currentY) at least 4 lines
             // away from the top or bottom of the window.
             const int margin = 5;
-            Func<bool> tooCloseToTop = () => { return (currentY - console.WindowTop) < margin; };
-            Func<bool> tooCloseToBottom = () => { return ((console.WindowTop + console.WindowHeight) - currentY) < margin; };
+            bool TooCloseToTop() => (currentY - console.WindowTop) < margin;
+            bool TooCloseToBottom() => ((console.WindowTop + console.WindowHeight) - currentY) < margin;
 
             // Current lines starts out selected
             InvertLines(selectionTop, selectionHeight);
@@ -50,7 +50,7 @@ namespace Microsoft.PowerShell
                 {
                 case ConsoleKey.K:
                 case ConsoleKey.UpArrow:
-                    if (tooCloseToTop())
+                    if (TooCloseToTop())
                         ScrollDisplayUpLine();
 
                     if (currentY > 0)
@@ -79,7 +79,7 @@ namespace Microsoft.PowerShell
 
                 case ConsoleKey.J:
                 case ConsoleKey.DownArrow:
-                    if (tooCloseToBottom())
+                    if (TooCloseToBottom())
                         ScrollDisplayDownLine();
 
                     if (currentY < (console.BufferHeight - 1))

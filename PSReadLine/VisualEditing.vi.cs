@@ -34,10 +34,7 @@ namespace Microsoft.PowerShell
             }
 
             _singleton._savedAddToHistoryHandler = _singleton.Options.AddToHistoryHandler;
-            _singleton.Options.AddToHistoryHandler = ((string s) =>
-            {
-                return false;
-            });
+            _singleton.Options.AddToHistoryHandler = (s => false);
 
             _singleton._buffer.Clear();
             _singleton._current = 0;
