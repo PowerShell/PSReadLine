@@ -73,11 +73,6 @@ namespace Microsoft.PowerShell
             return i >= (_buffer.Length - 1);
         }
 
-        private bool IsPastEndOfLine(int i)
-        {
-            return i > (_buffer.Length - 1);
-        }
-
         private int ViFindNextWordFromWord(int i, string wordDelimiters)
         {
             while (!IsAtEndOfLine(i) && InWord(i, wordDelimiters))
@@ -262,21 +257,6 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Returns the cursor position of the previous word, ignoring all delimiters other what white space
-        /// </summary>
-        private int ViFindPreviousGlob()
-        {
-            int i = _current;
-            if (i == 0)
-            {
-                return 0;
-            }
-            i--;
-
-            return ViFindPreviousGlob(i);
-        }
-
-        /// <summary>
         /// Returns the cursor position of the previous word from i, ignoring all delimiters other what white space
         /// </summary>
         private int ViFindPreviousGlob(int i)
@@ -307,15 +287,6 @@ namespace Microsoft.PowerShell
                 return i;
             }
             return ViFindPreviousGlob(i);
-        }
-
-        /// <summary>
-        /// Finds the next work, using only white space as the word delimiter.
-        /// </summary>
-        private int ViFindNextGlob()
-        {
-            int i = _current;
-            return ViFindNextGlob(i);
         }
 
         private int ViFindNextGlob(int i)

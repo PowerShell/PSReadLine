@@ -425,18 +425,6 @@ namespace Microsoft.PowerShell
             return false;
         }
 
-        static bool StaticParameterBindingSupported(CommandInfo commandInfo)
-        {
-            if (commandInfo is AliasInfo aliasInfo)
-            {
-                commandInfo = aliasInfo.ResolvedCommand;
-            }
-
-            return (commandInfo is ExternalScriptInfo)
-                   || (commandInfo is CmdletInfo)
-                   || (commandInfo is FunctionInfo);
-        }
-
         /// <summary>
         /// Attempt to execute the current input.  If the current input is incomplete (for
         /// example there is a missing closing parenthesis, bracket, or quote, then the
