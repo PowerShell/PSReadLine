@@ -223,7 +223,7 @@ namespace Microsoft.PowerShell
                         _consoleBufferLines.Add(new StringBuilder(COMMON_WIDEST_CONSOLE_WIDTH));
                     }
 
-                    UpdateColorsIfNecessary(Options.ContinuationPromptForegroundColor, Options.CommandBackgroundColor);
+                    UpdateColorsIfNecessary(Options.ContinuationPromptForegroundColor, Options.ContinuationPromptBackgroundColor);
                     foreach (char c in Options.ContinuationPrompt)
                     {
                         _consoleBufferLines[currentLogicalLine].Append(c);
