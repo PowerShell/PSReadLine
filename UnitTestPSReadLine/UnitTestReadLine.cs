@@ -65,6 +65,7 @@ namespace UnitTestPSReadLine
             this.index = 0;
             this.inputOrValidateItems = items;
             this.validationFailure = null;
+            Console.Clear();
         }
 
         public ConsoleKeyInfo ReadKey()
@@ -155,6 +156,16 @@ namespace UnitTestPSReadLine
             var writePos = CursorTop * BufferWidth + CursorLeft;
             for (int i = 0; i < s.Length; i++)
             {
+                if (s[i] == (char) 0x1b)
+                {
+                    // Escape sequence - limited support here, and assumed to be well formed.
+                    var endSequence = s.IndexOf("m", i, StringComparison.Ordinal);
+                    var escapeSequence = s.Substring(i, endSequence - i + 1);
+                    EscapeSequenceActions[escapeSequence](this);
+                    i = endSequence;
+                    continue;
+                }
+
                 if (s[i] == '\b')
                 {
                     CursorLeft -= 1;
@@ -239,6 +250,48 @@ namespace UnitTestPSReadLine
         {
             return false;
         }
+
+        private static readonly ConsoleColor DefaultForeground = UnitTest.ForegroundColors[0];
+        private static readonly ConsoleColor DefaultBackground = UnitTest.BackgroundColors[0];
+
+        private static readonly Dictionary<string, Action<TestConsole>> EscapeSequenceActions = new Dictionary<string, Action<TestConsole>> {
+            {"\x1b[40m", c => c.BackgroundColor = ConsoleColor.Black},
+            {"\x1b[44m", c => c.BackgroundColor = ConsoleColor.DarkBlue },
+            {"\x1b[42m", c => c.BackgroundColor = ConsoleColor.DarkGreen},
+            {"\x1b[46m", c => c.BackgroundColor = ConsoleColor.DarkCyan},
+            {"\x1b[41m", c => c.BackgroundColor = ConsoleColor.DarkRed},
+            {"\x1b[45m", c => c.BackgroundColor = ConsoleColor.DarkMagenta},
+            {"\x1b[43m", c => c.BackgroundColor = ConsoleColor.DarkYellow},
+            {"\x1b[47m", c => c.BackgroundColor = ConsoleColor.Gray},
+            {"\x1b[100m", c => c.BackgroundColor = ConsoleColor.DarkGray},
+            {"\x1b[104m", c => c.BackgroundColor = ConsoleColor.Blue},
+            {"\x1b[102m", c => c.BackgroundColor = ConsoleColor.Green},
+            {"\x1b[106m", c => c.BackgroundColor = ConsoleColor.Cyan},
+            {"\x1b[101m", c => c.BackgroundColor = ConsoleColor.Red},
+            {"\x1b[105m", c => c.BackgroundColor = ConsoleColor.Magenta},
+            {"\x1b[103m", c => c.BackgroundColor = ConsoleColor.Yellow},
+            {"\x1b[107m", c => c.BackgroundColor = ConsoleColor.White},
+            {"\x1b[30m", c => c.ForegroundColor = ConsoleColor.Black},
+            {"\x1b[34m", c => c.ForegroundColor = ConsoleColor.DarkBlue},
+            {"\x1b[32m", c => c.ForegroundColor = ConsoleColor.DarkGreen},
+            {"\x1b[36m", c => c.ForegroundColor = ConsoleColor.DarkCyan},
+            {"\x1b[31m", c => c.ForegroundColor = ConsoleColor.DarkRed},
+            {"\x1b[35m", c => c.ForegroundColor = ConsoleColor.DarkMagenta},
+            {"\x1b[33m", c => c.ForegroundColor = ConsoleColor.DarkYellow},
+            {"\x1b[37m", c => c.ForegroundColor = ConsoleColor.Gray},
+            {"\x1b[90m", c => c.ForegroundColor = ConsoleColor.DarkGray},
+            {"\x1b[94m", c => c.ForegroundColor = ConsoleColor.Blue},
+            {"\x1b[92m", c => c.ForegroundColor = ConsoleColor.Green},
+            {"\x1b[96m", c => c.ForegroundColor = ConsoleColor.Cyan},
+            {"\x1b[91m", c => c.ForegroundColor = ConsoleColor.Red},
+            {"\x1b[95m", c => c.ForegroundColor = ConsoleColor.Magenta},
+            {"\x1b[93m", c => c.ForegroundColor = ConsoleColor.Yellow},
+            {"\x1b[97m", c => c.ForegroundColor = ConsoleColor.White},
+            {"\x1b[0m", c => {
+                c.ForegroundColor = DefaultForeground;
+                c.BackgroundColor = DefaultBackground;
+            }}
+        };
     }
 
     [TestClass]
