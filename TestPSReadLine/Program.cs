@@ -74,25 +74,28 @@ namespace TestPSReadLine
                 // uncomment if you hit a hang, run it once, then comment it out again.
                 //ps.Commands.Clear();
                 //ps.AddCommand("Get-Command").Invoke();
-            }
 
-            while (true)
-            {
-                Console.Write("TestHostPS> ");
+                executionContext.InvokeProvider.Item.Set("function:prompt", ScriptBlock.Create("'TestHostPS> '"));
 
-                var line = PSConsoleReadLine.ReadLine(null, executionContext);
-                Console.WriteLine(line);
-                line = line.Trim();
-                if (line.Equals("exit"))
-                    Environment.Exit(0);
-                if (line.Equals("cmd"))
-                    PSConsoleReadLine.SetOptions(new SetPSReadlineOption {EditMode = EditMode.Windows});
-                if (line.Equals("emacs"))
-                    PSConsoleReadLine.SetOptions(new SetPSReadlineOption {EditMode = EditMode.Emacs});
-                if (line.Equals("vi"))
-                    PSConsoleReadLine.SetOptions(new SetPSReadlineOption {EditMode = EditMode.Vi});
-                if (line.Equals("nodupes"))
-                    PSConsoleReadLine.SetOptions(new SetPSReadlineOption {HistoryNoDuplicates = true});
+                while (true)
+                {
+                    ps.Commands.Clear();
+                    Console.Write(string.Join("", ps.AddCommand("prompt").Invoke<string>()));
+
+                    var line = PSConsoleReadLine.ReadLine(rs, executionContext);
+                    Console.WriteLine(line);
+                    line = line.Trim();
+                    if (line.Equals("exit"))
+                        Environment.Exit(0);
+                    if (line.Equals("cmd"))
+                        PSConsoleReadLine.SetOptions(new SetPSReadlineOption {EditMode = EditMode.Windows});
+                    if (line.Equals("emacs"))
+                        PSConsoleReadLine.SetOptions(new SetPSReadlineOption {EditMode = EditMode.Emacs});
+                    if (line.Equals("vi"))
+                        PSConsoleReadLine.SetOptions(new SetPSReadlineOption {EditMode = EditMode.Vi});
+                    if (line.Equals("nodupes"))
+                        PSConsoleReadLine.SetOptions(new SetPSReadlineOption {HistoryNoDuplicates = true});
+                }
             }
         }
     }
