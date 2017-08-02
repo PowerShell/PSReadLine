@@ -93,20 +93,34 @@ namespace Microsoft.PowerShell
             bool afterLastToken = false;
             int currentLogicalLine = 0;
 
-            void UpdateColorsIfNecessary(ConsoleColor foreground, ConsoleColor background)
+            void UpdateColorsIfNecessary(ConsoleColor foreground, ConsoleColor background, bool writeNow)
             {
                 var newForeground = MapColorToEscapeSequence(foreground, isBackground: false);
                 var newBackground = MapColorToEscapeSequence(background, isBackground: true);
 
                 if (!object.ReferenceEquals(newForeground, currentForegroundColorSequnce))
                 {
-                    _consoleBufferLines[currentLogicalLine].Append(newForeground);
+                    if (writeNow)
+                    {
+                        _console.Write(newForeground);
+                    }
+                    else
+                    {
+                        _consoleBufferLines[currentLogicalLine].Append(newForeground);
+                    }
                     currentForegroundColorSequnce = newForeground;
                 }
 
                 if (!object.ReferenceEquals(newBackground, currentBackgroundColorSequnce))
                 {
-                    _consoleBufferLines[currentLogicalLine].Append(newBackground);
+                    if (writeNow)
+                    {
+                        _console.Write(newBackground);
+                    }
+                    else
+                    {
+                        _consoleBufferLines[currentLogicalLine].Append(newBackground);
+                    }
                     currentBackgroundColorSequnce = newBackground;
                 }
             }
@@ -129,7 +143,7 @@ namespace Microsoft.PowerShell
                     backgroundColor = (ConsoleColor)((int)backgroundColor ^ 7);
                 }
 
-                UpdateColorsIfNecessary(foregroundColor, backgroundColor);
+                UpdateColorsIfNecessary(foregroundColor, backgroundColor, writeNow: false);
             }
 
 
@@ -223,7 +237,7 @@ namespace Microsoft.PowerShell
                         _consoleBufferLines.Add(new StringBuilder(COMMON_WIDEST_CONSOLE_WIDTH));
                     }
 
-                    UpdateColorsIfNecessary(Options.ContinuationPromptForegroundColor, Options.ContinuationPromptBackgroundColor);
+                    UpdateColorsIfNecessary(Options.ContinuationPromptForegroundColor, Options.ContinuationPromptBackgroundColor, writeNow: false);
                     foreach (char c in Options.ContinuationPrompt)
                     {
                         _consoleBufferLines[currentLogicalLine].Append(c);
@@ -255,7 +269,7 @@ namespace Microsoft.PowerShell
 
                 currFgColor = _statusIsErrorMessage ? Options.ErrorForegroundColor : defaultFgColor;
                 currBgColor = _statusIsErrorMessage ? Options.ErrorBackgroundColor : defaultBgColor;
-                UpdateColorsIfNecessary(currFgColor, currBgColor);
+                UpdateColorsIfNecessary(currFgColor, currBgColor, writeNow: false);
 
                 foreach (char c in _statusLinePrompt)
                 {
@@ -289,6 +303,7 @@ namespace Microsoft.PowerShell
                     var curLen = nextRender[currentLogicalLine].columns;
                     if (prevLen > curLen)
                     {
+                        UpdateColorsIfNecessary(defaultFgColor, defaultBgColor, writeNow: true);
                         _console.Write(new string(' ', prevLen - curLen));
                     }
                 }
@@ -298,6 +313,7 @@ namespace Microsoft.PowerShell
             for (; currentLogicalLine < _previousRender.Length; currentLogicalLine++)
             {
                 _console.Write("\n");
+                UpdateColorsIfNecessary(defaultFgColor, defaultBgColor, writeNow: true);
                 _console.Write(new string(' ', _previousRender[currentLogicalLine].columns));
             }
 
