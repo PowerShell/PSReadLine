@@ -22,7 +22,7 @@ namespace Microsoft.PowerShell
 
         private const int COMMON_WIDEST_CONSOLE_WIDTH = 160;
         private readonly List<StringBuilder> _consoleBufferLines = new List<StringBuilder>(1) {new StringBuilder(COMMON_WIDEST_CONSOLE_WIDTH)};
-        private RenderedLineData[] _previousRender = new RenderedLineData[0];
+        private RenderedLineData[] _previousRender;
         private int _initialX;
         private int _initialY;
         private int _current;
