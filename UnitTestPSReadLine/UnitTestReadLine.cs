@@ -65,7 +65,6 @@ namespace UnitTestPSReadLine
             this.index = 0;
             this.inputOrValidateItems = items;
             this.validationFailure = null;
-            Console.Clear();
         }
 
         public ConsoleKeyInfo ReadKey()
@@ -672,8 +671,7 @@ namespace UnitTestPSReadLine
         {
             if (resetCursor)
             {
-                _console.CursorLeft = 0;
-                _console.CursorTop = 0;
+                _console.Clear();
             }
             SetPrompt(prompt);
 
