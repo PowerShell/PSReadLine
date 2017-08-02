@@ -111,6 +111,28 @@ namespace Microsoft.PowerShell
                 }
             }
 
+            void MaybeEmphasize(int i, ConsoleColor foregroundColor, ConsoleColor backgroundColor)
+            {
+                if (i >= _emphasisStart && i < (_emphasisStart + _emphasisLength))
+                {
+                    backgroundColor = _options.EmphasisBackgroundColor;
+                    foregroundColor = _options.EmphasisForegroundColor;
+                }
+                else if (_visualSelectionCommandCount > 0 && InRegion(i))
+                {
+                    // We can't quite emulate real console selection because it inverts
+                    // based on actual screen colors, our pallete is limited.  The choice
+                    // to invert only the lower 3 bits to change the color is somewhat
+                    // but looks best with the 2 default color schemes - starting PowerShell
+                    // from it's shortcut or from a cmd shortcut.
+                    foregroundColor = (ConsoleColor)((int)foregroundColor ^ 7);
+                    backgroundColor = (ConsoleColor)((int)backgroundColor ^ 7);
+                }
+
+                UpdateColorsIfNecessary(foregroundColor, backgroundColor);
+            }
+
+
             var tokenStack = new Stack<SavedTokenState>();
             tokenStack.Push(new SavedTokenState
             {
@@ -211,15 +233,13 @@ namespace Microsoft.PowerShell
                 {
                     if (char.IsControl(charToRender))
                     {
-                        MaybeEmphasize(i, ref currFgColor, ref currBgColor);
-                        UpdateColorsIfNecessary(currFgColor, currBgColor);
+                        MaybeEmphasize(i, currFgColor, currBgColor);
                         _consoleBufferLines[currentLogicalLine].Append('^');
                         _consoleBufferLines[currentLogicalLine].Append((char)('@' + charToRender));
                     }
                     else
                     {
-                        MaybeEmphasize(i, ref currFgColor, ref currBgColor);
-                        UpdateColorsIfNecessary(currFgColor, currBgColor);
+                        MaybeEmphasize(i, currFgColor, currBgColor);
                         _consoleBufferLines[currentLogicalLine].Append(charToRender);
                     }
                 }
@@ -513,25 +533,6 @@ namespace Microsoft.PowerShell
                 end = _current;
             }
             return i >= start && i < end;
-        }
-
-        private void MaybeEmphasize(int i, ref ConsoleColor foregroundColor, ref ConsoleColor backgroundColor)
-        {
-            if (i >= _emphasisStart && i < (_emphasisStart + _emphasisLength))
-            {
-                backgroundColor = _options.EmphasisBackgroundColor;
-                foregroundColor = _options.EmphasisForegroundColor;
-            }
-            else if (_visualSelectionCommandCount > 0 && InRegion(i))
-            {
-                // We can't quite emulate real console selection because it inverts
-                // based on actual screen colors, our pallete is limited.  The choice
-                // to invert only the lower 3 bits to change the color is somewhat
-                // but looks best with the 2 default color schemes - starting PowerShell
-                // from it's shortcut or from a cmd shortcut.
-                foregroundColor = (ConsoleColor)((int)foregroundColor ^ 7);
-                backgroundColor = (ConsoleColor)((int)backgroundColor ^ 7);
-            }
         }
 
         private void PlaceCursor(int x, int y)
