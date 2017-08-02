@@ -650,19 +650,27 @@ namespace UnitTestPSReadLine
 
         private void SetPrompt(string prompt)
         {
+            var options = new SetPSReadlineOption {ExtraPromptLineCount = 0};
             if (string.IsNullOrEmpty(prompt))
             {
-                var options = new SetPSReadlineOption {ExtraPromptLineCount = 0};
                 PSConsoleReadLine.SetOptions(options);
                 return;
             }
 
+            int i;
+            for (i = prompt.Length - 1; i >= 0; i--)
+            {
+                if (!char.IsWhiteSpace(prompt[i])) break;
+            }
+
+            options.PromptText = prompt.Substring(i);
+
             var lineCount = 1 + prompt.Count(c => c == '\n');
             if (lineCount > 1)
             {
-                var options = new SetPSReadlineOption {ExtraPromptLineCount = lineCount - 1};
-                PSConsoleReadLine.SetOptions(options);
+                options.ExtraPromptLineCount = lineCount - 1;
             }
+            PSConsoleReadLine.SetOptions(options);
             _console.Write(prompt);
         }
 
@@ -746,6 +754,7 @@ namespace UnitTestPSReadLine
                 ResetTokenColors                  = true,
                 ShowToolTips                      = PSConsoleReadlineOptions.DefaultShowToolTips,
                 WordDelimiters                    = PSConsoleReadlineOptions.DefaultWordDelimiters,
+                PromptText                        = "",
             };
 
             switch (keyMode)

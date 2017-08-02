@@ -104,8 +104,7 @@ namespace UnitTestPSReadLine
                 CheckThat(() => AssertScreenIs(1,
                                    TokenClassification.None,
                                    promptLine.Substring(0, promptLine.IndexOf('>')),
-                                   Tuple.Create(ConsoleColor.Red, _console.BackgroundColor), ">",
-                                   TokenClassification.None, " ",
+                                   Tuple.Create(ConsoleColor.Red, ConsoleColor.DarkRed), "> ",
                                    TokenClassification.String, "\"")),
                 '"'), prompt: promptLine);
         }

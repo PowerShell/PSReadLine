@@ -70,9 +70,10 @@ namespace Microsoft.PowerShell
             if (_queuedKeys.Count > 10 && (_lastRenderTime.ElapsedMilliseconds < 50))
             {
                 // We won't render, but most likely the tokens will be different, so make
-                // sure we don't use old tokens.
+                // sure we don't use old tokens, also allow garbage to get collected.
                 _tokens = null;
                 _ast = null;
+                _parseErrors = null;
                 return;
             }
 
@@ -92,6 +93,7 @@ namespace Microsoft.PowerShell
             string currentForegroundColorSequnce = "";
             bool afterLastToken = false;
             int currentLogicalLine = 0;
+            int promptFactor = 0;
 
             void UpdateColorsIfNecessary(ConsoleColor foreground, ConsoleColor background, bool writeNow)
             {
@@ -146,6 +148,27 @@ namespace Microsoft.PowerShell
                 UpdateColorsIfNecessary(foregroundColor, backgroundColor, writeNow: false);
             }
 
+            foreach (var buf in _consoleBufferLines)
+            {
+                buf.Clear();
+            }
+
+            if (!string.IsNullOrEmpty(_options.PromptText))
+            {
+                promptFactor = _options.PromptText.Length;
+
+                if (_parseErrors != null && _parseErrors.Length > 0)
+                {
+                    UpdateColorsIfNecessary(_options.ErrorForegroundColor, _options.ErrorBackgroundColor, writeNow: false);
+                }
+                else
+                {
+                    UpdateColorsIfNecessary(defaultFgColor, defaultBgColor, writeNow: false);
+                }
+
+                _consoleBufferLines[0].Append(_options.PromptText);
+                _consoleBufferLines[0].Append("\x1b[0m");
+            }
 
             var tokenStack = new Stack<SavedTokenState>();
             tokenStack.Push(new SavedTokenState
@@ -155,11 +178,6 @@ namespace Microsoft.PowerShell
                 BackgroundColor = defaultBgColor,
                 ForegroundColor = defaultFgColor
             });
-
-            foreach (var buf in _consoleBufferLines)
-            {
-                buf.Clear();
-            }
 
             for (int i = 0; i < text.Length; i++)
             {
@@ -279,7 +297,7 @@ namespace Microsoft.PowerShell
                 _consoleBufferLines[currentLogicalLine].Append(_statusBuffer);
             }
 
-            PlaceCursor(_initialX, _initialY);
+            PlaceCursor(_initialX - promptFactor, _initialY);
 
             var nextRender = new RenderedLineData[currentLogicalLine + 1];
             for (var i = 0; i < currentLogicalLine + 1; i++)

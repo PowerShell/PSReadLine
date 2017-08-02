@@ -19,6 +19,10 @@ namespace Microsoft.PowerShell
 
         private void SetOptionsInternal(SetPSReadlineOption options)
         {
+            if (options.ResetTokenColors)
+            {
+                Options.ResetColors();
+            }
             if (options.ContinuationPrompt != null)
             {
                 Options.ContinuationPrompt = options.ContinuationPrompt;
@@ -155,9 +159,9 @@ namespace Microsoft.PowerShell
                 _historyFileMutex = new Mutex(false, GetHistorySaveFileMutexName());
                 _historyFileLastSavedSize = 0;
             }
-            if (options.ResetTokenColors)
+            if (options.PromptText != null)
             {
-                Options.ResetColors();
+                Options.PromptText = options.PromptText;
             }
             if (options._tokenKind.HasValue)
             {

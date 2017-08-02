@@ -245,6 +245,14 @@ namespace Microsoft.PowerShell
         public string HistorySavePath { get; set; }
         public HistorySaveStyle HistorySaveStyle { get; set; }
 
+        /// <summary>
+        /// This is the text you want turned red on parse errors, but must
+        /// occur immediately before the cursor when readline starts.
+        /// If the prompt function is pure, this value can be inferred, e.g.
+        /// the default prompt will use "> " for this value.
+        /// </summary>
+        public string PromptText { get; set; }
+
         public ConsoleColor DefaultTokenForegroundColor { get; set; }
         public ConsoleColor CommentForegroundColor { get; set; }
         public ConsoleColor KeywordForegroundColor { get; set; }
@@ -552,6 +560,10 @@ namespace Microsoft.PowerShell
         [Parameter(ParameterSetName = "OptionsSet")]
         [ValidateNotNullOrEmpty]
         public string HistorySavePath { get; set; }
+
+        [Parameter(ParameterSetName = "OptionsSet")]
+        [ValidateNotNull]
+        public string PromptText { get; set; }
 
         #region vi
         [Parameter(ParameterSetName = "OptionsSet")]

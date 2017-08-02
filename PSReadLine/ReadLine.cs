@@ -594,6 +594,34 @@ namespace Microsoft.PowerShell
                 _options.MaximumHistoryCount = historyCountValue;
             }
 
+            if (_options.PromptText == null &&
+                _engineIntrinsics?.InvokeCommand.GetCommand("prompt", CommandTypes.Function) is FunctionInfo promptCommand)
+            {
+                var promptIsPure = null ==
+                    promptCommand.ScriptBlock.Ast.Find(ast => ast is CommandAst ||
+                                                      ast is InvokeMemberExpressionAst,
+                                               searchNestedScriptBlocks: false);
+                if (promptIsPure)
+                {
+                    var res = promptCommand.ScriptBlock.InvokeReturnAsIs(Array.Empty<object>());
+                    string evaluatedPrompt = res as string;
+                    if (evaluatedPrompt == null && res is PSObject psobject)
+                    {
+                        evaluatedPrompt = psobject.BaseObject as string;
+                    }
+                    if (evaluatedPrompt != null)
+                    {
+                        int i;
+                        for (i = evaluatedPrompt.Length - 1; i >= 0; i--)
+                        {
+                            if (!char.IsWhiteSpace(evaluatedPrompt[i])) break;
+                        }
+
+                        _options.PromptText = evaluatedPrompt.Substring(i);
+                    }
+                }
+            }
+
             _historyFileMutex = new Mutex(false, GetHistorySaveFileMutexName());
 
             _history = new HistoryQueue<HistoryItem>(Options.MaximumHistoryCount);
