@@ -675,7 +675,25 @@ namespace UnitTestPSReadLine
         }
 
         [ExcludeFromCodeCoverage]
-        private void Test(string expectedResult, object[] items, bool resetCursor = true, string prompt = null, bool mustDing = false)
+        private void Test(string expectedResult, object[] items)
+        {
+            Test(expectedResult, items, resetCursor: true, prompt: null, mustDing: false);
+        }
+
+        [ExcludeFromCodeCoverage]
+        private void Test(string expectedResult, object[] items, string prompt)
+        {
+            Test(expectedResult, items, resetCursor: true, prompt: prompt, mustDing: false);
+        }
+
+        [ExcludeFromCodeCoverage]
+        private void Test(string expectedResult, object[] items, bool resetCursor)
+        {
+            Test(expectedResult, items, resetCursor: resetCursor, prompt: null, mustDing: false);
+        }
+
+        [ExcludeFromCodeCoverage]
+        private void Test(string expectedResult, object[] items, bool resetCursor, string prompt, bool mustDing)
         {
             if (resetCursor)
             {
@@ -706,9 +724,9 @@ namespace UnitTestPSReadLine
             }
         }
 
-        private void TestMustDing(string expectedResult, object[] items, bool resetCursor = true, string prompt = null)
+        private void TestMustDing(string expectedResult, object[] items)
         {
-            Test(expectedResult, items, resetCursor, prompt, true);
+            Test(expectedResult, items, resetCursor: true, prompt: null, mustDing: true);
         }
 
         private TestConsole _console;
