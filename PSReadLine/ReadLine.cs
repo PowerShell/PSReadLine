@@ -850,7 +850,7 @@ namespace Microsoft.PowerShell
                 ps.Runspace = _singleton._runspace;
             }
 
-            // TODO: move cursor to newline
+            _singleton._console.SetCursorPosition(0, _singleton._initialY - _singleton._options.ExtraPromptLineCount);
             string newPrompt;
             using (ps)
             {
@@ -867,7 +867,10 @@ namespace Microsoft.PowerShell
                     newPrompt = string.Format(CultureInfo.InvariantCulture, "[{0}]: {1}", connectionInfo.ComputerName, newPrompt);
                 }
             }
+
             _singleton._console.Write(newPrompt);
+            _singleton._initialX = _singleton._console.CursorLeft;
+            _singleton._initialY = _singleton._console.CursorTop;
 
             _singleton.Render();
         }
