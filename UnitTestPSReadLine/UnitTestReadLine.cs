@@ -625,15 +625,6 @@ namespace UnitTestPSReadLine
             SetPrompt(prompt);
 
             _console.Init(items);
-            var mockedMethods = new MockedMethods();
-            var instance = (PSConsoleReadLine)typeof(PSConsoleReadLine)
-                .GetField("_singleton", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
-            typeof(PSConsoleReadLine)
-                .GetField("_mockableMethods", BindingFlags.Instance | BindingFlags.NonPublic)
-                .SetValue(instance, mockedMethods);
-            typeof(PSConsoleReadLine)
-                .GetField("_console", BindingFlags.Instance | BindingFlags.NonPublic)
-                .SetValue(instance, _console);
 
             var result = PSConsoleReadLine.ReadLine(null, null);
 
@@ -652,7 +643,7 @@ namespace UnitTestPSReadLine
 
             if (mustDing)
             {
-                Assert.IsTrue(mockedMethods.didDing);
+                Assert.IsTrue(_mockedMethods.didDing);
             }
         }
 
@@ -662,10 +653,20 @@ namespace UnitTestPSReadLine
         }
 
         private TestConsole _console;
+        private MockedMethods _mockedMethods;
 
         private void TestSetup(KeyMode keyMode, params KeyHandler[] keyHandlers)
         {
             _console = new TestConsole();
+            _mockedMethods = new MockedMethods();
+            var instance = (PSConsoleReadLine)typeof(PSConsoleReadLine)
+                .GetField("_singleton", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
+            typeof(PSConsoleReadLine)
+                .GetField("_mockableMethods", BindingFlags.Instance | BindingFlags.NonPublic)
+                .SetValue(instance, _mockedMethods);
+            typeof(PSConsoleReadLine)
+                .GetField("_console", BindingFlags.Instance | BindingFlags.NonPublic)
+                .SetValue(instance, _console);
 
             PSConsoleReadLine.ClearHistory();
             PSConsoleReadLine.ClearKillRing();
