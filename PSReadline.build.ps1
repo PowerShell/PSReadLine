@@ -195,5 +195,5 @@ task Install LayoutModule, {
 <#
 Synopsis: Default build rule - build and create module layout
 #>
-task . LayoutModule
+task . LayoutModule, BuildUnitTests, BuildTestHost
 
