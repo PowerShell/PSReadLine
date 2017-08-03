@@ -106,6 +106,27 @@ task BuildTestHost @buildTestParams BuildMainModule, {
 }
 
 
+$buildUnitTestParams = @{
+    Inputs  = { Get-ChildItem UnitTestPSReadLine/*.cs, UnitTestPSReadLine/UnitTestPSReadLine.csproj }
+    Outputs = "UnitTestPSReadLine/bin/$Configuration/UnitTestPSReadLine.dll"
+}
+
+
+<#
+Synopsis: Build the unit tests
+#>
+task BuildUnitTests @buildUnitTestParams BuildMainModule, {
+    exec { msbuild UnitTestPSReadLine/UnitTestPSReadLine.csproj /t:Rebuild /p:Configuration=$Configuration }
+}
+
+
+<#
+Synopsis: Run the unit tests
+#>
+task RunUnitTests BuildUnitTests, {
+    exec { mstest /testcontainer:"./UnitTestPSReadLine/bin/$Configuration/UnitTestPSReadLine.dll" }
+}
+
 <#
 Synopsis: Copy all of the files that belong in the module to one place in the layout for installation
 #>
@@ -170,7 +191,6 @@ task Install LayoutModule, {
         Write-Error -Message "Can't install, module is probably in use."
     }
 }
-
 
 <#
 Synopsis: Default build rule - build and create module layout
