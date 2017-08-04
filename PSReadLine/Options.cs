@@ -165,11 +165,11 @@ namespace Microsoft.PowerShell
             }
             if (options._tokenKind.HasValue)
             {
-                if (options._foregroundColor.HasValue)
+                if (options.ForegroundColor != null)
                 {
                     Options.SetForegroundColor(options.TokenKind, options.ForegroundColor);
                 }
-                if (options._backgroundColor.HasValue)
+                if (options.BackgroundColor != null)
                 {
                     Options.SetBackgroundColor(options.TokenKind, options.BackgroundColor);
                 }

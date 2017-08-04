@@ -33,8 +33,8 @@ namespace Microsoft.PowerShell
         {
             internal Token[] Tokens { get; set; }
             internal int Index { get; set; }
-            internal ConsoleColor BackgroundColor { get; set; }
-            internal ConsoleColor ForegroundColor { get; set; }
+            internal string BackgroundColor { get; set; }
+            internal string ForegroundColor { get; set; }
         }
 
         private void MaybeParseInput()
@@ -85,21 +85,18 @@ namespace Microsoft.PowerShell
         {
             var text = ParseInput();
 
-            var defaultBgColor = _console.BackgroundColor;
-            var defaultFgColor = _console.ForegroundColor;
-            var currBgColor = defaultBgColor;
-            var currFgColor = defaultFgColor;
+            string defaultBgColor = VTColorUtils.MapColorToEscapeSequence(_console.BackgroundColor, isBackground: true);
+            string defaultFgColor = VTColorUtils.MapColorToEscapeSequence(_console.ForegroundColor, isBackground: false);
+            string currBgColor = defaultBgColor;
+            string currFgColor = defaultFgColor;
             string currentBackgroundColorSequnce = "";
             string currentForegroundColorSequnce = "";
             bool afterLastToken = false;
             int currentLogicalLine = 0;
             int promptFactor = 0;
 
-            void UpdateColorsIfNecessary(ConsoleColor foreground, ConsoleColor background, bool writeNow)
+            void UpdateColorsIfNecessary(string newForeground, string newBackground, bool writeNow)
             {
-                var newForeground = MapColorToEscapeSequence(foreground, isBackground: false);
-                var newBackground = MapColorToEscapeSequence(background, isBackground: true);
-
                 if (!object.ReferenceEquals(newForeground, currentForegroundColorSequnce))
                 {
                     if (writeNow)
@@ -127,12 +124,12 @@ namespace Microsoft.PowerShell
                 }
             }
 
-            void MaybeEmphasize(int i, ConsoleColor foregroundColor, ConsoleColor backgroundColor)
+            void MaybeEmphasize(int i, string foregroundColor, string backgroundColor)
             {
                 if (i >= _emphasisStart && i < (_emphasisStart + _emphasisLength))
                 {
-                    backgroundColor = _options.EmphasisBackgroundColor;
-                    foregroundColor = _options.EmphasisForegroundColor;
+                    backgroundColor = _options._emphasisBackgroundColor;
+                    foregroundColor = _options._emphasisForegroundColor;
                 }
                 else if (_visualSelectionCommandCount > 0 && InRegion(i))
                 {
@@ -141,8 +138,8 @@ namespace Microsoft.PowerShell
                     // to invert only the lower 3 bits to change the color is somewhat
                     // but looks best with the 2 default color schemes - starting PowerShell
                     // from it's shortcut or from a cmd shortcut.
-                    foregroundColor = (ConsoleColor)((int)foregroundColor ^ 7);
-                    backgroundColor = (ConsoleColor)((int)backgroundColor ^ 7);
+                    foregroundColor = foregroundColor + "\x1b[7m";//(ConsoleColor)((int)foregroundColor ^ 7);
+                    //backgroundColor = //(ConsoleColor)((int)backgroundColor ^ 7);
                 }
 
                 UpdateColorsIfNecessary(foregroundColor, backgroundColor, writeNow: false);
@@ -159,7 +156,7 @@ namespace Microsoft.PowerShell
 
                 if (_parseErrors != null && _parseErrors.Length > 0)
                 {
-                    UpdateColorsIfNecessary(_options.ErrorForegroundColor, _options.ErrorBackgroundColor, writeNow: false);
+                    UpdateColorsIfNecessary(_options._errorForegroundColor, _options._errorBackgroundColor, writeNow: false);
                 }
                 else
                 {
@@ -255,7 +252,7 @@ namespace Microsoft.PowerShell
                         _consoleBufferLines.Add(new StringBuilder(COMMON_WIDEST_CONSOLE_WIDTH));
                     }
 
-                    UpdateColorsIfNecessary(Options.ContinuationPromptForegroundColor, Options.ContinuationPromptBackgroundColor, writeNow: false);
+                    UpdateColorsIfNecessary(Options._continuationPromptForegroundColor, Options._continuationPromptBackgroundColor, writeNow: false);
                     foreach (char c in Options.ContinuationPrompt)
                     {
                         _consoleBufferLines[currentLogicalLine].Append(c);
@@ -285,8 +282,8 @@ namespace Microsoft.PowerShell
                     _consoleBufferLines.Add(new StringBuilder(COMMON_WIDEST_CONSOLE_WIDTH));
                 }
 
-                currFgColor = _statusIsErrorMessage ? Options.ErrorForegroundColor : defaultFgColor;
-                currBgColor = _statusIsErrorMessage ? Options.ErrorBackgroundColor : defaultBgColor;
+                currFgColor = _statusIsErrorMessage ? Options._errorForegroundColor : defaultFgColor;
+                currBgColor = _statusIsErrorMessage ? Options._errorBackgroundColor : defaultBgColor;
                 UpdateColorsIfNecessary(currFgColor, currBgColor, writeNow: false);
 
                 foreach (char c in _statusLinePrompt)
@@ -423,120 +420,77 @@ namespace Microsoft.PowerShell
             return _singleton._console.ReadBufferLines(top, count);
         }
 
-        private void GetTokenColors(Token token, out ConsoleColor foregroundColor, out ConsoleColor backgroundColor)
+        private void GetTokenColors(Token token, out string foregroundColor, out string backgroundColor)
         {
             switch (token.Kind)
             {
             case TokenKind.Comment:
-                foregroundColor = _options.CommentForegroundColor;
-                backgroundColor = _options.CommentBackgroundColor;
+                foregroundColor = _options._commentForegroundColor;
+                backgroundColor = _options._commentBackgroundColor;
                 return;
 
             case TokenKind.Parameter:
-                foregroundColor = _options.ParameterForegroundColor;
-                backgroundColor = _options.ParameterBackgroundColor;
+                foregroundColor = _options._parameterForegroundColor;
+                backgroundColor = _options._parameterBackgroundColor;
                 return;
 
             case TokenKind.Variable:
             case TokenKind.SplattedVariable:
-                foregroundColor = _options.VariableForegroundColor;
-                backgroundColor = _options.VariableBackgroundColor;
+                foregroundColor = _options._variableForegroundColor;
+                backgroundColor = _options._variableBackgroundColor;
                 return;
 
             case TokenKind.StringExpandable:
             case TokenKind.StringLiteral:
             case TokenKind.HereStringExpandable:
             case TokenKind.HereStringLiteral:
-                foregroundColor = _options.StringForegroundColor;
-                backgroundColor = _options.StringBackgroundColor;
+                foregroundColor = _options._stringForegroundColor;
+                backgroundColor = _options._stringBackgroundColor;
                 return;
 
             case TokenKind.Number:
-                foregroundColor = _options.NumberForegroundColor;
-                backgroundColor = _options.NumberBackgroundColor;
+                foregroundColor = _options._numberForegroundColor;
+                backgroundColor = _options._numberBackgroundColor;
                 return;
             }
 
             if ((token.TokenFlags & TokenFlags.CommandName) != 0)
             {
-                foregroundColor = _options.CommandForegroundColor;
-                backgroundColor = _options.CommandBackgroundColor;
+                foregroundColor = _options._commandForegroundColor;
+                backgroundColor = _options._commandBackgroundColor;
                 return;
             }
 
             if ((token.TokenFlags & TokenFlags.Keyword) != 0)
             {
-                foregroundColor = _options.KeywordForegroundColor;
-                backgroundColor = _options.KeywordBackgroundColor;
+                foregroundColor = _options._keywordForegroundColor;
+                backgroundColor = _options._keywordBackgroundColor;
                 return;
             }
 
             if ((token.TokenFlags & (TokenFlags.BinaryOperator | TokenFlags.UnaryOperator | TokenFlags.AssignmentOperator)) != 0)
             {
-                foregroundColor = _options.OperatorForegroundColor;
-                backgroundColor = _options.OperatorBackgroundColor;
+                foregroundColor = _options._operatorForegroundColor;
+                backgroundColor = _options._operatorBackgroundColor;
                 return;
             }
 
             if ((token.TokenFlags & TokenFlags.TypeName) != 0)
             {
-                foregroundColor = _options.TypeForegroundColor;
-                backgroundColor = _options.TypeBackgroundColor;
+                foregroundColor = _options._typeForegroundColor;
+                backgroundColor = _options._typeBackgroundColor;
                 return;
             }
 
             if ((token.TokenFlags & TokenFlags.MemberName) != 0)
             {
-                foregroundColor = _options.MemberForegroundColor;
-                backgroundColor = _options.MemberBackgroundColor;
+                foregroundColor = _options._memberForegroundColor;
+                backgroundColor = _options._memberBackgroundColor;
                 return;
             }
 
-            foregroundColor = _options.DefaultTokenForegroundColor;
-            backgroundColor = _options.DefaultTokenBackgroundColor;
-        }
-
-        private static readonly string[] BackgroundColorMap = {
-            "\x1b[40m", // Black
-            "\x1b[44m", // DarkBlue
-            "\x1b[42m", // DarkGreen
-            "\x1b[46m", // DarkCyan
-            "\x1b[41m", // DarkRed
-            "\x1b[45m", // DarkMagenta
-            "\x1b[43m", // DarkYellow
-            "\x1b[47m", // Gray
-            "\x1b[100m", // DarkGray
-            "\x1b[104m", // Blue
-            "\x1b[102m", // Green
-            "\x1b[106m", // Cyan
-            "\x1b[101m", // Red
-            "\x1b[105m", // Magenta
-            "\x1b[103m", // Yellow
-            "\x1b[107m", // White
-        };
-
-        private static readonly string[] ForegroundColorMap = {
-            "\x1b[30m", // Black
-            "\x1b[34m", // DarkBlue
-            "\x1b[32m", // DarkGreen
-            "\x1b[36m", // DarkCyan
-            "\x1b[31m", // DarkRed
-            "\x1b[35m", // DarkMagenta
-            "\x1b[33m", // DarkYellow
-            "\x1b[37m", // Gray
-            "\x1b[90m", // DarkGray
-            "\x1b[94m", // Blue
-            "\x1b[92m", // Green
-            "\x1b[96m", // Cyan
-            "\x1b[91m", // Red
-            "\x1b[95m", // Magenta
-            "\x1b[93m", // Yellow
-            "\x1b[97m", // White
-        };
-
-        private string MapColorToEscapeSequence(ConsoleColor color, bool isBackground)
-        {
-            return (isBackground ? BackgroundColorMap : ForegroundColorMap)[(int)color];
+            foregroundColor = _options._defaultTokenForegroundColor;
+            backgroundColor = _options._defaultTokenBackgroundColor;
         }
 
         private void GetRegion(out int start, out int length)

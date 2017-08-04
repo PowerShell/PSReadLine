@@ -114,14 +114,14 @@ namespace Microsoft.PowerShell
             historyErrorReportedCount += 1;
             var fgColor = Console.ForegroundColor;
             var bgColor = Console.BackgroundColor;
-            Console.ForegroundColor = Options.ErrorForegroundColor;
+            Console.Write(_options._errorForegroundColor);
+            Console.Write(_options._errorBackgroundColor);
             Console.WriteLine(PSReadLineResources.HistoryFileErrorMessage, Options.HistorySavePath, e.Message);
             if (historyErrorReportedCount == 2)
             {
                 Console.WriteLine(PSReadLineResources.HistoryFileErrorFinalMessage);
             }
-            Console.ForegroundColor = fgColor;
-            Console.BackgroundColor = bgColor;
+            Console.Write("\x1b0m");
         }
 
         private bool WithHistoryFileMutexDo(int timeout, Action action)

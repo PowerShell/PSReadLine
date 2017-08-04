@@ -717,4 +717,7 @@ Or not saving history with:
   <data name="OopsCustomHandlerException" xml:space="preserve">
     <value>An exception occurred in custom key handler, see $error for more information: {0}</value>
   </data>
+  <data name="InvalidColorParameter" xml:space="preserve">
+    <value>Parameter must be a ConsoleColor, ANSI escape sequence, or RGB value with optional leading '#'.</value>
+  </data>
 </root>

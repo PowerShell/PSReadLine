@@ -595,6 +595,15 @@ namespace Microsoft.PowerShell {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Parameter must be a ConsoleColor, ANSI escape sequence, or RGB value with optional leading &apos;#&apos;..
+        /// </summary>
+        internal static string InvalidColorParameter {
+            get {
+                return ResourceManager.GetString("InvalidColorParameter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Duplicate or invalid modifier token &apos;{0}&apos; for key &apos;{1}&apos;..
         /// </summary>
         internal static string InvalidModifier {

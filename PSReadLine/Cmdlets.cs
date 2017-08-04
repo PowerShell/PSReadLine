@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Management.Automation;
 using System.Management.Automation.Language;
 using System.Reflection;
@@ -174,8 +175,21 @@ namespace Microsoft.PowerShell
         public EditMode EditMode { get; set; }
 
         public string ContinuationPrompt { get; set; }
-        public ConsoleColor ContinuationPromptForegroundColor { get; set; }
-        public ConsoleColor ContinuationPromptBackgroundColor { get; set; }
+
+        public object ContinuationPromptForegroundColor
+        {
+            get => _continuationPromptForegroundColor;
+            set => _continuationPromptForegroundColor = VTColorUtils.AsEscapeSequence(value, isBackground: false);
+        }
+
+        public object ContinuationPromptBackgroundColor
+        {
+            get => _continuationPromptBackgroundColor;
+            set => _continuationPromptBackgroundColor = VTColorUtils.AsEscapeSequence(value, isBackground: true);
+        }
+
+        internal string _continuationPromptForegroundColor;
+        internal string _continuationPromptBackgroundColor;
 
         /// <summary>
         /// Prompts are typically 1 line, but sometimes they may span lines.  This
@@ -253,32 +267,188 @@ namespace Microsoft.PowerShell
         /// </summary>
         public string PromptText { get; set; }
 
-        public ConsoleColor DefaultTokenForegroundColor { get; set; }
-        public ConsoleColor CommentForegroundColor { get; set; }
-        public ConsoleColor KeywordForegroundColor { get; set; }
-        public ConsoleColor StringForegroundColor { get; set; }
-        public ConsoleColor OperatorForegroundColor { get; set; }
-        public ConsoleColor VariableForegroundColor { get; set; }
-        public ConsoleColor CommandForegroundColor { get; set; }
-        public ConsoleColor ParameterForegroundColor { get; set; }
-        public ConsoleColor TypeForegroundColor { get; set; }
-        public ConsoleColor NumberForegroundColor { get; set; }
-        public ConsoleColor MemberForegroundColor { get; set; }
-        public ConsoleColor DefaultTokenBackgroundColor { get; set; }
-        public ConsoleColor CommentBackgroundColor { get; set; }
-        public ConsoleColor KeywordBackgroundColor { get; set; }
-        public ConsoleColor StringBackgroundColor { get; set; }
-        public ConsoleColor OperatorBackgroundColor { get; set; }
-        public ConsoleColor VariableBackgroundColor { get; set; }
-        public ConsoleColor CommandBackgroundColor { get; set; }
-        public ConsoleColor ParameterBackgroundColor { get; set; }
-        public ConsoleColor TypeBackgroundColor { get; set; }
-        public ConsoleColor NumberBackgroundColor { get; set; }
-        public ConsoleColor MemberBackgroundColor { get; set; }
-        public ConsoleColor EmphasisForegroundColor { get; set; }
-        public ConsoleColor EmphasisBackgroundColor { get; set; }
-        public ConsoleColor ErrorForegroundColor { get; set; }
-        public ConsoleColor ErrorBackgroundColor { get; set; }
+        public object DefaultTokenForegroundColor
+        {
+            get => _defaultTokenForegroundColor;
+            set => _defaultTokenForegroundColor = VTColorUtils.AsEscapeSequence(value, isBackground: false);
+        }
+
+        public object CommentForegroundColor
+        {
+            get => _commentForegroundColor;
+            set => _commentForegroundColor = VTColorUtils.AsEscapeSequence(value, isBackground: false);
+        }
+
+        public object KeywordForegroundColor
+        {
+            get => _keywordForegroundColor;
+            set => _keywordForegroundColor = VTColorUtils.AsEscapeSequence(value, isBackground: false);
+        }
+
+        public object StringForegroundColor
+        {
+            get => _stringForegroundColor;
+            set => _stringForegroundColor = VTColorUtils.AsEscapeSequence(value, isBackground: false);
+        }
+
+        public object OperatorForegroundColor
+        {
+            get => _operatorForegroundColor;
+            set => _operatorForegroundColor = VTColorUtils.AsEscapeSequence(value, isBackground: false);
+        }
+
+        public object VariableForegroundColor
+        {
+            get => _variableForegroundColor;
+            set => _variableForegroundColor = VTColorUtils.AsEscapeSequence(value, isBackground: false);
+        }
+
+        public object CommandForegroundColor
+        {
+            get => _commandForegroundColor;
+            set => _commandForegroundColor = VTColorUtils.AsEscapeSequence(value, isBackground: false);
+        }
+
+        public object ParameterForegroundColor
+        {
+            get => _parameterForegroundColor;
+            set => _parameterForegroundColor = VTColorUtils.AsEscapeSequence(value, isBackground: false);
+        }
+
+        public object TypeForegroundColor
+        {
+            get => _typeForegroundColor;
+            set => _typeForegroundColor = VTColorUtils.AsEscapeSequence(value, isBackground: false);
+        }
+
+        public object NumberForegroundColor
+        {
+            get => _numberForegroundColor;
+            set => _numberForegroundColor = VTColorUtils.AsEscapeSequence(value, isBackground: false);
+        }
+
+        public object MemberForegroundColor
+        {
+            get => _memberForegroundColor;
+            set => _memberForegroundColor = VTColorUtils.AsEscapeSequence(value, isBackground: false);
+        }
+
+        public object DefaultTokenBackgroundColor
+        {
+            get => _defaultTokenBackgroundColor;
+            set => _defaultTokenBackgroundColor = VTColorUtils.AsEscapeSequence(value, isBackground: true);
+        }
+
+        public object CommentBackgroundColor
+        {
+            get => _commentBackgroundColor;
+            set => _commentBackgroundColor = VTColorUtils.AsEscapeSequence(value, isBackground: true);
+        }
+
+        public object KeywordBackgroundColor
+        {
+            get => _keywordBackgroundColor;
+            set => _keywordBackgroundColor = VTColorUtils.AsEscapeSequence(value, isBackground: true);
+        }
+
+        public object StringBackgroundColor
+        {
+            get => _stringBackgroundColor;
+            set => _stringBackgroundColor = VTColorUtils.AsEscapeSequence(value, isBackground: true);
+        }
+
+        public object OperatorBackgroundColor
+        {
+            get => _operatorBackgroundColor;
+            set => _operatorBackgroundColor = VTColorUtils.AsEscapeSequence(value, isBackground: true);
+        }
+
+        public object VariableBackgroundColor
+        {
+            get => _variableBackgroundColor;
+            set => _variableBackgroundColor = VTColorUtils.AsEscapeSequence(value, isBackground: true);
+        }
+
+        public object CommandBackgroundColor
+        {
+            get => _commandBackgroundColor;
+            set => _commandBackgroundColor = VTColorUtils.AsEscapeSequence(value, isBackground: true);
+        }
+
+        public object ParameterBackgroundColor
+        {
+            get => _parameterBackgroundColor;
+            set => _parameterBackgroundColor = VTColorUtils.AsEscapeSequence(value, isBackground: true);
+        }
+
+        public object TypeBackgroundColor
+        {
+            get => _typeBackgroundColor;
+            set => _typeBackgroundColor = VTColorUtils.AsEscapeSequence(value, isBackground: true);
+        }
+
+        public object NumberBackgroundColor
+        {
+            get => _numberBackgroundColor;
+            set => _numberBackgroundColor = VTColorUtils.AsEscapeSequence(value, isBackground: true);
+        }
+
+        public object MemberBackgroundColor
+        {
+            get => _memberBackgroundColor;
+            set => _memberBackgroundColor = VTColorUtils.AsEscapeSequence(value, isBackground: true);
+        }
+
+        public object EmphasisForegroundColor
+        {
+            get => _emphasisForegroundColor;
+            set => _emphasisForegroundColor = VTColorUtils.AsEscapeSequence(value, isBackground: false);
+        }
+
+        public object EmphasisBackgroundColor
+        {
+            get => _emphasisBackgroundColor;
+            set => _emphasisBackgroundColor = VTColorUtils.AsEscapeSequence(value, isBackground: true);
+        }
+
+        public object ErrorForegroundColor
+        {
+            get => _errorForegroundColor;
+            set => _errorForegroundColor = VTColorUtils.AsEscapeSequence(value, isBackground: false);
+        }
+
+        public object ErrorBackgroundColor
+        {
+            get => _errorBackgroundColor;
+            set => _errorBackgroundColor = VTColorUtils.AsEscapeSequence(value, isBackground: true);
+        }
+
+        internal string _defaultTokenForegroundColor;
+        internal string _commentForegroundColor;
+        internal string _keywordForegroundColor;
+        internal string _stringForegroundColor;
+        internal string _operatorForegroundColor;
+        internal string _variableForegroundColor;
+        internal string _commandForegroundColor;
+        internal string _parameterForegroundColor;
+        internal string _typeForegroundColor;
+        internal string _numberForegroundColor;
+        internal string _memberForegroundColor;
+        internal string _defaultTokenBackgroundColor;
+        internal string _commentBackgroundColor;
+        internal string _keywordBackgroundColor;
+        internal string _stringBackgroundColor;
+        internal string _operatorBackgroundColor;
+        internal string _variableBackgroundColor;
+        internal string _commandBackgroundColor;
+        internal string _parameterBackgroundColor;
+        internal string _typeBackgroundColor;
+        internal string _numberBackgroundColor;
+        internal string _memberBackgroundColor;
+        internal string _emphasisForegroundColor;
+        internal string _emphasisBackgroundColor;
+        internal string _errorForegroundColor;
+        internal string _errorBackgroundColor;
 
         internal void ResetColors()
         {
@@ -310,7 +480,7 @@ namespace Microsoft.PowerShell
             ErrorBackgroundColor        = Console.BackgroundColor;
         }
 
-        internal void SetForegroundColor(TokenClassification tokenKind, ConsoleColor color)
+        internal void SetForegroundColor(TokenClassification tokenKind, object color)
         {
             switch (tokenKind)
             {
@@ -328,7 +498,7 @@ namespace Microsoft.PowerShell
             }
         }
 
-        internal void SetBackgroundColor(TokenClassification tokenKind, ConsoleColor color)
+        internal void SetBackgroundColor(TokenClassification tokenKind, object color)
         {
             switch (tokenKind)
             {
@@ -584,25 +754,27 @@ namespace Microsoft.PowerShell
         internal TokenClassification? _tokenKind;
 
         [Parameter(ParameterSetName = "ColorSet", Position = 1)]
-        public ConsoleColor ForegroundColor
-        {
-            get => _foregroundColor.GetValueOrDefault();
-            set => _foregroundColor = value;
-        }
-        internal ConsoleColor? _foregroundColor;
+        [ValidateColor]
+        public object ForegroundColor { get; set; }
 
         [Parameter(ParameterSetName = "ColorSet", Position = 2)]
-        public ConsoleColor BackgroundColor
-        {
-            get => _backgroundColor.GetValueOrDefault();
-            set => _backgroundColor = value;
-        }
-        internal ConsoleColor? _backgroundColor;
+        [ValidateColor]
+        public object BackgroundColor { get; set; }
 
         [ExcludeFromCodeCoverage]
         protected override void EndProcessing()
         {
             PSConsoleReadLine.SetOptions(this);
+        }
+    }
+
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
+    internal class ValidateColorAttribute : ValidateArgumentsAttribute
+    {
+        protected override void Validate(object arguments, EngineIntrinsics engineIntrinsics)
+        {
+            if (!VTColorUtils.IsValidColor(arguments))
+                throw new ValidationMetadataException(PSReadLineResources.InvalidColorParameter);
         }
     }
 
@@ -775,6 +947,132 @@ namespace Microsoft.PowerShell
         }
     }
 
+    public static class VTColorUtils
+    {
+        internal static bool IsValidColorImpl(ConsoleColor c) => true;
+
+        internal static bool IsValidColorImpl(string s) => true;
+
+        public static bool IsValidColor(object o)
+        {
+            switch (o)
+            {
+                case ConsoleColor c:
+                    return true;
+
+                case string s:
+                    if (s.Length > 0)
+                    {
+                        // String can be converted to ConsoleColor, so is it a ConsoleColor?
+                        if (LanguagePrimitives.TryConvertTo(s, out ConsoleColor unused1))
+                            return true;
+
+                        // Escape sequence - assume it's fine as is
+                        if (s[0] == '\x1b')
+                            return true;
+
+                        // RGB format with possible '#'
+                        if (s[0] == '#')
+                            s = s.Substring(1);
+
+                        if (int.TryParse(s, NumberStyles.HexNumber, NumberFormatInfo.InvariantInfo, out int rgb) &&
+                            rgb >= 0 && rgb <= 0x00ffffff)
+                            return true;
+                    }
+                    break;
+            }
+
+            return false;
+        }
+
+        public static string AsEscapeSequence(object o, bool isBackground)
+        {
+            switch (o)
+            {
+                case ConsoleColor c:
+                    return MapColorToEscapeSequence(c, isBackground);
+
+                case string s:
+                    if (s.Length > 0)
+                    {
+                        // String can be converted to ConsoleColor, so it is a ConsoleColor
+                        if (LanguagePrimitives.TryConvertTo(s, out ConsoleColor c))
+                            return MapColorToEscapeSequence(c, isBackground);
+
+                        // Escape sequence - assume it's fine as is
+                        if (s[0] == '\x1b')
+                            return s;
+
+                        // RGB format with possible '#'
+                        if (s[0] == '#')
+                            s = s.Substring(1);
+
+                        if (s.Length == 6 &&
+                            int.TryParse(s, NumberStyles.HexNumber, NumberFormatInfo.InvariantInfo, out int rgb) &&
+                            rgb >= 0 && rgb <= 0x00ffffff)
+                        {
+                            if (rgb < 256)
+                            {
+                                return "\x1b[" + (isBackground ? "4" : "3") + "8;5;" + rgb + "m";
+                            }
+
+                            var r = (rgb >> 16) & 0xff;
+                            var g = (rgb >> 8) & 0xff;
+                            var b = rgb & 0xff;
+
+                            return "\x1b[" + (isBackground ? "4" : "3") + "8;2;" + r + ";" + g + ";" + b + "m";
+                        }
+                    }
+                    break;
+            }
+
+            throw new ArgumentException("o");
+        }
+
+        private static readonly string[] BackgroundColorMap = {
+            "\x1b[40m", // Black
+            "\x1b[44m", // DarkBlue
+            "\x1b[42m", // DarkGreen
+            "\x1b[46m", // DarkCyan
+            "\x1b[41m", // DarkRed
+            "\x1b[45m", // DarkMagenta
+            "\x1b[43m", // DarkYellow
+            "\x1b[47m", // Gray
+            "\x1b[100m", // DarkGray
+            "\x1b[104m", // Blue
+            "\x1b[102m", // Green
+            "\x1b[106m", // Cyan
+            "\x1b[101m", // Red
+            "\x1b[105m", // Magenta
+            "\x1b[103m", // Yellow
+            "\x1b[107m", // White
+        };
+
+        private static readonly string[] ForegroundColorMap = {
+            "\x1b[30m", // Black
+            "\x1b[34m", // DarkBlue
+            "\x1b[32m", // DarkGreen
+            "\x1b[36m", // DarkCyan
+            "\x1b[31m", // DarkRed
+            "\x1b[35m", // DarkMagenta
+            "\x1b[33m", // DarkYellow
+            "\x1b[37m", // Gray
+            "\x1b[90m", // DarkGray
+            "\x1b[94m", // Blue
+            "\x1b[92m", // Green
+            "\x1b[96m", // Cyan
+            "\x1b[91m", // Red
+            "\x1b[95m", // Magenta
+            "\x1b[93m", // Yellow
+            "\x1b[97m", // White
+        };
+
+        internal static string MapColorToEscapeSequence(ConsoleColor color, bool isBackground)
+        {
+            return (isBackground ? BackgroundColorMap : ForegroundColorMap)[(int)color];
+        }
+
+    }
 #pragma warning restore 1591
 
 }
