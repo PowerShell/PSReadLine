@@ -27,29 +27,17 @@ namespace Microsoft.PowerShell
             {
                 Options.ContinuationPrompt = options.ContinuationPrompt;
             }
-            if (options._continuationPromptForegroundColor.HasValue)
+            if (options.ContinuationPromptColor != null)
             {
-                Options.ContinuationPromptForegroundColor = options.ContinuationPromptForegroundColor;
+                Options.ContinuationPromptColor = options.ContinuationPromptColor;
             }
-            if (options._continuationPromptBackgroundColor.HasValue)
+            if (options.EmphasisColor != null)
             {
-                Options.ContinuationPromptBackgroundColor = options.ContinuationPromptBackgroundColor;
+                Options.EmphasisColor = options.EmphasisColor;
             }
-            if (options._emphasisBackgroundColor.HasValue)
+            if (options.ErrorColor != null)
             {
-                Options.EmphasisBackgroundColor = options.EmphasisBackgroundColor;
-            }
-            if (options._emphasisForegroundColor.HasValue)
-            {
-                Options.EmphasisForegroundColor = options.EmphasisForegroundColor;
-            }
-            if (options._errorBackgroundColor.HasValue)
-            {
-                Options.ErrorBackgroundColor = options.ErrorBackgroundColor;
-            }
-            if (options._errorForegroundColor.HasValue)
-            {
-                Options.ErrorForegroundColor = options.ErrorForegroundColor;
+                Options.ErrorColor = options.ErrorColor;
             }
             if (options._historyNoDuplicates.HasValue)
             {
@@ -165,13 +153,9 @@ namespace Microsoft.PowerShell
             }
             if (options._tokenKind.HasValue)
             {
-                if (options.ForegroundColor != null)
+                if (options.Color != null)
                 {
-                    Options.SetForegroundColor(options.TokenKind, options.ForegroundColor);
-                }
-                if (options.BackgroundColor != null)
-                {
-                    Options.SetBackgroundColor(options.TokenKind, options.BackgroundColor);
+                    Options.SetColor(options.TokenKind, options.Color);
                 }
             }
         }

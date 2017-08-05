@@ -69,8 +69,7 @@ namespace UnitTestPSReadLine
             SetHistory();
             Test(" ", Keys(' ', _.UpArrow, _.DownArrow));
 
-            var options = PSConsoleReadLine.GetOptions();
-            var emphasisColors = Tuple.Create(options.EmphasisForegroundColor, options.EmphasisBackgroundColor);
+            var emphasisColors = Tuple.Create(PSConsoleReadlineOptions.DefaultEmphasisColor, _console.BackgroundColor);
 
             SetHistory("dosomething", "ps p*", "dir", "echo zzz");
             Test("dosomething", Keys(
@@ -110,8 +109,7 @@ namespace UnitTestPSReadLine
                       new KeyHandler("DownArrow", PSConsoleReadLine.HistorySearchForward));
 
             PSConsoleReadLine.SetOptions(new SetPSReadlineOption {HistorySearchCursorMovesToEnd = true});
-            var options = PSConsoleReadLine.GetOptions();
-            var emphasisColors = Tuple.Create(options.EmphasisForegroundColor, options.EmphasisBackgroundColor);
+            var emphasisColors = Tuple.Create(PSConsoleReadlineOptions.DefaultEmphasisColor, _console.BackgroundColor);
 
             SetHistory("dosomething", "ps p*", "dir", "echo zzz");
             Test("dosomething", Keys(
@@ -180,8 +178,7 @@ namespace UnitTestPSReadLine
             SetHistory("echo aaa");
             Test("echo aaa", Keys(_.CtrlR, 'a'));
 
-            var options = PSConsoleReadLine.GetOptions();
-            var emphasisColors = Tuple.Create(options.EmphasisForegroundColor, options.EmphasisBackgroundColor);
+            var emphasisColors = Tuple.Create(PSConsoleReadlineOptions.DefaultEmphasisColor, _console.BackgroundColor);
             var statusColors = Tuple.Create(_console.ForegroundColor, _console.BackgroundColor);
 
             // Test entering multiple characters and the line is updated with new matches

@@ -112,10 +112,7 @@ namespace Microsoft.PowerShell
                 return;
 
             historyErrorReportedCount += 1;
-            var fgColor = Console.ForegroundColor;
-            var bgColor = Console.BackgroundColor;
-            Console.Write(_options._errorForegroundColor);
-            Console.Write(_options._errorBackgroundColor);
+            Console.Write(_options._errorColor);
             Console.WriteLine(PSReadLineResources.HistoryFileErrorMessage, Options.HistorySavePath, e.Message);
             if (historyErrorReportedCount == 2)
             {

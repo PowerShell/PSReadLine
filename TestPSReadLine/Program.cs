@@ -51,8 +51,8 @@ namespace TestPSReadLine
                 HistoryNoDuplicates = true,
             });
             var options = PSConsoleReadLine.GetOptions();
-            options.CommandForegroundColor = "#8181f7";
-            options.StringForegroundColor = "\x1b[38;5;100m";
+            options.CommandColor = "#8181f7";
+            options.StringColor = "\x1b[38;5;100m";
             PSConsoleReadLine.SetKeyHandler(new[] {"Ctrl+LeftArrow"}, PSConsoleReadLine.ShellBackwardWord, "", "");
             PSConsoleReadLine.SetKeyHandler(new[] {"Ctrl+RightArrow"}, PSConsoleReadLine.ShellNextWord, "", "");
             PSConsoleReadLine.SetKeyHandler(new[] {"F4"}, PSConsoleReadLine.HistorySearchBackward, "", "");

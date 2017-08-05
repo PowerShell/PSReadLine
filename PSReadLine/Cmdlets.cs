@@ -70,18 +70,18 @@ namespace Microsoft.PowerShell
 
     public class PSConsoleReadlineOptions
     {
-        public const ConsoleColor DefaultCommentForegroundColor   = ConsoleColor.DarkGreen;
-        public const ConsoleColor DefaultKeywordForegroundColor   = ConsoleColor.Green;
-        public const ConsoleColor DefaultStringForegroundColor    = ConsoleColor.DarkCyan;
-        public const ConsoleColor DefaultOperatorForegroundColor  = ConsoleColor.DarkGray;
-        public const ConsoleColor DefaultVariableForegroundColor  = ConsoleColor.Green;
-        public const ConsoleColor DefaultCommandForegroundColor   = ConsoleColor.Yellow;
-        public const ConsoleColor DefaultParameterForegroundColor = ConsoleColor.DarkGray;
-        public const ConsoleColor DefaultTypeForegroundColor      = ConsoleColor.Gray;
-        public const ConsoleColor DefaultNumberForegroundColor    = ConsoleColor.White;
-        public const ConsoleColor DefaultMemberForegroundColor    = ConsoleColor.Gray;
-        public const ConsoleColor DefaultEmphasisForegroundColor  = ConsoleColor.Cyan;
-        public const ConsoleColor DefaultErrorForegroundColor     = ConsoleColor.Red;
+        public const ConsoleColor DefaultCommentColor   = ConsoleColor.DarkGreen;
+        public const ConsoleColor DefaultKeywordColor   = ConsoleColor.Green;
+        public const ConsoleColor DefaultStringColor    = ConsoleColor.DarkCyan;
+        public const ConsoleColor DefaultOperatorColor  = ConsoleColor.DarkGray;
+        public const ConsoleColor DefaultVariableColor  = ConsoleColor.Green;
+        public const ConsoleColor DefaultCommandColor   = ConsoleColor.Yellow;
+        public const ConsoleColor DefaultParameterColor = ConsoleColor.DarkGray;
+        public const ConsoleColor DefaultTypeColor      = ConsoleColor.Gray;
+        public const ConsoleColor DefaultNumberColor    = ConsoleColor.White;
+        public const ConsoleColor DefaultMemberColor    = ConsoleColor.Gray;
+        public const ConsoleColor DefaultEmphasisColor  = ConsoleColor.Cyan;
+        public const ConsoleColor DefaultErrorColor     = ConsoleColor.Red;
 
         public const EditMode DefaultEditMode = EditMode.Windows;
 
@@ -136,8 +136,7 @@ namespace Microsoft.PowerShell
             ResetColors();
             EditMode = DefaultEditMode;
             ContinuationPrompt = DefaultContinuationPrompt;
-            ContinuationPromptBackgroundColor = Console.BackgroundColor;
-            ContinuationPromptForegroundColor = Console.ForegroundColor;
+            ContinuationPromptColor = Console.ForegroundColor;
             ExtraPromptLineCount = DefaultExtraPromptLineCount;
             AddToHistoryHandler = null;
             HistoryNoDuplicates = DefaultHistoryNoDuplicates;
@@ -176,20 +175,13 @@ namespace Microsoft.PowerShell
 
         public string ContinuationPrompt { get; set; }
 
-        public object ContinuationPromptForegroundColor
+        public object ContinuationPromptColor
         {
-            get => _continuationPromptForegroundColor;
-            set => _continuationPromptForegroundColor = VTColorUtils.AsEscapeSequence(value, isBackground: false);
+            get => _continuationPromptColor;
+            set => _continuationPromptColor = VTColorUtils.AsEscapeSequence(value);
         }
 
-        public object ContinuationPromptBackgroundColor
-        {
-            get => _continuationPromptBackgroundColor;
-            set => _continuationPromptBackgroundColor = VTColorUtils.AsEscapeSequence(value, isBackground: true);
-        }
-
-        internal string _continuationPromptForegroundColor;
-        internal string _continuationPromptBackgroundColor;
+        internal string _continuationPromptColor;
 
         /// <summary>
         /// Prompts are typically 1 line, but sometimes they may span lines.  This
@@ -267,252 +259,130 @@ namespace Microsoft.PowerShell
         /// </summary>
         public string PromptText { get; set; }
 
-        public object DefaultTokenForegroundColor
+        public object DefaultTokenColor
         {
-            get => _defaultTokenForegroundColor;
-            set => _defaultTokenForegroundColor = VTColorUtils.AsEscapeSequence(value, isBackground: false);
+            get => _defaultTokenColor;
+            set => _defaultTokenColor = VTColorUtils.AsEscapeSequence(value);
         }
 
-        public object CommentForegroundColor
+        public object CommentColor
         {
-            get => _commentForegroundColor;
-            set => _commentForegroundColor = VTColorUtils.AsEscapeSequence(value, isBackground: false);
+            get => _commentColor;
+            set => _commentColor = VTColorUtils.AsEscapeSequence(value);
         }
 
-        public object KeywordForegroundColor
+        public object KeywordColor
         {
-            get => _keywordForegroundColor;
-            set => _keywordForegroundColor = VTColorUtils.AsEscapeSequence(value, isBackground: false);
+            get => _keywordColor;
+            set => _keywordColor = VTColorUtils.AsEscapeSequence(value);
         }
 
-        public object StringForegroundColor
+        public object StringColor
         {
-            get => _stringForegroundColor;
-            set => _stringForegroundColor = VTColorUtils.AsEscapeSequence(value, isBackground: false);
+            get => _stringColor;
+            set => _stringColor = VTColorUtils.AsEscapeSequence(value);
         }
 
-        public object OperatorForegroundColor
+        public object OperatorColor
         {
-            get => _operatorForegroundColor;
-            set => _operatorForegroundColor = VTColorUtils.AsEscapeSequence(value, isBackground: false);
+            get => _operatorColor;
+            set => _operatorColor = VTColorUtils.AsEscapeSequence(value);
         }
 
-        public object VariableForegroundColor
+        public object VariableColor
         {
-            get => _variableForegroundColor;
-            set => _variableForegroundColor = VTColorUtils.AsEscapeSequence(value, isBackground: false);
+            get => _variableColor;
+            set => _variableColor = VTColorUtils.AsEscapeSequence(value);
         }
 
-        public object CommandForegroundColor
+        public object CommandColor
         {
-            get => _commandForegroundColor;
-            set => _commandForegroundColor = VTColorUtils.AsEscapeSequence(value, isBackground: false);
+            get => _commandColor;
+            set => _commandColor = VTColorUtils.AsEscapeSequence(value);
         }
 
-        public object ParameterForegroundColor
+        public object ParameterColor
         {
-            get => _parameterForegroundColor;
-            set => _parameterForegroundColor = VTColorUtils.AsEscapeSequence(value, isBackground: false);
+            get => _parameterColor;
+            set => _parameterColor = VTColorUtils.AsEscapeSequence(value);
         }
 
-        public object TypeForegroundColor
+        public object TypeColor
         {
-            get => _typeForegroundColor;
-            set => _typeForegroundColor = VTColorUtils.AsEscapeSequence(value, isBackground: false);
+            get => _typeColor;
+            set => _typeColor = VTColorUtils.AsEscapeSequence(value);
         }
 
-        public object NumberForegroundColor
+        public object NumberColor
         {
-            get => _numberForegroundColor;
-            set => _numberForegroundColor = VTColorUtils.AsEscapeSequence(value, isBackground: false);
+            get => _numberColor;
+            set => _numberColor = VTColorUtils.AsEscapeSequence(value);
         }
 
-        public object MemberForegroundColor
+        public object MemberColor
         {
-            get => _memberForegroundColor;
-            set => _memberForegroundColor = VTColorUtils.AsEscapeSequence(value, isBackground: false);
+            get => _memberColor;
+            set => _memberColor = VTColorUtils.AsEscapeSequence(value);
         }
 
-        public object DefaultTokenBackgroundColor
+        public object EmphasisColor
         {
-            get => _defaultTokenBackgroundColor;
-            set => _defaultTokenBackgroundColor = VTColorUtils.AsEscapeSequence(value, isBackground: true);
+            get => _emphasisColor;
+            set => _emphasisColor = VTColorUtils.AsEscapeSequence(value);
         }
 
-        public object CommentBackgroundColor
+        public object ErrorColor
         {
-            get => _commentBackgroundColor;
-            set => _commentBackgroundColor = VTColorUtils.AsEscapeSequence(value, isBackground: true);
+            get => _errorColor;
+            set => _errorColor = VTColorUtils.AsEscapeSequence(value);
         }
 
-        public object KeywordBackgroundColor
-        {
-            get => _keywordBackgroundColor;
-            set => _keywordBackgroundColor = VTColorUtils.AsEscapeSequence(value, isBackground: true);
-        }
-
-        public object StringBackgroundColor
-        {
-            get => _stringBackgroundColor;
-            set => _stringBackgroundColor = VTColorUtils.AsEscapeSequence(value, isBackground: true);
-        }
-
-        public object OperatorBackgroundColor
-        {
-            get => _operatorBackgroundColor;
-            set => _operatorBackgroundColor = VTColorUtils.AsEscapeSequence(value, isBackground: true);
-        }
-
-        public object VariableBackgroundColor
-        {
-            get => _variableBackgroundColor;
-            set => _variableBackgroundColor = VTColorUtils.AsEscapeSequence(value, isBackground: true);
-        }
-
-        public object CommandBackgroundColor
-        {
-            get => _commandBackgroundColor;
-            set => _commandBackgroundColor = VTColorUtils.AsEscapeSequence(value, isBackground: true);
-        }
-
-        public object ParameterBackgroundColor
-        {
-            get => _parameterBackgroundColor;
-            set => _parameterBackgroundColor = VTColorUtils.AsEscapeSequence(value, isBackground: true);
-        }
-
-        public object TypeBackgroundColor
-        {
-            get => _typeBackgroundColor;
-            set => _typeBackgroundColor = VTColorUtils.AsEscapeSequence(value, isBackground: true);
-        }
-
-        public object NumberBackgroundColor
-        {
-            get => _numberBackgroundColor;
-            set => _numberBackgroundColor = VTColorUtils.AsEscapeSequence(value, isBackground: true);
-        }
-
-        public object MemberBackgroundColor
-        {
-            get => _memberBackgroundColor;
-            set => _memberBackgroundColor = VTColorUtils.AsEscapeSequence(value, isBackground: true);
-        }
-
-        public object EmphasisForegroundColor
-        {
-            get => _emphasisForegroundColor;
-            set => _emphasisForegroundColor = VTColorUtils.AsEscapeSequence(value, isBackground: false);
-        }
-
-        public object EmphasisBackgroundColor
-        {
-            get => _emphasisBackgroundColor;
-            set => _emphasisBackgroundColor = VTColorUtils.AsEscapeSequence(value, isBackground: true);
-        }
-
-        public object ErrorForegroundColor
-        {
-            get => _errorForegroundColor;
-            set => _errorForegroundColor = VTColorUtils.AsEscapeSequence(value, isBackground: false);
-        }
-
-        public object ErrorBackgroundColor
-        {
-            get => _errorBackgroundColor;
-            set => _errorBackgroundColor = VTColorUtils.AsEscapeSequence(value, isBackground: true);
-        }
-
-        internal string _defaultTokenForegroundColor;
-        internal string _commentForegroundColor;
-        internal string _keywordForegroundColor;
-        internal string _stringForegroundColor;
-        internal string _operatorForegroundColor;
-        internal string _variableForegroundColor;
-        internal string _commandForegroundColor;
-        internal string _parameterForegroundColor;
-        internal string _typeForegroundColor;
-        internal string _numberForegroundColor;
-        internal string _memberForegroundColor;
-        internal string _defaultTokenBackgroundColor;
-        internal string _commentBackgroundColor;
-        internal string _keywordBackgroundColor;
-        internal string _stringBackgroundColor;
-        internal string _operatorBackgroundColor;
-        internal string _variableBackgroundColor;
-        internal string _commandBackgroundColor;
-        internal string _parameterBackgroundColor;
-        internal string _typeBackgroundColor;
-        internal string _numberBackgroundColor;
-        internal string _memberBackgroundColor;
-        internal string _emphasisForegroundColor;
-        internal string _emphasisBackgroundColor;
-        internal string _errorForegroundColor;
-        internal string _errorBackgroundColor;
+        internal string _defaultTokenColor;
+        internal string _commentColor;
+        internal string _keywordColor;
+        internal string _stringColor;
+        internal string _operatorColor;
+        internal string _variableColor;
+        internal string _commandColor;
+        internal string _parameterColor;
+        internal string _typeColor;
+        internal string _numberColor;
+        internal string _memberColor;
+        internal string _emphasisColor;
+        internal string _errorColor;
 
         internal void ResetColors()
         {
-            DefaultTokenForegroundColor = Console.ForegroundColor;
-            CommentForegroundColor      = DefaultCommentForegroundColor;
-            KeywordForegroundColor      = DefaultKeywordForegroundColor;
-            StringForegroundColor       = DefaultStringForegroundColor;
-            OperatorForegroundColor     = DefaultOperatorForegroundColor;
-            VariableForegroundColor     = DefaultVariableForegroundColor;
-            CommandForegroundColor      = DefaultCommandForegroundColor;
-            ParameterForegroundColor    = DefaultParameterForegroundColor;
-            TypeForegroundColor         = DefaultTypeForegroundColor;
-            NumberForegroundColor       = DefaultNumberForegroundColor;
-            MemberForegroundColor       = DefaultNumberForegroundColor;
-            EmphasisForegroundColor     = DefaultEmphasisForegroundColor;
-            ErrorForegroundColor        = DefaultErrorForegroundColor;
-            DefaultTokenBackgroundColor = Console.BackgroundColor;
-            CommentBackgroundColor      = Console.BackgroundColor;
-            KeywordBackgroundColor      = Console.BackgroundColor;
-            StringBackgroundColor       = Console.BackgroundColor;
-            OperatorBackgroundColor     = Console.BackgroundColor;
-            VariableBackgroundColor     = Console.BackgroundColor;
-            CommandBackgroundColor      = Console.BackgroundColor;
-            ParameterBackgroundColor    = Console.BackgroundColor;
-            TypeBackgroundColor         = Console.BackgroundColor;
-            NumberBackgroundColor       = Console.BackgroundColor;
-            MemberBackgroundColor       = Console.BackgroundColor;
-            EmphasisBackgroundColor     = Console.BackgroundColor;
-            ErrorBackgroundColor        = Console.BackgroundColor;
+            DefaultTokenColor = Console.ForegroundColor;
+            CommentColor      = DefaultCommentColor;
+            KeywordColor      = DefaultKeywordColor;
+            StringColor       = DefaultStringColor;
+            OperatorColor     = DefaultOperatorColor;
+            VariableColor     = DefaultVariableColor;
+            CommandColor      = DefaultCommandColor;
+            ParameterColor    = DefaultParameterColor;
+            TypeColor         = DefaultTypeColor;
+            NumberColor       = DefaultNumberColor;
+            MemberColor       = DefaultNumberColor;
+            EmphasisColor     = DefaultEmphasisColor;
+            ErrorColor        = DefaultErrorColor;
         }
 
-        internal void SetForegroundColor(TokenClassification tokenKind, object color)
+        internal void SetColor(TokenClassification tokenKind, object color)
         {
             switch (tokenKind)
             {
-            case TokenClassification.None:      DefaultTokenForegroundColor = color; break;
-            case TokenClassification.Comment:   CommentForegroundColor = color; break;
-            case TokenClassification.Keyword:   KeywordForegroundColor = color; break;
-            case TokenClassification.String:    StringForegroundColor = color; break;
-            case TokenClassification.Operator:  OperatorForegroundColor = color; break;
-            case TokenClassification.Variable:  VariableForegroundColor = color; break;
-            case TokenClassification.Command:   CommandForegroundColor = color; break;
-            case TokenClassification.Parameter: ParameterForegroundColor = color; break;
-            case TokenClassification.Type:      TypeForegroundColor = color; break;
-            case TokenClassification.Number:    NumberForegroundColor = color; break;
-            case TokenClassification.Member:    MemberForegroundColor = color; break;
-            }
-        }
-
-        internal void SetBackgroundColor(TokenClassification tokenKind, object color)
-        {
-            switch (tokenKind)
-            {
-            case TokenClassification.None:      DefaultTokenBackgroundColor = color; break;
-            case TokenClassification.Comment:   CommentBackgroundColor = color; break;
-            case TokenClassification.Keyword:   KeywordBackgroundColor = color; break;
-            case TokenClassification.String:    StringBackgroundColor = color; break;
-            case TokenClassification.Operator:  OperatorBackgroundColor = color; break;
-            case TokenClassification.Variable:  VariableBackgroundColor = color; break;
-            case TokenClassification.Command:   CommandBackgroundColor = color; break;
-            case TokenClassification.Parameter: ParameterBackgroundColor = color; break;
-            case TokenClassification.Type:      TypeBackgroundColor = color; break;
-            case TokenClassification.Number:    NumberBackgroundColor = color; break;
-            case TokenClassification.Member:    MemberBackgroundColor = color; break;
+            case TokenClassification.None:      DefaultTokenColor = color; break;
+            case TokenClassification.Comment:   CommentColor = color; break;
+            case TokenClassification.Keyword:   KeywordColor = color; break;
+            case TokenClassification.String:    StringColor = color; break;
+            case TokenClassification.Operator:  OperatorColor = color; break;
+            case TokenClassification.Variable:  VariableColor = color; break;
+            case TokenClassification.Command:   CommandColor = color; break;
+            case TokenClassification.Parameter: ParameterColor = color; break;
+            case TokenClassification.Type:      TypeColor = color; break;
+            case TokenClassification.Number:    NumberColor = color; break;
+            case TokenClassification.Member:    MemberColor = color; break;
             }
         }
     }
@@ -544,52 +414,19 @@ namespace Microsoft.PowerShell
         public string ContinuationPrompt { get; set; }
 
         [Parameter(ParameterSetName = "OptionsSet")]
-        public ConsoleColor ContinuationPromptForegroundColor
-        {
-            get => _continuationPromptForegroundColor.GetValueOrDefault();
-            set => _continuationPromptForegroundColor = value;
-        }
-        internal ConsoleColor? _continuationPromptForegroundColor;
+        [Alias("ContinuationPromptForegroundColor")]
+        [ValidateColor]
+        public object ContinuationPromptColor { get; set; }
 
         [Parameter(ParameterSetName = "OptionsSet")]
-        public ConsoleColor ContinuationPromptBackgroundColor
-        {
-            get => _continuationPromptBackgroundColor.GetValueOrDefault();
-            set => _continuationPromptBackgroundColor = value;
-        }
-        internal ConsoleColor? _continuationPromptBackgroundColor;
+        [Alias("EmphasisForegroundColor")]
+        [ValidateColor]
+        public object EmphasisColor { get; set; }
 
         [Parameter(ParameterSetName = "OptionsSet")]
-        public ConsoleColor EmphasisForegroundColor
-        {
-            get => _emphasisForegroundColor.GetValueOrDefault();
-            set => _emphasisForegroundColor = value;
-        }
-        internal ConsoleColor? _emphasisForegroundColor;
-
-        [Parameter(ParameterSetName = "OptionsSet")]
-        public ConsoleColor EmphasisBackgroundColor
-        {
-            get => _emphasisBackgroundColor.GetValueOrDefault();
-            set => _emphasisBackgroundColor = value;
-        }
-        internal ConsoleColor? _emphasisBackgroundColor;
-
-        [Parameter(ParameterSetName = "OptionsSet")]
-        public ConsoleColor ErrorForegroundColor
-        {
-            get => _errorForegroundColor.GetValueOrDefault();
-            set => _errorForegroundColor = value;
-        }
-        internal ConsoleColor? _errorForegroundColor;
-
-        [Parameter(ParameterSetName = "OptionsSet")]
-        public ConsoleColor ErrorBackgroundColor
-        {
-            get => _errorBackgroundColor.GetValueOrDefault();
-            set => _errorBackgroundColor = value;
-        }
-        internal ConsoleColor? _errorBackgroundColor;
+        [Alias("ErrorForegroundColor")]
+        [ValidateColor]
+        public object ErrorColor { get; set; }
 
         [Parameter(ParameterSetName = "OptionsSet")]
         public SwitchParameter HistoryNoDuplicates
@@ -754,12 +591,9 @@ namespace Microsoft.PowerShell
         internal TokenClassification? _tokenKind;
 
         [Parameter(ParameterSetName = "ColorSet", Position = 1)]
+        [Alias("ForegroundColor")]
         [ValidateColor]
-        public object ForegroundColor { get; set; }
-
-        [Parameter(ParameterSetName = "ColorSet", Position = 2)]
-        [ValidateColor]
-        public object BackgroundColor { get; set; }
+        public object Color { get; set; }
 
         [ExcludeFromCodeCoverage]
         protected override void EndProcessing()
@@ -983,6 +817,11 @@ namespace Microsoft.PowerShell
             }
 
             return false;
+        }
+
+        public static string AsEscapeSequence(object o)
+        {
+            return AsEscapeSequence(o, isBackground: false);
         }
 
         public static string AsEscapeSequence(object o, bool isBackground)

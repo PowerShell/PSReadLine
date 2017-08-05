@@ -39,8 +39,7 @@ namespace UnitTestPSReadLine
             var continuationPrompt = "::::: ";
             PSConsoleReadLine.SetOptions(new SetPSReadlineOption{
                 ContinuationPrompt = continuationPrompt,
-                ContinuationPromptForegroundColor = ConsoleColor.Magenta,
-                ContinuationPromptBackgroundColor = ConsoleColor.DarkYellow,
+                ContinuationPromptColor = MakeCombinedColor(ConsoleColor.Magenta, ConsoleColor.DarkYellow),
             });
             Test("", Keys(
                 "{\n}",
@@ -90,8 +89,7 @@ namespace UnitTestPSReadLine
             var useless = ((object)options.AddToHistoryHandler ?? options).GetHashCode()
                           + options.EditMode.GetHashCode()
                           + ((object)options.ContinuationPrompt ?? options).GetHashCode()
-                          + options.ContinuationPromptBackgroundColor.GetHashCode()
-                          + options.ContinuationPromptForegroundColor.GetHashCode()
+                          + (options.ContinuationPromptColor ?? options).GetHashCode()
                           + options.HistoryNoDuplicates.GetHashCode()
                           + options.HistorySearchCursorMovesToEnd.GetHashCode()
                           + options.MaximumHistoryCount.GetHashCode()
@@ -102,8 +100,7 @@ namespace UnitTestPSReadLine
                           + options.ExtraPromptLineCount.GetHashCode()
                           + options.ShowToolTips.GetHashCode()
                           + options.CompletionQueryItems.GetHashCode()
-                          + options.EmphasisBackgroundColor.GetHashCode()
-                          + options.EmphasisForegroundColor.GetHashCode()
+                          + (options.EmphasisColor ?? options).GetHashCode()
                           + options.HistorySearchCaseSensitive.GetHashCode()
                           + getKeyHandlerCommand.Bound.GetHashCode()
                           + getKeyHandlerCommand.Unbound.GetHashCode();

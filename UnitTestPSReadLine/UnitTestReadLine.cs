@@ -51,7 +51,7 @@ namespace UnitTestPSReadLine
         internal TestConsole()
         {
             BackgroundColor = UnitTest.BackgroundColors[0];
-            ForegroundColor = UnitTest.ForegroundColors[0];
+            ForegroundColor = UnitTest.Colors[0];
             CursorLeft = 0;
             CursorTop = 0;
             _bufferWidth = _windowWidth = 60;
@@ -128,8 +128,22 @@ namespace UnitTestPSReadLine
         }
 
         public int WindowTop { get; set; }
-        public ConsoleColor BackgroundColor { get; set; }
-        public ConsoleColor ForegroundColor { get; set; }
+
+        public ConsoleColor BackgroundColor
+        {
+            get => _backgroundColor;
+            set => _backgroundColor = Negative ? (ConsoleColor)((int)value ^ 7) : value;
+        }
+        private ConsoleColor _backgroundColor;
+
+        public ConsoleColor ForegroundColor
+        {
+            get => _foregroundColor;
+            set => _foregroundColor = Negative ? (ConsoleColor)((int)value ^ 7) : value;
+        }
+        private ConsoleColor _foregroundColor;
+
+        private bool Negative;
 
         public void SetWindowPosition(int left, int top)
         {
@@ -250,10 +264,19 @@ namespace UnitTestPSReadLine
             return false;
         }
 
-        private static readonly ConsoleColor DefaultForeground = UnitTest.ForegroundColors[0];
+        private static readonly ConsoleColor DefaultForeground = UnitTest.Colors[0];
         private static readonly ConsoleColor DefaultBackground = UnitTest.BackgroundColors[0];
 
+        private static void ToggleNegative(TestConsole c, bool b)
+        {
+            c.Negative = false;
+            c.ForegroundColor = (ConsoleColor)((int)c.ForegroundColor ^ 7);
+            c.BackgroundColor = (ConsoleColor)((int)c.BackgroundColor ^ 7);
+            c.Negative = b;
+        }
         private static readonly Dictionary<string, Action<TestConsole>> EscapeSequenceActions = new Dictionary<string, Action<TestConsole>> {
+            {"\x1b[7m", c => ToggleNegative(c, true) },
+            {"\x1b[27m", c => ToggleNegative(c, false) },
             {"\x1b[40m", c => c.BackgroundColor = ConsoleColor.Black},
             {"\x1b[44m", c => c.BackgroundColor = ConsoleColor.DarkBlue },
             {"\x1b[42m", c => c.BackgroundColor = ConsoleColor.DarkGreen},
@@ -350,7 +373,7 @@ namespace UnitTestPSReadLine
 
         // These colors are random - we just use these colors instead of the defaults
         // so the tests aren't sensitive to tweaks to the default colors.
-        internal static readonly ConsoleColor[] ForegroundColors = new []
+        internal static readonly ConsoleColor[] Colors = new []
         {
         /*None*/      ConsoleColor.DarkRed,
         /*Comment*/   ConsoleColor.Blue,
@@ -525,7 +548,7 @@ namespace UnitTestPSReadLine
                 }
                 if (item is TokenClassification)
                 {
-                    fg = ForegroundColors[(int)(TokenClassification)item];
+                    fg = Colors[(int)(TokenClassification)item];
                     bg = BackgroundColors[(int)(TokenClassification)item];
                     continue;
                 }
@@ -732,6 +755,9 @@ namespace UnitTestPSReadLine
         private TestConsole _console;
         private MockedMethods _mockedMethods;
 
+        private static string MakeCombinedColor(ConsoleColor fg, ConsoleColor bg)
+            => VTColorUtils.AsEscapeSequence(fg) + VTColorUtils.AsEscapeSequence(bg, isBackground: true);
+
         private void TestSetup(KeyMode keyMode, params KeyHandler[] keyHandlers)
         {
             _console = new TestConsole();
@@ -754,14 +780,11 @@ namespace UnitTestPSReadLine
                 BellStyle                         = PSConsoleReadlineOptions.DefaultBellStyle,
                 CompletionQueryItems              = PSConsoleReadlineOptions.DefaultCompletionQueryItems,
                 ContinuationPrompt                = PSConsoleReadlineOptions.DefaultContinuationPrompt,
-                ContinuationPromptBackgroundColor = _console.BackgroundColor,
-                ContinuationPromptForegroundColor = _console.ForegroundColor,
+                ContinuationPromptColor           = MakeCombinedColor(_console.ForegroundColor, _console.BackgroundColor),
                 DingDuration                      = 1,  // Make tests virtually silent when they ding
                 DingTone                          = 37, // Make tests virtually silent when they ding
-                EmphasisBackgroundColor           = _console.BackgroundColor,
-                EmphasisForegroundColor           = PSConsoleReadlineOptions.DefaultEmphasisForegroundColor,
-                ErrorBackgroundColor              = ConsoleColor.DarkRed,
-                ErrorForegroundColor              = ConsoleColor.Red,
+                EmphasisColor                     = MakeCombinedColor(PSConsoleReadlineOptions.DefaultEmphasisColor, _console.BackgroundColor),
+                ErrorColor                        = MakeCombinedColor(ConsoleColor.Red, ConsoleColor.DarkRed),
                 ExtraPromptLineCount              = PSConsoleReadlineOptions.DefaultExtraPromptLineCount,
                 HistoryNoDuplicates               = PSConsoleReadlineOptions.DefaultHistoryNoDuplicates,
                 HistorySaveStyle                  = HistorySaveStyle.SaveNothing,
@@ -799,8 +822,8 @@ namespace UnitTestPSReadLine
             foreach (var val in typeof(TokenClassification).GetEnumValues())
             {
                 colorOptions.TokenKind = (TokenClassification)val;
-                colorOptions.ForegroundColor = ForegroundColors[(int)val];
-                colorOptions.BackgroundColor = BackgroundColors[(int)val];
+                colorOptions.Color = MakeCombinedColor(Colors[(int) val], BackgroundColors[(int) val]);
+
                 PSConsoleReadLine.SetOptions(colorOptions);
             }
         }
