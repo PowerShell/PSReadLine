@@ -707,11 +707,14 @@ namespace Microsoft.PowerShell
                 if (ParameterSetName.Equals(FunctionParameterSet))
                 {
                     var function = (string)_dynamicParameters.Value[FunctionParameter].Value;
+                    var mi = typeof (PSConsoleReadLine).GetMethod(function,
+                        BindingFlags.Public | BindingFlags.Static | BindingFlags.IgnoreCase);
                     var keyHandler = (Action<ConsoleKeyInfo?, object>)
-                        Delegate.CreateDelegate(typeof (Action<ConsoleKeyInfo?, object>),
-                            typeof (PSConsoleReadLine).GetMethod(function));
-                    BriefDescription = function;
-                    PSConsoleReadLine.SetKeyHandler(Chord, keyHandler, BriefDescription, Description);
+                         mi.CreateDelegate(typeof (Action<ConsoleKeyInfo?, object>));
+                    var functionName = mi.Name;
+                    var longDescription = PSReadLineResources.ResourceManager.GetString(functionName + "Description");
+
+                    PSConsoleReadLine.SetKeyHandler(Chord, keyHandler, functionName, longDescription);
                 }
                 else
                 {
