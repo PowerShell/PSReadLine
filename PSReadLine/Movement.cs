@@ -104,7 +104,7 @@ namespace Microsoft.PowerShell
                         : coords.X;
             }
 
-            var topLine = _initialY + Options.ExtraPromptLineCount;
+            var topLine = _initialY;
 
             var newY = coords.Y + numericArg;
             coords.Y = (short)Math.Max(newY, topLine);

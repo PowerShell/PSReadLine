@@ -676,6 +676,7 @@ namespace UnitTestPSReadLine
             var options = new SetPSReadlineOption {ExtraPromptLineCount = 0};
             if (string.IsNullOrEmpty(prompt))
             {
+                options.PromptText = "";
                 PSConsoleReadLine.SetOptions(options);
                 return;
             }

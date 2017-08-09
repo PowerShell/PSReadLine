@@ -542,7 +542,7 @@ namespace Microsoft.PowerShell
             _parseErrors = null;
             _inputAccepted = false;
             _initialX = _console.CursorLeft;
-            _initialY = _console.CursorTop - Options.ExtraPromptLineCount;
+            _initialY = _console.CursorTop;
             _killCommandCount = 0;
             _yankCommandCount = 0;
             _yankLastArgCommandCount = 0;
@@ -850,7 +850,8 @@ namespace Microsoft.PowerShell
                 ps.Runspace = _singleton._runspace;
             }
 
-            _singleton._console.SetCursorPosition(0, _singleton._initialY - _singleton._options.ExtraPromptLineCount);
+            _singleton._console.SetCursorPosition(0,
+                (arg is int y) ? y : _singleton._initialY - _singleton._options.ExtraPromptLineCount);
             string newPrompt;
             using (ps)
             {

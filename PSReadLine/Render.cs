@@ -22,6 +22,7 @@ namespace Microsoft.PowerShell
 
         private const int COMMON_WIDEST_CONSOLE_WIDTH = 160;
         private readonly List<StringBuilder> _consoleBufferLines = new List<StringBuilder>(1) {new StringBuilder(COMMON_WIDEST_CONSOLE_WIDTH)};
+        private static string[] _spaces = new string[80];
         private RenderedLineData[] _previousRender;
         private int _initialX;
         private int _initialY;
@@ -305,7 +306,7 @@ namespace Microsoft.PowerShell
                     if (prevLen > curLen)
                     {
                         UpdateColorsIfNecessary(defaultColor, writeNow: true);
-                        _console.Write(new string(' ', prevLen - curLen));
+                        _console.Write(Spaces(prevLen - curLen));
                     }
                 }
             }
@@ -315,7 +316,7 @@ namespace Microsoft.PowerShell
             {
                 _console.Write("\n");
                 UpdateColorsIfNecessary(defaultColor, writeNow: true);
-                _console.Write(new string(' ', _previousRender[currentLogicalLine].columns));
+                _console.Write(Spaces(_previousRender[currentLogicalLine].columns));
             }
 
             var bufferCount = _consoleBufferLines.Count;
@@ -336,6 +337,13 @@ namespace Microsoft.PowerShell
             // TODO: set WindowTop if necessary
 
             _lastRenderTime.Restart();
+        }
+
+        private static string Spaces(int cnt)
+        {
+            return cnt < _spaces.Length
+                ? (_spaces[cnt] ?? (_spaces[cnt] = new string(' ', cnt)))
+                : new string(' ', cnt);
         }
 
         private int LengthInBufferCells(string str)
@@ -493,7 +501,7 @@ namespace Microsoft.PowerShell
         private COORD ConvertOffsetToCoordinates(int offset)
         {
             int x = _initialX;
-            int y = _initialY + Options.ExtraPromptLineCount;
+            int y = _initialY;
 
             int bufferWidth = _console.BufferWidth;
             var continuationPromptLength = Options.ContinuationPrompt.Length;
@@ -547,7 +555,7 @@ namespace Microsoft.PowerShell
         {
             int offset;
             int x = _initialX;
-            int y = _initialY + Options.ExtraPromptLineCount;
+            int y = _initialY;
 
             int bufferWidth = _console.BufferWidth;
             var continuationPromptLength = Options.ContinuationPrompt.Length;
