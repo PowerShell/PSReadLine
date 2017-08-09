@@ -472,22 +472,6 @@ namespace Microsoft.PowerShell
             }
         }
 
-        private bool InRegion(int i)
-        {
-            int start, end;
-            if (_mark > _current)
-            {
-                start = _current;
-                end = _mark;
-            }
-            else
-            {
-                start = _mark;
-                end = _current;
-            }
-            return i >= start && i < end;
-        }
-
         private void PlaceCursor(int x, int y)
         {
             int statusLineCount = GetStatusLineCount();
@@ -557,31 +541,6 @@ namespace Microsoft.PowerShell
             }
             
             return new COORD {X = (short)x, Y = (short)y};
-        }
-
-        private int ConvertOffsetToConsoleBufferOffset(int offset, int startIndex)
-        {
-            int j = startIndex;
-            for (int i = 0; i < offset; i++)
-            {
-                var c = _buffer[i];
-                if (c == '\n')
-                {
-                    for (int k = 0; k < Options.ContinuationPrompt.Length; k++)
-                    {
-                        j++;
-                    }
-                }
-                else if (LengthInBufferCells(c) > 1)
-                {
-                    j += 2;
-                }
-                else
-                {
-                    j++;
-                }
-            }
-            return j;
         }
 
         private int ConvertLineAndColumnToOffset(COORD coord)
