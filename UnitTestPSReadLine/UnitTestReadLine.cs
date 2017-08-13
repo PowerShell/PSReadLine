@@ -264,6 +264,19 @@ namespace UnitTestPSReadLine
             return false;
         }
 
+        private int _savedX, _savedY;
+
+        public void SaveCursor()
+        {
+            _savedX = CursorLeft;
+            _savedY = CursorTop;
+        }
+
+        public void RestoreCursor()
+        {
+            SetCursorPosition(_savedX, _savedY);
+        }
+
         private static readonly ConsoleColor DefaultForeground = UnitTest.Colors[0];
         private static readonly ConsoleColor DefaultBackground = UnitTest.BackgroundColors[0];
 

@@ -346,7 +346,7 @@ namespace Microsoft.PowerShell
                 : new string(' ', cnt);
         }
 
-        private int LengthInBufferCells(string str)
+        private static int LengthInBufferCells(string str)
         {
             var sum = 0;
             var len = str.Length;
@@ -367,7 +367,7 @@ namespace Microsoft.PowerShell
             return sum;
         }
 
-        private int LengthInBufferCells(char c)
+        private static int LengthInBufferCells(char c)
         {
             if (c < 256)
             {
@@ -394,19 +394,6 @@ namespace Microsoft.PowerShell
                   // (c >= 0x20000 && c <= 0x2fffd) ||
                   // (c >= 0x30000 && c <= 0x3fffd)
             return 1 + (isWide ? 1 : 0);
-        }
-
-        private static void WriteBlankLines(int count, int top)
-        {
-            var console = _singleton._console;
-            var blanks = new CHAR_INFO[count * console.BufferWidth];
-            for (int i = 0; i < blanks.Length; i++)
-            {
-                blanks[i].BackgroundColor = console.BackgroundColor;
-                blanks[i].ForegroundColor = console.ForegroundColor;
-                blanks[i].UnicodeChar = ' ';
-            }
-            console.WriteBufferLines(blanks, ref top);
         }
 
         private static CHAR_INFO[] ReadBufferLines(int top, int count)
@@ -498,7 +485,7 @@ namespace Microsoft.PowerShell
             _current = newCursor;
         }
 
-        private COORD ConvertOffsetToCoordinates(int offset)
+        internal COORD ConvertOffsetToCoordinates(int offset)
         {
             int x = _initialX;
             int y = _initialY;

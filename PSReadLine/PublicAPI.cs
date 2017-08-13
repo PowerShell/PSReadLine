@@ -52,6 +52,9 @@ namespace Microsoft.PowerShell
             CHAR_INFO[] ReadBufferLines(int top, int count);
 
             bool IsHandleRedirected(bool stdin);
+
+            void SaveCursor();
+            void RestoreCursor();
         }
 
 #pragma warning restore 1591

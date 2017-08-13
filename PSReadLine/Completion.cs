@@ -12,6 +12,7 @@ using System.Globalization;
 using System.Linq;
 using System.Management.Automation;
 using System.Management.Automation.Runspaces;
+using System.Text;
 using Microsoft.PowerShell.Internal;
 
 namespace Microsoft.PowerShell
@@ -23,7 +24,8 @@ namespace Microsoft.PowerShell
         private CommandCompletion _tabCompletions;
         private Runspace _runspace;
 
-        private readonly Dictionary<CompletionResultType, ConsoleKeyInfo []> doneCompletionKeys = new Dictionary<CompletionResultType, ConsoleKeyInfo []>
+        private static readonly Dictionary<CompletionResultType, ConsoleKeyInfo []> KeysEndingCompletion =
+            new Dictionary<CompletionResultType, ConsoleKeyInfo []>
         {
             { CompletionResultType.Variable,          new[] { Keys.Period } },
             { CompletionResultType.Namespace,         new[] { Keys.Period } },
@@ -34,6 +36,8 @@ namespace Microsoft.PowerShell
             { CompletionResultType.ParameterName,     new[] { Keys.Colon } },
             { CompletionResultType.ParameterValue,    new[] { Keys.Comma } },
         };
+
+        private static readonly char[] EolChars = {'\r', '\n'};
 
         // Stub helper method so completion can be mocked
         [ExcludeFromCodeCoverage]
@@ -62,8 +66,10 @@ namespace Microsoft.PowerShell
         }
 
         private static bool IsSingleQuote(char c) => c == '\'' || c == (char)8216 || c == (char)8217 || c == (char)8218;
-
         private static bool IsDoubleQuote(char c) => c == '"' || c == (char)8220 || c == (char)8221;
+
+        // variable can be "quoted" like ${env:CommonProgramFiles(x86)}
+        private static bool IsQuotedVariable(string s) => s.Length > 2 && s[1] == '{' && s[s.Length - 1] == '}';
 
         private static bool IsQuoted(string s)
         {
@@ -75,16 +81,6 @@ namespace Microsoft.PowerShell
 
                 return (IsSingleQuote(first) && IsSingleQuote(last)) ||
                        (IsDoubleQuote(first) && IsDoubleQuote(last));
-            }
-            return false;
-        }
-
-        private static bool IsQuotedVariable(string s)
-        {
-            // variable can be "quoted" like ${env:CommonProgramFiles(x86)}
-            if (s.Length > 2)
-            {
-                return s[1] == '{' && s[s.Length - 1] == '}';
             }
             return false;
         }
@@ -122,7 +118,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void Complete(ConsoleKeyInfo? key = null, object arg = null)
         {
-            _singleton.CompleteImpl(key, arg, false);
+            _singleton.CompleteImpl(false);
         }
 
         /// <summary>
@@ -133,7 +129,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void MenuComplete(ConsoleKeyInfo? key = null, object arg = null)
         {
-            _singleton.CompleteImpl(key, arg, true);
+            _singleton.CompleteImpl(true);
         }
 
         private bool IsConsistentQuoting(Collection<CompletionResult> matches)
@@ -201,7 +197,7 @@ namespace Microsoft.PowerShell
             return replacementText;
         }
 
-        private void CompleteImpl(ConsoleKeyInfo? key, object arg, bool menuSelect)
+        private void CompleteImpl(bool menuSelect)
         {
             var completions = GetCompletions();
             if (completions == null || completions.CompletionMatches.Count == 0)
@@ -352,19 +348,6 @@ namespace Microsoft.PowerShell
             return replacementText;
         }
 
-        private static void InvertSelectedCompletion(CHAR_INFO[] buffer, int selectedItem, int menuColumnWidth, int menuRows)
-        {
-            var selectedX = selectedItem / menuRows;
-            var selectedY = selectedItem - (selectedX * menuRows);
-            var start = selectedY * _singleton._console.BufferWidth + selectedX * menuColumnWidth;
-            for (int i = 0; i < menuColumnWidth; i++)
-            {
-                int j = i + start;
-                buffer[j].ForegroundColor = (ConsoleColor)((int)buffer[j].ForegroundColor ^ 7);
-                buffer[j].BackgroundColor = (ConsoleColor)((int)buffer[j].BackgroundColor ^ 7);
-            }
-        }
-
         /// <summary>
         /// Display the list of possible completions.
         /// </summary>
@@ -377,13 +360,14 @@ namespace Microsoft.PowerShell
         private static string HandleNewlinesForPossibleCompletions(string s)
         {
             s = s.Trim();
-            var newlineIndex = s.IndexOfAny(new []{'\r', '\n'});
+            var newlineIndex = s.IndexOfAny(EolChars);
             if (newlineIndex >= 0)
             {
                 s = s.Substring(0, newlineIndex) + "...";
             }
             return s;
         }
+
         private static string ShortenLongCompletions(string s, int maxLength)
         {
             if (s.Length <= maxLength) return s;
@@ -401,107 +385,118 @@ namespace Microsoft.PowerShell
 
         private class Menu
         {
+            internal int Top;
             internal int ColumnWidth;
-            internal CompletionResult[] MenuItems;
-            internal int CurrentSelection;
-        }
-
-        private static Menu CreateCompletionMenu2(Collection<CompletionResult> matches, IConsole console)
-        {
-            var minColWidth = matches.Max(c => c.ListItemText.Length);
-            minColWidth += 2;
-            minColWidth = Math.Min(minColWidth, console.BufferWidth);
-
-            return new Menu
+            internal int Rows;
+            internal int Columns;
+            internal CommandCompletion Completions;
+            internal Collection<CompletionResult> MenuItems => Completions.CompletionMatches;
+            internal CompletionResult CurrentMenuItem => MenuItems[CurrentSelection];
+            internal int CurrentSelection
             {
-                ColumnWidth = minColWidth,
-                CurrentSelection = 0,
-                MenuItems = matches.ToArray()
-            };
-        }
-
-        private static CHAR_INFO[] CreateCompletionMenu(Collection<CompletionResult> matches, IConsole console, bool showToolTips, string currentCompletionText, out int currentCompletionIndex, out int MenuColumnWidth, out int DisplayRows)
-        {
-            var minColWidth = matches.Max(c => c.ListItemText.Length);
-            minColWidth += 2;
-            var bufferWidth = console.BufferWidth;
-            var displayColumns = Math.Max(1, bufferWidth / minColWidth);
-            currentCompletionIndex = 0;
-
-            ConsoleBufferBuilder cb;
-            if (displayColumns == 1 || showToolTips)
-            {
-                const string seperator = "- ";
-                var maxTooltipWidth = bufferWidth - minColWidth - seperator.Length;
-                // switch off tooltips if it too short
-                if (maxTooltipWidth < 5)
-                {
-                    minColWidth = bufferWidth;
-                    showToolTips = false;
-                }
-                DisplayRows = matches.Count;
-                cb = new ConsoleBufferBuilder(DisplayRows * bufferWidth, console);
-                for (int index = 0; index < matches.Count; index++)
-                {
-                    var match = matches[index];
-                    if (match.CompletionText.Equals(currentCompletionText)) currentCompletionIndex = index;
-                    var listItemText = ShortenLongCompletions(HandleNewlinesForPossibleCompletions(match.ListItemText), minColWidth);
-                    cb.Append(listItemText);
-                    var spacesNeeded = minColWidth - listItemText.Length;
-                    if (spacesNeeded > 0)
-                    {
-                        cb.Append(' ', spacesNeeded);
-                    }
-                    if (showToolTips)
-                    {
-                        cb.Append(seperator);
-                        var toolTip = HandleNewlinesForPossibleCompletions(match.ToolTip);
-                        toolTip = toolTip.Length <= maxTooltipWidth
-                                      ? toolTip
-                                      : toolTip.Substring(0, maxTooltipWidth);
-                        cb.Append(toolTip);
-                    }
-
-                    // Make sure we always write out exactly 1 buffer width
-                    spacesNeeded = (bufferWidth * (index + 1)) - cb.Length;
-                    if (spacesNeeded > 0)
-                    {
-                        cb.Append(' ', spacesNeeded);
-                    }
-                }
-                MenuColumnWidth = bufferWidth;
+                get => Completions.CurrentMatchIndex;
+                set => Completions.CurrentMatchIndex = value;
             }
-            else
+
+            public void DrawMenu(PSConsoleReadLine singleton)
             {
-                DisplayRows = (matches.Count + displayColumns - 1) / displayColumns;
-                cb = new ConsoleBufferBuilder(DisplayRows * bufferWidth, console);
-                for (var row = 0; row < DisplayRows; row++)
+                singleton._console.SaveCursor();
+
+                // Move cursor to the start of the first line after our input.
+                this.Top = singleton.ConvertOffsetToCoordinates(singleton._buffer.Length).Y + 1;
+                singleton._console.SetCursorPosition(0, this.Top);
+
+                var bufferWidth = singleton._console.BufferWidth;
+                var columnWidth = this.ColumnWidth;
+
+                var items = this.MenuItems;
+                for (var row = 0; row < this.Rows; row++)
                 {
-                    for (var col = 0; col < displayColumns; col++)
+                    var cells = 0;
+                    for (var col = 0; col < this.Columns; col++)
                     {
-                        var index = row + (DisplayRows * col);
-                        if (index >= matches.Count)
+                        var index = row + (this.Rows * col);
+                        if (index >= items.Count)
                         {
                             break;
                         }
-                        var match = matches[index];
-                        if (match.CompletionText.Equals(currentCompletionText)) currentCompletionIndex = index;
-                        var item = HandleNewlinesForPossibleCompletions(match.ListItemText);
-                        cb.Append(item);
-                        cb.Append(' ', minColWidth - item.Length);
+                        singleton._console.Write(GetMenuItem(items[index].ListItemText, columnWidth));
+                        cells += columnWidth;
                     }
 
-                    // Make sure we always write out exactly 1 buffer width
-                    var spacesNeeded = (bufferWidth * (row + 1)) - cb.Length;
-                    if (spacesNeeded > 0)
+                    // Make sure we always write out exactly 1 buffer width to erase anything
+                    // from a previous menu.
+                    if (cells < bufferWidth)
                     {
-                        cb.Append(' ', spacesNeeded);
+                        singleton._console.Write(Spaces(bufferWidth - cells));
                     }
                 }
-                MenuColumnWidth = minColWidth;
+
+                singleton._console.RestoreCursor();
             }
 
-            return cb.ToArray();
+            public void Clear(PSConsoleReadLine singleton)
+            {
+                var console = singleton._console;
+                console.SaveCursor();
+
+                console.SetCursorPosition(0, Top);
+                for (int i = 0; i < Rows; i++)
+                {
+                    console.Write(Spaces(console.BufferWidth));
+                }
+                
+                console.RestoreCursor();
+            }
+
+            public void UpdateMenuSelection(IConsole console, int selectedItem, bool select)
+            {
+                console.SaveCursor();
+
+                var row = Top + selectedItem % Rows;
+                var col = ColumnWidth * (selectedItem / Rows);
+
+                console.SetCursorPosition(col, row);
+
+                if (select) console.Write("\x001b[7m");
+                console.Write(GetMenuItem(Completions.CompletionMatches[selectedItem].ListItemText, ColumnWidth));
+                if (select) console.Write("\x001b[27m");
+
+                console.RestoreCursor();
+            }
+
+            public void MoveRight()    => CurrentSelection = Math.Min(CurrentSelection + Rows, MenuItems.Count - 1);
+            public void MoveLeft()     => CurrentSelection = Math.Max(CurrentSelection - Rows, 0);
+            public void MoveUp()       => CurrentSelection = Math.Max(CurrentSelection - 1, 0);
+            public void MoveDown()     => CurrentSelection = Math.Min(CurrentSelection + 1, MenuItems.Count - 1);
+            public void MovePageDown() => CurrentSelection = Math.Min(CurrentSelection + Rows - (CurrentSelection % Rows) - 1,
+                                                                      MenuItems.Count - 1);
+            public void MovePageUp()   => CurrentSelection = Math.Max(CurrentSelection - (CurrentSelection % Rows), 0);
+
+            public void MoveN(int n)
+            {
+                CurrentSelection = (CurrentSelection + n) % MenuItems.Count;
+                if (CurrentSelection < 0)
+                {
+                    CurrentSelection += MenuItems.Count;
+                }
+            }
+        }
+
+        private Menu CreateCompletionMenu(CommandCompletion completions)
+        {
+            var bufferWidth = _console.BufferWidth;
+            var matches = completions.CompletionMatches;
+            var colWidth = Math.Min(matches.Max(c => c.ListItemText.Length) + 2, bufferWidth);
+            var columns = Math.Max(1, bufferWidth / colWidth);
+
+            return new Menu
+            {
+                ColumnWidth = colWidth,
+                Columns = columns,
+                Rows = (matches.Count + columns - 1) / columns,
+                Completions = completions,
+            };
         }
 
         private Collection<CompletionResult> FilterCompletions(Collection<CompletionResult> matches, string completionFilter)
@@ -543,7 +538,7 @@ namespace Microsoft.PowerShell
         private bool IsDoneWithCompletions(CompletionResult currentCompletion, ConsoleKeyInfo nextKey)
         {
             if (nextKey == Keys.Space || nextKey == Keys.Enter) return true;
-            if (doneCompletionKeys.TryGetValue(currentCompletion.ResultType, out var doneKeys))
+            if (KeysEndingCompletion.TryGetValue(currentCompletion.ResultType, out var doneKeys))
             {
                 return doneKeys.Contains(nextKey);
             }
@@ -566,10 +561,7 @@ namespace Microsoft.PowerShell
                 }
             }
 
-            var matches = completions.CompletionMatches;
-
-            var menuBuffer = CreateCompletionMenu(matches, _console, Options.ShowToolTips,
-                "", out var selectedItem, out var menuColumnWidth, out var displayRows);
+            var menu = CreateCompletionMenu(completions);
 
             if (menuSelect)
             {
@@ -578,7 +570,7 @@ namespace Microsoft.PowerShell
 
                 var endBufferCoords = ConvertOffsetToCoordinates(_buffer.Length);
                 var bufferLines = endBufferCoords.Y - _initialY + 1;
-                if ((bufferLines + displayRows) > _console.WindowHeight)
+                if ((bufferLines + menu.Rows) > _console.WindowHeight)
                 {
                     menuSelect = false;
                 }
@@ -586,62 +578,28 @@ namespace Microsoft.PowerShell
 
             if (menuSelect)
             {
-                MenuCompleteImpl(completions, matches, selectedItem, menuBuffer, menuColumnWidth, displayRows);
+                MenuCompleteImpl(menu);
             }
             else
             {
-                var menu = CreateCompletionMenu2(matches, _console);
-                var afterMenu = DrawMenu(menu);
-
-                InvokePrompt(key: null, arg: afterMenu);
+                menu.DrawMenu(this);
+                InvokePrompt(key: null, arg: menu.Top + menu.Rows);
             }
         }
 
-        private int DrawMenu(Menu menu)
+        private static string GetMenuItem(string item, int columnWidth)
         {
-            // Move cursor to the start of the first line after our input.
-            var menuTop = ConvertOffsetToCoordinates(_buffer.Length).Y + 1;
-            _console.SetCursorPosition(0, menuTop);
-
-            var bufferWidth = _console.BufferWidth;
-            var displayColumns = Math.Max(1, bufferWidth / menu.ColumnWidth);
-            var displayRows = (menu.MenuItems.Length + displayColumns - 1) / displayColumns;
-
-            var items = menu.MenuItems;
-            for (var row = 0; row < displayRows; row++)
+            item = HandleNewlinesForPossibleCompletions(item);
+            var spacesNeeded = columnWidth - LengthInBufferCells(item);
+            if (spacesNeeded > 0)
             {
-                var cells = 0;
-                for (var col = 0; col < displayColumns; col++)
-                {
-                    var index = row + (displayRows * col);
-                    if (index >= items.Length)
-                    {
-                        break;
-                    }
-                    var match = items[index];
-                    var item = HandleNewlinesForPossibleCompletions(match.ListItemText);
-                    _console.Write(item);
-                    var spacesNeeded = menu.ColumnWidth - LengthInBufferCells(item);
-                    if (spacesNeeded > 0)
-                    {
-                        _console.Write(Spaces(spacesNeeded));
-                    }
-                    cells += menu.ColumnWidth;
-                }
-
-                // Make sure we always write out exactly 1 buffer width to erase anything
-                // from a previous menu.
-                if (cells < bufferWidth)
-                {
-                    _console.Write(Spaces(bufferWidth - cells));
-                }
+                item = item + Spaces(spacesNeeded);
             }
 
-            return menuTop + displayRows;
+            return item;
         }
 
-        private void MenuCompleteImpl(CommandCompletion completions, Collection<CompletionResult> matches, int selectedItem,
-            CHAR_INFO[] menuBuffer, int menuColumnWidth, int displayRows)
+        private void MenuCompleteImpl(Menu menu)
         {
             RemoveEditsAfterUndo();
             var undoPoint = _edits.Count;
@@ -651,53 +609,53 @@ namespace Microsoft.PowerShell
             int savedUserMark = _mark;
             _visualSelectionCommandCount++;
 
-            var userCompletionText = GetUnambiguousPrefix(matches, out var ambiguous);
-            // remove possible first quote
-            if (userCompletionText.Length > 0 &&
-                (IsSingleQuote(userCompletionText[0])
-                 || IsDoubleQuote(userCompletionText[0])
-                )
-            )
+            // Get the unambiguous prefix, possibly removing the first quote
+            var userCompletionText = GetUnambiguousPrefix(menu.MenuItems, out var ambiguous);
+            if (userCompletionText.Length > 0)
             {
-                userCompletionText = userCompletionText.Substring(1);
+                var c = userCompletionText[0];
+                if (IsSingleQuote(c) || IsDoubleQuote(c))
+                {
+                    userCompletionText = userCompletionText.Substring(1);
+                }
             }
-            int userInitialCompletionLength = userCompletionText.Length;
 
-            DoReplacementForCompletion(matches[0], completions);
-            // Recompute end of buffer coordinates as the replacement could have
-            // added a line.
-            var endBufferCoords = ConvertOffsetToCoordinates(_buffer.Length);
-            var menuAreaTop = endBufferCoords.Y + 1;
-            var previousMenuTop = menuAreaTop;
+            var userInitialCompletionLength = userCompletionText.Length;
 
-            int previousItem = -1;
+            var completions = menu.Completions;
+            completions.CurrentMatchIndex = 0;
+            menu.DrawMenu(this);
+
+            DoReplacementForCompletion(completions.CompletionMatches[0], completions);
+
+            menu.UpdateMenuSelection(_console, menu.CurrentSelection, select: true);
 
             bool processingKeys = true;
             int backspaceCounter = 0;
+            int previousSelection = menu.CurrentSelection;
+
             while (processingKeys)
             {
-                int cycleBackspaceCounter = backspaceCounter;
-                if (selectedItem != previousItem)
+                if (menu.CurrentSelection != previousSelection)
                 {
-                    int curPos = FindUserCompletinTextPosition(matches[selectedItem], userCompletionText);
+                    var currentMenuItem = menu.CurrentMenuItem;
+                    int curPos = FindUserCompletinTextPosition(currentMenuItem, userCompletionText);
                     if (userCompletionText.Length == 0 &&
-                        (IsSingleQuote(matches[selectedItem].CompletionText[0])
-                         || IsDoubleQuote(matches[selectedItem].CompletionText[0])
-                        )
-                    )
+                        (IsSingleQuote(currentMenuItem.CompletionText[0]) || IsDoubleQuote(currentMenuItem.CompletionText[0])))
                     {
                         curPos++;
                     }
+
                     // set mark to the end of UserCompletion but in real completion (because of .\ and so on)
                     _mark = completions.ReplacementIndex + curPos + userCompletionText.Length;
-                    DoReplacementForCompletion(matches[selectedItem], completions);
+                    DoReplacementForCompletion(currentMenuItem, completions);
 
-                    endBufferCoords = ConvertOffsetToCoordinates(_buffer.Length);
-                    menuAreaTop = endBufferCoords.Y + 1;
+                    menu.UpdateMenuSelection(_console, previousSelection, select: false);
+                    menu.UpdateMenuSelection(_console, menu.CurrentSelection, select: true);
 
-                    if (previousItem != -1)
-                        InvertSelectedCompletion(menuBuffer, previousItem, menuColumnWidth, displayRows);
-                    InvertSelectedCompletion(menuBuffer, selectedItem, menuColumnWidth, displayRows);
+                    previousSelection = menu.CurrentSelection;
+
+                    /*
 
                     var blanklinesCount = previousMenuTop - menuAreaTop;
                     previousMenuTop = menuAreaTop;
@@ -714,45 +672,31 @@ namespace Microsoft.PowerShell
                     }
                     previousMenuTop = menuAreaTop;
                     previousItem = selectedItem;
+                    */
                 }
 
+                int cycleBackspaceCounter = backspaceCounter;
+
                 var nextKey = ReadKey();
-                if (nextKey == Keys.RightArrow)
-                {
-                    selectedItem = Math.Min(selectedItem + displayRows, matches.Count - 1);
-                }
-                else if (nextKey == Keys.LeftArrow)
-                {
-                    selectedItem = Math.Max(selectedItem - displayRows, 0);
-                }
-                else if (nextKey == Keys.DownArrow)
-                {
-                    selectedItem = Math.Min(selectedItem + 1, matches.Count - 1);
-                }
-                else if (nextKey == Keys.UpArrow)
-                {
-                    selectedItem = Math.Max(selectedItem - 1, 0);
-                }
-                else if (nextKey == Keys.PageDown)
-                {
-                    selectedItem = Math.Min(selectedItem + displayRows - (selectedItem % displayRows) - 1, matches.Count - 1);
-                }
-                else if (nextKey == Keys.PageUp)
-                {
-                    selectedItem = Math.Max(selectedItem - (selectedItem % displayRows), 0);
-                }
+                if (nextKey == Keys.RightArrow) { menu.MoveRight(); }
+                else if (nextKey == Keys.LeftArrow) { menu.MoveLeft(); }
+                else if (nextKey == Keys.DownArrow) { menu.MoveDown(); }
+                else if (nextKey == Keys.UpArrow) { menu.MoveUp(); }
+                else if (nextKey == Keys.PageDown) { menu.MovePageDown(); }
+                else if (nextKey == Keys.PageUp) { menu.MovePageUp(); }
                 else if (nextKey == Keys.Tab)
                 {
-                    // Search for possible unAmbiguous common prefix. ...
-                    string unAmbiguousText = GetUnambiguousPrefix(matches, out ambiguous);
+                    // Search for possible unambiguous common prefix.
+                    string unAmbiguousText = GetUnambiguousPrefix(menu.MenuItems, out ambiguous);
                     int userComplPos = unAmbiguousText.IndexOf(userCompletionText, StringComparison.OrdinalIgnoreCase);
+
                     // ... If found - advance IncrementalCompletion ...
                     if (unAmbiguousText.Length > 0 && userComplPos >= 0 &&
                         unAmbiguousText.Length > (userComplPos + userCompletionText.Length))
                     {
                         userCompletionText = unAmbiguousText.Substring(userComplPos);
                         _current = completions.ReplacementIndex +
-                                   FindUserCompletinTextPosition(matches[selectedItem], userCompletionText) +
+                                   FindUserCompletinTextPosition(menu.MenuItems[menu.CurrentSelection], userCompletionText) +
                                    userCompletionText.Length;
                         Render();
                         Ding();
@@ -760,16 +704,12 @@ namespace Microsoft.PowerShell
                     // ... if no - usual Tab behaviour
                     else
                     {
-                        selectedItem = (selectedItem + 1) % matches.Count;
+                        menu.MoveN(1);
                     }
                 }
                 else if (nextKey == Keys.ShiftTab)
                 {
-                    selectedItem = (selectedItem - 1) % matches.Count;
-                    if (selectedItem < 0)
-                    {
-                        selectedItem += matches.Count;
-                    }
+                    menu.MoveN(-1);
                 }
                 else if (nextKey == Keys.CtrlG || nextKey == Keys.Escape)
                 {
@@ -785,19 +725,20 @@ namespace Microsoft.PowerShell
                     bool truncateCurrentCompletion = false;
                     bool keepSelection = false;
 
-                    if (IsDoneWithCompletions(matches[selectedItem], nextKey))
+                    var currentMenuItem = menu.CurrentMenuItem;
+                    if (IsDoneWithCompletions(currentMenuItem, nextKey))
                     {
                         processingKeys = false;
                         ExchangePointAndMark(); // cursor to the end of Completion
                         if (nextKey != Keys.Enter)
                         {
-                            if (matches[selectedItem].ResultType == CompletionResultType.ProviderContainer)
+                            if (currentMenuItem.ResultType == CompletionResultType.ProviderContainer)
                                 userCompletionText =
                                     GetUnquotedText(
-                                        GetReplacementTextForDirectory(matches[selectedItem].CompletionText,
+                                        GetReplacementTextForDirectory(currentMenuItem.CompletionText,
                                             ref cursorAdjustment), consistentQuoting: false);
                             else
-                                userCompletionText = GetUnquotedText(matches[selectedItem], consistentQuoting: false);
+                                userCompletionText = GetUnquotedText(currentMenuItem, consistentQuoting: false);
 
                             // do not append the same char as last char in CompletionText (works for for '(', '\')
                             prependNextKey = userCompletionText[userCompletionText.Length - 1] != nextKey.KeyChar;
@@ -840,12 +781,14 @@ namespace Microsoft.PowerShell
                             var tmpMatches = FilterCompletions(completions.CompletionMatches, userCompletionText);
                             if (tmpMatches.Count > 0)
                             {
+                                /*
                                 WriteBlankLines(displayRows, menuAreaTop);
-                                var selectedCompletionText = matches[selectedItem].CompletionText;
+                                var selectedCompletionText = menu.CurrentMenuItem.CompletionText;
                                 matches = tmpMatches;
                                 previousItem = -1;
-                                menuBuffer = CreateCompletionMenu(matches, _console, Options.ShowToolTips,
+                                menuBuffer = CreateCompletionMenu(matches,
                                     selectedCompletionText, out selectedItem, out menuColumnWidth, out displayRows);
+                                    */
                             }
                             else
                             {
@@ -878,11 +821,12 @@ namespace Microsoft.PowerShell
                             keepSelection = true;
                         }
                     }
+
                     if (!processingKeys) // time to exit loop
                     {
                         if (truncateCurrentCompletion && !undo)
                         {
-                            CompletionResult r = new CompletionResult(matches[selectedItem]
+                            CompletionResult r = new CompletionResult(currentMenuItem
                                 .CompletionText.Substring(0, _current - completions.ReplacementIndex));
                             DoReplacementForCompletion(r, completions);
                         }
@@ -909,11 +853,12 @@ namespace Microsoft.PowerShell
                         }
                     }
                 }
+
                 if (backspaceCounter == cycleBackspaceCounter)
                     backspaceCounter = 0;
             }
 
-            WriteBlankLines(displayRows, menuAreaTop);
+            menu.Clear(this);
 
             var lastInsert = ((GroupedEdit) _edits[_edits.Count - 1])._groupedEditItems[1];
             Debug.Assert(lastInsert is EditItemInsertString, "The only edits possible here are pairs of Delete/Insert");

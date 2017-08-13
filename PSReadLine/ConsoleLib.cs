@@ -627,6 +627,19 @@ namespace Microsoft.PowerShell.Internal
             // Char device - if GetConsoleMode succeeds, we are NOT redirected.
             return !NativeMethods.GetConsoleMode(handle, out var unused);
         }
+
+        private int _savedX, _savedY;
+
+        public void SaveCursor()
+        {
+            _savedX = Console.CursorLeft;
+            _savedY = Console.CursorTop;
+        }
+
+        public void RestoreCursor()
+        {
+            Console.SetCursorPosition(_savedX, _savedY);
+        }
     }
 
 #pragma warning restore 1591
