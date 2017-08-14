@@ -109,7 +109,7 @@ namespace Microsoft.PowerShell
             }
         }
 
-        private static ConsoleKeyInfo ReadKey()
+        internal static ConsoleKeyInfo ReadKey()
         {
             // Reading a key is handled on a different thread.  During process shutdown,
             // PowerShell will wait in it's ConsoleCtrlHandler until the pipeline has completed.

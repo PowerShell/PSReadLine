@@ -12,6 +12,11 @@ namespace Microsoft.PowerShell
 {
     public partial class PSConsoleReadLine
     {
+        private static CHAR_INFO[] ReadBufferLines(int top, int count)
+        {
+            return _singleton._console.ReadBufferLines(top, count);
+        }
+
         private static void InvertLines(int start, int count)
         {
             var buffer = ReadBufferLines(start, count);

@@ -46,7 +46,6 @@ namespace Microsoft.PowerShell
             void SetCursorPosition(int left, int top);
             void WriteLine(string s);
             void Write(string s);
-            void WriteBufferLines(CHAR_INFO[] buffer, ref int top);
             void WriteBufferLines(CHAR_INFO[] buffer, ref int top, bool ensureBottomLineVisible);
             void ScrollBuffer(int lines);
             CHAR_INFO[] ReadBufferLines(int top, int count);

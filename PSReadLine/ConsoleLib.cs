@@ -31,9 +31,6 @@ namespace Microsoft.PowerShell.Internal
         public const uint ENABLE_WINDOW_INPUT    = 0x0008;
         public const uint ENABLE_MOUSE_INPUT     = 0x0010;
 
-        public const int FontTypeMask = 0x06;
-        public const int TrueTypeFont = 0x04;
-
         internal static readonly IntPtr INVALID_HANDLE_VALUE = new IntPtr(-1);  // WinBase.h
 
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
@@ -51,9 +48,6 @@ namespace Microsoft.PowerShell.Internal
             IntPtr lpClipRectangle,
             COORD dwDestinationOrigin,
             ref CHAR_INFO lpFill);
-
-        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-        public static extern bool WriteConsole(IntPtr hConsoleOutput, string lpBuffer, uint nNumberOfCharsToWrite, out uint lpNumberOfCharsWritten, IntPtr lpReserved);
 
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         public static extern bool SetConsoleCtrlHandler(BreakHandler handlerRoutine, bool add);
@@ -74,24 +68,6 @@ namespace Microsoft.PowerShell.Internal
         [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         public static extern short VkKeyScan(char @char);
 
-        [DllImport("kernel32.dll", SetLastError = false, CharSet = CharSet.Unicode)]
-        public static extern uint GetConsoleOutputCP();
-
-        [DllImport("User32.dll", SetLastError = false, CharSet = CharSet.Unicode)]
-        public static extern int ReleaseDC(IntPtr hwnd, IntPtr hdc);
-
-        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-        public static extern IntPtr GetConsoleWindow();
-
-        [DllImport("User32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-        public static extern IntPtr GetDC(IntPtr hwnd);
-
-        [DllImport("GDI32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-        public static extern bool GetTextMetrics(IntPtr hdc, out TEXTMETRIC tm);
-
-        [DllImport("GDI32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-        public static extern bool GetCharWidth32(IntPtr hdc, uint first, uint last, out int width);
-
         [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
         public static extern IntPtr CreateFile
         (
@@ -103,9 +79,6 @@ namespace Microsoft.PowerShell.Internal
             uint flagsAndAttributes,
             IntPtr templateFileWin32Handle
         );
-
-        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-        internal static extern bool GetCurrentConsoleFontEx(IntPtr consoleOutput, bool bMaximumWindow, ref CONSOLE_FONT_INFO_EX consoleFontInfo);
 
         [StructLayout(LayoutKind.Sequential)]
         internal struct COLORREF
@@ -151,11 +124,8 @@ namespace Microsoft.PowerShell.Internal
             ref CONSOLE_SCREEN_BUFFER_INFO_EX csbe);
 
         [DllImport("kernel32.dll", SetLastError = true)]
-        internal static extern bool SetConsoleScreenBufferInfoEx(IntPtr hConsoleOutput,
-            ref CONSOLE_SCREEN_BUFFER_INFO_EX csbe);
-
-        [DllImport("kernel32.dll", SetLastError = true)]
         internal static extern int GetFileType(IntPtr handle);
+
         internal const int FILE_TYPE_CHAR = 0x0002;
     }
 
@@ -169,12 +139,6 @@ namespace Microsoft.PowerShell.Internal
         Logoff    = 5,
         Shutdown  = 6,
         None      = 255,
-    }
-
-    internal enum CHAR_INFO_Attributes : ushort
-    {
-        COMMON_LVB_LEADING_BYTE = 0x0100,
-        COMMON_LVB_TRAILING_BYTE = 0x0200
     }
 
     public enum StandardHandleId : uint
@@ -236,60 +200,6 @@ namespace Microsoft.PowerShell.Internal
         }
     }
 
-    [StructLayout(LayoutKind.Sequential)]
-    internal struct FONTSIGNATURE
-    {
-        //From public\sdk\inc\wingdi.h
-
-        // fsUsb*: A 128-bit Unicode subset bitfield (USB) identifying up to 126 Unicode subranges
-        internal uint fsUsb0;
-        internal uint fsUsb1;
-        internal uint fsUsb2;
-        internal uint fsUsb3;
-        // fsCsb*: A 64-bit, code-page bitfield (CPB) that identifies a specific character set or code page.
-        internal uint fsCsb0;
-        internal uint fsCsb1;
-    }
-
-    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-    internal struct TEXTMETRIC
-    {
-        //From public\sdk\inc\wingdi.h
-        public int tmHeight;
-        public int tmAscent;
-        public int tmDescent;
-        public int tmInternalLeading;
-        public int tmExternalLeading;
-        public int tmAveCharWidth;
-        public int tmMaxCharWidth;
-        public int tmWeight;
-        public int tmOverhang;
-        public int tmDigitizedAspectX;
-        public int tmDigitizedAspectY;
-        public char tmFirstChar;
-        public char tmLastChar;
-        public char tmDefaultChar;
-        public char tmBreakChar;
-        public byte tmItalic;
-        public byte tmUnderlined;
-        public byte tmStruckOut;
-        public byte tmPitchAndFamily;
-        public byte tmCharSet;
-    }
-
-    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-    internal struct CONSOLE_FONT_INFO_EX
-    {
-        internal int cbSize;
-        internal int nFont;
-        internal short FontWidth;
-        internal short FontHeight;
-        internal int FontFamily;
-        internal int FontWeight;
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]
-        internal string FontFace;
-    }
-
     public struct CHAR_INFO
     {
         public ushort UnicodeChar;
@@ -344,7 +254,6 @@ namespace Microsoft.PowerShell.Internal
         {
             return UnicodeChar.GetHashCode() + Attributes.GetHashCode();
         }
-
     }
 
     internal static class ConsoleKeyInfoExtension
@@ -534,11 +443,6 @@ namespace Microsoft.PowerShell.Internal
         public void WriteLine(string value)
         {
             Console.WriteLine(value);
-        }
-
-        public void WriteBufferLines(CHAR_INFO[] buffer, ref int top)
-        {
-            WriteBufferLines(buffer, ref top, true);
         }
 
         public void WriteBufferLines(CHAR_INFO[] buffer, ref int top, bool ensureBottomLineVisible)

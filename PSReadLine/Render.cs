@@ -396,11 +396,6 @@ namespace Microsoft.PowerShell
             return 1 + (isWide ? 1 : 0);
         }
 
-        private static CHAR_INFO[] ReadBufferLines(int top, int count)
-        {
-            return _singleton._console.ReadBufferLines(top, count);
-        }
-
         private string GetTokenColor(Token token)
         {
             switch (token.Kind)
