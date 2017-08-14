@@ -600,7 +600,7 @@ namespace Microsoft.PowerShell
                 var promptIsPure = null ==
                     promptCommand.ScriptBlock.Ast.Find(ast => ast is CommandAst ||
                                                       ast is InvokeMemberExpressionAst,
-                                               searchNestedScriptBlocks: false);
+                                               searchNestedScriptBlocks: true);
                 if (promptIsPure)
                 {
                     var res = promptCommand.ScriptBlock.InvokeReturnAsIs(Array.Empty<object>());
@@ -617,7 +617,10 @@ namespace Microsoft.PowerShell
                             if (!char.IsWhiteSpace(evaluatedPrompt[i])) break;
                         }
 
-                        _options.PromptText = evaluatedPrompt.Substring(i);
+                        if (i >= 0)
+                        {
+                            _options.PromptText = evaluatedPrompt.Substring(i);
+                        }
                     }
                 }
             }
