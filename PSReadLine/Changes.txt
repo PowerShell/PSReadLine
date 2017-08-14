@@ -1,7 +1,10 @@
-### Version 1.?
+### Version 2.0
+
+New features:
+* Interactive filtering during menu complete.
+* Support for VT escape sequences to specify colors.
 
 Bug fixes:
-
 * DeleteChar no longer deletes any text left of the cursor in Windows/Emacs
   and matches vim behavior of working like <x> in command mode.
 * Fix InvokePrompt when the prompt is > 1 line.
@@ -9,6 +12,24 @@ Bug fixes:
   no support for redirected stdin/stdout though.
 * Fix YankToPercent off by 1 error.
 * Fix error reported when running in container.
+* Remove Ding from Backspace on an empty line
+* Fix occasional hang reading history file
+* Honor HistorySearchCursorMovesToEnd in Vi mode
+
+Breaking changes:
+* Requires PowerShell V5 or later and .Net 4.6.1
+* Building requires VS2017
+* Set-PSReadlineOption color parameters have changed
+  - Accept `object` instead of `ConsoleColor` to support accepting both
+    strings (VT escape sequences) and ConsoleColor
+  - Parameter names changed - no explicit Foreground/Background options anymore,
+    but aliases introduced so `-ForegroundColor` is the same as `-Color` and
+    `-ErrorForegroundColor` is the same as `-ErrorColor`.
+    To specify background colors, you must now use a VT escape sequence.
+* Changing the end of the prompt to red may not work automatically anymore if
+  your prompt is non-trivial. To fix, use `Set-PSReadlineOption -PromptText "> "`,
+  replacing the string with the text that should turn red - be sure to include
+  any whitespace.
 
 ### Version 1.2
 
