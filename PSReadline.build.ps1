@@ -144,6 +144,7 @@ task LayoutModule BuildMainModule, BuildMamlHelp, {
 
 
     Copy-Item PSReadLine/bin/$Configuration/Microsoft.PowerShell.PSReadLine.dll $targetDir
+    Copy-Item PSReadLine/bin/$Configuration/System.Runtime.InteropServices.RuntimeInformation.dll $targetDir
     Copy-Item PSReadLine/en-US/about_PSReadline.help.txt $targetDir/en-US
 
     # Copy module manifest, but fix the version to match what we've specified in the binary module.

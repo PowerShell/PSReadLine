@@ -34,6 +34,12 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void CaptureScreen(ConsoleKeyInfo? key = null, object arg = null)
         {
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                Ding();
+                return;
+            }
+
             int selectionTop = _singleton._console.CursorTop;
             int selectionHeight = 1;
             int currentY = selectionTop;
