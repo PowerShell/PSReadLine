@@ -56,7 +56,7 @@ task CheckPlatyPSInstalled `
 $restoreNugetParameters = @{
     Inputs  = "PSReadLine/packages.config"
     # We could look for other files, but this is probably good enough.
-    Outputs = "PSReadLine/packages/Microsoft.PowerShell.3.ReferenceAssemblies.1.0.0/Microsoft.PowerShell.3.ReferenceAssemblies.1.0.0.nupkg"
+    Outputs = "PSReadLine/packages/Microsoft.PowerShell.5.ReferenceAssemblies.1.0.0/Microsoft.PowerShell.5.ReferenceAssemblies.1.0.0.nupkg"
 }
 
 <#
