@@ -383,6 +383,12 @@ namespace Microsoft.PowerShell.Internal
             set => Console.CursorSize = value;
         }
 
+        public bool CursorVisible
+        {
+            get => Console.CursorVisible;
+            set => Console.CursorVisible = value;
+        }
+
         public int BufferWidth
         {
             get => Console.BufferWidth;

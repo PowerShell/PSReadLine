@@ -35,6 +35,7 @@ namespace Microsoft.PowerShell
             int CursorLeft { get; set; }
             int CursorTop { get; set;}
             int CursorSize { get; set; }
+            bool CursorVisible { get; set; }
             int BufferWidth { get; set; }
             int BufferHeight { get; set;}
             int WindowWidth { get; set; }

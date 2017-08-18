@@ -81,7 +81,7 @@ namespace Microsoft.PowerShell
         {
             _singleton.ClearStatusMessage(false);
             _singleton._current = _singleton._buffer.Length;
-            _singleton.ReallyRender();
+            _singleton.ForceRender();
 
             _singleton._console.Write("\x1b[91m^C\x1b[0m");
 
@@ -231,7 +231,7 @@ namespace Microsoft.PowerShell
 
             if (renderNeeded)
             {
-                ReallyRender();
+                ForceRender();
             }
 
             // Only run validation if we haven't before.  If we have and status line shows an error,

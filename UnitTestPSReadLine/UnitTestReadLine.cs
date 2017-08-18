@@ -102,6 +102,7 @@ namespace UnitTestPSReadLine
         public int CursorTop { get; set; }
 
         public int CursorSize { get; set; }
+        public bool CursorVisible { get; set; }
 
         public int BufferWidth
         {

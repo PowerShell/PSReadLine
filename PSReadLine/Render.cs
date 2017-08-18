@@ -20,10 +20,20 @@ namespace Microsoft.PowerShell
             public int columns;
         }
 
+        class RenderData
+        {
+            public bool errorPrompt;
+            public RenderedLineData[] lines;
+        }
+
         private const int COMMON_WIDEST_CONSOLE_WIDTH = 160;
         private readonly List<StringBuilder> _consoleBufferLines = new List<StringBuilder>(1) {new StringBuilder(COMMON_WIDEST_CONSOLE_WIDTH)};
-        private static string[] _spaces = new string[80];
-        private RenderedLineData[] _previousRender;
+        private static readonly string[] _spaces = new string[80];
+        private RenderData _previousRender;
+        private static readonly RenderData _initialPrevRender = new RenderData
+        {
+            lines = new[] { new RenderedLineData{ columns = 0, line = ""}}
+        };
         private int _initialX;
         private int _initialY;
         private int _current;
@@ -77,34 +87,56 @@ namespace Microsoft.PowerShell
                 return;
             }
 
-            ReallyRender();
+            ForceRender();
         }
 
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults")]
-        private void ReallyRender()
+        private void ForceRender()
+        {
+            var defaultColor = VTColorUtils.MapColorToEscapeSequence(_console.ForegroundColor, isBackground: false) +
+                               VTColorUtils.MapColorToEscapeSequence(_console.BackgroundColor, isBackground: true);
+
+            // Geneate a sequence of logical lines with escape sequences for coloring.
+            int logicalLineCount = GenerateRender(defaultColor);
+
+            // Now write that out (and remember what we did so we can clear previous renders
+            // and minimize writing more than necessary on the next render.)
+
+            var renderLines = new RenderedLineData[logicalLineCount];
+            var renderData = new RenderData {lines = renderLines};
+            for (var i = 0; i < logicalLineCount; i++)
+            {
+                var line = _consoleBufferLines[i].ToString();
+                renderLines[i].line = line;
+                renderLines[i].columns = LengthInBufferCells(line);
+            }
+
+            // And then do the real work of writing to the screen.
+            // Rendering data is in reused
+            ReallyRender(renderData, defaultColor);
+
+            // Cleanup some excess buffers, saving a few because we know we'll use them.
+            var bufferCount = _consoleBufferLines.Count;
+            var excessBuffers = bufferCount - renderLines.Length;
+            if (excessBuffers > 5)
+            {
+                _consoleBufferLines.RemoveRange(renderLines.Length, excessBuffers);
+            }
+        }
+
+        private int GenerateRender(string defaultColor)
         {
             var text = ParseInput();
 
-            string defaultColor = VTColorUtils.MapColorToEscapeSequence(_console.ForegroundColor, isBackground: false) +
-                                  VTColorUtils.MapColorToEscapeSequence(_console.BackgroundColor, isBackground: true);
             string color = defaultColor;
             string activeColor = "";
             bool afterLastToken = false;
             int currentLogicalLine = 0;
-            int promptFactor = 0;
 
-            void UpdateColorsIfNecessary(string newColor, bool writeNow)
+            void UpdateColorsIfNecessary(string newColor)
             {
                 if (!object.ReferenceEquals(newColor, activeColor))
                 {
-                    if (writeNow)
-                    {
-                        _console.Write(newColor);
-                    }
-                    else
-                    {
-                        _consoleBufferLines[currentLogicalLine].Append(newColor);
-                    }
+                    _consoleBufferLines[currentLogicalLine].Append(newColor);
                     activeColor = newColor;
                 }
             }
@@ -115,29 +147,12 @@ namespace Microsoft.PowerShell
                 {
                     currColor = _options._emphasisColor;
                 }
-                UpdateColorsIfNecessary(currColor, writeNow: false);
+                UpdateColorsIfNecessary(currColor);
             }
 
             foreach (var buf in _consoleBufferLines)
             {
                 buf.Clear();
-            }
-
-            if (!string.IsNullOrEmpty(_options.PromptText))
-            {
-                promptFactor = _options.PromptText.Length;
-
-                if (_parseErrors != null && _parseErrors.Length > 0)
-                {
-                    UpdateColorsIfNecessary(_options._errorColor, writeNow: false);
-                }
-                else
-                {
-                    UpdateColorsIfNecessary(defaultColor, writeNow: false);
-                }
-
-                _consoleBufferLines[0].Append(_options.PromptText);
-                _consoleBufferLines[0].Append("\x1b[0m");
             }
 
             var tokenStack = new Stack<SavedTokenState>();
@@ -235,7 +250,7 @@ namespace Microsoft.PowerShell
                         _consoleBufferLines.Add(new StringBuilder(COMMON_WIDEST_CONSOLE_WIDTH));
                     }
 
-                    UpdateColorsIfNecessary(Options._continuationPromptColor, writeNow: false);
+                    UpdateColorsIfNecessary(Options._continuationPromptColor);
                     foreach (char c in Options.ContinuationPrompt)
                     {
                         _consoleBufferLines[currentLogicalLine].Append(c);
@@ -271,7 +286,7 @@ namespace Microsoft.PowerShell
                 }
 
                 color = _statusIsErrorMessage ? Options._errorColor : defaultColor;
-                UpdateColorsIfNecessary(color, writeNow: false);
+                UpdateColorsIfNecessary(color);
 
                 foreach (char c in _statusLinePrompt)
                 {
@@ -281,58 +296,166 @@ namespace Microsoft.PowerShell
                 _consoleBufferLines[currentLogicalLine].Append(_statusBuffer);
             }
 
-            PlaceCursor(_initialX - promptFactor, _initialY);
+            return currentLogicalLine + 1;
+        }
 
-            var nextRender = new RenderedLineData[currentLogicalLine + 1];
-            for (var i = 0; i < currentLogicalLine + 1; i++)
+        private void ReallyRender(RenderData renderData, string defaultColor)
+        {
+            string activeColor = "";
+
+            void UpdateColorsIfNecessary(string newColor)
             {
-                var line = _consoleBufferLines[i].ToString();
-                nextRender[i].line = line;
-                nextRender[i].columns = LengthInBufferCells(line);
-            }
-
-            for (currentLogicalLine = 0; currentLogicalLine < nextRender.Length; currentLogicalLine++)
-            {
-                if (currentLogicalLine != 0)
-                    _console.Write("\n");
-
-                var line = nextRender[currentLogicalLine].line;
-
-                _console.Write(line);
-                if (currentLogicalLine < _previousRender.Length)
+                if (!object.ReferenceEquals(newColor, activeColor))
                 {
-                    var prevLen = _previousRender[currentLogicalLine].columns;
-                    var curLen = nextRender[currentLogicalLine].columns;
-                    if (prevLen > curLen)
-                    {
-                        UpdateColorsIfNecessary(defaultColor, writeNow: true);
-                        _console.Write(Spaces(prevLen - curLen));
-                    }
+                    _console.Write(newColor);
+                    activeColor = newColor;
                 }
             }
 
+            // TODO: avoid writing everything.
+
+            // Move the cursor to where we started, but make cursor invisible while we're rendering.
+            _console.CursorVisible = false;
+            PlaceCursor(_initialX, _initialY);
+
+            // Possibly need to flip the color on the prompt if the error state changed.
+            if (!string.IsNullOrEmpty(_options.PromptText))
+            {
+                renderData.errorPrompt = (_parseErrors != null && _parseErrors.Length > 0);
+                if (renderData.errorPrompt != _previousRender.errorPrompt)
+                {
+                    // We need to update the prompt
+                    _console.CursorLeft -= _options.PromptText.Length;
+                    UpdateColorsIfNecessary(renderData.errorPrompt ? _options._errorColor : defaultColor);
+                    _console.Write(_options.PromptText);
+                    _console.Write("\x1b[0m");
+                }
+            }
+
+            var bufferWidth = _console.BufferWidth;
+
+            int PhysicalLineCount(int columns, bool isFirstLogicalLine, out int lenLastPhysicalLine)
+            {
+                int cnt = 1;
+                if (isFirstLogicalLine)
+                {
+                    // The first logical line has the user prompt that we don't touch
+                    // (except where we turn part to red, but we've finished that
+                    // before getting here.)
+                    var maxFirstLine = bufferWidth - _initialX;
+                    if (columns > maxFirstLine)
+                    {
+                        cnt += 1;
+                        columns -= maxFirstLine;
+                    }
+                    else
+                    {
+                        lenLastPhysicalLine = columns;
+                        return 1;
+                    }
+                }
+
+                lenLastPhysicalLine = columns % bufferWidth;
+                return cnt + columns / bufferWidth;
+            }
+
+            var previousRenderLines = _previousRender.lines;
+            var previousLogicalLine = 0;
+            var previousPhysicalLine = 0;
+
+            var renderLines = renderData.lines;
+            var logicalLine = 0;
+            var physicalLine = 0;
+            var lenPrevLastLine = 0;
+
+            for (; logicalLine < renderLines.Length; logicalLine++)
+            {
+                if (logicalLine != 0) _console.Write("\n");
+
+                var lineData = renderLines[logicalLine];
+                _console.Write(lineData.line);
+
+                int lenLastLine;
+                physicalLine += PhysicalLineCount(lineData.columns, logicalLine == 0, out lenLastLine);
+
+                // Find the previous logical line (if any) that would have rendered
+                // the current physical line because we may need to clear it.
+                // We don't clear it unconditionally to allow things like a prompt
+                // on the right side of the line.
+
+                while (physicalLine > previousPhysicalLine
+                    && previousLogicalLine < previousRenderLines.Length)
+                {
+                    previousPhysicalLine += PhysicalLineCount(previousRenderLines[previousLogicalLine].columns,
+                                                              previousLogicalLine == 0,
+                                                              out lenPrevLastLine);
+                    previousLogicalLine += 1;
+                }
+
+                // Our current physical line might be in the middle of the
+                // previous logical line, in which case we need to blank
+                // the rest of the line, otherwise we blank just the end
+                // of what was written.
+                int lenToClear = 0;
+                if (physicalLine == previousPhysicalLine)
+                {
+                    // We're on the end of the previous logical line, so we
+                    // only need to clear any extra.
+
+                    if (lenPrevLastLine > lenLastLine)
+                        lenToClear = lenPrevLastLine - lenLastLine;
+                }
+                else if (physicalLine < previousLogicalLine)
+                {
+                    // We're in the middle of a previous logical line, we
+                    // need to clear to the end of the line.
+                    lenToClear = bufferWidth - lenLastLine;
+                    if (physicalLine == 1)
+                        lenToClear -= _initialX;
+                }
+
+                UpdateColorsIfNecessary(defaultColor);
+                _console.SaveCursor();
+                if (lenToClear > 0)
+                {
+                    _console.Write(Spaces(lenToClear));
+                }
+
+                for (int i = physicalLine; i < previousPhysicalLine; i++)
+                {
+                    _console.Write("\n");
+                    _console.Write(Spaces(bufferWidth));
+                }
+                _console.RestoreCursor();
+            }
+
+            UpdateColorsIfNecessary(defaultColor);
+
             // Fewer lines than our last render? Clear them.
-            for (; currentLogicalLine < _previousRender.Length; currentLogicalLine++)
+            for (; previousLogicalLine < previousRenderLines.Length; previousLogicalLine++)
             {
+                var cols = previousRenderLines[previousLogicalLine].columns;
+                previousPhysicalLine += PhysicalLineCount(cols, previousLogicalLine == 0, out lenPrevLastLine);
+
+                while (physicalLine < previousLogicalLine)
+                {
+                    _console.Write("\n");
+                    _console.Write(Spaces(bufferWidth));
+                    physicalLine += 1;
+                }
+
                 _console.Write("\n");
-                UpdateColorsIfNecessary(defaultColor, writeNow: true);
-                _console.Write(Spaces(_previousRender[currentLogicalLine].columns));
+                _console.Write(Spaces(lenPrevLastLine));
             }
 
-            var bufferCount = _consoleBufferLines.Count;
-            var excessBuffers = bufferCount - nextRender.Length;
-            if (excessBuffers > 5)
-            {
-                _consoleBufferLines.RemoveRange(nextRender.Length, excessBuffers);
-            }
-
-            _previousRender = nextRender;
+            _previousRender = renderData;
 
             // Reset the colors after we've finished all our rendering.
             _console.Write("\x1b[0m");
 
             var coordinates = ConvertOffsetToCoordinates(_current);
             PlaceCursor(coordinates.X, coordinates.Y);
+            _console.CursorVisible = true;
 
             // TODO: set WindowTop if necessary
 

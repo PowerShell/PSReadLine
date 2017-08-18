@@ -529,7 +529,7 @@ namespace Microsoft.PowerShell
                 _delayedOneTimeInitCompleted = true;
             }
 
-            _previousRender = Array.Empty<RenderedLineData>();
+            _previousRender = _initialPrevRender;
             _buffer.Clear();
             _edits = new List<EditItem>();
             _undoEditIndex = 0;
