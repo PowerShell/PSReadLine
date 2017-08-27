@@ -853,8 +853,14 @@ namespace Microsoft.PowerShell
                 ps.Runspace = _singleton._runspace;
             }
 
-            _singleton._console.SetCursorPosition(0,
-                (arg is int y) ? y : _singleton._initialY - _singleton._options.ExtraPromptLineCount);
+            var newY = (arg is int y) ? y : _singleton._initialY - _singleton._options.ExtraPromptLineCount;
+            if (newY >= _singleton._console.BufferHeight)
+            {
+                var toScroll = newY - _singleton._console.BufferHeight + 1;
+                _singleton._console.ScrollBuffer(toScroll);
+                newY -= toScroll;
+            }
+            _singleton._console.SetCursorPosition(0, newY);
             string newPrompt;
             using (ps)
             {

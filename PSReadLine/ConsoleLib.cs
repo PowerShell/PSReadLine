@@ -490,6 +490,8 @@ namespace Microsoft.PowerShell.Internal
 
         public void ScrollBuffer(int lines)
         {
+            Console.Write("\x1b[" + lines + "S");
+            /*
             var handle = NativeMethods.GetStdHandle((uint) StandardHandleId.Output);
 
             var scrollRectangle = new SMALL_RECT
@@ -502,6 +504,7 @@ namespace Microsoft.PowerShell.Internal
             var destinationOrigin = new COORD {X = 0, Y = 0};
             var fillChar = new CHAR_INFO(' ', Console.ForegroundColor, Console.BackgroundColor);
             NativeMethods.ScrollConsoleScreenBuffer(handle, ref scrollRectangle, IntPtr.Zero, destinationOrigin, ref fillChar);
+            */
         }
 
         public CHAR_INFO[] ReadBufferLines(int top, int count)

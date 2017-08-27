@@ -407,13 +407,21 @@ namespace Microsoft.PowerShell
 
             public void DrawMenu(PSConsoleReadLine singleton)
             {
-                singleton._console.SaveCursor();
+                IConsole console = singleton._console;
+                console.CursorVisible = false;
+                console.SaveCursor();
 
                 // Move cursor to the start of the first line after our input.
                 this.Top = singleton.ConvertOffsetToCoordinates(singleton._buffer.Length).Y + 1;
-                singleton._console.SetCursorPosition(0, this.Top);
+                if (this.Top >= console.BufferHeight)
+                {
+                    console.ScrollBuffer(this.Rows);
+                    singleton._initialY -= this.Rows;
+                    this.Top -= this.Rows;
+                }
+                console.SetCursorPosition(0, this.Top);
 
-                var bufferWidth = singleton._console.BufferWidth;
+                var bufferWidth = console.BufferWidth;
                 var columnWidth = this.ColumnWidth;
 
                 var items = this.MenuItems;
@@ -427,7 +435,7 @@ namespace Microsoft.PowerShell
                         {
                             break;
                         }
-                        singleton._console.Write(GetMenuItem(items[index].ListItemText, columnWidth));
+                        console.Write(GetMenuItem(items[index].ListItemText, columnWidth));
                         cells += columnWidth;
                     }
 
@@ -435,11 +443,12 @@ namespace Microsoft.PowerShell
                     // from a previous menu.
                     if (cells < bufferWidth)
                     {
-                        singleton._console.Write(Spaces(bufferWidth - cells));
+                        console.Write(Spaces(bufferWidth - cells));
                     }
                 }
 
-                singleton._console.RestoreCursor();
+                console.RestoreCursor();
+                console.CursorVisible = true;
             }
 
             public void Clear(PSConsoleReadLine singleton)
