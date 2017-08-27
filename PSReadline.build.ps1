@@ -89,7 +89,7 @@ $binaryModuleParams = @{
 Synopsis: Build main binary module
 #>
 task BuildMainModule @binaryModuleParams RestoreNugetPackages, {
-    exec { msbuild PSReadline/PSReadLine.csproj /t:Rebuild /p:Configuration=$Configuration }
+    exec { msbuild PSReadline/PSReadLine.csproj /t:Rebuild /p:Configuration=$Configuration /p:Platform=AnyCPU }
 }
 
 
@@ -102,7 +102,7 @@ $buildTestParams = @{
 Synopsis: Build executable for interactive testing/development
 #>
 task BuildTestHost @buildTestParams BuildMainModule, {
-    exec { msbuild TestPSReadLine/TestPSReadLine.csproj /t:Rebuild /p:Configuration=$Configuration }
+    exec { msbuild TestPSReadLine/TestPSReadLine.csproj /t:Rebuild /p:Configuration=$Configuration /p:Platform=AnyCPU }
 }
 
 
@@ -116,7 +116,7 @@ $buildUnitTestParams = @{
 Synopsis: Build the unit tests
 #>
 task BuildUnitTests @buildUnitTestParams BuildMainModule, {
-    exec { msbuild UnitTestPSReadLine/UnitTestPSReadLine.csproj /t:Rebuild /p:Configuration=$Configuration }
+    exec { msbuild UnitTestPSReadLine/UnitTestPSReadLine.csproj /t:Rebuild /p:Configuration=$Configuration /p:Platform=AnyCPU }
 }
 
 
