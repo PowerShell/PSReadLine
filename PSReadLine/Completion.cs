@@ -408,17 +408,22 @@ namespace Microsoft.PowerShell
             public void DrawMenu(PSConsoleReadLine singleton)
             {
                 IConsole console = singleton._console;
-                console.CursorVisible = false;
-                console.SaveCursor();
 
                 // Move cursor to the start of the first line after our input.
                 this.Top = singleton.ConvertOffsetToCoordinates(singleton._buffer.Length).Y + 1;
-                if (this.Top >= console.BufferHeight)
+                if (this.Top + this.Rows > console.BufferHeight)
                 {
-                    console.ScrollBuffer(this.Rows);
-                    singleton._initialY -= this.Rows;
-                    this.Top -= this.Rows;
+                    var toScroll = this.Top + this.Rows - console.BufferHeight;
+                    console.ScrollBuffer(toScroll);
+                    singleton._initialY -= toScroll;
+                    this.Top -= toScroll;
+
+                    var coordinates = singleton.ConvertOffsetToCoordinates(singleton._current);
+                    singleton.PlaceCursor(coordinates.X, coordinates.Y);
                 }
+
+                console.CursorVisible = false;
+                console.SaveCursor();
                 console.SetCursorPosition(0, this.Top);
 
                 var bufferWidth = console.BufferWidth;
@@ -467,7 +472,7 @@ namespace Microsoft.PowerShell
 
                 if (select) console.Write("\x001b[7m");
                 console.Write(GetMenuItem(MenuItems[selectedItem].ListItemText, ColumnWidth));
-                if (select) console.Write("\x001b[27m");
+                if (select) console.Write("\x001b[0m");
 
                 console.RestoreCursor();
             }
