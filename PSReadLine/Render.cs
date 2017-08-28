@@ -405,7 +405,7 @@ namespace Microsoft.PowerShell
                     if (lenPrevLastLine > lenLastLine)
                         lenToClear = lenPrevLastLine - lenLastLine;
                 }
-                else if (physicalLine < previousLogicalLine)
+                else if (physicalLine < previousPhysicalLine)
                 {
                     // We're in the middle of a previous logical line, we
                     // need to clear to the end of the line.
@@ -452,6 +452,12 @@ namespace Microsoft.PowerShell
 
             // Reset the colors after we've finished all our rendering.
             _console.Write("\x1b[0m");
+
+            if (_initialY + physicalLine >= _console.BufferHeight)
+            {
+                // We had to scroll to render everything, update _initialY
+                _initialY = _console.BufferHeight - physicalLine;
+            }
 
             var coordinates = ConvertOffsetToCoordinates(_current);
             PlaceCursor(coordinates.X, coordinates.Y);
@@ -590,8 +596,10 @@ namespace Microsoft.PowerShell
             int statusLineCount = GetStatusLineCount();
             if ((y + statusLineCount) >= _console.BufferHeight)
             {
-                _console.ScrollBuffer((y + statusLineCount) - _console.BufferHeight + 1);
-                y = _console.BufferHeight - 1;
+                var scrollCount = y + statusLineCount - _console.BufferHeight + 1;
+                _console.ScrollBuffer(scrollCount);
+                _initialY -= scrollCount;
+                y -= scrollCount;
             }
             _console.SetCursorPosition(x, y);
         }
