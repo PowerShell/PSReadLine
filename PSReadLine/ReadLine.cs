@@ -853,14 +853,36 @@ namespace Microsoft.PowerShell
                 ps.Runspace = _singleton._runspace;
             }
 
-            var newY = (arg is int y) ? y : _singleton._initialY - _singleton._options.ExtraPromptLineCount;
-            if (newY >= _singleton._console.BufferHeight)
+            var console = _singleton._console;
+            console.CursorVisible = false;
+
+            if (arg is int newY)
             {
-                var toScroll = newY - _singleton._console.BufferHeight + 1;
-                _singleton._console.ScrollBuffer(toScroll);
-                newY -= toScroll;
+                if (newY >= console.BufferHeight)
+                {
+                    var toScroll = newY - console.BufferHeight + 1;
+                    console.ScrollBuffer(toScroll);
+                    newY -= toScroll;
+                }
+                console.SetCursorPosition(0, newY);
             }
-            _singleton._console.SetCursorPosition(0, newY);
+            else
+            {
+                newY = _singleton._initialY - _singleton._options.ExtraPromptLineCount;
+
+                console.SetCursorPosition(0, newY);
+
+                // We need to rewrite the prompt, so blank out everything from a previous prompt invocation
+                // in case the next one is shorter.
+                var spaces = Spaces(console.BufferWidth);
+                for (int i = 0; i < _singleton._options.ExtraPromptLineCount + 1; i++)
+                {
+                    console.Write(spaces);
+                }
+
+                console.SetCursorPosition(0, newY);
+            }
+
             string newPrompt;
             using (ps)
             {
@@ -878,11 +900,12 @@ namespace Microsoft.PowerShell
                 }
             }
 
-            _singleton._console.Write(newPrompt);
-            _singleton._initialX = _singleton._console.CursorLeft;
-            _singleton._initialY = _singleton._console.CursorTop;
+            console.Write(newPrompt);
+            _singleton._initialX = console.CursorLeft;
+            _singleton._initialY = console.CursorTop;
 
             _singleton.Render();
+            console.CursorVisible = true;
         }
 
         #endregion Miscellaneous bindable functions
