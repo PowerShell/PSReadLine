@@ -451,43 +451,6 @@ namespace Microsoft.PowerShell.Internal
             Console.WriteLine(value);
         }
 
-        public void WriteBufferLines(CHAR_INFO[] buffer, ref int top, bool ensureBottomLineVisible)
-        {
-            var handle = NativeMethods.GetStdHandle((uint) StandardHandleId.Output);
-
-            int bufferWidth = Console.BufferWidth;
-            int bufferLineCount = buffer.Length / bufferWidth;
-            if ((top + bufferLineCount) > Console.BufferHeight)
-            {
-                var scrollCount = (top + bufferLineCount) - Console.BufferHeight;
-                ScrollBuffer(scrollCount);
-                top -= scrollCount;
-            }
-            var bufferSize = new COORD
-            {
-                X = (short) bufferWidth,
-                Y = (short) bufferLineCount
-            };
-            var bufferCoord = new COORD {X = 0, Y = 0};
-            var bottom = top + bufferLineCount - 1;
-            var writeRegion = new SMALL_RECT
-            {
-                Top = (short) top,
-                Left = 0,
-                Bottom = (short) bottom,
-                Right = (short) (bufferWidth - 1)
-            };
-            NativeMethods.WriteConsoleOutput(handle, buffer,
-                                             bufferSize, bufferCoord, ref writeRegion);
-
-            // Now make sure the bottom line is visible
-            if (ensureBottomLineVisible &&
-                (bottom >= (Console.WindowTop + Console.WindowHeight)))
-            {
-                Console.CursorTop = bottom;
-            }
-        }
-
         public void ScrollBuffer(int lines)
         {
             Console.Write("\x1b[" + lines + "S");
@@ -505,27 +468,6 @@ namespace Microsoft.PowerShell.Internal
             var fillChar = new CHAR_INFO(' ', Console.ForegroundColor, Console.BackgroundColor);
             NativeMethods.ScrollConsoleScreenBuffer(handle, ref scrollRectangle, IntPtr.Zero, destinationOrigin, ref fillChar);
             */
-        }
-
-        public CHAR_INFO[] ReadBufferLines(int top, int count)
-        {
-            var result = new CHAR_INFO[BufferWidth * count];
-            var handle = NativeMethods.GetStdHandle((uint) StandardHandleId.Output);
-
-            var readBufferSize = new COORD {
-                X = (short)BufferWidth,
-                Y = (short)count};
-            var readBufferCoord = new COORD {X = 0, Y = 0};
-            var readRegion = new SMALL_RECT
-            {
-                Top = (short)top,
-                Left = 0,
-                Bottom = (short)(top + count),
-                Right = (short)(BufferWidth - 1)
-            };
-            NativeMethods.ReadConsoleOutput(handle, result,
-                readBufferSize, readBufferCoord, ref readRegion);
-            return result;
         }
 
         public bool IsHandleRedirected(bool stdIn)

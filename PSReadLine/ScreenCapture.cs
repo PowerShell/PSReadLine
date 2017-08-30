@@ -12,20 +12,67 @@ namespace Microsoft.PowerShell
 {
     public partial class PSConsoleReadLine
     {
-        private static CHAR_INFO[] ReadBufferLines(int top, int count)
+        private static CHAR_INFO[] ReadBufferLines(int top, int count, int bufferWidth)
         {
-            return _singleton._console.ReadBufferLines(top, count);
+            var result = new CHAR_INFO[bufferWidth * count];
+            var handle = NativeMethods.GetStdHandle((uint) StandardHandleId.Output);
+
+            var readBufferSize = new COORD {
+                X = (short)bufferWidth,
+                Y = (short)count};
+            var readBufferCoord = new COORD {X = 0, Y = 0};
+            var readRegion = new SMALL_RECT
+            {
+                Top = (short)top,
+                Left = 0,
+                Bottom = (short)(top + count),
+                Right = (short)(bufferWidth - 1)
+            };
+            NativeMethods.ReadConsoleOutput(handle, result,
+                readBufferSize, readBufferCoord, ref readRegion);
+            return result;
+        }
+
+        private static void WriteBufferLines(CHAR_INFO[] buffer, int top)
+        {
+            var handle = NativeMethods.GetStdHandle((uint) StandardHandleId.Output);
+
+            int bufferWidth = Console.BufferWidth;
+            int bufferLineCount = buffer.Length / bufferWidth;
+            if ((top + bufferLineCount) > Console.BufferHeight)
+            {
+                var scrollCount = (top + bufferLineCount) - Console.BufferHeight;
+                _singleton._console.ScrollBuffer(scrollCount);
+                top -= scrollCount;
+            }
+            var bufferSize = new COORD
+            {
+                X = (short) bufferWidth,
+                Y = (short) bufferLineCount
+            };
+            var bufferCoord = new COORD {X = 0, Y = 0};
+            var bottom = top + bufferLineCount - 1;
+            var writeRegion = new SMALL_RECT
+            {
+                Top = (short) top,
+                Left = 0,
+                Bottom = (short) bottom,
+                Right = (short) (bufferWidth - 1)
+            };
+            NativeMethods.WriteConsoleOutput(handle, buffer,
+                                             bufferSize, bufferCoord, ref writeRegion);
         }
 
         private static void InvertLines(int start, int count)
         {
-            var buffer = ReadBufferLines(start, count);
+            var buffer = ReadBufferLines(start, count, _singleton._console.BufferWidth);
             for (int i = 0; i < buffer.Length; i++)
             {
                 buffer[i].ForegroundColor = (ConsoleColor)((int)buffer[i].ForegroundColor ^ 7);
                 buffer[i].BackgroundColor = (ConsoleColor)((int)buffer[i].BackgroundColor ^ 7);
             }
-            _singleton._console.WriteBufferLines(buffer, ref start, false);
+            WriteBufferLines(buffer, start);
+
         }
 
         /// <summary>
@@ -234,7 +281,7 @@ namespace Microsoft.PowerShell
 
         private static void DumpScreenToClipboard(int top, int count)
         {
-            var buffer = ReadBufferLines(top, count);
+            var buffer = ReadBufferLines(top, count, _singleton._console.BufferWidth);
             var bufferWidth = _singleton._console.BufferWidth;
 
             var dataObject = new DataObject();
