@@ -5,7 +5,6 @@ Copyright (c) Microsoft Corporation.  All rights reserved.
 using System;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Windows.Forms;
 using Microsoft.PowerShell.Internal;
 
 namespace Microsoft.PowerShell
@@ -284,7 +283,6 @@ namespace Microsoft.PowerShell
             var buffer = ReadBufferLines(top, count, _singleton._console.BufferWidth);
             var bufferWidth = _singleton._console.BufferWidth;
 
-            var dataObject = new DataObject();
             var textBuffer = new StringBuilder(buffer.Length + count);
 
             var rtfBuffer = new StringBuilder();
@@ -354,9 +352,8 @@ namespace Microsoft.PowerShell
             }
             rtfBuffer.Append("}}");
 
-            dataObject.SetData(DataFormats.Text, textBuffer.ToString());
-            dataObject.SetData(DataFormats.Rtf, rtfBuffer.ToString());
-            ExecuteOnSTAThread(() => Clipboard.SetDataObject(dataObject, copy: true));
+            Clipboard.SetRtf(rtfBuffer.ToString());
+            Clipboard.SetText(textBuffer.ToString());
         }
     }
 }

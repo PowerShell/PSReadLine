@@ -5,7 +5,7 @@ Copyright (c) Microsoft Corporation.  All rights reserved.
 using System;
 using System.Collections.Generic;
 using System.Management.Automation.Language;
-using System.Windows.Forms;
+using Microsoft.PowerShell.Internal;
 
 namespace Microsoft.PowerShell
 {
@@ -444,13 +444,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void Paste(ConsoleKeyInfo? key = null, object arg = null)
         {
-            string textToPaste = null;
-            ExecuteOnSTAThread(() => {
-                if (Clipboard.ContainsText())
-                {
-                    textToPaste = Clipboard.GetText();
-                }
-            });
+            string textToPaste = Clipboard.GetText();
 
             if (textToPaste != null)
             {
@@ -484,7 +478,7 @@ namespace Microsoft.PowerShell
             }
             if (!string.IsNullOrEmpty(textToSet))
             {
-                ExecuteOnSTAThread(() => Clipboard.SetText(textToSet));
+                Clipboard.SetText(textToSet);
             }
         }
 
@@ -511,7 +505,7 @@ namespace Microsoft.PowerShell
             if (_singleton._visualSelectionCommandCount > 0)
             {
                 _singleton.GetRegion(out var start, out var length);
-                ExecuteOnSTAThread(() => Clipboard.SetText(_singleton._buffer.ToString(start, length)));
+                Clipboard.SetText(_singleton._buffer.ToString(start, length));
                 Delete(start, length);
             }
         }

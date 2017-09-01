@@ -701,37 +701,6 @@ namespace Microsoft.PowerShell
         {
         }
 
-        private static void ExecuteOnSTAThread(Action action)
-        {
-            if (Thread.CurrentThread.GetApartmentState() == ApartmentState.STA)
-            {
-                action();
-                return;
-            }
-
-            Exception exception = null;
-            var thread = new Thread(() =>
-            {
-                try
-                {
-                    action();
-                }
-                catch (Exception e)
-                {
-                    exception = e;
-                }
-            });
-
-            thread.SetApartmentState(ApartmentState.STA);
-            thread.Start();
-            thread.Join();
-
-            if (exception != null)
-            {
-                throw exception;
-            }
-        }
-
         #region Miscellaneous bindable functions
 
         /// <summary>
