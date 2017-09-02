@@ -323,8 +323,7 @@ namespace Microsoft.PowerShell
             }
             rtfBuffer.Append("}}");
 
-            Clipboard.SetRtf(rtfBuffer.ToString());
-            Clipboard.SetText(textBuffer.ToString());
+            Clipboard.SetRtf(textBuffer.ToString(), rtfBuffer.ToString());
         }
     }
 

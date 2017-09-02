@@ -32,10 +32,10 @@ namespace Microsoft.PowerShell.Internal
                 return;
             }
 
-            ExecuteOnStaThread(() => SetClipboardData(text, CF_UNICODETEXT));
+            ExecuteOnStaThread(() => SetClipboardData(Tuple.Create(text, CF_UNICODETEXT)));
         }
 
-        public static void SetRtf(string text)
+        public static void SetRtf(string plainText, string rtfText)
         {
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
@@ -48,7 +48,9 @@ namespace Microsoft.PowerShell.Internal
                 CF_RTF = RegisterClipboardFormat("Rich Text Format");
             }
 
-            ExecuteOnStaThread(() => SetClipboardData(text, CF_RTF));
+            ExecuteOnStaThread(() => SetClipboardData(
+                Tuple.Create(plainText, CF_UNICODETEXT),
+                Tuple.Create(rtfText, CF_RTF)));
         }
 
         private const uint GMEM_MOVEABLE = 0x0002;
@@ -72,6 +74,7 @@ namespace Microsoft.PowerShell.Internal
         private static extern void CopyMemory(IntPtr dest, IntPtr src, uint count);
 
         [DllImport("user32.dll", SetLastError = false)]
+        [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool IsClipboardFormatAvailable(uint uFormat);
 
         [DllImport("user32.dll", SetLastError = true)]
@@ -81,6 +84,10 @@ namespace Microsoft.PowerShell.Internal
         [DllImport("user32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool CloseClipboard();
+
+        [DllImport("user32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool EmptyClipboard();
 
         [DllImport("user32.dll", SetLastError = true)]
         static extern IntPtr GetClipboardData(uint uFormat);
@@ -140,14 +147,34 @@ namespace Microsoft.PowerShell.Internal
             return false;
         }
 
-        private static bool SetClipboardData(string text, uint format)
+        private static bool SetClipboardData(params Tuple<string, uint>[] data)
+        {
+            try
+            {
+                if (!OpenClipboard(IntPtr.Zero)) return false;
+                EmptyClipboard();
+
+                foreach (var d in data)
+                {
+                    if (!SetSingleClipboardData(d.Item1, d.Item2))
+                        return false;
+                }
+            }
+            finally
+            {
+                CloseClipboard();
+            }
+
+            return true;
+        }
+
+        private static bool SetSingleClipboardData(string text, uint format)
         {
             IntPtr hGlobal = IntPtr.Zero;
             IntPtr data = IntPtr.Zero;
 
             try
             {
-                if (!OpenClipboard(IntPtr.Zero)) return false;
 
                 uint bytes;
                 if (format == CF_RTF || format == CF_TEXT)
@@ -195,11 +222,9 @@ namespace Microsoft.PowerShell.Internal
                 {
                     GlobalFree(hGlobal);
                 }
-
-                CloseClipboard();
             }
 
-            return false;
+            return true;
         }
 
         private static void ExecuteOnStaThread(Func<bool> action)
