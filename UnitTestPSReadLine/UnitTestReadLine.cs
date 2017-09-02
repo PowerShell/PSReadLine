@@ -6,6 +6,7 @@ using System.Linq;
 using System.Management.Automation;
 using System.Management.Automation.Runspaces;
 using System.Reflection;
+using System.Text;
 using System.Threading;
 using System.Windows;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -36,6 +37,58 @@ namespace UnitTestPSReadLine
             return false;
         }
     }
+
+    internal struct CHAR_INFO
+    {
+        public ushort UnicodeChar;
+        public ushort Attributes;
+
+        public CHAR_INFO(char c, ConsoleColor foreground, ConsoleColor background)
+        {
+            UnicodeChar = c;
+            Attributes = (ushort)(((int)background << 4) | (int)foreground);
+        }
+
+        public ConsoleColor ForegroundColor
+        {
+            get => (ConsoleColor)(Attributes & 0xf);
+            set => Attributes = (ushort)((Attributes & 0xfff0) | ((int)value & 0xf));
+        }
+
+        public ConsoleColor BackgroundColor
+        {
+            get => (ConsoleColor)((Attributes & 0xf0) >> 4);
+            set => Attributes = (ushort)((Attributes & 0xff0f) | (((int)value & 0xf) << 4));
+        }
+
+        public override string ToString()
+        {
+            var sb = new StringBuilder();
+            sb.Append((char)UnicodeChar);
+            if (ForegroundColor != Console.ForegroundColor)
+                sb.AppendFormat(" fg: {0}", ForegroundColor);
+            if (BackgroundColor != Console.BackgroundColor)
+                sb.AppendFormat(" bg: {0}", BackgroundColor);
+            return sb.ToString();
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (!(obj is CHAR_INFO))
+            {
+                return false;
+            }
+
+            var other = (CHAR_INFO)obj;
+            return this.UnicodeChar == other.UnicodeChar && this.Attributes == other.Attributes;
+        }
+
+        public override int GetHashCode()
+        {
+            return UnicodeChar.GetHashCode() + Attributes.GetHashCode();
+        }
+    }
+
 
     internal class TestConsole : IConsole
     {

@@ -43,20 +43,7 @@ namespace Microsoft.PowerShell.Internal
         public static extern bool SetConsoleMode(IntPtr hConsoleOutput, uint dwMode);
 
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-        public static extern bool ScrollConsoleScreenBuffer(IntPtr hConsoleOutput,
-            ref SMALL_RECT lpScrollRectangle,
-            IntPtr lpClipRectangle,
-            COORD dwDestinationOrigin,
-            ref CHAR_INFO lpFill);
-
-        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         public static extern bool SetConsoleCtrlHandler(BreakHandler handlerRoutine, bool add);
-
-        [DllImport("KERNEL32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-        public static extern bool WriteConsoleOutput(IntPtr consoleOutput, CHAR_INFO[] buffer, COORD bufferSize, COORD bufferCoord, ref SMALL_RECT writeRegion);
-
-        [DllImport("KERNEL32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-        public static extern bool ReadConsoleOutput(IntPtr consoleOutput, [Out] CHAR_INFO[] buffer, COORD bufferSize, COORD bufferCoord, ref SMALL_RECT readRegion);
 
         [DllImport("user32.dll", SetLastError = true)]
         public static extern uint MapVirtualKey(uint uCode, uint uMapType);
@@ -79,49 +66,6 @@ namespace Microsoft.PowerShell.Internal
             uint flagsAndAttributes,
             IntPtr templateFileWin32Handle
         );
-
-        [StructLayout(LayoutKind.Sequential)]
-        internal struct COLORREF
-        {
-            internal uint ColorDWORD;
-
-            internal uint R => ColorDWORD & 0xff;
-            internal uint G => (ColorDWORD >> 8) & 0xff;
-            internal uint B => (ColorDWORD >> 16) & 0xff;
-        }
-
-        [StructLayout(LayoutKind.Sequential)]
-        internal struct CONSOLE_SCREEN_BUFFER_INFO_EX
-        {
-            internal int cbSize;
-            internal COORD dwSize;
-            internal COORD dwCursorPosition;
-            internal ushort wAttributes;
-            internal SMALL_RECT srWindow;
-            internal COORD dwMaximumWindowSize;
-            internal ushort wPopupAttributes;
-            internal bool bFullscreenSupported;
-            internal COLORREF Black;
-            internal COLORREF DarkBlue;
-            internal COLORREF DarkGreen;
-            internal COLORREF DarkCyan;
-            internal COLORREF DarkRed;
-            internal COLORREF DarkMagenta;
-            internal COLORREF DarkYellow;
-            internal COLORREF Gray;
-            internal COLORREF DarkGray;
-            internal COLORREF Blue;
-            internal COLORREF Green;
-            internal COLORREF Cyan;
-            internal COLORREF Red;
-            internal COLORREF Magenta;
-            internal COLORREF Yellow;
-            internal COLORREF White;
-        }
-
-        [DllImport("kernel32.dll", SetLastError = true)]
-        internal static extern bool GetConsoleScreenBufferInfoEx(IntPtr hConsoleOutput,
-            ref CONSOLE_SCREEN_BUFFER_INFO_EX csbe);
 
         [DllImport("kernel32.dll", SetLastError = true)]
         internal static extern int GetFileType(IntPtr handle);
@@ -174,20 +118,6 @@ namespace Microsoft.PowerShell.Internal
         ShareWrite = 0x00000002
     }
 
-    public struct SMALL_RECT
-    {
-        public short Left;
-        public short Top;
-        public short Right;
-        public short Bottom;
-
-        [ExcludeFromCodeCoverage]
-        public override string ToString()
-        {
-            return String.Format(CultureInfo.InvariantCulture, "{0},{1},{2},{3}", Left, Top, Right, Bottom);
-        }
-    }
-
     internal struct COORD
     {
         public short X;
@@ -197,62 +127,6 @@ namespace Microsoft.PowerShell.Internal
         public override string ToString()
         {
             return String.Format(CultureInfo.InvariantCulture, "{0},{1}", X, Y);
-        }
-    }
-
-    public struct CHAR_INFO
-    {
-        public ushort UnicodeChar;
-        public ushort Attributes;
-
-        public CHAR_INFO(char c, ConsoleColor foreground, ConsoleColor background)
-        {
-            UnicodeChar = c;
-            Attributes = (ushort)(((int)background << 4) | (int)foreground);
-        }
-
-        [ExcludeFromCodeCoverage]
-        public ConsoleColor ForegroundColor
-        {
-            get => (ConsoleColor)(Attributes & 0xf);
-            set => Attributes = (ushort)((Attributes & 0xfff0) | ((int)value & 0xf));
-        }
-
-        [ExcludeFromCodeCoverage]
-        public ConsoleColor BackgroundColor
-        {
-            get => (ConsoleColor)((Attributes & 0xf0) >> 4);
-            set => Attributes = (ushort)((Attributes & 0xff0f) | (((int)value & 0xf) << 4));
-        }
-
-        [ExcludeFromCodeCoverage]
-        public override string ToString()
-        {
-            var sb = new StringBuilder();
-            sb.Append((char)UnicodeChar);
-            if (ForegroundColor != Console.ForegroundColor)
-                sb.AppendFormat(" fg: {0}", ForegroundColor);
-            if (BackgroundColor != Console.BackgroundColor)
-                sb.AppendFormat(" bg: {0}", BackgroundColor);
-            return sb.ToString();
-        }
-
-        [ExcludeFromCodeCoverage]
-        public override bool Equals(object obj)
-        {
-            if (!(obj is CHAR_INFO))
-            {
-                return false;
-            }
-
-            var other = (CHAR_INFO)obj;
-            return this.UnicodeChar == other.UnicodeChar && this.Attributes == other.Attributes;
-        }
-
-        [ExcludeFromCodeCoverage]
-        public override int GetHashCode()
-        {
-            return UnicodeChar.GetHashCode() + Attributes.GetHashCode();
         }
     }
 

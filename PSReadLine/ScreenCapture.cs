@@ -3,15 +3,128 @@ Copyright (c) Microsoft Corporation.  All rights reserved.
 --********************************************************************/
 
 using System;
+using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.PowerShell.Internal;
 
 namespace Microsoft.PowerShell
 {
-    public partial class PSConsoleReadLine
+    public static class ScreenCapture
     {
-        private static CHAR_INFO[] ReadBufferLines(int top, int count, int bufferWidth)
+        internal struct CHAR_INFO
+        {
+            public ushort UnicodeChar;
+            public ushort Attributes;
+
+            public CHAR_INFO(char c, ConsoleColor foreground, ConsoleColor background)
+            {
+                UnicodeChar = c;
+                Attributes = (ushort)(((int)background << 4) | (int)foreground);
+            }
+
+            public ConsoleColor ForegroundColor
+            {
+                get => (ConsoleColor)(Attributes & 0xf);
+                set => Attributes = (ushort)((Attributes & 0xfff0) | ((int)value & 0xf));
+            }
+
+            public ConsoleColor BackgroundColor
+            {
+                get => (ConsoleColor)((Attributes & 0xf0) >> 4);
+                set => Attributes = (ushort)((Attributes & 0xff0f) | (((int)value & 0xf) << 4));
+            }
+
+            public override string ToString()
+            {
+                var sb = new StringBuilder();
+                sb.Append((char)UnicodeChar);
+                if (ForegroundColor != Console.ForegroundColor)
+                    sb.AppendFormat(" fg: {0}", ForegroundColor);
+                if (BackgroundColor != Console.BackgroundColor)
+                    sb.AppendFormat(" bg: {0}", BackgroundColor);
+                return sb.ToString();
+            }
+
+            public override bool Equals(object obj)
+            {
+                if (!(obj is CHAR_INFO))
+                {
+                    return false;
+                }
+
+                var other = (CHAR_INFO)obj;
+                return this.UnicodeChar == other.UnicodeChar && this.Attributes == other.Attributes;
+            }
+
+            public override int GetHashCode()
+            {
+                return UnicodeChar.GetHashCode() + Attributes.GetHashCode();
+            }
+        }
+
+        [DllImport("KERNEL32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        static extern bool WriteConsoleOutput(IntPtr consoleOutput, CHAR_INFO[] buffer, COORD bufferSize, COORD bufferCoord, ref SMALL_RECT writeRegion);
+
+        [DllImport("KERNEL32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        static extern bool ReadConsoleOutput(IntPtr consoleOutput, [Out] CHAR_INFO[] buffer, COORD bufferSize, COORD bufferCoord, ref SMALL_RECT readRegion);
+
+        [StructLayout(LayoutKind.Sequential)]
+        struct COLORREF
+        {
+            internal uint ColorDWORD;
+
+            internal uint R => ColorDWORD & 0xff;
+            internal uint G => (ColorDWORD >> 8) & 0xff;
+            internal uint B => (ColorDWORD >> 16) & 0xff;
+        }
+
+        public struct SMALL_RECT
+        {
+            public short Left;
+            public short Top;
+            public short Right;
+            public short Bottom;
+
+            public override string ToString()
+            {
+                return String.Format(CultureInfo.InvariantCulture, "{0},{1},{2},{3}", Left, Top, Right, Bottom);
+            }
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        struct CONSOLE_SCREEN_BUFFER_INFO_EX
+        {
+            internal int cbSize;
+            internal COORD dwSize;
+            internal COORD dwCursorPosition;
+            internal ushort wAttributes;
+            internal SMALL_RECT srWindow;
+            internal COORD dwMaximumWindowSize;
+            internal ushort wPopupAttributes;
+            internal bool bFullscreenSupported;
+            internal COLORREF Black;
+            internal COLORREF DarkBlue;
+            internal COLORREF DarkGreen;
+            internal COLORREF DarkCyan;
+            internal COLORREF DarkRed;
+            internal COLORREF DarkMagenta;
+            internal COLORREF DarkYellow;
+            internal COLORREF Gray;
+            internal COLORREF DarkGray;
+            internal COLORREF Blue;
+            internal COLORREF Green;
+            internal COLORREF Cyan;
+            internal COLORREF Red;
+            internal COLORREF Magenta;
+            internal COLORREF Yellow;
+            internal COLORREF White;
+        }
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        static extern bool GetConsoleScreenBufferInfoEx(IntPtr hConsoleOutput, ref CONSOLE_SCREEN_BUFFER_INFO_EX csbe);
+
+        internal static CHAR_INFO[] ReadBufferLines(int top, int count, int bufferWidth)
         {
             var result = new CHAR_INFO[bufferWidth * count];
             var handle = NativeMethods.GetStdHandle((uint) StandardHandleId.Output);
@@ -27,12 +140,11 @@ namespace Microsoft.PowerShell
                 Bottom = (short)(top + count),
                 Right = (short)(bufferWidth - 1)
             };
-            NativeMethods.ReadConsoleOutput(handle, result,
-                readBufferSize, readBufferCoord, ref readRegion);
+            ReadConsoleOutput(handle, result, readBufferSize, readBufferCoord, ref readRegion);
             return result;
         }
 
-        private static void WriteBufferLines(CHAR_INFO[] buffer, int top)
+        internal static void WriteBufferLines(CHAR_INFO[] buffer, int top, IConsole console)
         {
             var handle = NativeMethods.GetStdHandle((uint) StandardHandleId.Output);
 
@@ -41,7 +153,7 @@ namespace Microsoft.PowerShell
             if ((top + bufferLineCount) > Console.BufferHeight)
             {
                 var scrollCount = (top + bufferLineCount) - Console.BufferHeight;
-                _singleton._console.ScrollBuffer(scrollCount);
+                console.ScrollBuffer(scrollCount);
                 top -= scrollCount;
             }
             var bufferSize = new COORD
@@ -58,148 +170,22 @@ namespace Microsoft.PowerShell
                 Bottom = (short) bottom,
                 Right = (short) (bufferWidth - 1)
             };
-            NativeMethods.WriteConsoleOutput(handle, buffer,
-                                             bufferSize, bufferCoord, ref writeRegion);
+            WriteConsoleOutput(handle, buffer,
+                bufferSize, bufferCoord, ref writeRegion);
         }
 
-        private static void InvertLines(int start, int count)
+        internal static void InvertLines(int start, int count, IConsole console)
         {
-            var buffer = ReadBufferLines(start, count, _singleton._console.BufferWidth);
+            var buffer = ReadBufferLines(start, count, console.BufferWidth);
             for (int i = 0; i < buffer.Length; i++)
             {
                 buffer[i].ForegroundColor = (ConsoleColor)((int)buffer[i].ForegroundColor ^ 7);
                 buffer[i].BackgroundColor = (ConsoleColor)((int)buffer[i].BackgroundColor ^ 7);
             }
-            WriteBufferLines(buffer, start);
-
+            WriteBufferLines(buffer, start, console);
         }
 
-        /// <summary>
-        /// Start interactive screen capture - up/down arrows select lines, enter copies
-        /// selected text to clipboard as text and html
-        /// </summary>
-        public static void CaptureScreen(ConsoleKeyInfo? key = null, object arg = null)
-        {
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                Ding();
-                return;
-            }
-
-            int selectionTop = _singleton._console.CursorTop;
-            int selectionHeight = 1;
-            int currentY = selectionTop;
-            IConsole console = _singleton._console;
-
-            // We'll keep the current selection line (currentY) at least 4 lines
-            // away from the top or bottom of the window.
-            const int margin = 5;
-            bool TooCloseToTop() => (currentY - console.WindowTop) < margin;
-            bool TooCloseToBottom() => ((console.WindowTop + console.WindowHeight) - currentY) < margin;
-
-            // Current lines starts out selected
-            InvertLines(selectionTop, selectionHeight);
-            bool done = false;
-            while (!done)
-            {
-                var k = ReadKey();
-                switch (k.Key)
-                {
-                case ConsoleKey.K:
-                case ConsoleKey.UpArrow:
-                    if (TooCloseToTop())
-                        ScrollDisplayUpLine();
-
-                    if (currentY > 0)
-                    {
-                        currentY -= 1;
-                        if ((k.Modifiers & ConsoleModifiers.Shift) == ConsoleModifiers.Shift)
-                        {
-                            if (currentY < selectionTop)
-                            {
-                                // Extend selection up, only invert newly selected line.
-                                InvertLines(currentY, 1);
-                                selectionTop = currentY;
-                                selectionHeight += 1;
-                            }
-                            else if (currentY >= selectionTop)
-                            {
-                                // Selection shortend 1 line, invert unselected line.
-                                InvertLines(currentY + 1, 1);
-                                selectionHeight -= 1;
-                            }
-                            break;
-                        }
-                        goto updateSelectionCommon;
-                    }
-                    break;
-
-                case ConsoleKey.J:
-                case ConsoleKey.DownArrow:
-                    if (TooCloseToBottom())
-                        ScrollDisplayDownLine();
-
-                    if (currentY < (console.BufferHeight - 1))
-                    {
-                        currentY += 1;
-                        if ((k.Modifiers & ConsoleModifiers.Shift) == ConsoleModifiers.Shift)
-                        {
-                            if (currentY == (selectionTop + selectionHeight))
-                            {
-                                // Extend selection down, only invert newly selected line.
-                                InvertLines(selectionTop + selectionHeight, 1);
-                                selectionHeight += 1;
-                            }
-                            else if (currentY == (selectionTop + 1))
-                            {
-                                // Selection shortend 1 line, invert unselected line.
-                                InvertLines(selectionTop, 1);
-                                selectionTop = currentY;
-                                selectionHeight -= 1;
-                            }
-                            break;
-                        }
-                        goto updateSelectionCommon;
-                    }
-                    break;
-
-                updateSelectionCommon:
-                    // Shift not pressed - unselect current selection
-                    InvertLines(selectionTop, selectionHeight);
-                    selectionTop = currentY;
-                    selectionHeight = 1;
-                    InvertLines(selectionTop, selectionHeight);
-                    break;
-
-                case ConsoleKey.Enter:
-                    InvertLines(selectionTop, selectionHeight);
-                    DumpScreenToClipboard(selectionTop, selectionHeight);
-                    ScrollDisplayToCursor();
-                    return;
-
-                case ConsoleKey.Escape:
-                    done = true;
-                    continue;
-
-                case ConsoleKey.C:
-                case ConsoleKey.G:
-                    if (k.Modifiers == ConsoleModifiers.Control)
-                    {
-                        done = true;
-                        continue;
-                    }
-                    Ding();
-                    break;
-                default:
-                    Ding();
-                    break;
-                }
-            }
-            InvertLines(selectionTop, selectionHeight);
-            ScrollDisplayToCursor();
-        }
-
-        private const string CmdColorTable = @"
+        internal const string CmdColorTable = @"
 \red0\green0\blue0;
 \red0\green0\blue128;
 \red0\green128\blue0;
@@ -218,7 +204,7 @@ namespace Microsoft.PowerShell
 \red255\green255\blue255;
 ";
 
-        private const string PowerShellColorTable = @"
+        internal const string PowerShellColorTable = @"
 \red1\green36\blue86;
 \red0\green0\blue128;
 \red0\green128\blue0;
@@ -237,58 +223,43 @@ namespace Microsoft.PowerShell
 \red255\green255\blue255;
 ";
 
-        private static string GetRTFColorFromColorRef(NativeMethods.COLORREF colorref)
+        static string GetRTFColorFromColorRef(COLORREF colorref)
         {
-            return string.Concat("\\red", colorref.R.ToString("D"),
-                                 "\\green", colorref.G.ToString("D"),
-                                 "\\blue", colorref.B.ToString("D"), ";");
+            return String.Concat("\\red", colorref.R.ToString("D"),
+                "\\green", colorref.G.ToString("D"),
+                "\\blue", colorref.B.ToString("D"), ";");
         }
 
-        private static string GetColorTable()
+        internal static string GetColorTable(IConsole console)
         {
             var handle = NativeMethods.GetStdHandle((uint) StandardHandleId.Output);
-            var csbe = new NativeMethods.CONSOLE_SCREEN_BUFFER_INFO_EX
+            var csbe = new CONSOLE_SCREEN_BUFFER_INFO_EX
             {
-                cbSize = Marshal.SizeOf(typeof(NativeMethods.CONSOLE_SCREEN_BUFFER_INFO_EX))
+                cbSize = Marshal.SizeOf(typeof(CONSOLE_SCREEN_BUFFER_INFO_EX))
             };
-            if (NativeMethods.GetConsoleScreenBufferInfoEx(handle, ref csbe))
+            if (GetConsoleScreenBufferInfoEx(handle, ref csbe))
             {
-                return GetRTFColorFromColorRef(csbe.Black) +
-                       GetRTFColorFromColorRef(csbe.DarkBlue) +
-                       GetRTFColorFromColorRef(csbe.DarkGreen) +
-                       GetRTFColorFromColorRef(csbe.DarkCyan) +
-                       GetRTFColorFromColorRef(csbe.DarkRed) +
-                       GetRTFColorFromColorRef(csbe.DarkMagenta) +
-                       GetRTFColorFromColorRef(csbe.DarkYellow) +
-                       GetRTFColorFromColorRef(csbe.Gray) +
-                       GetRTFColorFromColorRef(csbe.DarkGray) +
-                       GetRTFColorFromColorRef(csbe.Blue) +
-                       GetRTFColorFromColorRef(csbe.Green) +
-                       GetRTFColorFromColorRef(csbe.Cyan) +
-                       GetRTFColorFromColorRef(csbe.Red) +
-                       GetRTFColorFromColorRef(csbe.Magenta) +
-                       GetRTFColorFromColorRef(csbe.Yellow) +
-                       GetRTFColorFromColorRef(csbe.White);
+                return GetRTFColorFromColorRef(csbe.Black) + GetRTFColorFromColorRef(csbe.DarkBlue) + GetRTFColorFromColorRef(csbe.DarkGreen) + GetRTFColorFromColorRef(csbe.DarkCyan) + GetRTFColorFromColorRef(csbe.DarkRed) + GetRTFColorFromColorRef(csbe.DarkMagenta) + GetRTFColorFromColorRef(csbe.DarkYellow) + GetRTFColorFromColorRef(csbe.Gray) + GetRTFColorFromColorRef(csbe.DarkGray) + GetRTFColorFromColorRef(csbe.Blue) + GetRTFColorFromColorRef(csbe.Green) + GetRTFColorFromColorRef(csbe.Cyan) + GetRTFColorFromColorRef(csbe.Red) + GetRTFColorFromColorRef(csbe.Magenta) + GetRTFColorFromColorRef(csbe.Yellow) + GetRTFColorFromColorRef(csbe.White);
             }
 
             // A bit of a hack if the above failed - assume PowerShell's color scheme if the
             // background color is Magenta, otherwise we assume the default scheme.
-            return _singleton._console.BackgroundColor == ConsoleColor.DarkMagenta
+            return console.BackgroundColor == ConsoleColor.DarkMagenta
                 ? PowerShellColorTable
                 : CmdColorTable;
         }
 
-        private static void DumpScreenToClipboard(int top, int count)
+        internal static void DumpScreenToClipboard(int top, int count, IConsole console)
         {
-            var buffer = ReadBufferLines(top, count, _singleton._console.BufferWidth);
-            var bufferWidth = _singleton._console.BufferWidth;
+            var buffer = ReadBufferLines(top, count, console.BufferWidth);
+            var bufferWidth = console.BufferWidth;
 
             var textBuffer = new StringBuilder(buffer.Length + count);
 
             var rtfBuffer = new StringBuilder();
             rtfBuffer.Append(@"{\rtf\ansi{\fonttbl{\f0 Consolas;}}");
 
-            var colorTable = GetColorTable();
+            var colorTable = GetColorTable(console);
             rtfBuffer.AppendFormat(@"{{\colortbl;{0}}}{1}", colorTable, Environment.NewLine);
             rtfBuffer.Append(@"\f0 \fs18 ");
 
@@ -339,11 +310,11 @@ namespace Microsoft.PowerShell
                         textBuffer.Append(c);
                         switch (c)
                         {
-                        case '\\': rtfBuffer.Append(@"\\"); break;
-                        case '\t': rtfBuffer.Append(@"\tab"); break;
-                        case '{':  rtfBuffer.Append(@"\{"); break;
-                        case '}':  rtfBuffer.Append(@"\}"); break;
-                        default:   rtfBuffer.Append(c); break;
+                            case '\\': rtfBuffer.Append(@"\\"); break;
+                            case '\t': rtfBuffer.Append(@"\tab"); break;
+                            case '{':  rtfBuffer.Append(@"\{"); break;
+                            case '}':  rtfBuffer.Append(@"\}"); break;
+                            default:   rtfBuffer.Append(c); break;
                         }
                     }
                 }
@@ -354,6 +325,134 @@ namespace Microsoft.PowerShell
 
             Clipboard.SetRtf(rtfBuffer.ToString());
             Clipboard.SetText(textBuffer.ToString());
+        }
+    }
+
+    public partial class PSConsoleReadLine
+    {
+        /// <summary>
+        /// Start interactive screen capture - up/down arrows select lines, enter copies
+        /// selected text to clipboard as text and html
+        /// </summary>
+        public static void CaptureScreen(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                Ding();
+                return;
+            }
+
+            int selectionTop = _singleton._console.CursorTop;
+            int selectionHeight = 1;
+            int currentY = selectionTop;
+            IConsole console = _singleton._console;
+
+            // We'll keep the current selection line (currentY) at least 4 lines
+            // away from the top or bottom of the window.
+            const int margin = 5;
+            bool TooCloseToTop() => (currentY - console.WindowTop) < margin;
+            bool TooCloseToBottom() => ((console.WindowTop + console.WindowHeight) - currentY) < margin;
+
+            // Current lines starts out selected
+            ScreenCapture.InvertLines(selectionTop, selectionHeight, console);
+            bool done = false;
+            while (!done)
+            {
+                var k = ReadKey();
+                switch (k.Key)
+                {
+                case ConsoleKey.K:
+                case ConsoleKey.UpArrow:
+                    if (TooCloseToTop())
+                        ScrollDisplayUpLine();
+
+                    if (currentY > 0)
+                    {
+                        currentY -= 1;
+                        if ((k.Modifiers & ConsoleModifiers.Shift) == ConsoleModifiers.Shift)
+                        {
+                            if (currentY < selectionTop)
+                            {
+                                // Extend selection up, only invert newly selected line.
+                                ScreenCapture.InvertLines(currentY, 1, console);
+                                selectionTop = currentY;
+                                selectionHeight += 1;
+                            }
+                            else if (currentY >= selectionTop)
+                            {
+                                // Selection shortend 1 line, invert unselected line.
+                                ScreenCapture.InvertLines(currentY + 1, 1, console);
+                                selectionHeight -= 1;
+                            }
+                            break;
+                        }
+                        goto updateSelectionCommon;
+                    }
+                    break;
+
+                case ConsoleKey.J:
+                case ConsoleKey.DownArrow:
+                    if (TooCloseToBottom())
+                        ScrollDisplayDownLine();
+
+                    if (currentY < (console.BufferHeight - 1))
+                    {
+                        currentY += 1;
+                        if ((k.Modifiers & ConsoleModifiers.Shift) == ConsoleModifiers.Shift)
+                        {
+                            if (currentY == (selectionTop + selectionHeight))
+                            {
+                                // Extend selection down, only invert newly selected line.
+                                ScreenCapture.InvertLines(selectionTop + selectionHeight, 1, console);
+                                selectionHeight += 1;
+                            }
+                            else if (currentY == (selectionTop + 1))
+                            {
+                                // Selection shortend 1 line, invert unselected line.
+                                ScreenCapture.InvertLines(selectionTop, 1, console);
+                                selectionTop = currentY;
+                                selectionHeight -= 1;
+                            }
+                            break;
+                        }
+                        goto updateSelectionCommon;
+                    }
+                    break;
+
+                updateSelectionCommon:
+                    // Shift not pressed - unselect current selection
+                    ScreenCapture.InvertLines(selectionTop, selectionHeight, console);
+                    selectionTop = currentY;
+                    selectionHeight = 1;
+                    ScreenCapture.InvertLines(selectionTop, selectionHeight, console);
+                    break;
+
+                case ConsoleKey.Enter:
+                    ScreenCapture.InvertLines(selectionTop, selectionHeight, console);
+                    ScreenCapture.DumpScreenToClipboard(selectionTop, selectionHeight, console);
+                    ScrollDisplayToCursor();
+                    return;
+
+                case ConsoleKey.Escape:
+                    done = true;
+                    continue;
+
+                case ConsoleKey.C:
+                case ConsoleKey.G:
+                    if (k.Modifiers == ConsoleModifiers.Control)
+                    {
+                        done = true;
+                        continue;
+                    }
+                    Ding();
+                    break;
+                default:
+                    Ding();
+                    break;
+                }
+            }
+            ScreenCapture.InvertLines(selectionTop, selectionHeight, console);
+            ScrollDisplayToCursor();
         }
     }
 }
