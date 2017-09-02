@@ -69,7 +69,10 @@ namespace Microsoft.PowerShell.Internal
         private static extern bool GlobalUnlock(IntPtr hMem);
 
         [DllImport("kernel32.dll", EntryPoint = "CopyMemory", SetLastError = false)]
-        public static extern void CopyMemory(IntPtr dest, IntPtr src, uint count);
+        private static extern void CopyMemory(IntPtr dest, IntPtr src, uint count);
+
+        [DllImport("user32.dll", SetLastError = false)]
+        private static extern bool IsClipboardFormatAvailable(uint uFormat);
 
         [DllImport("user32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
@@ -88,6 +91,7 @@ namespace Microsoft.PowerShell.Internal
         [DllImport("user32.dll", SetLastError=true)]
         static extern uint RegisterClipboardFormat(string lpszFormat);
 
+        private const uint CF_TEXT = 1;
         private const uint CF_UNICODETEXT = 13;
         private static uint CF_RTF;
 
@@ -95,13 +99,32 @@ namespace Microsoft.PowerShell.Internal
         {
             try
             {
-                if (OpenClipboard(IntPtr.Zero))
+                if (IsClipboardFormatAvailable(CF_UNICODETEXT))
                 {
-                    var data = GetClipboardData(CF_UNICODETEXT);
-                    if (data != IntPtr.Zero)
+                    if (OpenClipboard(IntPtr.Zero))
                     {
-                        text = Marshal.PtrToStringUni(data);
-                        return true;
+                        var data = GetClipboardData(CF_UNICODETEXT);
+                        if (data != IntPtr.Zero)
+                        {
+                            data = GlobalLock(data);
+                            text = Marshal.PtrToStringUni(data);
+                            GlobalUnlock(data);
+                            return true;
+                        }
+                    }
+                }
+                else if (IsClipboardFormatAvailable(CF_TEXT))
+                {
+                    if (OpenClipboard(IntPtr.Zero))
+                    {
+                        var data = GetClipboardData(CF_TEXT);
+                        if (data != IntPtr.Zero)
+                        {
+                            data = GlobalLock(data);
+                            text = Marshal.PtrToStringAnsi(data);
+                            GlobalUnlock(data);
+                            return true;
+                        }
                     }
                 }
             }
@@ -127,7 +150,7 @@ namespace Microsoft.PowerShell.Internal
                 if (!OpenClipboard(IntPtr.Zero)) return false;
 
                 uint bytes;
-                if (format == CF_RTF)
+                if (format == CF_RTF || format == CF_TEXT)
                 {
                     bytes = (uint)(text.Length + 1);
                     data = Marshal.StringToHGlobalAnsi(text);
