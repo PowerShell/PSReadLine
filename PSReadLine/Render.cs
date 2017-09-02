@@ -5,6 +5,7 @@ Copyright (c) Microsoft Corporation.  All rights reserved.
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Linq;
 using System.Management.Automation.Language;
 using System.Text;
@@ -12,6 +13,17 @@ using Microsoft.PowerShell.Internal;
 
 namespace Microsoft.PowerShell
 {
+    internal struct Point
+    {
+        public int X;
+        public int Y;
+
+        public override string ToString()
+        {
+            return String.Format(CultureInfo.InvariantCulture, "{0},{1}", X, Y);
+        }
+    }
+
     public partial class PSConsoleReadLine
     {
         struct RenderedLineData
@@ -459,8 +471,8 @@ namespace Microsoft.PowerShell
                 _initialY = _console.BufferHeight - physicalLine;
             }
 
-            var coordinates = ConvertOffsetToCoordinates(_current);
-            PlaceCursor(coordinates.X, coordinates.Y);
+            var point = ConvertOffsetToPoint(_current);
+            PlaceCursor(point.X, point.Y);
             _console.CursorVisible = true;
 
             // TODO: set WindowTop if necessary
@@ -606,12 +618,12 @@ namespace Microsoft.PowerShell
 
         private void MoveCursor(int newCursor)
         {
-            var coordinates = ConvertOffsetToCoordinates(newCursor);
-            PlaceCursor(coordinates.X, coordinates.Y);
+            var point = ConvertOffsetToPoint(newCursor);
+            PlaceCursor(point.X, point.Y);
             _current = newCursor;
         }
 
-        internal COORD ConvertOffsetToCoordinates(int offset)
+        internal Point ConvertOffsetToPoint(int offset)
         {
             int x = _initialX;
             int y = _initialY;
@@ -661,10 +673,10 @@ namespace Microsoft.PowerShell
                 }
             }
             
-            return new COORD {X = (short)x, Y = (short)y};
+            return new Point {X = x, Y = y};
         }
 
-        private int ConvertLineAndColumnToOffset(COORD coord)
+        private int ConvertLineAndColumnToOffset(Point point)
         {
             int offset;
             int x = _initialX;
@@ -676,7 +688,7 @@ namespace Microsoft.PowerShell
             {
                 // If we are on the correct line, return when we find
                 // the correct column
-                if (coord.Y == y && coord.X <= x)
+                if (point.Y == y && point.X <= x)
                 {
                     return offset;
                 }
@@ -685,7 +697,7 @@ namespace Microsoft.PowerShell
                 {
                     // If we are about to move off of the correct line,
                     // the line was shorter than the column we wanted so return.
-                    if (coord.Y == y)
+                    if (point.Y == y)
                     {
                         return offset;
                     }
@@ -715,7 +727,7 @@ namespace Microsoft.PowerShell
 
             // Return -1 if y is out of range, otherwise the last line was shorter
             // than we wanted, but still in range so just return the last offset.
-            return (coord.Y == y) ? offset : -1;
+            return (point.Y == y) ? offset : -1;
         }
 
         private bool LineIsMultiLine()
@@ -848,10 +860,10 @@ namespace Microsoft.PowerShell
         public static void ScrollDisplayToCursor(ConsoleKeyInfo? key = null, object arg = null)
         {
             // Ideally, we'll put the last input line at the bottom of the window
-            var coordinates = _singleton.ConvertOffsetToCoordinates(_singleton._buffer.Length);
+            var point = _singleton.ConvertOffsetToPoint(_singleton._buffer.Length);
 
             var console = _singleton._console;
-            var newTop = coordinates.Y - console.WindowHeight + 1;
+            var newTop = point.Y - console.WindowHeight + 1;
 
             // If the cursor is already visible, and we're on the first
             // page-worth of the buffer, then just scroll to the top (we can't

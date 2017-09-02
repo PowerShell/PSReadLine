@@ -410,7 +410,7 @@ namespace Microsoft.PowerShell
                 IConsole console = singleton._console;
 
                 // Move cursor to the start of the first line after our input.
-                this.Top = singleton.ConvertOffsetToCoordinates(singleton._buffer.Length).Y + 1;
+                this.Top = singleton.ConvertOffsetToPoint(singleton._buffer.Length).Y + 1;
                 if (this.Top + this.Rows > console.BufferHeight)
                 {
                     var toScroll = this.Top + this.Rows - console.BufferHeight;
@@ -418,8 +418,8 @@ namespace Microsoft.PowerShell
                     singleton._initialY -= toScroll;
                     this.Top -= toScroll;
 
-                    var coordinates = singleton.ConvertOffsetToCoordinates(singleton._current);
-                    singleton.PlaceCursor(coordinates.X, coordinates.Y);
+                    var point = singleton.ConvertOffsetToPoint(singleton._current);
+                    singleton.PlaceCursor(point.X, point.Y);
                 }
 
                 console.CursorVisible = false;
@@ -580,8 +580,8 @@ namespace Microsoft.PowerShell
                 // Make sure the menu and line can appear on the screen at the same time,
                 // if not, we'll skip the menu.
 
-                var endBufferCoords = ConvertOffsetToCoordinates(_buffer.Length);
-                var bufferLines = endBufferCoords.Y - _initialY + 1;
+                var endBufferPoint = ConvertOffsetToPoint(_buffer.Length);
+                var bufferLines = endBufferPoint.Y - _initialY + 1;
                 if ((bufferLines + menu.Rows) > _console.WindowHeight)
                 {
                     menuSelect = false;
@@ -663,7 +663,7 @@ namespace Microsoft.PowerShell
 
                     // After replacement, the menu might be misplaced from the command line
                     // getting shorter or longer.
-                    var endOfCommandLine = ConvertOffsetToCoordinates(_buffer.Length);
+                    var endOfCommandLine = ConvertOffsetToPoint(_buffer.Length);
                     var topAdjustment = (endOfCommandLine.Y + 1) - menu.Top;
 
                     if (topAdjustment != 0)

@@ -310,8 +310,8 @@ namespace Microsoft.PowerShell
             }
 
             // Don't overwrite any of the line - so move to first line after the end of our buffer.
-            var coords = _singleton.ConvertOffsetToCoordinates(_singleton._buffer.Length);
-            _singleton.PlaceCursor(0, coords.Y + 1);
+            var point = _singleton.ConvertOffsetToPoint(_singleton._buffer.Length);
+            _singleton.PlaceCursor(0, point.Y + 1);
 
             console.WriteLine(buffer.ToString());
             _singleton._initialY = console.CursorTop;
@@ -366,8 +366,8 @@ namespace Microsoft.PowerShell
             _singleton.ClearStatusMessage(render: false);
 
             // Don't overwrite any of the line - so move to first line after the end of our buffer.
-            var coords = _singleton.ConvertOffsetToCoordinates(_singleton._buffer.Length);
-            _singleton.PlaceCursor(0, coords.Y + 1);
+            var point = _singleton.ConvertOffsetToPoint(_singleton._buffer.Length);
+            _singleton.PlaceCursor(0, point.Y + 1);
 
             _singleton._console.WriteLine(buffer.ToString());
             _singleton._initialY = _singleton._console.CursorTop;

@@ -4,8 +4,6 @@ Copyright (c) Microsoft Corporation.  All rights reserved.
 
 using System;
 using System.ComponentModel;
-using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.Win32.SafeHandles;
@@ -116,18 +114,6 @@ namespace Microsoft.PowerShell.Internal
         // From winnt.h
         ShareRead = 0x00000001,
         ShareWrite = 0x00000002
-    }
-
-    internal struct COORD
-    {
-        public short X;
-        public short Y;
-
-        [ExcludeFromCodeCoverage]
-        public override string ToString()
-        {
-            return String.Format(CultureInfo.InvariantCulture, "{0},{1}", X, Y);
-        }
     }
 
     internal static class ConsoleKeyInfoExtension
@@ -338,7 +324,7 @@ namespace Microsoft.PowerShell.Internal
                 Bottom = (short)(Console.BufferHeight - 1),
                 Right = (short)Console.BufferWidth
             };
-            var destinationOrigin = new COORD {X = 0, Y = 0};
+            var destinationOrigin = new Point {X = 0, Y = 0};
             var fillChar = new CHAR_INFO(' ', Console.ForegroundColor, Console.BackgroundColor);
             NativeMethods.ScrollConsoleScreenBuffer(handle, ref scrollRectangle, IntPtr.Zero, destinationOrigin, ref fillChar);
             */

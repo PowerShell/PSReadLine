@@ -266,8 +266,8 @@ namespace Microsoft.PowerShell
                 ClearStatusMessage(render: true);
             }
 
-            var coordinates = ConvertOffsetToCoordinates(_current);
-            PlaceCursor(0, coordinates.Y + 1);
+            var point = ConvertOffsetToPoint(_current);
+            PlaceCursor(0, point.Y + 1);
             _inputAccepted = true;
             return true;
         }

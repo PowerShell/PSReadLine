@@ -12,6 +12,17 @@ namespace Microsoft.PowerShell
 {
     public static class ScreenCapture
     {
+        internal struct COORD
+        {
+            public short X;
+            public short Y;
+
+            public override string ToString()
+            {
+                return String.Format(CultureInfo.InvariantCulture, "{0},{1}", X, Y);
+            }
+        }
+
         internal struct CHAR_INFO
         {
             public ushort UnicodeChar;
