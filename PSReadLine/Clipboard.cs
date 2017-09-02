@@ -2,10 +2,6 @@
 Copyright (c) Microsoft Corporation.  All rights reserved.
 --********************************************************************/
 
-/********************************************************************++
-Copyright (c) Microsoft Corporation.  All rights reserved.
---********************************************************************/
-
 using System;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -36,7 +32,7 @@ namespace Microsoft.PowerShell.Internal
                 return;
             }
 
-            ExecuteOnStaThread(() => SetTextImpl(text));
+            ExecuteOnStaThread(() => SetClipboardData(text, CF_UNICODETEXT));
         }
 
         public static void SetRtf(string text)
@@ -47,21 +43,24 @@ namespace Microsoft.PowerShell.Internal
                 return;
             }
 
-            ExecuteOnStaThread(() => SetRtfImpl(text));
+            if (CF_RTF == 0)
+            {
+                CF_RTF = RegisterClipboardFormat("Rich Text Format");
+            }
+
+            ExecuteOnStaThread(() => SetClipboardData(text, CF_RTF));
         }
+
+        private const uint GMEM_MOVEABLE = 0x0002;
+        private const uint GMEM_ZEROINIT = 0x0040;
+        const uint GHND = GMEM_MOVEABLE | GMEM_ZEROINIT;
 
         [DllImport("kernel32.dll")]
         private static extern IntPtr GlobalAlloc(uint uFlags, UIntPtr dwBytes);
-        
-        [DllImport("kernel32.dll")]
-        private static extern uint GetLastError();
-
-        [DllImport("kernel32.dll")]
-        private static extern IntPtr LocalFree(IntPtr hMem);
 
         [DllImport("kernel32.dll")]
         private static extern IntPtr GlobalFree(IntPtr hMem);
-        
+
         [DllImport("kernel32.dll")]
         private static extern IntPtr GlobalLock(IntPtr hMem);
 
@@ -86,13 +85,19 @@ namespace Microsoft.PowerShell.Internal
         [DllImport("user32.dll")]
         private static extern IntPtr SetClipboardData(uint uFormat, IntPtr data);
 
+        [DllImport("user32.dll", SetLastError=true)]
+        static extern uint RegisterClipboardFormat(string lpszFormat);
+
+        private const uint CF_UNICODETEXT = 13;
+        private static uint CF_RTF;
+
         private static bool GetTextImpl(out string text)
         {
             try
             {
                 if (OpenClipboard(IntPtr.Zero))
                 {
-                    var data = GetClipboardData(13 /*CF_UNICODETEXT*/);
+                    var data = GetClipboardData(CF_UNICODETEXT);
                     if (data != IntPtr.Zero)
                     {
                         text = Marshal.PtrToStringUni(data);
@@ -112,13 +117,65 @@ namespace Microsoft.PowerShell.Internal
             return false;
         }
 
-        private static bool SetTextImpl(string text)
+        private static bool SetClipboardData(string text, uint format)
         {
-            return false;
-        }
+            IntPtr hGlobal = IntPtr.Zero;
+            IntPtr data = IntPtr.Zero;
 
-        private static bool SetRtfImpl(string text)
-        {
+            try
+            {
+                if (!OpenClipboard(IntPtr.Zero)) return false;
+
+                uint bytes;
+                if (format == CF_RTF)
+                {
+                    bytes = (uint)(text.Length + 1);
+                    data = Marshal.StringToHGlobalAnsi(text);
+                }
+                else if (format == CF_UNICODETEXT)
+                {
+                    bytes = (uint) ((text.Length + 1) * 2);
+                    data = Marshal.StringToHGlobalUni(text);
+                }
+                else
+                {
+                    // Not yet supported format.
+                    return false;
+                }
+
+                if (data == IntPtr.Zero) return false;
+
+                hGlobal = GlobalAlloc(GHND, (UIntPtr) bytes);
+                if (hGlobal == IntPtr.Zero) return false;
+
+                IntPtr dataCopy = GlobalLock(hGlobal);
+                if (dataCopy == IntPtr.Zero) return false;
+                CopyMemory(dataCopy, data, bytes);
+                GlobalUnlock(hGlobal);
+
+                if (SetClipboardData(format, hGlobal) != IntPtr.Zero)
+                {
+                    // The clipboard owns this memory now, so don't free it.
+                    hGlobal = IntPtr.Zero;
+                }
+            }
+            catch
+            {
+            }
+            finally
+            {
+                if (data != IntPtr.Zero)
+                {
+                    Marshal.FreeHGlobal(data);
+                }
+                if (hGlobal != IntPtr.Zero)
+                {
+                    GlobalFree(hGlobal);
+                }
+
+                CloseClipboard();
+            }
+
             return false;
         }
 
@@ -159,4 +216,3 @@ namespace Microsoft.PowerShell.Internal
         }
     }
 }
-
