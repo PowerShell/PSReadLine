@@ -3,10 +3,8 @@ Copyright (c) Microsoft Corporation.  All rights reserved.
 --********************************************************************/
 
 using System;
-using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Text;
-using Microsoft.Win32.SafeHandles;
 
 namespace Microsoft.PowerShell.Internal
 {
@@ -24,25 +22,6 @@ namespace Microsoft.PowerShell.Internal
         public const uint MENU_IS_ACTIVE    = 0x01;
         public const uint MENU_IS_INACTIVE  = 0x00; // windows key
 
-        public const uint ENABLE_PROCESSED_INPUT = 0x0001;
-        public const uint ENABLE_LINE_INPUT      = 0x0002;
-        public const uint ENABLE_WINDOW_INPUT    = 0x0008;
-        public const uint ENABLE_MOUSE_INPUT     = 0x0010;
-
-        internal static readonly IntPtr INVALID_HANDLE_VALUE = new IntPtr(-1);  // WinBase.h
-
-        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-        public static extern IntPtr GetStdHandle(uint handleId);
-
-        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-        public static extern bool GetConsoleMode(IntPtr hConsoleOutput, out uint dwMode);
-
-        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-        public static extern bool SetConsoleMode(IntPtr hConsoleOutput, uint dwMode);
-
-        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-        public static extern bool SetConsoleCtrlHandler(BreakHandler handlerRoutine, bool add);
-
         [DllImport("user32.dll", SetLastError = true)]
         public static extern uint MapVirtualKey(uint uCode, uint uMapType);
 
@@ -52,68 +31,6 @@ namespace Microsoft.PowerShell.Internal
 
         [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         public static extern short VkKeyScan(char @char);
-
-        [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-        public static extern IntPtr CreateFile
-        (
-            string fileName,
-            uint desiredAccess,
-            uint ShareModes,
-            IntPtr securityAttributes,
-            uint creationDisposition,
-            uint flagsAndAttributes,
-            IntPtr templateFileWin32Handle
-        );
-
-        [DllImport("kernel32.dll", SetLastError = true)]
-        internal static extern int GetFileType(IntPtr handle);
-
-        internal const int FILE_TYPE_CHAR = 0x0002;
-    }
-
-    public delegate bool BreakHandler(ConsoleBreakSignal ConsoleBreakSignal);
-
-    public enum ConsoleBreakSignal : uint
-    {
-        CtrlC     = 0,
-        CtrlBreak = 1,
-        Close     = 2,
-        Logoff    = 5,
-        Shutdown  = 6,
-        None      = 255,
-    }
-
-    public enum StandardHandleId : uint
-    {
-        Error  = unchecked((uint)-12),
-        Output = unchecked((uint)-11),
-        Input  = unchecked((uint)-10),
-    }
-
-    [Flags]
-    internal enum AccessQualifiers : uint
-    {
-        // From winnt.h
-        GenericRead = 0x80000000,
-        GenericWrite = 0x40000000
-    }
-
-    internal enum CreationDisposition : uint
-    {
-        // From winbase.h
-        CreateNew = 1,
-        CreateAlways = 2,
-        OpenExisting = 3,
-        OpenAlways = 4,
-        TruncateExisting = 5
-    }
-
-    [Flags]
-    internal enum ShareModes : uint
-    {
-        // From winnt.h
-        ShareRead = 0x00000001,
-        ShareWrite = 0x00000002
     }
 
     internal static class ConsoleKeyInfoExtension
@@ -160,64 +77,6 @@ namespace Microsoft.PowerShell.Internal
 
     internal class ConhostConsole : IConsole
     {
-        private readonly Lazy<SafeFileHandle> _outputHandle = new Lazy<SafeFileHandle>(() =>
-        {
-            // We use CreateFile here instead of GetStdWin32Handle, as GetStdWin32Handle will return redirected handles
-            var handle = NativeMethods.CreateFile(
-                "CONOUT$",
-                (UInt32)(AccessQualifiers.GenericRead | AccessQualifiers.GenericWrite),
-                (UInt32)ShareModes.ShareWrite,
-                (IntPtr)0,
-                (UInt32)CreationDisposition.OpenExisting,
-                0,
-                (IntPtr)0);
-
-            if (handle == NativeMethods.INVALID_HANDLE_VALUE)
-            {
-                int err = Marshal.GetLastWin32Error();
-                Win32Exception innerException = new Win32Exception(err);
-                throw new Exception("Failed to retreive the input console handle.", innerException);
-            }
-
-            return new SafeFileHandle(handle, true);
-        }
-        );
-
-        private readonly Lazy<SafeFileHandle> _inputHandle = new Lazy<SafeFileHandle>(() =>
-        {
-            // We use CreateFile here instead of GetStdWin32Handle, as GetStdWin32Handle will return redirected handles
-            var handle = NativeMethods.CreateFile(
-                "CONIN$",
-                (UInt32)(AccessQualifiers.GenericRead | AccessQualifiers.GenericWrite),
-                (UInt32)ShareModes.ShareWrite,
-                (IntPtr)0,
-                (UInt32)CreationDisposition.OpenExisting,
-                0,
-                (IntPtr)0);
-
-            if (handle == NativeMethods.INVALID_HANDLE_VALUE)
-            {
-                int err = Marshal.GetLastWin32Error();
-                Win32Exception innerException = new Win32Exception(err);
-                throw new Exception("Failed to retreive the input console handle.", innerException);
-            }
-
-            return new SafeFileHandle(handle, true);
-        });
-
-        public uint GetConsoleInputMode()
-        {
-            var handle = _inputHandle.Value.DangerousGetHandle();
-            NativeMethods.GetConsoleMode(handle, out var result);
-            return result;
-        }
-
-        public void SetConsoleInputMode(uint mode)
-        {
-            var handle = _inputHandle.Value.DangerousGetHandle();
-            NativeMethods.SetConsoleMode(handle, mode);
-        }
-
         public ConsoleKeyInfo ReadKey()
         {
             return Console.ReadKey(true);
@@ -328,19 +187,6 @@ namespace Microsoft.PowerShell.Internal
             var fillChar = new CHAR_INFO(' ', Console.ForegroundColor, Console.BackgroundColor);
             NativeMethods.ScrollConsoleScreenBuffer(handle, ref scrollRectangle, IntPtr.Zero, destinationOrigin, ref fillChar);
             */
-        }
-
-        public bool IsHandleRedirected(bool stdIn)
-        {
-            var handle = NativeMethods.GetStdHandle((uint)(stdIn ? StandardHandleId.Input : StandardHandleId.Output));
-
-            // If handle is not to a character device, we must be redirected:
-            int fileType = NativeMethods.GetFileType(handle);
-            if ((fileType & NativeMethods.FILE_TYPE_CHAR) != NativeMethods.FILE_TYPE_CHAR)
-                return true;
-
-            // Char device - if GetConsoleMode succeeds, we are NOT redirected.
-            return !NativeMethods.GetConsoleMode(handle, out var unused);
         }
 
         private int _savedX, _savedY;

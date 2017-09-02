@@ -28,8 +28,6 @@ namespace Microsoft.PowerShell
         [SuppressMessage("Microsoft.MSInternal", "CA903:InternalNamespaceShouldNotContainPublicTypes")]
         public interface IConsole
         {
-            uint GetConsoleInputMode();
-            void SetConsoleInputMode(uint mode);
             ConsoleKeyInfo ReadKey();
             bool KeyAvailable { get; }
             int CursorLeft { get; set; }
@@ -48,8 +46,6 @@ namespace Microsoft.PowerShell
             void WriteLine(string s);
             void Write(string s);
             void ScrollBuffer(int lines);
-
-            bool IsHandleRedirected(bool stdin);
 
             void SaveCursor();
             void RestoreCursor();

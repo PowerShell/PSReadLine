@@ -42,7 +42,7 @@ namespace Microsoft.PowerShell
         [ExcludeFromCodeCoverage]
         CommandCompletion IPSConsoleReadLineMockableMethods.CompleteInput(string input, int cursorIndex, Hashtable options, System.Management.Automation.PowerShell powershell)
         {
-            return CalloutUsingDefaultConsoleMode(
+            return CallPossibleExternalApplication(
                 () => CommandCompletion.CompleteInput(input, cursorIndex, options, powershell));
         }
 

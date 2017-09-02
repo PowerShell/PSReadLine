@@ -70,6 +70,7 @@
     <Compile Include="Movement.cs" />
     <Compile Include="Movement.vi.cs" />
     <Compile Include="Options.cs" />
+    <Compile Include="PlatformWindows.cs" />
     <Compile Include="PSReadLineResources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

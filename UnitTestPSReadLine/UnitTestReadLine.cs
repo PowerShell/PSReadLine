@@ -264,25 +264,7 @@ namespace UnitTestPSReadLine
             }
         }
 
-        public void WriteBufferLines(CHAR_INFO[] bufferToWrite, ref int top, bool ensureBottomLineVisible)
-        {
-            var startPos = top * BufferWidth;
-            for (int i = 0; i < bufferToWrite.Length; i++)
-            {
-                buffer[startPos + i] = bufferToWrite[i];
-            }
-        }
-
         public void ScrollBuffer(int lines)
-        {
-        }
-
-        public uint GetConsoleInputMode()
-        {
-            return 0;
-        }
-
-        public void SetConsoleInputMode(uint mode)
         {
         }
 
@@ -306,11 +288,6 @@ namespace UnitTestPSReadLine
             var result = new CHAR_INFO[toCopy];
             Array.Copy(buffer, top * BufferWidth, result, 0, toCopy);
             return result;
-        }
-
-        public bool IsHandleRedirected(bool stdin)
-        {
-            return false;
         }
 
         private int _savedX, _savedY;

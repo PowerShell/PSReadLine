@@ -138,7 +138,7 @@ namespace Microsoft.PowerShell
         internal static CHAR_INFO[] ReadBufferLines(int top, int count, int bufferWidth)
         {
             var result = new CHAR_INFO[bufferWidth * count];
-            var handle = NativeMethods.GetStdHandle((uint) StandardHandleId.Output);
+            var handle = PlatformWindows.GetStdHandle((uint) PlatformWindows.StandardHandleId.Output);
 
             var readBufferSize = new COORD {
                 X = (short)bufferWidth,
@@ -157,7 +157,7 @@ namespace Microsoft.PowerShell
 
         internal static void WriteBufferLines(CHAR_INFO[] buffer, int top, IConsole console)
         {
-            var handle = NativeMethods.GetStdHandle((uint) StandardHandleId.Output);
+            var handle = PlatformWindows.GetStdHandle((uint) PlatformWindows.StandardHandleId.Output);
 
             int bufferWidth = Console.BufferWidth;
             int bufferLineCount = buffer.Length / bufferWidth;
@@ -243,7 +243,7 @@ namespace Microsoft.PowerShell
 
         internal static string GetColorTable(IConsole console)
         {
-            var handle = NativeMethods.GetStdHandle((uint) StandardHandleId.Output);
+            var handle = PlatformWindows.GetStdHandle((uint) PlatformWindows.StandardHandleId.Output);
             var csbe = new CONSOLE_SCREEN_BUFFER_INFO_EX
             {
                 cbSize = Marshal.SizeOf(typeof(CONSOLE_SCREEN_BUFFER_INFO_EX))

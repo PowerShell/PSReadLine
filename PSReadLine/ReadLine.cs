@@ -35,14 +35,12 @@ namespace Microsoft.PowerShell
         private IConsole _console;
 
         private EngineIntrinsics _engineIntrinsics;
-        private static GCHandle _breakHandlerGcHandle;
         private Thread _readKeyThread;
         private AutoResetEvent _readKeyWaitHandle;
         private AutoResetEvent _keyReadWaitHandle;
-        private ManualResetEvent _closingWaitHandle;
+        internal ManualResetEvent _closingWaitHandle;
         private WaitHandle[] _threadProcWaitHandles;
         private WaitHandle[] _requestKeyWaitHandles;
-        private uint _prePSReadlineConsoleMode;
 
         private readonly StringBuilder _buffer;
         private readonly StringBuilder _statusBuffer;
@@ -232,17 +230,6 @@ namespace Microsoft.PowerShell
             }
         }
 
-        private bool BreakHandler(ConsoleBreakSignal signal)
-        {
-            if (signal == ConsoleBreakSignal.Close || signal == ConsoleBreakSignal.Shutdown)
-            {
-                // Set the event so ReadKey throws an exception to unwind.
-                _closingWaitHandle.Set();
-            }
-
-            return false;
-        }
-
         /// <summary>
         /// Entry point - called from the PowerShell function PSConsoleHostReadline
         /// after the prompt has been displayed.
@@ -252,32 +239,16 @@ namespace Microsoft.PowerShell
         {
             var console = _singleton._console;
 
-            // If either stdin or stdout is redirected, PSReadline doesn't really work, so throw
-            // and let PowerShell call Console.ReadLine or do whatever else it decides to do.
-            if (console.IsHandleRedirected(stdin: false) || console.IsHandleRedirected(stdin: true))
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                throw new NotSupportedException();
+                PlatformWindows.Init();
             }
 
-            _singleton._prePSReadlineConsoleMode = console.GetConsoleInputMode();
             bool firstTime = true;
             while (true)
             {
                 try
                 {
-                    // Clear a couple flags so we can actually receive certain keys:
-                    //     ENABLE_PROCESSED_INPUT - enables Ctrl+C
-                    //     ENABLE_LINE_INPUT - enables Ctrl+S
-                    // Also clear a couple flags so we don't mask the input that we ignore:
-                    //     ENABLE_MOUSE_INPUT - mouse events
-                    //     ENABLE_WINDOW_INPUT - window resize events
-                    var mode = _singleton._prePSReadlineConsoleMode &
-                               ~(NativeMethods.ENABLE_PROCESSED_INPUT |
-                                 NativeMethods.ENABLE_LINE_INPUT |
-                                 NativeMethods.ENABLE_WINDOW_INPUT |
-                                 NativeMethods.ENABLE_MOUSE_INPUT);
-                    console.SetConsoleInputMode(mode);
-
                     if (firstTime)
                     {
                         firstTime = false;
@@ -346,7 +317,10 @@ namespace Microsoft.PowerShell
                 }
                 finally
                 {
-                    console.SetConsoleInputMode(_singleton._prePSReadlineConsoleMode);
+                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                    {
+                        PlatformWindows.Complete();
+                    }
                 }
             }
         }
@@ -432,23 +406,16 @@ namespace Microsoft.PowerShell
             }
         }
 
-        T CalloutUsingDefaultConsoleMode<T>(Func<T> func)
+        T CallPossibleExternalApplication<T>(Func<T> func)
         {
-            uint psReadlineConsoleMode = _console.GetConsoleInputMode();
-            try
-            {
-                _console.SetConsoleInputMode(_prePSReadlineConsoleMode);
-                return func();
-            }
-            finally
-            {
-                _console.SetConsoleInputMode(psReadlineConsoleMode);
-            }
+            return RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                ? PlatformWindows.CallPossibleExternalApplication(func)
+                : func();
         }
 
-        void CalloutUsingDefaultConsoleMode(Action action)
+        void CallPossibleExternalApplication(Action action)
         {
-            CalloutUsingDefaultConsoleMode<object>(() => { action(); return null; });
+            CallPossibleExternalApplication<object>(() => { action(); return null; });
         }
 
         void ProcessOneKey(ConsoleKeyInfo key, Dictionary<ConsoleKeyInfo, KeyHandler> dispatchTable, bool ignoreIfNoAction, object arg)
@@ -467,7 +434,7 @@ namespace Microsoft.PowerShell
             {
                 if (handler.ScriptBlock != null)
                 {
-                    CalloutUsingDefaultConsoleMode(() => handler.Action(key, arg));
+                    CallPossibleExternalApplication(() => handler.Action(key, arg));
                 }
                 else
                 {
@@ -658,13 +625,16 @@ namespace Microsoft.PowerShell
             _killIndex = -1; // So first add indexes 0.
             _killRing = new List<string>(Options.MaximumKillRingCount);
 
-            _breakHandlerGcHandle = GCHandle.Alloc(new BreakHandler(_singleton.BreakHandler));
-            NativeMethods.SetConsoleCtrlHandler((BreakHandler)_breakHandlerGcHandle.Target, true);
             _singleton._readKeyWaitHandle = new AutoResetEvent(false);
             _singleton._keyReadWaitHandle = new AutoResetEvent(false);
             _singleton._closingWaitHandle = new ManualResetEvent(false);
             _singleton._requestKeyWaitHandles = new WaitHandle[] {_singleton._keyReadWaitHandle, _singleton._closingWaitHandle};
             _singleton._threadProcWaitHandles = new WaitHandle[] {_singleton._readKeyWaitHandle, _singleton._closingWaitHandle};
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                PlatformWindows.OneTimeInit(_singleton);
+            }
 
             // This is for a "being hosted in an alternate appdomain scenario" (the
             // DomainUnload event is not raised for the default appdomain). It allows us
