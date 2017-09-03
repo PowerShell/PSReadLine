@@ -10,7 +10,7 @@ using Microsoft.PowerShell.Internal;
 
 namespace Microsoft.PowerShell
 {
-    public static class ScreenCapture
+    internal static class ScreenCapture
     {
         internal struct COORD
         {

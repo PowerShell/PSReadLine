@@ -377,14 +377,15 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Deletes until given character
         /// </summary>
-        /// <param name="key"></param>
-        /// <param name="arg"></param>
         public static void ViDeleteToChar(ConsoleKeyInfo? key = null, object arg = null)
         {
             var keyChar = ReadKey().KeyChar;
             ViDeleteToChar(keyChar, key, arg);
         }
 
+        /// <summary>
+        /// Deletes until given character
+        /// </summary>
         public static void ViDeleteToChar(char keyChar, ConsoleKeyInfo? key = null, object arg = null)
         {
             ViCharacterSearcher.Set(keyChar, isBackward: false, isBackoff: false);
@@ -392,16 +393,17 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Deletes until given character
+        /// Deletes backwards until given character
         /// </summary>
-        /// <param name="key"></param>
-        /// <param name="arg"></param>
         public static void ViDeleteToCharBackward(ConsoleKeyInfo? key = null, object arg = null)
         {
             var keyChar = ReadKey().KeyChar;
             ViDeleteToCharBack(keyChar, key, arg);
         }
 
+        /// <summary>
+        /// Deletes backwards until given character
+        /// </summary>
         public static void ViDeleteToCharBack(char keyChar, ConsoleKeyInfo? key = null, object arg = null)
         {
             ViCharacterSearcher.SearchBackwardDelete(keyChar, arg, backoff: false, instigator: (_key, _arg) => ViDeleteToCharBack(keyChar, _key, _arg));
@@ -410,14 +412,15 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Deletes until given character
         /// </summary>
-        /// <param name="key"></param>
-        /// <param name="arg"></param>
         public static void ViDeleteToBeforeChar(ConsoleKeyInfo? key = null, object arg = null)
         {
             var keyChar = ReadKey().KeyChar;
             ViDeleteToBeforeChar(keyChar, key, arg);
         }
 
+        /// <summary>
+        /// Deletes until given character
+        /// </summary>
         public static void ViDeleteToBeforeChar(char keyChar, ConsoleKeyInfo? key = null, object arg = null)
         {
             ViCharacterSearcher.Set(keyChar, isBackward: false, isBackoff: true);
@@ -427,8 +430,6 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Deletes until given character
         /// </summary>
-        /// <param name="key"></param>
-        /// <param name="arg"></param>
         public static void ViDeleteToBeforeCharBackward(ConsoleKeyInfo? key = null, object arg = null)
         {
             var keyChar = ReadKey().KeyChar;
@@ -940,8 +941,6 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Chords in vi needs special handling because a numeric argument can be input between the 1st and 2nd key.
         /// </summary>
-        /// <param name="key"></param>
-        /// <param name="arg"></param>
         private static void ViChord(ConsoleKeyInfo? key = null, object arg = null)
         {
             if (!key.HasValue)

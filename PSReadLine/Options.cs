@@ -250,7 +250,6 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Helper function for the Remove-PSReadlineKeyHandler cmdlet.
         /// </summary>
-        /// <param name="key"></param>
         public static void RemoveKeyHandler(string[] key)
         {
             _singleton.RemoveKeyHandlerInternal(key);
