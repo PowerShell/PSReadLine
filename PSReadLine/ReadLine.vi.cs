@@ -1007,13 +1007,11 @@ namespace Microsoft.PowerShell
                 return;
             }
 
-            #region VI special case
             if (_singleton._options.EditMode == EditMode.Vi && key.Value.KeyChar == '0')
             {
                 BeginningOfLine();
                 return;
             }
-            #endregion VI special case
 
             bool sawDigit = false;
             _singleton._statusLinePrompt = "digit-argument: ";

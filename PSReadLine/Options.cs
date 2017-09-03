@@ -134,12 +134,10 @@ namespace Microsoft.PowerShell
             {
                 Options.HistorySaveStyle = options.HistorySaveStyle;
             }
-            #region vi
             if (options._viModeIndicator.HasValue)
             {
                 Options.ViModeIndicator = options.ViModeIndicator;
             }
-            #endregion
             if (options.HistorySavePath != null)
             {
                 Options.HistorySavePath = options.HistorySavePath;

@@ -784,8 +784,6 @@ namespace Microsoft.PowerShell
             return key.Key == ConsoleKey.Y;
         }
 
-        #region Screen scrolling
-
         /// <summary>
         /// Scroll the display up one screen.
         /// </summary>
@@ -893,7 +891,5 @@ namespace Microsoft.PowerShell
             }
             console.SetWindowPosition(0, newTop);
         }
-
-        #endregion Screen scrolling
     }
 }

@@ -46,7 +46,6 @@ namespace Microsoft.PowerShell
         Audible
     }
 
-    #region vi
     public enum ViModeStyle
     {
         None,
@@ -59,7 +58,6 @@ namespace Microsoft.PowerShell
         Insert,
         Command
     }
-    #endregion vi
 
     public enum HistorySaveStyle
     {
@@ -241,9 +239,7 @@ namespace Microsoft.PowerShell
         public bool HistorySearchCaseSensitive { get; set; }
         internal StringComparison HistoryStringComparison => HistorySearchCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
 
-        #region vi
         public ViModeStyle ViModeIndicator { get; set; }
-        #endregion vi
 
         /// <summary>
         /// The path to the saved history.
@@ -572,7 +568,6 @@ namespace Microsoft.PowerShell
         [ValidateNotNull]
         public string PromptText { get; set; }
 
-        #region vi
         [Parameter(ParameterSetName = "OptionsSet")]
         public ViModeStyle ViModeIndicator
         {
@@ -580,7 +575,6 @@ namespace Microsoft.PowerShell
             set => _viModeIndicator = value;
         }
         internal ViModeStyle? _viModeIndicator;
-        #endregion vi
 
         [Parameter(ParameterSetName = "ColorSet", Position = 0, Mandatory = true)]
         public TokenClassification TokenKind
