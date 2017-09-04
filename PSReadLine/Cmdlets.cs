@@ -944,7 +944,17 @@ namespace Microsoft.PowerShell
 
         internal static string MapColorToEscapeSequence(ConsoleColor color, bool isBackground)
         {
-            return (isBackground ? BackgroundColorMap : ForegroundColorMap)[(int)color];
+            int index = (int) color;
+            if (index < 0)
+            {
+                // TODO: light vs. dark
+                index = (int) (isBackground ? ConsoleColor.Black : ConsoleColor.Gray);
+            }
+            else if (index > ForegroundColorMap.Length)
+            {
+                return "";
+            }
+            return (isBackground ? BackgroundColorMap : ForegroundColorMap)[index];
         }
 
     }
