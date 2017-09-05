@@ -12,6 +12,7 @@ using System.Management.Automation.Language;
 using System.Reflection;
 using System.Linq;
 using System.Runtime.InteropServices;
+using Microsoft.PowerShell.PSReadLine;
 
 namespace Microsoft.PowerShell
 {

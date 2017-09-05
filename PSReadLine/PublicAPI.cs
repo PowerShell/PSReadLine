@@ -8,6 +8,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Management.Automation;
 using System.Management.Automation.Language;
 using System.Management.Automation.Runspaces;
+using Microsoft.PowerShell.PSReadLine;
 
 
 namespace Microsoft.PowerShell

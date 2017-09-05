@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace Microsoft.PowerShell {
+namespace Microsoft.PowerShell.PSReadLine {
     using System;
     
     
@@ -19,7 +19,7 @@ namespace Microsoft.PowerShell {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class PSReadLineResources {
@@ -39,7 +39,7 @@ namespace Microsoft.PowerShell {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.PowerShell.PSReadLineResources", typeof(PSReadLineResources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.PowerShell.PSReadLine.PSReadLineResources", typeof(PSReadLineResources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -1497,7 +1497,7 @@ namespace Microsoft.PowerShell {
         /// <summary>
         ///   Looks up a localized string similar to Moves the cursor to the beginning of the line and switches to insert mode..
         /// </summary>
-        internal static string ViInsertAtBeginningDescription {
+        internal static string ViInsertAtBeginingDescription {
             get {
                 return ResourceManager.GetString("ViInsertAtBeginingDescription", resourceCulture);
             }

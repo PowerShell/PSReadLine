@@ -7,7 +7,7 @@
     <ProjectGuid>{615788CB-1B9A-4B34-97B3-4608686E59CA}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Microsoft.PowerShell</RootNamespace>
+    <RootNamespace>Microsoft.PowerShell.PSReadLine</RootNamespace>
     <AssemblyName>Microsoft.PowerShell.PSReadLine</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -95,9 +95,9 @@
   <ItemGroup>
     <EmbeddedResource Include="PSReadLineResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <LogicalName>Microsoft.PowerShell.PSReadLineResources.resources</LogicalName>
+      <LogicalName>Microsoft.PowerShell.PSReadLine.PSReadLineResources.resources</LogicalName>
       <LastGenOutput>PSReadlineResources.Designer.cs</LastGenOutput>
-      <CustomToolNamespace>Microsoft.PowerShell</CustomToolNamespace>
+      <CustomToolNamespace>Microsoft.PowerShell.PSReadLine</CustomToolNamespace>
       <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>

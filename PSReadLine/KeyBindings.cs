@@ -8,6 +8,7 @@ using System.Globalization;
 using System.Management.Automation;
 using System.Text;
 using Microsoft.PowerShell.Internal;
+using Microsoft.PowerShell.PSReadLine;
 
 namespace Microsoft.PowerShell
 {
