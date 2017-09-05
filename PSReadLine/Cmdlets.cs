@@ -949,9 +949,18 @@ namespace Microsoft.PowerShell
             if (index < 0)
             {
                 // TODO: light vs. dark
-                index = (int) (isBackground ? ConsoleColor.Black : ConsoleColor.Gray);
+                if (isBackground)
+                {
+                    // Don't change the background - the default (unknown) background
+                    // might be subtly or completely different than what we choose and
+                    // look weird.
+                    return "";
+                }
+
+                return ForegroundColorMap[(int) ConsoleColor.Gray];
             }
-            else if (index > ForegroundColorMap.Length)
+
+            if (index > ForegroundColorMap.Length)
             {
                 return "";
             }
