@@ -1,6 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
+# Visual Studio 15
+VisualStudioVersion = 15.0.26730.12
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PSReadLine", "PSReadLine.csproj", "{615788CB-1B9A-4B34-97B3-4608686E59CA}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestPSReadLine", "..\TestPSReadLine\TestPSReadLine.csproj", "{08218B1A-8B85-4722-9E3F-4D6C0BF58AD8}"
@@ -28,5 +30,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {EA13C704-483F-4CE4-A3FB-8F79295F1071}
 	EndGlobalSection
 EndGlobal
