@@ -433,10 +433,11 @@ namespace Microsoft.PowerShell
                     _console.Write(Spaces(lenToClear));
                 }
 
-                for (int i = physicalLine; i < previousPhysicalLine; i++)
+                var blankLinesNeeded = previousPhysicalLine - physicalLine;
+                if (blankLinesNeeded != 0)
                 {
                     _console.Write("\n");
-                    _console.Write(Spaces(bufferWidth));
+                    WriteBlankLines(blankLinesNeeded);
                 }
                 _console.RestoreCursor();
             }

@@ -110,7 +110,7 @@ namespace Microsoft.PowerShell
         /// When displaying possible completions, either display
         /// tooltips or display just the completions.
         /// </summary>
-        public const bool DefaultShowToolTips = false;
+        public const bool DefaultShowToolTips = true;
 
         /// <summary>
         /// When ringing the bell, what frequency do we use?
