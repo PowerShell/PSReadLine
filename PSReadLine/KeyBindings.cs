@@ -347,8 +347,7 @@ namespace Microsoft.PowerShell
             _singleton.PlaceCursor(0, point.Y + 1);
 
             console.WriteLine(buffer.ToString());
-            _singleton._initialY = console.CursorTop;
-            _singleton.Render();
+            InvokePrompt(key: null, arg: _singleton._console.CursorTop);
         }
 
         /// <summary>
@@ -403,8 +402,7 @@ namespace Microsoft.PowerShell
             _singleton.PlaceCursor(0, point.Y + 1);
 
             _singleton._console.WriteLine(buffer.ToString());
-            _singleton._initialY = _singleton._console.CursorTop;
-            _singleton.Render();
+            InvokePrompt(key: null, arg: _singleton._console.CursorTop);
         }
     }
 }
