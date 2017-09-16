@@ -421,44 +421,36 @@ namespace Microsoft.PowerShell
                 {
                     // We're in the middle of a previous logical line, we
                     // need to clear to the end of the line.
-                    lenToClear = bufferWidth - lenLastLine;
+                    lenToClear = bufferWidth - (lenLastLine % bufferWidth);
                     if (physicalLine == 1)
                         lenToClear -= _initialX;
                 }
 
-                UpdateColorsIfNecessary(defaultColor);
-                _console.SaveCursor();
                 if (lenToClear > 0)
                 {
+                    UpdateColorsIfNecessary(defaultColor);
                     _console.Write(Spaces(lenToClear));
                 }
-
-                var blankLinesNeeded = previousPhysicalLine - physicalLine;
-                if (blankLinesNeeded != 0)
-                {
-                    _console.Write("\n");
-                    WriteBlankLines(blankLinesNeeded);
-                }
-                _console.RestoreCursor();
             }
 
             UpdateColorsIfNecessary(defaultColor);
 
+            while (previousPhysicalLine > physicalLine)
+            {
+                _console.Write("\n");
+                physicalLine += 1;
+                var lenToClear = physicalLine == previousPhysicalLine ? lenPrevLastLine : bufferWidth;
+                if (lenToClear > 0)
+                {
+                    _console.Write(Spaces(lenToClear));
+                }
+            }
+
             // Fewer lines than our last render? Clear them.
             for (; previousLogicalLine < previousRenderLines.Length; previousLogicalLine++)
             {
-                var cols = previousRenderLines[previousLogicalLine].columns;
-                previousPhysicalLine += PhysicalLineCount(cols, previousLogicalLine == 0, out lenPrevLastLine);
-
-                while (physicalLine < previousLogicalLine)
-                {
-                    _console.Write("\n");
-                    _console.Write(Spaces(bufferWidth));
-                    physicalLine += 1;
-                }
-
                 _console.Write("\n");
-                _console.Write(Spaces(lenPrevLastLine));
+                _console.Write(Spaces(previousRenderLines[previousLogicalLine].columns));
             }
 
             _previousRender = renderData;

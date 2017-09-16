@@ -811,6 +811,7 @@ namespace Microsoft.PowerShell
             console.Write(newPrompt);
             _singleton._initialX = console.CursorLeft;
             _singleton._initialY = console.CursorTop;
+            _singleton._previousRender = _initialPrevRender;
 
             _singleton.Render();
             console.CursorVisible = true;
