@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Management.Automation;
+using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.PowerShell.Internal;
 using Microsoft.PowerShell.PSReadLine;
@@ -77,27 +78,18 @@ namespace Microsoft.PowerShell
 
         internal class ConsoleKeyInfoComparer : IEqualityComparer<ConsoleKeyInfo>
         {
+            public static ConsoleKeyInfoComparer Instance { get; } = new ConsoleKeyInfoComparer();
+
+            private ConsoleKeyInfoComparer() { }
+
             public bool Equals(ConsoleKeyInfo x, ConsoleKeyInfo y)
             {
-                // We *must not* compare the KeyChar field as its value is platform-dependent.
-                // We compare exactly the ConsoleKey enum field (which is platform-agnostic)
-                // and the modifiers.
-
-                return x.Key == y.Key && x.Modifiers == y.Modifiers;
+                return x.EqualsNormalized(y);
             }
 
             public int GetHashCode(ConsoleKeyInfo obj)
             {
-                // Because a comparison of two ConsoleKeyInfo objects is a comparison of the
-                // combination of the ConsoleKey and Modifiers, we must combine their hashes.
-                // Note that if the ConsoleKey is default, we must fall back to the KeyChar,
-                // otherwise every non-special key will compare as the same.
-                int h1 = obj.Key == default(ConsoleKey)
-                    ? obj.KeyChar.GetHashCode()
-                    : obj.Key.GetHashCode();
-                int h2 = obj.Modifiers.GetHashCode();
-                // This is based on Tuple.GetHashCode
-                return unchecked(((h1 << 5) + h1) ^ h2);
+                return obj.GetNormalizedHashCode();
             }
         }
 
@@ -113,7 +105,7 @@ namespace Microsoft.PowerShell
         }
 
         private Dictionary<ConsoleKeyInfo, KeyHandler> _dispatchTable;
-        private Dictionary<ConsoleKeyInfo, Dictionary<ConsoleKeyInfo, KeyHandler>> _chordDispatchTable; 
+        private Dictionary<ConsoleKeyInfo, Dictionary<ConsoleKeyInfo, KeyHandler>> _chordDispatchTable;
 
         /// <summary>
         /// Helper to set bindings based on EditMode
@@ -136,7 +128,7 @@ namespace Microsoft.PowerShell
 
         void SetDefaultWindowsBindings()
         {
-            _dispatchTable = new Dictionary<ConsoleKeyInfo, KeyHandler>(new ConsoleKeyInfoComparer())
+            _dispatchTable = new Dictionary<ConsoleKeyInfo, KeyHandler>(ConsoleKeyInfoComparer.Instance)
             {
                 { Keys.Enter,                  MakeKeyHandler(AcceptLine,                "AcceptLine") },
                 { Keys.ShiftEnter,             MakeKeyHandler(AddLine,                   "AddLine") },
@@ -149,8 +141,8 @@ namespace Microsoft.PowerShell
                 { Keys.CtrlRightArrow,         MakeKeyHandler(NextWord,                  "NextWord") },
                 { Keys.ShiftLeftArrow,         MakeKeyHandler(SelectBackwardChar,        "SelectBackwardChar") },
                 { Keys.ShiftRightArrow,        MakeKeyHandler(SelectForwardChar,         "SelectForwardChar") },
-                { Keys.ShiftCtrlLeftArrow,     MakeKeyHandler(SelectBackwardWord,        "SelectBackwardWord") },
-                { Keys.ShiftCtrlRightArrow,    MakeKeyHandler(SelectNextWord,            "SelectNextWord") },
+                { Keys.CtrlShiftLeftArrow,     MakeKeyHandler(SelectBackwardWord,        "SelectBackwardWord") },
+                { Keys.CtrlShiftRightArrow,    MakeKeyHandler(SelectNextWord,            "SelectNextWord") },
                 { Keys.UpArrow,                MakeKeyHandler(PreviousHistory,           "PreviousHistory") },
                 { Keys.DownArrow,              MakeKeyHandler(NextHistory,               "NextHistory") },
                 { Keys.Home,                   MakeKeyHandler(BeginningOfLine,           "BeginningOfLine") },
@@ -159,12 +151,8 @@ namespace Microsoft.PowerShell
                 { Keys.ShiftEnd,               MakeKeyHandler(SelectLine,                "SelectLine") },
                 { Keys.Delete,                 MakeKeyHandler(DeleteChar,                "DeleteChar") },
                 { Keys.Backspace,              MakeKeyHandler(BackwardDeleteChar,        "BackwardDeleteChar") },
-                { Keys.CtrlSpace,              MakeKeyHandler(MenuComplete,              "MenuComplete") },
                 { Keys.Tab,                    MakeKeyHandler(TabCompleteNext,           "TabCompleteNext") },
                 { Keys.ShiftTab,               MakeKeyHandler(TabCompletePrevious,       "TabCompletePrevious") },
-                { Keys.VolumeDown,             MakeKeyHandler(Ignore,                    "Ignore") },
-                { Keys.VolumeUp,               MakeKeyHandler(Ignore,                    "Ignore") },
-                { Keys.VolumeMute,             MakeKeyHandler(Ignore,                    "Ignore") },
                 { Keys.CtrlA,                  MakeKeyHandler(SelectAll,                 "SelectAll") },
                 { Keys.CtrlC,                  MakeKeyHandler(CopyOrCancelLine,          "CopyOrCancelLine") },
                 { Keys.CtrlShiftC,             MakeKeyHandler(Copy,                      "Copy") },
@@ -176,8 +164,6 @@ namespace Microsoft.PowerShell
                 { Keys.CtrlY,                  MakeKeyHandler(Redo,                      "Redo") },
                 { Keys.CtrlZ,                  MakeKeyHandler(Undo,                      "Undo") },
                 { Keys.CtrlBackspace,          MakeKeyHandler(BackwardKillWord,          "BackwardKillWord") },
-                { Keys.CtrlDelete,             MakeKeyHandler(KillWord,                  "KillWord") },
-                { Keys.CtrlEnd,                MakeKeyHandler(ForwardDeleteLine,         "ForwardDeleteLine") },
                 { Keys.CtrlHome,               MakeKeyHandler(BackwardDeleteLine,        "BackwardDeleteLine") },
                 { Keys.CtrlRBracket,           MakeKeyHandler(GotoBrace,                 "GotoBrace") },
                 { Keys.CtrlAltQuestion,        MakeKeyHandler(ShowKeyBindings,           "ShowKeyBindings") },
@@ -194,7 +180,6 @@ namespace Microsoft.PowerShell
                 { Keys.Alt9,                   MakeKeyHandler(DigitArgument,             "DigitArgument") },
                 { Keys.AltMinus,               MakeKeyHandler(DigitArgument,             "DigitArgument") },
                 { Keys.AltQuestion,            MakeKeyHandler(WhatIsKey,                 "WhatIsKey") },
-                { Keys.AltF7,                  MakeKeyHandler(ClearHistory,              "ClearHistory") },
                 { Keys.F3,                     MakeKeyHandler(CharacterSearch,           "CharacterSearch") },
                 { Keys.ShiftF3,                MakeKeyHandler(CharacterSearchBackward,   "CharacterSearchBackward") },
                 { Keys.F8,                     MakeKeyHandler(HistorySearchBackward,     "HistorySearchBackward") },
@@ -205,12 +190,21 @@ namespace Microsoft.PowerShell
                 { Keys.CtrlPageDown,           MakeKeyHandler(ScrollDisplayDownLine,     "ScrollDisplayDownLine") },
             };
 
-            _chordDispatchTable = new Dictionary<ConsoleKeyInfo, Dictionary<ConsoleKeyInfo, KeyHandler>>();
+            // Some bindings are not available on certain platforms
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                _dispatchTable.Add(Keys.CtrlSpace,  MakeKeyHandler(MenuComplete,      "MenuComplete"));
+                _dispatchTable.Add(Keys.AltF7,      MakeKeyHandler(ClearHistory,      "ClearHistory"));
+                _dispatchTable.Add(Keys.CtrlDelete, MakeKeyHandler(KillWord,          "KillWord"));
+                _dispatchTable.Add(Keys.CtrlEnd,    MakeKeyHandler(ForwardDeleteLine, "ForwardDeleteLine"));
+            }
+
+            _chordDispatchTable = new Dictionary<ConsoleKeyInfo, Dictionary<ConsoleKeyInfo, KeyHandler>>(ConsoleKeyInfoComparer.Instance);
         }
 
         void SetDefaultEmacsBindings()
         {
-            _dispatchTable = new Dictionary<ConsoleKeyInfo, KeyHandler>(new ConsoleKeyInfoComparer())
+            _dispatchTable = new Dictionary<ConsoleKeyInfo, KeyHandler>(ConsoleKeyInfoComparer.Instance)
             {
                 { Keys.Backspace,       MakeKeyHandler(BackwardDeleteChar,   "BackwardDeleteChar") },
                 { Keys.Enter,           MakeKeyHandler(AcceptLine,           "AcceptLine") },
@@ -237,7 +231,6 @@ namespace Microsoft.PowerShell
                 { Keys.CtrlE,           MakeKeyHandler(EndOfLine,            "EndOfLine") },
                 { Keys.CtrlF,           MakeKeyHandler(ForwardChar,          "ForwardChar") },
                 { Keys.CtrlG,           MakeKeyHandler(Abort,                "Abort") },
-                { Keys.CtrlH,           MakeKeyHandler(BackwardDeleteChar,   "BackwardDeleteChar") },
                 { Keys.CtrlL,           MakeKeyHandler(ClearScreen,          "ClearScreen") },
                 { Keys.CtrlK,           MakeKeyHandler(KillLine,             "KillLine") },
                 { Keys.CtrlM,           MakeKeyHandler(ValidateAndAcceptLine,"ValidateAndAcceptLine") },
@@ -254,7 +247,7 @@ namespace Microsoft.PowerShell
                 { Keys.CtrlAt,          MakeKeyHandler(SetMark,              "SetMark") },
                 { Keys.CtrlUnderbar,    MakeKeyHandler(Undo,                 "Undo") },
                 { Keys.CtrlRBracket,    MakeKeyHandler(CharacterSearch,      "CharacterSearch") },
-                { Keys.AltCtrlRBracket, MakeKeyHandler(CharacterSearchBackward,"CharacterSearchBackward") },
+                { Keys.CtrlAltRBracket, MakeKeyHandler(CharacterSearchBackward,"CharacterSearchBackward") },
                 { Keys.Alt0,            MakeKeyHandler(DigitArgument,        "DigitArgument") },
                 { Keys.Alt1,            MakeKeyHandler(DigitArgument,        "DigitArgument") },
                 { Keys.Alt2,            MakeKeyHandler(DigitArgument,        "DigitArgument") },
@@ -275,28 +268,35 @@ namespace Microsoft.PowerShell
                 { Keys.AltY,            MakeKeyHandler(YankPop,              "YankPop") },
                 { Keys.AltBackspace,    MakeKeyHandler(BackwardKillWord,     "BackwardKillWord") },
                 { Keys.AltEquals,       MakeKeyHandler(PossibleCompletions,  "PossibleCompletions") },
-                { Keys.CtrlSpace,       MakeKeyHandler(MenuComplete,         "MenuComplete") },
                 { Keys.CtrlAltQuestion, MakeKeyHandler(ShowKeyBindings,      "ShowKeyBindings") },
                 { Keys.AltQuestion,     MakeKeyHandler(WhatIsKey,            "WhatIsKey") },
-                { Keys.AltSpace,        MakeKeyHandler(SetMark,              "SetMark") },  // useless entry here for completeness - brings up system menu on Windows
                 { Keys.AltPeriod,       MakeKeyHandler(YankLastArg,          "YankLastArg") },
                 { Keys.AltUnderbar,     MakeKeyHandler(YankLastArg,          "YankLastArg") },
-                { Keys.AltCtrlY,        MakeKeyHandler(YankNthArg,           "YankNthArg") },
-                { Keys.VolumeDown,      MakeKeyHandler(Ignore,               "Ignore") },
-                { Keys.VolumeUp,        MakeKeyHandler(Ignore,               "Ignore") },
-                { Keys.VolumeMute,      MakeKeyHandler(Ignore,               "Ignore") },
+                { Keys.CtrlAltY,        MakeKeyHandler(YankNthArg,           "YankNthArg") },
                 { Keys.PageUp,          MakeKeyHandler(ScrollDisplayUp,      "ScrollDisplayUp") },
-                { Keys.CtrlPageUp,      MakeKeyHandler(ScrollDisplayUpLine,  "ScrollDisplayUpLine") },
                 { Keys.PageDown,        MakeKeyHandler(ScrollDisplayDown,    "ScrollDisplayDown") },
-                { Keys.CtrlPageDown,    MakeKeyHandler(ScrollDisplayDownLine,"ScrollDisplayDownLine") },
-                { Keys.CtrlHome,        MakeKeyHandler(ScrollDisplayTop,     "ScrollDisplayTop") },
-                { Keys.CtrlEnd,         MakeKeyHandler(ScrollDisplayToCursor,"ScrollDisplayToCursor") },
             };
 
-            _chordDispatchTable = new Dictionary<ConsoleKeyInfo, Dictionary<ConsoleKeyInfo, KeyHandler>>
+            // Some bindings are not available on certain platforms
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                _dispatchTable.Add(Keys.CtrlSpace,    MakeKeyHandler(MenuComplete,          "MenuComplete"));
+                _dispatchTable.Add(Keys.CtrlEnd,      MakeKeyHandler(ScrollDisplayToCursor, "ScrollDisplayToCursor"));
+                _dispatchTable.Add(Keys.CtrlHome,     MakeKeyHandler(ScrollDisplayTop,      "ScrollDisplayTop"));
+                _dispatchTable.Add(Keys.CtrlPageDown, MakeKeyHandler(ScrollDisplayDownLine, "ScrollDisplayDownLine"));
+                _dispatchTable.Add(Keys.CtrlPageUp,   MakeKeyHandler(ScrollDisplayUpLine,   "ScrollDisplayUpLine"));
+            }
+            else
+            {
+                // Ctrl+H is the same KeyChar as Backspace on Windows, but not on Linux, so we need another entry.
+                _dispatchTable.Add(Keys.CtrlH,        MakeKeyHandler(BackwardDeleteChar,    "BackwardDeleteChar"));
+                _dispatchTable.Add(Keys.AltSpace,     MakeKeyHandler(SetMark,               "SetMark"));
+            }
+
+            _chordDispatchTable = new Dictionary<ConsoleKeyInfo, Dictionary<ConsoleKeyInfo, KeyHandler>>(ConsoleKeyInfoComparer.Instance)
             {
                 // Escape,<key> table (meta key)
-                [Keys.Escape] = new Dictionary<ConsoleKeyInfo, KeyHandler>(new ConsoleKeyInfoComparer())
+                [Keys.Escape] = new Dictionary<ConsoleKeyInfo, KeyHandler>(ConsoleKeyInfoComparer.Instance)
                 {
                     { Keys.B,         MakeKeyHandler(BackwardWord,     "BackwardWord") },
                     { Keys.D,         MakeKeyHandler(KillWord,         "KillWord")},
@@ -310,7 +310,7 @@ namespace Microsoft.PowerShell
                 },
 
                 // Ctrl+X,<key> table
-                [Keys.CtrlX] = new Dictionary<ConsoleKeyInfo, KeyHandler>(new ConsoleKeyInfoComparer())
+                [Keys.CtrlX] = new Dictionary<ConsoleKeyInfo, KeyHandler>(ConsoleKeyInfoComparer.Instance)
                 {
                     { Keys.Backspace, MakeKeyHandler(BackwardKillLine,     "BackwardKillLine") },
                     { Keys.CtrlU,     MakeKeyHandler(Undo,                 "Undo") },

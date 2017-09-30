@@ -221,16 +221,16 @@ namespace UnitTestPSReadLine
 
             Test("cmd1 | cmd2 | cmd3", Keys(
                 "cmd1 | cmd2 | cmd3",
-                _.AltCtrlRBracket, '|', CheckThat(() => AssertCursorLeftIs(12)),
-                _.AltCtrlRBracket, '|', CheckThat(() => AssertCursorLeftIs(5)),
+                _.CtrlAltRBracket, '|', CheckThat(() => AssertCursorLeftIs(12)),
+                _.CtrlAltRBracket, '|', CheckThat(() => AssertCursorLeftIs(5)),
                 _.Home,
-                _.AltMinus, _.Alt2, _.AltCtrlRBracket, '|', CheckThat(() => AssertCursorLeftIs(12)),
+                _.AltMinus, _.Alt2, _.CtrlAltRBracket, '|', CheckThat(() => AssertCursorLeftIs(12)),
                 _.End,
-                _.Alt2, _.AltCtrlRBracket, '|', CheckThat(() => AssertCursorLeftIs(5))));
+                _.Alt2, _.CtrlAltRBracket, '|', CheckThat(() => AssertCursorLeftIs(5))));
 
             TestMustDing("cmd1 | cmd2 | cmd3", Keys(
                 "cmd1 | cmd2 | cmd3",
-                _.AltCtrlRBracket, 'z'));
+                _.CtrlAltRBracket, 'z'));
 
             int i = 0;
             TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+z",

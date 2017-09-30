@@ -665,7 +665,7 @@ namespace Microsoft.PowerShell
                     y++;
                 }
             }
-            
+
             return new Point {X = x, Y = y};
         }
 
@@ -774,7 +774,7 @@ namespace Microsoft.PowerShell
 
             _statusLinePrompt = null;
             Render();
-            return key.Key == ConsoleKey.Y;
+            return key.IsUnmodifiedChar('y') || key.IsUnmodifiedChar('Y');
         }
 
         /// <summary>

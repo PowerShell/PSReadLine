@@ -99,7 +99,7 @@ static class PlatformWindows
         var breakHandlerGcHandle = GCHandle.Alloc(new BreakHandler(OnBreak));
         SetConsoleCtrlHandler((BreakHandler)breakHandlerGcHandle.Target, true);
     }
-    
+
     const uint ENABLE_PROCESSED_INPUT = 0x0001;
     const uint ENABLE_LINE_INPUT      = 0x0002;
     const uint ENABLE_WINDOW_INPUT    = 0x0008;

@@ -8,169 +8,156 @@ namespace UnitTestPSReadLine
     [TestClass]
     public class KeyInfoConverterTest
     {
+        private const ConsoleModifiers NoModifiers = 0;
+
         [TestMethod]
         public void TestKeyInfoConverterSimpleCharLiteral()
         {
-            var result = ConsoleKeyChordConverter.Convert("x");
-            Assert.IsNotNull(result);            
-            Assert.AreEqual(result.Length, 1);
+            void TestOne(char keyChar, ConsoleKey key)
+            {
+                var r = ConsoleKeyChordConverter.Convert(keyChar.ToString());
+                Assert.IsNotNull(r);
+                Assert.AreEqual(1, r.Length);
+                Assert.AreEqual(keyChar, r[0].KeyChar);
+                if (key != 0) Assert.AreEqual(key, r[0].Key);
+                Assert.AreEqual(NoModifiers, r[0].Modifiers);
+            }
 
-            var key = result[0];
+            for (char c = 'a'; c <= 'z'; c++)
+            {
+                TestOne(c, ConsoleKey.A + (c - 'a'));
+            }
 
-            Assert.AreEqual(key.KeyChar, 'x');
-            Assert.AreEqual(key.Key, ConsoleKey.X);
-            Assert.AreEqual(key.Modifiers, (ConsoleModifiers)0);            
+            for (char c = 'A'; c <= 'Z'; c++)
+            {
+                TestOne(c, ConsoleKey.A + (c - 'A'));
+            }
+
+            for (char c = '0'; c <= '9'; c++)
+            {
+                TestOne(c, ConsoleKey.D0 + (c - '0'));
+            }
+
+            foreach (char c in "`~!@#$%^&*()-_=+[{]}\\|;:'\",<.>/?")
+            {
+                // Symbols often have different ConsoleKey's depending
+                // on the keyboard layout, so we don't verify those
+                // (which is fine, because we go out of the way to map
+                // those ConsoleKey's to the symbol before looking for
+                // key handlers.)
+                TestOne(c, 0);
+            }
         }
 
         [TestMethod]
-        public void TestKeyInfoConverterSimpleCharLiteralWithModifiers()
+        public void TestKeyInfoConverterSimpleConsoleKey()
         {
-            var result = ConsoleKeyChordConverter.Convert("alt+shift+x");
-            Assert.IsNotNull(result);
-            Assert.AreEqual(result.Length, 1);
+            var cases = new [] {
+                "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12",
+                "F13", "F14", "F15", "F16", "F17", "F18", "F19", "F20", "F21", "F22", "F23", "F24",
+                "Delete", "DownArrow", "End", "Enter", "Home", "LeftArrow", "PageUp", "PageDown",
+                "RightArrow", "Tab", "UpArrow",
+            };
 
-            var key = result[0];
+            var mods = new[]
+            {
+                Tuple.Create("Control", ConsoleModifiers.Control),
+                Tuple.Create("Ctrl", ConsoleModifiers.Control),
+                Tuple.Create("Alt", ConsoleModifiers.Alt),
+                Tuple.Create("Shift", ConsoleModifiers.Shift),
+                Tuple.Create("Ctrl+Shift", ConsoleModifiers.Shift | ConsoleModifiers.Control),
+                Tuple.Create("Control+Shift", ConsoleModifiers.Shift | ConsoleModifiers.Control),
+                Tuple.Create("Shift+Ctrl", ConsoleModifiers.Shift | ConsoleModifiers.Control),
+                Tuple.Create("Shift+Control", ConsoleModifiers.Shift | ConsoleModifiers.Control),
+                Tuple.Create("Ctrl+Alt", ConsoleModifiers.Alt | ConsoleModifiers.Control),
+                Tuple.Create("Control+Alt", ConsoleModifiers.Alt | ConsoleModifiers.Control),
+                Tuple.Create("Alt+Ctrl", ConsoleModifiers.Alt | ConsoleModifiers.Control),
+                Tuple.Create("Alt+Control", ConsoleModifiers.Alt | ConsoleModifiers.Control),
+                Tuple.Create("Shift+Alt", ConsoleModifiers.Alt | ConsoleModifiers.Shift),
+                Tuple.Create("Shift+Alt", ConsoleModifiers.Alt | ConsoleModifiers.Shift),
+                Tuple.Create("Alt+Shift", ConsoleModifiers.Alt | ConsoleModifiers.Shift),
+                Tuple.Create("Alt+Shift", ConsoleModifiers.Alt | ConsoleModifiers.Shift),
+                Tuple.Create("Ctrl+Shift+Alt", ConsoleModifiers.Alt | ConsoleModifiers.Shift | ConsoleModifiers.Control),
+                Tuple.Create("Control+Shift+Alt", ConsoleModifiers.Alt | ConsoleModifiers.Shift | ConsoleModifiers.Control),
+            };
 
-            Assert.AreEqual(key.KeyChar, 'X');
-            Assert.AreEqual(key.Key, ConsoleKey.X);
-            Assert.AreEqual(key.Modifiers, ConsoleModifiers.Shift | ConsoleModifiers.Alt);
+            void TestOne(string s)
+            {
+                void VerifyOne(string input, ConsoleModifiers m)
+                {
+                    var r = ConsoleKeyChordConverter.Convert(input);
+                    Assert.IsNotNull(r);
+                    Assert.AreEqual(1, r.Length);
+                    Assert.AreEqual(Enum.Parse(typeof(ConsoleKey), s), r[0].Key);
+                    Assert.AreEqual(m, r[0].Modifiers);
+                }
+
+                VerifyOne(s, NoModifiers);
+                VerifyOne(s.ToLowerInvariant(), NoModifiers);
+                VerifyOne(s.ToUpperInvariant(), NoModifiers);
+
+                foreach (var c in mods)
+                {
+                    VerifyOne(c.Item1 + "+" + s, c.Item2);
+                    VerifyOne(c.Item1.ToLowerInvariant() + "+" + s, c.Item2);
+                    VerifyOne(c.Item1.ToUpperInvariant() + "+" + s, c.Item2);
+                    VerifyOne(c.Item1.Replace('+', '-') + "-" + s, c.Item2);
+                }
+            }
+
+            foreach (var c in cases)
+            {
+                TestOne(c);
+            }
         }
 
         [TestMethod]
-        public void TestKeyInfoConverterSymbolLiteral()
+        public void TestKeyInfoConverterErrors()
         {
-            var result = ConsoleKeyChordConverter.Convert("}");
-            Assert.IsNotNull(result);
-            Assert.AreEqual(result.Length, 1);
+            void TestOne(string s)
+            {
+                Exception ex = null;
+                try
+                {
+                    ConsoleKeyChordConverter.Convert(s);
+                }
+                catch (Exception e)
+                {
+                    ex = e;
+                }
 
-            var key = result[0];
+                if (!(ex is ArgumentException))
+                {
+                    Assert.Fail($"Input `${s}` did not throw an ArgumentException");
+                }
+            }
 
-            Assert.AreEqual(key.KeyChar, '}');
-            Assert.AreEqual(key.Key, ConsoleKey.Oem6);
-            Assert.AreEqual(key.Modifiers, ConsoleModifiers.Shift);
+            var cases = new [] {
+                "escrape",
+                "alt+shft+x",
+                "alt+ctrl+sift+x",
+                "alt+control+shifr+x",
+                "alt+alt+x",
+                "shift+shift+x",
+                "ctrl+ctrl+x",
+                "control+control+x",
+                "control+alt+control+x",
+                "control+shift+alt+control+x",
+                "shift+",
+                "+x",
+                "x+",
+                "x,",
+                ",x",
+                "Ctrl+10",
+                "Ctrl+1a",
+                "Ctrl+ab",
+            };
+
+            foreach (var c in cases)
+            {
+                TestOne(c);
+            }
         }
 
-        [TestMethod]
-        public void TestKeyInfoConverterShiftedSymbolLiteral()
-        {
-            // } => shift+]  / shift+oem6
-            var result = ConsoleKeyChordConverter.Convert("shift+]");
-            Assert.IsNotNull(result);
-            Assert.AreEqual(result.Length, 1);
-
-            var key = result[0];
-
-            Assert.AreEqual(key.KeyChar, '}');
-            Assert.AreEqual(key.Key, ConsoleKey.Oem6);
-            Assert.AreEqual(key.Modifiers, ConsoleModifiers.Shift);
-        }
-
-        [TestMethod]
-        public void TestKeyInfoConverterWellKnownConsoleKey()
-        {
-            // oem6
-            var result = ConsoleKeyChordConverter.Convert("shift+oem6");
-            Assert.IsNotNull(result);
-            Assert.AreEqual(result.Length, 1);
-
-            var key = result[0];
-
-            Assert.AreEqual(key.KeyChar, '}');
-            Assert.AreEqual(key.Key, ConsoleKey.Oem6);
-            Assert.AreEqual(key.Modifiers, ConsoleModifiers.Shift);
-        }
-
-        [TestMethod]
-        public void TestKeyInfoConverterSequence()
-        {
-            // oem6
-            var result = ConsoleKeyChordConverter.Convert("Escape,X");
-            Assert.IsNotNull(result);
-            Assert.AreEqual(result.Length, 2);
-
-            var key = result[0];
-
-            Assert.AreEqual(key.KeyChar, (char)27);
-            Assert.AreEqual(key.Key, ConsoleKey.Escape);
-            Assert.AreEqual(key.Modifiers, (ConsoleModifiers)0);
-
-            key = result[1];
-
-            Assert.AreEqual(key.KeyChar, 'x');
-            Assert.AreEqual(key.Key, ConsoleKey.X);
-            Assert.AreEqual(key.Modifiers, (ConsoleModifiers)0);
-        }
-
-        [TestMethod]
-        public void TestKeyInfoConverterDigits()
-        {
-            var result = ConsoleKeyChordConverter.Convert("1");
-            Assert.IsNotNull(result);
-            Assert.AreEqual(result.Length, 1);
-
-            var key = result[0];
-
-            Assert.AreEqual(key.KeyChar, '1');
-            Assert.AreEqual(key.Key, ConsoleKey.D1);
-            Assert.AreEqual(key.Modifiers, (ConsoleModifiers)0);
-
-            result = ConsoleKeyChordConverter.Convert("Ctrl+7");
-            Assert.IsNotNull(result);
-            Assert.AreEqual(result.Length, 1);
-
-            key = result[0];
-
-            Assert.AreEqual(key.KeyChar, (char)0);
-            Assert.AreEqual(key.Key, ConsoleKey.D7);
-            Assert.AreEqual(key.Modifiers, ConsoleModifiers.Control);
-        }
-
-        [TestMethod]
-        [ExcludeFromCodeCoverage]
-        [ExpectedException(typeof(ArgumentException))]        
-        public void TestKeyInfoConverterInvalidKey()
-        {
-            ConsoleKeyChordConverter.Convert("escrape");
-        }
-
-        [TestMethod]
-        [ExcludeFromCodeCoverage]
-        [ExpectedException(typeof(ArgumentException))]
-        public void TestKeyInfoConverterInvalidModifierTypo()
-        {
-            ConsoleKeyChordConverter.Convert("alt+shuft+x");
-        }
-
-        [TestMethod]
-        [ExcludeFromCodeCoverage]
-        [ExpectedException(typeof(ArgumentException))]
-        public void TestKeyInfoConverterInvalidModifierInapplicable()
-        {
-            ConsoleKeyChordConverter.Convert("shift+}");
-        }
-
-        [TestMethod]
-        [ExcludeFromCodeCoverage]
-        [ExpectedException(typeof (ArgumentException))]
-        public void TestKeyInfoConverterInvalidSubsequence1()
-        {
-            ConsoleKeyChordConverter.Convert("x,");
-        }
-
-        [TestMethod]
-        [ExcludeFromCodeCoverage]
-        [ExpectedException(typeof (ArgumentException))]
-        public void TestKeyInfoConverterInvalidSubsequence2()
-        {
-            ConsoleKeyChordConverter.Convert(",x");
-        }
-
-        [TestMethod]
-        [ExcludeFromCodeCoverage]
-        [ExpectedException(typeof(ArgumentException))]
-        public void TestKeyInfoConverterInvalidDigits()
-        {
-            ConsoleKeyChordConverter.Convert("Ctrl+10");
-        }
     }
 }

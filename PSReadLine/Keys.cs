@@ -3,295 +3,615 @@ Copyright (c) Microsoft Corporation.  All rights reserved.
 --********************************************************************/
 
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
+using System.Text;
+
+[assembly: DebuggerDisplay("Key={Key}, KeyChar={KeyChar,x}, Mods={Modifiers}", Target = typeof(ConsoleKeyInfo))]
 
 namespace Microsoft.PowerShell
 {
     internal static class Keys
     {
-        public static ConsoleKeyInfo A = new ConsoleKeyInfo('a', ConsoleKey.A, false, false, false);
-        public static ConsoleKeyInfo B = new ConsoleKeyInfo('b', ConsoleKey.B, false, false, false);
-        public static ConsoleKeyInfo C = new ConsoleKeyInfo('c', ConsoleKey.C, false, false, false);
-        public static ConsoleKeyInfo D = new ConsoleKeyInfo('d', ConsoleKey.D, false, false, false);
-        public static ConsoleKeyInfo E = new ConsoleKeyInfo('e', ConsoleKey.E, false, false, false);
-        public static ConsoleKeyInfo F = new ConsoleKeyInfo('f', ConsoleKey.F, false, false, false);
-        public static ConsoleKeyInfo G = new ConsoleKeyInfo('g', ConsoleKey.G, false, false, false);
-        public static ConsoleKeyInfo H = new ConsoleKeyInfo('h', ConsoleKey.H, false, false, false);
-        public static ConsoleKeyInfo I = new ConsoleKeyInfo('i', ConsoleKey.I, false, false, false);
-        public static ConsoleKeyInfo J = new ConsoleKeyInfo('j', ConsoleKey.J, false, false, false);
-        public static ConsoleKeyInfo K = new ConsoleKeyInfo('k', ConsoleKey.K, false, false, false);
-        public static ConsoleKeyInfo L = new ConsoleKeyInfo('l', ConsoleKey.L, false, false, false);
-        public static ConsoleKeyInfo M = new ConsoleKeyInfo('m', ConsoleKey.M, false, false, false);
-        public static ConsoleKeyInfo N = new ConsoleKeyInfo('n', ConsoleKey.N, false, false, false);
-        public static ConsoleKeyInfo O = new ConsoleKeyInfo('o', ConsoleKey.O, false, false, false);
-        public static ConsoleKeyInfo P = new ConsoleKeyInfo('p', ConsoleKey.P, false, false, false);
-        public static ConsoleKeyInfo Q = new ConsoleKeyInfo('q', ConsoleKey.Q, false, false, false);
-        public static ConsoleKeyInfo R = new ConsoleKeyInfo('r', ConsoleKey.R, false, false, false);
-        public static ConsoleKeyInfo S = new ConsoleKeyInfo('s', ConsoleKey.S, false, false, false);
-        public static ConsoleKeyInfo T = new ConsoleKeyInfo('t', ConsoleKey.T, false, false, false);
-        public static ConsoleKeyInfo U = new ConsoleKeyInfo('u', ConsoleKey.U, false, false, false);
-        public static ConsoleKeyInfo V = new ConsoleKeyInfo('v', ConsoleKey.V, false, false, false);
-        public static ConsoleKeyInfo W = new ConsoleKeyInfo('w', ConsoleKey.W, false, false, false);
-        public static ConsoleKeyInfo X = new ConsoleKeyInfo('x', ConsoleKey.X, false, false, false);
-        public static ConsoleKeyInfo Y = new ConsoleKeyInfo('y', ConsoleKey.Y, false, false, false);
-        public static ConsoleKeyInfo Z = new ConsoleKeyInfo('z', ConsoleKey.Z, false, false, false);
-        public static ConsoleKeyInfo ucA = new ConsoleKeyInfo('A', ConsoleKey.A, true, false, false);
-        public static ConsoleKeyInfo ucB = new ConsoleKeyInfo('B', ConsoleKey.B, true, false, false);
-        public static ConsoleKeyInfo ucC = new ConsoleKeyInfo('C', ConsoleKey.C, true, false, false);
-        public static ConsoleKeyInfo ucD = new ConsoleKeyInfo('D', ConsoleKey.D, true, false, false);
-        public static ConsoleKeyInfo ucE = new ConsoleKeyInfo('E', ConsoleKey.E, true, false, false);
-        public static ConsoleKeyInfo ucF = new ConsoleKeyInfo('F', ConsoleKey.F, true, false, false);
-        public static ConsoleKeyInfo ucG = new ConsoleKeyInfo('G', ConsoleKey.G, true, false, false);
-        public static ConsoleKeyInfo ucH = new ConsoleKeyInfo('H', ConsoleKey.H, true, false, false);
-        public static ConsoleKeyInfo ucI = new ConsoleKeyInfo('I', ConsoleKey.I, true, false, false);
-        public static ConsoleKeyInfo ucJ = new ConsoleKeyInfo('J', ConsoleKey.J, true, false, false);
-        public static ConsoleKeyInfo ucK = new ConsoleKeyInfo('K', ConsoleKey.K, true, false, false);
-        public static ConsoleKeyInfo ucL = new ConsoleKeyInfo('L', ConsoleKey.L, true, false, false);
-        public static ConsoleKeyInfo ucM = new ConsoleKeyInfo('M', ConsoleKey.M, true, false, false);
-        public static ConsoleKeyInfo ucN = new ConsoleKeyInfo('N', ConsoleKey.N, true, false, false);
-        public static ConsoleKeyInfo ucO = new ConsoleKeyInfo('O', ConsoleKey.O, true, false, false);
-        public static ConsoleKeyInfo ucP = new ConsoleKeyInfo('P', ConsoleKey.P, true, false, false);
-        public static ConsoleKeyInfo ucQ = new ConsoleKeyInfo('Q', ConsoleKey.Q, true, false, false);
-        public static ConsoleKeyInfo ucR = new ConsoleKeyInfo('R', ConsoleKey.R, true, false, false);
-        public static ConsoleKeyInfo ucS = new ConsoleKeyInfo('S', ConsoleKey.S, true, false, false);
-        public static ConsoleKeyInfo ucT = new ConsoleKeyInfo('T', ConsoleKey.T, true, false, false);
-        public static ConsoleKeyInfo ucU = new ConsoleKeyInfo('U', ConsoleKey.U, true, false, false);
-        public static ConsoleKeyInfo ucV = new ConsoleKeyInfo('V', ConsoleKey.V, true, false, false);
-        public static ConsoleKeyInfo ucW = new ConsoleKeyInfo('W', ConsoleKey.W, true, false, false);
-        public static ConsoleKeyInfo ucX = new ConsoleKeyInfo('X', ConsoleKey.X, true, false, false);
-        public static ConsoleKeyInfo ucY = new ConsoleKeyInfo('Y', ConsoleKey.Y, true, false, false);
-        public static ConsoleKeyInfo ucZ = new ConsoleKeyInfo('Z', ConsoleKey.Z, true, false, false);
+        static ConsoleKeyInfo Key(char c)
+        {
+            return new ConsoleKeyInfo(c, 0, shift: false, alt: false, control: false);
+        }
 
-        public static ConsoleKeyInfo _0 = new ConsoleKeyInfo('0', ConsoleKey.D0, false, false, false);
-        public static ConsoleKeyInfo _1 = new ConsoleKeyInfo('1', ConsoleKey.D1, false, false, false);
-        public static ConsoleKeyInfo _2 = new ConsoleKeyInfo('2', ConsoleKey.D2, false, false, false);
-        public static ConsoleKeyInfo _3 = new ConsoleKeyInfo('3', ConsoleKey.D3, false, false, false);
-        public static ConsoleKeyInfo _4 = new ConsoleKeyInfo('4', ConsoleKey.D4, false, false, false);
-        public static ConsoleKeyInfo _5 = new ConsoleKeyInfo('5', ConsoleKey.D5, false, false, false);
-        public static ConsoleKeyInfo _6 = new ConsoleKeyInfo('6', ConsoleKey.D6, false, false, false);
-        public static ConsoleKeyInfo _7 = new ConsoleKeyInfo('7', ConsoleKey.D7, false, false, false);
-        public static ConsoleKeyInfo _8 = new ConsoleKeyInfo('8', ConsoleKey.D8, false, false, false);
-        public static ConsoleKeyInfo _9 = new ConsoleKeyInfo('9', ConsoleKey.D9, false, false, false);
+        static ConsoleKeyInfo Key(ConsoleKey key)
+        {
+            return new ConsoleKeyInfo('\0', key, shift: false, alt: false, control: false);
+        }
 
-        public static ConsoleKeyInfo RParen    = new ConsoleKeyInfo(')', ConsoleKey.D0, true, false, false);
-        public static ConsoleKeyInfo Bang      = new ConsoleKeyInfo('!', ConsoleKey.D1, true, false, false);
-        public static ConsoleKeyInfo At        = new ConsoleKeyInfo('@', ConsoleKey.D2, true, false, false);
-        public static ConsoleKeyInfo Pound     = new ConsoleKeyInfo('#', ConsoleKey.D3, true, false, false);
-        public static ConsoleKeyInfo Dollar    = new ConsoleKeyInfo('$', ConsoleKey.D4, true, false, false);
-        public static ConsoleKeyInfo Percent   = new ConsoleKeyInfo('%', ConsoleKey.D5, true, false, false);
-        public static ConsoleKeyInfo Uphat     = new ConsoleKeyInfo('^', ConsoleKey.D6, true, false, false);
-        public static ConsoleKeyInfo Ampersand = new ConsoleKeyInfo('&', ConsoleKey.D7, true, false, false);
-        public static ConsoleKeyInfo Star      = new ConsoleKeyInfo('*', ConsoleKey.D8, true, false, false);
-        public static ConsoleKeyInfo LParen    = new ConsoleKeyInfo('(', ConsoleKey.D9, true, false, false);
+        static ConsoleKeyInfo Alt(char c)
+        {
+            return new ConsoleKeyInfo(c, 0, shift: false, alt: true, control: false);
+        }
 
-        public static ConsoleKeyInfo Colon       = new ConsoleKeyInfo(':', ConsoleKey.Oem1, true, false, false);
-        public static ConsoleKeyInfo Semicolon   = new ConsoleKeyInfo(';', ConsoleKey.Oem1, false, false, false);
-        public static ConsoleKeyInfo Question    = new ConsoleKeyInfo('?', ConsoleKey.Oem2, true, false, false);
-        public static ConsoleKeyInfo Slash       = new ConsoleKeyInfo('/', ConsoleKey.Oem2, false, false, false);
-        public static ConsoleKeyInfo Tilde       = new ConsoleKeyInfo('~', ConsoleKey.Oem3, true, false, false);
-        public static ConsoleKeyInfo Backtick    = new ConsoleKeyInfo('`', ConsoleKey.Oem3, false, false, false);
-        public static ConsoleKeyInfo LCurly      = new ConsoleKeyInfo('{', ConsoleKey.Oem4, true, false, false);
-        public static ConsoleKeyInfo LBracket    = new ConsoleKeyInfo('[', ConsoleKey.Oem4, false, false, false);
-        public static ConsoleKeyInfo Pipe        = new ConsoleKeyInfo('|', ConsoleKey.Oem5, true, false, false);
-        public static ConsoleKeyInfo Backslash   = new ConsoleKeyInfo('\\', ConsoleKey.Oem5, false, false, false);
-        public static ConsoleKeyInfo RCurly      = new ConsoleKeyInfo('}', ConsoleKey.Oem6, true, false, false);
-        public static ConsoleKeyInfo RBracket    = new ConsoleKeyInfo(']', ConsoleKey.Oem6, false, false, false);
-        public static ConsoleKeyInfo SQuote      = new ConsoleKeyInfo('\'', ConsoleKey.Oem7, false, false, false);
-        public static ConsoleKeyInfo DQuote      = new ConsoleKeyInfo('"', ConsoleKey.Oem7, true, false, false);
-        public static ConsoleKeyInfo LessThan    = new ConsoleKeyInfo('<', ConsoleKey.OemComma, true, false, false);
-        public static ConsoleKeyInfo Comma       = new ConsoleKeyInfo(',', ConsoleKey.OemComma, false, false, false);
-        public static ConsoleKeyInfo GreaterThan = new ConsoleKeyInfo('>', ConsoleKey.OemPeriod, true, false, false);
-        public static ConsoleKeyInfo Period      = new ConsoleKeyInfo('.', ConsoleKey.OemPeriod, false, false, false);
-        public static ConsoleKeyInfo Underbar    = new ConsoleKeyInfo('_', ConsoleKey.OemMinus, true, false, false);
-        public static ConsoleKeyInfo Minus       = new ConsoleKeyInfo('-', ConsoleKey.OemMinus, false, false, false);
-        public static ConsoleKeyInfo AltMinus    = new ConsoleKeyInfo('-', ConsoleKey.OemMinus, false, true, false);
-        public static ConsoleKeyInfo Plus        = new ConsoleKeyInfo('+', ConsoleKey.OemPlus, true, false, false);
-        new
-        public static ConsoleKeyInfo Equals      = new ConsoleKeyInfo('=', ConsoleKey.OemPlus, false, false, false);
+        static ConsoleKeyInfo Alt(ConsoleKey key)
+        {
+            return new ConsoleKeyInfo('\0', key, shift: false, alt: true, control: false);
+        }
 
-        public static ConsoleKeyInfo CtrlAt       = new ConsoleKeyInfo((char)0, ConsoleKey.D2, true, false, true);
-        public static ConsoleKeyInfo AltUnderbar = new ConsoleKeyInfo('_', ConsoleKey.OemMinus, true, true, false);
-        public static ConsoleKeyInfo CtrlUnderbar = new ConsoleKeyInfo((char)31, ConsoleKey.OemMinus, true, false, true);
-        public static ConsoleKeyInfo AltEquals    = new ConsoleKeyInfo('=', ConsoleKey.OemPlus, false, true, false);
-        public static ConsoleKeyInfo Space        = new ConsoleKeyInfo(' ', ConsoleKey.Spacebar, false, false, false);
-        // Useless because it's caught by the console to bring up the system menu.
-        public static ConsoleKeyInfo AltSpace    = new ConsoleKeyInfo(' ', ConsoleKey.Spacebar, false, true, false);
-        public static ConsoleKeyInfo CtrlSpace   = new ConsoleKeyInfo(' ', ConsoleKey.Spacebar, false, false, true);
-        public static ConsoleKeyInfo AltLess     = new ConsoleKeyInfo('<', ConsoleKey.OemComma, true, true, false);
-        public static ConsoleKeyInfo AltGreater  = new ConsoleKeyInfo('>', ConsoleKey.OemPeriod, true, true, false);
-        public static ConsoleKeyInfo CtrlRBracket = new ConsoleKeyInfo((char)29, ConsoleKey.Oem6, false, false, true);
-        public static ConsoleKeyInfo AltCtrlRBracket = new ConsoleKeyInfo((char)0, ConsoleKey.Oem6, false, true, true);
-        public static ConsoleKeyInfo AltPeriod    = new ConsoleKeyInfo('.', ConsoleKey.OemPeriod, false, true, false);
-        public static ConsoleKeyInfo CtrlAltQuestion  = new ConsoleKeyInfo((char)0, ConsoleKey.Oem2, true, true, true);
-        public static ConsoleKeyInfo AltQuestion  = new ConsoleKeyInfo('?', ConsoleKey.Oem2, true, true, false);
+        static ConsoleKeyInfo Ctrl(char c)
+        {
+            return new ConsoleKeyInfo(c, 0, shift: false, alt: false, control: true);
+        }
 
-        public static ConsoleKeyInfo Alt0 = new ConsoleKeyInfo('0', ConsoleKey.D0, false, true, false);
-        public static ConsoleKeyInfo Alt1 = new ConsoleKeyInfo('1', ConsoleKey.D1, false, true, false);
-        public static ConsoleKeyInfo Alt2 = new ConsoleKeyInfo('2', ConsoleKey.D2, false, true, false);
-        public static ConsoleKeyInfo Alt3 = new ConsoleKeyInfo('3', ConsoleKey.D3, false, true, false);
-        public static ConsoleKeyInfo Alt4 = new ConsoleKeyInfo('4', ConsoleKey.D4, false, true, false);
-        public static ConsoleKeyInfo Alt5 = new ConsoleKeyInfo('5', ConsoleKey.D5, false, true, false);
-        public static ConsoleKeyInfo Alt6 = new ConsoleKeyInfo('6', ConsoleKey.D6, false, true, false);
-        public static ConsoleKeyInfo Alt7 = new ConsoleKeyInfo('7', ConsoleKey.D7, false, true, false);
-        public static ConsoleKeyInfo Alt8 = new ConsoleKeyInfo('8', ConsoleKey.D8, false, true, false);
-        public static ConsoleKeyInfo Alt9 = new ConsoleKeyInfo('9', ConsoleKey.D9, false, true, false);
+        static ConsoleKeyInfo Ctrl(ConsoleKey key)
+        {
+            return new ConsoleKeyInfo('\0', key, shift: false, alt: false, control: true);
+        }
 
-        public static ConsoleKeyInfo AltA = new ConsoleKeyInfo((char)97, ConsoleKey.A, false, true, false);
-        public static ConsoleKeyInfo AltB = new ConsoleKeyInfo((char)98, ConsoleKey.B, false, true, false);
-        public static ConsoleKeyInfo AltC = new ConsoleKeyInfo((char)99, ConsoleKey.C, false, true, false);
-        public static ConsoleKeyInfo AltD = new ConsoleKeyInfo((char)100, ConsoleKey.D, false, true, false);
-        public static ConsoleKeyInfo AltE = new ConsoleKeyInfo((char)101, ConsoleKey.E, false, true, false);
-        public static ConsoleKeyInfo AltF = new ConsoleKeyInfo((char)102, ConsoleKey.F, false, true, false);
-        public static ConsoleKeyInfo AltG = new ConsoleKeyInfo((char)103, ConsoleKey.G, false, true, false);
-        public static ConsoleKeyInfo AltH = new ConsoleKeyInfo((char)104, ConsoleKey.H, false, true, false);
-        public static ConsoleKeyInfo AltI = new ConsoleKeyInfo((char)105, ConsoleKey.I, false, true, false);
-        public static ConsoleKeyInfo AltJ = new ConsoleKeyInfo((char)106, ConsoleKey.J, false, true, false);
-        public static ConsoleKeyInfo AltK = new ConsoleKeyInfo((char)107, ConsoleKey.K, false, true, false);
-        public static ConsoleKeyInfo AltL = new ConsoleKeyInfo((char)108, ConsoleKey.L, false, true, false);
-        public static ConsoleKeyInfo AltM = new ConsoleKeyInfo((char)109, ConsoleKey.M, false, true, false);
-        public static ConsoleKeyInfo AltN = new ConsoleKeyInfo((char)110, ConsoleKey.N, false, true, false);
-        public static ConsoleKeyInfo AltO = new ConsoleKeyInfo((char)111, ConsoleKey.O, false, true, false);
-        public static ConsoleKeyInfo AltP = new ConsoleKeyInfo((char)112, ConsoleKey.P, false, true, false);
-        public static ConsoleKeyInfo AltQ = new ConsoleKeyInfo((char)113, ConsoleKey.Q, false, true, false);
-        public static ConsoleKeyInfo AltR = new ConsoleKeyInfo((char)114, ConsoleKey.R, false, true, false);
-        public static ConsoleKeyInfo AltS = new ConsoleKeyInfo((char)115, ConsoleKey.S, false, true, false);
-        public static ConsoleKeyInfo AltT = new ConsoleKeyInfo((char)116, ConsoleKey.T, false, true, false);
-        public static ConsoleKeyInfo AltU = new ConsoleKeyInfo((char)117, ConsoleKey.U, false, true, false);
-        public static ConsoleKeyInfo AltV = new ConsoleKeyInfo((char)118, ConsoleKey.V, false, true, false);
-        public static ConsoleKeyInfo AltW = new ConsoleKeyInfo((char)119, ConsoleKey.W, false, true, false);
-        public static ConsoleKeyInfo AltX = new ConsoleKeyInfo((char)120, ConsoleKey.X, false, true, false);
-        public static ConsoleKeyInfo AltY = new ConsoleKeyInfo((char)121, ConsoleKey.Y, false, true, false);
-        public static ConsoleKeyInfo AltZ = new ConsoleKeyInfo((char)122, ConsoleKey.Z, false, true, false);
+        static ConsoleKeyInfo Shift(ConsoleKey key)
+        {
+            return new ConsoleKeyInfo('\0', key, shift: true, alt: false, control: false);
+        }
 
-        public static ConsoleKeyInfo CtrlA = new ConsoleKeyInfo((char)1, ConsoleKey.A, false, false, true);
-        public static ConsoleKeyInfo CtrlB = new ConsoleKeyInfo((char)2, ConsoleKey.B, false, false, true);
-        public static ConsoleKeyInfo CtrlC = new ConsoleKeyInfo((char)3, ConsoleKey.C, false, false, true);
-        public static ConsoleKeyInfo CtrlD = new ConsoleKeyInfo((char)4, ConsoleKey.D, false, false, true);
-        public static ConsoleKeyInfo CtrlE = new ConsoleKeyInfo((char)5, ConsoleKey.E, false, false, true);
-        public static ConsoleKeyInfo CtrlF = new ConsoleKeyInfo((char)6, ConsoleKey.F, false, false, true);
-        public static ConsoleKeyInfo CtrlG = new ConsoleKeyInfo((char)7, ConsoleKey.G, false, false, true);
-        public static ConsoleKeyInfo CtrlH = new ConsoleKeyInfo((char)8, ConsoleKey.H, false, false, true);
-        public static ConsoleKeyInfo CtrlI = new ConsoleKeyInfo((char)9, ConsoleKey.I, false, false, true);
-        public static ConsoleKeyInfo CtrlJ = new ConsoleKeyInfo((char)10, ConsoleKey.J, false, false, true);
-        public static ConsoleKeyInfo CtrlK = new ConsoleKeyInfo((char)11, ConsoleKey.K, false, false, true);
-        public static ConsoleKeyInfo CtrlL = new ConsoleKeyInfo((char)12, ConsoleKey.L, false, false, true);
-        public static ConsoleKeyInfo CtrlM = new ConsoleKeyInfo((char)13, ConsoleKey.M, false, false, true);
-        public static ConsoleKeyInfo CtrlN = new ConsoleKeyInfo((char)14, ConsoleKey.N, false, false, true);
-        public static ConsoleKeyInfo CtrlO = new ConsoleKeyInfo((char)15, ConsoleKey.O, false, false, true);
-        public static ConsoleKeyInfo CtrlP = new ConsoleKeyInfo((char)16, ConsoleKey.P, false, false, true);
-        public static ConsoleKeyInfo CtrlQ = new ConsoleKeyInfo((char)17, ConsoleKey.Q, false, false, true);
-        public static ConsoleKeyInfo CtrlR = new ConsoleKeyInfo((char)18, ConsoleKey.R, false, false, true);
-        public static ConsoleKeyInfo CtrlS = new ConsoleKeyInfo((char)19, ConsoleKey.S, false, false, true);
-        public static ConsoleKeyInfo CtrlT = new ConsoleKeyInfo((char)20, ConsoleKey.T, false, false, true);
-        public static ConsoleKeyInfo CtrlU = new ConsoleKeyInfo((char)21, ConsoleKey.U, false, false, true);
-        public static ConsoleKeyInfo CtrlV = new ConsoleKeyInfo((char)22, ConsoleKey.V, false, false, true);
-        public static ConsoleKeyInfo CtrlW = new ConsoleKeyInfo((char)23, ConsoleKey.W, false, false, true);
-        public static ConsoleKeyInfo CtrlX = new ConsoleKeyInfo((char)24, ConsoleKey.X, false, false, true);
-        public static ConsoleKeyInfo CtrlY = new ConsoleKeyInfo((char)25, ConsoleKey.Y, false, false, true);
-        public static ConsoleKeyInfo CtrlZ = new ConsoleKeyInfo((char)26, ConsoleKey.Z, false, false, true);
+        static ConsoleKeyInfo CtrlShift(char c)
+        {
+            return new ConsoleKeyInfo(c, 0, shift: true, alt: false, control: true);
+        }
 
-        public static ConsoleKeyInfo CtrlShiftC = new ConsoleKeyInfo((char)3, ConsoleKey.C, true, false, true);
+        static ConsoleKeyInfo CtrlShift(ConsoleKey key)
+        {
+            return new ConsoleKeyInfo('\0', key, shift: true, alt: false, control: true);
+        }
 
-        public static ConsoleKeyInfo AltShiftB = new ConsoleKeyInfo('B', ConsoleKey.B, true, true, false);
-        public static ConsoleKeyInfo AltShiftF = new ConsoleKeyInfo('F', ConsoleKey.F, true, true, false);
+        static ConsoleKeyInfo CtrlAlt(char c)
+        {
+            ConsoleKey key = 0;
+            bool shift = false;
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                var scan = VkKeyScan((short) c);
+                if ((scan & 0x100) != 0) { shift = true; }
+                key = (ConsoleKey)(scan & 0xff);
+                c = '\0';
+            }
+            else
+            {
+                if (c >= 'a' && c <= 'z')
+                {
+                    c = (char)(c - 'a' + 1);
+                }
+                else if (c >= 'A' && c <= 'Z')
+                {
+                    c = (char)(c - 'A' + 1);
+                }
+            }
+            return new ConsoleKeyInfo(c, key, shift, alt: true, control: true);
+        }
 
-        public static ConsoleKeyInfo AltCtrlY = new ConsoleKeyInfo((char)0, ConsoleKey.Y, false, true, true);
+        public static ConsoleKeyInfo F1                  = Key(ConsoleKey.F1);
+        public static ConsoleKeyInfo F2                  = Key(ConsoleKey.F2);
+        public static ConsoleKeyInfo F3                  = Key(ConsoleKey.F3);
+        public static ConsoleKeyInfo F4                  = Key(ConsoleKey.F4);
+        public static ConsoleKeyInfo F5                  = Key(ConsoleKey.F5);
+        public static ConsoleKeyInfo F6                  = Key(ConsoleKey.F6);
+        public static ConsoleKeyInfo F7                  = Key(ConsoleKey.F7);
+        public static ConsoleKeyInfo F8                  = Key(ConsoleKey.F8);
+        public static ConsoleKeyInfo F9                  = Key(ConsoleKey.F9);
+        public static ConsoleKeyInfo Fl0                 = Key(ConsoleKey.F10);
+        public static ConsoleKeyInfo F11                 = Key(ConsoleKey.F11);
+        public static ConsoleKeyInfo F12                 = Key(ConsoleKey.F12);
+        public static ConsoleKeyInfo F13                 = Key(ConsoleKey.F13);
+        public static ConsoleKeyInfo F14                 = Key(ConsoleKey.F14);
+        public static ConsoleKeyInfo F15                 = Key(ConsoleKey.F15);
+        public static ConsoleKeyInfo F16                 = Key(ConsoleKey.F16);
+        public static ConsoleKeyInfo F17                 = Key(ConsoleKey.F17);
+        public static ConsoleKeyInfo F18                 = Key(ConsoleKey.F18);
+        public static ConsoleKeyInfo F19                 = Key(ConsoleKey.F19);
+        public static ConsoleKeyInfo F20                 = Key(ConsoleKey.F20);
+        public static ConsoleKeyInfo F21                 = Key(ConsoleKey.F21);
+        public static ConsoleKeyInfo F22                 = Key(ConsoleKey.F22);
+        public static ConsoleKeyInfo F23                 = Key(ConsoleKey.F23);
+        public static ConsoleKeyInfo F24                 = Key(ConsoleKey.F24);
+        public static ConsoleKeyInfo _0                  = Key('0');
+        public static ConsoleKeyInfo _1                  = Key('1');
+        public static ConsoleKeyInfo _2                  = Key('2');
+        public static ConsoleKeyInfo _3                  = Key('3');
+        public static ConsoleKeyInfo _4                  = Key('4');
+        public static ConsoleKeyInfo _5                  = Key('5');
+        public static ConsoleKeyInfo _6                  = Key('6');
+        public static ConsoleKeyInfo _7                  = Key('7');
+        public static ConsoleKeyInfo _8                  = Key('8');
+        public static ConsoleKeyInfo _9                  = Key('9');
+        public static ConsoleKeyInfo A                   = Key('a');
+        public static ConsoleKeyInfo B                   = Key('b');
+        public static ConsoleKeyInfo C                   = Key('c');
+        public static ConsoleKeyInfo D                   = Key('d');
+        public static ConsoleKeyInfo E                   = Key('e');
+        public static ConsoleKeyInfo F                   = Key('f');
+        public static ConsoleKeyInfo G                   = Key('g');
+        public static ConsoleKeyInfo H                   = Key('h');
+        public static ConsoleKeyInfo I                   = Key('i');
+        public static ConsoleKeyInfo J                   = Key('j');
+        public static ConsoleKeyInfo K                   = Key('k');
+        public static ConsoleKeyInfo L                   = Key('l');
+        public static ConsoleKeyInfo M                   = Key('m');
+        public static ConsoleKeyInfo N                   = Key('n');
+        public static ConsoleKeyInfo O                   = Key('o');
+        public static ConsoleKeyInfo P                   = Key('p');
+        public static ConsoleKeyInfo Q                   = Key('q');
+        public static ConsoleKeyInfo R                   = Key('r');
+        public static ConsoleKeyInfo S                   = Key('s');
+        public static ConsoleKeyInfo T                   = Key('t');
+        public static ConsoleKeyInfo U                   = Key('u');
+        public static ConsoleKeyInfo V                   = Key('v');
+        public static ConsoleKeyInfo W                   = Key('w');
+        public static ConsoleKeyInfo X                   = Key('x');
+        public static ConsoleKeyInfo Y                   = Key('y');
+        public static ConsoleKeyInfo Z                   = Key('z');
+        public static ConsoleKeyInfo ucA                 = Key('A');
+        public static ConsoleKeyInfo ucB                 = Key('B');
+        public static ConsoleKeyInfo ucC                 = Key('C');
+        public static ConsoleKeyInfo ucD                 = Key('D');
+        public static ConsoleKeyInfo ucE                 = Key('E');
+        public static ConsoleKeyInfo ucF                 = Key('F');
+        public static ConsoleKeyInfo ucG                 = Key('G');
+        public static ConsoleKeyInfo ucH                 = Key('H');
+        public static ConsoleKeyInfo ucI                 = Key('I');
+        public static ConsoleKeyInfo ucJ                 = Key('J');
+        public static ConsoleKeyInfo ucK                 = Key('K');
+        public static ConsoleKeyInfo ucL                 = Key('L');
+        public static ConsoleKeyInfo ucM                 = Key('M');
+        public static ConsoleKeyInfo ucN                 = Key('N');
+        public static ConsoleKeyInfo ucO                 = Key('O');
+        public static ConsoleKeyInfo ucP                 = Key('P');
+        public static ConsoleKeyInfo ucQ                 = Key('Q');
+        public static ConsoleKeyInfo ucR                 = Key('R');
+        public static ConsoleKeyInfo ucS                 = Key('S');
+        public static ConsoleKeyInfo ucT                 = Key('T');
+        public static ConsoleKeyInfo ucU                 = Key('U');
+        public static ConsoleKeyInfo ucV                 = Key('V');
+        public static ConsoleKeyInfo ucW                 = Key('W');
+        public static ConsoleKeyInfo ucX                 = Key('X');
+        public static ConsoleKeyInfo ucY                 = Key('Y');
+        public static ConsoleKeyInfo ucZ                 = Key('Z');
+        public static ConsoleKeyInfo Bang                = Key('!');
+        public static ConsoleKeyInfo At                  = Key('@');
+        public static ConsoleKeyInfo Pound               = Key('#');
+        public static ConsoleKeyInfo Dollar              = Key('$');
+        public static ConsoleKeyInfo Percent             = Key('%');
+        public static ConsoleKeyInfo Uphat               = Key('^');
+        public static ConsoleKeyInfo Ampersand           = Key('&');
+        public static ConsoleKeyInfo Star                = Key('*');
+        public static ConsoleKeyInfo LParen              = Key('(');
+        public static ConsoleKeyInfo RParen              = Key(')');
+        public static ConsoleKeyInfo Colon               = Key(':');
+        public static ConsoleKeyInfo Semicolon           = Key(';');
+        public static ConsoleKeyInfo Question            = Key('?');
+        public static ConsoleKeyInfo Slash               = Key('/');
+        public static ConsoleKeyInfo Tilde               = Key('~');
+        public static ConsoleKeyInfo Backtick            = Key('`');
+        public static ConsoleKeyInfo LCurly              = Key('{');
+        public static ConsoleKeyInfo LBracket            = Key('[');
+        public static ConsoleKeyInfo Pipe                = Key('|');
+        public static ConsoleKeyInfo Backslash           = Key('\\');
+        public static ConsoleKeyInfo RCurly              = Key('}');
+        public static ConsoleKeyInfo RBracket            = Key(']');
+        public static ConsoleKeyInfo SQuote              = Key('\'');
+        public static ConsoleKeyInfo DQuote              = Key('"');
+        public static ConsoleKeyInfo LessThan            = Key('<');
+        public static ConsoleKeyInfo Comma               = Key(',');
+        public static ConsoleKeyInfo GreaterThan         = Key('>');
+        public static ConsoleKeyInfo Period              = Key('.');
+        public static ConsoleKeyInfo Underbar            = Key('_');
+        public static ConsoleKeyInfo Minus               = Key('-');
+        public static ConsoleKeyInfo Plus                = Key('+');
+        public static ConsoleKeyInfo Eq                  = Key('=');
+        public static ConsoleKeyInfo Space               = Key(' ');
+        public static ConsoleKeyInfo Backspace           = Key(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? '\x08' : '\x7f');
+        public static ConsoleKeyInfo Delete              = Key(ConsoleKey.Delete);
+        public static ConsoleKeyInfo DownArrow           = Key(ConsoleKey.DownArrow);
+        public static ConsoleKeyInfo End                 = Key(ConsoleKey.End);
+        public static ConsoleKeyInfo Enter               = Key(ConsoleKey.Enter);
+        public static ConsoleKeyInfo Escape              = Key('\x1b');
+        public static ConsoleKeyInfo Home                = Key(ConsoleKey.Home);
+        public static ConsoleKeyInfo LeftArrow           = Key(ConsoleKey.LeftArrow);
+        public static ConsoleKeyInfo PageUp              = Key(ConsoleKey.PageUp);
+        public static ConsoleKeyInfo PageDown            = Key(ConsoleKey.PageDown);
+        public static ConsoleKeyInfo RightArrow          = Key(ConsoleKey.RightArrow);
+        public static ConsoleKeyInfo Tab                 = Key(ConsoleKey.Tab);
+        public static ConsoleKeyInfo UpArrow             = Key(ConsoleKey.UpArrow);
 
-        public static ConsoleKeyInfo Backspace    = new ConsoleKeyInfo((char)8, ConsoleKey.Backspace, false, false, false);
-        public static ConsoleKeyInfo CtrlBackspace = new ConsoleKeyInfo((char)0x7f, ConsoleKey.Backspace, false, false, true);
-        public static ConsoleKeyInfo AltBackspace = new ConsoleKeyInfo((char)8, ConsoleKey.Backspace, false, true, false);
-        public static ConsoleKeyInfo Delete       = new ConsoleKeyInfo((char)0, ConsoleKey.Delete, false, false, false);
-        public static ConsoleKeyInfo CtrlDelete   = new ConsoleKeyInfo((char)0, ConsoleKey.Delete, false, false, true);
-        public static ConsoleKeyInfo DownArrow    = new ConsoleKeyInfo((char)0, ConsoleKey.DownArrow, false, false, false);
-        public static ConsoleKeyInfo End          = new ConsoleKeyInfo((char)0, ConsoleKey.End, false, false, false);
-        public static ConsoleKeyInfo CtrlEnd      = new ConsoleKeyInfo((char)0, ConsoleKey.End, false, false, true);
-        public static ConsoleKeyInfo ShiftEnd     = new ConsoleKeyInfo((char)0, ConsoleKey.End, true, false, false);
-        public static ConsoleKeyInfo Enter        = new ConsoleKeyInfo((char)13, ConsoleKey.Enter, false, false, false);
-        public static ConsoleKeyInfo Escape       = new ConsoleKeyInfo((char)27, ConsoleKey.Escape, false, false, false);
-        public static ConsoleKeyInfo Home         = new ConsoleKeyInfo((char)0, ConsoleKey.Home, false, false, false);
-        public static ConsoleKeyInfo CtrlHome     = new ConsoleKeyInfo((char)0, ConsoleKey.Home, false, false, true);
-        public static ConsoleKeyInfo ShiftHome    = new ConsoleKeyInfo((char)0, ConsoleKey.Home, true, false, false);
-        public static ConsoleKeyInfo LeftArrow    = new ConsoleKeyInfo((char)0, ConsoleKey.LeftArrow, false, false, false);
-        public static ConsoleKeyInfo RightArrow   = new ConsoleKeyInfo((char)0, ConsoleKey.RightArrow, false, false, false);
-        public static ConsoleKeyInfo Tab          = new ConsoleKeyInfo((char)9, ConsoleKey.Tab, false, false, false);
-        public static ConsoleKeyInfo UpArrow      = new ConsoleKeyInfo((char)0, ConsoleKey.UpArrow, false, false, false);
-        public static ConsoleKeyInfo PageUp       = new ConsoleKeyInfo((char)0, ConsoleKey.PageUp, false, false, false);
-        public static ConsoleKeyInfo PageDown     = new ConsoleKeyInfo((char)0, ConsoleKey.PageDown, false, false, false);
-        public static ConsoleKeyInfo ShiftPageUp   = new ConsoleKeyInfo((char)0, ConsoleKey.PageUp, true, false, false);
-        public static ConsoleKeyInfo ShiftPageDown = new ConsoleKeyInfo((char)0, ConsoleKey.PageDown, true, false, false);
-        public static ConsoleKeyInfo CtrlPageUp    = new ConsoleKeyInfo((char)0, ConsoleKey.PageUp, false, false, true);
-        public static ConsoleKeyInfo CtrlPageDown  = new ConsoleKeyInfo((char)0, ConsoleKey.PageDown, false, false, true);
-        public static ConsoleKeyInfo AltPageUp     = new ConsoleKeyInfo((char)0, ConsoleKey.PageUp, false, true, false);
-        public static ConsoleKeyInfo AltPageDown   = new ConsoleKeyInfo((char)0, ConsoleKey.PageDown, false, true, false);
 
-        public static ConsoleKeyInfo ShiftLeftArrow  = new ConsoleKeyInfo((char)0, ConsoleKey.LeftArrow, true, false, false);
-        public static ConsoleKeyInfo ShiftRightArrow = new ConsoleKeyInfo((char)0, ConsoleKey.RightArrow, true, false, false);
-        public static ConsoleKeyInfo CtrlLeftArrow  = new ConsoleKeyInfo((char)0, ConsoleKey.LeftArrow, false, false, true);
-        public static ConsoleKeyInfo CtrlRightArrow = new ConsoleKeyInfo((char)0, ConsoleKey.RightArrow, false, false, true);
-        public static ConsoleKeyInfo ShiftCtrlLeftArrow  = new ConsoleKeyInfo((char)0, ConsoleKey.LeftArrow, true, false, true);
-        public static ConsoleKeyInfo ShiftCtrlRightArrow = new ConsoleKeyInfo((char)0, ConsoleKey.RightArrow, true, false, true);
+        // Alt+Fn is unavailable or doesn't work on Linux.
+        //   If you boot to a TTY, Alt+Fn switches to TTYn for n=1-6,
+        //       otherwise the key is ignored (showkey -a never receives the key)
+        //   If you boot to X, many Alt+Fn keys are bound by the system,
+        //       those that aren't don't work because .Net doesn't handle them.
+        public static ConsoleKeyInfo AltF1               = Alt(ConsoleKey.F1);
+        public static ConsoleKeyInfo AltF2               = Alt(ConsoleKey.F2);
+        public static ConsoleKeyInfo AltF3               = Alt(ConsoleKey.F3);
+        public static ConsoleKeyInfo AltF4               = Alt(ConsoleKey.F4);
+        public static ConsoleKeyInfo AltF5               = Alt(ConsoleKey.F5);
+        public static ConsoleKeyInfo AltF6               = Alt(ConsoleKey.F6);
+        public static ConsoleKeyInfo AltF7               = Alt(ConsoleKey.F7);
+        public static ConsoleKeyInfo AltF8               = Alt(ConsoleKey.F8);
+        public static ConsoleKeyInfo AltF9               = Alt(ConsoleKey.F9);
+        public static ConsoleKeyInfo AltFl0              = Alt(ConsoleKey.F10);
+        public static ConsoleKeyInfo AltF11              = Alt(ConsoleKey.F11);
+        public static ConsoleKeyInfo AltF12              = Alt(ConsoleKey.F12);
+        public static ConsoleKeyInfo AltF13              = Alt(ConsoleKey.F13);
+        public static ConsoleKeyInfo AltF14              = Alt(ConsoleKey.F14);
+        public static ConsoleKeyInfo AltF15              = Alt(ConsoleKey.F15);
+        public static ConsoleKeyInfo AltF16              = Alt(ConsoleKey.F16);
+        public static ConsoleKeyInfo AltF17              = Alt(ConsoleKey.F17);
+        public static ConsoleKeyInfo AltF18              = Alt(ConsoleKey.F18);
+        public static ConsoleKeyInfo AltF19              = Alt(ConsoleKey.F19);
+        public static ConsoleKeyInfo AltF20              = Alt(ConsoleKey.F20);
+        public static ConsoleKeyInfo AltF21              = Alt(ConsoleKey.F21);
+        public static ConsoleKeyInfo AltF22              = Alt(ConsoleKey.F22);
+        public static ConsoleKeyInfo AltF23              = Alt(ConsoleKey.F23);
+        public static ConsoleKeyInfo AltF24              = Alt(ConsoleKey.F24);
+        public static ConsoleKeyInfo Alt0                = Alt('0');
+        public static ConsoleKeyInfo Alt1                = Alt('1');
+        public static ConsoleKeyInfo Alt2                = Alt('2');
+        public static ConsoleKeyInfo Alt3                = Alt('3');
+        public static ConsoleKeyInfo Alt4                = Alt('4');
+        public static ConsoleKeyInfo Alt5                = Alt('5');
+        public static ConsoleKeyInfo Alt6                = Alt('6');
+        public static ConsoleKeyInfo Alt7                = Alt('7');
+        public static ConsoleKeyInfo Alt8                = Alt('8');
+        public static ConsoleKeyInfo Alt9                = Alt('9');
+        public static ConsoleKeyInfo AltA                = Alt('a');
+        public static ConsoleKeyInfo AltB                = Alt('b');
+        public static ConsoleKeyInfo AltC                = Alt('c');
+        public static ConsoleKeyInfo AltD                = Alt('d');
+        public static ConsoleKeyInfo AltE                = Alt('e');
+        public static ConsoleKeyInfo AltF                = Alt('f');
+        public static ConsoleKeyInfo AltG                = Alt('g');
+        public static ConsoleKeyInfo AltH                = Alt('h');
+        public static ConsoleKeyInfo AltI                = Alt('i');
+        public static ConsoleKeyInfo AltJ                = Alt('j');
+        public static ConsoleKeyInfo AltK                = Alt('k');
+        public static ConsoleKeyInfo AltL                = Alt('l');
+        public static ConsoleKeyInfo AltM                = Alt('m');
+        public static ConsoleKeyInfo AltN                = Alt('n');
+        public static ConsoleKeyInfo AltO                = Alt('o');
+        public static ConsoleKeyInfo AltP                = Alt('p');
+        public static ConsoleKeyInfo AltQ                = Alt('q');
+        public static ConsoleKeyInfo AltR                = Alt('r');
+        public static ConsoleKeyInfo AltS                = Alt('s');
+        public static ConsoleKeyInfo AltT                = Alt('t');
+        public static ConsoleKeyInfo AltU                = Alt('u');
+        public static ConsoleKeyInfo AltV                = Alt('v');
+        public static ConsoleKeyInfo AltW                = Alt('w');
+        public static ConsoleKeyInfo AltX                = Alt('x');
+        public static ConsoleKeyInfo AltY                = Alt('y');
+        public static ConsoleKeyInfo AltZ                = Alt('z');
+        public static ConsoleKeyInfo AltShiftB           = Alt('B');
+        public static ConsoleKeyInfo AltShiftF           = Alt('F');
+        public static ConsoleKeyInfo AltSpace            = Alt(' ');  // !Windows, system menu.
+        public static ConsoleKeyInfo AltPeriod           = Alt('.');  // !Linux, CLR bug
+        public static ConsoleKeyInfo AltEquals           = Alt('=');  // !Linux, CLR bug
+        public static ConsoleKeyInfo AltMinus            = Alt('-');
+        public static ConsoleKeyInfo AltUnderbar         = Alt('_');  // !Linux, CLR bug
+        public static ConsoleKeyInfo AltBackspace        = Alt(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? '\x08' : '\x7f');
+        public static ConsoleKeyInfo AltLess             = Alt('<');  // !Linux, CLR bug
+        public static ConsoleKeyInfo AltGreater          = Alt('>');  // !Linux, CLR bug
+        public static ConsoleKeyInfo AltQuestion         = Alt('?');  // !Linux, CLR bug
 
-        public static ConsoleKeyInfo ShiftTab = new ConsoleKeyInfo((char)9, ConsoleKey.Tab, true, false, false);
+        public static ConsoleKeyInfo CtrlAt              = Ctrl('\x00');
+        public static ConsoleKeyInfo CtrlSpace           = Ctrl(' '); // !Linux, same as CtrlAt
+        public static ConsoleKeyInfo CtrlA               = Ctrl('\x01');
+        public static ConsoleKeyInfo CtrlB               = Ctrl('\x02');
+        public static ConsoleKeyInfo CtrlC               = Ctrl('\x03');
+        public static ConsoleKeyInfo CtrlD               = Ctrl('\x04');
+        public static ConsoleKeyInfo CtrlE               = Ctrl('\x05');
+        public static ConsoleKeyInfo CtrlF               = Ctrl('\x06');
+        public static ConsoleKeyInfo CtrlG               = Ctrl('\a');
+        public static ConsoleKeyInfo CtrlH               = Ctrl('\b');
+        public static ConsoleKeyInfo CtrlI               = Ctrl('\t');
+        public static ConsoleKeyInfo CtrlJ               = Ctrl('\n');
+        public static ConsoleKeyInfo CtrlK               = Ctrl('\v');
+        public static ConsoleKeyInfo CtrlL               = Ctrl('\f');
+        public static ConsoleKeyInfo CtrlM               = Ctrl('\r');
+        public static ConsoleKeyInfo CtrlN               = Ctrl('\x0e');
+        public static ConsoleKeyInfo CtrlO               = Ctrl('\x0f');
+        public static ConsoleKeyInfo CtrlP               = Ctrl('\x10');
+        public static ConsoleKeyInfo CtrlQ               = Ctrl('\x11');
+        public static ConsoleKeyInfo CtrlR               = Ctrl('\x12');
+        public static ConsoleKeyInfo CtrlS               = Ctrl('\x13');
+        public static ConsoleKeyInfo CtrlT               = Ctrl('\x14');
+        public static ConsoleKeyInfo CtrlU               = Ctrl('\x15');
+        public static ConsoleKeyInfo CtrlV               = Ctrl('\x16');
+        public static ConsoleKeyInfo CtrlW               = Ctrl('\x17');
+        public static ConsoleKeyInfo CtrlX               = Ctrl('\x18');
+        public static ConsoleKeyInfo CtrlY               = Ctrl('\x19');
+        public static ConsoleKeyInfo CtrlZ               = Ctrl('\x1a');
+        public static ConsoleKeyInfo CtrlLBracket        = Ctrl('\x1b');
+        public static ConsoleKeyInfo CtrlBackslash       = Ctrl('\x1c');
+        public static ConsoleKeyInfo CtrlRBracket        = Ctrl('\x1d');
+        public static ConsoleKeyInfo CtrlUnderbar        = Ctrl('\x1f');
+        public static ConsoleKeyInfo CtrlBackspace       = Ctrl(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? '\x7f' : '\x08');
+        public static ConsoleKeyInfo CtrlDelete          = Ctrl(ConsoleKey.Delete); // !Linux
+        public static ConsoleKeyInfo CtrlEnd             = Ctrl(ConsoleKey.End); // !Linux
+        public static ConsoleKeyInfo CtrlHome            = Ctrl(ConsoleKey.Home); // !Linux
+        public static ConsoleKeyInfo CtrlPageUp          = Ctrl(ConsoleKey.PageUp); // !Linux
+        public static ConsoleKeyInfo CtrlPageDown        = Ctrl(ConsoleKey.PageDown); // !Linux
+        public static ConsoleKeyInfo CtrlLeftArrow       = Ctrl(ConsoleKey.LeftArrow); // !Linux
+        public static ConsoleKeyInfo CtrlRightArrow      = Ctrl(ConsoleKey.RightArrow); // !Linux
+        public static ConsoleKeyInfo CtrlEnter           = Ctrl(ConsoleKey.Enter); // !Linux
 
-        public static ConsoleKeyInfo CtrlEnter      = new ConsoleKeyInfo((char)10, ConsoleKey.Enter, false, false, true);
-        public static ConsoleKeyInfo CtrlShiftEnter = new ConsoleKeyInfo((char)0,  ConsoleKey.Enter, true, false, true);
-        public static ConsoleKeyInfo ShiftEnter     = new ConsoleKeyInfo((char)13, ConsoleKey.Enter, true, false, false);
 
-        public static ConsoleKeyInfo F1 = new ConsoleKeyInfo((char)0, ConsoleKey.F1, false, false, false);
-        public static ConsoleKeyInfo F2 = new ConsoleKeyInfo((char)0, ConsoleKey.F2, false, false, false);
-        public static ConsoleKeyInfo F3 = new ConsoleKeyInfo((char)0, ConsoleKey.F3, false, false, false);
-        public static ConsoleKeyInfo F4 = new ConsoleKeyInfo((char)0, ConsoleKey.F4, false, false, false);
-        public static ConsoleKeyInfo F5 = new ConsoleKeyInfo((char)0, ConsoleKey.F5, false, false, false);
-        public static ConsoleKeyInfo F6 = new ConsoleKeyInfo((char)0, ConsoleKey.F6, false, false, false);
-        public static ConsoleKeyInfo F7 = new ConsoleKeyInfo((char)0, ConsoleKey.F7, false, false, false);
-        public static ConsoleKeyInfo F8 = new ConsoleKeyInfo((char)0, ConsoleKey.F8, false, false, false);
-        public static ConsoleKeyInfo F9 = new ConsoleKeyInfo((char)0, ConsoleKey.F9, false, false, false);
-        public static ConsoleKeyInfo Fl0 = new ConsoleKeyInfo((char)0, ConsoleKey.F10, false, false, false);
-        public static ConsoleKeyInfo F11 = new ConsoleKeyInfo((char)0, ConsoleKey.F11, false, false, false);
-        public static ConsoleKeyInfo F12 = new ConsoleKeyInfo((char)0, ConsoleKey.F12, false, false, false);
-        public static ConsoleKeyInfo F13 = new ConsoleKeyInfo((char)0, ConsoleKey.F13, false, false, false);
-        public static ConsoleKeyInfo F14 = new ConsoleKeyInfo((char)0, ConsoleKey.F14, false, false, false);
-        public static ConsoleKeyInfo F15 = new ConsoleKeyInfo((char)0, ConsoleKey.F15, false, false, false);
-        public static ConsoleKeyInfo F16 = new ConsoleKeyInfo((char)0, ConsoleKey.F16, false, false, false);
-        public static ConsoleKeyInfo F17 = new ConsoleKeyInfo((char)0, ConsoleKey.F17, false, false, false);
-        public static ConsoleKeyInfo F18 = new ConsoleKeyInfo((char)0, ConsoleKey.F18, false, false, false);
-        public static ConsoleKeyInfo F19 = new ConsoleKeyInfo((char)0, ConsoleKey.F19, false, false, false);
-        public static ConsoleKeyInfo F20 = new ConsoleKeyInfo((char)0, ConsoleKey.F20, false, false, false);
-        public static ConsoleKeyInfo F21 = new ConsoleKeyInfo((char)0, ConsoleKey.F21, false, false, false);
-        public static ConsoleKeyInfo F22 = new ConsoleKeyInfo((char)0, ConsoleKey.F22, false, false, false);
-        public static ConsoleKeyInfo F23 = new ConsoleKeyInfo((char)0, ConsoleKey.F23, false, false, false);
-        public static ConsoleKeyInfo F24 = new ConsoleKeyInfo((char)0, ConsoleKey.F24, false, false, false);
+        public static ConsoleKeyInfo ShiftF3             = Shift(ConsoleKey.F3);
+        public static ConsoleKeyInfo ShiftF8             = Shift(ConsoleKey.F8);
+        public static ConsoleKeyInfo ShiftEnd            = Shift(ConsoleKey.End);
+        public static ConsoleKeyInfo ShiftEnter          = Shift(ConsoleKey.Enter);
+        public static ConsoleKeyInfo ShiftHome           = Shift(ConsoleKey.Home);
+        public static ConsoleKeyInfo ShiftPageUp         = Shift(ConsoleKey.PageUp);
+        public static ConsoleKeyInfo ShiftPageDown       = Shift(ConsoleKey.PageDown);
+        public static ConsoleKeyInfo ShiftLeftArrow      = Shift(ConsoleKey.LeftArrow);
+        public static ConsoleKeyInfo ShiftRightArrow     = Shift(ConsoleKey.RightArrow);
+        public static ConsoleKeyInfo ShiftTab            = Shift(ConsoleKey.Tab); // !Linux, same as Tab
 
-        public static ConsoleKeyInfo AltF1 = new ConsoleKeyInfo((char)0, ConsoleKey.F1, false, true, false);
-        public static ConsoleKeyInfo AltF2 = new ConsoleKeyInfo((char)0, ConsoleKey.F2, false, true, false);
-        public static ConsoleKeyInfo AltF3 = new ConsoleKeyInfo((char)0, ConsoleKey.F3, false, true, false);
-        public static ConsoleKeyInfo AltF4 = new ConsoleKeyInfo((char)0, ConsoleKey.F4, false, true, false);
-        public static ConsoleKeyInfo AltF5 = new ConsoleKeyInfo((char)0, ConsoleKey.F5, false, true, false);
-        public static ConsoleKeyInfo AltF6 = new ConsoleKeyInfo((char)0, ConsoleKey.F6, false, true, false);
-        public static ConsoleKeyInfo AltF7 = new ConsoleKeyInfo((char)0, ConsoleKey.F7, false, true, false);
-        public static ConsoleKeyInfo AltF8 = new ConsoleKeyInfo((char)0, ConsoleKey.F8, false, true, false);
-        public static ConsoleKeyInfo AltF9 = new ConsoleKeyInfo((char)0, ConsoleKey.F9, false, true, false);
-        public static ConsoleKeyInfo AltFl0 = new ConsoleKeyInfo((char)0, ConsoleKey.F10, false, true, false);
-        public static ConsoleKeyInfo AltF11 = new ConsoleKeyInfo((char)0, ConsoleKey.F11, false, true, false);
-        public static ConsoleKeyInfo AltF12 = new ConsoleKeyInfo((char)0, ConsoleKey.F12, false, true, false);
-        public static ConsoleKeyInfo AltF13 = new ConsoleKeyInfo((char)0, ConsoleKey.F13, false, true, false);
-        public static ConsoleKeyInfo AltF14 = new ConsoleKeyInfo((char)0, ConsoleKey.F14, false, true, false);
-        public static ConsoleKeyInfo AltF15 = new ConsoleKeyInfo((char)0, ConsoleKey.F15, false, true, false);
-        public static ConsoleKeyInfo AltF16 = new ConsoleKeyInfo((char)0, ConsoleKey.F16, false, true, false);
-        public static ConsoleKeyInfo AltF17 = new ConsoleKeyInfo((char)0, ConsoleKey.F17, false, true, false);
-        public static ConsoleKeyInfo AltF18 = new ConsoleKeyInfo((char)0, ConsoleKey.F18, false, true, false);
-        public static ConsoleKeyInfo AltF19 = new ConsoleKeyInfo((char)0, ConsoleKey.F19, false, true, false);
-        public static ConsoleKeyInfo AltF20 = new ConsoleKeyInfo((char)0, ConsoleKey.F20, false, true, false);
-        public static ConsoleKeyInfo AltF21 = new ConsoleKeyInfo((char)0, ConsoleKey.F21, false, true, false);
-        public static ConsoleKeyInfo AltF22 = new ConsoleKeyInfo((char)0, ConsoleKey.F22, false, true, false);
-        public static ConsoleKeyInfo AltF23 = new ConsoleKeyInfo((char)0, ConsoleKey.F23, false, true, false);
-        public static ConsoleKeyInfo AltF24 = new ConsoleKeyInfo((char)0, ConsoleKey.F24, false, true, false);
+        public static ConsoleKeyInfo CtrlShiftC          = CtrlShift('\x03'); // !Linux
+        public static ConsoleKeyInfo CtrlShiftEnter      = CtrlShift(ConsoleKey.Enter);
+        public static ConsoleKeyInfo CtrlShiftLeftArrow  = CtrlShift(ConsoleKey.LeftArrow);
+        public static ConsoleKeyInfo CtrlShiftRightArrow = CtrlShift(ConsoleKey.RightArrow);
 
-        public static ConsoleKeyInfo ShiftF3 = new ConsoleKeyInfo((char)0, ConsoleKey.F3, true, false, false);
-        public static ConsoleKeyInfo ShiftF8 = new ConsoleKeyInfo((char)0, ConsoleKey.F8, true, false, false);
+        public static ConsoleKeyInfo CtrlAltY            = CtrlAlt('y');
+        public static ConsoleKeyInfo CtrlAltRBracket     = CtrlAlt(']');
+        public static ConsoleKeyInfo CtrlAltQuestion     = CtrlAlt('?');
 
-        // Keys to ignore 
-        public static ConsoleKeyInfo VolumeUp   = new ConsoleKeyInfo((char)0, ConsoleKey.VolumeUp, false, false, false);
-        public static ConsoleKeyInfo VolumeDown = new ConsoleKeyInfo((char)0, ConsoleKey.VolumeDown, false, false, false);
-        public static ConsoleKeyInfo VolumeMute = new ConsoleKeyInfo((char)0, ConsoleKey.VolumeMute, false, false, false);
+
+        [DllImport("user32.dll")]
+        public static extern int VkKeyScan(short wAsciiVal);
+
+        struct KeyWithModifiers
+        {
+            public KeyWithModifiers(ConsoleKey key, ConsoleModifiers mods = 0)
+            {
+                Key = key;
+                Modifiers = mods;
+            }
+            public ConsoleKey Key { get; }
+            public ConsoleModifiers Modifiers { get; }
+
+            public override bool Equals(object other)
+            {
+                if (!(other is KeyWithModifiers)) return false;
+                var obj = (KeyWithModifiers)other;
+                return Key == obj.Key && Modifiers == obj.Modifiers;
+            }
+
+            public override int GetHashCode()
+            {
+                int h1 = Key.GetHashCode();
+                int h2 = Modifiers.GetHashCode();
+                // This is based on Tuple.GetHashCode
+                return unchecked(((h1 << 5) + h1) ^ h2);
+            }
+        }
+
+        private static readonly Dictionary<KeyWithModifiers, char> CtrlKeyToKeyCharMap
+            = new Dictionary<KeyWithModifiers, char>();
+
+        static Keys()
+        {
+            int i;
+            for (i = 0; i < 26; i++)
+            {
+                CtrlKeyToKeyCharMap.Add(new KeyWithModifiers(ConsoleKey.A + i), (char)(i + 1));
+            }
+
+            for (i = 0; i < 10; i++)
+            {
+                char c = i == 2 ? '\0' : i == 6 ? '\x1e' : (char) ('0' + i);
+                CtrlKeyToKeyCharMap.Add(new KeyWithModifiers(ConsoleKey.D0 + i), c);
+                CtrlKeyToKeyCharMap.Add(new KeyWithModifiers(ConsoleKey.NumPad0 + i), c);
+            }
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                // These mapping are needed to support different keyboard
+                // layouts, e.g. ']' is Oem6 with an English keyboard, but
+                // Oem5 with a Portuguese keyboard.
+                foreach (char c in "`~!@#$%^&*()-_=+[{]}\\|;:'\",<.>/?")
+                {
+                    var scan = VkKeyScan((short) c);
+                    ConsoleModifiers mods = 0;
+                    if ((scan & 0x100) != 0) { mods |= ConsoleModifiers.Shift; }
+                    if ((scan & 0x200) != 0) { mods |= ConsoleModifiers.Control; }
+                    if ((scan & 0x400) != 0) { mods |= ConsoleModifiers.Alt; }
+                    var key = new KeyWithModifiers((ConsoleKey)(scan & 0xff), mods);
+                    CtrlKeyToKeyCharMap.Add(key, c);
+                }
+            }
+        }
+
+        internal static bool IgnoreKeyChar(this ConsoleKeyInfo key)
+        {
+            switch (key.Key)
+            {
+                case ConsoleKey.F1:
+                case ConsoleKey.F2:
+                case ConsoleKey.F3:
+                case ConsoleKey.F4:
+                case ConsoleKey.F5:
+                case ConsoleKey.F6:
+                case ConsoleKey.F7:
+                case ConsoleKey.F8:
+                case ConsoleKey.F9:
+                case ConsoleKey.F10:
+                case ConsoleKey.F11:
+                case ConsoleKey.F12:
+                case ConsoleKey.F13:
+                case ConsoleKey.F14:
+                case ConsoleKey.F15:
+                case ConsoleKey.F16:
+                case ConsoleKey.F17:
+                case ConsoleKey.F18:
+                case ConsoleKey.F19:
+                case ConsoleKey.F20:
+                case ConsoleKey.F21:
+                case ConsoleKey.F22:
+                case ConsoleKey.F23:
+                case ConsoleKey.F24:
+                case ConsoleKey.Delete:
+                case ConsoleKey.DownArrow:
+                case ConsoleKey.End:
+                case ConsoleKey.Enter:
+                case ConsoleKey.Home:
+                case ConsoleKey.LeftArrow:
+                case ConsoleKey.PageUp:
+                case ConsoleKey.PageDown:
+                case ConsoleKey.RightArrow:
+                case ConsoleKey.Tab:
+                case ConsoleKey.UpArrow:
+                    return true;
+            }
+
+            return false;
+        }
+
+        private static ConsoleModifiers NormalizeModifiers(this ConsoleKeyInfo key)
+        {
+            var result = key.Modifiers;
+            if (!char.IsControl(key.KeyChar))
+            {
+                // Ignore Shift state unless it's a control character.
+                result = result & ~ConsoleModifiers.Shift;
+            }
+
+            return result;
+        }
+
+        internal static char NormalizeKeyChar(this ConsoleKeyInfo key)
+        {
+            if (key.KeyChar == '\0' && (key.Modifiers & ConsoleModifiers.Control) != 0)
+            {
+                // On Windows, ConsoleKeyInfo.Key is something we wanted to ignore, but
+                // a few bindings force us to do something with it.
+                var mods = key.Modifiers & ConsoleModifiers.Shift;
+                var keyWithMods = new KeyWithModifiers(key.Key, mods);
+                if (CtrlKeyToKeyCharMap.TryGetValue(keyWithMods, out var keyChar))
+                    return keyChar;
+
+                if (key.Key >= ConsoleKey.A && key.Key <= ConsoleKey.Z)
+                {
+                    return (char)(key.Key - ConsoleKey.A + 1);
+                }
+
+            }
+            return key.KeyChar;
+        }
+
+        internal static bool EqualsNormalized(this ConsoleKeyInfo x, ConsoleKeyInfo y)
+        {
+            // In the common case, we mask something out of the ConsoleKeyInfo
+            // e.g. Shift or somewhat meaningless Key (like Oem6) which might vary
+            // in different keyboard layouts.
+            //
+            // That said, if all fields compare, it's a match and we return that.
+            if (x.Key == y.Key && x.KeyChar == y.KeyChar && x.Modifiers == y.Modifiers)
+                return true;
+
+            // We ignore Shift state as that can vary in different keyboard layouts.
+            var xMods = NormalizeModifiers(x);
+            var yMods = NormalizeModifiers(y);
+
+            if (xMods != yMods)
+                return false;
+
+            // If we don't have a character, we probably masked it out (except for Ctrl+@)
+            // when building our key bindings, so compare Key instead.
+            return x.IgnoreKeyChar() || y.IgnoreKeyChar()
+                ? x.Key == y.Key
+                : x.NormalizeKeyChar() == y.NormalizeKeyChar();
+        }
+
+        internal static int GetNormalizedHashCode(this ConsoleKeyInfo obj)
+        {
+            // Because a comparison of two ConsoleKeyInfo objects is a comparison of the
+            // combination of the ConsoleKey and Modifiers, we must combine their hashes.
+            // Note that if the ConsoleKey is default, we must fall back to the KeyChar,
+           // otherwise every non-special key will compare as the same.
+            int h1 = obj.IgnoreKeyChar()
+                ? obj.Key.GetHashCode()
+                : obj.NormalizeKeyChar().GetHashCode();
+
+            int h2 = NormalizeModifiers(obj).GetHashCode();
+
+            // This is based on Tuple.GetHashCode
+            return unchecked(((h1 << 5) + h1) ^ h2);
+        }
+
+        internal static bool ShouldInsert(this ConsoleKeyInfo key)
+        {
+            return key.KeyChar != '\0' &&
+                   (key.Modifiers & (ConsoleModifiers.Alt | ConsoleModifiers.Control)) == 0;
+        }
+
+        internal static bool IsUnmodifiedChar(this ConsoleKeyInfo key, char c)
+        {
+            return key.KeyChar == c &&
+                   (key.Modifiers & (ConsoleModifiers.Alt | ConsoleModifiers.Control)) == 0;
+        }
+
+        public static string ToGestureString(this ConsoleKeyInfo key)
+        {
+            var useKeyEnum = key.IgnoreKeyChar();
+
+            var mods = key.Modifiers;
+
+            var sb = new StringBuilder();
+
+            if (useKeyEnum && (mods & ConsoleModifiers.Shift) != 0)
+            {
+                sb.Append("Shift");
+            }
+
+            if ((mods & ConsoleModifiers.Control) != 0)
+            {
+                if (sb.Length > 0) sb.Append("+");
+                sb.Append("Ctrl");
+            }
+
+            if ((mods & ConsoleModifiers.Alt) != 0)
+            {
+                if (sb.Length > 0) sb.Append("+");
+                sb.Append("Alt");
+            }
+
+            if (sb.Length > 0) sb.Append("+");
+
+            if (useKeyEnum)
+            {
+                sb.Append(key.Key);
+            }
+            else
+            {
+                var c = key.NormalizeKeyChar();
+                string s;
+                switch (c)
+                {
+                    case ' '   : s = "Space";     break;
+                    case '\x1b': s = "Escape";    break;
+                    case '\x1c': s = "\\";        break;
+                    case '\x1d': s = "]";         break;
+                    case '\x1f': s = "_";         break;
+                    case '\x7f': s = "Backspace"; break;
+                    case '\x08':
+                        s = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "Backspace" : "Ctrl+Backspace";
+                        break;
+
+                    case char _ when c <= 26:
+                        s = ((char) ('a' + c - 1)).ToString();
+                        break;
+
+                    default:
+                        s = c.ToString();
+                        break;
+                }
+                sb.Append(s);
+            }
+
+            return sb.ToString();
+        }
     }
 }

@@ -4,6 +4,7 @@ Copyright (c) Microsoft Corporation.  All rights reserved.
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 
 namespace Microsoft.PowerShell
 {
@@ -50,7 +51,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         private void SetDefaultViBindings()
         {
-            _viInsKeyMap = new Dictionary<ConsoleKeyInfo, KeyHandler>(new ConsoleKeyInfoComparer())
+            _viInsKeyMap = new Dictionary<ConsoleKeyInfo, KeyHandler>(ConsoleKeyInfoComparer.Instance)
             {
                 { Keys.Enter,           MakeKeyHandler(AcceptLine,             "AcceptLine" ) },
                 { Keys.CtrlD,           MakeKeyHandler(ViAcceptLineOrExit,     "ViAcceptLineOrExit" ) },
@@ -70,16 +71,12 @@ namespace Microsoft.PowerShell
                 { Keys.Tab,             MakeKeyHandler(ViTabCompleteNext,      "ViTabCompleteNext") },
                 { Keys.ShiftTab,        MakeKeyHandler(ViTabCompletePrevious,  "ViTabCompletePrevious") },
                 { Keys.CtrlV,           MakeKeyHandler(Paste,                  "Paste") },
-                { Keys.VolumeDown,      MakeKeyHandler(Ignore,                 "Ignore") },
-                { Keys.VolumeUp,        MakeKeyHandler(Ignore,                 "Ignore") },
-                { Keys.VolumeMute,      MakeKeyHandler(Ignore,                 "Ignore") },
                 { Keys.CtrlC,           MakeKeyHandler(CancelLine,             "CancelLine") },
                 { Keys.CtrlL,           MakeKeyHandler(ClearScreen,            "ClearScreen") },
                 { Keys.CtrlT,           MakeKeyHandler(SwapCharacters,         "SwapCharacters") },
                 { Keys.CtrlY,           MakeKeyHandler(Redo,                   "Redo") },
                 { Keys.CtrlZ,           MakeKeyHandler(Undo,                   "Undo") },
                 { Keys.CtrlBackspace,   MakeKeyHandler(BackwardKillWord,       "BackwardKillWord") },
-                { Keys.CtrlDelete,      MakeKeyHandler(KillWord,               "KillWord") },
                 { Keys.CtrlEnd,         MakeKeyHandler(ForwardDeleteLine,      "ForwardDeleteLine") },
                 { Keys.CtrlHome,        MakeKeyHandler(BackwardDeleteLine,     "BackwardDeleteLine") },
                 { Keys.CtrlRBracket,    MakeKeyHandler(GotoBrace,              "GotoBrace") },
@@ -89,7 +86,14 @@ namespace Microsoft.PowerShell
                 { Keys.CtrlR,           MakeKeyHandler(ViSearchHistoryBackward,"ViSearchHistoryBackward") },
                 { Keys.CtrlS,           MakeKeyHandler(SearchForward,          "SearchForward") }
             };
-            _viCmdKeyMap = new Dictionary<ConsoleKeyInfo, KeyHandler>(new ConsoleKeyInfoComparer())
+
+            // Some bindings are not available on certain platforms
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                _viInsKeyMap.Add(Keys.CtrlDelete, MakeKeyHandler(KillWord, "KillWord"));
+            }
+
+            _viCmdKeyMap = new Dictionary<ConsoleKeyInfo, KeyHandler>(ConsoleKeyInfoComparer.Instance)
             {
                 { Keys.Enter,           MakeKeyHandler(ViAcceptLine,         "ViAcceptLine") },
                 { Keys.CtrlD,           MakeKeyHandler(ViAcceptLineOrExit,   "ViAcceptLineOrExit") },
@@ -110,9 +114,6 @@ namespace Microsoft.PowerShell
                 { Keys.Tab,             MakeKeyHandler(TabCompleteNext,      "TabCompleteNext") },
                 { Keys.ShiftTab,        MakeKeyHandler(TabCompletePrevious,  "TabCompletePrevious") },
                 { Keys.CtrlV,           MakeKeyHandler(Paste,                "Paste") },
-                { Keys.VolumeDown,      MakeKeyHandler(Ignore,               "Ignore") },
-                { Keys.VolumeUp,        MakeKeyHandler(Ignore,               "Ignore") },
-                { Keys.VolumeMute,      MakeKeyHandler(Ignore,               "Ignore") },
                 { Keys.CtrlC,           MakeKeyHandler(CancelLine,           "CancelLine") },
                 { Keys.CtrlL,           MakeKeyHandler(ClearScreen,          "ClearScreen") },
                 { Keys.CtrlT,           MakeKeyHandler(SwapCharacters,       "SwapCharacters") },
@@ -121,7 +122,6 @@ namespace Microsoft.PowerShell
                 { Keys.CtrlY,           MakeKeyHandler(Redo,                 "Redo") },
                 { Keys.CtrlZ,           MakeKeyHandler(Undo,                 "Undo") },
                 { Keys.CtrlBackspace,   MakeKeyHandler(BackwardKillWord,     "BackwardKillWord") },
-                { Keys.CtrlDelete,      MakeKeyHandler(KillWord,             "KillWord") },
                 { Keys.CtrlEnd,         MakeKeyHandler(ForwardDeleteLine,    "ForwardDeleteLine") },
                 { Keys.CtrlHome,        MakeKeyHandler(BackwardDeleteLine,   "BackwardDeleteLine") },
                 { Keys.CtrlRBracket,    MakeKeyHandler(GotoBrace,            "GotoBrace") },
@@ -206,7 +206,14 @@ namespace Microsoft.PowerShell
                 { Keys.Comma,           MakeKeyHandler(RepeatLastCharSearchBackwards, "RepeatLastCharSearchBackwards") }
             };
 
-            _viChordDTable = new Dictionary<ConsoleKeyInfo, KeyHandler>(new ConsoleKeyInfoComparer())
+            // Some bindings are not available on certain platforms
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                _viCmdKeyMap.Add(Keys.CtrlDelete, MakeKeyHandler(KillWord, "KillWord"));
+            }
+
+
+            _viChordDTable = new Dictionary<ConsoleKeyInfo, KeyHandler>(ConsoleKeyInfoComparer.Instance)
             {
                 { Keys.D,               MakeKeyHandler( DeleteLine,                   "DeleteLine") },
                 { Keys.Dollar,          MakeKeyHandler( DeleteToEnd,                  "DeleteToEnd") },
@@ -228,7 +235,7 @@ namespace Microsoft.PowerShell
                 { Keys.ucT,             MakeKeyHandler( ViDeleteToBeforeCharBackward, "ViDeleteToBeforeCharBackward") },
             };
 
-            _viChordCTable = new Dictionary<ConsoleKeyInfo, KeyHandler>(new ConsoleKeyInfoComparer())
+            _viChordCTable = new Dictionary<ConsoleKeyInfo, KeyHandler>(ConsoleKeyInfoComparer.Instance)
             {
                 { Keys.C,               MakeKeyHandler( ViReplaceLine,                    "ViReplaceLine") },
                 { Keys.Dollar,          MakeKeyHandler( ViReplaceToEnd,                   "ViReplaceToEnd") },
@@ -250,7 +257,7 @@ namespace Microsoft.PowerShell
                 { Keys.ucT,             MakeKeyHandler( ViReplaceToBeforeCharBackward,    "ViReplaceToBeforeCharBackward") },
             };
 
-            _viChordYTable = new Dictionary<ConsoleKeyInfo, KeyHandler>(new ConsoleKeyInfoComparer())
+            _viChordYTable = new Dictionary<ConsoleKeyInfo, KeyHandler>(ConsoleKeyInfoComparer.Instance)
             {
                 { Keys.Y,               MakeKeyHandler( ViYankLine,            "ViYankLine") },
                 { Keys.Dollar,          MakeKeyHandler( ViYankToEndOfLine,     "ViYankToEndOfLine") },
@@ -268,8 +275,8 @@ namespace Microsoft.PowerShell
                 { Keys.Percent,         MakeKeyHandler( ViYankPercent,         "ViYankPercent") },
             };
 
-            _viCmdChordTable = new Dictionary<ConsoleKeyInfo, Dictionary<ConsoleKeyInfo, KeyHandler>>();
-            _viInsChordTable = new Dictionary<ConsoleKeyInfo, Dictionary<ConsoleKeyInfo, KeyHandler>>();
+            _viCmdChordTable = new Dictionary<ConsoleKeyInfo, Dictionary<ConsoleKeyInfo, KeyHandler>>(ConsoleKeyInfoComparer.Instance);
+            _viInsChordTable = new Dictionary<ConsoleKeyInfo, Dictionary<ConsoleKeyInfo, KeyHandler>>(ConsoleKeyInfoComparer.Instance);
 
             _dispatchTable = _viInsKeyMap;
             _chordDispatchTable = _viInsChordTable;

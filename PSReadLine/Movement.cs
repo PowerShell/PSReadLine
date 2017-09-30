@@ -420,7 +420,7 @@ namespace Microsoft.PowerShell
                 return s[0];
             }
 
-            return (char)0;
+            return '\0';
         }
 
         /// <summary>
@@ -438,7 +438,7 @@ namespace Microsoft.PowerShell
             }
 
             char toFind = TryGetArgAsChar(arg);
-            if (toFind == (char)0)
+            if (toFind == '\0')
             {
                 // Should we prompt?
                 toFind = ReadKey().KeyChar;
@@ -476,7 +476,7 @@ namespace Microsoft.PowerShell
             }
 
             char toFind = TryGetArgAsChar(arg);
-            if (toFind == (char)0)
+            if (toFind == '\0')
             {
                 // Should we prompt?
                 toFind = ReadKey().KeyChar;

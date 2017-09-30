@@ -857,18 +857,18 @@ namespace Microsoft.PowerShell
             while (true)
             {
                 var nextKey = ReadKey();
-                if (nextKey.Key == Keys.Enter.Key || nextKey.Key == Keys.Tab.Key)
+                if (nextKey.EqualsNormalized(Keys.Enter) || nextKey.EqualsNormalized(Keys.Tab))
                 {
                     _searchHistoryPrefix = argBuffer.ToString();
                     _searchHistoryBackward = backward;
                     HistorySearch();
                     break;
                 }
-                if (nextKey.Key == Keys.Escape.Key)
+                if (nextKey.EqualsNormalized(Keys.Escape))
                 {
                     break;
                 }
-                if (nextKey.Key == Keys.Backspace.Key)
+                if (nextKey.EqualsNormalized(Keys.Backspace))
                 {
                     if (argBuffer.Length > 0)
                     {
@@ -960,7 +960,7 @@ namespace Microsoft.PowerShell
                 {
                     _singleton.ProcessOneKey(secondKey, secondKeyDispatchTable, ignoreIfNoAction: true, arg: arg);
                 }
-                else if (!IsNumberic(secondKey))
+                else if (!IsNumeric(secondKey))
                 {
                     _singleton.ProcessOneKey(secondKey, secondKeyDispatchTable, ignoreIfNoAction: true, arg: arg);
                 }
@@ -969,7 +969,7 @@ namespace Microsoft.PowerShell
                     var argBuffer = _singleton._statusBuffer;
                     argBuffer.Clear();
                     _singleton._statusLinePrompt = "digit-argument: ";
-                    while (IsNumberic(secondKey))
+                    while (IsNumeric(secondKey))
                     {
                         argBuffer.Append(secondKey.KeyChar);
                         _singleton.Render();
@@ -990,9 +990,9 @@ namespace Microsoft.PowerShell
             }
         }
 
-        private static bool IsNumberic(ConsoleKeyInfo key)
+        private static bool IsNumeric(ConsoleKeyInfo key)
         {
-            return char.IsNumber(key.KeyChar);
+            return key.KeyChar >= '0' && key.KeyChar <= '9' && key.Modifiers == 0;
         }
 
         /// <summary>
@@ -1031,7 +1031,7 @@ namespace Microsoft.PowerShell
                 var nextKey = ReadKey();
                 if (_singleton._dispatchTable.TryGetValue(nextKey, out var handler) && handler.Action == DigitArgument)
                 {
-                    if (nextKey.KeyChar == '-')
+                    if (nextKey.EqualsNormalized(Keys.Minus))
                     {
                         if (argBuffer[0] == '-')
                         {
@@ -1045,7 +1045,7 @@ namespace Microsoft.PowerShell
                         continue;
                     }
 
-                    if (nextKey.KeyChar >= '0' && nextKey.KeyChar <= '9')
+                    if (IsNumeric(nextKey))
                     {
                         if (!sawDigit && argBuffer.Length > 0)
                         {

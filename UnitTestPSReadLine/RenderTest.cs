@@ -159,7 +159,7 @@ namespace UnitTestPSReadLine
         [TestMethod]
         public void TestInvokePrompt()
         {
-            TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+Z", PSConsoleReadLine.InvokePrompt));
+            TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+z", PSConsoleReadLine.InvokePrompt));
 
             // Test dumb prompt that doesn't return anything.
             using (var ps = PowerShell.Create(RunspaceMode.CurrentRunspace))

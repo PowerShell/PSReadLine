@@ -598,7 +598,9 @@ namespace Microsoft.PowerShell
                 {
                     UpdateHistoryDuringInteractiveSearch(toMatch.ToString(), +1, ref searchFromPoint);
                 }
-                else if (function == BackwardDeleteChar || key == Keys.Backspace || key == Keys.CtrlH)
+                else if (function == BackwardDeleteChar
+                    || key.EqualsNormalized(Keys.Backspace)
+                    || key.EqualsNormalized(Keys.CtrlH))
                 {
                     if (toMatch.Length > 0)
                     {
@@ -639,7 +641,7 @@ namespace Microsoft.PowerShell
                         Ding();
                     }
                 }
-                else if (key == Keys.Escape)
+                else if (key.EqualsNormalized(Keys.Escape))
                 {
                     // End search
                     break;
@@ -650,7 +652,7 @@ namespace Microsoft.PowerShell
                     EndOfHistory();
                     break;
                 }
-                else if (EndInteractiveHistorySearch(key, function))
+                else if (EndInteractiveHistorySearch(key))
                 {
                     PrependQueuedKeys(key);
                     break;
@@ -678,20 +680,10 @@ namespace Microsoft.PowerShell
             }
         }
 
-        private static bool EndInteractiveHistorySearch(ConsoleKeyInfo key, Action<ConsoleKeyInfo?, object> function)
+        private static bool EndInteractiveHistorySearch(ConsoleKeyInfo key)
         {
-            // Keys < ' ' are control characters
-            if (key.KeyChar < ' ')
-            {
-                return true;
-            }
-
-            if ((key.Modifiers & (ConsoleModifiers.Alt | ConsoleModifiers.Control)) != 0)
-            {
-                return true;
-            }
-
-            return false;
+            return char.IsControl(key.KeyChar)
+                || (key.Modifiers & (ConsoleModifiers.Alt | ConsoleModifiers.Control)) != 0;
         }
 
         private void InteractiveHistorySearch(int direction)
