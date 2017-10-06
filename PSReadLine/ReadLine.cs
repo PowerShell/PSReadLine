@@ -34,6 +34,7 @@ namespace Microsoft.PowerShell
 
         private IPSConsoleReadLineMockableMethods _mockableMethods;
         private IConsole _console;
+        private Encoding _initialOutputEncoding;
 
         private EngineIntrinsics _engineIntrinsics;
         private Thread _readKeyThread;
@@ -318,6 +319,7 @@ namespace Microsoft.PowerShell
                 }
                 finally
                 {
+                    Console.OutputEncoding = _singleton._initialOutputEncoding;
                     if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                     {
                         PlatformWindows.Complete();
@@ -409,9 +411,17 @@ namespace Microsoft.PowerShell
 
         T CallPossibleExternalApplication<T>(Func<T> func)
         {
-            return RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-                ? PlatformWindows.CallPossibleExternalApplication(func)
-                : func();
+            try
+            {
+                Console.OutputEncoding = _initialOutputEncoding;
+                return RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                    ? PlatformWindows.CallPossibleExternalApplication(func)
+                    : func();
+            }
+            finally
+            {
+                Console.OutputEncoding = Encoding.Unicode;
+            }
         }
 
         void CallPossibleExternalApplication(Action action)
@@ -517,6 +527,8 @@ namespace Microsoft.PowerShell
             _visualSelectionCommandCount = 0;
             _statusIsErrorMessage = false;
 
+            _initialOutputEncoding = Console.OutputEncoding;
+            Console.OutputEncoding = Encoding.Unicode;
             _lastRenderTime = Stopwatch.StartNew();
 
             _killCommandCount = 0;
