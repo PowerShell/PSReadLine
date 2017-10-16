@@ -135,6 +135,7 @@ task LayoutModule BuildMainModule, BuildMamlHelp, {
         'PSReadLine/Changes.txt',
         'PSReadLine/License.txt',
         'PSReadLine/SamplePSReadlineProfile.ps1',
+        'PSReadLine/PSReadLine.format.ps1xml',
         'PSReadLine/PSReadLine.psm1'
 
     foreach ($file in $extraFiles)

@@ -967,6 +967,15 @@ namespace Microsoft.PowerShell
             return (isBackground ? BackgroundColorMap : ForegroundColorMap)[index];
         }
 
+        public static string FormatColor(object seq)
+        {
+            if (seq is ConsoleColor) return seq.ToString();
+
+            var replacement = (typeof(PSObject).Assembly.GetName().Version.Major < 6)
+                ? "$([char]0x1b)"
+                : "`e";
+            return "\"" + seq.ToString().Replace("\x1b", replacement) + "\"";
+        }
     }
 #pragma warning restore 1591
 
