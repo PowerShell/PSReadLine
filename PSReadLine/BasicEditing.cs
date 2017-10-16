@@ -7,6 +7,7 @@ using System.Globalization;
 using System.Linq;
 using System.Management.Automation;
 using System.Management.Automation.Language;
+using Microsoft.PowerShell.PSReadLine;
 
 namespace Microsoft.PowerShell
 {
@@ -81,27 +82,10 @@ namespace Microsoft.PowerShell
         {
             _singleton.ClearStatusMessage(false);
             _singleton._current = _singleton._buffer.Length;
-            // We want to display ^C to show the line was canceled.  Instead of appending ^C
-            // (or (char)3), we append 2 spaces so we don't affect tokenization too much, e.g.
-            // changing a keyword to a command.
-            _singleton._buffer.Append("  ");
-            _singleton.ReallyRender();
+            _singleton.ForceRender();
 
-            // Now that we've rendered with this extra spaces, go back and replace the spaces
-            // with ^C colored in red (so it stands out.)
-            var coordinates = _singleton.ConvertOffsetToCoordinates(_singleton._current);
-            var console = _singleton._console;
-            var consoleBuffer = _singleton._consoleBuffer;
-            int i = (coordinates.Y - _singleton._initialY) * console.BufferWidth + coordinates.X;
-            consoleBuffer[i].UnicodeChar = '^';
-            consoleBuffer[i].ForegroundColor = ConsoleColor.Red;
-            consoleBuffer[i].BackgroundColor = console.BackgroundColor;
-            consoleBuffer[i+1].UnicodeChar = 'C';
-            consoleBuffer[i+1].ForegroundColor = ConsoleColor.Red;
-            consoleBuffer[i+1].BackgroundColor = console.BackgroundColor;
-            console.WriteBufferLines(consoleBuffer, ref _singleton._initialY);
+            _singleton._console.Write("\x1b[91m^C\x1b[0m");
 
-            _singleton.PlaceCursor(0, coordinates.Y + 1);
             _singleton._buffer.Clear(); // Clear so we don't actually run the input
             _singleton._current = 0; // If Render is called, _current must be correct.
             _singleton._currentHistoryIndex = _singleton._history.Count;
@@ -248,7 +232,7 @@ namespace Microsoft.PowerShell
 
             if (renderNeeded)
             {
-                ReallyRender();
+                ForceRender();
             }
 
             // Only run validation if we haven't before.  If we have and status line shows an error,
@@ -283,8 +267,8 @@ namespace Microsoft.PowerShell
                 ClearStatusMessage(render: true);
             }
 
-            var coordinates = ConvertOffsetToCoordinates(_current);
-            PlaceCursor(0, coordinates.Y + 1);
+            var point = ConvertOffsetToPoint(_current);
+            PlaceCursor(0, point.Y + 1);
             _inputAccepted = true;
             return true;
         }
@@ -406,8 +390,8 @@ namespace Microsoft.PowerShell
                 {
                 // The following are debugger commands that should be accepted if we're debugging
                 // because the console host will interpret these commands directly.
-                case 's': case 'v': case 'o': case 'c': case 'q': case'k': case 'l':
-                case 'S': case 'V': case 'O': case 'C': case 'Q': case'K': case 'L':
+                case 's': case 'v': case 'o': case 'c': case 'q': case 'k': case 'l':
+                case 'S': case 'V': case 'O': case 'C': case 'Q': case 'K': case 'L':
                 case '?': case 'h': case 'H':
                     // Ideally we would check $PSDebugContext, but it is set at function
                     // scope, and because we're in a module, we can't find that variable
@@ -482,7 +466,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void InsertLineAbove(ConsoleKeyInfo? key = null, object arg = null)
         {
-            // Move the current postion to the beginning of the current line and only the current line.
+            // Move the current position to the beginning of the current line and only the current line.
             if (_singleton.LineIsMultiLine())
             {
                 int i = Math.Max(0, _singleton._current - 1);
@@ -512,7 +496,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void InsertLineBelow(ConsoleKeyInfo? key = null, object arg = null)
         {
-            // Move the current postion to the end of the current line and only the current line.
+            // Move the current position to the end of the current line and only the current line.
             if (_singleton.LineIsMultiLine())
             {
                 int i = _singleton._current;

@@ -69,6 +69,12 @@ namespace UnitTestPSReadLine
 
             const string promptLine1 = "c:\\windows";
             const string promptLine2 = "PS> ";
+            using (var ps = PowerShell.Create(RunspaceMode.CurrentRunspace))
+            {
+                ps.AddScript($@"function prompt {{ ""{promptLine1}`n{promptLine2}"" }}");
+                ps.Invoke();
+            }
+
             _console.Clear();
             Test("psvar", Keys(
                 "psvar",
@@ -86,6 +92,12 @@ namespace UnitTestPSReadLine
                                                promptLine2,
                                                TokenClassification.Command, "psvar"))),
                 prompt: promptLine1 + "\n" + promptLine2);
+
+            using (var ps = PowerShell.Create(RunspaceMode.CurrentRunspace))
+            {
+                ps.AddCommand("Remove-Item").AddArgument("prompt");
+                ps.Invoke();
+            }
 
             _console.Clear();
             TestMustDing("none", Keys(
@@ -130,12 +142,7 @@ namespace UnitTestPSReadLine
 
             PSConsoleReadLine.GetOptions().ShowToolTips = true;
             _console.Clear();
-            Test("Get-Tooltips", Keys(
-                "Get-Tooltips", _.CtrlSpace,
-                CheckThat(() => AssertScreenIs(2,
-                    TokenClassification.Command, "Get-Tooltips", NextLine,
-                    TokenClassification.None,
-                    "item1  - useful description goes here"))));
+            // TODO:
         }
 
         [TestMethod]

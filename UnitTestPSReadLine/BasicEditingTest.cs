@@ -25,7 +25,7 @@ namespace UnitTestPSReadLine
         public void TestRevertLine()
         {
             // Add one test for chords
-            TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+X,Escape", PSConsoleReadLine.RevertLine));
+            TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+x,Escape", PSConsoleReadLine.RevertLine));
 
             Test("ls", Keys("di", _.Escape, "ls"));
             Test("ls", Keys("di", _.CtrlX, _.Escape, "ls"));
@@ -246,37 +246,37 @@ namespace UnitTestPSReadLine
             Test("56\n1234", Keys("1234", _.Home, _.CtrlEnter, CheckThat(() => AssertCursorLeftTopIs(0, 0)), "56"));
 
             // Test case - start with single line, cursor in middle
-            Test("56\n1234", Keys("1234", 
-                                  _.LeftArrow, _.LeftArrow, _.CtrlEnter, CheckThat(() => AssertCursorLeftTopIs(0, 0)), 
+            Test("56\n1234", Keys("1234",
+                                  _.LeftArrow, _.LeftArrow, _.CtrlEnter, CheckThat(() => AssertCursorLeftTopIs(0, 0)),
                                   "56"));
 
 
             // Test case - start with multi-line, cursor at end of second line (end of input)
-            Test("1234\n9ABC\n5678", Keys("1234", _.ShiftEnter, "5678", 
+            Test("1234\n9ABC\n5678", Keys("1234", _.ShiftEnter, "5678",
                                           _.CtrlEnter, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 1)),
                                           "9ABC"));
 
             // Test case - start with multi-line, cursor at beginning of second line
-            Test("1234\n9ABC\n5678", Keys("1234", _.ShiftEnter, "5678", 
+            Test("1234\n9ABC\n5678", Keys("1234", _.ShiftEnter, "5678",
                                           _.LeftArrow, _.Home, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 1)),
                                           _.CtrlEnter, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 1)),
                                           "9ABC"));
 
             // Test case - start with multi-line, cursor at end of first line
-            Test("9ABC\n1234\n5678", Keys("1234", _.ShiftEnter, "5678", 
+            Test("9ABC\n1234\n5678", Keys("1234", _.ShiftEnter, "5678",
                                           _.UpArrow, _.LeftArrow, _.End, CheckThat(() => AssertCursorLeftTopIs(4, 0)),
                                           _.CtrlEnter, CheckThat(() => AssertCursorLeftTopIs(0, 0)),
                                           "9ABC"));
 
             // Test case - start with multi-line, cursor at beginning of first line - temporarily having to press Home twice to
             // work around bug in home handler.
-            Test("9ABC\n1234\n5678", Keys("1234", _.ShiftEnter, "5678", 
+            Test("9ABC\n1234\n5678", Keys("1234", _.ShiftEnter, "5678",
                                           _.UpArrow, _.LeftArrow, _.Home, _.Home, CheckThat(() => AssertCursorLeftTopIs(0, 0)),
                                           _.CtrlEnter, CheckThat(() => AssertCursorLeftTopIs(0, 0)),
                                           "9ABC"));
 
             // Test case - insert multiple blank lines
-            Test("1234\n9ABC\n\n5678", Keys("1234", _.ShiftEnter, "5678", 
+            Test("1234\n9ABC\n\n5678", Keys("1234", _.ShiftEnter, "5678",
                                           _.CtrlEnter, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 1)),
                                           _.CtrlEnter, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 1)),
                                           "9ABC"));
@@ -290,42 +290,42 @@ namespace UnitTestPSReadLine
             var continutationPromptLength = PSConsoleReadlineOptions.DefaultContinuationPrompt.Length;
 
             // Test case - start with single line, cursor at end
-            Test("1234\n56", Keys("1234", 
-                                  _.CtrlShiftEnter, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 1)), 
+            Test("1234\n56", Keys("1234",
+                                  _.CtrlShiftEnter, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 1)),
                                   "56"));
 
             // Test case - start with single line, cursor in home position
-            Test("1234\n56", Keys("1234", 
-                                  _.Home, _.CtrlShiftEnter, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 1)), 
+            Test("1234\n56", Keys("1234",
+                                  _.Home, _.CtrlShiftEnter, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 1)),
                                   "56"));
 
             // Test case - start with single line, cursor in middle
-            Test("1234\n56", Keys("1234", 
-                                  _.LeftArrow, _.LeftArrow, _.CtrlShiftEnter, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 1)), 
+            Test("1234\n56", Keys("1234",
+                                  _.LeftArrow, _.LeftArrow, _.CtrlShiftEnter, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 1)),
                                   "56"));
 
             // Test case - start with multi-line, cursor at end of second line (end of input)
-            Test("1234\n5678\n9ABC", Keys("1234", _.ShiftEnter, "5678", 
-                                          _.CtrlShiftEnter, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 2)), 
+            Test("1234\n5678\n9ABC", Keys("1234", _.ShiftEnter, "5678",
+                                          _.CtrlShiftEnter, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 2)),
                                           "9ABC"));
 
             // Test case - start with multi-line, cursor at beginning of second line
-            Test("1234\n5678\n9ABC", Keys("1234", _.ShiftEnter, "5678", 
-                                          _.LeftArrow, _.Home, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 1)), 
-                                          _.CtrlShiftEnter, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 2)), 
+            Test("1234\n5678\n9ABC", Keys("1234", _.ShiftEnter, "5678",
+                                          _.LeftArrow, _.Home, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 1)),
+                                          _.CtrlShiftEnter, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 2)),
                                           "9ABC"));
 
             // Test case - start with multi-line, cursor at end of first line
-            Test("1234\n9ABC\n5678", Keys("1234", _.ShiftEnter, "5678", 
-                                          _.UpArrow, _.LeftArrow, _.End, CheckThat(() => AssertCursorLeftTopIs(4, 0)), 
-                                          _.CtrlShiftEnter, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 1)), 
+            Test("1234\n9ABC\n5678", Keys("1234", _.ShiftEnter, "5678",
+                                          _.UpArrow, _.LeftArrow, _.End, CheckThat(() => AssertCursorLeftTopIs(4, 0)),
+                                          _.CtrlShiftEnter, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 1)),
                                           "9ABC"));
 
             // Test case - start with multi-line, cursor at beginning of first line - temporarily having to press Home twice to
             // work around bug in home handler.
-            Test("1234\n9ABC\n5678", Keys("1234", _.ShiftEnter, "5678", 
-                                          _.UpArrow, _.LeftArrow, _.Home, _.Home, CheckThat(() => AssertCursorLeftTopIs(0, 0)), 
-                                          _.CtrlShiftEnter, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 1)), 
+            Test("1234\n9ABC\n5678", Keys("1234", _.ShiftEnter, "5678",
+                                          _.UpArrow, _.LeftArrow, _.Home, _.Home, CheckThat(() => AssertCursorLeftTopIs(0, 0)),
+                                          _.CtrlShiftEnter, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 1)),
                                           "9ABC"));
 
             // Test case - insert multiple blank lines
@@ -340,7 +340,7 @@ namespace UnitTestPSReadLine
         {
             TestSetup(KeyMode.Cmd);
 
-            // Going from second line to first line, press left arrow and then home.  
+            // Going from second line to first line, press left arrow and then home.
             // That puts cursor in column 1 instead of 0. Bug?  This could have something
             // to do with BeginningOfLine testing against i > 1 in multiline edit instead
             // of i > 0.
@@ -352,7 +352,10 @@ namespace UnitTestPSReadLine
         {
             TestSetup(KeyMode.Emacs);
 
-            Test("ab", Keys("a", _.VolumeDown, _.VolumeMute, _.VolumeUp, "b"));
+            var volumeUp   = new ConsoleKeyInfo('\0', ConsoleKey.VolumeUp, false, false, false);
+            var volumeDown = new ConsoleKeyInfo('\0', ConsoleKey.VolumeDown, false, false, false);
+            var volumeMute = new ConsoleKeyInfo('\0', ConsoleKey.VolumeMute, false, false, false);
+            Test("ab", Keys("a", volumeDown, volumeMute, volumeUp, "b"));
         }
     }
 }

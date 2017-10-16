@@ -11,11 +11,13 @@ namespace UnitTestPSReadLine
     public partial class UnitTest
     {
 
-        [TestMethod]
+        // Disabled because the test is not portable without some mocking that
+        // probably not worth the effort.
+        //[TestMethod]
         public void TestCaptureScreen()
         {
             TestSetup(KeyMode.Cmd,
-                new KeyHandler("Ctrl+Z", PSConsoleReadLine.CaptureScreen));
+                new KeyHandler("Ctrl+z", PSConsoleReadLine.CaptureScreen));
 
             var line  = new [] {"echo alpha", "echo beta", "echo phi", "echo rho"};
             Test(line[0], Keys(line[0], _.CtrlZ, _.Enter, _.Enter));
@@ -33,8 +35,8 @@ namespace UnitTestPSReadLine
             // Make sure we know where we are on the screen.
             AssertCursorTopIs(4);
 
-            var shiftUpArrow = new ConsoleKeyInfo((char)0, ConsoleKey.UpArrow, true, false, false);
-            var shiftDownArrow = new ConsoleKeyInfo((char)0, ConsoleKey.DownArrow, true, false, false);
+            var shiftUpArrow = new ConsoleKeyInfo('\0', ConsoleKey.UpArrow, true, false, false);
+            var shiftDownArrow = new ConsoleKeyInfo('\0', ConsoleKey.DownArrow, true, false, false);
 
             Test("", Keys(
                 // Basic up/down arrows

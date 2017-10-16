@@ -97,6 +97,9 @@ namespace Microsoft.PowerShell
             _singleton.MoveCursor(Math.Min(i, _singleton._buffer.Length - 1));
         }
 
+        /// <summary>
+        /// Moves the cursor to the end of the word, using only white space as delimiters.
+        /// </summary>
         public static void ViEndOfGlob(ConsoleKeyInfo? key = null, object arg = null)
         {
             if (!TryGetArgAsInt(arg, out var numericArg, 1))
@@ -116,6 +119,9 @@ namespace Microsoft.PowerShell
             }
         }
 
+        /// <summary>
+        /// Moves to the end of the previous word, using only white space as a word delimiter.
+        /// </summary>
         public static void ViEndOfPreviousGlob(ConsoleKeyInfo? key = null, object arg = null)
         {
             if (!TryGetArgAsInt(arg, out var numericArg, 1))

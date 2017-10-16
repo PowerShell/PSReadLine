@@ -139,7 +139,7 @@ namespace UnitTestPSReadLine
         public void TestShellForwardWord()
         {
             TestSetup(KeyMode.Emacs,
-                new KeyHandler("Alt+F", PSConsoleReadLine.ShellForwardWord));
+                new KeyHandler("Alt+f", PSConsoleReadLine.ShellForwardWord));
 
             string input = "aaa  bbb  ccc";
             Test(input, Keys(

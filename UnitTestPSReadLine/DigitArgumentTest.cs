@@ -14,8 +14,8 @@ namespace UnitTestPSReadLine
         {
             int argValue = 0;
             TestSetup(KeyMode.Emacs,
-                new KeyHandler("Ctrl+Z", (key, arg) => argValue = (int)arg));
-            
+                new KeyHandler("Ctrl+z", (key, arg) => argValue = (int)arg));
+
             Test("", Keys(
                 _.Alt1, _.CtrlZ, CheckThat(() => Assert.AreEqual(1, argValue)),
                 _.Alt2, _.CtrlZ, CheckThat(() => Assert.AreEqual(2, argValue)),
@@ -48,7 +48,7 @@ namespace UnitTestPSReadLine
         public void TestDigitArgumentPrompt()
         {
             TestSetup(KeyMode.Emacs);
-            
+
             Test("", Keys(
                 _.Alt1, CheckThat(() => AssertScreenIs(2, NextLine, "digit-argument: 1")),
                 _.CtrlG,

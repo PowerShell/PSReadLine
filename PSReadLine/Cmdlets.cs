@@ -6,10 +6,13 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Management.Automation;
 using System.Management.Automation.Language;
 using System.Reflection;
 using System.Linq;
+using System.Runtime.InteropServices;
+using Microsoft.PowerShell.PSReadLine;
 
 namespace Microsoft.PowerShell
 {
@@ -45,7 +48,6 @@ namespace Microsoft.PowerShell
         Audible
     }
 
-    #region vi
     public enum ViModeStyle
     {
         None,
@@ -58,7 +60,6 @@ namespace Microsoft.PowerShell
         Insert,
         Command
     }
-    #endregion vi
 
     public enum HistorySaveStyle
     {
@@ -69,20 +70,22 @@ namespace Microsoft.PowerShell
 
     public class PSConsoleReadlineOptions
     {
-        public const ConsoleColor DefaultCommentForegroundColor   = ConsoleColor.DarkGreen;
-        public const ConsoleColor DefaultKeywordForegroundColor   = ConsoleColor.Green;
-        public const ConsoleColor DefaultStringForegroundColor    = ConsoleColor.DarkCyan;
-        public const ConsoleColor DefaultOperatorForegroundColor  = ConsoleColor.DarkGray;
-        public const ConsoleColor DefaultVariableForegroundColor  = ConsoleColor.Green;
-        public const ConsoleColor DefaultCommandForegroundColor   = ConsoleColor.Yellow;
-        public const ConsoleColor DefaultParameterForegroundColor = ConsoleColor.DarkGray;
-        public const ConsoleColor DefaultTypeForegroundColor      = ConsoleColor.Gray;
-        public const ConsoleColor DefaultNumberForegroundColor    = ConsoleColor.White;
-        public const ConsoleColor DefaultMemberForegroundColor    = ConsoleColor.Gray;
-        public const ConsoleColor DefaultEmphasisForegroundColor  = ConsoleColor.Cyan;
-        public const ConsoleColor DefaultErrorForegroundColor     = ConsoleColor.Red;
+        public const ConsoleColor DefaultCommentColor   = ConsoleColor.DarkGreen;
+        public const ConsoleColor DefaultKeywordColor   = ConsoleColor.Green;
+        public const ConsoleColor DefaultStringColor    = ConsoleColor.DarkCyan;
+        public const ConsoleColor DefaultOperatorColor  = ConsoleColor.DarkGray;
+        public const ConsoleColor DefaultVariableColor  = ConsoleColor.Green;
+        public const ConsoleColor DefaultCommandColor   = ConsoleColor.Yellow;
+        public const ConsoleColor DefaultParameterColor = ConsoleColor.DarkGray;
+        public const ConsoleColor DefaultTypeColor      = ConsoleColor.Gray;
+        public const ConsoleColor DefaultNumberColor    = ConsoleColor.White;
+        public const ConsoleColor DefaultMemberColor    = ConsoleColor.Gray;
+        public const ConsoleColor DefaultEmphasisColor  = ConsoleColor.Cyan;
+        public const ConsoleColor DefaultErrorColor     = ConsoleColor.Red;
 
-        public const EditMode DefaultEditMode = EditMode.Windows;
+        public static EditMode DefaultEditMode = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+            ? EditMode.Windows
+            : EditMode.Emacs;
 
         public const string DefaultContinuationPrompt = ">> ";
 
@@ -105,9 +108,9 @@ namespace Microsoft.PowerShell
 
         /// <summary>
         /// When displaying possible completions, either display
-        /// tooltips or dipslay just the completions.
+        /// tooltips or display just the completions.
         /// </summary>
-        public const bool DefaultShowToolTips = false;
+        public const bool DefaultShowToolTips = true;
 
         /// <summary>
         /// When ringing the bell, what frequency do we use?
@@ -135,8 +138,7 @@ namespace Microsoft.PowerShell
             ResetColors();
             EditMode = DefaultEditMode;
             ContinuationPrompt = DefaultContinuationPrompt;
-            ContinuationPromptBackgroundColor = Console.BackgroundColor;
-            ContinuationPromptForegroundColor = Console.ForegroundColor;
+            ContinuationPromptColor = Console.ForegroundColor;
             ExtraPromptLineCount = DefaultExtraPromptLineCount;
             AddToHistoryHandler = null;
             HistoryNoDuplicates = DefaultHistoryNoDuplicates;
@@ -151,8 +153,44 @@ namespace Microsoft.PowerShell
             WordDelimiters = DefaultWordDelimiters;
             HistorySearchCaseSensitive = DefaultHistorySearchCaseSensitive;
             HistorySaveStyle = DefaultHistorySaveStyle;
-            HistorySavePath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)
-                + @"\Microsoft\Windows\PowerShell\PSReadline\" + hostName + "_history.txt";
+
+            var historyFileName = hostName + "_history.txt";
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                HistorySavePath = System.IO.Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                    "Microsoft",
+                    "Windows",
+                    "PowerShell",
+                    "PSReadLine",
+                    historyFileName);
+            }
+            else
+            {
+                // PSReadline can't use Utils.CorePSPlatform (6.0+ only), so do the equivalent:
+                string historyPath = Environment.GetEnvironmentVariable("XDG_DATA_HOME");
+
+                if (!String.IsNullOrEmpty(historyPath))
+                {
+                    HistorySavePath = System.IO.Path.Combine(
+                        historyPath,
+                        "powershell",
+                        "PSReadLine",
+                        historyFileName);
+                }
+                else
+                {
+                    // History is data, so it goes into .local/share/powershell folder
+                    HistorySavePath = System.IO.Path.Combine(
+                        Environment.GetEnvironmentVariable("HOME"),
+                        ".local",
+                        "share",
+                        "powershell",
+                        "PSReadLine",
+                        historyFileName);
+                }
+            }
+
             CommandValidationHandler = null;
             CommandsToValidateScriptBlockArguments = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
             {
@@ -174,8 +212,14 @@ namespace Microsoft.PowerShell
         public EditMode EditMode { get; set; }
 
         public string ContinuationPrompt { get; set; }
-        public ConsoleColor ContinuationPromptForegroundColor { get; set; }
-        public ConsoleColor ContinuationPromptBackgroundColor { get; set; }
+
+        public object ContinuationPromptColor
+        {
+            get => _continuationPromptColor;
+            set => _continuationPromptColor = VTColorUtils.AsEscapeSequence(value);
+        }
+
+        internal string _continuationPromptColor;
 
         /// <summary>
         /// Prompts are typically 1 line, but sometimes they may span lines.  This
@@ -235,9 +279,7 @@ namespace Microsoft.PowerShell
         public bool HistorySearchCaseSensitive { get; set; }
         internal StringComparison HistoryStringComparison => HistorySearchCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
 
-        #region vi
         public ViModeStyle ViModeIndicator { get; set; }
-        #endregion vi
 
         /// <summary>
         /// The path to the saved history.
@@ -245,101 +287,143 @@ namespace Microsoft.PowerShell
         public string HistorySavePath { get; set; }
         public HistorySaveStyle HistorySaveStyle { get; set; }
 
-        public ConsoleColor DefaultTokenForegroundColor { get; set; }
-        public ConsoleColor CommentForegroundColor { get; set; }
-        public ConsoleColor KeywordForegroundColor { get; set; }
-        public ConsoleColor StringForegroundColor { get; set; }
-        public ConsoleColor OperatorForegroundColor { get; set; }
-        public ConsoleColor VariableForegroundColor { get; set; }
-        public ConsoleColor CommandForegroundColor { get; set; }
-        public ConsoleColor ParameterForegroundColor { get; set; }
-        public ConsoleColor TypeForegroundColor { get; set; }
-        public ConsoleColor NumberForegroundColor { get; set; }
-        public ConsoleColor MemberForegroundColor { get; set; }
-        public ConsoleColor DefaultTokenBackgroundColor { get; set; }
-        public ConsoleColor CommentBackgroundColor { get; set; }
-        public ConsoleColor KeywordBackgroundColor { get; set; }
-        public ConsoleColor StringBackgroundColor { get; set; }
-        public ConsoleColor OperatorBackgroundColor { get; set; }
-        public ConsoleColor VariableBackgroundColor { get; set; }
-        public ConsoleColor CommandBackgroundColor { get; set; }
-        public ConsoleColor ParameterBackgroundColor { get; set; }
-        public ConsoleColor TypeBackgroundColor { get; set; }
-        public ConsoleColor NumberBackgroundColor { get; set; }
-        public ConsoleColor MemberBackgroundColor { get; set; }
-        public ConsoleColor EmphasisForegroundColor { get; set; }
-        public ConsoleColor EmphasisBackgroundColor { get; set; }
-        public ConsoleColor ErrorForegroundColor { get; set; }
-        public ConsoleColor ErrorBackgroundColor { get; set; }
+        /// <summary>
+        /// This is the text you want turned red on parse errors, but must
+        /// occur immediately before the cursor when readline starts.
+        /// If the prompt function is pure, this value can be inferred, e.g.
+        /// the default prompt will use "> " for this value.
+        /// </summary>
+        public string PromptText { get; set; }
+
+        public object DefaultTokenColor
+        {
+            get => _defaultTokenColor;
+            set => _defaultTokenColor = VTColorUtils.AsEscapeSequence(value);
+        }
+
+        public object CommentColor
+        {
+            get => _commentColor;
+            set => _commentColor = VTColorUtils.AsEscapeSequence(value);
+        }
+
+        public object KeywordColor
+        {
+            get => _keywordColor;
+            set => _keywordColor = VTColorUtils.AsEscapeSequence(value);
+        }
+
+        public object StringColor
+        {
+            get => _stringColor;
+            set => _stringColor = VTColorUtils.AsEscapeSequence(value);
+        }
+
+        public object OperatorColor
+        {
+            get => _operatorColor;
+            set => _operatorColor = VTColorUtils.AsEscapeSequence(value);
+        }
+
+        public object VariableColor
+        {
+            get => _variableColor;
+            set => _variableColor = VTColorUtils.AsEscapeSequence(value);
+        }
+
+        public object CommandColor
+        {
+            get => _commandColor;
+            set => _commandColor = VTColorUtils.AsEscapeSequence(value);
+        }
+
+        public object ParameterColor
+        {
+            get => _parameterColor;
+            set => _parameterColor = VTColorUtils.AsEscapeSequence(value);
+        }
+
+        public object TypeColor
+        {
+            get => _typeColor;
+            set => _typeColor = VTColorUtils.AsEscapeSequence(value);
+        }
+
+        public object NumberColor
+        {
+            get => _numberColor;
+            set => _numberColor = VTColorUtils.AsEscapeSequence(value);
+        }
+
+        public object MemberColor
+        {
+            get => _memberColor;
+            set => _memberColor = VTColorUtils.AsEscapeSequence(value);
+        }
+
+        public object EmphasisColor
+        {
+            get => _emphasisColor;
+            set => _emphasisColor = VTColorUtils.AsEscapeSequence(value);
+        }
+
+        public object ErrorColor
+        {
+            get => _errorColor;
+            set => _errorColor = VTColorUtils.AsEscapeSequence(value);
+        }
+
+        internal string _defaultTokenColor;
+        internal string _commentColor;
+        internal string _keywordColor;
+        internal string _stringColor;
+        internal string _operatorColor;
+        internal string _variableColor;
+        internal string _commandColor;
+        internal string _parameterColor;
+        internal string _typeColor;
+        internal string _numberColor;
+        internal string _memberColor;
+        internal string _emphasisColor;
+        internal string _errorColor;
 
         internal void ResetColors()
         {
-            DefaultTokenForegroundColor = Console.ForegroundColor;
-            CommentForegroundColor      = DefaultCommentForegroundColor;
-            KeywordForegroundColor      = DefaultKeywordForegroundColor;
-            StringForegroundColor       = DefaultStringForegroundColor;
-            OperatorForegroundColor     = DefaultOperatorForegroundColor;
-            VariableForegroundColor     = DefaultVariableForegroundColor;
-            CommandForegroundColor      = DefaultCommandForegroundColor;
-            ParameterForegroundColor    = DefaultParameterForegroundColor;
-            TypeForegroundColor         = DefaultTypeForegroundColor;
-            NumberForegroundColor       = DefaultNumberForegroundColor;
-            MemberForegroundColor       = DefaultNumberForegroundColor;
-            EmphasisForegroundColor     = DefaultEmphasisForegroundColor;
-            ErrorForegroundColor        = DefaultErrorForegroundColor;
-            DefaultTokenBackgroundColor = Console.BackgroundColor;
-            CommentBackgroundColor      = Console.BackgroundColor;
-            KeywordBackgroundColor      = Console.BackgroundColor;
-            StringBackgroundColor       = Console.BackgroundColor;
-            OperatorBackgroundColor     = Console.BackgroundColor;
-            VariableBackgroundColor     = Console.BackgroundColor;
-            CommandBackgroundColor      = Console.BackgroundColor;
-            ParameterBackgroundColor    = Console.BackgroundColor;
-            TypeBackgroundColor         = Console.BackgroundColor;
-            NumberBackgroundColor       = Console.BackgroundColor;
-            MemberBackgroundColor       = Console.BackgroundColor;
-            EmphasisBackgroundColor     = Console.BackgroundColor;
-            ErrorBackgroundColor        = Console.BackgroundColor;
+            DefaultTokenColor = Console.ForegroundColor;
+            CommentColor      = DefaultCommentColor;
+            KeywordColor      = DefaultKeywordColor;
+            StringColor       = DefaultStringColor;
+            OperatorColor     = DefaultOperatorColor;
+            VariableColor     = DefaultVariableColor;
+            CommandColor      = DefaultCommandColor;
+            ParameterColor    = DefaultParameterColor;
+            TypeColor         = DefaultTypeColor;
+            NumberColor       = DefaultNumberColor;
+            MemberColor       = DefaultNumberColor;
+            EmphasisColor     = DefaultEmphasisColor;
+            ErrorColor        = DefaultErrorColor;
         }
 
-        internal void SetForegroundColor(TokenClassification tokenKind, ConsoleColor color)
+        internal void SetColor(TokenClassification tokenKind, object color)
         {
             switch (tokenKind)
             {
-            case TokenClassification.None:      DefaultTokenForegroundColor = color; break;
-            case TokenClassification.Comment:   CommentForegroundColor = color; break;
-            case TokenClassification.Keyword:   KeywordForegroundColor = color; break;
-            case TokenClassification.String:    StringForegroundColor = color; break;
-            case TokenClassification.Operator:  OperatorForegroundColor = color; break;
-            case TokenClassification.Variable:  VariableForegroundColor = color; break;
-            case TokenClassification.Command:   CommandForegroundColor = color; break;
-            case TokenClassification.Parameter: ParameterForegroundColor = color; break;
-            case TokenClassification.Type:      TypeForegroundColor = color; break;
-            case TokenClassification.Number:    NumberForegroundColor = color; break;
-            case TokenClassification.Member:    MemberForegroundColor = color; break;
-            }
-        }
-
-        internal void SetBackgroundColor(TokenClassification tokenKind, ConsoleColor color)
-        {
-            switch (tokenKind)
-            {
-            case TokenClassification.None:      DefaultTokenBackgroundColor = color; break;
-            case TokenClassification.Comment:   CommentBackgroundColor = color; break;
-            case TokenClassification.Keyword:   KeywordBackgroundColor = color; break;
-            case TokenClassification.String:    StringBackgroundColor = color; break;
-            case TokenClassification.Operator:  OperatorBackgroundColor = color; break;
-            case TokenClassification.Variable:  VariableBackgroundColor = color; break;
-            case TokenClassification.Command:   CommandBackgroundColor = color; break;
-            case TokenClassification.Parameter: ParameterBackgroundColor = color; break;
-            case TokenClassification.Type:      TypeBackgroundColor = color; break;
-            case TokenClassification.Number:    NumberBackgroundColor = color; break;
-            case TokenClassification.Member:    MemberBackgroundColor = color; break;
+            case TokenClassification.None:      DefaultTokenColor = color; break;
+            case TokenClassification.Comment:   CommentColor = color; break;
+            case TokenClassification.Keyword:   KeywordColor = color; break;
+            case TokenClassification.String:    StringColor = color; break;
+            case TokenClassification.Operator:  OperatorColor = color; break;
+            case TokenClassification.Variable:  VariableColor = color; break;
+            case TokenClassification.Command:   CommandColor = color; break;
+            case TokenClassification.Parameter: ParameterColor = color; break;
+            case TokenClassification.Type:      TypeColor = color; break;
+            case TokenClassification.Number:    NumberColor = color; break;
+            case TokenClassification.Member:    MemberColor = color; break;
             }
         }
     }
 
-    [Cmdlet("Get", "PSReadlineOption", HelpUri = "http://go.microsoft.com/fwlink/?LinkId=528808")]
+    [Cmdlet("Get", "PSReadlineOption", HelpUri = "https://go.microsoft.com/fwlink/?LinkId=528808")]
     [OutputType(typeof(PSConsoleReadlineOptions))]
     public class GetPSReadlineOption : PSCmdlet
     {
@@ -350,7 +434,7 @@ namespace Microsoft.PowerShell
         }
     }
 
-    [Cmdlet("Set", "PSReadlineOption", HelpUri = "http://go.microsoft.com/fwlink/?LinkId=528811")]
+    [Cmdlet("Set", "PSReadlineOption", HelpUri = "https://go.microsoft.com/fwlink/?LinkId=528811")]
     public class SetPSReadlineOption : PSCmdlet
     {
         [Parameter(ParameterSetName = "OptionsSet")]
@@ -366,52 +450,19 @@ namespace Microsoft.PowerShell
         public string ContinuationPrompt { get; set; }
 
         [Parameter(ParameterSetName = "OptionsSet")]
-        public ConsoleColor ContinuationPromptForegroundColor
-        {
-            get => _continuationPromptForegroundColor.GetValueOrDefault();
-            set => _continuationPromptForegroundColor = value;
-        }
-        internal ConsoleColor? _continuationPromptForegroundColor;
+        [Alias("ContinuationPromptForegroundColor")]
+        [ValidateColor]
+        public object ContinuationPromptColor { get; set; }
 
         [Parameter(ParameterSetName = "OptionsSet")]
-        public ConsoleColor ContinuationPromptBackgroundColor
-        {
-            get => _continuationPromptBackgroundColor.GetValueOrDefault();
-            set => _continuationPromptBackgroundColor = value;
-        }
-        internal ConsoleColor? _continuationPromptBackgroundColor;
+        [Alias("EmphasisForegroundColor")]
+        [ValidateColor]
+        public object EmphasisColor { get; set; }
 
         [Parameter(ParameterSetName = "OptionsSet")]
-        public ConsoleColor EmphasisForegroundColor
-        {
-            get => _emphasisForegroundColor.GetValueOrDefault();
-            set => _emphasisForegroundColor = value;
-        }
-        internal ConsoleColor? _emphasisForegroundColor;
-
-        [Parameter(ParameterSetName = "OptionsSet")]
-        public ConsoleColor EmphasisBackgroundColor
-        {
-            get => _emphasisBackgroundColor.GetValueOrDefault();
-            set => _emphasisBackgroundColor = value;
-        }
-        internal ConsoleColor? _emphasisBackgroundColor;
-
-        [Parameter(ParameterSetName = "OptionsSet")]
-        public ConsoleColor ErrorForegroundColor
-        {
-            get => _errorForegroundColor.GetValueOrDefault();
-            set => _errorForegroundColor = value;
-        }
-        internal ConsoleColor? _errorForegroundColor;
-
-        [Parameter(ParameterSetName = "OptionsSet")]
-        public ConsoleColor ErrorBackgroundColor
-        {
-            get => _errorBackgroundColor.GetValueOrDefault();
-            set => _errorBackgroundColor = value;
-        }
-        internal ConsoleColor? _errorBackgroundColor;
+        [Alias("ErrorForegroundColor")]
+        [ValidateColor]
+        public object ErrorColor { get; set; }
 
         [Parameter(ParameterSetName = "OptionsSet")]
         public SwitchParameter HistoryNoDuplicates
@@ -553,7 +604,10 @@ namespace Microsoft.PowerShell
         [ValidateNotNullOrEmpty]
         public string HistorySavePath { get; set; }
 
-        #region vi
+        [Parameter(ParameterSetName = "OptionsSet")]
+        [ValidateNotNull]
+        public string PromptText { get; set; }
+
         [Parameter(ParameterSetName = "OptionsSet")]
         public ViModeStyle ViModeIndicator
         {
@@ -561,7 +615,6 @@ namespace Microsoft.PowerShell
             set => _viModeIndicator = value;
         }
         internal ViModeStyle? _viModeIndicator;
-        #endregion vi
 
         [Parameter(ParameterSetName = "ColorSet", Position = 0, Mandatory = true)]
         public TokenClassification TokenKind
@@ -572,25 +625,24 @@ namespace Microsoft.PowerShell
         internal TokenClassification? _tokenKind;
 
         [Parameter(ParameterSetName = "ColorSet", Position = 1)]
-        public ConsoleColor ForegroundColor
-        {
-            get => _foregroundColor.GetValueOrDefault();
-            set => _foregroundColor = value;
-        }
-        internal ConsoleColor? _foregroundColor;
-
-        [Parameter(ParameterSetName = "ColorSet", Position = 2)]
-        public ConsoleColor BackgroundColor
-        {
-            get => _backgroundColor.GetValueOrDefault();
-            set => _backgroundColor = value;
-        }
-        internal ConsoleColor? _backgroundColor;
+        [Alias("ForegroundColor")]
+        [ValidateColor]
+        public object Color { get; set; }
 
         [ExcludeFromCodeCoverage]
         protected override void EndProcessing()
         {
             PSConsoleReadLine.SetOptions(this);
+        }
+    }
+
+    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
+    internal class ValidateColorAttribute : ValidateArgumentsAttribute
+    {
+        protected override void Validate(object arguments, EngineIntrinsics engineIntrinsics)
+        {
+            if (!VTColorUtils.IsValidColor(arguments))
+                throw new ValidationMetadataException(PSReadLineResources.InvalidColorParameter);
         }
     }
 
@@ -631,7 +683,7 @@ namespace Microsoft.PowerShell
         }
     }
 
-    [Cmdlet("Set", "PSReadlineKeyHandler", HelpUri = "http://go.microsoft.com/fwlink/?LinkId=528810")]
+    [Cmdlet("Set", "PSReadlineKeyHandler", HelpUri = "https://go.microsoft.com/fwlink/?LinkId=528810")]
     public class SetPSReadlineKeyHandlerCommand : ChangePSReadlineKeyHandlerCommandBase, IDynamicParameters
     {
         [Parameter(Position = 1, Mandatory = true, ParameterSetName = "ScriptBlock")]
@@ -656,11 +708,14 @@ namespace Microsoft.PowerShell
                 if (ParameterSetName.Equals(FunctionParameterSet))
                 {
                     var function = (string)_dynamicParameters.Value[FunctionParameter].Value;
+                    var mi = typeof (PSConsoleReadLine).GetMethod(function,
+                        BindingFlags.Public | BindingFlags.Static | BindingFlags.IgnoreCase);
                     var keyHandler = (Action<ConsoleKeyInfo?, object>)
-                        Delegate.CreateDelegate(typeof (Action<ConsoleKeyInfo?, object>),
-                            typeof (PSConsoleReadLine).GetMethod(function));
-                    BriefDescription = function;
-                    PSConsoleReadLine.SetKeyHandler(Chord, keyHandler, BriefDescription, Description);
+                         mi.CreateDelegate(typeof (Action<ConsoleKeyInfo?, object>));
+                    var functionName = mi.Name;
+                    var longDescription = PSReadLineResources.ResourceManager.GetString(functionName + "Description");
+
+                    PSConsoleReadLine.SetKeyHandler(Chord, keyHandler, functionName, longDescription);
                 }
                 else
                 {
@@ -706,7 +761,7 @@ namespace Microsoft.PowerShell
         }
     }
 
-    [Cmdlet("Get", "PSReadlineKeyHandler", HelpUri = "http://go.microsoft.com/fwlink/?LinkId=528807")]
+    [Cmdlet("Get", "PSReadlineKeyHandler", HelpUri = "https://go.microsoft.com/fwlink/?LinkId=528807")]
     [OutputType(typeof(KeyHandler))]
     public class GetKeyHandlerCommand : PSCmdlet
     {
@@ -750,7 +805,7 @@ namespace Microsoft.PowerShell
         }
     }
 
-    [Cmdlet("Remove", "PSReadlineKeyHandler", HelpUri = "http://go.microsoft.com/fwlink/?LinkId=528809")]
+    [Cmdlet("Remove", "PSReadlineKeyHandler", HelpUri = "https://go.microsoft.com/fwlink/?LinkId=528809")]
     public class RemoveKeyHandlerCommand : ChangePSReadlineKeyHandlerCommandBase
     {
         [ExcludeFromCodeCoverage]
@@ -763,6 +818,165 @@ namespace Microsoft.PowerShell
         }
     }
 
+    public static class VTColorUtils
+    {
+        internal static bool IsValidColorImpl(ConsoleColor c) => true;
+
+        internal static bool IsValidColorImpl(string s) => true;
+
+        public static bool IsValidColor(object o)
+        {
+            switch (o)
+            {
+                case ConsoleColor c:
+                    return true;
+
+                case string s:
+                    if (s.Length > 0)
+                    {
+                        // String can be converted to ConsoleColor, so is it a ConsoleColor?
+                        if (LanguagePrimitives.TryConvertTo(s, out ConsoleColor unused1))
+                            return true;
+
+                        // Escape sequence - assume it's fine as is
+                        if (s[0] == '\x1b')
+                            return true;
+
+                        // RGB format with possible '#'
+                        if (s[0] == '#')
+                            s = s.Substring(1);
+
+                        if (int.TryParse(s, NumberStyles.HexNumber, NumberFormatInfo.InvariantInfo, out int rgb) &&
+                            rgb >= 0 && rgb <= 0x00ffffff)
+                            return true;
+                    }
+                    break;
+            }
+
+            return false;
+        }
+
+        public static string AsEscapeSequence(object o)
+        {
+            return AsEscapeSequence(o, isBackground: false);
+        }
+
+        public static string AsEscapeSequence(object o, bool isBackground)
+        {
+            switch (o)
+            {
+                case ConsoleColor c:
+                    return MapColorToEscapeSequence(c, isBackground);
+
+                case string s:
+                    if (s.Length > 0)
+                    {
+                        // String can be converted to ConsoleColor, so it is a ConsoleColor
+                        if (LanguagePrimitives.TryConvertTo(s, out ConsoleColor c))
+                            return MapColorToEscapeSequence(c, isBackground);
+
+                        // Escape sequence - assume it's fine as is
+                        if (s[0] == '\x1b')
+                            return s;
+
+                        // RGB format with possible '#'
+                        if (s[0] == '#')
+                            s = s.Substring(1);
+
+                        if (s.Length == 6 &&
+                            int.TryParse(s, NumberStyles.HexNumber, NumberFormatInfo.InvariantInfo, out int rgb) &&
+                            rgb >= 0 && rgb <= 0x00ffffff)
+                        {
+                            if (rgb < 256)
+                            {
+                                return "\x1b[" + (isBackground ? "4" : "3") + "8;5;" + rgb + "m";
+                            }
+
+                            var r = (rgb >> 16) & 0xff;
+                            var g = (rgb >> 8) & 0xff;
+                            var b = rgb & 0xff;
+
+                            return "\x1b[" + (isBackground ? "4" : "3") + "8;2;" + r + ";" + g + ";" + b + "m";
+                        }
+                    }
+                    break;
+            }
+
+            throw new ArgumentException("o");
+        }
+
+        private static readonly string[] BackgroundColorMap = {
+            "\x1b[40m", // Black
+            "\x1b[44m", // DarkBlue
+            "\x1b[42m", // DarkGreen
+            "\x1b[46m", // DarkCyan
+            "\x1b[41m", // DarkRed
+            "\x1b[45m", // DarkMagenta
+            "\x1b[43m", // DarkYellow
+            "\x1b[47m", // Gray
+            "\x1b[100m", // DarkGray
+            "\x1b[104m", // Blue
+            "\x1b[102m", // Green
+            "\x1b[106m", // Cyan
+            "\x1b[101m", // Red
+            "\x1b[105m", // Magenta
+            "\x1b[103m", // Yellow
+            "\x1b[107m", // White
+        };
+
+        private static readonly string[] ForegroundColorMap = {
+            "\x1b[30m", // Black
+            "\x1b[34m", // DarkBlue
+            "\x1b[32m", // DarkGreen
+            "\x1b[36m", // DarkCyan
+            "\x1b[31m", // DarkRed
+            "\x1b[35m", // DarkMagenta
+            "\x1b[33m", // DarkYellow
+            "\x1b[37m", // Gray
+            "\x1b[90m", // DarkGray
+            "\x1b[94m", // Blue
+            "\x1b[92m", // Green
+            "\x1b[96m", // Cyan
+            "\x1b[91m", // Red
+            "\x1b[95m", // Magenta
+            "\x1b[93m", // Yellow
+            "\x1b[97m", // White
+        };
+
+        internal static string MapColorToEscapeSequence(ConsoleColor color, bool isBackground)
+        {
+            int index = (int) color;
+            if (index < 0)
+            {
+                // TODO: light vs. dark
+                if (isBackground)
+                {
+                    // Don't change the background - the default (unknown) background
+                    // might be subtly or completely different than what we choose and
+                    // look weird.
+                    return "";
+                }
+
+                return ForegroundColorMap[(int) ConsoleColor.Gray];
+            }
+
+            if (index > ForegroundColorMap.Length)
+            {
+                return "";
+            }
+            return (isBackground ? BackgroundColorMap : ForegroundColorMap)[index];
+        }
+
+        public static string FormatColor(object seq)
+        {
+            if (seq is ConsoleColor) return seq.ToString();
+
+            var replacement = (typeof(PSObject).Assembly.GetName().Version.Major < 6)
+                ? "$([char]0x1b)"
+                : "`e";
+            return "\"" + seq.ToString().Replace("\x1b", replacement) + "\"";
+        }
+    }
 #pragma warning restore 1591
 
 }

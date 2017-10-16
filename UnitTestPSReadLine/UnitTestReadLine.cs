@@ -6,6 +6,7 @@ using System.Linq;
 using System.Management.Automation;
 using System.Management.Automation.Runspaces;
 using System.Reflection;
+using System.Text;
 using System.Threading;
 using System.Windows;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -37,6 +38,58 @@ namespace UnitTestPSReadLine
         }
     }
 
+    internal struct CHAR_INFO
+    {
+        public ushort UnicodeChar;
+        public ushort Attributes;
+
+        public CHAR_INFO(char c, ConsoleColor foreground, ConsoleColor background)
+        {
+            UnicodeChar = c;
+            Attributes = (ushort)(((int)background << 4) | (int)foreground);
+        }
+
+        public ConsoleColor ForegroundColor
+        {
+            get => (ConsoleColor)(Attributes & 0xf);
+            set => Attributes = (ushort)((Attributes & 0xfff0) | ((int)value & 0xf));
+        }
+
+        public ConsoleColor BackgroundColor
+        {
+            get => (ConsoleColor)((Attributes & 0xf0) >> 4);
+            set => Attributes = (ushort)((Attributes & 0xff0f) | (((int)value & 0xf) << 4));
+        }
+
+        public override string ToString()
+        {
+            var sb = new StringBuilder();
+            sb.Append((char)UnicodeChar);
+            if (ForegroundColor != Console.ForegroundColor)
+                sb.AppendFormat(" fg: {0}", ForegroundColor);
+            if (BackgroundColor != Console.BackgroundColor)
+                sb.AppendFormat(" bg: {0}", BackgroundColor);
+            return sb.ToString();
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (!(obj is CHAR_INFO))
+            {
+                return false;
+            }
+
+            var other = (CHAR_INFO)obj;
+            return this.UnicodeChar == other.UnicodeChar && this.Attributes == other.Attributes;
+        }
+
+        public override int GetHashCode()
+        {
+            return UnicodeChar.GetHashCode() + Attributes.GetHashCode();
+        }
+    }
+
+
     internal class TestConsole : IConsole
     {
         internal int index;
@@ -51,7 +104,7 @@ namespace UnitTestPSReadLine
         internal TestConsole()
         {
             BackgroundColor = UnitTest.BackgroundColors[0];
-            ForegroundColor = UnitTest.ForegroundColors[0];
+            ForegroundColor = UnitTest.Colors[0];
             CursorLeft = 0;
             CursorTop = 0;
             _bufferWidth = _windowWidth = 60;
@@ -102,6 +155,7 @@ namespace UnitTestPSReadLine
         public int CursorTop { get; set; }
 
         public int CursorSize { get; set; }
+        public bool CursorVisible { get; set; }
 
         public int BufferWidth
         {
@@ -128,8 +182,22 @@ namespace UnitTestPSReadLine
         }
 
         public int WindowTop { get; set; }
-        public ConsoleColor BackgroundColor { get; set; }
-        public ConsoleColor ForegroundColor { get; set; }
+
+        public ConsoleColor BackgroundColor
+        {
+            get => _backgroundColor;
+            set => _backgroundColor = Negative ? (ConsoleColor)((int)value ^ 7) : value;
+        }
+        private ConsoleColor _backgroundColor;
+
+        public ConsoleColor ForegroundColor
+        {
+            get => _foregroundColor;
+            set => _foregroundColor = Negative ? (ConsoleColor)((int)value ^ 7) : value;
+        }
+        private ConsoleColor _foregroundColor;
+
+        private bool Negative;
 
         public void SetWindowPosition(int left, int top)
         {
@@ -155,6 +223,16 @@ namespace UnitTestPSReadLine
             var writePos = CursorTop * BufferWidth + CursorLeft;
             for (int i = 0; i < s.Length; i++)
             {
+                if (s[i] == (char) 0x1b)
+                {
+                    // Escape sequence - limited support here, and assumed to be well formed.
+                    var endSequence = s.IndexOf("m", i, StringComparison.Ordinal);
+                    var escapeSequence = s.Substring(i, endSequence - i + 1);
+                    EscapeSequenceActions[escapeSequence](this);
+                    i = endSequence;
+                    continue;
+                }
+
                 if (s[i] == '\b')
                 {
                     CursorLeft -= 1;
@@ -186,30 +264,7 @@ namespace UnitTestPSReadLine
             }
         }
 
-        public void WriteBufferLines(CHAR_INFO[] bufferToWrite, ref int top)
-        {
-            WriteBufferLines(bufferToWrite, ref top, true);
-        }
-
-        public void WriteBufferLines(CHAR_INFO[] bufferToWrite, ref int top, bool ensureBottomLineVisible)
-        {
-            var startPos = top * BufferWidth;
-            for (int i = 0; i < bufferToWrite.Length; i++)
-            {
-                buffer[startPos + i] = bufferToWrite[i];
-            }
-        }
-
         public void ScrollBuffer(int lines)
-        {
-        }
-
-        public uint GetConsoleInputMode()
-        {
-            return 0;
-        }
-
-        public void SetConsoleInputMode(uint mode)
         {
         }
 
@@ -235,10 +290,69 @@ namespace UnitTestPSReadLine
             return result;
         }
 
-        public bool IsHandleRedirected(bool stdin)
+        private int _savedX, _savedY;
+
+        public void SaveCursor()
         {
-            return false;
+            _savedX = CursorLeft;
+            _savedY = CursorTop;
         }
+
+        public void RestoreCursor()
+        {
+            SetCursorPosition(_savedX, _savedY);
+        }
+
+        private static readonly ConsoleColor DefaultForeground = UnitTest.Colors[0];
+        private static readonly ConsoleColor DefaultBackground = UnitTest.BackgroundColors[0];
+
+        private static void ToggleNegative(TestConsole c, bool b)
+        {
+            c.Negative = false;
+            c.ForegroundColor = (ConsoleColor)((int)c.ForegroundColor ^ 7);
+            c.BackgroundColor = (ConsoleColor)((int)c.BackgroundColor ^ 7);
+            c.Negative = b;
+        }
+        private static readonly Dictionary<string, Action<TestConsole>> EscapeSequenceActions = new Dictionary<string, Action<TestConsole>> {
+            {"\x1b[7m", c => ToggleNegative(c, true) },
+            {"\x1b[27m", c => ToggleNegative(c, false) },
+            {"\x1b[40m", c => c.BackgroundColor = ConsoleColor.Black},
+            {"\x1b[44m", c => c.BackgroundColor = ConsoleColor.DarkBlue },
+            {"\x1b[42m", c => c.BackgroundColor = ConsoleColor.DarkGreen},
+            {"\x1b[46m", c => c.BackgroundColor = ConsoleColor.DarkCyan},
+            {"\x1b[41m", c => c.BackgroundColor = ConsoleColor.DarkRed},
+            {"\x1b[45m", c => c.BackgroundColor = ConsoleColor.DarkMagenta},
+            {"\x1b[43m", c => c.BackgroundColor = ConsoleColor.DarkYellow},
+            {"\x1b[47m", c => c.BackgroundColor = ConsoleColor.Gray},
+            {"\x1b[100m", c => c.BackgroundColor = ConsoleColor.DarkGray},
+            {"\x1b[104m", c => c.BackgroundColor = ConsoleColor.Blue},
+            {"\x1b[102m", c => c.BackgroundColor = ConsoleColor.Green},
+            {"\x1b[106m", c => c.BackgroundColor = ConsoleColor.Cyan},
+            {"\x1b[101m", c => c.BackgroundColor = ConsoleColor.Red},
+            {"\x1b[105m", c => c.BackgroundColor = ConsoleColor.Magenta},
+            {"\x1b[103m", c => c.BackgroundColor = ConsoleColor.Yellow},
+            {"\x1b[107m", c => c.BackgroundColor = ConsoleColor.White},
+            {"\x1b[30m", c => c.ForegroundColor = ConsoleColor.Black},
+            {"\x1b[34m", c => c.ForegroundColor = ConsoleColor.DarkBlue},
+            {"\x1b[32m", c => c.ForegroundColor = ConsoleColor.DarkGreen},
+            {"\x1b[36m", c => c.ForegroundColor = ConsoleColor.DarkCyan},
+            {"\x1b[31m", c => c.ForegroundColor = ConsoleColor.DarkRed},
+            {"\x1b[35m", c => c.ForegroundColor = ConsoleColor.DarkMagenta},
+            {"\x1b[33m", c => c.ForegroundColor = ConsoleColor.DarkYellow},
+            {"\x1b[37m", c => c.ForegroundColor = ConsoleColor.Gray},
+            {"\x1b[90m", c => c.ForegroundColor = ConsoleColor.DarkGray},
+            {"\x1b[94m", c => c.ForegroundColor = ConsoleColor.Blue},
+            {"\x1b[92m", c => c.ForegroundColor = ConsoleColor.Green},
+            {"\x1b[96m", c => c.ForegroundColor = ConsoleColor.Cyan},
+            {"\x1b[91m", c => c.ForegroundColor = ConsoleColor.Red},
+            {"\x1b[95m", c => c.ForegroundColor = ConsoleColor.Magenta},
+            {"\x1b[93m", c => c.ForegroundColor = ConsoleColor.Yellow},
+            {"\x1b[97m", c => c.ForegroundColor = ConsoleColor.White},
+            {"\x1b[0m", c => {
+                c.ForegroundColor = DefaultForeground;
+                c.BackgroundColor = DefaultBackground;
+            }}
+        };
     }
 
     [TestClass]
@@ -298,7 +412,7 @@ namespace UnitTestPSReadLine
 
         // These colors are random - we just use these colors instead of the defaults
         // so the tests aren't sensitive to tweaks to the default colors.
-        internal static readonly ConsoleColor[] ForegroundColors = new []
+        internal static readonly ConsoleColor[] Colors = new []
         {
         /*None*/      ConsoleColor.DarkRed,
         /*Comment*/   ConsoleColor.Blue,
@@ -473,7 +587,7 @@ namespace UnitTestPSReadLine
                 }
                 if (item is TokenClassification)
                 {
-                    fg = ForegroundColors[(int)(TokenClassification)item];
+                    fg = Colors[(int)(TokenClassification)item];
                     bg = BackgroundColors[(int)(TokenClassification)item];
                     continue;
                 }
@@ -598,29 +712,55 @@ namespace UnitTestPSReadLine
 
         private void SetPrompt(string prompt)
         {
+            var options = new SetPSReadlineOption {ExtraPromptLineCount = 0};
             if (string.IsNullOrEmpty(prompt))
             {
-                var options = new SetPSReadlineOption {ExtraPromptLineCount = 0};
+                options.PromptText = "";
                 PSConsoleReadLine.SetOptions(options);
                 return;
             }
 
+            int i;
+            for (i = prompt.Length - 1; i >= 0; i--)
+            {
+                if (!char.IsWhiteSpace(prompt[i])) break;
+            }
+
+            options.PromptText = prompt.Substring(i);
+
             var lineCount = 1 + prompt.Count(c => c == '\n');
             if (lineCount > 1)
             {
-                var options = new SetPSReadlineOption {ExtraPromptLineCount = lineCount - 1};
-                PSConsoleReadLine.SetOptions(options);
+                options.ExtraPromptLineCount = lineCount - 1;
             }
+            PSConsoleReadLine.SetOptions(options);
             _console.Write(prompt);
         }
 
         [ExcludeFromCodeCoverage]
-        private void Test(string expectedResult, object[] items, bool resetCursor = true, string prompt = null, bool mustDing = false)
+        private void Test(string expectedResult, object[] items)
+        {
+            Test(expectedResult, items, resetCursor: true, prompt: null, mustDing: false);
+        }
+
+        [ExcludeFromCodeCoverage]
+        private void Test(string expectedResult, object[] items, string prompt)
+        {
+            Test(expectedResult, items, resetCursor: true, prompt: prompt, mustDing: false);
+        }
+
+        [ExcludeFromCodeCoverage]
+        private void Test(string expectedResult, object[] items, bool resetCursor)
+        {
+            Test(expectedResult, items, resetCursor: resetCursor, prompt: null, mustDing: false);
+        }
+
+        [ExcludeFromCodeCoverage]
+        private void Test(string expectedResult, object[] items, bool resetCursor, string prompt, bool mustDing)
         {
             if (resetCursor)
             {
-                _console.CursorLeft = 0;
-                _console.CursorTop = 0;
+                _console.Clear();
             }
             SetPrompt(prompt);
 
@@ -647,13 +787,16 @@ namespace UnitTestPSReadLine
             }
         }
 
-        private void TestMustDing(string expectedResult, object[] items, bool resetCursor = true, string prompt = null)
+        private void TestMustDing(string expectedResult, object[] items)
         {
-            Test(expectedResult, items, resetCursor, prompt, true);
+            Test(expectedResult, items, resetCursor: true, prompt: null, mustDing: true);
         }
 
         private TestConsole _console;
         private MockedMethods _mockedMethods;
+
+        private static string MakeCombinedColor(ConsoleColor fg, ConsoleColor bg)
+            => VTColorUtils.AsEscapeSequence(fg) + VTColorUtils.AsEscapeSequence(bg, isBackground: true);
 
         private void TestSetup(KeyMode keyMode, params KeyHandler[] keyHandlers)
         {
@@ -677,14 +820,11 @@ namespace UnitTestPSReadLine
                 BellStyle                         = PSConsoleReadlineOptions.DefaultBellStyle,
                 CompletionQueryItems              = PSConsoleReadlineOptions.DefaultCompletionQueryItems,
                 ContinuationPrompt                = PSConsoleReadlineOptions.DefaultContinuationPrompt,
-                ContinuationPromptBackgroundColor = _console.BackgroundColor,
-                ContinuationPromptForegroundColor = _console.ForegroundColor,
+                ContinuationPromptColor           = MakeCombinedColor(_console.ForegroundColor, _console.BackgroundColor),
                 DingDuration                      = 1,  // Make tests virtually silent when they ding
                 DingTone                          = 37, // Make tests virtually silent when they ding
-                EmphasisBackgroundColor           = _console.BackgroundColor,
-                EmphasisForegroundColor           = PSConsoleReadlineOptions.DefaultEmphasisForegroundColor,
-                ErrorBackgroundColor              = ConsoleColor.DarkRed,
-                ErrorForegroundColor              = ConsoleColor.Red,
+                EmphasisColor                     = MakeCombinedColor(PSConsoleReadlineOptions.DefaultEmphasisColor, _console.BackgroundColor),
+                ErrorColor                        = MakeCombinedColor(ConsoleColor.Red, ConsoleColor.DarkRed),
                 ExtraPromptLineCount              = PSConsoleReadlineOptions.DefaultExtraPromptLineCount,
                 HistoryNoDuplicates               = PSConsoleReadlineOptions.DefaultHistoryNoDuplicates,
                 HistorySaveStyle                  = HistorySaveStyle.SaveNothing,
@@ -695,6 +835,7 @@ namespace UnitTestPSReadLine
                 ResetTokenColors                  = true,
                 ShowToolTips                      = PSConsoleReadlineOptions.DefaultShowToolTips,
                 WordDelimiters                    = PSConsoleReadlineOptions.DefaultWordDelimiters,
+                PromptText                        = "",
             };
 
             switch (keyMode)
@@ -721,8 +862,8 @@ namespace UnitTestPSReadLine
             foreach (var val in typeof(TokenClassification).GetEnumValues())
             {
                 colorOptions.TokenKind = (TokenClassification)val;
-                colorOptions.ForegroundColor = ForegroundColors[(int)val];
-                colorOptions.BackgroundColor = BackgroundColors[(int)val];
+                colorOptions.Color = MakeCombinedColor(Colors[(int) val], BackgroundColors[(int) val]);
+
                 PSConsoleReadLine.SetOptions(colorOptions);
             }
         }

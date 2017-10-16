@@ -56,7 +56,7 @@ task CheckPlatyPSInstalled `
 $restoreNugetParameters = @{
     Inputs  = "PSReadLine/packages.config"
     # We could look for other files, but this is probably good enough.
-    Outputs = "PSReadLine/packages/Microsoft.PowerShell.3.ReferenceAssemblies.1.0.0/Microsoft.PowerShell.3.ReferenceAssemblies.1.0.0.nupkg"
+    Outputs = "PSReadLine/packages/Microsoft.PowerShell.5.ReferenceAssemblies.1.0.0/Microsoft.PowerShell.5.ReferenceAssemblies.1.0.0.nupkg"
 }
 
 <#
@@ -89,7 +89,7 @@ $binaryModuleParams = @{
 Synopsis: Build main binary module
 #>
 task BuildMainModule @binaryModuleParams RestoreNugetPackages, {
-    exec { msbuild PSReadline/PSReadLine.csproj /t:Rebuild /p:Configuration=$Configuration }
+    exec { msbuild PSReadline/PSReadLine.csproj /t:Rebuild /p:Configuration=$Configuration /p:Platform=AnyCPU }
 }
 
 
@@ -102,7 +102,7 @@ $buildTestParams = @{
 Synopsis: Build executable for interactive testing/development
 #>
 task BuildTestHost @buildTestParams BuildMainModule, {
-    exec { msbuild TestPSReadLine/TestPSReadLine.csproj /t:Rebuild /p:Configuration=$Configuration }
+    exec { msbuild TestPSReadLine/TestPSReadLine.csproj /t:Rebuild /p:Configuration=$Configuration /p:Platform=AnyCPU }
 }
 
 
@@ -116,7 +116,7 @@ $buildUnitTestParams = @{
 Synopsis: Build the unit tests
 #>
 task BuildUnitTests @buildUnitTestParams BuildMainModule, {
-    exec { msbuild UnitTestPSReadLine/UnitTestPSReadLine.csproj /t:Rebuild /p:Configuration=$Configuration }
+    exec { msbuild UnitTestPSReadLine/UnitTestPSReadLine.csproj /t:Rebuild /p:Configuration=$Configuration /p:Platform=AnyCPU }
 }
 
 
@@ -135,6 +135,7 @@ task LayoutModule BuildMainModule, BuildMamlHelp, {
         'PSReadLine/Changes.txt',
         'PSReadLine/License.txt',
         'PSReadLine/SamplePSReadlineProfile.ps1',
+        'PSReadLine/PSReadLine.format.ps1xml',
         'PSReadLine/PSReadLine.psm1'
 
     foreach ($file in $extraFiles)
@@ -144,6 +145,7 @@ task LayoutModule BuildMainModule, BuildMamlHelp, {
 
 
     Copy-Item PSReadLine/bin/$Configuration/Microsoft.PowerShell.PSReadLine.dll $targetDir
+    Copy-Item PSReadLine/bin/$Configuration/System.Runtime.InteropServices.RuntimeInformation.dll $targetDir
     Copy-Item PSReadLine/en-US/about_PSReadline.help.txt $targetDir/en-US
 
     # Copy module manifest, but fix the version to match what we've specified in the binary module.

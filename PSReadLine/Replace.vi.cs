@@ -21,23 +21,9 @@ namespace Microsoft.PowerShell
             StringBuilder deletedStr = new StringBuilder();
 
             ConsoleKeyInfo nextKey = ReadKey();
-            while (nextKey.Key != ConsoleKey.Escape && nextKey.Key != ConsoleKey.Enter)
+            while (!nextKey.EqualsNormalized(Keys.Escape) && !nextKey.EqualsNormalized(Keys.Enter))
             {
-                if (nextKey.Key != ConsoleKey.Backspace && nextKey.KeyChar != '\u0000')
-                {
-                    if (_singleton._current >= _singleton._buffer.Length)
-                    {
-                        _singleton._buffer.Append(nextKey.KeyChar);
-                    }
-                    else
-                    {
-                        deletedStr.Append(_singleton._buffer[_singleton._current]);
-                        _singleton._buffer[_singleton._current] = nextKey.KeyChar;
-                    }
-                    _singleton._current++;
-                    _singleton.Render();
-                }
-                if (nextKey.Key == ConsoleKey.Backspace)
+                if (nextKey.EqualsNormalized(Keys.Backspace))
                 {
                     if (_singleton._current == startingCursor)
                     {
@@ -58,6 +44,20 @@ namespace Microsoft.PowerShell
                         _singleton.Render();
                     }
                 }
+                else if (nextKey.ShouldInsert())
+                {
+                    if (_singleton._current >= _singleton._buffer.Length)
+                    {
+                        _singleton._buffer.Append(nextKey.KeyChar);
+                    }
+                    else
+                    {
+                        deletedStr.Append(_singleton._buffer[_singleton._current]);
+                        _singleton._buffer[_singleton._current] = nextKey.KeyChar;
+                    }
+                    _singleton._current++;
+                    _singleton.Render();
+                }
                 nextKey = ReadKey();
             }
 
@@ -70,7 +70,7 @@ namespace Microsoft.PowerShell
                 _singleton.EndEditGroup();
             }
 
-            if (nextKey.Key == ConsoleKey.Enter)
+            if (nextKey.EqualsNormalized(Keys.Enter))
             {
                 ViAcceptLine(nextKey);
             }
@@ -148,7 +148,7 @@ namespace Microsoft.PowerShell
                 }
                 _singleton._lastWordDelimiter = char.MinValue;
             }
-            if (_singleton._current == _singleton._buffer.Length - 1 
+            if (_singleton._current == _singleton._buffer.Length - 1
                 && !_singleton.IsDelimiter(_singleton._lastWordDelimiter, _singleton.Options.WordDelimiters)
                 && _singleton._shouldAppend)
             {
@@ -239,8 +239,6 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Deletes until given character
         /// </summary>
-        /// <param name="key"></param>
-        /// <param name="arg"></param>
         public static void ViReplaceToChar(ConsoleKeyInfo? key = null, object arg = null)
         {
             var keyChar = ReadKey().KeyChar;
@@ -269,8 +267,6 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Replaces until given character
         /// </summary>
-        /// <param name="key"></param>
-        /// <param name="arg"></param>
         public static void ViReplaceToCharBackward(ConsoleKeyInfo? key = null, object arg = null)
         {
             var keyChar = ReadKey().KeyChar;
@@ -289,8 +285,6 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Replaces until given character
         /// </summary>
-        /// <param name="key"></param>
-        /// <param name="arg"></param>
         public static void ViReplaceToBeforeChar(ConsoleKeyInfo? key = null, object arg = null)
         {
             var keyChar = ReadKey().KeyChar;
@@ -310,8 +304,6 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Replaces until given character
         /// </summary>
-        /// <param name="key"></param>
-        /// <param name="arg"></param>
         public static void ViReplaceToBeforeCharBackward(ConsoleKeyInfo? key = null, object arg = null)
         {
             var keyChar = ReadKey().KeyChar;

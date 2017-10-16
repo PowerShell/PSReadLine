@@ -95,25 +95,25 @@ namespace Microsoft.PowerShell
             const int endOfLine = int.MaxValue;
 
             _moveToLineCommandCount += 1;
-            var coords = ConvertOffsetToCoordinates(_current);
+            var point = ConvertOffsetToPoint(_current);
             if (_moveToLineCommandCount == 1)
             {
                 _moveToLineDesiredColumn =
                     (_current == _buffer.Length || _buffer[_current] == '\n')
                         ? endOfLine
-                        : coords.X;
+                        : point.X;
             }
 
-            var topLine = _initialY + Options.ExtraPromptLineCount;
+            var topLine = _initialY;
 
-            var newY = coords.Y + numericArg;
-            coords.Y = (short)Math.Max(newY, topLine);
+            var newY = point.Y + numericArg;
+            point.Y = Math.Max(newY, topLine);
             if (_moveToLineDesiredColumn != endOfLine)
             {
-                coords.X = (short)_moveToLineDesiredColumn;
+                point.X = _moveToLineDesiredColumn;
             }
 
-            var newCurrent = ConvertLineAndColumnToOffset(coords);
+            var newCurrent = ConvertLineAndColumnToOffset(point);
             if (newCurrent != -1)
             {
                 if (_moveToLineDesiredColumn == endOfLine)
@@ -420,7 +420,7 @@ namespace Microsoft.PowerShell
                 return s[0];
             }
 
-            return (char)0;
+            return '\0';
         }
 
         /// <summary>
@@ -438,7 +438,7 @@ namespace Microsoft.PowerShell
             }
 
             char toFind = TryGetArgAsChar(arg);
-            if (toFind == (char)0)
+            if (toFind == '\0')
             {
                 // Should we prompt?
                 toFind = ReadKey().KeyChar;
@@ -476,7 +476,7 @@ namespace Microsoft.PowerShell
             }
 
             char toFind = TryGetArgAsChar(arg);
-            if (toFind == (char)0)
+            if (toFind == '\0')
             {
                 // Should we prompt?
                 toFind = ReadKey().KeyChar;

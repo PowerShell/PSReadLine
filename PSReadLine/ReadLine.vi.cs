@@ -170,7 +170,7 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Read the next character and then find it, going backard, and then back off a character.
+        /// Read the next character and then find it, going backward, and then back off a character.
         /// This is for 'T' functionality.
         /// </summary>
         public static void SearchCharBackward(ConsoleKeyInfo? key = null, object arg = null)
@@ -192,7 +192,7 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Read the next character and then find it, going backard, and then back off a character.
+        /// Read the next character and then find it, going backward, and then back off a character.
         /// This is for 'T' functionality.
         /// </summary>
         public static void SearchCharBackwardWithBackoff(ConsoleKeyInfo? key = null, object arg = null)
@@ -377,14 +377,15 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Deletes until given character
         /// </summary>
-        /// <param name="key"></param>
-        /// <param name="arg"></param>
         public static void ViDeleteToChar(ConsoleKeyInfo? key = null, object arg = null)
         {
             var keyChar = ReadKey().KeyChar;
             ViDeleteToChar(keyChar, key, arg);
         }
 
+        /// <summary>
+        /// Deletes until given character
+        /// </summary>
         public static void ViDeleteToChar(char keyChar, ConsoleKeyInfo? key = null, object arg = null)
         {
             ViCharacterSearcher.Set(keyChar, isBackward: false, isBackoff: false);
@@ -392,16 +393,17 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Deletes until given character
+        /// Deletes backwards until given character
         /// </summary>
-        /// <param name="key"></param>
-        /// <param name="arg"></param>
         public static void ViDeleteToCharBackward(ConsoleKeyInfo? key = null, object arg = null)
         {
             var keyChar = ReadKey().KeyChar;
             ViDeleteToCharBack(keyChar, key, arg);
         }
 
+        /// <summary>
+        /// Deletes backwards until given character
+        /// </summary>
         public static void ViDeleteToCharBack(char keyChar, ConsoleKeyInfo? key = null, object arg = null)
         {
             ViCharacterSearcher.SearchBackwardDelete(keyChar, arg, backoff: false, instigator: (_key, _arg) => ViDeleteToCharBack(keyChar, _key, _arg));
@@ -410,14 +412,15 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Deletes until given character
         /// </summary>
-        /// <param name="key"></param>
-        /// <param name="arg"></param>
         public static void ViDeleteToBeforeChar(ConsoleKeyInfo? key = null, object arg = null)
         {
             var keyChar = ReadKey().KeyChar;
             ViDeleteToBeforeChar(keyChar, key, arg);
         }
 
+        /// <summary>
+        /// Deletes until given character
+        /// </summary>
         public static void ViDeleteToBeforeChar(char keyChar, ConsoleKeyInfo? key = null, object arg = null)
         {
             ViCharacterSearcher.Set(keyChar, isBackward: false, isBackoff: true);
@@ -427,8 +430,6 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Deletes until given character
         /// </summary>
-        /// <param name="key"></param>
-        /// <param name="arg"></param>
         public static void ViDeleteToBeforeCharBackward(ConsoleKeyInfo? key = null, object arg = null)
         {
             var keyChar = ReadKey().KeyChar;
@@ -538,7 +539,7 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Switch to Insert mode and position the cursor at the begining of the line.
+        /// Switch to Insert mode and position the cursor at the beginning of the line.
         /// </summary>
         public static void ViInsertAtBegining(ConsoleKeyInfo? key = null, object arg = null)
         {
@@ -846,7 +847,7 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Prompts for a string for history searching.
         /// </summary>
-        /// <param name="backward">True for seaching backward in the history.</param>
+        /// <param name="backward">True for searching backward in the history.</param>
         private void StartSearch(bool backward)
         {
             _statusLinePrompt = "find: ";
@@ -856,18 +857,18 @@ namespace Microsoft.PowerShell
             while (true)
             {
                 var nextKey = ReadKey();
-                if (nextKey.Key == Keys.Enter.Key || nextKey.Key == Keys.Tab.Key)
+                if (nextKey.EqualsNormalized(Keys.Enter) || nextKey.EqualsNormalized(Keys.Tab))
                 {
                     _searchHistoryPrefix = argBuffer.ToString();
                     _searchHistoryBackward = backward;
                     HistorySearch();
                     break;
                 }
-                if (nextKey.Key == Keys.Escape.Key)
+                if (nextKey.EqualsNormalized(Keys.Escape))
                 {
                     break;
                 }
-                if (nextKey.Key == Keys.Backspace.Key)
+                if (nextKey.EqualsNormalized(Keys.Backspace))
                 {
                     if (argBuffer.Length > 0)
                     {
@@ -940,8 +941,6 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Chords in vi needs special handling because a numeric argument can be input between the 1st and 2nd key.
         /// </summary>
-        /// <param name="key"></param>
-        /// <param name="arg"></param>
         private static void ViChord(ConsoleKeyInfo? key = null, object arg = null)
         {
             if (!key.HasValue)
@@ -961,7 +960,7 @@ namespace Microsoft.PowerShell
                 {
                     _singleton.ProcessOneKey(secondKey, secondKeyDispatchTable, ignoreIfNoAction: true, arg: arg);
                 }
-                else if (!IsNumberic(secondKey))
+                else if (!IsNumeric(secondKey))
                 {
                     _singleton.ProcessOneKey(secondKey, secondKeyDispatchTable, ignoreIfNoAction: true, arg: arg);
                 }
@@ -970,7 +969,7 @@ namespace Microsoft.PowerShell
                     var argBuffer = _singleton._statusBuffer;
                     argBuffer.Clear();
                     _singleton._statusLinePrompt = "digit-argument: ";
-                    while (IsNumberic(secondKey))
+                    while (IsNumeric(secondKey))
                     {
                         argBuffer.Append(secondKey.KeyChar);
                         _singleton.Render();
@@ -991,9 +990,9 @@ namespace Microsoft.PowerShell
             }
         }
 
-        private static bool IsNumberic(ConsoleKeyInfo key)
+        private static bool IsNumeric(ConsoleKeyInfo key)
         {
-            return char.IsNumber(key.KeyChar);
+            return key.KeyChar >= '0' && key.KeyChar <= '9' && key.Modifiers == 0;
         }
 
         /// <summary>
@@ -1007,13 +1006,11 @@ namespace Microsoft.PowerShell
                 return;
             }
 
-            #region VI special case
             if (_singleton._options.EditMode == EditMode.Vi && key.Value.KeyChar == '0')
             {
                 BeginningOfLine();
                 return;
             }
-            #endregion VI special case
 
             bool sawDigit = false;
             _singleton._statusLinePrompt = "digit-argument: ";
@@ -1034,7 +1031,7 @@ namespace Microsoft.PowerShell
                 var nextKey = ReadKey();
                 if (_singleton._dispatchTable.TryGetValue(nextKey, out var handler) && handler.Action == DigitArgument)
                 {
-                    if (nextKey.KeyChar == '-')
+                    if (nextKey.EqualsNormalized(Keys.Minus))
                     {
                         if (argBuffer[0] == '-')
                         {
@@ -1048,7 +1045,7 @@ namespace Microsoft.PowerShell
                         continue;
                     }
 
-                    if (nextKey.KeyChar >= '0' && nextKey.KeyChar <= '9')
+                    if (IsNumeric(nextKey))
                     {
                         if (!sawDigit && argBuffer.Length > 0)
                         {

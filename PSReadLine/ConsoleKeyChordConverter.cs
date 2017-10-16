@@ -5,9 +5,8 @@ Copyright (c) Microsoft Corporation.  All rights reserved.
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Runtime.InteropServices;
-using Microsoft.PowerShell.Internal;
+using Microsoft.PowerShell.PSReadLine;
 
 namespace Microsoft.PowerShell
 {
@@ -16,10 +15,15 @@ namespace Microsoft.PowerShell
     /// </summary>
     public static class ConsoleKeyChordConverter
     {
+        private static Exception CantConvert(string s, params object[] args)
+        {
+            return new ArgumentException(string.Format(CultureInfo.CurrentCulture, s, args));
+        }
+
         /// <summary>
         /// Converts a string to a sequence of ConsoleKeyInfo.
-        /// Sequences are separated by ','.  Modifiers
-        /// appear before the modified key and are separated by '+'.
+        /// Sequences are separated by ','.
+        /// Modifiers appear before the modified key and are separated by '+'.
         /// Examples:
         ///     Ctrl+X
         ///     Ctrl+D,M
@@ -32,207 +36,250 @@ namespace Microsoft.PowerShell
                 throw new ArgumentNullException(nameof(chord));
             }
 
-            var tokens = chord.Split(new[] {','});
+            int start = 0;
+            var first = GetOneKey(chord, ref start);
 
-            if (tokens.Length > 2)
-            {
-                throw new ArgumentException(PSReadLineResources.ChordWithTooManyKeys);
-            }
+            if (start >= chord.Length)
+                return new [] { first };
 
-            var result = new ConsoleKeyInfo[tokens.Length];
-            for (int i = 0; i < tokens.Length; i++)
-            {
-                result[i] = ConvertOneSequence(tokens[i]);
-            }
+            if (chord[start++] != ',')
+                throw CantConvert(PSReadLineResources.InvalidSequence, chord);
 
-            return result;
+            var second = GetOneKey(chord, ref start);
+            if (start < chord.Length)
+                throw CantConvert(PSReadLineResources.InvalidSequence, chord);
+
+            return new [] { first, second };
         }
 
-        private static ConsoleKeyInfo ConvertOneSequence(string sequence)
+        private static ConsoleKeyInfo GetOneKey(string chord, ref int start)
         {
-            Stack<string> tokens = null;
-            ConsoleModifiers modifiers = 0;
-            ConsoleKey key = 0;
-
-            bool valid = !String.IsNullOrEmpty(sequence);
-
-            if (valid)
+            ConsoleModifiers mods = 0;
+            while (start < chord.Length)
             {
-                tokens = new Stack<string>(
-                    (sequence.Split(new[] {'+'})
-                        .Select(
-                            part => part.ToLowerInvariant().Trim())));
-            }
-
-            while (valid && tokens.Count > 0)
-            {
-                string token = tokens.Pop();
-
-                // sequence was something silly like "shift++"
-                if (token == String.Empty)
+                var thisMod = GetModifier(chord, ref start);
+                if (thisMod != 0)
                 {
-                    valid = false;
-                    break;
+                    // modifier already set?
+                    if ((mods & thisMod) != 0)
+                    {
+                        // Found a duplicate modifier
+                        throw CantConvert(PSReadLineResources.InvalidModifier, thisMod, chord);
+                    }
+                    mods |= thisMod;
+
+                    if (start >= chord.Length)
+                    {
+                        // Ends with a modifier?
+                        throw CantConvert(PSReadLineResources.UnrecognizedKey, chord);
+                    }
+
+                    if (chord[start] != '+' && chord[start] != '-')
+                    {
+                        // No character between mod and key
+                        throw CantConvert(PSReadLineResources.InvalidSequence, chord);
+                    }
+
+                    start++;
+                    continue;
                 }
 
-                // key should be first token to be popped
-                if (key == 0)
+                // Not a modifier
+                var comma = chord.IndexOf(",", start, StringComparison.Ordinal);
+                string input;
+                if (comma == start)
                 {
-                    // Enum.TryParse accepts arbitrary integers.  We shouldn't,
-                    // but single digits need to map to the correct key, e.g.
-                    // ConsoleKey.D1
-                    if (long.TryParse(token, out var tokenAsLong))
-                    {
-                        if (tokenAsLong >= 0 && tokenAsLong <= 9)
-                        {
-                            token = "D" + token;
-                        }
-                        else
-                        {
-                            throw new ArgumentException(String.Format(CultureInfo.CurrentCulture, PSReadLineResources.UnrecognizedKey, token));
-                        }
-                    }
-                    // try simple parse for ConsoleKey enum name
-                    valid = Enum.TryParse(token, ignoreCase: true, result: out key);
-
-                    // doesn't map to ConsoleKey so convert to virtual key from char
-                    if (!valid && token.Length == 1)
-                    {
-                        valid = TryParseCharLiteral(token[0], ref modifiers, ref key, out var failReason);
-
-                        if (!valid)
-                        {
-                            throw new ArgumentException(String.Format(CultureInfo.CurrentCulture, PSReadLineResources.CantTranslateKey, token[0], failReason));
-                        }
-                    }
-
-                    if (!valid)
-                    {
-                        throw new ArgumentException(String.Format(CultureInfo.CurrentCulture, PSReadLineResources.UnrecognizedKey, token));
-                    }
+                    input = ",";
+                }
+                else if (comma == -1)
+                {
+                    input = chord.Substring(start);
                 }
                 else
                 {
-                    // now, parse modifier(s)
+                    input = chord.Substring(start, comma - start);
+                }
+                start += input.Length;
 
-                    // courtesy translation
-                    if (token == "ctrl")
+                if (!MapKeyChar(input, (mods & ConsoleModifiers.Control) != 0, out var key, out var keyChar))
+                {
+                    throw CantConvert(PSReadLineResources.UnrecognizedKey, input);
+                }
+
+                return new ConsoleKeyInfo(keyChar, key,
+                    (mods & ConsoleModifiers.Shift) != 0,
+                    (mods & ConsoleModifiers.Alt) != 0,
+                    (mods & ConsoleModifiers.Control) != 0);
+            }
+
+            throw CantConvert(PSReadLineResources.InvalidSequence, chord);
+        }
+
+        private static ConsoleModifiers GetModifier(string sequence, ref int start)
+        {
+            switch (sequence[start])
+            {
+                case 's':
+                case 'S':
+                    if ((sequence.Length - start >= 5) &&
+                        (sequence[start + 1] == 'h' || sequence[start + 1] == 'H') &&
+                        (sequence[start + 2] == 'i' || sequence[start + 2] == 'I') &&
+                        (sequence[start + 3] == 'f' || sequence[start + 3] == 'F') &&
+                        (sequence[start + 4] == 't' || sequence[start + 4] == 'T'))
                     {
-                        token = "control";
+                        start += 5;
+                        return ConsoleModifiers.Shift;
                     }
+                    goto default;
 
-                    if (Enum.TryParse<ConsoleModifiers>(token, ignoreCase: true, result: out var modifier))
+                case 'c':
+                case 'C':
+                    if (sequence.Length - start >= 7 &&
+                        (sequence[start + 1] == 'o' || sequence[start + 1] == 'O') &&
+                        (sequence[start + 2] == 'n' || sequence[start + 2] == 'N') &&
+                        (sequence[start + 3] == 't' || sequence[start + 3] == 'T') &&
+                        (sequence[start + 4] == 'r' || sequence[start + 4] == 'R') &&
+                        (sequence[start + 5] == 'o' || sequence[start + 5] == 'O') &&
+                        (sequence[start + 6] == 'l' || sequence[start + 6] == 'L'))
                     {
-                        // modifier already set?
-                        if ((modifiers & modifier) != 0)
-                        {
-                            // either found duplicate modifier token or shift state
-                            // was already implied from char, e.g. char is "}", which is "shift+]"
-                            throw new ArgumentException(
-                                String.Format(CultureInfo.CurrentCulture, PSReadLineResources.InvalidModifier, modifier, key));
-                        }
-                        modifiers |= modifier;
+                        start += 7;
+                        return ConsoleModifiers.Control;
+                    }
+                    else if (sequence.Length - start >= 4 &&
+                             (sequence[start + 1] == 't' || sequence[start + 1] == 'T') &&
+                             (sequence[start + 2] == 'r' || sequence[start + 2] == 'R') &&
+                             (sequence[start + 3] == 'l' || sequence[start + 3] == 'L'))
+                    {
+                        start += 4;
+                        return ConsoleModifiers.Control;
+                    }
+                    goto default;
+
+                case 'a':
+                case 'A':
+                    if (sequence.Length - start >= 3 &&
+                        (sequence[start + 1] == 'l' || sequence[start + 1] == 'L') &&
+                        (sequence[start + 2] == 't' || sequence[start + 2] == 'T'))
+                    {
+                        start += 3;
+                        return ConsoleModifiers.Alt;
+                    }
+                    goto default;
+
+                default:
+                    return 0;
+            }
+        }
+
+        struct KeyPair
+        {
+            public char KeyChar;
+            public ConsoleKey Key;
+        }
+
+        private static readonly Dictionary<string, KeyPair> KeyMappings =
+            new Dictionary<string, KeyPair>(StringComparer.OrdinalIgnoreCase)
+            {
+                { "Backspace",  new KeyPair { Key = ConsoleKey.Backspace } }, // Not '\b' - ^H and BS differ on Linux
+                { "Delete",     new KeyPair { Key = ConsoleKey.Delete } },
+                { "DownArrow",  new KeyPair { Key = ConsoleKey.DownArrow} },
+                { "End",        new KeyPair { Key = ConsoleKey.End } },
+                { "Enter",      new KeyPair { Key = ConsoleKey.Enter } }, // Platforms differ - '\r' or '\n'
+                { "Escape",     new KeyPair { Key = ConsoleKey.Escape, KeyChar = '\x1b' } },
+                { "F1",         new KeyPair { Key = ConsoleKey.F1 } },
+                { "F2",         new KeyPair { Key = ConsoleKey.F2 } },
+                { "F3",         new KeyPair { Key = ConsoleKey.F3 } },
+                { "F4",         new KeyPair { Key = ConsoleKey.F4 } },
+                { "F5",         new KeyPair { Key = ConsoleKey.F5 } },
+                { "F6",         new KeyPair { Key = ConsoleKey.F6 } },
+                { "F7",         new KeyPair { Key = ConsoleKey.F7 } },
+                { "F8",         new KeyPair { Key = ConsoleKey.F8 } },
+                { "F9",         new KeyPair { Key = ConsoleKey.F9 } },
+                { "F10",        new KeyPair { Key = ConsoleKey.F10 } },
+                { "F11",        new KeyPair { Key = ConsoleKey.F11 } },
+                { "F12",        new KeyPair { Key = ConsoleKey.F12 } },
+                { "F13",        new KeyPair { Key = ConsoleKey.F13 } },
+                { "F14",        new KeyPair { Key = ConsoleKey.F14 } },
+                { "F15",        new KeyPair { Key = ConsoleKey.F15 } },
+                { "F16",        new KeyPair { Key = ConsoleKey.F16 } },
+                { "F17",        new KeyPair { Key = ConsoleKey.F17 } },
+                { "F18",        new KeyPair { Key = ConsoleKey.F18 } },
+                { "F19",        new KeyPair { Key = ConsoleKey.F19 } },
+                { "F20",        new KeyPair { Key = ConsoleKey.F20 } },
+                { "F21",        new KeyPair { Key = ConsoleKey.F21 } },
+                { "F22",        new KeyPair { Key = ConsoleKey.F22 } },
+                { "F23",        new KeyPair { Key = ConsoleKey.F23 } },
+                { "F24",        new KeyPair { Key = ConsoleKey.F24 } },
+                { "Home",       new KeyPair { Key = ConsoleKey.Home } },
+                { "Insert",     new KeyPair { Key = ConsoleKey.Insert } },
+                { "LeftArrow",  new KeyPair { Key = ConsoleKey.LeftArrow} },
+                { "PageDown",   new KeyPair { Key = ConsoleKey.PageDown} },
+                { "PageUp",     new KeyPair { Key = ConsoleKey.PageUp} },
+                { "RightArrow", new KeyPair { Key = ConsoleKey.RightArrow} },
+                { "Spacebar",   new KeyPair { Key = ConsoleKey.Spacebar, KeyChar = ' ' } },
+                { "Tab",        new KeyPair { Key = ConsoleKey.Tab, KeyChar = '\t' }  },
+                { "UpArrow",    new KeyPair { Key = ConsoleKey.UpArrow} },
+            };
+
+        static bool MapKeyChar(string input, bool isCtrl, out ConsoleKey key, out char keyChar)
+        {
+            if (input.Length == 1)
+            {
+                keyChar = input[0];
+                if (keyChar >= 'a' && keyChar <= 'z')
+                {
+                    key = ConsoleKey.A + (keyChar - 'a');
+                }
+                else if (keyChar >= 'A' && keyChar <= 'Z')
+                {
+                    key = ConsoleKey.A + (keyChar - 'A');
+                }
+                else if (keyChar >= '0' && keyChar <= '9')
+                {
+                    key = ConsoleKey.D0 + (keyChar - '0');
+                }
+                else
+                {
+                    key = 0;
+                }
+                if (isCtrl)
+                {
+                    if (keyChar >= 'a' && keyChar <= 'z')
+                    {
+                        keyChar = (char)(keyChar - 'a' + 1);
+                    }
+                    else if (keyChar >= 'A' && keyChar <= 'Z')
+                    {
+                        keyChar = (char)(keyChar - 'A' + 1);
                     }
                     else
                     {
-                        throw new ArgumentException(
-                            String.Format(CultureInfo.CurrentCulture, PSReadLineResources.InvalidModifier, token, key));
+                        keyChar = '\0';
                     }
                 }
+
+                return true;
             }
 
-            if (!valid)
+            if (KeyMappings.TryGetValue(input, out var keyPair))
             {
-                throw new ArgumentException(String.Format(CultureInfo.CurrentCulture, PSReadLineResources.InvalidSequence, sequence));
-            }
+                key = keyPair.Key;
 
-            char keyChar = GetCharFromConsoleKey(key, modifiers);
-
-            return new ConsoleKeyInfo(keyChar, key,
-                shift: ((modifiers & ConsoleModifiers.Shift) != 0),
-                alt: ((modifiers & ConsoleModifiers.Alt) != 0),
-                control: ((modifiers & ConsoleModifiers.Control) != 0));
-        }
-
-        private static bool TryParseCharLiteral(char literal, ref ConsoleModifiers modifiers, ref ConsoleKey key, out string failReason)
-        {
-            bool valid = false;
-
-            // shift state will be in MSB
-            short virtualKey = NativeMethods.VkKeyScan(literal);
-            int hresult = Marshal.GetLastWin32Error();
-
-            if (virtualKey != 0)
-            {
-                // e.g. "}" = 0x01dd but "]" is 0x00dd, ergo } = shift+].
-                // shift = 1, control = 2, alt = 4, hankaku = 8 (ignored)
-                int state = virtualKey >> 8;
-
-                if ((state & 1) == 1)
+                if (key == ConsoleKey.Backspace)
                 {
-                    modifiers |= ConsoleModifiers.Shift;
-                }
-                if ((state & 2) == 2)
-                {
-                    modifiers |= ConsoleModifiers.Control;
-                }
-                if ((state & 4) == 4)
-                {
-                    modifiers |= ConsoleModifiers.Alt;
-                }
-
-                virtualKey &= 0xff;
-
-                if (Enum.IsDefined(typeof (ConsoleKey), (int) virtualKey))
-                {
-                    failReason = null;
-                    key = (ConsoleKey) virtualKey;
-                    valid = true;
+                    keyChar = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) == isCtrl
+                        ? '\x7f' : '\x08';
                 }
                 else
                 {
-                    // haven't seen this happen yet, but possible
-                    failReason = String.Format(CultureInfo.CurrentCulture, PSReadLineResources.UnrecognizedKey, virtualKey);
-                }                
-            }
-            else
-            {
-                Exception e = Marshal.GetExceptionForHR(hresult);
-                failReason = e.Message;
+                    keyChar = keyPair.KeyChar;
+                }
+                return true;
             }
 
-            return valid;
-        }
-
-        internal static char GetCharFromConsoleKey(ConsoleKey key, ConsoleModifiers modifiers)
-        {
-            // default for unprintables and unhandled
-            char keyChar = '\u0000';
-
-            // emulate GetKeyboardState bitmap - set high order bit for relevant modifier virtual keys
-            var state = new byte[256];
-            state[NativeMethods.VK_SHIFT] = (byte)(((modifiers & ConsoleModifiers.Shift) != 0) ? 0x80 : 0);
-            state[NativeMethods.VK_CONTROL] = (byte)(((modifiers & ConsoleModifiers.Control) != 0) ? 0x80 : 0);
-            state[NativeMethods.VK_ALT] = (byte)(((modifiers & ConsoleModifiers.Alt) != 0) ? 0x80 : 0);
-
-            // a ConsoleKey enum's value is a virtual key code
-            uint virtualKey = (uint)key;
-
-            // get corresponding scan code
-            uint scanCode = NativeMethods.MapVirtualKey(virtualKey, NativeMethods.MAPVK_VK_TO_VSC);
-
-            // get corresponding character  - maybe be 0, 1 or 2 in length (diacriticals)
-            var chars = new char[2];
-            int charCount = NativeMethods.ToUnicode(
-                virtualKey, scanCode, state, chars, chars.Length, NativeMethods.MENU_IS_INACTIVE);
-
-            // TODO: support diacriticals (charCount == 2)
-            if (charCount == 1)
-            {
-                keyChar = chars[0];
-            }
-
-            return keyChar;
+            key = 0;
+            keyChar = '\0';
+            return false;
         }
     }
 }

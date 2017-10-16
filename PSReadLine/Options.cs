@@ -19,33 +19,25 @@ namespace Microsoft.PowerShell
 
         private void SetOptionsInternal(SetPSReadlineOption options)
         {
+            if (options.ResetTokenColors)
+            {
+                Options.ResetColors();
+            }
             if (options.ContinuationPrompt != null)
             {
                 Options.ContinuationPrompt = options.ContinuationPrompt;
             }
-            if (options._continuationPromptForegroundColor.HasValue)
+            if (options.ContinuationPromptColor != null)
             {
-                Options.ContinuationPromptForegroundColor = options.ContinuationPromptForegroundColor;
+                Options.ContinuationPromptColor = options.ContinuationPromptColor;
             }
-            if (options._continuationPromptBackgroundColor.HasValue)
+            if (options.EmphasisColor != null)
             {
-                Options.ContinuationPromptBackgroundColor = options.ContinuationPromptBackgroundColor;
+                Options.EmphasisColor = options.EmphasisColor;
             }
-            if (options._emphasisBackgroundColor.HasValue)
+            if (options.ErrorColor != null)
             {
-                Options.EmphasisBackgroundColor = options.EmphasisBackgroundColor;
-            }
-            if (options._emphasisForegroundColor.HasValue)
-            {
-                Options.EmphasisForegroundColor = options.EmphasisForegroundColor;
-            }
-            if (options._errorBackgroundColor.HasValue)
-            {
-                Options.ErrorBackgroundColor = options.ErrorBackgroundColor;
-            }
-            if (options._errorForegroundColor.HasValue)
-            {
-                Options.ErrorForegroundColor = options.ErrorForegroundColor;
+                Options.ErrorColor = options.ErrorColor;
             }
             if (options._historyNoDuplicates.HasValue)
             {
@@ -93,18 +85,7 @@ namespace Microsoft.PowerShell
                 // Switching/resetting modes - clear out chord dispatch table
                 _chordDispatchTable.Clear();
 
-                switch (options._editMode)
-                {
-                case EditMode.Emacs:
-                    SetDefaultEmacsBindings();
-                    break;
-                case EditMode.Vi:
-                    SetDefaultViBindings();
-                    break;
-                case EditMode.Windows:
-                    SetDefaultWindowsBindings();
-                    break;
-                }
+                SetDefaultBindings(Options.EditMode);
             }
             if (options._showToolTips.HasValue)
             {
@@ -142,12 +123,10 @@ namespace Microsoft.PowerShell
             {
                 Options.HistorySaveStyle = options.HistorySaveStyle;
             }
-            #region vi
             if (options._viModeIndicator.HasValue)
             {
                 Options.ViModeIndicator = options.ViModeIndicator;
             }
-            #endregion
             if (options.HistorySavePath != null)
             {
                 Options.HistorySavePath = options.HistorySavePath;
@@ -155,19 +134,15 @@ namespace Microsoft.PowerShell
                 _historyFileMutex = new Mutex(false, GetHistorySaveFileMutexName());
                 _historyFileLastSavedSize = 0;
             }
-            if (options.ResetTokenColors)
+            if (options.PromptText != null)
             {
-                Options.ResetColors();
+                Options.PromptText = options.PromptText;
             }
             if (options._tokenKind.HasValue)
             {
-                if (options._foregroundColor.HasValue)
+                if (options.Color != null)
                 {
-                    Options.SetForegroundColor(options.TokenKind, options.ForegroundColor);
-                }
-                if (options._backgroundColor.HasValue)
-                {
-                    Options.SetBackgroundColor(options.TokenKind, options.BackgroundColor);
+                    Options.SetColor(options.TokenKind, options.Color);
                 }
             }
         }
@@ -186,7 +161,7 @@ namespace Microsoft.PowerShell
                     _dispatchTable[chord[0]] = MakeKeyHandler(Chord, "ChordFirstKey");
                     if (!_chordDispatchTable.TryGetValue(chord[0], out var secondDispatchTable))
                     {
-                        secondDispatchTable = new Dictionary<ConsoleKeyInfo, KeyHandler>();
+                        secondDispatchTable = new Dictionary<ConsoleKeyInfo, KeyHandler>(ConsoleKeyInfoComparer.Instance);
                         _chordDispatchTable[chord[0]] = secondDispatchTable;
                     }
                     secondDispatchTable[chord[1]] = MakeKeyHandler(handler, briefDescription, longDescription, scriptBlock);
@@ -275,7 +250,6 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Helper function for the Remove-PSReadlineKeyHandler cmdlet.
         /// </summary>
-        /// <param name="key"></param>
         public static void RemoveKeyHandler(string[] key)
         {
             _singleton.RemoveKeyHandlerInternal(key);

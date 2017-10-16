@@ -123,3 +123,6 @@ ChocolateyPackage/PSReadLine/
 # gvim swap files
 *.swp
 *.swo
+
+# Visual Studio cache/options directory
+.vs/

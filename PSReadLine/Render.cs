@@ -5,21 +5,50 @@ Copyright (c) Microsoft Corporation.  All rights reserved.
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Linq;
 using System.Management.Automation.Language;
+using System.Runtime.InteropServices;
+using System.Text;
 using Microsoft.PowerShell.Internal;
 
 namespace Microsoft.PowerShell
 {
+    internal struct Point
+    {
+        public int X;
+        public int Y;
+
+        public override string ToString()
+        {
+            return String.Format(CultureInfo.InvariantCulture, "{0},{1}", X, Y);
+        }
+    }
+
     public partial class PSConsoleReadLine
     {
-        private CHAR_INFO[] _consoleBuffer;
+        struct RenderedLineData
+        {
+            public string line;
+            public int columns;
+        }
+
+        class RenderData
+        {
+            public bool errorPrompt;
+            public RenderedLineData[] lines;
+        }
+
+        private const int COMMON_WIDEST_CONSOLE_WIDTH = 160;
+        private readonly List<StringBuilder> _consoleBufferLines = new List<StringBuilder>(1) {new StringBuilder(COMMON_WIDEST_CONSOLE_WIDTH)};
+        private static readonly string[] _spaces = new string[80];
+        private RenderData _previousRender;
+        private static readonly RenderData _initialPrevRender = new RenderData
+        {
+            lines = new[] { new RenderedLineData{ columns = 0, line = ""}}
+        };
         private int _initialX;
         private int _initialY;
-        private int _bufferWidth;
-        private ConsoleColor _initialBackgroundColor;
-        private ConsoleColor _initialForegroundColor;
-        private CHAR_INFO _space;
         private int _current;
         private int _emphasisStart;
         private int _emphasisLength;
@@ -28,8 +57,7 @@ namespace Microsoft.PowerShell
         {
             internal Token[] Tokens { get; set; }
             internal int Index { get; set; }
-            internal ConsoleColor BackgroundColor { get; set; }
-            internal ConsoleColor ForegroundColor { get; set; }
+            internal string Color { get; set; }
         }
 
         private void MaybeParseInput()
@@ -65,60 +93,106 @@ namespace Microsoft.PowerShell
             if (_queuedKeys.Count > 10 && (_lastRenderTime.ElapsedMilliseconds < 50))
             {
                 // We won't render, but most likely the tokens will be different, so make
-                // sure we don't use old tokens.
+                // sure we don't use old tokens, also allow garbage to get collected.
                 _tokens = null;
                 _ast = null;
+                _parseErrors = null;
                 return;
             }
 
-            ReallyRender();
+            ForceRender();
         }
 
-        [SuppressMessage("Microsoft.Usage", "CA1806:DoNotIgnoreMethodResults")]
-        private void ReallyRender()
+        private void ForceRender()
+        {
+            var defaultColor = VTColorUtils.MapColorToEscapeSequence(_console.ForegroundColor, isBackground: false) +
+                               VTColorUtils.MapColorToEscapeSequence(_console.BackgroundColor, isBackground: true);
+
+            // Geneate a sequence of logical lines with escape sequences for coloring.
+            int logicalLineCount = GenerateRender(defaultColor);
+
+            // Now write that out (and remember what we did so we can clear previous renders
+            // and minimize writing more than necessary on the next render.)
+
+            var renderLines = new RenderedLineData[logicalLineCount];
+            var renderData = new RenderData {lines = renderLines};
+            for (var i = 0; i < logicalLineCount; i++)
+            {
+                var line = _consoleBufferLines[i].ToString();
+                renderLines[i].line = line;
+                renderLines[i].columns = LengthInBufferCells(line);
+            }
+
+            // And then do the real work of writing to the screen.
+            // Rendering data is in reused
+            ReallyRender(renderData, defaultColor);
+
+            // Cleanup some excess buffers, saving a few because we know we'll use them.
+            var bufferCount = _consoleBufferLines.Count;
+            var excessBuffers = bufferCount - renderLines.Length;
+            if (excessBuffers > 5)
+            {
+                _consoleBufferLines.RemoveRange(renderLines.Length, excessBuffers);
+            }
+        }
+
+        private int GenerateRender(string defaultColor)
         {
             var text = ParseInput();
 
-            int statusLineCount = GetStatusLineCount();
-            int j = _initialX + (_bufferWidth * Options.ExtraPromptLineCount);
-            var backgroundColor = _initialBackgroundColor;
-            var foregroundColor = _initialForegroundColor;
+            string color = defaultColor;
+            string activeColor = "";
             bool afterLastToken = false;
-            int totalBytes = j;
-            int bufferWidth = _console.BufferWidth;
+            int currentLogicalLine = 0;
+
+            void UpdateColorsIfNecessary(string newColor)
+            {
+                if (!object.ReferenceEquals(newColor, activeColor))
+                {
+                    _consoleBufferLines[currentLogicalLine].Append(newColor);
+                    activeColor = newColor;
+                }
+            }
+
+            void MaybeEmphasize(int i, string currColor)
+            {
+                if (i >= _emphasisStart && i < (_emphasisStart + _emphasisLength))
+                {
+                    currColor = _options._emphasisColor;
+                }
+                UpdateColorsIfNecessary(currColor);
+            }
+
+            foreach (var buf in _consoleBufferLines)
+            {
+                buf.Clear();
+            }
 
             var tokenStack = new Stack<SavedTokenState>();
             tokenStack.Push(new SavedTokenState
             {
                 Tokens = _tokens,
                 Index = 0,
-                BackgroundColor = _initialBackgroundColor,
-                ForegroundColor = _initialForegroundColor
+                Color = defaultColor
             });
 
-            int bufferLineCount;
-
-            bufferLineCount = ConvertOffsetToCoordinates(text.Length).Y - _initialY + 1 + statusLineCount;
-            if (_consoleBuffer.Length != bufferLineCount * bufferWidth)
-            {
-                var newBuffer = new CHAR_INFO[bufferLineCount * bufferWidth];
-                Array.Copy(_consoleBuffer, newBuffer, _initialX + (Options.ExtraPromptLineCount * _bufferWidth));
-                if (_consoleBuffer.Length > bufferLineCount * bufferWidth)
-                {
-                    int consoleBufferOffset = ConvertOffsetToConsoleBufferOffset(text.Length, _initialX + (Options.ExtraPromptLineCount * _bufferWidth));
-                    // Need to erase the extra lines that we won't draw again
-                    for (int i = consoleBufferOffset; i < _consoleBuffer.Length; i++)
-                    {
-                        _consoleBuffer[i] = _space;
-                    }
-                    _console.WriteBufferLines(_consoleBuffer, ref _initialY);
-                }
-                _consoleBuffer = newBuffer;
-            }
-
+            bool selectionNeedsTerminating = false;
             for (int i = 0; i < text.Length; i++)
             {
-                totalBytes = totalBytes % bufferWidth;
+                if (_visualSelectionCommandCount > 0)
+                {
+                    GetRegion(out int start, out int length);
+                    if (i == start)
+                    {
+                        _consoleBufferLines[currentLogicalLine].Append("\x1b[7m");
+                        selectionNeedsTerminating = true;
+                    }
+                    else if (i == start + length)
+                    {
+                        _consoleBufferLines[currentLogicalLine].Append("\x1b[27m");
+                        selectionNeedsTerminating = false;
+                    }
+                }
                 if (!afterLastToken)
                 {
                     // Figure out the color of the character - if it's in a token,
@@ -134,8 +208,7 @@ namespace Microsoft.PowerShell
                             {
                                 afterLastToken = true;
                                 token = null;
-                                foregroundColor = _initialForegroundColor;
-                                backgroundColor = _initialBackgroundColor;
+                                color = defaultColor;
                             }
                             else
                             {
@@ -145,16 +218,14 @@ namespace Microsoft.PowerShell
 
                         if (!afterLastToken)
                         {
-                            foregroundColor = state.ForegroundColor;
-                            backgroundColor = state.BackgroundColor;
-
+                            color = state.Color;
                             token = state.Tokens[++state.Index];
                         }
                     }
 
                     if (!afterLastToken && i == token.Extent.StartOffset)
                     {
-                        GetTokenColors(token, out foregroundColor, out backgroundColor);
+                        color = GetTokenColor(token);
 
                         if (token is StringExpandableToken stringToken)
                         {
@@ -171,13 +242,12 @@ namespace Microsoft.PowerShell
                                 {
                                     Tokens = tokens,
                                     Index = 0,
-                                    BackgroundColor = backgroundColor,
-                                    ForegroundColor = foregroundColor
+                                    Color = color
                                 });
 
                                 if (i == tokens[0].Extent.StartOffset)
                                 {
-                                    GetTokenColors(tokens[0], out foregroundColor, out backgroundColor);
+                                    color = GetTokenColor(tokens[0]);
                                 }
                             }
                         }
@@ -187,128 +257,252 @@ namespace Microsoft.PowerShell
                 var charToRender = text[i];
                 if (charToRender == '\n')
                 {
-                    while ((j % bufferWidth) != 0)
+                    currentLogicalLine += 1;
+                    if (currentLogicalLine > _consoleBufferLines.Count - 1)
                     {
-                        _consoleBuffer[j++] = _space;
+                        _consoleBufferLines.Add(new StringBuilder(COMMON_WIDEST_CONSOLE_WIDTH));
                     }
 
-                    for (int k = 0; k < Options.ContinuationPrompt.Length; k++, j++)
+                    UpdateColorsIfNecessary(Options._continuationPromptColor);
+                    foreach (char c in Options.ContinuationPrompt)
                     {
-                        _consoleBuffer[j].UnicodeChar = Options.ContinuationPrompt[k];
-                        _consoleBuffer[j].ForegroundColor = Options.ContinuationPromptForegroundColor;
-                        _consoleBuffer[j].BackgroundColor = Options.ContinuationPromptBackgroundColor;
+                        _consoleBufferLines[currentLogicalLine].Append(c);
                     }
                 }
                 else
                 {
-                    int size = LengthInBufferCells(charToRender);
-                    totalBytes += size;
-
-                    //if there is no enough space for the character at the edge, fill in spaces at the end and 
-                    //put the character to next line.
-                    int filling = totalBytes > bufferWidth ? (totalBytes - bufferWidth) % size : 0;
-                    for (int f = 0; f < filling; f++)
-                    {
-                        _consoleBuffer[j++] = _space;
-                        totalBytes++;
-                    }
-
                     if (char.IsControl(charToRender))
                     {
-                        _consoleBuffer[j].UnicodeChar = '^';
-                        MaybeEmphasize(ref _consoleBuffer[j++], i, foregroundColor, backgroundColor);
-                        _consoleBuffer[j].UnicodeChar = (char)('@' + charToRender);
-                        MaybeEmphasize(ref _consoleBuffer[j++], i, foregroundColor, backgroundColor);
-
-                    }
-                    else if (size > 1)
-                    {
-                        _consoleBuffer[j].UnicodeChar = charToRender;
-                        _consoleBuffer[j].Attributes = (ushort)(_consoleBuffer[j].Attributes |
-                                                                (uint)CHAR_INFO_Attributes.COMMON_LVB_LEADING_BYTE);
-                        MaybeEmphasize(ref _consoleBuffer[j++], i, foregroundColor, backgroundColor);
-                        _consoleBuffer[j].UnicodeChar = charToRender;
-                        _consoleBuffer[j].Attributes = (ushort)(_consoleBuffer[j].Attributes |
-                                                                (uint)CHAR_INFO_Attributes.COMMON_LVB_TRAILING_BYTE);
-                        MaybeEmphasize(ref _consoleBuffer[j++], i, foregroundColor, backgroundColor);
+                        MaybeEmphasize(i, color);
+                        _consoleBufferLines[currentLogicalLine].Append('^');
+                        _consoleBufferLines[currentLogicalLine].Append((char)('@' + charToRender));
                     }
                     else
                     {
-                        _consoleBuffer[j].UnicodeChar = charToRender;
-                        MaybeEmphasize(ref _consoleBuffer[j++], i, foregroundColor, backgroundColor);
+                        MaybeEmphasize(i, color);
+                        _consoleBufferLines[currentLogicalLine].Append(charToRender);
                     }
                 }
             }
 
-            for (; j < (_consoleBuffer.Length - (statusLineCount * _bufferWidth)); j++)
+            if (selectionNeedsTerminating)
             {
-                _consoleBuffer[j] = _space;
+                _consoleBufferLines[currentLogicalLine].Append("\x1b[27m");
             }
 
             if (_statusLinePrompt != null)
             {
-                foregroundColor = _statusIsErrorMessage ? Options.ErrorForegroundColor : _console.ForegroundColor;
-                backgroundColor = _statusIsErrorMessage ? Options.ErrorBackgroundColor : _console.BackgroundColor;
-
-                for (int i = 0; i < _statusLinePrompt.Length; i++, j++)
+                currentLogicalLine += 1;
+                if (currentLogicalLine > _consoleBufferLines.Count - 1)
                 {
-                    _consoleBuffer[j].UnicodeChar = _statusLinePrompt[i];
-                    _consoleBuffer[j].ForegroundColor = foregroundColor;
-                    _consoleBuffer[j].BackgroundColor = backgroundColor;
-                }
-                for (int i = 0; i < _statusBuffer.Length; i++, j++)
-                {
-                    _consoleBuffer[j].UnicodeChar = _statusBuffer[i];
-                    _consoleBuffer[j].ForegroundColor = foregroundColor;
-                    _consoleBuffer[j].BackgroundColor = backgroundColor;
+                    _consoleBufferLines.Add(new StringBuilder(COMMON_WIDEST_CONSOLE_WIDTH));
                 }
 
-                for (; j < _consoleBuffer.Length; j++)
+                color = _statusIsErrorMessage ? Options._errorColor : defaultColor;
+                UpdateColorsIfNecessary(color);
+
+                foreach (char c in _statusLinePrompt)
                 {
-                    _consoleBuffer[j] = _space;
+                    _consoleBufferLines[currentLogicalLine].Append(c);
+                }
+
+                _consoleBufferLines[currentLogicalLine].Append(_statusBuffer);
+            }
+
+            return currentLogicalLine + 1;
+        }
+
+        private void ReallyRender(RenderData renderData, string defaultColor)
+        {
+            string activeColor = "";
+
+            void UpdateColorsIfNecessary(string newColor)
+            {
+                if (!object.ReferenceEquals(newColor, activeColor))
+                {
+                    _console.Write(newColor);
+                    activeColor = newColor;
                 }
             }
 
-            bool rendered = false;
-            if (_parseErrors.Length > 0)
-            {
-                int promptChar = _initialX - 1 + (_bufferWidth * Options.ExtraPromptLineCount);
+            // TODO: avoid writing everything.
 
-                while (promptChar >= 0)
+            // Move the cursor to where we started, but make cursor invisible while we're rendering.
+            _console.CursorVisible = false;
+            PlaceCursor(_initialX, _initialY);
+
+            // Possibly need to flip the color on the prompt if the error state changed.
+            if (!string.IsNullOrEmpty(_options.PromptText))
+            {
+                renderData.errorPrompt = (_parseErrors != null && _parseErrors.Length > 0);
+                if (renderData.errorPrompt != _previousRender.errorPrompt)
                 {
-                    var c = (char)_consoleBuffer[promptChar].UnicodeChar;
-                    if (char.IsWhiteSpace(c))
+                    // We need to update the prompt
+                    _console.CursorLeft -= _options.PromptText.Length;
+                    UpdateColorsIfNecessary(renderData.errorPrompt ? _options._errorColor : defaultColor);
+                    _console.Write(_options.PromptText);
+                    _console.Write("\x1b[0m");
+                }
+            }
+
+            var bufferWidth = _console.BufferWidth;
+
+            int PhysicalLineCount(int columns, bool isFirstLogicalLine, out int lenLastPhysicalLine)
+            {
+                int cnt = 1;
+                if (isFirstLogicalLine)
+                {
+                    // The first logical line has the user prompt that we don't touch
+                    // (except where we turn part to red, but we've finished that
+                    // before getting here.)
+                    var maxFirstLine = bufferWidth - _initialX;
+                    if (columns > maxFirstLine)
                     {
-                        promptChar -= 1;
-                        continue;
+                        cnt += 1;
+                        columns -= maxFirstLine;
                     }
+                    else
+                    {
+                        lenLastPhysicalLine = columns;
+                        return 1;
+                    }
+                }
 
-                    ConsoleColor prevColor = _consoleBuffer[promptChar].ForegroundColor;
-                    _consoleBuffer[promptChar].ForegroundColor = ConsoleColor.Red;
-                    _console.WriteBufferLines(_consoleBuffer, ref _initialY);
-                    rendered = true;
-                    _consoleBuffer[promptChar].ForegroundColor = prevColor;
-                    break;
+                lenLastPhysicalLine = columns % bufferWidth;
+                return cnt + columns / bufferWidth;
+            }
+
+            var previousRenderLines = _previousRender.lines;
+            var previousLogicalLine = 0;
+            var previousPhysicalLine = 0;
+
+            var renderLines = renderData.lines;
+            var logicalLine = 0;
+            var physicalLine = 0;
+            var lenPrevLastLine = 0;
+
+            for (; logicalLine < renderLines.Length; logicalLine++)
+            {
+                if (logicalLine != 0) _console.Write("\n");
+
+                var lineData = renderLines[logicalLine];
+                _console.Write(lineData.line);
+
+                int lenLastLine;
+                physicalLine += PhysicalLineCount(lineData.columns, logicalLine == 0, out lenLastLine);
+
+                // Find the previous logical line (if any) that would have rendered
+                // the current physical line because we may need to clear it.
+                // We don't clear it unconditionally to allow things like a prompt
+                // on the right side of the line.
+
+                while (physicalLine > previousPhysicalLine
+                    && previousLogicalLine < previousRenderLines.Length)
+                {
+                    previousPhysicalLine += PhysicalLineCount(previousRenderLines[previousLogicalLine].columns,
+                                                              previousLogicalLine == 0,
+                                                              out lenPrevLastLine);
+                    previousLogicalLine += 1;
+                }
+
+                // Our current physical line might be in the middle of the
+                // previous logical line, in which case we need to blank
+                // the rest of the line, otherwise we blank just the end
+                // of what was written.
+                int lenToClear = 0;
+                if (physicalLine == previousPhysicalLine)
+                {
+                    // We're on the end of the previous logical line, so we
+                    // only need to clear any extra.
+
+                    if (lenPrevLastLine > lenLastLine)
+                        lenToClear = lenPrevLastLine - lenLastLine;
+                }
+                else if (physicalLine < previousPhysicalLine)
+                {
+                    // We're in the middle of a previous logical line, we
+                    // need to clear to the end of the line.
+                    lenToClear = bufferWidth - (lenLastLine % bufferWidth);
+                    if (physicalLine == 1)
+                        lenToClear -= _initialX;
+                }
+
+                if (lenToClear > 0)
+                {
+                    UpdateColorsIfNecessary(defaultColor);
+                    _console.Write(Spaces(lenToClear));
                 }
             }
 
-            if (!rendered)
+            UpdateColorsIfNecessary(defaultColor);
+
+            while (previousPhysicalLine > physicalLine)
             {
-                _console.WriteBufferLines(_consoleBuffer, ref _initialY);
+                _console.Write("\n");
+                physicalLine += 1;
+                var lenToClear = physicalLine == previousPhysicalLine ? lenPrevLastLine : bufferWidth;
+                if (lenToClear > 0)
+                {
+                    _console.Write(Spaces(lenToClear));
+                }
             }
 
-            var coordinates = ConvertOffsetToCoordinates(_current);
-            PlaceCursor(coordinates.X, coordinates.Y);
-
-            if ((_initialY + bufferLineCount) > (_console.WindowTop + _console.WindowHeight))
+            // Fewer lines than our last render? Clear them.
+            for (; previousLogicalLine < previousRenderLines.Length; previousLogicalLine++)
             {
-                _console.WindowTop = _initialY + bufferLineCount - _console.WindowHeight;
+                _console.Write("\n");
+                _console.Write(Spaces(previousRenderLines[previousLogicalLine].columns));
             }
+
+            _previousRender = renderData;
+
+            // Reset the colors after we've finished all our rendering.
+            _console.Write("\x1b[0m");
+
+            if (_initialY + physicalLine >= _console.BufferHeight)
+            {
+                // We had to scroll to render everything, update _initialY
+                _initialY = _console.BufferHeight - physicalLine;
+            }
+
+            var point = ConvertOffsetToPoint(_current);
+            PlaceCursor(point.X, point.Y);
+            _console.CursorVisible = true;
+
+            // TODO: set WindowTop if necessary
 
             _lastRenderTime.Restart();
         }
 
-        private int LengthInBufferCells(char c)
+        private static string Spaces(int cnt)
+        {
+            return cnt < _spaces.Length
+                ? (_spaces[cnt] ?? (_spaces[cnt] = new string(' ', cnt)))
+                : new string(' ', cnt);
+        }
+
+        private static int LengthInBufferCells(string str)
+        {
+            var sum = 0;
+            var len = str.Length;
+            for (var i = 0; i < len; i++)
+            {
+                var c = str[i];
+                if (c == 0x1b && (i+1) < len && str[i+1] == '[')
+                {
+                    // Simple escape sequence skipping
+                    i += 2;
+                    while (i < len && str[i] != 'm')
+                        i++;
+
+                    continue;
+                }
+                sum += LengthInBufferCells(c);
+            }
+            return sum;
+        }
+
+        private static int LengthInBufferCells(char c)
         {
             if (c < 256)
             {
@@ -337,95 +531,56 @@ namespace Microsoft.PowerShell
             return 1 + (isWide ? 1 : 0);
         }
 
-        private static void WriteBlankLines(int count, int top)
-        {
-            var console = _singleton._console;
-            var blanks = new CHAR_INFO[count * console.BufferWidth];
-            for (int i = 0; i < blanks.Length; i++)
-            {
-                blanks[i].BackgroundColor = console.BackgroundColor;
-                blanks[i].ForegroundColor = console.ForegroundColor;
-                blanks[i].UnicodeChar = ' ';
-            }
-            console.WriteBufferLines(blanks, ref top);
-        }
-
-        private static CHAR_INFO[] ReadBufferLines(int top, int count)
-        {
-            return _singleton._console.ReadBufferLines(top, count);
-        }
-
-        private void GetTokenColors(Token token, out ConsoleColor foregroundColor, out ConsoleColor backgroundColor)
+        private string GetTokenColor(Token token)
         {
             switch (token.Kind)
             {
             case TokenKind.Comment:
-                foregroundColor = _options.CommentForegroundColor;
-                backgroundColor = _options.CommentBackgroundColor;
-                return;
+                return _options._commentColor;
 
             case TokenKind.Parameter:
-                foregroundColor = _options.ParameterForegroundColor;
-                backgroundColor = _options.ParameterBackgroundColor;
-                return;
+                return _options._parameterColor;
 
             case TokenKind.Variable:
             case TokenKind.SplattedVariable:
-                foregroundColor = _options.VariableForegroundColor;
-                backgroundColor = _options.VariableBackgroundColor;
-                return;
+                return _options._variableColor;
 
             case TokenKind.StringExpandable:
             case TokenKind.StringLiteral:
             case TokenKind.HereStringExpandable:
             case TokenKind.HereStringLiteral:
-                foregroundColor = _options.StringForegroundColor;
-                backgroundColor = _options.StringBackgroundColor;
-                return;
+                return _options._stringColor;
 
             case TokenKind.Number:
-                foregroundColor = _options.NumberForegroundColor;
-                backgroundColor = _options.NumberBackgroundColor;
-                return;
+                return _options._numberColor;
             }
 
             if ((token.TokenFlags & TokenFlags.CommandName) != 0)
             {
-                foregroundColor = _options.CommandForegroundColor;
-                backgroundColor = _options.CommandBackgroundColor;
-                return;
+                return _options._commandColor;
             }
 
             if ((token.TokenFlags & TokenFlags.Keyword) != 0)
             {
-                foregroundColor = _options.KeywordForegroundColor;
-                backgroundColor = _options.KeywordBackgroundColor;
-                return;
+                return _options._keywordColor;
             }
 
             if ((token.TokenFlags & (TokenFlags.BinaryOperator | TokenFlags.UnaryOperator | TokenFlags.AssignmentOperator)) != 0)
             {
-                foregroundColor = _options.OperatorForegroundColor;
-                backgroundColor = _options.OperatorBackgroundColor;
-                return;
+                return _options._operatorColor;
             }
 
             if ((token.TokenFlags & TokenFlags.TypeName) != 0)
             {
-                foregroundColor = _options.TypeForegroundColor;
-                backgroundColor = _options.TypeBackgroundColor;
-                return;
+                return _options._typeColor;
             }
 
             if ((token.TokenFlags & TokenFlags.MemberName) != 0)
             {
-                foregroundColor = _options.MemberForegroundColor;
-                backgroundColor = _options.MemberBackgroundColor;
-                return;
+                return _options._memberColor;
             }
 
-            foregroundColor = _options.DefaultTokenForegroundColor;
-            backgroundColor = _options.DefaultTokenBackgroundColor;
+            return _options._defaultTokenColor;
         }
 
         private void GetRegion(out int start, out int length)
@@ -442,66 +597,30 @@ namespace Microsoft.PowerShell
             }
         }
 
-        private bool InRegion(int i)
-        {
-            int start, end;
-            if (_mark > _current)
-            {
-                start = _current;
-                end = _mark;
-            }
-            else
-            {
-                start = _mark;
-                end = _current;
-            }
-            return i >= start && i < end;
-        }
-
-        private void MaybeEmphasize(ref CHAR_INFO charInfo, int i, ConsoleColor foregroundColor, ConsoleColor backgroundColor)
-        {
-            if (i >= _emphasisStart && i < (_emphasisStart + _emphasisLength))
-            {
-                backgroundColor = _options.EmphasisBackgroundColor;
-                foregroundColor = _options.EmphasisForegroundColor;
-            }
-            else if (_visualSelectionCommandCount > 0 && InRegion(i))
-            {
-                // We can't quite emulate real console selection because it inverts
-                // based on actual screen colors, our pallete is limited.  The choice
-                // to invert only the lower 3 bits to change the color is somewhat
-                // but looks best with the 2 default color schemes - starting PowerShell
-                // from it's shortcut or from a cmd shortcut.
-                foregroundColor = (ConsoleColor)((int)foregroundColor ^ 7);
-                backgroundColor = (ConsoleColor)((int)backgroundColor ^ 7);
-            }
-
-            charInfo.ForegroundColor = foregroundColor;
-            charInfo.BackgroundColor = backgroundColor;
-        }
-
         private void PlaceCursor(int x, int y)
         {
             int statusLineCount = GetStatusLineCount();
             if ((y + statusLineCount) >= _console.BufferHeight)
             {
-                _console.ScrollBuffer((y + statusLineCount) - _console.BufferHeight + 1);
-                y = _console.BufferHeight - 1;
+                var scrollCount = y + statusLineCount - _console.BufferHeight + 1;
+                _console.ScrollBuffer(scrollCount);
+                _initialY -= scrollCount;
+                y -= scrollCount;
             }
             _console.SetCursorPosition(x, y);
         }
 
         private void MoveCursor(int newCursor)
         {
-            var coordinates = ConvertOffsetToCoordinates(newCursor);
-            PlaceCursor(coordinates.X, coordinates.Y);
+            var point = ConvertOffsetToPoint(newCursor);
+            PlaceCursor(point.X, point.Y);
             _current = newCursor;
         }
 
-        private COORD ConvertOffsetToCoordinates(int offset)
+        internal Point ConvertOffsetToPoint(int offset)
         {
             int x = _initialX;
-            int y = _initialY + Options.ExtraPromptLineCount;
+            int y = _initialY;
 
             int bufferWidth = _console.BufferWidth;
             var continuationPromptLength = Options.ContinuationPrompt.Length;
@@ -547,40 +666,15 @@ namespace Microsoft.PowerShell
                     y++;
                 }
             }
-            
-            return new COORD {X = (short)x, Y = (short)y};
+
+            return new Point {X = x, Y = y};
         }
 
-        private int ConvertOffsetToConsoleBufferOffset(int offset, int startIndex)
-        {
-            int j = startIndex;
-            for (int i = 0; i < offset; i++)
-            {
-                var c = _buffer[i];
-                if (c == '\n')
-                {
-                    for (int k = 0; k < Options.ContinuationPrompt.Length; k++)
-                    {
-                        j++;
-                    }
-                }
-                else if (LengthInBufferCells(c) > 1)
-                {
-                    j += 2;
-                }
-                else
-                {
-                    j++;
-                }
-            }
-            return j;
-        }
-
-        private int ConvertLineAndColumnToOffset(COORD coord)
+        private int ConvertLineAndColumnToOffset(Point point)
         {
             int offset;
             int x = _initialX;
-            int y = _initialY + Options.ExtraPromptLineCount;
+            int y = _initialY;
 
             int bufferWidth = _console.BufferWidth;
             var continuationPromptLength = Options.ContinuationPrompt.Length;
@@ -588,7 +682,7 @@ namespace Microsoft.PowerShell
             {
                 // If we are on the correct line, return when we find
                 // the correct column
-                if (coord.Y == y && coord.X <= x)
+                if (point.Y == y && point.X <= x)
                 {
                     return offset;
                 }
@@ -597,7 +691,7 @@ namespace Microsoft.PowerShell
                 {
                     // If we are about to move off of the correct line,
                     // the line was shorter than the column we wanted so return.
-                    if (coord.Y == y)
+                    if (point.Y == y)
                     {
                         return offset;
                     }
@@ -627,7 +721,7 @@ namespace Microsoft.PowerShell
 
             // Return -1 if y is out of range, otherwise the last line was shorter
             // than we wanted, but still in range so just return the last offset.
-            return (coord.Y == y) ? offset : -1;
+            return (point.Y == y) ? offset : -1;
         }
 
         private bool LineIsMultiLine()
@@ -656,7 +750,10 @@ namespace Microsoft.PowerShell
             case BellStyle.None:
                 break;
             case BellStyle.Audible:
-                Console.Beep(Options.DingTone, Options.DingDuration);
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                    Console.Beep(Options.DingTone, Options.DingDuration);
+                else
+                    Console.Beep();
                 break;
             case BellStyle.Visual:
                 // TODO: flash prompt? command line?
@@ -681,10 +778,8 @@ namespace Microsoft.PowerShell
 
             _statusLinePrompt = null;
             Render();
-            return key.Key == ConsoleKey.Y;
+            return key.IsUnmodifiedChar('y') || key.IsUnmodifiedChar('Y');
         }
-
-        #region Screen scrolling
 
         /// <summary>
         /// Scroll the display up one screen.
@@ -760,10 +855,10 @@ namespace Microsoft.PowerShell
         public static void ScrollDisplayToCursor(ConsoleKeyInfo? key = null, object arg = null)
         {
             // Ideally, we'll put the last input line at the bottom of the window
-            var coordinates = _singleton.ConvertOffsetToCoordinates(_singleton._buffer.Length);
+            var point = _singleton.ConvertOffsetToPoint(_singleton._buffer.Length);
 
             var console = _singleton._console;
-            var newTop = coordinates.Y - console.WindowHeight + 1;
+            var newTop = point.Y - console.WindowHeight + 1;
 
             // If the cursor is already visible, and we're on the first
             // page-worth of the buffer, then just scroll to the top (we can't
@@ -793,7 +888,5 @@ namespace Microsoft.PowerShell
             }
             console.SetWindowPosition(0, newTop);
         }
-
-        #endregion Screen scrolling
     }
 }
