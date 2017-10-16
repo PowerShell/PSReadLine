@@ -8,6 +8,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Management.Automation.Language;
+using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.PowerShell.Internal;
 
@@ -749,7 +750,10 @@ namespace Microsoft.PowerShell
             case BellStyle.None:
                 break;
             case BellStyle.Audible:
-                Console.Beep(Options.DingTone, Options.DingDuration);
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                    Console.Beep(Options.DingTone, Options.DingDuration);
+                else
+                    Console.Beep();
                 break;
             case BellStyle.Visual:
                 // TODO: flash prompt? command line?
