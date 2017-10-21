@@ -34,6 +34,7 @@ namespace Microsoft.PowerShell
 
         private IPSConsoleReadLineMockableMethods _mockableMethods;
         private IConsole _console;
+        private ICharMap _charMap;
         private Encoding _initialOutputEncoding;
 
         private EngineIntrinsics _engineIntrinsics;
@@ -75,9 +76,13 @@ namespace Microsoft.PowerShell
             _readkeyStopwatch.Restart();
             while (_console.KeyAvailable)
             {
-                var key = _console.ReadKey();
-                _lastNKeys.Enqueue(key);
-                _queuedKeys.Enqueue(key);
+                _charMap.ProcessKey(_console.ReadKey());
+                while (_charMap.KeyAvailable)
+                {
+                    var key = _charMap.ReadKey();
+                    _lastNKeys.Enqueue(key);
+                    _queuedKeys.Enqueue(key);
+                }
                 if (_readkeyStopwatch.ElapsedMilliseconds > 2)
                 {
                     // Don't spend too long in this loop if there are lots of queued keys
@@ -87,9 +92,16 @@ namespace Microsoft.PowerShell
 
             if (_queuedKeys.Count == 0)
             {
-                var key = _console.ReadKey();
-                _lastNKeys.Enqueue(key);
-                _queuedKeys.Enqueue(key);
+                while (!_charMap.KeyAvailable)
+                {
+                    _charMap.ProcessKey(_console.ReadKey());
+                }
+                while (_charMap.KeyAvailable)
+                {
+                    var key = _charMap.ReadKey();
+                    _lastNKeys.Enqueue(key);
+                    _queuedKeys.Enqueue(key);
+                }
             }
         }
 
@@ -467,6 +479,7 @@ namespace Microsoft.PowerShell
         {
             _mockableMethods = this;
             _console = new ConhostConsole();
+            _charMap = new WindowsAnsiCharMap();
 
             _buffer = new StringBuilder(8 * 1024);
             _statusBuffer = new StringBuilder(256);
