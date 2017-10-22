@@ -112,24 +112,11 @@ static class PlatformWindows
         bool isConsole;
         bool useVtInput =
             IsHandleRedirected(stdin: true, isConsole: out isConsole) ||
-            Environment.GetEnvironmentVariable("PSREADLINE_WINVTINPUT") == "1";
+            Environment.GetEnvironmentVariable("PSREADLINE_VTINPUT") == "1";
         if (useVtInput)
         {
             // For redirected input, we need to process VT sequences.
-            if (uint.TryParse(Environment.GetEnvironmentVariable("PSREADLINE_ESCTIMEOUT"), out var escTimeout))
-            {
-                // Don't let someone get themselves stuck here.
-                if (escTimeout > 1000)
-                {
-                    escTimeout = 1000;
-                }
-                charMap = new WindowsAnsiCharMap(escTimeout);
-            }
-            else
-            {
-                // Use the default timeout.
-                charMap = new WindowsAnsiCharMap();
-            }
+            EnableAnsiInput(ref charMap);
         }
 
         if (!isConsole)
@@ -147,13 +134,36 @@ static class PlatformWindows
         //     ENABLE_WINDOW_INPUT - window resize events
         var mode = _prePSReadlineConsoleMode &
                    ~(ENABLE_PROCESSED_INPUT | ENABLE_LINE_INPUT | ENABLE_WINDOW_INPUT | ENABLE_MOUSE_INPUT);
-        // If we're using VT input mode in the console, need to enable that too.
         if (useVtInput)
         {
+            // If we're using VT input mode in the console, need to enable that too.
             mode |= ENABLE_VIRTUAL_TERMINAL_INPUT;
+        }
+        else if ((_prePSReadlineConsoleMode & ENABLE_VIRTUAL_TERMINAL_INPUT) == ENABLE_VIRTUAL_TERMINAL_INPUT)
+        {
+            // If the console was already in VT mode, use the appropriate CharMap.
+            EnableAnsiInput(ref charMap);
         }
 
         SetConsoleInputMode(mode);
+    }
+
+    private static void EnableAnsiInput(ref ICharMap charMap)
+    {
+        if (uint.TryParse(Environment.GetEnvironmentVariable("PSREADLINE_ESCTIMEOUT"), out var escTimeout))
+        {
+            // Don't let someone get themselves stuck here.
+            if (escTimeout > 1000)
+            {
+                escTimeout = 1000;
+            }
+            charMap = new WindowsAnsiCharMap(escTimeout);
+        }
+        else
+        {
+            // Use the default timeout.
+            charMap = new WindowsAnsiCharMap();
+        }
     }
 
     internal static void Complete()
