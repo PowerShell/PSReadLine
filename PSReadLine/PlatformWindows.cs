@@ -100,64 +100,85 @@ static class PlatformWindows
         SetConsoleCtrlHandler((BreakHandler)breakHandlerGcHandle.Target, true);
     }
 
-    const uint ENABLE_PROCESSED_INPUT = 0x0001;
-    const uint ENABLE_LINE_INPUT      = 0x0002;
-    const uint ENABLE_WINDOW_INPUT    = 0x0008;
-    const uint ENABLE_MOUSE_INPUT     = 0x0010;
+    const uint ENABLE_PROCESSED_INPUT        = 0x0001;
+    const uint ENABLE_LINE_INPUT             = 0x0002;
+    const uint ENABLE_WINDOW_INPUT           = 0x0008;
+    const uint ENABLE_MOUSE_INPUT            = 0x0010;
+    const uint ENABLE_VIRTUAL_TERMINAL_INPUT = 0x0200;
 
-    static uint _prePSReadlineConsoleInputMode;
-    internal static void Init()
+    static uint _prePSReadlineConsoleMode;
+    internal static void Init(ref ICharMap charMap)
     {
-        // If either stdin or stdout is redirected, PSReadline doesn't really work, so throw
-        // and let PowerShell call Console.ReadLine or do whatever else it decides to do.
-        if (IsHandleRedirected(stdin: false) || IsHandleRedirected(stdin: true))
+        bool isConsole;
+        bool useVtInput =
+            IsHandleRedirected(stdin: true, isConsole: out isConsole) ||
+            Environment.GetEnvironmentVariable("PSREADLINE_WINVTINPUT") == "1";
+        if (useVtInput)
         {
-            throw new NotSupportedException();
+            // For redirected input, we need to process VT sequences.
+            if (uint.TryParse(Environment.GetEnvironmentVariable("PSREADLINE_ESCTIMEOUT"), out var escTimeout))
+            {
+                // Don't let someone get themselves stuck here.
+                if (escTimeout > 1000)
+                {
+                    escTimeout = 1000;
+                }
+                charMap = new WindowsAnsiCharMap(escTimeout);
+            }
+            else
+            {
+                // Use the default timeout.
+                charMap = new WindowsAnsiCharMap();
+            }
         }
 
-        _prePSReadlineConsoleInputMode = GetConsoleInputMode();
-        SetOurInputMode();
-    }
+        if (!isConsole)
+        {
+            return;
+        }
 
-    internal static void SetOurInputMode()
-    {
+        _prePSReadlineConsoleMode = GetConsoleInputMode();
+
         // Clear a couple flags so we can actually receive certain keys:
         //     ENABLE_PROCESSED_INPUT - enables Ctrl+C
         //     ENABLE_LINE_INPUT - enables Ctrl+S
         // Also clear a couple flags so we don't mask the input that we ignore:
         //     ENABLE_MOUSE_INPUT - mouse events
         //     ENABLE_WINDOW_INPUT - window resize events
-        var mode = _prePSReadlineConsoleInputMode &
+        var mode = _prePSReadlineConsoleMode &
                    ~(ENABLE_PROCESSED_INPUT | ENABLE_LINE_INPUT | ENABLE_WINDOW_INPUT | ENABLE_MOUSE_INPUT);
+        // If we're using VT input mode in the console, need to enable that too.
+        if (useVtInput)
+        {
+            mode |= ENABLE_VIRTUAL_TERMINAL_INPUT;
+        }
+
         SetConsoleInputMode(mode);
     }
 
     internal static void Complete()
     {
-        SetConsoleInputMode(_prePSReadlineConsoleInputMode);
+        IsHandleRedirected(stdin: true, isConsole: out var isConsole);
+        if (isConsole)
+        {
+            SetConsoleInputMode(_prePSReadlineConsoleMode);
+        }
     }
 
     internal static T CallPossibleExternalApplication<T>(Func<T> func)
     {
-        uint psReadlineConsoleMode = GetConsoleInputMode();
-        try
+        IsHandleRedirected(stdin: true, isConsole: out var isConsole);
+        if (!isConsole)
         {
-            SetConsoleInputMode(_prePSReadlineConsoleInputMode);
+            // Don't bother with console modes if we're not in the console.
             return func();
         }
-        finally
-        {
-            SetConsoleInputMode(psReadlineConsoleMode);
-        }
-    }
 
-    internal static void CallUsingOurInputMode(Action a)
-    {
         uint psReadlineConsoleMode = GetConsoleInputMode();
         try
         {
-            SetOurInputMode();
-            a();
+            SetConsoleInputMode(_prePSReadlineConsoleMode);
+            return func();
         }
         finally
         {
@@ -206,16 +227,22 @@ static class PlatformWindows
         SetConsoleMode(handle, mode);
     }
 
-    private static bool IsHandleRedirected(bool stdin)
+    private static bool IsHandleRedirected(bool stdin, out bool isConsole)
     {
         var handle = GetStdHandle((uint)(stdin ? StandardHandleId.Input : StandardHandleId.Output));
 
         // If handle is not to a character device, we must be redirected:
         int fileType = GetFileType(handle);
         if ((fileType & FILE_TYPE_CHAR) != FILE_TYPE_CHAR)
+        {
+            // For redirected input, should we use console APIs?
+            isConsole = GetConsoleMode(handle, out var unused);
             return true;
-
-        // Char device - if GetConsoleMode succeeds, we are NOT redirected.
-        return !GetConsoleMode(handle, out var unused);
+        }
+        else
+        {
+            isConsole = true;
+            return false;
+        }
     }
 }

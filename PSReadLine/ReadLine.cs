@@ -104,9 +104,7 @@ namespace Microsoft.PowerShell
                         else
                         {
                             // This should be ok since it will only run if there
-                            // are no keys waiting to be read. If there are, the
-                            // timer won't matter since the extra input will
-                            // force a decision.
+                            // are no keys waiting to be read.
                             Thread.Sleep(5);
                         }
                     }
@@ -274,7 +272,7 @@ namespace Microsoft.PowerShell
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                PlatformWindows.Init();
+                PlatformWindows.Init(ref _singleton._charMap);
             }
 
             bool firstTime = true;
@@ -498,7 +496,7 @@ namespace Microsoft.PowerShell
         {
             _mockableMethods = this;
             _console = new ConhostConsole();
-            _charMap = new WindowsAnsiCharMap();
+            _charMap = new DotNetCharMap();
 
             _buffer = new StringBuilder(8 * 1024);
             _statusBuffer = new StringBuilder(256);
