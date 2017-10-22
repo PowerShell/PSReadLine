@@ -94,7 +94,26 @@ namespace Microsoft.PowerShell
             {
                 while (!_charMap.KeyAvailable)
                 {
-                    _charMap.ProcessKey(_console.ReadKey());
+                    // Don't want to block when there is an escape sequence being read.
+                    if (_charMap.InEscapeSequence)
+                    {
+                        if (_console.KeyAvailable)
+                        {
+                            _charMap.ProcessKey(_console.ReadKey());
+                        }
+                        else
+                        {
+                            // This should be ok since it will only run if there
+                            // are no keys waiting to be read. If there are, the
+                            // timer won't matter since the extra input will
+                            // force a decision.
+                            Thread.Sleep(5);
+                        }
+                    }
+                    else
+                    {
+                        _charMap.ProcessKey(_console.ReadKey());
+                    }
                 }
                 while (_charMap.KeyAvailable)
                 {

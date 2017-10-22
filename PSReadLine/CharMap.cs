@@ -12,6 +12,9 @@ namespace Microsoft.PowerShell
     {
         long EscapeTimeout { get; set; }
         bool KeyAvailable { get; }
+        /// If this is true, we don't want to block on `Console.ReadKey` or
+        /// the escape won't get seen until the next key is pressed.
+        bool InEscapeSequence { get; }
         ConsoleKeyInfo ReadKey();
         /// Returns true if no further processing is needed. In this case,
         /// `key` may have changed based on previous input. If false is
@@ -29,6 +32,8 @@ namespace Microsoft.PowerShell
         public long EscapeTimeout { get; set; }
 
         public bool KeyAvailable { get; private set; } = false;
+
+        public bool InEscapeSequence { get; } = false;
 
         public ConsoleKeyInfo ReadKey()
         {
@@ -48,7 +53,7 @@ namespace Microsoft.PowerShell
         private const int _minSeqLen = 2;
         private const int _maxSeqLen = 5;
 
-        private ConsoleKeyInfo[] _pendingKeys = new ConsoleKeyInfo[_maxSeqLen];
+        private List<ConsoleKeyInfo> _pendingKeys;
         /// The next index in `_pendingKeys` to write to.
         private int _addKeyIndex;
         /// The next index in `_pendingKeys` to read from. This index becomes
@@ -62,8 +67,13 @@ namespace Microsoft.PowerShell
 
         private Stopwatch _escTimeoutStopwatch = new Stopwatch();
 
-        public WindowsAnsiCharMap(long escapeTimeout = 100)
+        public WindowsAnsiCharMap(long escapeTimeout = 50)
         {
+            this._pendingKeys = new List<ConsoleKeyInfo>(_maxSeqLen);
+            // Several places assume that _pendingKeys[0] is valid. Since
+            // elements are never removed from the list, only overwritten,
+            // doing this will avoid any problems with that assumption.
+            this._pendingKeys.Add(default(ConsoleKeyInfo));
             this._addKeyIndex = 0;
             this._readKeyIndexFrom = 0;
             this._readKeyIndexTo = 0;
@@ -81,15 +91,28 @@ namespace Microsoft.PowerShell
                     return true;
                 }
 
-                if (_pendingKeys[0].KeyChar == '\x1b' && _escTimeoutStopwatch.ElapsedMilliseconds >= EscapeTimeout)
+                if (
+                    _addKeyIndex > 0 &&
+                    _pendingKeys[0].KeyChar == '\x1b' && 
+                    _escTimeoutStopwatch.ElapsedMilliseconds >= EscapeTimeout
+                )
                 {
+                    _readKeyIndexFrom = 0;
                     _readKeyIndexTo = _addKeyIndex;
                     return true;
                 }
                 return false;
             }
         }
-        
+
+        public bool InEscapeSequence
+        {
+            get
+            {
+                return _pendingKeys[0].KeyChar == '\x1b' && _escTimeoutStopwatch.ElapsedMilliseconds < EscapeTimeout;
+            }
+        }
+
         public ConsoleKeyInfo ReadKey()
         {
             if (_readKeyIndexFrom < _readKeyIndexTo)
@@ -99,7 +122,7 @@ namespace Microsoft.PowerShell
                 {
                     for (int i = _readKeyIndexTo; i < _addKeyIndex; i++)
                     {
-                        _pendingKeys[i - _readKeyIndexTo] = _pendingKeys[i];
+                        SetKey(i - _readKeyIndexTo, _pendingKeys[i]);
                     }
                     _addKeyIndex -= _readKeyIndexTo;
                     index = _readKeyIndexFrom = _readKeyIndexTo = 0;
@@ -121,6 +144,18 @@ namespace Microsoft.PowerShell
             }
         }
 
+        public void SetKey(int index, ConsoleKeyInfo key)
+        {
+            if (index >= _pendingKeys.Count)
+            {
+                _pendingKeys.Add(key);
+            }
+            else
+            {
+                _pendingKeys[index] = key;
+            }
+        }
+
         private void ProcessSingleKey(ConsoleKeyInfo key)
         {
             var ch = key.KeyChar;
@@ -135,7 +170,7 @@ namespace Microsoft.PowerShell
             }
             else
             {
-                _pendingKeys[_addKeyIndex] = key;
+                SetKey(_addKeyIndex, key);
                 if (_addKeyIndex == 0)
                 {
                     _readKeyIndexTo = 1;
@@ -178,10 +213,10 @@ namespace Microsoft.PowerShell
                 control = false;
                 break;
             case 0x1B:
-                _pendingKeys[i] = new ConsoleKeyInfo('\x1b', ConsoleKey.Escape, false, false, false);
+                SetKey(i, new ConsoleKeyInfo('\x1b', ConsoleKey.Escape, false, false, false));
                 if (i == 0)
                 {
-                    _escTimeoutStopwatch.Reset();
+                    _escTimeoutStopwatch.Restart();
                 }
                 // Don't let escape set KeyAvailable.
                 return; 
@@ -204,7 +239,7 @@ namespace Microsoft.PowerShell
                 break;
             }
 
-            _pendingKeys[i] = new ConsoleKeyInfo(ch, consoleKey, shift: shift, alt: false, control: control);
+            SetKey(i, new ConsoleKeyInfo(ch, consoleKey, shift: shift, alt: false, control: control));
             if (i == 0)
             {
                 _readKeyIndexTo = 1;
@@ -217,7 +252,7 @@ namespace Microsoft.PowerShell
         private char GetSeqChar(int i)
         {
             // Only return valid key indexes for this scan.
-            if (i >= _addKeyIndex)
+            if (i >= _pendingKeys.Count || i >= _addKeyIndex)
             {
                 return '\xffff';
             }
@@ -254,12 +289,13 @@ namespace Microsoft.PowerShell
                 alt: true,
                 control: (key.Modifiers & ConsoleModifiers.Control) != 0
             );
-            for (int i = 1; i < _addKeyIndex; i++)
-            {
-                _pendingKeys[i] = _pendingKeys[i + 1];
-            }
             --_addKeyIndex;
             _readKeyIndexTo = 1;
+            _readKeyIndexFrom = 0;
+            for (int i = 1; i < _addKeyIndex; i++)
+            {
+                SetKey(i, _pendingKeys[i + 1]);
+            }
             return true;
         }
 
@@ -267,32 +303,44 @@ namespace Microsoft.PowerShell
         /// _pendingKeys[0] == Escape.
         private void ProcessMultipleKeys()
         {
-            if (_readKeyIndexTo >= _pendingKeys.Length)
+            if (GetSeqChar(_addKeyIndex - 1) == '\x1b')
             {
-                // We shouldn't get to this point - to work properly,
-                // you need to call GetKey as soon as KeyAvailable returns true.
-                throw new InvalidOperationException("VT input buffer full");
-            }
-            if (_pendingKeys[0].KeyChar != '\x1b')
-            {
-                throw new InvalidOperationException("VT input buffer should not accumulate non-escape sequence chars");
+                // There's a possible case that it could have been a sequence
+                // part, but it's also an alt sequence. Since the second escape
+                // causes a reset, we should check if there's an alt sequence
+                // that was never seen because we were waiting for a full escape
+                // sequence. Either way, we want to read everything up to the
+                // escape that was just processed.
+                if (_escTimeoutStopwatch.ElapsedMilliseconds <= EscapeTimeout)
+                {
+                    ProcessAltSequence();
+                    _readKeyIndexFrom = 0;
+                    _readKeyIndexTo = _addKeyIndex - 1;
+                }
+                _escTimeoutStopwatch.Restart();
+                return;
             }
 
             if (_escTimeoutStopwatch.ElapsedMilliseconds <= EscapeTimeout)
             {
                 if (!ProcessSequencePart() && !ProcessAltSequence())
                 {
+                    _readKeyIndexFrom = 0;
                     _readKeyIndexTo = _addKeyIndex;
                 }
             }
             else
             {
+                // If the timer expired and there are exactly three pending
+                // characters, that means the first two which were entered
+                // before the timer expiring could be an alt sequence
+                // (see above note).
+                if (_addKeyIndex == 3)
+                {
+                    ProcessAltSequence();
+                }
+                _readKeyIndexFrom = 0;
                 _readKeyIndexTo = _addKeyIndex;
-            }
-
-            if (GetSeqChar(_addKeyIndex - 1) == '\x1b')
-            {
-                _escTimeoutStopwatch.Reset();
             }
         }
 
@@ -325,8 +373,9 @@ namespace Microsoft.PowerShell
                 default:
                     return false;
                 }
-                _pendingKeys[0] = new ConsoleKeyInfo('\0', ck, shift: false, alt: false, control: false);
+                SetKey(0, new ConsoleKeyInfo('\0', ck, shift: false, alt: false, control: false));
                 _addKeyIndex = 1;
+                _readKeyIndexFrom = 0;
                 _readKeyIndexTo = 1;
                 return true;
             }
