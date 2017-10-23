@@ -245,13 +245,13 @@ static class PlatformWindows
         int fileType = GetFileType(handle);
         if ((fileType & FILE_TYPE_CHAR) != FILE_TYPE_CHAR)
         {
-            // For redirected input, should we use console APIs?
-            isConsole = GetConsoleMode(handle, out var unused);
+            isConsole = false;
             return true;
         }
         else
         {
-            isConsole = true;
+            // For redirected input, can we use console APIs?
+            isConsole = GetConsoleMode(handle, out var unused);
             return false;
         }
     }
