@@ -21,11 +21,13 @@ namespace Microsoft.PowerShell
         /// If this is true, we don't want to block on `Console.ReadKey` or
         /// the escape won't get seen until the next key is pressed.
         bool InEscapeSequence { get; }
-        /// Read a processed key (not from the console).
+        /// Read a key from the processing buffer. An unspecified value
+        /// is returned if `KeyAvailable` is false.
         ConsoleKeyInfo ReadKey();
-        /// Returns true if no further processing is needed. In this case,
-        /// `key` may have changed based on previous input. If false is
-        /// returned, the CharMap wants to consume this key for later processing.
+        /// Insert a new key into the processing buffer. It is important that
+        /// immediately after every call to this, you check `KeyAvailable` as
+        /// the implementations are not designed to hold keys that don't form
+        /// a recognizable sequence.
         void ProcessKey(ConsoleKeyInfo key);
     }
 
@@ -263,12 +265,19 @@ namespace Microsoft.PowerShell
         private char GetSeqChar(int i)
         {
             // Only return valid key indexes for this scan.
+            // None of the valid sequence characters have a KeyChar of '\0'.
             if (i >= _pendingKeys.Count || i >= _addKeyIndex)
             {
                 return '\0';
             }
-            // None of the valid sequence characters have a KeyChar of '\0'.
-            return _pendingKeys[i].KeyChar;
+            var ch = _pendingKeys[i].KeyChar;
+            // These characters can't be preceded by Esc (from showkey -a).
+            //         Esc            Tab/^I        ^Enter/^J      Non-ASCII
+            if (ch == '\x1b' || ch == '\x09' || ch == '\x0a' || ch >= '\x7f')
+            {
+                return '\0';
+            }
+            return ch;
         }
 
         /// Called when _pendingKeys[0] == ESC but it's not a full sequence.
@@ -280,7 +289,7 @@ namespace Microsoft.PowerShell
         private bool ProcessAltSequence()
         {
             var ch = GetSeqChar(1);
-            if (ch == '\0' || ch == '\x1b' || ch >= '\x7f' /*Non-ASCII*/)
+            if (ch == '\0')
             {
                 return false;
             }
@@ -308,7 +317,7 @@ namespace Microsoft.PowerShell
         /// _pendingKeys[0] == Escape.
         private void ProcessMultipleKeys()
         {
-            if (GetSeqChar(_addKeyIndex - 1) == '\x1b')
+            if (_pendingKeys[_addKeyIndex - 1].KeyChar == '\x1b')
             {
                 // There's a possible case that it could have been a sequence
                 // part, but it's also an alt sequence. Since the second escape
@@ -524,41 +533,100 @@ namespace Microsoft.PowerShell
                 return true;
             }
             int n = (int)GetSeqChar(2) - (int)'0';
-            var ch = GetSeqChar(3);
+            // Some variable length parts are allowed - 1 or 2 digits, possible
+            // ";n" modifier sequence, so we need to track the current character index.
+            int chIndex = 3;
+            var ch = GetSeqChar(chIndex);
             // If it's a 2 digit number, adjust n and ch, then we'll just
             // make sure ch is '~' after.
             if (ch >= '0' && ch <= '9')
             {
-                if (_addKeyIndex == 4)
+                ++chIndex;
+                if (_addKeyIndex == chIndex)
                 {
-                    // Incomplete, still need a final '~'.
+                    // Incomplete, still need possible modifiers and a final '~'.
                     return true;
                 }
+                // Complete the two digit number.
                 n = n * 10 + ((int)ch - (int)'0');
-                ch = GetSeqChar(4);
+                ch = GetSeqChar(chIndex);
             }
+            // Some terminals allow modifiers for these characters, so parse them.
+            // They are the same as the other sequences, listed in `_escBracketModifiers`.
+            ConsoleModifiers modifiers = (ConsoleModifiers)0;
+            if (ch == ';')
+            {
+                ++chIndex;
+                if (_addKeyIndex == chIndex)
+                {
+                    return true;
+                }
+                ch = GetSeqChar(chIndex);
+                if (ch >= '2' && ch <= '8')
+                {
+                    modifiers = _escBracketModifiers[(int)ch - (int)'2'];
+                }
+                else
+                {
+                    // Invalid character
+                    return false;
+                }
+
+                ++chIndex;
+                if (_addKeyIndex == chIndex)
+                {
+                    return true;
+                }
+                ch = GetSeqChar(chIndex);
+            }
+
             if (ch != '~')
             {
-                // Whether we saw a one or two digit number, ch is the character
-                // right after the number that needs to be '~'.
+                // All of these sequences end with '~', whether there were
+                // modifiers or not.
                 return false;
             }
 
             // These seem kind of randomly assigned, so just do a switch.
+            // Some of these sequences are used by certain terminals (winpty and tmux)
+            // in places where other sequences are used by the native Windows console.
+            // Since winpty is fairly common and tmux support is personally important,
+            // I want to support both of those.
             ConsoleKey key;
             switch (n)
             {
+            // This is normally ^[[H, but tmux emits ^[[1~.
+            case 1:
+                key = ConsoleKey.Home;
+                break;
             case 2:
                 key = ConsoleKey.Insert;
                 break;
             case 3:
                 key = ConsoleKey.Delete;
                 break;
+            // This is normally ^[[F, but tmux emits ^[[4~.
+            case 4:
+                key = ConsoleKey.End;
+                break;
             case 5:
                 key = ConsoleKey.PageUp;
                 break;
             case 6:
                 key = ConsoleKey.PageDown;
+                break;
+            // 11-14 are emitted by winpty, but Windows uses ^[[OP, etc.
+            case 11:
+                key = ConsoleKey.F1;
+                break;
+            case 12:
+                key = ConsoleKey.F2;
+                break;
+            case 13:
+                key = ConsoleKey.F3;
+                break;
+            case 14:
+                key = ConsoleKey.F4;
                 break;
             case 15:
                 key = ConsoleKey.F5;
@@ -584,11 +652,46 @@ namespace Microsoft.PowerShell
             case 24:
                 key = ConsoleKey.F12;
                 break;
+            // tmux emits these for Shift+F1-Shift+F8. I don't have F13 and higher
+            // on my keyboard but presumably that's what these codes are for.
+            // ConsoleKey defines up to F24, I can't get a code higher than 34
+            // and don't want to guess because some codes are randomly skipped.
+            case 25:
+                key = ConsoleKey.F13;
+                break;
+            case 26:
+                key = ConsoleKey.F14;
+                break;
+            case 28:
+                key = ConsoleKey.F15;
+                break;
+            case 29:
+                key = ConsoleKey.F16;
+                break;
+            case 31:
+                key = ConsoleKey.F17;
+                break;
+            case 32:
+                key = ConsoleKey.F18;
+                break;
+            case 33:
+                key = ConsoleKey.F19;
+                break;
+            case 34:
+                key = ConsoleKey.F20;
+                break;
             default:
                 return false;
             }
 
-            SetKey(0, new ConsoleKeyInfo('\0', key, false, false, false));
+            var keyInfo = new ConsoleKeyInfo(
+                '\0',
+                key,
+                shift: (modifiers & ConsoleModifiers.Shift) == ConsoleModifiers.Shift,
+                alt: (modifiers & ConsoleModifiers.Alt) == ConsoleModifiers.Alt,
+                control: (modifiers & ConsoleModifiers.Control) == ConsoleModifiers.Control
+            );
+            SetKey(0, keyInfo);
             _addKeyIndex = 1;
             _readKeyIndexFrom = 0;
             _readKeyIndexTo = 1;
