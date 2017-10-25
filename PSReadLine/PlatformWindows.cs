@@ -109,17 +109,19 @@ static class PlatformWindows
     static uint _prePSReadlineConsoleMode;
     internal static void Init(ref ICharMap charMap)
     {
-        bool isConsole;
-        bool useVtInput =
-            IsHandleRedirected(stdin: true, isConsole: out isConsole) ||
-            Environment.GetEnvironmentVariable("PSREADLINE_VTINPUT") == "1";
+        bool isRedirected = IsHandleRedirected(stdin: true);
+        // This envvar will force VT mode on or off depending on the setting 1 or 0.
+        // If input is redirected, we can't use console APIs and have to use VT
+        // input, so it is ignored in that case.
+        var envVtInput = Environment.GetEnvironmentVariable("PSREADLINE_VTINPUT");
+        bool useVtInput = isRedirected || envVtInput == "1";
         if (useVtInput)
         {
             // For redirected input, we need to process VT sequences.
             EnableAnsiInput(ref charMap);
         }
 
-        if (!isConsole)
+        if (isRedirected)
         {
             return;
         }
@@ -137,11 +139,22 @@ static class PlatformWindows
         if (useVtInput)
         {
             // If we're using VT input mode in the console, need to enable that too.
+            // Since redirected input was handled above, this just handles the case
+            // where the user requested VT input with the environment variable.
+            // In this case the CharMap has already been set above.
             mode |= ENABLE_VIRTUAL_TERMINAL_INPUT;
+        }
+        else if (envVtInput == "0")
+        {
+            // Allow forcing VT input off with the environment variable.
+            mode &= ~ENABLE_VIRTUAL_TERMINAL_INPUT;
         }
         else if ((_prePSReadlineConsoleMode & ENABLE_VIRTUAL_TERMINAL_INPUT) == ENABLE_VIRTUAL_TERMINAL_INPUT)
         {
             // If the console was already in VT mode, use the appropriate CharMap.
+            // This handles the case where input was not redirected and the user
+            // didn't specify a preference. The default is to use the pre-existing
+            // console mode.
             EnableAnsiInput(ref charMap);
         }
 
@@ -168,8 +181,7 @@ static class PlatformWindows
 
     internal static void Complete()
     {
-        IsHandleRedirected(stdin: true, isConsole: out var isConsole);
-        if (isConsole)
+        if (!IsHandleRedirected(stdin: true))
         {
             SetConsoleInputMode(_prePSReadlineConsoleMode);
         }
@@ -177,8 +189,8 @@ static class PlatformWindows
 
     internal static T CallPossibleExternalApplication<T>(Func<T> func)
     {
-        IsHandleRedirected(stdin: true, isConsole: out var isConsole);
-        if (!isConsole)
+        
+        if (IsHandleRedirected(stdin: true))
         {
             // Don't bother with console modes if we're not in the console.
             return func();
@@ -237,22 +249,16 @@ static class PlatformWindows
         SetConsoleMode(handle, mode);
     }
 
-    private static bool IsHandleRedirected(bool stdin, out bool isConsole)
+    private static bool IsHandleRedirected(bool stdin)
     {
         var handle = GetStdHandle((uint)(stdin ? StandardHandleId.Input : StandardHandleId.Output));
 
         // If handle is not to a character device, we must be redirected:
         int fileType = GetFileType(handle);
         if ((fileType & FILE_TYPE_CHAR) != FILE_TYPE_CHAR)
-        {
-            isConsole = false;
             return true;
-        }
-        else
-        {
-            // For redirected input, can we use console APIs?
-            isConsole = GetConsoleMode(handle, out var unused);
-            return false;
-        }
+
+        // Char device - if GetConsoleMode succeeds, we are NOT redirected.
+        return !GetConsoleMode(handle, out var unused);
     }
 }
