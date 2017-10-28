@@ -31,6 +31,7 @@ namespace TestPSReadLine
         }
 
         public const uint ENABLE_VIRTUAL_TERMINAL_PROCESSING = 0x04;
+        public const uint ENABLE_VIRTUAL_TERMINAL_INPUT = 0x0200;
 
         [STAThread]
         static void Main()
@@ -72,6 +73,20 @@ namespace TestPSReadLine
                 executionContext =
                     ps.AddScript("$ExecutionContext").Invoke<EngineIntrinsics>().FirstOrDefault();
 
+                // Detect if the read loop will enter VT input mode.
+                var vtInputEnvVar = Environment.GetEnvironmentVariable("PSREADLINE_VTINPUT");
+                var stdin = GetStdHandle((uint)StandardHandleId.Input);
+                uint inputMode;
+                GetConsoleMode(stdin, out inputMode);
+                if (vtInputEnvVar == "1" || (inputMode & ENABLE_VIRTUAL_TERMINAL_INPUT) != 0)
+                {
+                    Console.WriteLine("\x1b[33mDefault input mode = virtual terminal\x1b[m");
+                }
+                else
+                {
+                    Console.WriteLine("\x1b[33mDefault input mode = Windows\x1b[m");
+                }
+
                 // This is a workaround to ensure the command analysis cache has been created before
                 // we enter into ReadLine.  It's a little slow and infrequently needed, so just
                 // uncomment if you hit a hang, run it once, then comment it out again.
@@ -98,6 +113,10 @@ namespace TestPSReadLine
                         PSConsoleReadLine.SetOptions(new SetPSReadlineOption {EditMode = EditMode.Vi});
                     if (line.Equals("nodupes"))
                         PSConsoleReadLine.SetOptions(new SetPSReadlineOption {HistoryNoDuplicates = true});
+                    if (line.Equals("vtinput"))
+                        Environment.SetEnvironmentVariable("PSREADLINE_VTINPUT", "1");
+                    if (line.Equals("novtinput"))
+                        Environment.SetEnvironmentVariable("PSREADLINE_VTINPUT", "0");
                 }
             }
         }

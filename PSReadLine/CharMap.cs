@@ -112,6 +112,13 @@ namespace Microsoft.PowerShell
                 )
                 {
                     _readKeyIndexFrom = 0;
+                    // If two characters are waiting, it could be an Alt+<ch> sequence.
+                    // If there are more than two, we would have processed the sequence
+                    // before if it was valid.
+                    if (_addKeyIndex == 2)
+                    {
+                        ProcessAltSequence();
+                    }
                     _readKeyIndexTo = _addKeyIndex;
                     return true;
                 }
@@ -131,7 +138,7 @@ namespace Microsoft.PowerShell
         {
             if (_readKeyIndexFrom < _readKeyIndexTo)
             {
-                int index = _readKeyIndexFrom;
+                var key = _pendingKeys[_readKeyIndexFrom];
                 if (++_readKeyIndexFrom == _readKeyIndexTo)
                 {
                     for (int i = _readKeyIndexTo; i < _addKeyIndex; i++)
@@ -139,9 +146,9 @@ namespace Microsoft.PowerShell
                         SetKey(i - _readKeyIndexTo, _pendingKeys[i]);
                     }
                     _addKeyIndex -= _readKeyIndexTo;
-                    index = _readKeyIndexFrom = _readKeyIndexTo = 0;
+                    _readKeyIndexFrom = _readKeyIndexTo = 0;
                 }
-                return _pendingKeys[index];
+                return key;
             }
             else
             {
@@ -228,10 +235,7 @@ namespace Microsoft.PowerShell
                 break;
             case 0x1B:
                 SetKey(i, new ConsoleKeyInfo('\x1b', ConsoleKey.Escape, false, false, false));
-                if (i == 0)
-                {
-                    _escTimeoutStopwatch.Restart();
-                }
+                _escTimeoutStopwatch.Restart();
                 // Don't let escape set KeyAvailable.
                 return; 
             case 0x1C:
@@ -249,7 +253,7 @@ namespace Microsoft.PowerShell
                 shift = true;
                 break;
             default:
-                consoleKey = (ConsoleKey)('B' - ch);
+                consoleKey = (ConsoleKey)((int)ConsoleKey.A + ch - 1);
                 break;
             }
 
@@ -325,12 +329,12 @@ namespace Microsoft.PowerShell
                 // that was never seen because we were waiting for a full escape
                 // sequence. Either way, we want to read everything up to the
                 // escape that was just processed.
-                if (_escTimeoutStopwatch.ElapsedMilliseconds <= EscapeTimeout)
+                if (_pendingKeys[0].KeyChar == '\x1b')
                 {
                     ProcessAltSequence();
-                    _readKeyIndexFrom = 0;
-                    _readKeyIndexTo = _addKeyIndex - 1;
                 }
+                _readKeyIndexFrom = 0;
+                _readKeyIndexTo = _addKeyIndex - 1;
                 _escTimeoutStopwatch.Restart();
                 return;
             }
@@ -346,11 +350,10 @@ namespace Microsoft.PowerShell
             }
             else
             {
-                // If the timer expired and there are exactly three pending
+                // If the timer expired and there are three or more pending
                 // characters, that means the first two which were entered
-                // before the timer expiring could be an alt sequence
-                // (see above note).
-                if (_addKeyIndex == 3)
+                // before the timer expiring could be an alt sequence.
+                if (_addKeyIndex >= 3)
                 {
                     ProcessAltSequence();
                 }
@@ -405,7 +408,8 @@ namespace Microsoft.PowerShell
         ///   - 6: Control+Shift
         ///   - 7: Control+Alt
         ///   - 8: Control+Alt+Shift
-        /// - ^[[n~ - n is a 1 or 2 digit number. No modifiers are allowed on these.
+        /// - ^[[n~ - n is a 1 or 2 digit number.
+        /// - ^[[n;m~ - n same as above, m is from the above modifier list.
         private bool ProcessSequencePart()
         {
             var ch = GetSeqChar(1);
