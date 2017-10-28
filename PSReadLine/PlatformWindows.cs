@@ -109,6 +109,13 @@ static class PlatformWindows
     static uint _prePSReadlineConsoleMode;
     internal static void Init(ref ICharMap charMap)
     {
+        // If either stdin or stdout is redirected, PSReadline doesn't really work, so throw
+        // and let PowerShell call Console.ReadLine or do whatever else it decides to do.
+        if (IsHandleRedirected(stdin: false) || IsHandleRedirected(stdin: true))
+        {
+            throw new NotSupportedException();
+        }
+
         bool isRedirected = IsHandleRedirected(stdin: true);
         // This envvar will force VT mode on or off depending on the setting 1 or 0.
         // If input is redirected, we can't use console APIs and have to use VT
