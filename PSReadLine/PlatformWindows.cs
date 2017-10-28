@@ -261,4 +261,17 @@ static class PlatformWindows
         // Char device - if GetConsoleMode succeeds, we are NOT redirected.
         return !GetConsoleMode(handle, out var unused);
     }
+
+    public static bool IsConsoleApiAvailable()
+    {
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            return false;
+        }
+        if (IsHandleRedirected(stdin: true) && IsHandleRedirected(stdin: false))
+        {
+            return false;
+        }
+        return true;
+    }
 }
