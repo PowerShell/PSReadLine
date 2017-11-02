@@ -420,7 +420,7 @@ namespace Microsoft.PowerShell
             }
             finally
             {
-                Console.OutputEncoding = Encoding.Unicode;
+                Console.OutputEncoding = Encoding.UTF8;
             }
         }
 
@@ -535,7 +535,7 @@ namespace Microsoft.PowerShell
             _statusIsErrorMessage = false;
 
             _initialOutputEncoding = Console.OutputEncoding;
-            Console.OutputEncoding = Encoding.Unicode;
+            Console.OutputEncoding = Encoding.UTF8;
             _lastRenderTime = Stopwatch.StartNew();
 
             _killCommandCount = 0;
