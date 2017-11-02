@@ -93,7 +93,7 @@ To start using, just import the module:
 Import-Module PSReadLine
 ```
 
-To use Emacs key bindings, you can use:
+PSReadLine, unlike bash's readline, uses vi key bindings by default. To use Emacs key bindings, you can use:
 
 ```powershell
 Set-PSReadlineOption -EditMode Emacs
