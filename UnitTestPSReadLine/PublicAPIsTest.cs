@@ -64,6 +64,10 @@ namespace UnitTestPSReadLine
                     try { PSConsoleReadLine.Replace(0, 12, "zzz"); }
                     catch (ArgumentException) { throws = true; }
                     Assert.IsTrue(throws, "Length too long should throw");
+
+                    try { PSConsoleReadLine.Replace(0, -1, "zzz"); }
+                    catch (ArgumentException) { throws = true; }
+                    Assert.IsTrue(throws, "Negative length should throw");
                 })));
         }
 

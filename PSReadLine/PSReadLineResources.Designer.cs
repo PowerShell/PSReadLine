@@ -918,11 +918,11 @@ namespace Microsoft.PowerShell.PSReadLine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to length is too big.
+        ///   Looks up a localized string similar to length is not valid.
         /// </summary>
-        internal static string ReplacementLengthTooBig {
+        internal static string ReplacementLengthInvalid {
             get {
-                return ResourceManager.GetString("ReplacementLengthTooBig", resourceCulture);
+                return ResourceManager.GetString("ReplacementLengthInvalid", resourceCulture);
             }
         }
         

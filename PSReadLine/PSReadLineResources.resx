@@ -240,8 +240,8 @@
   <data name="StartOutOfRange" xml:space="preserve">
     <value>'start' cannot be less than zero or greater than the length of the buffer</value>
   </data>
-  <data name="ReplacementLengthTooBig" xml:space="preserve">
-    <value>length is too big</value>
+  <data name="ReplacementLengthInvalid" xml:space="preserve">
+    <value>length is not valid</value>
   </data>
   <data name="DisplayAllPossibilities" xml:space="preserve">
     <value>Display all {0} possibilities? (y or n) _</value>
