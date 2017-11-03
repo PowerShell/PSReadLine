@@ -41,6 +41,18 @@ namespace UnitTestPSReadLine
         }
 
         [TestMethod]
+        public void TestInvalidCompletionResult()
+        {
+            TestSetup(KeyMode.Cmd);
+
+            for (int i = 1; i <= 4; i++)
+            {
+                var input = $"invalid result {i}";
+                Test(input, Keys(input, _.Tab));
+            }
+        }
+
+        [TestMethod]
         public void TestComplete()
         {
             TestSetup(KeyMode.Emacs);
@@ -170,7 +182,7 @@ namespace UnitTestPSReadLine
         internal static CommandCompletion MockedCompleteInput(string input, int cursor, Hashtable options, PowerShell powerShell)
         {
             var ctor = typeof (CommandCompletion).GetConstructor(
-                BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance, null, 
+                BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance, null,
                 new [] {typeof (Collection<CompletionResult>), typeof (int), typeof (int), typeof (int)}, null);
 
             var completions = new Collection<CompletionResult>();
@@ -224,6 +236,26 @@ namespace UnitTestPSReadLine
                 completions.Add(new CompletionResult("a", "a", CompletionResultType.ProviderContainer, "a"));
                 completions.Add(new CompletionResult("'a b\\'", "a b\\'", CompletionResultType.ProviderContainer, "a b\\'"));
                 completions.Add(new CompletionResult("\"a b\\\"", "\"a b\\\"", CompletionResultType.ProviderContainer, "\"a b\\\""));
+                break;
+            case "invalid result 1":
+                replacementIndex = -1;
+                replacementLength = 1;
+                completions.Add(new CompletionResult("result"));
+                break;
+            case "invalid result 2":
+                replacementIndex = 0;
+                replacementLength = -1;
+                completions.Add(new CompletionResult("result"));
+                break;
+            case "invalid result 3":
+                replacementIndex = int.MaxValue;
+                replacementLength = 1;
+                completions.Add(new CompletionResult("result"));
+                break;
+            case "invalid result 4":
+                replacementIndex = 0;
+                replacementLength = int.MaxValue;
+                completions.Add(new CompletionResult("result"));
                 break;
             case "none":
                 break;
