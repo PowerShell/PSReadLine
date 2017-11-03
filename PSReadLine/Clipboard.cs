@@ -32,6 +32,8 @@ namespace Microsoft.PowerShell.Internal
                 return;
             }
 
+            if (string.IsNullOrEmpty(text)) return;
+
             ExecuteOnStaThread(() => SetClipboardData(Tuple.Create(text, CF_UNICODETEXT)));
         }
 
