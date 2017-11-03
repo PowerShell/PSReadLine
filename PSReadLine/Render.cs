@@ -176,23 +176,32 @@ namespace Microsoft.PowerShell
                 Color = defaultColor
             });
 
-            bool selectionNeedsTerminating = false;
+            bool inSelectedRegion = false;
+            int selectionStart = -1;
+            int selectionEnd = -1;
+            if (_visualSelectionCommandCount > 0)
+            {
+                GetRegion(out int regionStart, out int regionLength);
+                if (regionLength > 0)
+                {
+                    selectionStart = regionStart;
+                    selectionEnd = selectionStart + regionLength;
+                }
+            }
+
             for (int i = 0; i < text.Length; i++)
             {
-                if (_visualSelectionCommandCount > 0)
+                if (i == selectionStart)
                 {
-                    GetRegion(out int start, out int length);
-                    if (i == start)
-                    {
-                        _consoleBufferLines[currentLogicalLine].Append("\x1b[7m");
-                        selectionNeedsTerminating = true;
-                    }
-                    else if (i == start + length)
-                    {
-                        _consoleBufferLines[currentLogicalLine].Append("\x1b[27m");
-                        selectionNeedsTerminating = false;
-                    }
+                    _consoleBufferLines[currentLogicalLine].Append("\x1b[7m");
+                    inSelectedRegion = true;
                 }
+                else if (i == selectionEnd)
+                {
+                    _consoleBufferLines[currentLogicalLine].Append("\x1b[27m");
+                    inSelectedRegion = false;
+                }
+
                 if (!afterLastToken)
                 {
                     // Figure out the color of the character - if it's in a token,
@@ -257,6 +266,12 @@ namespace Microsoft.PowerShell
                 var charToRender = text[i];
                 if (charToRender == '\n')
                 {
+                    if (inSelectedRegion)
+                    {
+                        // Turn off inverse before end of line, turn on after continuation prompt
+                        _consoleBufferLines[currentLogicalLine].Append("\x1b[27m");
+                    }
+
                     currentLogicalLine += 1;
                     if (currentLogicalLine > _consoleBufferLines.Count - 1)
                     {
@@ -267,6 +282,12 @@ namespace Microsoft.PowerShell
                     foreach (char c in Options.ContinuationPrompt)
                     {
                         _consoleBufferLines[currentLogicalLine].Append(c);
+                    }
+
+                    if (inSelectedRegion)
+                    {
+                        // Turn off inverse before end of line, turn on after continuation prompt
+                        _consoleBufferLines[currentLogicalLine].Append("\x1b[7m");
                     }
                 }
                 else
@@ -285,7 +306,7 @@ namespace Microsoft.PowerShell
                 }
             }
 
-            if (selectionNeedsTerminating)
+            if (inSelectedRegion)
             {
                 _consoleBufferLines[currentLogicalLine].Append("\x1b[27m");
             }
