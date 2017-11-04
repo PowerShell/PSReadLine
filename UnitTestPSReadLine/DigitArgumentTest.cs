@@ -33,6 +33,9 @@ namespace UnitTestPSReadLine
                 _.Alt4, _.Alt5, _.Alt6, _.Alt7, _.Alt8, _.CtrlZ, CheckThat(() => Assert.AreEqual(45678, argValue)),
                 _.AltMinus, _.Alt1, _.CtrlZ, CheckThat(() => Assert.AreEqual(-1, argValue)),
                 _.AltMinus, _.Alt2, _.CtrlZ, CheckThat(() => Assert.AreEqual(-2, argValue)),
+                _.AltMinus, _.Backspace, // Negative backspace should do nothing
+                "a", _.Home, _.AltMinus, _.Delete, // Negative delete should do nothing
+                _.Delete, // Delete the 'a' we added above
                 _.Alt1, _.Alt2, _.CtrlZ, CheckThat(() => Assert.AreEqual(12, argValue)),
                 _.Alt1, _.AltMinus, _.CtrlZ, CheckThat(() => Assert.AreEqual(-1, argValue)),
                 _.Alt1, _.Alt2, _.AltMinus, _.CtrlZ, CheckThat(() => Assert.AreEqual(-12, argValue)),

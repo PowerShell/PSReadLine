@@ -141,6 +141,7 @@ namespace Microsoft.PowerShell
             if (_singleton._buffer.Length > 0 && _singleton._current > 0)
             {
                 int qty = arg as int? ?? 1;
+                if (qty < 1) return; // Ignore useless counts
                 qty = Math.Min(qty, _singleton._current);
 
                 int startDeleteIndex = _singleton._current - qty;
@@ -195,6 +196,7 @@ namespace Microsoft.PowerShell
         public static void DeleteChar(ConsoleKeyInfo? key = null, object arg = null)
         {
             int qty = arg as int? ?? 1;
+            if (qty < 1) return; // Ignore useless counts
 
             _singleton.DeleteCharImpl(qty, orExit: false);
         }
@@ -492,7 +494,7 @@ namespace Microsoft.PowerShell
 
         /// <summary>
         /// A new empty line is created below the current line regardless of where the cursor
-        /// is on the current line.  The cursor moves to the beginning of the new line. 
+        /// is on the current line.  The cursor moves to the beginning of the new line.
         /// </summary>
         public static void InsertLineBelow(ConsoleKeyInfo? key = null, object arg = null)
         {
