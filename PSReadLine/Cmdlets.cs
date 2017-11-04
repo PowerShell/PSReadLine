@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.IO;
 using System.Management.Automation;
 using System.Management.Automation.Language;
 using System.Reflection;
@@ -602,7 +603,17 @@ namespace Microsoft.PowerShell
 
         [Parameter(ParameterSetName = "OptionsSet")]
         [ValidateNotNullOrEmpty]
-        public string HistorySavePath { get; set; }
+        public string HistorySavePath
+        {
+            get => _historySavePath;
+            set
+            {
+                // Normalize the path
+                var altPathChar = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? '/' : '\\';
+                _historySavePath = value?.Replace(altPathChar, Path.DirectorySeparatorChar);
+            }
+        }
+        private string _historySavePath;
 
         [Parameter(ParameterSetName = "OptionsSet")]
         [ValidateNotNull]
