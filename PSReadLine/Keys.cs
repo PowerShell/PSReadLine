@@ -348,6 +348,7 @@ namespace Microsoft.PowerShell
         public static ConsoleKeyInfo ShiftLeftArrow      = Shift(ConsoleKey.LeftArrow);
         public static ConsoleKeyInfo ShiftRightArrow     = Shift(ConsoleKey.RightArrow);
         public static ConsoleKeyInfo ShiftTab            = Shift(ConsoleKey.Tab); // !Linux, same as Tab
+        public static ConsoleKeyInfo ShiftInsert         = Shift(ConsoleKey.Insert);
 
         public static ConsoleKeyInfo CtrlShiftC          = CtrlShift('\x03'); // !Linux
         public static ConsoleKeyInfo CtrlShiftEnter      = CtrlShift(ConsoleKey.Enter);

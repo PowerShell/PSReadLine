@@ -160,6 +160,7 @@ namespace Microsoft.PowerShell
                 { Keys.CtrlR,                  MakeKeyHandler(ReverseSearchHistory,      "ReverseSearchHistory") },
                 { Keys.CtrlS,                  MakeKeyHandler(ForwardSearchHistory,      "ForwardSearchHistory") },
                 { Keys.CtrlV,                  MakeKeyHandler(Paste,                     "Paste") },
+                { Keys.ShiftInsert,            MakeKeyHandler(Paste,                     "Paste") },
                 { Keys.CtrlX,                  MakeKeyHandler(Cut,                       "Cut") },
                 { Keys.CtrlY,                  MakeKeyHandler(Redo,                      "Redo") },
                 { Keys.CtrlZ,                  MakeKeyHandler(Undo,                      "Undo") },
