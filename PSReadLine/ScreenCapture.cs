@@ -1,4 +1,4 @@
-﻿/********************************************************************++
+/********************************************************************++
 Copyright (c) Microsoft Corporation.  All rights reserved.
 --********************************************************************/
 
@@ -352,6 +352,11 @@ namespace Microsoft.PowerShell
                 return;
             }
 
+            PlatformWindows.CallUsingOurInputMode(CaptureScreenImpl);
+        }
+
+        internal static void CaptureScreenImpl()
+        {
             int selectionTop = _singleton._console.CursorTop;
             int selectionHeight = 1;
             int currentY = selectionTop;

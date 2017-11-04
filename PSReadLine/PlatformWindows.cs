@@ -105,7 +105,7 @@ static class PlatformWindows
     const uint ENABLE_WINDOW_INPUT    = 0x0008;
     const uint ENABLE_MOUSE_INPUT     = 0x0010;
 
-    static uint _prePSReadlineConsoleMode;
+    static uint _prePSReadlineConsoleInputMode;
     internal static void Init()
     {
         // If either stdin or stdout is redirected, PSReadline doesn't really work, so throw
@@ -115,22 +115,26 @@ static class PlatformWindows
             throw new NotSupportedException();
         }
 
-        _prePSReadlineConsoleMode = GetConsoleInputMode();
+        _prePSReadlineConsoleInputMode = GetConsoleInputMode();
+        SetOurInputMode();
+    }
 
+    internal static void SetOurInputMode()
+    {
         // Clear a couple flags so we can actually receive certain keys:
         //     ENABLE_PROCESSED_INPUT - enables Ctrl+C
         //     ENABLE_LINE_INPUT - enables Ctrl+S
         // Also clear a couple flags so we don't mask the input that we ignore:
         //     ENABLE_MOUSE_INPUT - mouse events
         //     ENABLE_WINDOW_INPUT - window resize events
-        var mode = _prePSReadlineConsoleMode &
+        var mode = _prePSReadlineConsoleInputMode &
                    ~(ENABLE_PROCESSED_INPUT | ENABLE_LINE_INPUT | ENABLE_WINDOW_INPUT | ENABLE_MOUSE_INPUT);
         SetConsoleInputMode(mode);
     }
 
     internal static void Complete()
     {
-        SetConsoleInputMode(_prePSReadlineConsoleMode);
+        SetConsoleInputMode(_prePSReadlineConsoleInputMode);
     }
 
     internal static T CallPossibleExternalApplication<T>(Func<T> func)
@@ -138,8 +142,22 @@ static class PlatformWindows
         uint psReadlineConsoleMode = GetConsoleInputMode();
         try
         {
-            SetConsoleInputMode(_prePSReadlineConsoleMode);
+            SetConsoleInputMode(_prePSReadlineConsoleInputMode);
             return func();
+        }
+        finally
+        {
+            SetConsoleInputMode(psReadlineConsoleMode);
+        }
+    }
+
+    internal static void CallUsingOurInputMode(Action a)
+    {
+        uint psReadlineConsoleMode = GetConsoleInputMode();
+        try
+        {
+            SetOurInputMode();
+            a();
         }
         finally
         {
