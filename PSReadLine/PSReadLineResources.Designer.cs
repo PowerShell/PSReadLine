@@ -304,6 +304,15 @@ namespace Microsoft.PowerShell.PSReadLine {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to User defined action.
+        /// </summary>
+        internal static string CustomActionDescription {
+            get {
+                return ResourceManager.GetString("CustomActionDescription", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Delete selected region placing deleted text in the system clipboard.
         /// </summary>
         internal static string CutDescription {

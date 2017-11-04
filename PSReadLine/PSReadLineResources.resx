@@ -153,6 +153,9 @@
   <data name="CompleteDescription" xml:space="preserve">
     <value>Complete the input if there is a single completion, otherwise complete the input with common prefix for all completions.  Show possible completions if pressed a second time.</value>
   </data>
+  <data name="CustomActionDescription" xml:space="preserve">
+    <value>User defined action</value>
+  </data>
   <data name="DeleteCharDescription" xml:space="preserve">
     <value>Delete the character under the cursor</value>
   </data>

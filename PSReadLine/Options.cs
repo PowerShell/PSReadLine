@@ -9,6 +9,7 @@ using System.Management.Automation;
 using System.Reflection;
 using System.Threading;
 using Microsoft.PowerShell.Internal;
+using Microsoft.PowerShell.PSReadLine;
 
 namespace Microsoft.PowerShell
 {
@@ -235,6 +236,14 @@ namespace Microsoft.PowerShell
                 }
             };
 
+            if (string.IsNullOrWhiteSpace(briefDescription))
+            {
+                briefDescription = "CustomAction";
+            }
+            if (string.IsNullOrWhiteSpace(longDescription))
+            {
+                longDescription = PSReadLineResources.CustomActionDescription;
+            }
             _singleton.SetKeyHandlerInternal(key, handler, briefDescription, longDescription, scriptBlock);
         }
 
