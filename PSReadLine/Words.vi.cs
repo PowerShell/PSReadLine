@@ -106,7 +106,10 @@ namespace Microsoft.PowerShell
         /// </summary>
         private bool IsWhiteSpace(int i)
         {
-            return char.IsWhiteSpace(_buffer[i]);
+            // Treat just beyond the end of buffer as whitespace because
+            // it looks like whitespace to the user even though they haven't
+            // entered a character yet.
+            return i >= _buffer.Length || char.IsWhiteSpace(_buffer[i]);
         }
 
         /// <summary>
@@ -118,7 +121,7 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Returns the beginning of the current/next word as defined by wordDelimiters and whitespace.
+        /// Returns the beginning of the current/previous word as defined by wordDelimiters and whitespace.
         /// </summary>
         /// <param name="i">Current cursor location.</param>
         /// <param name="wordDelimiters">Characters used to delimit words.</param>
@@ -130,7 +133,7 @@ namespace Microsoft.PowerShell
                 return i;
             }
 
-            if (IsWhiteSpace(i)) 
+            if (IsWhiteSpace(i))
             {
                 return FindPreviousWordFromWhiteSpace(i, wordDelimiters);
             }
@@ -253,7 +256,7 @@ namespace Microsoft.PowerShell
             {
                 return i;
             }
-            return (ViFindPreviousWordPoint(i, wordDelimiters));
+            return ViFindPreviousWordPoint(i, wordDelimiters);
         }
 
         /// <summary>
