@@ -69,7 +69,7 @@ task RestoreNugetPackages @restoreNugetParameters CheckNugetInstalled,{
 
 $buildMamlParams = @{
     Inputs  = { Get-Item docs/*.md }
-    Outputs = "$targetDir/en-US/PSReadline.dll-help.xml"
+    Outputs = "$targetDir/en-US/Microsoft.PowerShell.PSReadline.dll-help.xml"
 }
 
 <#
