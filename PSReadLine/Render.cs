@@ -1,4 +1,4 @@
-﻿/********************************************************************++
+/********************************************************************++
 Copyright (c) Microsoft Corporation.  All rights reserved.
 --********************************************************************/
 
@@ -560,6 +560,7 @@ namespace Microsoft.PowerShell
                 return _options._commentColor;
 
             case TokenKind.Parameter:
+            case TokenKind.Generic when token is StringLiteralToken slt && slt.Text.StartsWith("--"):
                 return _options._parameterColor;
 
             case TokenKind.Variable:
