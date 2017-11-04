@@ -772,10 +772,17 @@ namespace Microsoft.PowerShell
             case BellStyle.None:
                 break;
             case BellStyle.Audible:
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                    Console.Beep(Options.DingTone, Options.DingDuration);
-                else
-                    Console.Beep();
+                if (Options.DingDuration > 0)
+                {
+                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                    {
+                        Console.Beep(Options.DingTone, Options.DingDuration);
+                    }
+                    else
+                    {
+                        Console.Beep();
+                    }
+                }
                 break;
             case BellStyle.Visual:
                 // TODO: flash prompt? command line?
