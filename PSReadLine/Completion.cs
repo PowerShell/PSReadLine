@@ -583,17 +583,11 @@ namespace Microsoft.PowerShell
                 ToolTipLines = 0;
                 if (showTooltips)
                 {
+                    Debug.Assert(select, "On unselect, caller must clear the tooltip");
                     console.SetCursorPosition(0, Top + Rows + 1);
                     console.Write(toolTipColor);
-                    if (select)
-                    {
-                        console.Write(toolTip);
-                        ToolTipLines = toolTipLines;
-                    }
-                    else
-                    {
-                        Singleton.WriteBlankLines(toolTipLines);
-                    }
+                    console.Write(toolTip);
+                    ToolTipLines = toolTipLines;
 
                     console.Write("\x001b[0m");
                 }
@@ -801,16 +795,16 @@ namespace Microsoft.PowerShell
                         _console.Write(Spaces(_console.BufferWidth - endOfCommandLine.X));
                         _console.RestoreCursor();
                     }
-                    else if (topAdjustment < 0)
-                    {
-                        // The menu moved up, clear the extra stuff at the bottom.
-                        WriteBlankLines(menu.Top + menu.Rows - topAdjustment - 1, -topAdjustment);
-                    }
 
                     if (previousSelection != -1)
                     {
+                        if (menu.ToolTipLines > 0)
+                        {
+                            // Erase previous tooltip, taking into account if the menu moved up/down.
+                            WriteBlankLines(menu.Top + menu.Rows, -topAdjustment + menu.ToolTipLines);
+                        }
                         menu.UpdateMenuSelection(previousSelection, /*select*/ false,
-                            Options.ShowToolTips, VTColorUtils.AsEscapeSequence(Options.EmphasisColor));
+                            /*showToolTips*/false, VTColorUtils.AsEscapeSequence(Options.EmphasisColor));
                     }
                     menu.UpdateMenuSelection(menu.CurrentSelection, /*select*/ true,
                         Options.ShowToolTips, VTColorUtils.AsEscapeSequence(Options.EmphasisColor));
