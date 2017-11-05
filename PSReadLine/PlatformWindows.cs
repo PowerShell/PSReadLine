@@ -106,7 +106,9 @@ static class PlatformWindows
     const uint ENABLE_MOUSE_INPUT            = 0x0010;
     const uint ENABLE_VIRTUAL_TERMINAL_INPUT = 0x0200;
 
-    static uint _prePSReadlineConsoleMode;
+    static uint _prePSReadlineConsoleInputMode;
+    // Need to remember this decision for CallUsingOurInputMode.
+    static bool _enableVtInput;
     internal static void Init(ref ICharMap charMap)
     {
         // If either stdin or stdout is redirected, PSReadline doesn't really work, so throw
@@ -116,24 +118,44 @@ static class PlatformWindows
             throw new NotSupportedException();
         }
 
-        bool isRedirected = IsHandleRedirected(stdin: true);
-        // This envvar will force VT mode on or off depending on the setting 1 or 0.
-        // If input is redirected, we can't use console APIs and have to use VT
-        // input, so it is ignored in that case.
-        var envVtInput = Environment.GetEnvironmentVariable("PSREADLINE_VTINPUT");
-        bool useVtInput = isRedirected || envVtInput == "1";
-        if (useVtInput)
+        // If input is redirected, we can't use console APIs and have to use VT input.
+        if (IsHandleRedirected(stdin: true))
         {
-            // For redirected input, we need to process VT sequences.
             EnableAnsiInput(ref charMap);
-        }
-
-        if (isRedirected)
-        {
             return;
         }
 
-        _prePSReadlineConsoleMode = GetConsoleInputMode();
+        _prePSReadlineConsoleInputMode = GetConsoleInputMode();
+
+        // This envvar will force VT mode on or off depending on the setting 1 or 0.
+        var overrideVtInput = Environment.GetEnvironmentVariable("PSREADLINE_VTINPUT");
+        if (overrideVtInput == "1")
+        {
+            _enableVtInput = true;
+        }
+        else if (overrideVtInput == "0")
+        {
+            _enableVtInput = false;
+        }
+        else
+        {
+            // If the console was already in VT mode, use the appropriate CharMap.
+            // This handles the case where input was not redirected and the user
+            // didn't specify a preference. The default is to use the pre-existing
+            // console mode.
+            _enableVtInput = (_prePSReadlineConsoleInputMode & ENABLE_VIRTUAL_TERMINAL_INPUT) == ENABLE_VIRTUAL_TERMINAL_INPUT;
+        }
+
+        if (_enableVtInput)
+        {
+            EnableAnsiInput(ref charMap);
+        }
+
+        SetOurInputMode();
+    }
+
+    internal static void SetOurInputMode()
+    {
 
         // Clear a couple flags so we can actually receive certain keys:
         //     ENABLE_PROCESSED_INPUT - enables Ctrl+C
@@ -141,9 +163,9 @@ static class PlatformWindows
         // Also clear a couple flags so we don't mask the input that we ignore:
         //     ENABLE_MOUSE_INPUT - mouse events
         //     ENABLE_WINDOW_INPUT - window resize events
-        var mode = _prePSReadlineConsoleMode &
+        var mode = _prePSReadlineConsoleInputMode &
                    ~(ENABLE_PROCESSED_INPUT | ENABLE_LINE_INPUT | ENABLE_WINDOW_INPUT | ENABLE_MOUSE_INPUT);
-        if (useVtInput)
+        if (_enableVtInput)
         {
             // If we're using VT input mode in the console, need to enable that too.
             // Since redirected input was handled above, this just handles the case
@@ -151,18 +173,11 @@ static class PlatformWindows
             // In this case the CharMap has already been set above.
             mode |= ENABLE_VIRTUAL_TERMINAL_INPUT;
         }
-        else if (envVtInput == "0")
+        else
         {
-            // Allow forcing VT input off with the environment variable.
+            // We haven't enabled the ANSI escape processor, so turn this off so
+            // the console doesn't spew escape sequences all over.
             mode &= ~ENABLE_VIRTUAL_TERMINAL_INPUT;
-        }
-        else if ((_prePSReadlineConsoleMode & ENABLE_VIRTUAL_TERMINAL_INPUT) == ENABLE_VIRTUAL_TERMINAL_INPUT)
-        {
-            // If the console was already in VT mode, use the appropriate CharMap.
-            // This handles the case where input was not redirected and the user
-            // didn't specify a preference. The default is to use the pre-existing
-            // console mode.
-            EnableAnsiInput(ref charMap);
         }
 
         SetConsoleInputMode(mode);
@@ -190,7 +205,7 @@ static class PlatformWindows
     {
         if (!IsHandleRedirected(stdin: true))
         {
-            SetConsoleInputMode(_prePSReadlineConsoleMode);
+            SetConsoleInputMode(_prePSReadlineConsoleInputMode);
         }
     }
 
@@ -206,8 +221,29 @@ static class PlatformWindows
         uint psReadlineConsoleMode = GetConsoleInputMode();
         try
         {
-            SetConsoleInputMode(_prePSReadlineConsoleMode);
+            SetConsoleInputMode(_prePSReadlineConsoleInputMode);
             return func();
+        }
+        finally
+        {
+            SetConsoleInputMode(psReadlineConsoleMode);
+        }
+    }
+
+    internal static void CallUsingOurInputMode(Action a)
+    {
+        if (IsHandleRedirected(stdin: true))
+        {
+            // Don't bother with console modes if we're not in the console.
+            a();
+            return;
+        }
+
+        uint psReadlineConsoleMode = GetConsoleInputMode();
+        try
+        {
+            SetOurInputMode();
+            a();
         }
         finally
         {
