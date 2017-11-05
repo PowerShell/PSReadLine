@@ -35,6 +35,10 @@ namespace UnitTestPSReadLine
             SetHistory("000", "001", "002", "003", "004");
             Test("004", Keys(_.Escape, _.UpArrow, _.UpArrow, _.DownArrow));
 
+            // For defect lzybkr/PSReadLine #571
+            SetHistory("000", "001", "002", "003", "004");
+            Test("004", Keys(_.Escape, "jk", _.Escape, "0C", _.UpArrow, _.Escape));
+
             SetHistory("000", "001", "002", "003", "004");
             Test("003", Keys(_.Escape, "kk"));
 
