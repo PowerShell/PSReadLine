@@ -62,6 +62,7 @@
     <Compile Include="ConsoleLib.cs" />
     <Compile Include="Disposable.cs" />
     <Compile Include="History.cs" />
+    <Compile Include="History.vi.cs" />
     <Compile Include="HistoryQueue.cs" />
     <Compile Include="KeyBindings.cs" />
     <Compile Include="KeyBindings.vi.cs" />
