@@ -35,6 +35,7 @@ namespace Microsoft.PowerShell
 
         class RenderData
         {
+            public int bufferWidth;
             public bool errorPrompt;
             public RenderedLineData[] lines;
         }
@@ -348,6 +349,12 @@ namespace Microsoft.PowerShell
 
             // TODO: avoid writing everything.
 
+            var bufferWidth = _console.BufferWidth;
+
+            // In case the buffer was resized
+            RecomputeInitialCoords();
+            renderData.bufferWidth = bufferWidth;
+
             // Move the cursor to where we started, but make cursor invisible while we're rendering.
             _console.CursorVisible = false;
             PlaceCursor(_initialX, _initialY);
@@ -365,8 +372,6 @@ namespace Microsoft.PowerShell
                     _console.Write("\x1b[0m");
                 }
             }
-
-            var bufferWidth = _console.BufferWidth;
 
             int PhysicalLineCount(int columns, bool isFirstLogicalLine, out int lenLastPhysicalLine)
             {
@@ -619,6 +624,22 @@ namespace Microsoft.PowerShell
             }
         }
 
+        private void RecomputeInitialCoords()
+        {
+            if (_previousRender.bufferWidth != _console.BufferWidth)
+            {
+                // If the buffer width changed, our initial coordinates
+                // may have as well.
+                // Recompute X from the buffer width:
+                _initialX = _initialX % _console.BufferWidth;
+
+                // Recompute Y from the cursor
+                _initialY = 0;
+                var pt = ConvertOffsetToPoint(_current);
+                _initialY = _console.CursorTop - pt.Y;
+            }
+        }
+
         private void PlaceCursor(int x, int y)
         {
             int statusLineCount = GetStatusLineCount();
@@ -634,6 +655,10 @@ namespace Microsoft.PowerShell
 
         private void MoveCursor(int newCursor)
         {
+            // In case the buffer was resized
+            RecomputeInitialCoords();
+            _previousRender.bufferWidth = _console.BufferWidth;
+
             var point = ConvertOffsetToPoint(newCursor);
             PlaceCursor(point.X, point.Y);
             _current = newCursor;
