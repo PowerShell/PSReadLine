@@ -314,6 +314,7 @@ namespace Microsoft.PowerShell
                 [Keys.CtrlX] = new Dictionary<ConsoleKeyInfo, KeyHandler>(ConsoleKeyInfoComparer.Instance)
                 {
                     { Keys.Backspace, MakeKeyHandler(BackwardKillLine,     "BackwardKillLine") },
+                    { Keys.CtrlE,     MakeKeyHandler(ViEditVisually,       "ViEditVisually") },
                     { Keys.CtrlU,     MakeKeyHandler(Undo,                 "Undo") },
                     { Keys.CtrlX,     MakeKeyHandler(ExchangePointAndMark, "ExchangePointAndMark") },
                 }

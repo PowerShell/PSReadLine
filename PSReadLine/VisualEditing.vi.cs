@@ -3,29 +3,35 @@ Copyright (c) Microsoft Corporation.  All rights reserved.
 --********************************************************************/
 
 using System;
+using System.Diagnostics;
 using System.IO;
+using System.Management.Automation;
 
 namespace Microsoft.PowerShell
 {
     public partial class PSConsoleReadLine
     {
-        private string _visualEditTemporaryFilename;
-        private Func<string, bool> _savedAddToHistoryHandler;
-
         /// <summary>
         /// Edit the command line in a text editor specified by $env:EDITOR or $env:VISUAL
         /// </summary>
         public static void ViEditVisually(ConsoleKeyInfo? key = null, object arg = null)
         {
-            string editorOfChoice = GetPreferredEditor();
-            if (string.IsNullOrWhiteSpace(editorOfChoice))
+            string editor = GetPreferredEditor();
+            if (string.IsNullOrWhiteSpace(editor))
             {
                 Ding();
                 return;
             }
 
-            _singleton._visualEditTemporaryFilename = GetTemporaryPowerShellFile();
-            using (FileStream fs = File.OpenWrite(_singleton._visualEditTemporaryFilename))
+            if (!(_singleton._engineIntrinsics?.InvokeCommand.GetCommand(editor, CommandTypes.Application) is
+                ApplicationInfo editorCommand))
+            {
+                Ding();
+                return;
+            }
+
+            var tempPowerShellFile = GetTemporaryPowerShellFile();
+            using (FileStream fs = File.OpenWrite(tempPowerShellFile))
             {
                 using (TextWriter tw = new StreamWriter(fs))
                 {
@@ -33,14 +39,25 @@ namespace Microsoft.PowerShell
                 }
             }
 
-            _singleton._savedAddToHistoryHandler = _singleton.Options.AddToHistoryHandler;
-            _singleton.Options.AddToHistoryHandler = (s => false);
-
-            _singleton._buffer.Clear();
-            _singleton._current = 0;
-            _singleton.Render();
-            _singleton._buffer.Append(editorOfChoice + " \'" + _singleton._visualEditTemporaryFilename + "\'");
-            AcceptLine();
+            editor = editorCommand.Path;
+            var si = new ProcessStartInfo(editor, $"\"{tempPowerShellFile}\"")
+            {
+                UseShellExecute = false,
+                RedirectStandardError = false,
+                RedirectStandardInput = false,
+                RedirectStandardOutput = false
+            };
+            var pi = Process.Start(si);
+            if (pi != null)
+            {
+                pi.WaitForExit();
+                InvokePrompt();
+                _singleton.ProcessViVisualEditing(tempPowerShellFile);
+            }
+            else
+            {
+                Ding();
+            }
         }
 
         private static string GetTemporaryPowerShellFile()
@@ -54,23 +71,14 @@ namespace Microsoft.PowerShell
             return filename;
         }
 
-        private void ProcessViVisualEditing()
+        private void ProcessViVisualEditing(string tempFileName)
         {
-            if (_visualEditTemporaryFilename == null)
-            {
-                return;
-            }
-
-            Options.AddToHistoryHandler = _savedAddToHistoryHandler;
-            _savedAddToHistoryHandler = null;
-
-            string editedCommand = null;
-            using (TextReader tr = File.OpenText(_visualEditTemporaryFilename))
+            string editedCommand;
+            using (TextReader tr = File.OpenText(tempFileName))
             {
                 editedCommand = tr.ReadToEnd();
             }
-            File.Delete(_visualEditTemporaryFilename);
-            _visualEditTemporaryFilename = null;
+            File.Delete(tempFileName);
 
             if (!string.IsNullOrWhiteSpace(editedCommand))
             {
@@ -79,35 +87,19 @@ namespace Microsoft.PowerShell
                     editedCommand = editedCommand.Substring(0, editedCommand.Length - 1);
                 }
                 editedCommand = editedCommand.Replace(Environment.NewLine, "\n");
-                _buffer.Clear();
-                _buffer.Append(editedCommand);
-                _current = _buffer.Length - 1;
+                Replace(0, _buffer.Length, editedCommand);
+                _current = _buffer.Length;
+                if (_options.EditMode == EditMode.Vi) _current -= 1;
                 Render();
-                //_queuedKeys.Enqueue(Keys.Enter);
             }
         }
 
         private static string GetPreferredEditor()
         {
-            string[] names = {"VISUAL", "EDITOR"};
-            EnvironmentVariableTarget[] targets = {
-                                                      EnvironmentVariableTarget.Machine,
-                                                      EnvironmentVariableTarget.Process,
-                                                      EnvironmentVariableTarget.User
-                                                  };
-            foreach (string name in names)
-            {
-                foreach (EnvironmentVariableTarget target in targets)
-                {
-                    string editor = Environment.GetEnvironmentVariable(name, target);
-                    if (!string.IsNullOrWhiteSpace(editor))
-                    {
-                        return editor;
-                    }
-                }
-            }
-
-            return null;
+            var editor = Environment.GetEnvironmentVariable("VISUAL");
+            return !string.IsNullOrWhiteSpace(editor)
+                ? editor
+                : Environment.GetEnvironmentVariable("EDITOR");
         }
     }
 }

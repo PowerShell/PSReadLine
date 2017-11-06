@@ -330,8 +330,6 @@ namespace Microsoft.PowerShell
 
         private string InputLoop()
         {
-            ProcessViVisualEditing();
-
             while (true)
             {
                 var killCommandCount = _killCommandCount;
