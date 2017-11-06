@@ -47,7 +47,7 @@ namespace Microsoft.PowerShell
                 RedirectStandardInput = false,
                 RedirectStandardOutput = false
             };
-            var pi = Process.Start(si);
+            var pi = _singleton.CallPossibleExternalApplication(() => Process.Start(si));
             if (pi != null)
             {
                 pi.WaitForExit();
