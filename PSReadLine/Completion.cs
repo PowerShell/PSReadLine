@@ -489,6 +489,8 @@ namespace Microsoft.PowerShell
                     {
                         console.Write(Spaces(bufferWidth - cells));
                     }
+                    // Explicit newline so consoles see each row as distinct lines.
+                    console.Write("\n");
                 }
 
                 if (previousMenu != null)
@@ -721,6 +723,10 @@ namespace Microsoft.PowerShell
             if (spacesNeeded > 0)
             {
                 item = item + Spaces(spacesNeeded);
+            }
+            else if (spacesNeeded < 0)
+            {
+                item = item.Substring(0, columnWidth - 3) + "...";
             }
 
             return item;

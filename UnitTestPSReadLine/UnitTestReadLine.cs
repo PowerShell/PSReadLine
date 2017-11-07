@@ -100,6 +100,7 @@ namespace UnitTestPSReadLine
         private readonly int _bufferHeight;
         private readonly int _windowWidth;
         private readonly int _windowHeight;
+        private bool _ignoreNextNewline;
 
         internal TestConsole()
         {
@@ -241,21 +242,32 @@ namespace UnitTestPSReadLine
                         CursorTop -= 1;
                         CursorLeft = BufferWidth - 1;
                     }
+
+                    _ignoreNextNewline = false;
                 }
                 else if (s[i] == '\n')
                 {
-                    CursorTop += 1;
-                    CursorLeft = 0;
-                    writePos = CursorTop * BufferWidth;
+                    if (!_ignoreNextNewline)
+                    {
+                        CursorTop += 1;
+                        CursorLeft = 0;
+                        writePos = CursorTop * BufferWidth;
+                    }
+
+                    _ignoreNextNewline = false;
                 }
                 else
                 {
+                    _ignoreNextNewline = false;
+
                     CursorLeft += 1;
                     if (CursorLeft == BufferWidth)
                     {
                         CursorLeft = 0;
                         CursorTop += 1;
+                        _ignoreNextNewline = true;
                     }
+
                     buffer[writePos].UnicodeChar = s[i];
                     buffer[writePos].BackgroundColor = BackgroundColor;
                     buffer[writePos].ForegroundColor = ForegroundColor;
