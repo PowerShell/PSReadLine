@@ -512,6 +512,8 @@ namespace Microsoft.PowerShell
             }
 
             _previousRender = _initialPrevRender;
+            _previousRender.bufferWidth = _console.BufferWidth;
+            _previousRender.errorPrompt = false;
             _buffer.Clear();
             _edits = new List<EditItem>();
             _undoEditIndex = 0;
