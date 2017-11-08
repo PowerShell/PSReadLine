@@ -258,10 +258,10 @@ namespace Microsoft.PowerShell
         public HashSet<string> CommandsToValidateScriptBlockArguments { get; set; }
 
         /// <summary>
-        /// When true, duplicates will not be added to the history.
+        /// When true, duplicates will not be recalled from history more than once.
         /// </summary>
         public bool HistoryNoDuplicates { get; set; }
-        public const bool DefaultHistoryNoDuplicates = false;
+        public const bool DefaultHistoryNoDuplicates = true;
 
         public int MaximumHistoryCount { get; set; }
         public int MaximumKillRingCount { get; set; }
