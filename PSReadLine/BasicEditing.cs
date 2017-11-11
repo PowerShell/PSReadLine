@@ -468,6 +468,20 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void InsertLineAbove(ConsoleKeyInfo? key = null, object arg = null)
         {
+            // If there are more keys, assume the user pasted with a right click and
+            // we shouldn't reverse the order of the lines
+            if (_singleton._queuedKeys.Count > 0)
+            {
+                _singleton.AcceptLineImpl(false);
+            }
+            else
+            {
+                _singleton.InsertLineAboveImpl();
+            }
+        }
+
+        private void InsertLineAboveImpl()
+        {
             // Move the current position to the beginning of the current line and only the current line.
             if (_singleton.LineIsMultiLine())
             {
