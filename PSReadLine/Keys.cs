@@ -326,7 +326,7 @@ namespace Microsoft.PowerShell
         public static ConsoleKeyInfo CtrlLBracket        = Ctrl('\x1b');
         public static ConsoleKeyInfo CtrlBackslash       = Ctrl('\x1c');
         public static ConsoleKeyInfo CtrlRBracket        = Ctrl('\x1d');
-        public static ConsoleKeyInfo CtrlUnderbar        = Ctrl('\x1f');
+        public static ConsoleKeyInfo CtrlUnderbar        = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? CtrlShift('\x1f') : Ctrl('\x1f');
         public static ConsoleKeyInfo CtrlBackspace       = Ctrl(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? '\x7f' : '\x08');
         public static ConsoleKeyInfo CtrlDelete          = Ctrl(ConsoleKey.Delete); // !Linux
         public static ConsoleKeyInfo CtrlEnd             = Ctrl(ConsoleKey.End); // !Linux
