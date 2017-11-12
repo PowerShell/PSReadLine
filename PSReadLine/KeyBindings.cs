@@ -327,21 +327,19 @@ namespace Microsoft.PowerShell
         public static void ShowKeyBindings(ConsoleKeyInfo? key = null, object arg = null)
         {
             var buffer = new StringBuilder();
-            buffer.AppendFormat(CultureInfo.InvariantCulture, "{0,-20} {1,-24} {2}\n", "Key", "Function", "Description");
-            buffer.AppendFormat(CultureInfo.InvariantCulture, "{0,-20} {1,-24} {2}\n", "---", "--------", "-----------");
+            buffer.AppendFormat(CultureInfo.InvariantCulture, "{0,-21} {1,-24} {2}\n", "Key", "Function", "Description");
+            buffer.AppendFormat(CultureInfo.InvariantCulture, "{0,-21} {1,-24} {2}\n", "---", "--------", "-----------");
             var boundKeys = GetKeyHandlers(includeBound: true, includeUnbound: false);
             var console = _singleton._console;
-            var maxDescriptionLength = console.WindowWidth - 20 - 24 - 2;
+            var maxDescriptionLength = console.WindowWidth - 21 - 24 - 2;
             foreach (var boundKey in boundKeys)
             {
                 var description = boundKey.Description;
-                var newline = "\n";
                 if (description.Length >= maxDescriptionLength)
                 {
-                    description = description.Substring(0, maxDescriptionLength - 3) + "...";
-                    newline = "";
+                    description = description.Substring(0, maxDescriptionLength - 4) + "...";
                 }
-                buffer.AppendFormat(CultureInfo.InvariantCulture, "{0,-20} {1,-24} {2}{3}", boundKey.Key, boundKey.Function, description, newline);
+                buffer.AppendFormat(CultureInfo.InvariantCulture, "{0,-21} {1,-24} {2}\n", boundKey.Key, boundKey.Function, description);
             }
 
             // Don't overwrite any of the line - so move to first line after the end of our buffer.
