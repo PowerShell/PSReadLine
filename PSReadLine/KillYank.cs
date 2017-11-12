@@ -142,7 +142,7 @@ namespace Microsoft.PowerShell
         {
             var token = _singleton.FindToken(_singleton._current, FindTokenMode.CurrentOrNext);
             var end = (token.Kind == TokenKind.EndOfInput)
-                ? _singleton._buffer.Length 
+                ? _singleton._buffer.Length
                 : token.Extent.EndOffset;
             _singleton.Kill(_singleton._current, end - _singleton._current, false);
         }
@@ -199,7 +199,7 @@ namespace Microsoft.PowerShell
             // remember where we started.
             _mark = _yankStartPoint = _current;
             Insert(_killRing[_killIndex]);
-            
+
             _yankCommandCount += 1;
         }
 
@@ -449,6 +449,7 @@ namespace Microsoft.PowerShell
             if (textToPaste != null)
             {
                 textToPaste = textToPaste.Replace("\r", "");
+                textToPaste = textToPaste.Replace("\t", "    ");
                 if (_singleton._visualSelectionCommandCount > 0)
                 {
                     _singleton.GetRegion(out var start, out var length);
@@ -474,7 +475,7 @@ namespace Microsoft.PowerShell
             }
             else
             {
-                textToSet = _singleton._buffer.ToString(); 
+                textToSet = _singleton._buffer.ToString();
             }
             if (!string.IsNullOrEmpty(textToSet))
             {
