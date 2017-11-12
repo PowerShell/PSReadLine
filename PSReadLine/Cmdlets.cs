@@ -182,13 +182,23 @@ namespace Microsoft.PowerShell
                 else
                 {
                     // History is data, so it goes into .local/share/powershell folder
-                    HistorySavePath = System.IO.Path.Combine(
-                        Environment.GetEnvironmentVariable("HOME"),
-                        ".local",
-                        "share",
-                        "powershell",
-                        "PSReadLine",
-                        historyFileName);
+                    var home = Environment.GetEnvironmentVariable("HOME");
+
+                    if (!String.IsNullOrEmpty(home))
+                    {
+                        HistorySavePath = System.IO.Path.Combine(
+                            home,
+                            ".local",
+                            "share",
+                            "powershell",
+                            "PSReadLine",
+                            historyFileName);
+                    }
+                    else
+                    {
+                        // No HOME, then don't save anything
+                        HistorySavePath = "/dev/null";
+                    }
                 }
             }
 
