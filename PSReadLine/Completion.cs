@@ -347,7 +347,17 @@ namespace Microsoft.PowerShell
 
             var completionResult = completions.CompletionMatches[completions.CurrentMatchIndex];
             DoReplacementForCompletion(completionResult, completions);
-            _tabCommandCount += 1;
+
+            // When we increment _tabCommandCount, we won't try getting new completions on the next
+            // tab, instead we'll cycle through the possible completions.
+            // If there was just one completion, there is nothing to cycle through, so skip the
+            // increment to let the next tab fetch new completions. Commonly there won't be,
+            // but in the case of directory completion, it is possible because we add the trailing
+            // directory separator.
+            if (completions.CompletionMatches.Count > 1)
+            {
+                _tabCommandCount += 1;
+            }
         }
 
         private void DoReplacementForCompletion(CompletionResult completionResult, CommandCompletion completions)
