@@ -228,7 +228,7 @@ namespace Microsoft.PowerShell
                 { Keys.Space,           MakeKeyHandler( DeleteChar,                   "DeleteChar") },
                 { Keys._0,              MakeKeyHandler( BackwardDeleteLine,           "BackwardDeleteLine") },
                 { Keys.Uphat,           MakeKeyHandler( DeleteLineToFirstChar,        "DeleteLineToFirstChar") },
-                { Keys.Percent,         MakeKeyHandler( ViDeleteBrace,                "DeleteBrace") },
+                { Keys.Percent,         MakeKeyHandler( ViDeleteBrace,                "ViDeleteBrace") },
                 { Keys.F,               MakeKeyHandler( ViDeleteToChar,               "ViDeleteToChar") },
                 { Keys.ucF,             MakeKeyHandler( ViDeleteToCharBackward,       "ViDeleteToCharBackward") },
                 { Keys.T,               MakeKeyHandler( ViDeleteToBeforeChar,         "ViDeleteToBeforeChar") },

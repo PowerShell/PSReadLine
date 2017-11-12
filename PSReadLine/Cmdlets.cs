@@ -796,7 +796,7 @@ namespace Microsoft.PowerShell
         protected override void EndProcessing()
         {
             bool bound = true;
-            bool unbound = true;
+            bool unbound = false;
             if (_bound.HasValue && _unbound.HasValue)
             {
                 bound = _bound.Value.IsPresent;
@@ -812,7 +812,11 @@ namespace Microsoft.PowerShell
                 bound = false;
                 unbound = _unbound.Value.IsPresent;
             }
-            WriteObject(PSConsoleReadLine.GetKeyHandlers(bound, unbound), true);
+            var groups = PSConsoleReadLine.GetKeyHandlers(bound, unbound).GroupBy(k => k.Group).OrderBy(g => g.Key);
+            foreach (var bindings in groups)
+            {
+                WriteObject(bindings.OrderBy(k => k.Function), true);
+            }
         }
     }
 

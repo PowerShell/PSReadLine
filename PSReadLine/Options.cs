@@ -295,6 +295,7 @@ namespace Microsoft.PowerShell
                         Key = entry.Key.ToGestureString(),
                         Function = entry.Value.BriefDescription,
                         Description = entry.Value.LongDescription,
+                        Group = GetDisplayGrouping(entry.Value.BriefDescription),
                     };
                 }
             }
@@ -317,6 +318,7 @@ namespace Microsoft.PowerShell
                             Key = "<" + entry.Key.ToGestureString() + ">",
                             Function = entry.Value.BriefDescription,
                             Description = entry.Value.LongDescription,
+                            Group = GetDisplayGrouping(entry.Value.BriefDescription),
                         };
                     }
                 }
@@ -334,6 +336,7 @@ namespace Microsoft.PowerShell
                             Key = entry.Key.ToGestureString() + "," + secondEntry.Key.ToGestureString(),
                             Function = secondEntry.Value.BriefDescription,
                             Description = secondEntry.Value.LongDescription,
+                            Group = GetDisplayGrouping(secondEntry.Value.BriefDescription),
                         };
                     }
                 }
@@ -357,7 +360,8 @@ namespace Microsoft.PowerShell
                             {
                                 Key = "<" + entry.Key.ToGestureString() + "," + secondEntry.Key.ToGestureString() + ">",
                                 Function = secondEntry.Value.BriefDescription,
-                                Description = secondEntry.Value.LongDescription
+                                Description = secondEntry.Value.LongDescription,
+                                Group = GetDisplayGrouping(secondEntry.Value.BriefDescription),
                             };
                         }
                     }
@@ -387,6 +391,7 @@ namespace Microsoft.PowerShell
                             Key = "Unbound",
                             Function = method.Name,
                             Description = null,
+                            Group = GetDisplayGrouping(method.Name),
                         };
                     }
                 }

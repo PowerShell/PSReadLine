@@ -169,6 +169,15 @@ namespace Microsoft.PowerShell.PSReadLine {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Basic editing functions.
+        /// </summary>
+        internal static string BasicGrouping {
+            get {
+                return ResourceManager.GetString("BasicGrouping", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Move to the first item in the history.
         /// </summary>
         internal static string BeginningOfHistoryDescription {
@@ -286,6 +295,15 @@ namespace Microsoft.PowerShell.PSReadLine {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Completion functions.
+        /// </summary>
+        internal static string CompletionGrouping {
+            get {
+                return ResourceManager.GetString("CompletionGrouping", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Copy selected region to the system clipboard.  If no region is selected, copy the whole line.
         /// </summary>
         internal static string CopyDescription {
@@ -304,6 +322,15 @@ namespace Microsoft.PowerShell.PSReadLine {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cursor movement functions.
+        /// </summary>
+        internal static string CursorMovementGrouping {
+            get {
+                return ResourceManager.GetString("CursorMovementGrouping", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to User defined action.
         /// </summary>
         internal static string CustomActionDescription {
@@ -311,22 +338,22 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("CustomActionDescription", resourceCulture);
             }
         }
-
+        
+        /// <summary>
+        ///   Looks up a localized string similar to User defined functions.
+        /// </summary>
+        internal static string CustomGrouping {
+            get {
+                return ResourceManager.GetString("CustomGrouping", resourceCulture);
+            }
+        }
+        
         /// <summary>
         ///   Looks up a localized string similar to Delete selected region placing deleted text in the system clipboard.
         /// </summary>
         internal static string CutDescription {
             get {
                 return ResourceManager.GetString("CutDescription", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Deletes all characters between the cursor and the matching brace..
-        /// </summary>
-        internal static string DeleteBraceDescription {
-            get {
-                return ResourceManager.GetString("DeleteBraceDescription", resourceCulture);
             }
         }
         
@@ -550,6 +577,15 @@ namespace Microsoft.PowerShell.PSReadLine {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to History functions.
+        /// </summary>
+        internal static string HistoryGrouping {
+            get {
+                return ResourceManager.GetString("HistoryGrouping", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Search for the previous item in the history that starts with the current input - like PreviousHistory if the input is empty.
         /// </summary>
         internal static string HistorySearchBackwardDescription {
@@ -690,6 +726,15 @@ namespace Microsoft.PowerShell.PSReadLine {
         internal static string MenuCompleteDescription {
             get {
                 return ResourceManager.GetString("MenuCompleteDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Miscellaneous functions.
+        /// </summary>
+        internal static string MiscellaneousGrouping {
+            get {
+                return ResourceManager.GetString("MiscellaneousGrouping", resourceCulture);
             }
         }
         
@@ -1071,6 +1116,15 @@ namespace Microsoft.PowerShell.PSReadLine {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Search functions.
+        /// </summary>
+        internal static string SearchGrouping {
+            get {
+                return ResourceManager.GetString("SearchGrouping", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Select the entire line. Moves the cursor to the end of the line.
         /// </summary>
         internal static string SelectAllDescription {
@@ -1121,6 +1175,15 @@ namespace Microsoft.PowerShell.PSReadLine {
         internal static string SelectForwardWordDescription {
             get {
                 return ResourceManager.GetString("SelectForwardWordDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Selection functions.
+        /// </summary>
+        internal static string SelectionGrouping {
+            get {
+                return ResourceManager.GetString("SelectionGrouping", resourceCulture);
             }
         }
         
@@ -1432,7 +1495,7 @@ namespace Microsoft.PowerShell.PSReadLine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Deletes all characters between the cursor position and the matching brace..
+        ///   Looks up a localized string similar to Deletes all characters between the cursor and the matching brace..
         /// </summary>
         internal static string ViDeleteBraceDescription {
             get {

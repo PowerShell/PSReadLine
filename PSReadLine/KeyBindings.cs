@@ -5,14 +5,29 @@ Copyright (c) Microsoft Corporation.  All rights reserved.
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Management.Automation;
 using System.Runtime.InteropServices;
 using System.Text;
-using Microsoft.PowerShell.Internal;
 using Microsoft.PowerShell.PSReadLine;
 
 namespace Microsoft.PowerShell
 {
+    /// <summary>
+    /// A group used for sorting key handlers.
+    /// </summary>
+    public enum KeyHandlerGroup
+    {
+        Basic,
+        CursorMovement,
+        History,
+        Completion,
+        Miscellaneous,
+        Selection,
+        Search,
+        Custom
+    }
+
     /// <summary>
     /// The class is used as the output type for the cmdlet Get-PSReadlineKeyHandler
     /// </summary>
@@ -45,6 +60,39 @@ namespace Microsoft.PowerShell
             set => _description = value;
         }
         private string _description;
+
+        /// <summary>
+        /// The group that this key handler belongs to.
+        /// </summary>
+        public KeyHandlerGroup Group { get; set; }
+
+        /// <summary>
+        /// Get the description of the group.
+        /// </summary>
+        public static string GetGroupingDescription(KeyHandlerGroup grouping)
+        {
+            switch (grouping)
+            {
+            case KeyHandlerGroup.Basic:
+                return PSReadLineResources.BasicGrouping;
+            case KeyHandlerGroup.CursorMovement:
+                return PSReadLineResources.CursorMovementGrouping;
+            case KeyHandlerGroup.History:
+                return PSReadLineResources.HistoryGrouping;
+            case KeyHandlerGroup.Completion:
+                return PSReadLineResources.CompletionGrouping;
+            case KeyHandlerGroup.Miscellaneous:
+                return PSReadLineResources.MiscellaneousGrouping;
+            case KeyHandlerGroup.Selection:
+                return PSReadLineResources.SelectionGrouping;
+            case KeyHandlerGroup.Search:
+                return PSReadLineResources.SearchGrouping;
+            case KeyHandlerGroup.Custom:
+                return PSReadLineResources.CustomGrouping;
+            default: return "";
+            }
+        }
+
     }
 
     public partial class PSConsoleReadLine
@@ -321,25 +369,246 @@ namespace Microsoft.PowerShell
             };
         }
 
+        private static KeyHandlerGroup GetDisplayGrouping(string function)
+        {
+            switch (function)
+            {
+            case nameof(Abort):
+            case nameof(AcceptAndGetNext):
+            case nameof(AcceptLine):
+            case nameof(AddLine):
+            case nameof(BackwardDeleteChar):
+            case nameof(BackwardDeleteLine):
+            case nameof(BackwardDeleteWord):
+            case nameof(BackwardKillLine):
+            case nameof(BackwardKillWord):
+            case nameof(CancelLine):
+            case nameof(Copy):
+            case nameof(CopyOrCancelLine):
+            case nameof(Cut):
+            case nameof(DeleteChar):
+            case nameof(DeleteCharOrExit):
+            case nameof(DeleteEndOfWord):
+            case nameof(DeleteLine):
+            case nameof(DeleteLineToFirstChar):
+            case nameof(DeleteToEnd):
+            case nameof(DeleteWord):
+            case nameof(ForwardDeleteLine):
+            case nameof(InsertLineAbove):
+            case nameof(InsertLineBelow):
+            case nameof(InvertCase):
+            case nameof(KillLine):
+            case nameof(KillRegion):
+            case nameof(KillWord):
+            case nameof(Paste):
+            case nameof(PasteAfter):
+            case nameof(PasteBefore):
+            case nameof(PrependAndAccept):
+            case nameof(Redo):
+            case nameof(RepeatLastCommand):
+            case nameof(RevertLine):
+            case nameof(ShellBackwardKillWord):
+            case nameof(ShellKillWord):
+            case nameof(SwapCharacters):
+            case nameof(Undo):
+            case nameof(UndoAll):
+            case nameof(UnixWordRubout):
+            case nameof(ValidateAndAcceptLine):
+            case nameof(ViAcceptLine):
+            case nameof(ViAcceptLineOrExit):
+            case nameof(ViAppendLine):
+            case nameof(ViBackwardDeleteGlob):
+            case nameof(ViBackwardGlob):
+            case nameof(ViDeleteBrace):
+            case nameof(ViDeleteEndOfGlob):
+            case nameof(ViDeleteGlob):
+            case nameof(ViDeleteToBeforeChar):
+            case nameof(ViDeleteToBeforeCharBackward):
+            case nameof(ViDeleteToChar):
+            case nameof(ViDeleteToCharBackward):
+            case nameof(ViInsertAtBegining):
+            case nameof(ViInsertAtEnd):
+            case nameof(ViInsertLine):
+            case nameof(ViInsertWithAppend):
+            case nameof(ViInsertWithDelete):
+            case nameof(ViJoinLines):
+            case nameof(ViReplaceToBeforeChar):
+            case nameof(ViReplaceToBeforeCharBackward):
+            case nameof(ViReplaceToChar):
+            case nameof(ViReplaceToCharBackward):
+            case nameof(ViYankBeginningOfLine):
+            case nameof(ViYankEndOfGlob):
+            case nameof(ViYankEndOfWord):
+            case nameof(ViYankLeft):
+            case nameof(ViYankLine):
+            case nameof(ViYankNextGlob):
+            case nameof(ViYankNextWord):
+            case nameof(ViYankPercent):
+            case nameof(ViYankPreviousGlob):
+            case nameof(ViYankPreviousWord):
+            case nameof(ViYankRight):
+            case nameof(ViYankToEndOfLine):
+            case nameof(ViYankToFirstChar):
+            case nameof(Yank):
+            case nameof(YankLastArg):
+            case nameof(YankNthArg):
+            case nameof(YankPop):
+                return KeyHandlerGroup.Basic;
+
+            // The following are private so cannot be used with a custom binding.
+            case nameof(BackwardReplaceChar):
+            case nameof(ReplaceChar):
+            case nameof(ReplaceCharInPlace):
+            case nameof(ViBackwardReplaceGlob):
+            case nameof(ViBackwardReplaceLine):
+            case nameof(ViBackwardReplaceLineToFirstChar):
+            case nameof(ViBackwardReplaceWord):
+            case nameof(ViReplaceBrace):
+            case nameof(ViReplaceEndOfGlob):
+            case nameof(ViReplaceEndOfWord):
+            case nameof(ViReplaceGlob):
+            case nameof(ViReplaceLine):
+            case nameof(ViReplaceToEnd):
+            case nameof(ViReplaceUntilEsc):
+            case nameof(ViReplaceWord):
+                return KeyHandlerGroup.Basic;
+
+            case nameof(BackwardChar):
+            case nameof(BackwardWord):
+            case nameof(BeginningOfLine):
+            case nameof(EndOfLine):
+            case nameof(ForwardChar):
+            case nameof(ForwardWord):
+            case nameof(GotoBrace):
+            case nameof(GotoColumn):
+            case nameof(GotoFirstNonBlankOfLine):
+            case nameof(MoveToEndOfLine):
+            case nameof(NextLine):
+            case nameof(NextWord):
+            case nameof(NextWordEnd):
+            case nameof(PreviousLine):
+            case nameof(ShellBackwardWord):
+            case nameof(ShellForwardWord):
+            case nameof(ShellNextWord):
+            case nameof(ViBackwardWord):
+            case nameof(ViEndOfGlob):
+            case nameof(ViEndOfPreviousGlob):
+            case nameof(ViGotoBrace):
+            case nameof(ViNextGlob):
+            case nameof(ViNextWord):
+                return KeyHandlerGroup.CursorMovement;
+
+            case nameof(BeginningOfHistory):
+            case nameof(ClearHistory):
+            case nameof(EndOfHistory):
+            case nameof(ForwardSearchHistory):
+            case nameof(HistorySearchBackward):
+            case nameof(HistorySearchForward):
+            case nameof(NextHistory):
+            case nameof(PreviousHistory):
+            case nameof(ReverseSearchHistory):
+            case nameof(ViPreviousHistory):
+            case nameof(ViSearchHistoryBackward):
+                return KeyHandlerGroup.History;
+
+            case nameof(Complete):
+            case nameof(MenuComplete):
+            case nameof(PossibleCompletions):
+            case nameof(TabCompleteNext):
+            case nameof(TabCompletePrevious):
+            case nameof(ViTabCompleteNext):
+            case nameof(ViTabCompletePrevious):
+                return KeyHandlerGroup.Completion;
+
+            case nameof(CaptureScreen):
+            case nameof(ClearScreen):
+            case nameof(DigitArgument):
+            case nameof(InvokePrompt):
+            case nameof(ScrollDisplayDown):
+            case nameof(ScrollDisplayDownLine):
+            case nameof(ScrollDisplayToCursor):
+            case nameof(ScrollDisplayTop):
+            case nameof(ScrollDisplayUp):
+            case nameof(ScrollDisplayUpLine):
+            case nameof(SelfInsert):
+            case nameof(ShowKeyBindings):
+            case nameof(ViCommandMode):
+            case nameof(ViDigitArgumentInChord):
+            case nameof(ViEditVisually):
+            case nameof(ViExit):
+            case nameof(ViInsertMode):
+            case nameof(WhatIsKey):
+                return KeyHandlerGroup.Miscellaneous;
+
+            case nameof(CharacterSearch):
+            case nameof(CharacterSearchBackward):
+            case nameof(RepeatLastCharSearch):
+            case nameof(RepeatLastCharSearchBackwards):
+            case nameof(RepeatSearch):
+            case nameof(RepeatSearchBackward):
+            case nameof(SearchChar):
+            case nameof(SearchCharBackward):
+            case nameof(SearchCharBackwardWithBackoff):
+            case nameof(SearchCharWithBackoff):
+            case nameof(SearchForward):
+                return KeyHandlerGroup.Search;
+
+            case nameof(ExchangePointAndMark):
+            case nameof(SetMark):
+            case nameof(SelectAll):
+            case nameof(SelectBackwardChar):
+            case nameof(SelectBackwardsLine):
+            case nameof(SelectBackwardWord):
+            case nameof(SelectForwardChar):
+            case nameof(SelectForwardWord):
+            case nameof(SelectLine):
+            case nameof(SelectNextWord):
+            case nameof(SelectShellBackwardWord):
+            case nameof(SelectShellForwardWord):
+            case nameof(SelectShellNextWord):
+                return KeyHandlerGroup.Selection;
+
+            default:
+                return KeyHandlerGroup.Custom;
+            }
+        }
+
         /// <summary>
         /// Show all bound keys
         /// </summary>
         public static void ShowKeyBindings(ConsoleKeyInfo? key = null, object arg = null)
         {
             var buffer = new StringBuilder();
-            buffer.AppendFormat(CultureInfo.InvariantCulture, "{0,-21} {1,-24} {2}\n", "Key", "Function", "Description");
-            buffer.AppendFormat(CultureInfo.InvariantCulture, "{0,-21} {1,-24} {2}\n", "---", "--------", "-----------");
             var boundKeys = GetKeyHandlers(includeBound: true, includeUnbound: false);
             var console = _singleton._console;
-            var maxDescriptionLength = console.WindowWidth - 21 - 24 - 2;
-            foreach (var boundKey in boundKeys)
+            foreach (var group in boundKeys.GroupBy(k => k.Group).OrderBy(k => k.Key))
             {
-                var description = boundKey.Description;
-                if (description.Length >= maxDescriptionLength)
+                var groupDescription = PowerShell.KeyHandler.GetGroupingDescription(group.Key);
+                buffer.AppendFormat("\n{0}\n", groupDescription);
+                buffer.Append('=', groupDescription.Length);
+                buffer.AppendLine();
+
+                // Compute column widths
+                var groupBindings = group.OrderBy(k => k.Function).ToArray();
+                var keyWidth = -1;
+                var funcWidth = -1;
+                foreach (var binding in groupBindings)
                 {
-                    description = description.Substring(0, maxDescriptionLength - 4) + "...";
+                    keyWidth = Math.Max(keyWidth, binding.Key.Length);
+                    funcWidth = Math.Max(funcWidth, binding.Function.Length);
                 }
-                buffer.AppendFormat(CultureInfo.InvariantCulture, "{0,-21} {1,-24} {2}\n", boundKey.Key, boundKey.Function, description);
+                var maxDescriptionLength = console.WindowWidth - keyWidth - funcWidth - 2;
+                var fmtString = "{0,-" + keyWidth + "} {1,-" + funcWidth + "} {2}\n";
+
+                foreach (var boundKey in groupBindings)
+                {
+                    var description = boundKey.Description;
+                    if (description.Length >= maxDescriptionLength)
+                    {
+                        description = description.Substring(0, maxDescriptionLength - 4) + "...";
+                    }
+                    buffer.AppendFormat(CultureInfo.InvariantCulture, fmtString, boundKey.Key, boundKey.Function, description);
+                }
             }
 
             // Don't overwrite any of the line - so move to first line after the end of our buffer.

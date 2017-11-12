@@ -1,6 +1,58 @@
 <Configuration>
   <ViewDefinitions>
     <View>
+      <Name>PSReadLine-KeyBindings</Name>
+      <ViewSelectedBy>
+        <TypeName>Microsoft.PowerShell.KeyHandler</TypeName>
+      </ViewSelectedBy>
+      <GroupBy>
+        <PropertyName>Group</PropertyName>
+        <CustomControl>
+          <CustomEntries>
+            <CustomEntry>
+              <CustomItem>
+                <ExpressionBinding>
+                  <ScriptBlock>
+$d = [Microsoft.PowerShell.KeyHandler]::GetGroupingDescription($_.Group)
+"{0}`n{1}" -f $d,('='*$d.Length)
+</ScriptBlock>
+                </ExpressionBinding>
+              </CustomItem>
+            </CustomEntry>
+          </CustomEntries>
+        </CustomControl>
+      </GroupBy>
+      <TableControl>
+        <TableHeaders>
+          <TableColumnHeader>
+            <Label>Key</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Function</Label>
+          </TableColumnHeader>
+          <TableColumnHeader>
+            <Label>Description</Label>
+          </TableColumnHeader>
+        </TableHeaders>
+        <TableRowEntries>
+          <TableRowEntry>
+            <Wrap/>
+            <TableColumnItems>
+              <TableColumnItem>
+                <PropertyName>Key</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Function</PropertyName>
+              </TableColumnItem>
+              <TableColumnItem>
+                <PropertyName>Description</PropertyName>
+              </TableColumnItem>
+            </TableColumnItems>
+          </TableRowEntry>
+        </TableRowEntries>
+      </TableControl>
+    </View>
+    <View>
       <Name>PSReadLine-Options</Name>
       <ViewSelectedBy>
         <TypeName>Microsoft.PowerShell.PSConsoleReadlineOptions</TypeName>
@@ -132,6 +184,6 @@
           </ListEntry>
         </ListEntries>
       </ListControl>
-    </View>   
+    </View>
   </ViewDefinitions>
 </Configuration>

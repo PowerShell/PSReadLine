@@ -477,9 +477,6 @@ If there are other parse errors, unresolved commands, or incorrect parameters, s
   <data name="PrependAndAcceptDescription" xml:space="preserve">
     <value>Inserts the entered character at the beginning and accepts the line.</value>
   </data>
-  <data name="DeleteBraceDescription" xml:space="preserve">
-    <value>Deletes all characters between the cursor and the matching brace.</value>
-  </data>
   <data name="DeleteLineDescription" xml:space="preserve">
     <value>Deletes the current line.</value>
   </data>
@@ -670,7 +667,7 @@ If there are other parse errors, unresolved commands, or incorrect parameters, s
     <value>Place all characters between the matching brace and the cursor into the local clipboard.</value>
   </data>
   <data name="ViDeleteBraceDescription" xml:space="preserve">
-    <value>Deletes all characters between the cursor position and the matching brace.</value>
+    <value>Deletes all characters between the cursor and the matching brace.</value>
   </data>
   <data name="ViAcceptLineOrExitDescription" xml:space="preserve">
     <value>If the line is empty, exit, otherwise accept the line as input.</value>
@@ -722,5 +719,29 @@ Or not saving history with:
   </data>
   <data name="InvalidColorParameter" xml:space="preserve">
     <value>Parameter must be a ConsoleColor, ANSI escape sequence, or RGB value with optional leading '#'.</value>
+  </data>
+  <data name="BasicGrouping"  xml:space="preserve">
+    <value>Basic editing functions</value>
+  </data>
+  <data name="CursorMovementGrouping"  xml:space="preserve">
+    <value>Cursor movement functions</value>
+  </data>
+  <data name="HistoryGrouping"  xml:space="preserve">
+    <value>History functions</value>
+  </data>
+  <data name="CompletionGrouping"  xml:space="preserve">
+    <value>Completion functions</value>
+  </data>
+  <data name="MiscellaneousGrouping"  xml:space="preserve">
+    <value>Miscellaneous functions</value>
+  </data>
+  <data name="SelectionGrouping"  xml:space="preserve">
+    <value>Selection functions</value>
+  </data>
+  <data name="SearchGrouping"  xml:space="preserve">
+    <value>Search functions</value>
+  </data>
+  <data name="CustomGrouping"  xml:space="preserve">
+    <value>User defined functions</value>
   </data>
 </root>
