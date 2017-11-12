@@ -458,6 +458,7 @@ namespace Microsoft.PowerShell
                 case ConsoleKey.End:
                 case ConsoleKey.Enter:
                 case ConsoleKey.Home:
+                case ConsoleKey.Insert:
                 case ConsoleKey.LeftArrow:
                 case ConsoleKey.PageUp:
                 case ConsoleKey.PageDown:
@@ -562,18 +563,22 @@ namespace Microsoft.PowerShell
 
             var sb = new StringBuilder();
 
-            if (useKeyEnum && (mods & ConsoleModifiers.Shift) != 0)
+            var isShift = (mods & ConsoleModifiers.Shift) != 0;
+            var isCtrl = (mods & ConsoleModifiers.Control) != 0;
+            var isAlt = (mods & ConsoleModifiers.Alt) != 0;
+
+            if (useKeyEnum && isShift)
             {
                 sb.Append("Shift");
             }
 
-            if ((mods & ConsoleModifiers.Control) != 0)
+            if (isCtrl)
             {
                 if (sb.Length > 0) sb.Append("+");
                 sb.Append("Ctrl");
             }
 
-            if ((mods & ConsoleModifiers.Alt) != 0)
+            if (isAlt)
             {
                 if (sb.Length > 0) sb.Append("+");
                 sb.Append("Alt");
@@ -602,7 +607,7 @@ namespace Microsoft.PowerShell
                         break;
 
                     case char _ when c <= 26:
-                        s = ((char) ('a' + c - 1)).ToString();
+                        s = ((char)((isShift ? 'A' : 'a') + c - 1)).ToString();
                         break;
 
                     default:
