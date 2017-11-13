@@ -135,6 +135,10 @@ namespace Microsoft.PowerShell
                 _historyFileMutex = new Mutex(false, GetHistorySaveFileMutexName());
                 _historyFileLastSavedSize = 0;
             }
+            if (options._ansiEscapeTimeout.HasValue)
+            {
+                Options.AnsiEscapeTimeout = options.AnsiEscapeTimeout;
+            }
             if (options.PromptText != null)
             {
                 Options.PromptText = options.PromptText;

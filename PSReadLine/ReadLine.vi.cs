@@ -515,15 +515,7 @@ namespace Microsoft.PowerShell
         {
             if (_options.ViModeIndicator == ViModeStyle.Cursor)
             {
-                if (PlatformWindows.IsConsoleApiAvailable())
-                {
-                    _console.CursorSize = _normalCursorSize < 50 ? 100 : 25;
-                }
-                else
-                {
-                    // Set the cursor to a solid blinking block.
-                    Console.Write("\x1b[2 q");
-                }
+                _console.CursorSize = _normalCursorSize < 50 ? 100 : 25;
             }
             else if (_options.ViModeIndicator == ViModeStyle.Prompt)
             {
@@ -538,15 +530,7 @@ namespace Microsoft.PowerShell
         {
             if (_options.ViModeIndicator == ViModeStyle.Cursor)
             {
-                if (PlatformWindows.IsConsoleApiAvailable())
-                {
-                    _console.CursorSize = _normalCursorSize;
-                }
-                else
-                {
-                    // Set the cursor to a blinking vertical line.
-                    Console.Write("\x1b[5 q");
-                }
+                _console.CursorSize = _normalCursorSize;
             }
             else if (_options.ViModeIndicator == ViModeStyle.Prompt)
             {

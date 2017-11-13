@@ -76,6 +76,10 @@ namespace Microsoft.PowerShell
             _readkeyStopwatch.Restart();
             while (_console.KeyAvailable)
             {
+                // _charMap is only guaranteed to accumulate input while KeyAvailable
+                // returns false. Make sure to check KeyAvailable after every ProcessKey call,
+                // and clear it in a loop in case the input was something like ^[[1 which can
+                // be 3, 2, or part of 1 key depending on timing.
                 _charMap.ProcessKey(_console.ReadKey());
                 while (_charMap.KeyAvailable)
                 {
@@ -103,8 +107,12 @@ namespace Microsoft.PowerShell
                         }
                         else
                         {
-                            // This should be ok since it will only run if there
-                            // are no keys waiting to be read.
+                            // We don't want to sleep for the whole escape timeout
+                            // or the user will have a laggy console, but there's
+                            // nothing to block on at this point either, so do a
+                            // small sleep to yield the CPU while we're waiting
+                            // to decide what the input was. This will only run
+                            // if there are no keys waiting to be read.
                             Thread.Sleep(5);
                         }
                     }

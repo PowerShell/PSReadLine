@@ -27,10 +27,32 @@ namespace Microsoft.PowerShell.Internal
             set => Console.CursorTop = value;
         }
 
+        // .NET doesn't implement this API, so we fake it with a commonly supported escape sequence.
+        private int _unixCursorSize = 25;
         public int CursorSize
         {
-            get => Console.CursorSize;
-            set => Console.CursorSize = value;
+            get => PlatformWindows.IsConsoleApiAvailable() ? Console.CursorSize : _unixCursorSize;
+            set
+            {
+                if (PlatformWindows.IsConsoleApiAvailable())
+                {
+                    Console.CursorSize = value;
+                }
+                else
+                {
+                    _unixCursorSize = value;
+                    if (value > 50)
+                    {
+                        // Solid blinking block
+                        Write("\x1b[2 q");
+                    }
+                    else
+                    {
+                        // Blinking vertical bar
+                        Write("\x1b[5 q");
+                    }
+                }
+            }
         }
 
         public bool CursorVisible

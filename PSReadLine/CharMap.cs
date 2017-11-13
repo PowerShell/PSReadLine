@@ -8,36 +8,36 @@ using System.Diagnostics;
 
 namespace Microsoft.PowerShell
 {
-    /// Character sequence translator for platforms that behavior is not
-    /// natively supported (currently just Windows ANSI input).
+    // Character sequence translator for platforms that behavior is not
+    // natively supported (currently just Windows ANSI input).
     internal interface ICharMap
     {
-        /// How long to wait after seeing an escape should we wait before
-        /// giving up on looking for a sequence?
+        // How long to wait after seeing an escape should we wait before
+        // giving up on looking for a sequence?
         long EscapeTimeout { get; set; }
-        /// A key may become available even if nothing else was read because
-        /// of the escape sequence timer.
+        // A key may become available even if nothing else was read because
+        // of the escape sequence timer.
         bool KeyAvailable { get; }
-        /// If this is true, we don't want to block on `Console.ReadKey` or
-        /// the escape won't get seen until the next key is pressed.
+        // If this is true, we don't want to block on `Console.ReadKey` or
+        // the escape won't get seen until the next key is pressed.
         bool InEscapeSequence { get; }
-        /// Read a key from the processing buffer. An unspecified value
-        /// is returned if `KeyAvailable` is false.
+        // Read a key from the processing buffer. An unspecified value
+        // is returned if `KeyAvailable` is false.
         ConsoleKeyInfo ReadKey();
-        /// Insert a new key into the processing buffer. It is important that
-        /// immediately after every call to this, you check `KeyAvailable` as
-        /// the implementations are not designed to hold keys that don't form
-        /// a recognizable sequence.
+        // Insert a new key into the processing buffer. It is important that
+        // immediately after every call to this, you check `KeyAvailable` as
+        // the implementations are not designed to hold keys that don't form
+        // a recognizable sequence.
         void ProcessKey(ConsoleKeyInfo key);
     }
 
-    /// No-op - relies on whatever processing the .NET Console class does,
-    /// which on Unix reads from terminfo, and on Windows is none to very little.
+    // No-op - relies on whatever processing the .NET Console class does,
+    // which on Unix reads from terminfo, and on Windows is none to very little.
     internal class DotNetCharMap : ICharMap
     {
         private ConsoleKeyInfo _key;
 
-        /// Unused
+        // Unused
         public long EscapeTimeout {
             get { return 0; }
             set {}
@@ -60,19 +60,19 @@ namespace Microsoft.PowerShell
         }
     }
 
-    /// Hard-coded translator for the only VT mode Windows supports.
+    // Hard-coded translator for the only VT mode Windows supports.
     internal class WindowsAnsiCharMap : ICharMap
     {
         private List<ConsoleKeyInfo> _pendingKeys;
-        /// The next index in `_pendingKeys` to write to.
+        // The next index in `_pendingKeys` to write to.
         private int _addKeyIndex;
-        /// The next index in `_pendingKeys` to read from. This index becomes
-        /// valid when:
-        /// - The first character is escape and the escape timeout elapses.
-        /// - A sequence is completed.
-        /// - A single readable character is inserted.
+        // The next index in `_pendingKeys` to read from. This index becomes
+        // valid when:
+        // - The first character is escape and the escape timeout elapses.
+        // - A sequence is completed.
+        // - A single readable character is inserted.
         private int _readKeyIndexFrom;
-        /// The upper bound of `_pendingKeys` to read from, exclusive.
+        // The upper bound of `_pendingKeys` to read from, exclusive.
         private int _readKeyIndexTo;
 
         private Stopwatch _escTimeoutStopwatch = new Stopwatch();
@@ -264,8 +264,8 @@ namespace Microsoft.PowerShell
             }
         }
 
-        /// '\0' is used as an invalid character - it is valid, but only
-        /// by itself, not as part of a sequence (^[^@ is Esc, Ctrl-@, not Alt-Ctrl-@).
+        // '\0' is used as an invalid character - it is valid, but only
+        // by itself, not as part of a sequence (^[^@ is Esc, Ctrl-@, not Alt-Ctrl-@).
         private char GetSeqChar(int i)
         {
             // Only return valid key indexes for this scan.
@@ -284,12 +284,12 @@ namespace Microsoft.PowerShell
             return ch;
         }
 
-        /// Called when _pendingKeys[0] == ESC but it's not a full sequence.
-        /// As far as I can tell, the only keys that can't be combined with
-        /// alt are Esc, ^@, and Backspace (which generates ^[^H), but that
-        /// gets translated in `ProcessControlKey` so we have to let it go here.
-        /// None of the keys this applies to have their KeyChar set to 0 -
-        /// the ones that do have a special alt sequence handled later.
+        // Called when _pendingKeys[0] == ESC but it's not a full sequence.
+        // As far as I can tell, the only keys that can't be combined with
+        // alt are Esc, ^@, and Backspace (which generates ^[^H), but that
+        // gets translated in `ProcessControlKey` so we have to let it go here.
+        // None of the keys this applies to have their KeyChar set to 0 -
+        // the ones that do have a special alt sequence handled later.
         private bool ProcessAltSequence()
         {
             var ch = GetSeqChar(1);
@@ -316,9 +316,9 @@ namespace Microsoft.PowerShell
             return true;
         }
 
-        /// Scan for input escape sequences.
-        /// We're only interested in the range 0 to _addKeyIndex when
-        /// _pendingKeys[0] == Escape.
+        // Scan for input escape sequences.
+        // We're only interested in the range 0 to _addKeyIndex when
+        // _pendingKeys[0] == Escape.
         private void ProcessMultipleKeys()
         {
             if (_pendingKeys[_addKeyIndex - 1].KeyChar == '\x1b')
@@ -362,17 +362,17 @@ namespace Microsoft.PowerShell
             }
         }
 
-        /// Used with ^[Ox and ^[[1;nx sequences.
+        // Used with ^[Ox and ^[[1;nx sequences.
         private static readonly char[] _escOOrBracket1Chars = new char[]
         {
             'A', 'B', 'C', 'D', 'F', 'H', 'P', 'Q', 'R', 'S'
         };
-        /// Used with ^[[x sequences.
+        // Used with ^[[x sequences.
         private static readonly char[] _escBracketChars = new char[]
         {
             'A', 'B', 'C', 'D', 'F', 'H'
         };
-        /// ConsoleKeys matching ^[Ox, ^[[x, and ^[[1;nx.
+        // ConsoleKeys matching ^[Ox, ^[[x, and ^[[1;nx.
         private static readonly ConsoleKey[] _escBracketConsoleKeys = new ConsoleKey[]
         {
             // A                B                     C                      D
@@ -382,7 +382,7 @@ namespace Microsoft.PowerShell
             // P           Q              R              S
             ConsoleKey.F1, ConsoleKey.F2, ConsoleKey.F3, ConsoleKey.F4
         };
-        /// Modifiers for ^[[1;nx - look up by n-2.
+        // Modifiers for ^[[1;nx - look up by n-2.
         private static readonly ConsoleModifiers[] _escBracketModifiers = new ConsoleModifiers[]
         {
             ConsoleModifiers.Shift,
@@ -396,20 +396,20 @@ namespace Microsoft.PowerShell
 
         // The ^[[n~ form is kind of randomly distributed, so just switch on that.
 
-        /// Returns true if the input is a full or partially complete escape sequence.
-        /// There are only a few input patterns we have to match here:
-        /// - ^[Ox - x in [A, B, C, D, H, F, P, Q, R, S]
-        /// - ^[[x - x in [A, B, C, D, H, F]
-        /// - ^[[1;nx - x from above lists. N designates the following:
-        ///   - 2: Shift
-        ///   - 3: Alt
-        ///   - 4: Alt+Shift
-        ///   - 5: Control
-        ///   - 6: Control+Shift
-        ///   - 7: Control+Alt
-        ///   - 8: Control+Alt+Shift
-        /// - ^[[n~ - n is a 1 or 2 digit number.
-        /// - ^[[n;m~ - n same as above, m is from the above modifier list.
+        // Returns true if the input is a full or partially complete escape sequence.
+        // There are only a few input patterns we have to match here:
+        // - ^[Ox - x in [A, B, C, D, H, F, P, Q, R, S]
+        // - ^[[x - x in [A, B, C, D, H, F]
+        // - ^[[1;nx - x from above lists. N designates the following:
+        //   - 2: Shift
+        //   - 3: Alt
+        //   - 4: Alt+Shift
+        //   - 5: Control
+        //   - 6: Control+Shift
+        //   - 7: Control+Alt
+        //   - 8: Control+Alt+Shift
+        // - ^[[n~ - n is a 1 or 2 digit number.
+        // - ^[[n;m~ - n same as above, m is from the above modifier list.
         private bool ProcessSequencePart()
         {
             var ch = GetSeqChar(1);

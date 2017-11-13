@@ -185,20 +185,7 @@ static class PlatformWindows
 
     private static void EnableAnsiInput(ref ICharMap charMap)
     {
-        if (uint.TryParse(Environment.GetEnvironmentVariable("PSREADLINE_ESCTIMEOUT"), out var escTimeout))
-        {
-            // Don't let someone get themselves stuck here.
-            if (escTimeout > 1000)
-            {
-                escTimeout = 1000;
-            }
-            charMap = new WindowsAnsiCharMap(escTimeout);
-        }
-        else
-        {
-            // Use the default timeout.
-            charMap = new WindowsAnsiCharMap();
-        }
+        charMap = new WindowsAnsiCharMap(PSConsoleReadLine.GetOptions().AnsiEscapeTimeout);
     }
 
     internal static void Complete()
