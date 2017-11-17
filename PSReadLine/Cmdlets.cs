@@ -1016,12 +1016,14 @@ namespace Microsoft.PowerShell
 
         public static string FormatColor(object seq)
         {
-            if (seq is ConsoleColor) return seq.ToString();
+            var result = seq.ToString();
+            if (seq is ConsoleColor) return result;
 
             var replacement = (typeof(PSObject).Assembly.GetName().Version.Major < 6)
                 ? "$([char]0x1b)"
                 : "`e";
-            return "\"" + seq.ToString().Replace("\x1b", replacement) + "\"";
+            result = result + "\"" + result.Replace("\x1b", replacement) + "\"" + "\x1b[0m";
+            return result;
         }
     }
 #pragma warning restore 1591
