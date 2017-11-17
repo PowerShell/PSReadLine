@@ -34,6 +34,7 @@ namespace Microsoft.PowerShell
 
         private IPSConsoleReadLineMockableMethods _mockableMethods;
         private IConsole _console;
+        private ICharMap _charMap;
         private Encoding _initialOutputEncoding;
 
         private EngineIntrinsics _engineIntrinsics;
@@ -75,9 +76,17 @@ namespace Microsoft.PowerShell
             _readkeyStopwatch.Restart();
             while (_console.KeyAvailable)
             {
-                var key = _console.ReadKey();
-                _lastNKeys.Enqueue(key);
-                _queuedKeys.Enqueue(key);
+                // _charMap is only guaranteed to accumulate input while KeyAvailable
+                // returns false. Make sure to check KeyAvailable after every ProcessKey call,
+                // and clear it in a loop in case the input was something like ^[[1 which can
+                // be 3, 2, or part of 1 key depending on timing.
+                _charMap.ProcessKey(_console.ReadKey());
+                while (_charMap.KeyAvailable)
+                {
+                    var key = _charMap.ReadKey();
+                    _lastNKeys.Enqueue(key);
+                    _queuedKeys.Enqueue(key);
+                }
                 if (_readkeyStopwatch.ElapsedMilliseconds > 2)
                 {
                     // Don't spend too long in this loop if there are lots of queued keys
@@ -87,9 +96,37 @@ namespace Microsoft.PowerShell
 
             if (_queuedKeys.Count == 0)
             {
-                var key = _console.ReadKey();
-                _lastNKeys.Enqueue(key);
-                _queuedKeys.Enqueue(key);
+                while (!_charMap.KeyAvailable)
+                {
+                    // Don't want to block when there is an escape sequence being read.
+                    if (_charMap.InEscapeSequence)
+                    {
+                        if (_console.KeyAvailable)
+                        {
+                            _charMap.ProcessKey(_console.ReadKey());
+                        }
+                        else
+                        {
+                            // We don't want to sleep for the whole escape timeout
+                            // or the user will have a laggy console, but there's
+                            // nothing to block on at this point either, so do a
+                            // small sleep to yield the CPU while we're waiting
+                            // to decide what the input was. This will only run
+                            // if there are no keys waiting to be read.
+                            Thread.Sleep(5);
+                        }
+                    }
+                    else
+                    {
+                        _charMap.ProcessKey(_console.ReadKey());
+                    }
+                }
+                while (_charMap.KeyAvailable)
+                {
+                    var key = _charMap.ReadKey();
+                    _lastNKeys.Enqueue(key);
+                    _queuedKeys.Enqueue(key);
+                }
             }
         }
 
@@ -243,7 +280,7 @@ namespace Microsoft.PowerShell
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                PlatformWindows.Init();
+                PlatformWindows.Init(ref _singleton._charMap);
             }
 
             bool firstTime = true;
@@ -467,6 +504,7 @@ namespace Microsoft.PowerShell
         {
             _mockableMethods = this;
             _console = new ConhostConsole();
+            _charMap = new DotNetCharMap();
 
             _buffer = new StringBuilder(8 * 1024);
             _statusBuffer = new StringBuilder(256);

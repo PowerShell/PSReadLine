@@ -60,6 +60,9 @@
     <Compile Include="..\PSReadLine\Keys.cs">
       <Link>Keys.cs</Link>
     </Compile>
+    <Compile Include="..\PSReadLine\CharMap.cs">
+      <Link>CharMap.cs</Link>
+    </Compile>
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="BasicEditingTest.VI.cs" />
     <Compile Include="CompletionTest.cs" />
@@ -79,6 +82,7 @@
     <Compile Include="ScreenCaptureTest.cs" />
     <Compile Include="UndoRedoTest.cs" />
     <Compile Include="UnitTestReadLine.cs" />
+    <Compile Include="WindowsAnsiInputTest.cs" />
     <Compile Include="WordsTest.cs" />
     <Compile Include="WordsTests.VI.cs" />
     <Compile Include="YankPasteTest.VI.cs" />

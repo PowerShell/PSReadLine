@@ -100,13 +100,16 @@ static class PlatformWindows
         SetConsoleCtrlHandler((BreakHandler)breakHandlerGcHandle.Target, true);
     }
 
-    const uint ENABLE_PROCESSED_INPUT = 0x0001;
-    const uint ENABLE_LINE_INPUT      = 0x0002;
-    const uint ENABLE_WINDOW_INPUT    = 0x0008;
-    const uint ENABLE_MOUSE_INPUT     = 0x0010;
+    const uint ENABLE_PROCESSED_INPUT        = 0x0001;
+    const uint ENABLE_LINE_INPUT             = 0x0002;
+    const uint ENABLE_WINDOW_INPUT           = 0x0008;
+    const uint ENABLE_MOUSE_INPUT            = 0x0010;
+    const uint ENABLE_VIRTUAL_TERMINAL_INPUT = 0x0200;
 
     static uint _prePSReadlineConsoleInputMode;
-    internal static void Init()
+    // Need to remember this decision for CallUsingOurInputMode.
+    static bool _enableVtInput;
+    internal static void Init(ref ICharMap charMap)
     {
         // If either stdin or stdout is redirected, PSReadline doesn't really work, so throw
         // and let PowerShell call Console.ReadLine or do whatever else it decides to do.
@@ -115,12 +118,45 @@ static class PlatformWindows
             throw new NotSupportedException();
         }
 
+        // If input is redirected, we can't use console APIs and have to use VT input.
+        if (IsHandleRedirected(stdin: true))
+        {
+            EnableAnsiInput(ref charMap);
+            return;
+        }
+
         _prePSReadlineConsoleInputMode = GetConsoleInputMode();
+
+        // This envvar will force VT mode on or off depending on the setting 1 or 0.
+        var overrideVtInput = Environment.GetEnvironmentVariable("PSREADLINE_VTINPUT");
+        if (overrideVtInput == "1")
+        {
+            _enableVtInput = true;
+        }
+        else if (overrideVtInput == "0")
+        {
+            _enableVtInput = false;
+        }
+        else
+        {
+            // If the console was already in VT mode, use the appropriate CharMap.
+            // This handles the case where input was not redirected and the user
+            // didn't specify a preference. The default is to use the pre-existing
+            // console mode.
+            _enableVtInput = (_prePSReadlineConsoleInputMode & ENABLE_VIRTUAL_TERMINAL_INPUT) == ENABLE_VIRTUAL_TERMINAL_INPUT;
+        }
+
+        if (_enableVtInput)
+        {
+            EnableAnsiInput(ref charMap);
+        }
+
         SetOurInputMode();
     }
 
     internal static void SetOurInputMode()
     {
+
         // Clear a couple flags so we can actually receive certain keys:
         //     ENABLE_PROCESSED_INPUT - enables Ctrl+C
         //     ENABLE_LINE_INPUT - enables Ctrl+S
@@ -129,16 +165,46 @@ static class PlatformWindows
         //     ENABLE_WINDOW_INPUT - window resize events
         var mode = _prePSReadlineConsoleInputMode &
                    ~(ENABLE_PROCESSED_INPUT | ENABLE_LINE_INPUT | ENABLE_WINDOW_INPUT | ENABLE_MOUSE_INPUT);
+        if (_enableVtInput)
+        {
+            // If we're using VT input mode in the console, need to enable that too.
+            // Since redirected input was handled above, this just handles the case
+            // where the user requested VT input with the environment variable.
+            // In this case the CharMap has already been set above.
+            mode |= ENABLE_VIRTUAL_TERMINAL_INPUT;
+        }
+        else
+        {
+            // We haven't enabled the ANSI escape processor, so turn this off so
+            // the console doesn't spew escape sequences all over.
+            mode &= ~ENABLE_VIRTUAL_TERMINAL_INPUT;
+        }
+
         SetConsoleInputMode(mode);
+    }
+
+    private static void EnableAnsiInput(ref ICharMap charMap)
+    {
+        charMap = new WindowsAnsiCharMap(PSConsoleReadLine.GetOptions().AnsiEscapeTimeout);
     }
 
     internal static void Complete()
     {
-        SetConsoleInputMode(_prePSReadlineConsoleInputMode);
+        if (!IsHandleRedirected(stdin: true))
+        {
+            SetConsoleInputMode(_prePSReadlineConsoleInputMode);
+        }
     }
 
     internal static T CallPossibleExternalApplication<T>(Func<T> func)
     {
+        
+        if (IsHandleRedirected(stdin: true))
+        {
+            // Don't bother with console modes if we're not in the console.
+            return func();
+        }
+
         uint psReadlineConsoleMode = GetConsoleInputMode();
         try
         {
@@ -153,6 +219,13 @@ static class PlatformWindows
 
     internal static void CallUsingOurInputMode(Action a)
     {
+        if (IsHandleRedirected(stdin: true))
+        {
+            // Don't bother with console modes if we're not in the console.
+            a();
+            return;
+        }
+
         uint psReadlineConsoleMode = GetConsoleInputMode();
         try
         {
@@ -217,5 +290,18 @@ static class PlatformWindows
 
         // Char device - if GetConsoleMode succeeds, we are NOT redirected.
         return !GetConsoleMode(handle, out var unused);
+    }
+
+    public static bool IsConsoleApiAvailable()
+    {
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            return false;
+        }
+        if (IsHandleRedirected(stdin: true) && IsHandleRedirected(stdin: false))
+        {
+            return false;
+        }
+        return true;
     }
 }

@@ -134,6 +134,12 @@ namespace Microsoft.PowerShell
 
         public const HistorySaveStyle DefaultHistorySaveStyle = HistorySaveStyle.SaveIncrementally;
 
+        /// <summary>
+        /// How long in milliseconds should we wait before concluding
+        /// the input is not an escape sequence?
+        /// </summary>
+        public const int DefaultAnsiEscapeTimeout = 100;
+
         public PSConsoleReadlineOptions(string hostName)
         {
             ResetColors();
@@ -154,6 +160,7 @@ namespace Microsoft.PowerShell
             WordDelimiters = DefaultWordDelimiters;
             HistorySearchCaseSensitive = DefaultHistorySearchCaseSensitive;
             HistorySaveStyle = DefaultHistorySaveStyle;
+            AnsiEscapeTimeout = DefaultAnsiEscapeTimeout;
 
             var historyFileName = hostName + "_history.txt";
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -297,6 +304,12 @@ namespace Microsoft.PowerShell
         /// </summary>
         public string HistorySavePath { get; set; }
         public HistorySaveStyle HistorySaveStyle { get; set; }
+
+        /// <summary>
+        /// How long in milliseconds should we wait before concluding
+        /// the input is not an escape sequence?
+        /// </summary>
+        public int AnsiEscapeTimeout { get; set; }
 
         /// <summary>
         /// This is the text you want turned red on parse errors, but must
@@ -624,6 +637,15 @@ namespace Microsoft.PowerShell
             }
         }
         private string _historySavePath;
+
+        [Parameter(ParameterSetName = "OptionsSet")]
+        [ValidateRange(25, 1000)]
+        public int AnsiEscapeTimeout
+        {
+            get => _ansiEscapeTimeout.GetValueOrDefault();
+            set => _ansiEscapeTimeout = value;
+        }
+        internal int? _ansiEscapeTimeout;
 
         [Parameter(ParameterSetName = "OptionsSet")]
         [ValidateNotNull]

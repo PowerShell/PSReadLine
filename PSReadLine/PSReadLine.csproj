@@ -54,6 +54,7 @@
   <ItemGroup>
     <Compile Include="AssemblyInfo.cs" />
     <Compile Include="BasicEditing.cs" />
+    <Compile Include="CharMap.cs" />
     <Compile Include="Clipboard.cs" />
     <Compile Include="Cmdlets.cs" />
     <Compile Include="Completion.cs" />
