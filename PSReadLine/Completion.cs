@@ -305,7 +305,7 @@ namespace Microsoft.PowerShell
                     var start = _tabCompletions.ReplacementIndex;
                     var length = _tabCompletions.ReplacementLength;
                     if (start < 0 || start > _singleton._buffer.Length) return null;
-                    if (length <= 0 || length > (_singleton._buffer.Length - start)) return null;
+                    if (length < 0 || length > (_singleton._buffer.Length - start)) return null;
 
                     if (_tabCompletions.CompletionMatches.Count > 1)
                     {
