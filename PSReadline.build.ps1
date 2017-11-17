@@ -68,7 +68,7 @@ task RestoreNugetPackages @restoreNugetParameters CheckNugetInstalled,{
 
 
 $buildMamlParams = @{
-    Inputs  = { Get-Item docs/*.md }
+    Inputs  = { Get-ChildItem docs/*.md }
     Outputs = "$targetDir/en-US/Microsoft.PowerShell.PSReadline.dll-help.xml"
 }
 
@@ -76,7 +76,7 @@ $buildMamlParams = @{
 Synopsis: Generate maml help from markdown
 #>
 task BuildMamlHelp @buildMamlParams {
-    platyPS\New-ExternalHelp docs -Force -OutputPath $targetDir/en-US
+    platyPS\New-ExternalHelp docs -Force -OutputPath $targetDir/en-US/Microsoft.PowerShell.PSReadline.dll-help.xml
 }
 
 
