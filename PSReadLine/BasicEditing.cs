@@ -14,7 +14,7 @@ namespace Microsoft.PowerShell
     public partial class PSConsoleReadLine
     {
         /// <summary>
-        /// Insert the key
+        /// Insert the key.
         /// </summary>
         public static void SelfInsert(ConsoleKeyInfo? key = null, object arg = null)
         {
@@ -202,7 +202,7 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Delete the character under the cursor, or if the line is empty, exit the process
+        /// Delete the character under the cursor, or if the line is empty, exit the process.
         /// </summary>
         public static void DeleteCharOrExit(ConsoleKeyInfo? key = null, object arg = null)
         {

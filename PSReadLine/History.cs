@@ -708,7 +708,7 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Perform an incremental forward search through history
+        /// Perform an incremental forward search through history.
         /// </summary>
         public static void ForwardSearchHistory(ConsoleKeyInfo? key = null, object arg = null)
         {
@@ -716,7 +716,7 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Perform an incremental backward search through history
+        /// Perform an incremental backward search through history.
         /// </summary>
         public static void ReverseSearchHistory(ConsoleKeyInfo? key = null, object arg = null)
         {

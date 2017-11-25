@@ -237,7 +237,7 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Deletes until given character
+        /// Deletes until given character.
         /// </summary>
         public static void ViReplaceToChar(ConsoleKeyInfo? key = null, object arg = null)
         {
@@ -265,7 +265,7 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Replaces until given character
+        /// Replaces until given character.
         /// </summary>
         public static void ViReplaceToCharBackward(ConsoleKeyInfo? key = null, object arg = null)
         {
@@ -283,7 +283,7 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Replaces until given character
+        /// Replaces until given character.
         /// </summary>
         public static void ViReplaceToBeforeChar(ConsoleKeyInfo? key = null, object arg = null)
         {
@@ -302,7 +302,7 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Replaces until given character
+        /// Replaces until given character.
         /// </summary>
         public static void ViReplaceToBeforeCharBackward(ConsoleKeyInfo? key = null, object arg = null)
         {

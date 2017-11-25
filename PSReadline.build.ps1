@@ -79,6 +79,24 @@ task BuildMamlHelp @buildMamlParams {
     platyPS\New-ExternalHelp docs -Force -OutputPath $targetDir/en-US/Microsoft.PowerShell.PSReadline.dll-help.xml
 }
 
+$buildAboutTopicParams = @{
+    Inputs = {
+         Get-ChildItem docs/about_PSReadLine.help.txt
+         "PSReadLine/bin/$Configuration/Microsoft.PowerShell.PSReadLine.dll"
+         "$PSScriptRoot/GenerateFunctionHelp.ps1"
+    }
+    Outputs = "$targetDir/en-US/about_PSReadLine.help.txt"
+}
+
+<#
+Synopsis: Generate about topic with function help
+#>
+task BuildAboutTopic @buildAboutTopicParams {
+    $functionDescriptions = (& $PSScriptRoot/GenerateFunctionHelp.ps1 -Configuration $Configuration) -join [Environment]::NewLine
+    $aboutTopic = Get-Content -Raw $PSScriptRoot/docs/about_PSReadLine.help.txt
+    $newAboutTopic = $aboutTopic -replace '{{FUNCTION_DESCRIPTIONS}}', $functionDescriptions
+    Set-Content -Path "$targetDir/en-US/about_PSReadLine.help.txt" -Value $newAboutTopic -Encoding Ascii
+}
 
 $binaryModuleParams = @{
     Inputs  = { Get-ChildItem PSReadLine/*.cs, PSReadLine/PSReadLine.csproj, PSReadLine/PSReadLineResources.resx }
@@ -130,7 +148,7 @@ task RunUnitTests BuildUnitTests, {
 <#
 Synopsis: Copy all of the files that belong in the module to one place in the layout for installation
 #>
-task LayoutModule BuildMainModule, BuildMamlHelp, {
+task LayoutModule BuildMainModule, BuildMamlHelp, BuildAboutTopic, {
     $extraFiles =
         'PSReadLine/Changes.txt',
         'PSReadLine/License.txt',
@@ -146,7 +164,6 @@ task LayoutModule BuildMainModule, BuildMamlHelp, {
 
     Copy-Item PSReadLine/bin/$Configuration/Microsoft.PowerShell.PSReadLine.dll $targetDir
     Copy-Item PSReadLine/bin/$Configuration/System.Runtime.InteropServices.RuntimeInformation.dll $targetDir
-    Copy-Item PSReadLine/en-US/about_PSReadline.help.txt $targetDir/en-US
 
     # Copy module manifest, but fix the version to match what we've specified in the binary module.
     $version = (Get-ChildItem -Path $targetDir/Microsoft.PowerShell.PSReadline.dll).VersionInfo.FileVersion

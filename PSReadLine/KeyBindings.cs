@@ -18,13 +18,21 @@ namespace Microsoft.PowerShell
     /// </summary>
     public enum KeyHandlerGroup
     {
+        /// <summary>Basic editing functions</summary>
         Basic,
+        /// <summary>Cursor movement functions</summary>
         CursorMovement,
+        /// <summary>History functions</summary>
         History,
+        /// <summary>Completion functions</summary>
         Completion,
+        /// <summary>Miscellaneous functions</summary>
         Miscellaneous,
+        /// <summary>Selection functions</summary>
         Selection,
+        /// <summary>Search functions</summary>
         Search,
+        /// <summary>User defined functions</summary>
         Custom
     }
 
@@ -369,7 +377,10 @@ namespace Microsoft.PowerShell
             };
         }
 
-        private static KeyHandlerGroup GetDisplayGrouping(string function)
+        /// <summary>
+        /// Used to group the built in functions for help and Get-PSReadlineKeyHander output.
+        /// </summary>
+        public static KeyHandlerGroup GetDisplayGrouping(string function)
         {
             switch (function)
             {
@@ -574,7 +585,7 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Show all bound keys
+        /// Show all bound keys.
         /// </summary>
         public static void ShowKeyBindings(ConsoleKeyInfo? key = null, object arg = null)
         {

@@ -342,7 +342,7 @@ namespace Microsoft.PowerShell
     {
         /// <summary>
         /// Start interactive screen capture - up/down arrows select lines, enter copies
-        /// selected text to clipboard as text and html
+        /// selected text to clipboard as text and html.
         /// </summary>
         public static void CaptureScreen(ConsoleKeyInfo? key = null, object arg = null)
         {

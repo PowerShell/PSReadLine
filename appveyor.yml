@@ -11,8 +11,8 @@ before_build:
 build_script:
   - ps: |
       Invoke-Build -Task ZipRelease -Configuration Release
-      platyPS\Get-HelpPreview .\bin\Release\PSReadline\en-US\PSReadline.dll-help.xml > .\bin\Release\PSReadline.txt
+      platyPS\Get-HelpPreview .\bin\Release\PSReadLine\en-US\Microsoft.PowerShell.PSReadLine.dll-help.xml > .\bin\Release\PSReadLine.txt
 
 artifacts:
-  - path: .\bin\Release\PSReadline.zip
-  - path: .\bin\Release\PSReadline.txt
+  - path: .\bin\Release\PSReadLine.zip
+  - path: .\bin\Release\PSReadLine.txt

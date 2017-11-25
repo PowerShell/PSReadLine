@@ -725,14 +725,14 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Abort current action, e.g. incremental history search
+        /// Abort current action, e.g. incremental history search.
         /// </summary>
         public static void Abort(ConsoleKeyInfo? key = null, object arg = null)
         {
         }
 
         /// <summary>
-        /// Start a new digit argument to pass to other functions
+        /// Start a new digit argument to pass to other functions.
         /// </summary>
         public static void DigitArgument(ConsoleKeyInfo? key = null, object arg = null)
         {

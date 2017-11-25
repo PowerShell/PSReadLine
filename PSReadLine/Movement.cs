@@ -327,7 +327,7 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Go to the matching brace, paren, or square bracket
+        /// Go to the matching brace, paren, or square bracket.
         /// </summary>
         public static void GotoBrace(ConsoleKeyInfo? key = null, object arg = null)
         {

@@ -375,7 +375,7 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Deletes until given character
+        /// Deletes until given character.
         /// </summary>
         public static void ViDeleteToChar(ConsoleKeyInfo? key = null, object arg = null)
         {
@@ -384,7 +384,7 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Deletes until given character
+        /// Deletes until given character.
         /// </summary>
         public static void ViDeleteToChar(char keyChar, ConsoleKeyInfo? key = null, object arg = null)
         {
@@ -393,7 +393,7 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Deletes backwards until given character
+        /// Deletes backwards until given character.
         /// </summary>
         public static void ViDeleteToCharBackward(ConsoleKeyInfo? key = null, object arg = null)
         {
@@ -402,7 +402,7 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Deletes backwards until given character
+        /// Deletes backwards until given character.
         /// </summary>
         public static void ViDeleteToCharBack(char keyChar, ConsoleKeyInfo? key = null, object arg = null)
         {
@@ -410,7 +410,7 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Deletes until given character
+        /// Deletes until given character.
         /// </summary>
         public static void ViDeleteToBeforeChar(ConsoleKeyInfo? key = null, object arg = null)
         {
@@ -419,7 +419,7 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Deletes until given character
+        /// Deletes until given character.
         /// </summary>
         public static void ViDeleteToBeforeChar(char keyChar, ConsoleKeyInfo? key = null, object arg = null)
         {
@@ -428,7 +428,7 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Deletes until given character
+        /// Deletes until given character.
         /// </summary>
         public static void ViDeleteToBeforeCharBackward(ConsoleKeyInfo? key = null, object arg = null)
         {
@@ -615,7 +615,7 @@ namespace Microsoft.PowerShell
                     char newChar = Char.IsUpper(c) ? Char.ToLower(c, CultureInfo.CurrentCulture) : char.ToUpper(c, CultureInfo.CurrentCulture);
                     EditItem delEditItem = EditItemDelete.Create(c.ToString(), _singleton._current);
                     EditItem insEditItem = EditItemInsertChar.Create(newChar, _singleton._current);
-                    _singleton.SaveEditItem(GroupedEdit.Create(new List<EditItem> 
+                    _singleton.SaveEditItem(GroupedEdit.Create(new List<EditItem>
                         {
                             delEditItem,
                             insEditItem
@@ -664,7 +664,7 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Deletes text from the cursor to the first non-blank character of the line,
+        /// Deletes text from the cursor to the first non-blank character of the line.
         /// </summary>
         public static void DeleteLineToFirstChar(ConsoleKeyInfo? key = null, object arg = null)
         {
@@ -1168,7 +1168,7 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Joins 2 lines.
+        /// Joins the current line and the next line.
         /// </summary>
         public static void ViJoinLines(ConsoleKeyInfo? key = null, object arg = null)
         {

@@ -349,7 +349,7 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Adjust the current selection to include the previous character
+        /// Adjust the current selection to include the previous character.
         /// </summary>
         public static void SelectBackwardChar(ConsoleKeyInfo? key = null, object arg = null)
         {
@@ -357,7 +357,7 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Adjust the current selection to include the next character
+        /// Adjust the current selection to include the next character.
         /// </summary>
         public static void SelectForwardChar(ConsoleKeyInfo? key = null, object arg = null)
         {
@@ -365,7 +365,7 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Adjust the current selection to include the previous word
+        /// Adjust the current selection to include the previous word.
         /// </summary>
         public static void SelectBackwardWord(ConsoleKeyInfo? key = null, object arg = null)
         {
@@ -373,7 +373,7 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Adjust the current selection to include the next word
+        /// Adjust the current selection to include the next word.
         /// </summary>
         public static void SelectNextWord(ConsoleKeyInfo? key = null, object arg = null)
         {
@@ -381,7 +381,7 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Adjust the current selection to include the next word using ForwardWord
+        /// Adjust the current selection to include the next word using ForwardWord.
         /// </summary>
         public static void SelectForwardWord(ConsoleKeyInfo? key = null, object arg = null)
         {
@@ -389,7 +389,7 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Adjust the current selection to include the next word using ShellForwardWord
+        /// Adjust the current selection to include the next word using ShellForwardWord.
         /// </summary>
         public static void SelectShellForwardWord(ConsoleKeyInfo? key = null, object arg = null)
         {
@@ -397,7 +397,7 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Adjust the current selection to include the next word using ShellNextWord
+        /// Adjust the current selection to include the next word using ShellNextWord.
         /// </summary>
         public static void SelectShellNextWord(ConsoleKeyInfo? key = null, object arg = null)
         {
@@ -405,7 +405,7 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Adjust the current selection to include the previous word using ShellBackwardWord
+        /// Adjust the current selection to include the previous word using ShellBackwardWord.
         /// </summary>
         public static void SelectShellBackwardWord(ConsoleKeyInfo? key = null, object arg = null)
         {
@@ -413,7 +413,7 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Select the entire line
+        /// Select the entire line.
         /// </summary>
         public static void SelectAll(ConsoleKeyInfo? key = null, object arg = null)
         {
@@ -424,7 +424,7 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Adjust the current selection to include from the cursor to the end of the line
+        /// Adjust the current selection to include from the cursor to the end of the line.
         /// </summary>
         public static void SelectLine(ConsoleKeyInfo? key = null, object arg = null)
         {
@@ -432,7 +432,7 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Adjust the current selection to include from the cursor to the start of the line
+        /// Adjust the current selection to include from the cursor to the start of the line.
         /// </summary>
         public static void SelectBackwardsLine(ConsoleKeyInfo? key = null, object arg = null)
         {
