@@ -292,13 +292,24 @@ static class PlatformWindows
         return !GetConsoleMode(handle, out var unused);
     }
 
-    public static bool IsConsoleApiAvailable()
+    public static bool IsConsoleApiAvailable(bool input, bool output)
     {
         if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
             return false;
         }
-        if (IsHandleRedirected(stdin: true) || IsHandleRedirected(stdin: false))
+        // If both input and output are false, we don't care about a specific
+        // stream, just whether we're in a console or not.
+        if (!input && !output)
+        {
+            return !IsHandleRedirected(stdin: true) || !IsHandleRedirected(stdin: false);
+        }
+        // Otherwise, we need to check the specific stream(s) that were requested.
+        if (input && IsHandleRedirected(stdin: true))
+        {
+            return false;
+        }
+        if (output && IsHandleRedirected(stdin: false))
         {
             return false;
         }
