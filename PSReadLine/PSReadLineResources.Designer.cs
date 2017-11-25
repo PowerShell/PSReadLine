@@ -1522,6 +1522,42 @@ namespace Microsoft.PowerShell.PSReadLine {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Deletes until given character..
+        /// </summary>
+        internal static string ViDeleteToBeforeCharBackwardDescription {
+            get {
+                return ResourceManager.GetString("ViDeleteToBeforeCharBackwardDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Deletes until given character..
+        /// </summary>
+        internal static string ViDeleteToBeforeCharDescription {
+            get {
+                return ResourceManager.GetString("ViDeleteToBeforeCharDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Deletes backwards until given character..
+        /// </summary>
+        internal static string ViDeleteToCharBackwardDescription {
+            get {
+                return ResourceManager.GetString("ViDeleteToCharBackwardDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Deletes until given character..
+        /// </summary>
+        internal static string ViDeleteToCharDescription {
+            get {
+                return ResourceManager.GetString("ViDeleteToCharDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Handles the processing of a number argument after the first key of a chord..
         /// </summary>
         internal static string ViDigitArgumentInChordDescription {
@@ -1545,6 +1581,15 @@ namespace Microsoft.PowerShell.PSReadLine {
         internal static string ViEndOfGlobDescription {
             get {
                 return ResourceManager.GetString("ViEndOfGlobDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Moves to the end of the previous word, using only white space as a word delimiter..
+        /// </summary>
+        internal static string ViEndOfPreviousGlobDescription {
+            get {
+                return ResourceManager.GetString("ViEndOfPreviousGlobDescription", resourceCulture);
             }
         }
         
@@ -1648,6 +1693,15 @@ namespace Microsoft.PowerShell.PSReadLine {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Replace the current input with the &apos;previous&apos; item from PSReadline history..
+        /// </summary>
+        internal static string ViPreviousHistoryDescription {
+            get {
+                return ResourceManager.GetString("ViPreviousHistoryDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Replace all characters between the current brace character and it&apos;s matching partner..
         /// </summary>
         internal static string ViReplaceBraceDescription {
@@ -1689,6 +1743,42 @@ namespace Microsoft.PowerShell.PSReadLine {
         internal static string ViReplaceLineDescription {
             get {
                 return ResourceManager.GetString("ViReplaceLineDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Replaces until given character..
+        /// </summary>
+        internal static string ViReplaceToBeforeCharBackwardDescription {
+            get {
+                return ResourceManager.GetString("ViReplaceToBeforeCharBackwardDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Replaces until given character..
+        /// </summary>
+        internal static string ViReplaceToBeforeCharDescription {
+            get {
+                return ResourceManager.GetString("ViReplaceToBeforeCharDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Replaces until given character..
+        /// </summary>
+        internal static string ViReplaceToCharBackwardDescription {
+            get {
+                return ResourceManager.GetString("ViReplaceToCharBackwardDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Deletes until given character..
+        /// </summary>
+        internal static string ViReplaceToCharDescription {
+            get {
+                return ResourceManager.GetString("ViReplaceToCharDescription", resourceCulture);
             }
         }
         

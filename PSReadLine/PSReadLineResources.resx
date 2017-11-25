@@ -696,6 +696,36 @@ If there are other parse errors, unresolved commands, or incorrect parameters, s
   <data name="ViJoinLinesDescription" xml:space="preserve">
     <value>Joins the current multi-line edit mode line with the next.</value>
   </data>
+  <data name="ViDeleteToBeforeCharDescription" xml:space="preserve">
+    <value>Deletes until given character.</value>
+  </data>
+  <data name="ViDeleteToBeforeCharBackwardDescription" xml:space="preserve">
+    <value>Deletes until given character.</value>
+  </data>
+  <data name="ViDeleteToCharDescription" xml:space="preserve">
+    <value>Deletes until given character.</value>
+  </data>
+  <data name="ViDeleteToCharBackwardDescription" xml:space="preserve">
+    <value>Deletes backwards until given character.</value>
+  </data>
+  <data name="ViReplaceToBeforeCharDescription" xml:space="preserve">
+    <value>Replaces until given character.</value>
+  </data>
+  <data name="ViReplaceToBeforeCharBackwardDescription" xml:space="preserve">
+    <value>Replaces until given character.</value>
+  </data>
+  <data name="ViReplaceToCharDescription" xml:space="preserve">
+    <value>Deletes until given character.</value>
+  </data>
+  <data name="ViReplaceToCharBackwardDescription" xml:space="preserve">
+    <value>Replaces until given character.</value>
+  </data>
+  <data name="ViEndOfPreviousGlobDescription" xml:space="preserve">
+    <value>Moves to the end of the previous word, using only white space as a word delimiter.</value>
+  </data>
+  <data name="ViPreviousHistoryDescription" xml:space="preserve">
+    <value>Replace the current input with the 'previous' item from PSReadline history.</value>
+  </data>
   <data name="NotInViMode" xml:space="preserve">
     <value>The -ViMode parameter was used, but the current EditMode is not Vi.</value>
   </data>
