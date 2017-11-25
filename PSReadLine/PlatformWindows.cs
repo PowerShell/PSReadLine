@@ -198,7 +198,7 @@ static class PlatformWindows
 
     internal static T CallPossibleExternalApplication<T>(Func<T> func)
     {
-        
+
         if (IsHandleRedirected(stdin: true))
         {
             // Don't bother with console modes if we're not in the console.
@@ -298,7 +298,7 @@ static class PlatformWindows
         {
             return false;
         }
-        if (IsHandleRedirected(stdin: true) && IsHandleRedirected(stdin: false))
+        if (IsHandleRedirected(stdin: true) || IsHandleRedirected(stdin: false))
         {
             return false;
         }
