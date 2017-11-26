@@ -117,7 +117,7 @@ namespace UnitTestPSReadLine
         public void ViTestMovementAfterHistory()
         {
             TestSetup(KeyMode.Vi);
-            PSConsoleReadLine.SetOptions(new SetPSReadlineOption { HistorySearchCursorMovesToEnd = true });
+            PSConsoleReadLine.SetOptions(new SetPSReadLineOption { HistorySearchCursorMovesToEnd = true });
 
             SetHistory("abc def ghi", "012 456 890");
 
@@ -161,7 +161,7 @@ namespace UnitTestPSReadLine
         public void ViTestHistoryCursorPosition()
         {
             TestSetup(KeyMode.Vi);
-            PSConsoleReadLine.SetOptions(new SetPSReadlineOption { HistorySearchCursorMovesToEnd = false });
+            PSConsoleReadLine.SetOptions(new SetPSReadLineOption { HistorySearchCursorMovesToEnd = false });
 
             SetHistory("abc def ghi", "012 456 890");
 

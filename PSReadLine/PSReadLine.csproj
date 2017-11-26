@@ -95,7 +95,7 @@
     <EmbeddedResource Include="PSReadLineResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LogicalName>Microsoft.PowerShell.PSReadLine.PSReadLineResources.resources</LogicalName>
-      <LastGenOutput>PSReadlineResources.Designer.cs</LastGenOutput>
+      <LastGenOutput>PSReadLineResources.Designer.cs</LastGenOutput>
       <CustomToolNamespace>Microsoft.PowerShell.PSReadLine</CustomToolNamespace>
       <SubType>Designer</SubType>
     </EmbeddedResource>
@@ -104,16 +104,16 @@
     <None Include="packages.config" />
     <None Include="PSReadLine.psd1" />
     <None Include="PSReadLine.psm1" />
-    <None Include="SamplePSReadlineProfile.ps1" />
+    <None Include="SamplePSReadLineProfile.ps1" />
     <None Include="Changes.txt" />
     <None Include="License.txt" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\docs\about_PSReadline.help.txt" />
-    <None Include="..\docs\Get-PSReadlineKeyHandler.md" />
-    <None Include="..\docs\Get-PSReadlineOption.md" />
-    <None Include="..\docs\Set-PSReadlineKeyHandler.md" />
-    <None Include="..\docs\Set-PSReadlineOption.md" />
+    <None Include="..\docs\about_PSReadLine.help.txt" />
+    <None Include="..\docs\Get-PSReadLineKeyHandler.md" />
+    <None Include="..\docs\Get-PSReadLineOption.md" />
+    <None Include="..\docs\Set-PSReadLineKeyHandler.md" />
+    <None Include="..\docs\Set-PSReadLineOption.md" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

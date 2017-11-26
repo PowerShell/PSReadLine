@@ -714,7 +714,7 @@ namespace UnitTestPSReadLine
             for (var i = 0; i < expectedBuffer.Length; i++)
             {
                 // Comparing CHAR_INFO should work, but randomly some attributes are set
-                // that shouldn't be and aren't ever set by any code in PSReadline, so we'll
+                // that shouldn't be and aren't ever set by any code in PSReadLine, so we'll
                 // ignore those bits and just check the stuff we do set.
                 Assert.AreEqual(expectedBuffer[i].UnicodeChar, consoleBuffer[i].UnicodeChar);
                 Assert.AreEqual(expectedBuffer[i].ForegroundColor, consoleBuffer[i].ForegroundColor);
@@ -724,7 +724,7 @@ namespace UnitTestPSReadLine
 
         private void SetPrompt(string prompt)
         {
-            var options = new SetPSReadlineOption {ExtraPromptLineCount = 0};
+            var options = new SetPSReadLineOption {ExtraPromptLineCount = 0};
             if (string.IsNullOrEmpty(prompt))
             {
                 options.PromptText = "";
@@ -826,27 +826,27 @@ namespace UnitTestPSReadLine
             PSConsoleReadLine.ClearHistory();
             PSConsoleReadLine.ClearKillRing();
 
-            var options = new SetPSReadlineOption
+            var options = new SetPSReadLineOption
             {
                 AddToHistoryHandler               = null,
-                BellStyle                         = PSConsoleReadlineOptions.DefaultBellStyle,
-                CompletionQueryItems              = PSConsoleReadlineOptions.DefaultCompletionQueryItems,
-                ContinuationPrompt                = PSConsoleReadlineOptions.DefaultContinuationPrompt,
+                BellStyle                         = PSConsoleReadLineOptions.DefaultBellStyle,
+                CompletionQueryItems              = PSConsoleReadLineOptions.DefaultCompletionQueryItems,
+                ContinuationPrompt                = PSConsoleReadLineOptions.DefaultContinuationPrompt,
                 ContinuationPromptColor           = MakeCombinedColor(_console.ForegroundColor, _console.BackgroundColor),
                 DingDuration                      = 1,  // Make tests virtually silent when they ding
                 DingTone                          = 37, // Make tests virtually silent when they ding
-                EmphasisColor                     = MakeCombinedColor(PSConsoleReadlineOptions.DefaultEmphasisColor, _console.BackgroundColor),
+                EmphasisColor                     = MakeCombinedColor(PSConsoleReadLineOptions.DefaultEmphasisColor, _console.BackgroundColor),
                 ErrorColor                        = MakeCombinedColor(ConsoleColor.Red, ConsoleColor.DarkRed),
-                ExtraPromptLineCount              = PSConsoleReadlineOptions.DefaultExtraPromptLineCount,
-                HistoryNoDuplicates               = PSConsoleReadlineOptions.DefaultHistoryNoDuplicates,
+                ExtraPromptLineCount              = PSConsoleReadLineOptions.DefaultExtraPromptLineCount,
+                HistoryNoDuplicates               = PSConsoleReadLineOptions.DefaultHistoryNoDuplicates,
                 HistorySaveStyle                  = HistorySaveStyle.SaveNothing,
-                HistorySearchCaseSensitive        = PSConsoleReadlineOptions.DefaultHistorySearchCaseSensitive,
-                HistorySearchCursorMovesToEnd     = PSConsoleReadlineOptions.DefaultHistorySearchCursorMovesToEnd,
-                MaximumHistoryCount               = PSConsoleReadlineOptions.DefaultMaximumHistoryCount,
-                MaximumKillRingCount              = PSConsoleReadlineOptions.DefaultMaximumKillRingCount,
+                HistorySearchCaseSensitive        = PSConsoleReadLineOptions.DefaultHistorySearchCaseSensitive,
+                HistorySearchCursorMovesToEnd     = PSConsoleReadLineOptions.DefaultHistorySearchCursorMovesToEnd,
+                MaximumHistoryCount               = PSConsoleReadLineOptions.DefaultMaximumHistoryCount,
+                MaximumKillRingCount              = PSConsoleReadLineOptions.DefaultMaximumKillRingCount,
                 ResetTokenColors                  = true,
-                ShowToolTips                      = PSConsoleReadlineOptions.DefaultShowToolTips,
-                WordDelimiters                    = PSConsoleReadlineOptions.DefaultWordDelimiters,
+                ShowToolTips                      = PSConsoleReadLineOptions.DefaultShowToolTips,
+                WordDelimiters                    = PSConsoleReadLineOptions.DefaultWordDelimiters,
                 PromptText                        = "",
             };
 
@@ -870,7 +870,7 @@ namespace UnitTestPSReadLine
                 PSConsoleReadLine.SetKeyHandler(new [] {keyHandler.Chord}, keyHandler.Handler, "", "");
             }
 
-            var colorOptions = new SetPSReadlineOption();
+            var colorOptions = new SetPSReadLineOption();
             foreach (var val in typeof(TokenClassification).GetEnumValues())
             {
                 colorOptions.TokenKind = (TokenClassification)val;

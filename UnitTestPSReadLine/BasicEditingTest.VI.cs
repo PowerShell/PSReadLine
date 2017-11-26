@@ -699,7 +699,7 @@ namespace UnitTestPSReadLine
         [TestMethod]
         public void ViTestInsertLine()
         {
-            int adder = PSConsoleReadlineOptions.DefaultContinuationPrompt.Length;
+            int adder = PSConsoleReadLineOptions.DefaultContinuationPrompt.Length;
             TestSetup(KeyMode.Vi);
 
             Test("line1\n", Keys(

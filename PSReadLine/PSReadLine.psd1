@@ -12,8 +12,8 @@ DotNetFrameworkVersion = '4.6.1'
 CLRVersion = '4.0.0'
 FormatsToProcess = 'PSReadLine.format.ps1xml'
 AliasesToExport = @()
-FunctionsToExport = 'PSConsoleHostReadline'
-CmdletsToExport = 'Get-PSReadlineKeyHandler','Set-PSReadlineKeyHandler','Remove-PSReadlineKeyHandler',
-                  'Get-PSReadlineOption','Set-PSReadlineOption'
+FunctionsToExport = 'PSConsoleHostReadLine'
+CmdletsToExport = 'Get-PSReadLineKeyHandler','Set-PSReadLineKeyHandler','Remove-PSReadLineKeyHandler',
+                  'Get-PSReadLineOption','Set-PSReadLineOption'
 HelpInfoURI = 'https://go.microsoft.com/fwlink/?LinkId=528806'
 }

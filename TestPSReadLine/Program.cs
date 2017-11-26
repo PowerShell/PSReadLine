@@ -46,7 +46,7 @@ namespace TestPSReadLine
             rs.Open();
             Runspace.DefaultRunspace = rs;
 
-            PSConsoleReadLine.SetOptions(new SetPSReadlineOption
+            PSConsoleReadLine.SetOptions(new SetPSReadLineOption
             {
                 EditMode = EditMode.Emacs,
                 HistoryNoDuplicates = true,
@@ -106,13 +106,13 @@ namespace TestPSReadLine
                     if (line.Equals("exit"))
                         Environment.Exit(0);
                     if (line.Equals("cmd"))
-                        PSConsoleReadLine.SetOptions(new SetPSReadlineOption {EditMode = EditMode.Windows});
+                        PSConsoleReadLine.SetOptions(new SetPSReadLineOption {EditMode = EditMode.Windows});
                     if (line.Equals("emacs"))
-                        PSConsoleReadLine.SetOptions(new SetPSReadlineOption {EditMode = EditMode.Emacs});
+                        PSConsoleReadLine.SetOptions(new SetPSReadLineOption {EditMode = EditMode.Emacs});
                     if (line.Equals("vi"))
-                        PSConsoleReadLine.SetOptions(new SetPSReadlineOption {EditMode = EditMode.Vi});
+                        PSConsoleReadLine.SetOptions(new SetPSReadLineOption {EditMode = EditMode.Vi});
                     if (line.Equals("nodupes"))
-                        PSConsoleReadLine.SetOptions(new SetPSReadlineOption {HistoryNoDuplicates = true});
+                        PSConsoleReadLine.SetOptions(new SetPSReadLineOption {HistoryNoDuplicates = true});
                     if (line.Equals("vtinput"))
                         Environment.SetEnvironmentVariable("PSREADLINE_VTINPUT", "1");
                     if (line.Equals("novtinput"))

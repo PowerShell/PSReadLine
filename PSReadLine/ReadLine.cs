@@ -157,7 +157,7 @@ namespace Microsoft.PowerShell
             // PowerShell.Exiting, those handlers won't get a chance to run.
             //
             // By waiting for a key on a different thread, our pipeline execution thread
-            // (the thread Readline is called from) avoid being blocked in code that can't
+            // (the thread ReadLine is called from) avoid being blocked in code that can't
             // be unblocked and instead blocks on events we control.
 
             // First, set an event so the thread to read a key actually attempts to read a key.
@@ -191,7 +191,7 @@ namespace Microsoft.PowerShell
                             {
                                 // There is an OnIdle event.  We're idle because we timed out.  Normally
                                 // PowerShell generates this event, but PowerShell assumes the engine is not
-                                // idle because it called PSConsoleHostReadline which isn't returning.
+                                // idle because it called PSConsoleHostReadLine which isn't returning.
                                 // So we generate the event instead.
                                 _singleton._engineIntrinsics.Events.GenerateEvent("PowerShell.OnIdle", null, null, null);
                                 runPipelineForEventProcessing = true;
@@ -270,7 +270,7 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Entry point - called from the PowerShell function PSConsoleHostReadline
+        /// Entry point - called from the PowerShell function PSConsoleHostReadLine
         /// after the prompt has been displayed.
         /// </summary>
         /// <returns>The complete command line.</returns>
@@ -532,9 +532,9 @@ namespace Microsoft.PowerShell
             }
             if (hostName == null)
             {
-                hostName = "PSReadline";
+                hostName = "PSReadLine";
             }
-            _options = new PSConsoleReadlineOptions(hostName);
+            _options = new PSConsoleReadLineOptions(hostName);
             SetDefaultBindings(_options.EditMode);
         }
 

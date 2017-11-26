@@ -61,7 +61,7 @@ $methods.Name | ForEach-Object {
 }
 
 $commonParameters = Write-Output Debug Verbose OutVariable OutBuffer ErrorAction WarningAction ErrorVariable WarningVariable PipelineVariable InformationAction InformationVariable
-Get-Command -Type Cmdlet -Module PSReadline |
+Get-Command -Type Cmdlet -Module PSReadLine |
     ForEach-Object {
         $cmdletInfo = $_
         $cmdletName = $cmdletInfo.Name
@@ -80,7 +80,7 @@ Get-Command -Type Cmdlet -Module PSReadline |
             }
     }
 
-Get-PSReadlineKeyHandler -Bound -Unbound |
+Get-PSReadLineKeyHandler -Bound -Unbound |
     Where-Object { $_.Function -eq $_.Description } |
     ForEach-Object {
         ReportError "Function missing description: $($_.Function)"

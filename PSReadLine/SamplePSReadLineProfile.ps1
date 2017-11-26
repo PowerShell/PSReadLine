@@ -1,7 +1,7 @@
 using namespace System.Management.Automation
 using namespace System.Management.Automation.Language
 
-# This is an example profile for PSReadline.
+# This is an example profile for PSReadLine.
 #
 # This is roughly what I use so there is some emphasis on emacs bindings,
 # but most of these bindings make sense in Windows mode as well.
@@ -17,14 +17,14 @@ Set-PSReadLineOption -EditMode Emacs
 # when you used up arrow, which can be useful if you forget the exact
 # string you started the search on.
 Set-PSReadLineOption -HistorySearchCursorMovesToEnd
-Set-PSReadlineKeyHandler -Key UpArrow -Function HistorySearchBackward
-Set-PSReadlineKeyHandler -Key DownArrow -Function HistorySearchForward
+Set-PSReadLineKeyHandler -Key UpArrow -Function HistorySearchBackward
+Set-PSReadLineKeyHandler -Key DownArrow -Function HistorySearchForward
 
 # This key handler shows the entire or filtered history using Out-GridView. The
 # typed text is used as the substring pattern for filtering. A selected command
 # is inserted to the command line without invoking. Multiple command selection
 # is supported, e.g. selected by Ctrl + Click.
-Set-PSReadlineKeyHandler -Key F7 `
+Set-PSReadLineKeyHandler -Key F7 `
                          -BriefDescription History `
                          -LongDescription 'Show command history' `
                          -ScriptBlock {
@@ -38,7 +38,7 @@ Set-PSReadlineKeyHandler -Key F7 `
     $history = [System.Collections.ArrayList]@(
         $last = ''
         $lines = ''
-        foreach ($line in [System.IO.File]::ReadLines((Get-PSReadlineOption).HistorySavePath))
+        foreach ($line in [System.IO.File]::ReadLines((Get-PSReadLineOption).HistorySavePath))
         {
             if ($line.EndsWith('`'))
             {
@@ -79,7 +79,7 @@ Set-PSReadlineKeyHandler -Key F7 `
 
 # This is an example of a macro that you might use to execute a command.
 # This will add the command to history.
-Set-PSReadlineKeyHandler -Key Ctrl+B `
+Set-PSReadLineKeyHandler -Key Ctrl+B `
                          -BriefDescription BuildCurrentDirectory `
                          -LongDescription "Build the current directory" `
                          -ScriptBlock {
@@ -90,27 +90,27 @@ Set-PSReadlineKeyHandler -Key Ctrl+B `
 
 # In Emacs mode - Tab acts like in bash, but the Windows style completion
 # is still useful sometimes, so bind some keys so we can do both
-Set-PSReadlineKeyHandler -Key Ctrl+Q -Function TabCompleteNext
-Set-PSReadlineKeyHandler -Key Ctrl+Shift+Q -Function TabCompletePrevious
+Set-PSReadLineKeyHandler -Key Ctrl+Q -Function TabCompleteNext
+Set-PSReadLineKeyHandler -Key Ctrl+Shift+Q -Function TabCompletePrevious
 
 # Clipboard interaction is bound by default in Windows mode, but not Emacs mode.
-Set-PSReadlineKeyHandler -Key Shift+Ctrl+C -Function Copy
-Set-PSReadlineKeyHandler -Key Ctrl+V -Function Paste
+Set-PSReadLineKeyHandler -Key Shift+Ctrl+C -Function Copy
+Set-PSReadLineKeyHandler -Key Ctrl+V -Function Paste
 
 # CaptureScreen is good for blog posts or email showing a transaction
 # of what you did when asking for help or demonstrating a technique.
-Set-PSReadlineKeyHandler -Chord 'Ctrl+D,Ctrl+C' -Function CaptureScreen
+Set-PSReadLineKeyHandler -Chord 'Ctrl+D,Ctrl+C' -Function CaptureScreen
 
 # The built-in word movement uses character delimiters, but token based word
 # movement is also very useful - these are the bindings you'd use if you
 # prefer the token based movements bound to the normal emacs word movement
 # key bindings.
-Set-PSReadlineKeyHandler -Key Alt+D -Function ShellKillWord
-Set-PSReadlineKeyHandler -Key Alt+Backspace -Function ShellBackwardKillWord
-Set-PSReadlineKeyHandler -Key Alt+B -Function ShellBackwardWord
-Set-PSReadlineKeyHandler -Key Alt+F -Function ShellForwardWord
-Set-PSReadlineKeyHandler -Key Shift+Alt+B -Function SelectShellBackwardWord
-Set-PSReadlineKeyHandler -Key Shift+Alt+F -Function SelectShellForwardWord
+Set-PSReadLineKeyHandler -Key Alt+D -Function ShellKillWord
+Set-PSReadLineKeyHandler -Key Alt+Backspace -Function ShellBackwardKillWord
+Set-PSReadLineKeyHandler -Key Alt+B -Function ShellBackwardWord
+Set-PSReadLineKeyHandler -Key Alt+F -Function ShellForwardWord
+Set-PSReadLineKeyHandler -Key Shift+Alt+B -Function SelectShellBackwardWord
+Set-PSReadLineKeyHandler -Key Shift+Alt+F -Function SelectShellForwardWord
 
 #region Smart Insert/Delete
 
@@ -119,7 +119,7 @@ Set-PSReadlineKeyHandler -Key Shift+Alt+F -Function SelectShellForwardWord
 # in the module that do this, but this implementation still isn't as smart
 # as ReSharper, so I'm just providing it as a sample.
 
-Set-PSReadlineKeyHandler -Key '"',"'" `
+Set-PSReadLineKeyHandler -Key '"',"'" `
                          -BriefDescription SmartInsertQuote `
                          -LongDescription "Insert paired quotes if not already on a quote" `
                          -ScriptBlock {
@@ -214,7 +214,7 @@ Set-PSReadlineKeyHandler -Key '"',"'" `
     [Microsoft.PowerShell.PSConsoleReadLine]::Insert($quote)
 }
 
-Set-PSReadlineKeyHandler -Key '(','{','[' `
+Set-PSReadLineKeyHandler -Key '(','{','[' `
                          -BriefDescription InsertPairedBraces `
                          -LongDescription "Insert matching braces" `
                          -ScriptBlock {
@@ -234,7 +234,7 @@ Set-PSReadlineKeyHandler -Key '(','{','[' `
     [Microsoft.PowerShell.PSConsoleReadLine]::SetCursorPosition($cursor - 1)
 }
 
-Set-PSReadlineKeyHandler -Key ')',']','}' `
+Set-PSReadLineKeyHandler -Key ')',']','}' `
                          -BriefDescription SmartCloseBraces `
                          -LongDescription "Insert closing brace or skip" `
                          -ScriptBlock {
@@ -254,7 +254,7 @@ Set-PSReadlineKeyHandler -Key ')',']','}' `
     }
 }
 
-Set-PSReadlineKeyHandler -Key Backspace `
+Set-PSReadLineKeyHandler -Key Backspace `
                          -BriefDescription SmartBackspace `
                          -LongDescription "Delete previous character or matching quotes/parens/braces" `
                          -ScriptBlock {
@@ -296,7 +296,7 @@ Set-PSReadlineKeyHandler -Key Backspace `
 # This binding will let you save that command in the history so you can recall it,
 # but it doesn't actually execute.  It also clears the line with RevertLine so the
 # undo stack is reset - though redo will still reconstruct the command line.
-Set-PSReadlineKeyHandler -Key Alt+w `
+Set-PSReadLineKeyHandler -Key Alt+w `
                          -BriefDescription SaveInHistory `
                          -LongDescription "Save current line in history but do not execute" `
                          -ScriptBlock {
@@ -310,7 +310,7 @@ Set-PSReadlineKeyHandler -Key Alt+w `
 }
 
 # Insert text from the clipboard as a here string
-Set-PSReadlineKeyHandler -Key Ctrl+Shift+v `
+Set-PSReadLineKeyHandler -Key Ctrl+Shift+v `
                          -BriefDescription PasteAsHereString `
                          -LongDescription "Paste the clipboard text as a here string" `
                          -ScriptBlock {
@@ -332,7 +332,7 @@ Set-PSReadlineKeyHandler -Key Ctrl+Shift+v `
 # Sometimes you want to get a property of invoke a member on what you've entered so far
 # but you need parens to do that.  This binding will help by putting parens around the current selection,
 # or if nothing is selected, the whole line.
-Set-PSReadlineKeyHandler -Key 'Alt+(' `
+Set-PSReadLineKeyHandler -Key 'Alt+(' `
                          -BriefDescription ParenthesizeSelection `
                          -LongDescription "Put parenthesis around the selection or entire line and move the cursor to after the closing parenthesis" `
                          -ScriptBlock {
@@ -360,7 +360,7 @@ Set-PSReadlineKeyHandler -Key 'Alt+(' `
 # Each time you press Alt+', this key handler will change the token
 # under or before the cursor.  It will cycle through single quotes, double quotes, or
 # no quotes each time it is invoked.
-Set-PSReadlineKeyHandler -Key "Alt+'" `
+Set-PSReadLineKeyHandler -Key "Alt+'" `
                          -BriefDescription ToggleQuoteArgument `
                          -LongDescription "Toggle quotes on the argument under the cursor" `
                          -ScriptBlock {
@@ -422,7 +422,7 @@ Set-PSReadlineKeyHandler -Key "Alt+'" `
 }
 
 # This example will replace any aliases on the command line with the resolved commands.
-Set-PSReadlineKeyHandler -Key "Alt+%" `
+Set-PSReadLineKeyHandler -Key "Alt+%" `
                          -BriefDescription ExpandAliases `
                          -LongDescription "Replace all aliases with the full command" `
                          -ScriptBlock {
@@ -462,7 +462,7 @@ Set-PSReadlineKeyHandler -Key "Alt+%" `
 }
 
 # F1 for help on the command line - naturally
-Set-PSReadlineKeyHandler -Key F1 `
+Set-PSReadLineKeyHandler -Key F1 `
                          -BriefDescription CommandHelp `
                          -LongDescription "Open the help window for the current command" `
                          -ScriptBlock {
@@ -507,26 +507,26 @@ Set-PSReadlineKeyHandler -Key F1 `
 # needing to type cd and won't change the command line.
 
 #
-$global:PSReadlineMarks = @{}
+$global:PSReadLineMarks = @{}
 
-Set-PSReadlineKeyHandler -Key Ctrl+Shift+j `
+Set-PSReadLineKeyHandler -Key Ctrl+Shift+j `
                          -BriefDescription MarkDirectory `
                          -LongDescription "Mark the current directory" `
                          -ScriptBlock {
     param($key, $arg)
 
     $key = [Console]::ReadKey($true)
-    $global:PSReadlineMarks[$key.KeyChar] = $pwd
+    $global:PSReadLineMarks[$key.KeyChar] = $pwd
 }
 
-Set-PSReadlineKeyHandler -Key Ctrl+j `
+Set-PSReadLineKeyHandler -Key Ctrl+j `
                          -BriefDescription JumpDirectory `
                          -LongDescription "Goto the marked directory" `
                          -ScriptBlock {
     param($key, $arg)
 
     $key = [Console]::ReadKey()
-    $dir = $global:PSReadlineMarks[$key.KeyChar]
+    $dir = $global:PSReadLineMarks[$key.KeyChar]
     if ($dir)
     {
         cd $dir
@@ -534,20 +534,20 @@ Set-PSReadlineKeyHandler -Key Ctrl+j `
     }
 }
 
-Set-PSReadlineKeyHandler -Key Alt+j `
+Set-PSReadLineKeyHandler -Key Alt+j `
                          -BriefDescription ShowDirectoryMarks `
                          -LongDescription "Show the currently marked directories" `
                          -ScriptBlock {
     param($key, $arg)
 
-    $global:PSReadlineMarks.GetEnumerator() | % {
+    $global:PSReadLineMarks.GetEnumerator() | % {
         [PSCustomObject]@{Key = $_.Key; Dir = $_.Value} } |
         Format-Table -AutoSize | Out-Host
 
     [Microsoft.PowerShell.PSConsoleReadLine]::InvokePrompt()
 }
 
-Set-PSReadlineOption -CommandValidationHandler {
+Set-PSReadLineOption -CommandValidationHandler {
     param([CommandAst]$CommandAst)
 
     switch ($CommandAst.GetCommandName())

@@ -39,7 +39,7 @@ namespace UnitTestPSReadLine
         {
             TestSetup(KeyMode.Cmd);
 
-            var continutationPromptLength = PSConsoleReadlineOptions.DefaultContinuationPrompt.Length;
+            var continutationPromptLength = PSConsoleReadLineOptions.DefaultContinuationPrompt.Length;
             Test("", Keys(
                 "4444", _.ShiftEnter,
                 "666666", _.ShiftEnter,

@@ -64,7 +64,7 @@ namespace UnitTestPSReadLine
             Test("z", Keys(_.CtrlY, _.AltY, _.Z));
 
             // Fill the kill ring plus some extra.
-            for (int i = 0; i < PSConsoleReadlineOptions.DefaultMaximumKillRingCount + 2; i++)
+            for (int i = 0; i < PSConsoleReadLineOptions.DefaultMaximumKillRingCount + 2; i++)
             {
                 var c = (char)('a' + i);
                 killedText.Add(c + "zz");
@@ -82,7 +82,7 @@ namespace UnitTestPSReadLine
 
             // Test wrap around.  We need 1 yank and n-1 yankpop to wrap around once, plus enter.
             Test(killedText[killRingIndex],
-                Keys(_.CtrlY, Enumerable.Repeat(_.AltY, PSConsoleReadlineOptions.DefaultMaximumKillRingCount)));
+                Keys(_.CtrlY, Enumerable.Repeat(_.AltY, PSConsoleReadLineOptions.DefaultMaximumKillRingCount)));
 
             // Make sure an empty kill doesn't end up in the kill ring
             Test("a", Keys("a", _.CtrlU, _.CtrlU, "b", _.CtrlU, _.CtrlY, _.AltY));

@@ -23,7 +23,7 @@ Bug fixes:
 Breaking changes:
 * Requires PowerShell V5 or later and .Net 4.6.1
 * Building requires VS2017
-* Set-PSReadlineOption color parameters have changed
+* Set-PSReadLineOption color parameters have changed
   - Accept `object` instead of `ConsoleColor` to support accepting both
     strings (VT escape sequences) and ConsoleColor
   - Parameter names changed - no explicit Foreground/Background options anymore,
@@ -31,7 +31,7 @@ Breaking changes:
     `-ErrorForegroundColor` is the same as `-ErrorColor`.
     To specify background colors, you must now use a VT escape sequence.
 * Changing the end of the prompt to red may not work automatically anymore if
-  your prompt is non-trivial. To fix, use `Set-PSReadlineOption -PromptText "> "`,
+  your prompt is non-trivial. To fix, use `Set-PSReadLineOption -PromptText "> "`,
   replacing the string with the text that should turn red - be sure to include
   any whitespace.
 
@@ -49,7 +49,7 @@ New functions:
       is on the current line.  The cursor moves to the beginning of the new line.
 
 New key bindings:
-* Ctrl+Enter bound to InsertLineAbove in Windows mode 
+* Ctrl+Enter bound to InsertLineAbove in Windows mode
 * Ctrl+Shift+Enter bound to InsertLineBelow in Windows mode
 
 Bug fixes:
@@ -75,10 +75,10 @@ New features:
   errors or a command is not found, an error message is displayed, but you can continue editing,
   the erroneous line will not be added to history, and the error message will be cleared after
   you make an edit.
-  You can press Enter a second time to force accepting the line if you choose.  
+  You can press Enter a second time to force accepting the line if you choose.
 
   If you don't like the new behavior for Enter, you can revert to the old behavior with:
-      Set-PSReadlineKeyHandler -Key Enter -Function AcceptLine
+      Set-PSReadLineKeyHandler -Key Enter -Function AcceptLine
 
 Bug fixes:
 * Occasional exception with AcceptAndGetNext (Ctrl+O) followed by something other than Enter
@@ -110,7 +110,7 @@ New key bindings:
 * Alt+F7 bound to ClearHistory in Windows mode
 
 New options:
-* Set-PSReadlineOption
+* Set-PSReadLineOption
       -ErrorForegroundColor
       -ErrorBackgroundColor
           Colors used when ValidateAndAcceptLine reports an error
@@ -120,7 +120,7 @@ New options:
           and also fix the command line, e.g. to correct common typos.
 
 New cmdlet:
-* Remove-PSReadlineKeyHandler
+* Remove-PSReadLineKeyHandler
     This will remove a key binding for previously bound keys.
 
 Breaking change:
@@ -137,8 +137,8 @@ New features:
 Bug fixes:
 * Color the prompt character if there is an error for any non-alphanumeric character
 * Fix an issue related to undo (which was commonly hit via Escape) and using history search
-* Fix a bug where PowerShell events are not written to the console until PSReadline returns
-* Fixed so PowerTab now works with PSReadline
+* Fix a bug where PowerShell events are not written to the console until PSReadLine returns
+* Fixed so PowerTab now works with PSReadLine
 * Highlight from history search is cleared before accepting a line now.
 * Fixed MenuComplete so it clears the menu (which only happened on some systems)
 
@@ -178,8 +178,8 @@ New features:
     - at process exit
     - incrementally and shared across sessions
     - don't save
-  See parameters HistorySaveStyle and HistorySavePath to Set-PSReadlineOption
-* Added sample custom binding for quickly changing directories in SamplePSReadlineProfile.ps1
+  See parameters HistorySaveStyle and HistorySavePath to Set-PSReadLineOption
+* Added sample custom binding for quickly changing directories in SamplePSReadLineProfile.ps1
 
 Bug fixes:
 * Items loaded from history work with RevertLine
@@ -188,7 +188,7 @@ Bug fixes:
 ### Version 1.0.0.8
 
 New features:
-* SamplePSReadlineProfile.ps1 added with examples of custom key bindings
+* SamplePSReadLineProfile.ps1 added with examples of custom key bindings
 * Word movement takes DigitArgument
 * HistoryNoDuplicates now works a little differently
     - Duplicates are saved (it was a dubious memory optimization anyway)
@@ -229,9 +229,9 @@ New features:
 New features:
 * CharacterSearch/CharacterSearchBackward
 * AcceptAndGetNext (Ctrl+O in bash)
-* Get-PSReadlineKeyHandler now returns unbound functions
-* Get-PSReadlineKeyHandler has 2 new parameters: -Bound and -Unbound
-* Set-PSReadlineKeyHandler parameter -LongDescription is now -Description
+* Get-PSReadLineKeyHandler now returns unbound functions
+* Get-PSReadLineKeyHandler has 2 new parameters: -Bound and -Unbound
+* Set-PSReadLineKeyHandler parameter -LongDescription is now -Description
   (not breaking because I left an alias)
 * WhatIsKey - display binding for a key
 * ShowKeyBindings - show all bound keys
@@ -248,7 +248,7 @@ New features:
   - SelectShellBackwardWord
 
 Breaking change:
-* The properties in the output of Get-PSReadlineKeyHandler have changed.
+* The properties in the output of Get-PSReadLineKeyHandler have changed.
   This is unlikely to break anyone though.
 
 ### Version 1.0.0.5
@@ -264,7 +264,7 @@ Bugs fixed:
 * Ctrl+R with long search lines no longer causes big problems
 
 Behavior change:
-* Word functions now use delimiters.  The previous behavior is available 
+* Word functions now use delimiters.  The previous behavior is available
   via a Shell*Word function, e.g. instead of KillWord, use ShellKillWord.
 
 ### Version 1.0.0.4
@@ -292,7 +292,7 @@ New features:
 * Add a "demo mode" that shows keys pressed
 * Add ETW event source for demo mode, key logger, macro recorder etc.
 * Undo/redo
-* Get-PSReadlineOption cmdlet
+* Get-PSReadLineOption cmdlet
 * Make specifying key handlers for builtins simpler
 * Current un-entered line is saved and recalled when cycling through history
 * Support syntax coloring of member names
@@ -315,15 +315,15 @@ New features:
 * Arbitrary two key chords
 * Key handlers passed the invoking key and an optional argument
 * Made Ding public for custom handlers
-  
+
 Bugs fixed:
 * Alternate keyboards now supported
 * Ctrl-C now properly emulates cmd
 
 Breaking changes:
-* MinimumHistoryCommandLength parameter removed from Set-PSReadlineOption
+* MinimumHistoryCommandLength parameter removed from Set-PSReadLineOption
     - Can use this instead:
-        Set-PSReadlineOption -AddToHistoryHandler { $args[0].Length -gt 3 }
+        Set-PSReadLineOption -AddToHistoryHandler { $args[0].Length -gt 3 }
 
 ### Version 1.0.0.0
 

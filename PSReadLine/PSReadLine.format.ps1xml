@@ -55,7 +55,7 @@ $d = [Microsoft.PowerShell.KeyHandler]::GetGroupingDescription($_.Group)
     <View>
       <Name>PSReadLine-Options</Name>
       <ViewSelectedBy>
-        <TypeName>Microsoft.PowerShell.PSConsoleReadlineOptions</TypeName>
+        <TypeName>Microsoft.PowerShell.PSConsoleReadLineOptions</TypeName>
       </ViewSelectedBy>
       <ListControl>
         <ListEntries>

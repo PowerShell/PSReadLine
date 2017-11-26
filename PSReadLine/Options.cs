@@ -8,17 +8,16 @@ using System.Diagnostics.CodeAnalysis;
 using System.Management.Automation;
 using System.Reflection;
 using System.Threading;
-using Microsoft.PowerShell.Internal;
 using Microsoft.PowerShell.PSReadLine;
 
 namespace Microsoft.PowerShell
 {
     public partial class PSConsoleReadLine
     {
-        private readonly PSConsoleReadlineOptions _options;
-        private PSConsoleReadlineOptions Options => _options;
+        private readonly PSConsoleReadLineOptions _options;
+        private PSConsoleReadLineOptions Options => _options;
 
-        private void SetOptionsInternal(SetPSReadlineOption options)
+        private void SetOptionsInternal(SetPSReadLineOption options)
         {
             if (options.ResetTokenColors)
             {
@@ -198,17 +197,17 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Helper function for the Set-PSReadlineOption cmdlet.
+        /// Helper function for the Set-PSReadLineOption cmdlet.
         /// </summary>
-        public static void SetOptions(SetPSReadlineOption options)
+        public static void SetOptions(SetPSReadLineOption options)
         {
             _singleton.SetOptionsInternal(options);
         }
 
         /// <summary>
-        /// Helper function for the Get-PSReadlineOption cmdlet.
+        /// Helper function for the Get-PSReadLineOption cmdlet.
         /// </summary>
-        public static PSConsoleReadlineOptions GetOptions()
+        public static PSConsoleReadLineOptions GetOptions()
         {
             // Should we copy?  It doesn't matter much, everything can be tweaked from
             // the cmdlet anyway.
@@ -224,7 +223,7 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Helper function for the Set-PSReadlineKeyHandler cmdlet.
+        /// Helper function for the Set-PSReadLineKeyHandler cmdlet.
         /// </summary>
         public static void SetKeyHandler(string[] key, ScriptBlock scriptBlock, string briefDescription, string longDescription)
         {
@@ -252,7 +251,7 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Helper function for the Set-PSReadlineKeyHandler cmdlet.
+        /// Helper function for the Set-PSReadLineKeyHandler cmdlet.
         /// </summary>
         [SuppressMessage("Microsoft.Design", "CA1006:DoNotNestGenericTypesInMemberSignatures")]
         public static void SetKeyHandler(string[] key, Action<ConsoleKeyInfo?, object> handler, string briefDescription, string longDescription)
@@ -261,7 +260,7 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Helper function for the Remove-PSReadlineKeyHandler cmdlet.
+        /// Helper function for the Remove-PSReadLineKeyHandler cmdlet.
         /// </summary>
         public static void RemoveKeyHandler(string[] key)
         {
@@ -277,7 +276,7 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Helper function for the Get-PSReadlineKeyHandler cmdlet.
+        /// Helper function for the Get-PSReadLineKeyHandler cmdlet.
         /// </summary>
         /// <returns></returns>
         public static IEnumerable<PowerShell.KeyHandler> GetKeyHandlers(bool includeBound, bool includeUnbound)

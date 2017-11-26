@@ -21,7 +21,7 @@ param([switch]$Install,
 use 15.0 MSBuild
 
 # Final bits to release go here
-$targetDir = "bin/$Configuration/PSReadline"
+$targetDir = "bin/$Configuration/PSReadLine"
 
 
 <#
@@ -63,20 +63,20 @@ $restoreNugetParameters = @{
 Synopsis: Restore PowerShell reference assemblies
 #>
 task RestoreNugetPackages @restoreNugetParameters CheckNugetInstalled,{
-    exec { & $nugetExe restore PSReadline/PSReadline.sln }
+    exec { & $nugetExe restore PSReadLine/PSReadLine.sln }
 }
 
 
 $buildMamlParams = @{
     Inputs  = { Get-ChildItem docs/*.md }
-    Outputs = "$targetDir/en-US/Microsoft.PowerShell.PSReadline.dll-help.xml"
+    Outputs = "$targetDir/en-US/Microsoft.PowerShell.PSReadLine.dll-help.xml"
 }
 
 <#
 Synopsis: Generate maml help from markdown
 #>
 task BuildMamlHelp @buildMamlParams {
-    platyPS\New-ExternalHelp docs -Force -OutputPath $targetDir/en-US/Microsoft.PowerShell.PSReadline.dll-help.xml
+    platyPS\New-ExternalHelp docs -Force -OutputPath $targetDir/en-US/Microsoft.PowerShell.PSReadLine.dll-help.xml
 }
 
 $buildAboutTopicParams = @{
@@ -112,7 +112,7 @@ $binaryModuleParams = @{
 Synopsis: Build main binary module
 #>
 task BuildMainModule @binaryModuleParams RestoreNugetPackages, {
-    exec { msbuild PSReadline/PSReadLine.csproj /t:Rebuild /p:Configuration=$Configuration /p:Platform=AnyCPU }
+    exec { msbuild PSReadLine/PSReadLine.csproj /t:Rebuild /p:Configuration=$Configuration /p:Platform=AnyCPU }
 }
 
 
@@ -157,7 +157,7 @@ task LayoutModule BuildMainModule, BuildMamlHelp, BuildAboutTopic, {
     $extraFiles =
         'PSReadLine/Changes.txt',
         'PSReadLine/License.txt',
-        'PSReadLine/SamplePSReadlineProfile.ps1',
+        'PSReadLine/SamplePSReadLineProfile.ps1',
         'PSReadLine/PSReadLine.format.ps1xml',
         'PSReadLine/PSReadLine.psm1'
 
@@ -171,7 +171,7 @@ task LayoutModule BuildMainModule, BuildMamlHelp, BuildAboutTopic, {
     Copy-Item PSReadLine/bin/$Configuration/System.Runtime.InteropServices.RuntimeInformation.dll $targetDir
 
     # Copy module manifest, but fix the version to match what we've specified in the binary module.
-    $version = (Get-ChildItem -Path $targetDir/Microsoft.PowerShell.PSReadline.dll).VersionInfo.FileVersion
+    $version = (Get-ChildItem -Path $targetDir/Microsoft.PowerShell.PSReadLine.dll).VersionInfo.FileVersion
     $moduleManifestContent = Get-Content -Path 'PSReadLine/PSReadLine.psd1' -Raw
     [regex]::Replace($moduleManifestContent, "ModuleVersion = '.*'", "ModuleVersion = '$version'") | Set-Content -Path $targetDir/PSReadLine.psd1
 
@@ -187,12 +187,12 @@ task LayoutModule BuildMainModule, BuildMamlHelp, BuildAboutTopic, {
 Synopsis: Zip up the binary for release.
 #>
 task ZipRelease LayoutModule, {
-    Compress-Archive -Force -LiteralPath $targetDir -DestinationPath "bin/$Configuration/PSReadline.zip"
+    Compress-Archive -Force -LiteralPath $targetDir -DestinationPath "bin/$Configuration/PSReadLine.zip"
 }
 
 
 <#
-Synopsis: Install newly built PSReadline
+Synopsis: Install newly built PSReadLine
 #>
 task Install LayoutModule, {
     $InstallDir = "$HOME\Documents\WindowsPowerShell\Modules"
@@ -204,9 +204,9 @@ task Install LayoutModule, {
 
     try
     {
-        if (Test-Path -Path $InstallDir\PSReadline)
+        if (Test-Path -Path $InstallDir\PSReadLine)
         {
-            Remove-Item -Recurse -Force $InstallDir\PSReadline -ErrorAction Stop
+            Remove-Item -Recurse -Force $InstallDir\PSReadLine -ErrorAction Stop
         }
         Copy-Item -Recurse $targetDir $InstallDir
     }

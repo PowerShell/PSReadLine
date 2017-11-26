@@ -16,15 +16,15 @@ Import-Module "$PSScriptRoot\PSReadLine\bin\$Configuration\Microsoft.PowerShell.
 $helpContent = [xml](Get-Content "$PSScriptRoot\PSReadLine\bin\$Configuration\Microsoft.PowerShell.PSReadLine.xml")
 
 Set-PSReadLineOption -EditMode Windows
-$cmdKeyBindings = Get-PSReadlineKeyHandler -Bound
+$cmdKeyBindings = Get-PSReadLineKeyHandler -Bound
 
 Set-PSReadLineOption -EditMode Emacs
-$emacsKeyBindings = Get-PSReadlineKeyHandler -Bound
+$emacsKeyBindings = Get-PSReadLineKeyHandler -Bound
 
 Set-PSReadLineOption -EditMode Vi
-$viKeyBindings = Get-PSReadlineKeyHandler -Bound
+$viKeyBindings = Get-PSReadLineKeyHandler -Bound
 
-$bindableFunctionsFromReflection = ((Get-Command Set-PSReadlineKeyHandler).Parameters['Function'].Attributes).ValidValues
+$bindableFunctionsFromReflection = ((Get-Command Set-PSReadLineKeyHandler).Parameters['Function'].Attributes).ValidValues
 
 [enum]::GetNames([Microsoft.PowerShell.KeyHandlerGroup]) |
     ForEach-Object { '{0},{1}' -f $_,[Microsoft.PowerShell.KeyHandler]::GetGroupingDescription($_) } |
@@ -100,7 +100,7 @@ foreach ($binding in $emacsKeyBindings)
 foreach ($binding in $viKeyBindings)
 {
     $mode = if ($binding.Key[0] -eq '<') { 'ViCmdBindings' } else { 'ViInsBindings' }
-    # Some vi functions are private but are stil reported by Get-PSReadlineKeyHandler
+    # Some vi functions are private but are stil reported by Get-PSReadLineKeyHandler
     $bindableFn = $allFunctions[$binding.Function]
     if ($null -ne $bindableFn)
     {

@@ -557,9 +557,9 @@ namespace Microsoft.PowerShell.PSReadLine {
         
         /// <summary>
         ///   Looks up a localized string similar to This error will not be reported again in this session. Consider using a different path with:
-        ///    Set-PSReadlineOption -HistorySavePath &lt;Path&gt;
+        ///    Set-PSReadLineOption -HistorySavePath &lt;Path&gt;
         ///Or not saving history with:
-        ///    Set-PSReadlineOption -HistorySaveStyle SaveNothing.
+        ///    Set-PSReadLineOption -HistorySaveStyle SaveNothing.
         /// </summary>
         internal static string HistoryFileErrorFinalMessage {
             get {

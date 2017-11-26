@@ -69,7 +69,7 @@ namespace UnitTestPSReadLine
             SetHistory();
             Test(" ", Keys(' ', _.UpArrow, _.DownArrow));
 
-            var emphasisColors = Tuple.Create(PSConsoleReadlineOptions.DefaultEmphasisColor, _console.BackgroundColor);
+            var emphasisColors = Tuple.Create(PSConsoleReadLineOptions.DefaultEmphasisColor, _console.BackgroundColor);
 
             SetHistory("dosomething", "ps p*", "dir", "echo zzz");
             Test("dosomething", Keys(
@@ -108,8 +108,8 @@ namespace UnitTestPSReadLine
                       new KeyHandler("UpArrow", PSConsoleReadLine.HistorySearchBackward),
                       new KeyHandler("DownArrow", PSConsoleReadLine.HistorySearchForward));
 
-            PSConsoleReadLine.SetOptions(new SetPSReadlineOption {HistorySearchCursorMovesToEnd = true});
-            var emphasisColors = Tuple.Create(PSConsoleReadlineOptions.DefaultEmphasisColor, _console.BackgroundColor);
+            PSConsoleReadLine.SetOptions(new SetPSReadLineOption {HistorySearchCursorMovesToEnd = true});
+            var emphasisColors = Tuple.Create(PSConsoleReadLineOptions.DefaultEmphasisColor, _console.BackgroundColor);
 
             SetHistory("dosomething", "ps p*", "dir", "echo zzz");
             Test("dosomething", Keys(
@@ -178,7 +178,7 @@ namespace UnitTestPSReadLine
             SetHistory("echo aaa");
             Test("echo aaa", Keys(_.CtrlR, 'a'));
 
-            var emphasisColors = Tuple.Create(PSConsoleReadlineOptions.DefaultEmphasisColor, _console.BackgroundColor);
+            var emphasisColors = Tuple.Create(PSConsoleReadLineOptions.DefaultEmphasisColor, _console.BackgroundColor);
             var statusColors = Tuple.Create(_console.ForegroundColor, _console.BackgroundColor);
 
             // Test entering multiple characters and the line is updated with new matches
@@ -413,7 +413,7 @@ namespace UnitTestPSReadLine
         public void TestAddToHistoryHandler()
         {
             TestSetup(KeyMode.Cmd);
-            PSConsoleReadLine.SetOptions(new SetPSReadlineOption {AddToHistoryHandler = s => s.StartsWith("z")});
+            PSConsoleReadLine.SetOptions(new SetPSReadLineOption {AddToHistoryHandler = s => s.StartsWith("z")});
 
             SetHistory("zzzz", "azzz");
             Test("zzzz", Keys(_.UpArrow));
@@ -423,13 +423,13 @@ namespace UnitTestPSReadLine
         public void TestHistoryNoDuplicates()
         {
             TestSetup(KeyMode.Cmd);
-            PSConsoleReadLine.SetOptions(new SetPSReadlineOption {HistoryNoDuplicates = false});
+            PSConsoleReadLine.SetOptions(new SetPSReadLineOption {HistoryNoDuplicates = false});
 
             SetHistory("zzzz", "aaaa", "bbbb", "bbbb", "cccc");
             Test("aaaa", Keys(Enumerable.Repeat(_.UpArrow, 4)));
 
             // Changing the option should affect existing history.
-            PSConsoleReadLine.SetOptions(new SetPSReadlineOption {HistoryNoDuplicates = true});
+            PSConsoleReadLine.SetOptions(new SetPSReadLineOption {HistoryNoDuplicates = true});
             Test("zzzz", Keys(Enumerable.Repeat(_.UpArrow, 4)));
 
             SetHistory("aaaa", "bbbb", "bbbb", "cccc");
@@ -452,7 +452,7 @@ namespace UnitTestPSReadLine
                       new KeyHandler("UpArrow", PSConsoleReadLine.HistorySearchBackward),
                       new KeyHandler("DownArrow", PSConsoleReadLine.HistorySearchForward));
 
-            PSConsoleReadLine.SetOptions(new SetPSReadlineOption {HistoryNoDuplicates = true});
+            PSConsoleReadLine.SetOptions(new SetPSReadLineOption {HistoryNoDuplicates = true});
             SetHistory("0000", "echo aaaa", "1111", "echo bbbb", "2222", "echo bbbb", "3333", "echo cccc", "4444");
             Test("echo aaaa", Keys("echo", Enumerable.Repeat(_.UpArrow, 3)));
 
@@ -468,7 +468,7 @@ namespace UnitTestPSReadLine
         {
             TestSetup(KeyMode.Emacs);
 
-            PSConsoleReadLine.SetOptions(new SetPSReadlineOption {HistoryNoDuplicates = true});
+            PSConsoleReadLine.SetOptions(new SetPSReadLineOption {HistoryNoDuplicates = true});
             SetHistory("0000", "echo aaaa", "1111", "echo bbbb", "2222", "echo bbbb", "3333", "echo cccc", "4444");
             Test("echo aaaa", Keys(
                 _.CtrlR, "echo", _.CtrlR, _.CtrlR));
@@ -491,7 +491,7 @@ namespace UnitTestPSReadLine
 
             // There should be 4 items in history, the following should remove the
             // oldest history item.
-            PSConsoleReadLine.SetOptions(new SetPSReadlineOption {MaximumHistoryCount = 3});
+            PSConsoleReadLine.SetOptions(new SetPSReadLineOption {MaximumHistoryCount = 3});
             Test("aaaa", Keys(Enumerable.Repeat(_.UpArrow, 4)));
 
             Test("zzzz", Keys("zzzz"));

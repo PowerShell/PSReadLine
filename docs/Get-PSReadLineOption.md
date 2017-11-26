@@ -35,7 +35,7 @@ You cannot pipe objects to Get-PSReadLineOption
 
 ## OUTPUTS
 
-### Microsoft.PowerShell.PSConsoleReadlineOptions
+### Microsoft.PowerShell.PSConsoleReadLineOptions
 
 An instance of the current options.
 Changing the values will update the settings in PSReadLine directly without invoking Set-PSReadLineOption.

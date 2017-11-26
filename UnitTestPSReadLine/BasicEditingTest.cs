@@ -237,7 +237,7 @@ namespace UnitTestPSReadLine
         {
             TestSetup(KeyMode.Cmd);
 
-            var continutationPromptLength = PSConsoleReadlineOptions.DefaultContinuationPrompt.Length;
+            var continutationPromptLength = PSConsoleReadLineOptions.DefaultContinuationPrompt.Length;
 
             // Test case - start with single line, cursor at end
             Test("56\n1234", Keys("1234", _.CtrlEnter, CheckThat(() => AssertCursorLeftTopIs(0, 0)), "56"));
@@ -287,7 +287,7 @@ namespace UnitTestPSReadLine
         {
             TestSetup(KeyMode.Cmd);
 
-            var continutationPromptLength = PSConsoleReadlineOptions.DefaultContinuationPrompt.Length;
+            var continutationPromptLength = PSConsoleReadLineOptions.DefaultContinuationPrompt.Length;
 
             // Test case - start with single line, cursor at end
             Test("1234\n56", Keys("1234",

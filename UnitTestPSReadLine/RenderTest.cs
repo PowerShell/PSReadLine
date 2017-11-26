@@ -121,7 +121,7 @@ namespace UnitTestPSReadLine
 
             // Make sure <ENTER> when input is incomplete actually puts a newline
             // wherever the cursor is.
-            var continationPrefixLength = PSConsoleReadlineOptions.DefaultContinuationPrompt.Length;
+            var continationPrefixLength = PSConsoleReadLineOptions.DefaultContinuationPrompt.Length;
             Test("{\n\nd\n}", Keys(
                 '{',
                 _.Enter,      CheckThat(() => AssertCursorTopIs(1)),

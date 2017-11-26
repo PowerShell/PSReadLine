@@ -82,7 +82,7 @@ namespace Microsoft.PowerShell
         {
             // Return a reasonably unique name - it's not too important as there will rarely
             // be any contention.
-            return "PSReadlineHistoryFile_" + _options.HistorySavePath.GetHashCode();
+            return "PSReadLineHistoryFile_" + _options.HistorySavePath.GetHashCode();
         }
 
         private void IncrementalHistoryWrite()
@@ -283,7 +283,7 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Clears history in PSReadline.  This does not affect PowerShell history.
+        /// Clears history in PSReadLine.  This does not affect PowerShell history.
         /// </summary>
         public static void ClearHistory(ConsoleKeyInfo? key = null, object arg = null)
         {
@@ -402,7 +402,7 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Replace the current input with the 'previous' item from PSReadline history.
+        /// Replace the current input with the 'previous' item from PSReadLine history.
         /// </summary>
         public static void PreviousHistory(ConsoleKeyInfo? key = null, object arg = null)
         {
@@ -417,7 +417,7 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Replace the current input with the 'next' item from PSReadline history.
+        /// Replace the current input with the 'next' item from PSReadLine history.
         /// </summary>
         public static void NextHistory(ConsoleKeyInfo? key = null, object arg = null)
         {
@@ -515,7 +515,7 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Replace the current input with the 'previous' item from PSReadline history
+        /// Replace the current input with the 'previous' item from PSReadLine history
         /// that matches the characters between the start and the input and the cursor.
         /// </summary>
         public static void HistorySearchBackward(ConsoleKeyInfo? key = null, object arg = null)
@@ -531,7 +531,7 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Replace the current input with the 'next' item from PSReadline history
+        /// Replace the current input with the 'next' item from PSReadLine history
         /// that matches the characters between the start and the input and the cursor.
         /// </summary>
         public static void HistorySearchForward(ConsoleKeyInfo? key = null, object arg = null)

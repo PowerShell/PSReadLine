@@ -22,13 +22,13 @@ namespace UnitTestPSReadLine
                         TokenClassification.None, '{',
                         NextLine,
                         Tuple.Create(_console.ForegroundColor, _console.BackgroundColor),
-                        PSConsoleReadlineOptions.DefaultContinuationPrompt,
+                        PSConsoleReadLineOptions.DefaultContinuationPrompt,
                         TokenClassification.None, '}')),
                 _.CtrlC,
                 InputAcceptedNow
                 ));
 
-            PSConsoleReadLine.SetOptions(new SetPSReadlineOption{ ContinuationPrompt = ""});
+            PSConsoleReadLine.SetOptions(new SetPSReadLineOption{ ContinuationPrompt = ""});
             Test("", Keys(
                 "{\n}",
                 CheckThat(() => AssertScreenIs(2, TokenClassification.None, '{', NextLine, '}' )),
@@ -37,7 +37,7 @@ namespace UnitTestPSReadLine
                 ));
 
             var continuationPrompt = "::::: ";
-            PSConsoleReadLine.SetOptions(new SetPSReadlineOption{
+            PSConsoleReadLine.SetOptions(new SetPSReadLineOption{
                 ContinuationPrompt = continuationPrompt,
                 ContinuationPromptColor = MakeCombinedColor(ConsoleColor.Magenta, ConsoleColor.DarkYellow),
             });
@@ -84,7 +84,7 @@ namespace UnitTestPSReadLine
         {
             // Useless test to just make sure coverage numbers are better, written
             // in the first way I could think of that doesn't warn about doing something useless.
-            var options = new SetPSReadlineOption();
+            var options = new SetPSReadLineOption();
             var getKeyHandlerCommand = new GetKeyHandlerCommand();
             var useless = ((object)options.AddToHistoryHandler ?? options).GetHashCode()
                           + options.EditMode.GetHashCode()

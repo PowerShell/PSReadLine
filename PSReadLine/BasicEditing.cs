@@ -414,7 +414,7 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Attempt to execute the current input.  If the current input is incomplete (for
         /// example there is a missing closing parenthesis, bracket, or quote, then the
-        /// continuation prompt is displayed on the next line and PSReadline waits for
+        /// continuation prompt is displayed on the next line and PSReadLine waits for
         /// keys to edit the current input.
         /// </summary>
         public static void AcceptLine(ConsoleKeyInfo? key = null, object arg = null)
@@ -425,7 +425,7 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Attempt to execute the current input.  If the current input is incomplete (for
         /// example there is a missing closing parenthesis, bracket, or quote, then the
-        /// continuation prompt is displayed on the next line and PSReadline waits for
+        /// continuation prompt is displayed on the next line and PSReadLine waits for
         /// keys to edit the current input.
         /// </summary>
         public static void ValidateAndAcceptLine(ConsoleKeyInfo? key = null, object arg = null)
@@ -435,7 +435,7 @@ namespace Microsoft.PowerShell
 
         /// <summary>
         /// Attempt to execute the current input.  If it can be executed (like AcceptLine),
-        /// then recall the next item from history the next time Readline is called.
+        /// then recall the next item from history the next time ReadLine is called.
         /// </summary>
         public static void AcceptAndGetNext(ConsoleKeyInfo? key = null, object arg = null)
         {
@@ -453,7 +453,7 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// The continuation prompt is displayed on the next line and PSReadline waits for
+        /// The continuation prompt is displayed on the next line and PSReadLine waits for
         /// keys to edit the current input.  This is useful to enter multi-line input as
         /// a single command even when a single line is complete input by itself.
         /// </summary>

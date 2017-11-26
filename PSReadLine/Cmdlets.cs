@@ -69,7 +69,7 @@ namespace Microsoft.PowerShell
         SaveNothing
     }
 
-    public class PSConsoleReadlineOptions
+    public class PSConsoleReadLineOptions
     {
         public const ConsoleColor DefaultCommentColor   = ConsoleColor.DarkGreen;
         public const ConsoleColor DefaultKeywordColor   = ConsoleColor.Green;
@@ -140,7 +140,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public const int DefaultAnsiEscapeTimeout = 100;
 
-        public PSConsoleReadlineOptions(string hostName)
+        public PSConsoleReadLineOptions(string hostName)
         {
             ResetColors();
             EditMode = DefaultEditMode;
@@ -175,7 +175,7 @@ namespace Microsoft.PowerShell
             }
             else
             {
-                // PSReadline can't use Utils.CorePSPlatform (6.0+ only), so do the equivalent:
+                // PSReadLine can't use Utils.CorePSPlatform (6.0+ only), so do the equivalent:
                 string historyPath = Environment.GetEnvironmentVariable("XDG_DATA_HOME");
 
                 if (!String.IsNullOrEmpty(historyPath))
@@ -447,9 +447,9 @@ namespace Microsoft.PowerShell
         }
     }
 
-    [Cmdlet("Get", "PSReadlineOption", HelpUri = "https://go.microsoft.com/fwlink/?LinkId=528808")]
-    [OutputType(typeof(PSConsoleReadlineOptions))]
-    public class GetPSReadlineOption : PSCmdlet
+    [Cmdlet("Get", "PSReadLineOption", HelpUri = "https://go.microsoft.com/fwlink/?LinkId=528808")]
+    [OutputType(typeof(PSConsoleReadLineOptions))]
+    public class GetPSReadLineOption : PSCmdlet
     {
         [ExcludeFromCodeCoverage]
         protected override void EndProcessing()
@@ -458,8 +458,8 @@ namespace Microsoft.PowerShell
         }
     }
 
-    [Cmdlet("Set", "PSReadlineOption", HelpUri = "https://go.microsoft.com/fwlink/?LinkId=528811")]
-    public class SetPSReadlineOption : PSCmdlet
+    [Cmdlet("Set", "PSReadLineOption", HelpUri = "https://go.microsoft.com/fwlink/?LinkId=528811")]
+    public class SetPSReadLineOption : PSCmdlet
     {
         [Parameter(ParameterSetName = "OptionsSet")]
         public EditMode EditMode
@@ -689,7 +689,7 @@ namespace Microsoft.PowerShell
         }
     }
 
-    public class ChangePSReadlineKeyHandlerCommandBase : PSCmdlet
+    public class ChangePSReadLineKeyHandlerCommandBase : PSCmdlet
     {
         [Parameter(Position = 0, Mandatory = true)]
         [Alias("Key")]
@@ -726,8 +726,8 @@ namespace Microsoft.PowerShell
         }
     }
 
-    [Cmdlet("Set", "PSReadlineKeyHandler", HelpUri = "https://go.microsoft.com/fwlink/?LinkId=528810")]
-    public class SetPSReadlineKeyHandlerCommand : ChangePSReadlineKeyHandlerCommandBase, IDynamicParameters
+    [Cmdlet("Set", "PSReadLineKeyHandler", HelpUri = "https://go.microsoft.com/fwlink/?LinkId=528810")]
+    public class SetPSReadLineKeyHandlerCommand : ChangePSReadLineKeyHandlerCommandBase, IDynamicParameters
     {
         [Parameter(Position = 1, Mandatory = true, ParameterSetName = "ScriptBlock")]
         [ValidateNotNull]
@@ -804,7 +804,7 @@ namespace Microsoft.PowerShell
         }
     }
 
-    [Cmdlet("Get", "PSReadlineKeyHandler", HelpUri = "https://go.microsoft.com/fwlink/?LinkId=528807")]
+    [Cmdlet("Get", "PSReadLineKeyHandler", HelpUri = "https://go.microsoft.com/fwlink/?LinkId=528807")]
     [OutputType(typeof(KeyHandler))]
     public class GetKeyHandlerCommand : PSCmdlet
     {
@@ -852,8 +852,8 @@ namespace Microsoft.PowerShell
         }
     }
 
-    [Cmdlet("Remove", "PSReadlineKeyHandler", HelpUri = "https://go.microsoft.com/fwlink/?LinkId=528809")]
-    public class RemoveKeyHandlerCommand : ChangePSReadlineKeyHandlerCommandBase
+    [Cmdlet("Remove", "PSReadLineKeyHandler", HelpUri = "https://go.microsoft.com/fwlink/?LinkId=528809")]
+    public class RemoveKeyHandlerCommand : ChangePSReadLineKeyHandlerCommandBase
     {
         [ExcludeFromCodeCoverage]
         protected override void EndProcessing()

@@ -106,12 +106,12 @@ static class PlatformWindows
     const uint ENABLE_MOUSE_INPUT            = 0x0010;
     const uint ENABLE_VIRTUAL_TERMINAL_INPUT = 0x0200;
 
-    static uint _prePSReadlineConsoleInputMode;
+    static uint _prePSReadLineConsoleInputMode;
     // Need to remember this decision for CallUsingOurInputMode.
     static bool _enableVtInput;
     internal static void Init(ref ICharMap charMap)
     {
-        // If either stdin or stdout is redirected, PSReadline doesn't really work, so throw
+        // If either stdin or stdout is redirected, PSReadLine doesn't really work, so throw
         // and let PowerShell call Console.ReadLine or do whatever else it decides to do.
         if (IsHandleRedirected(stdin: false) || IsHandleRedirected(stdin: true))
         {
@@ -125,7 +125,7 @@ static class PlatformWindows
             return;
         }
 
-        _prePSReadlineConsoleInputMode = GetConsoleInputMode();
+        _prePSReadLineConsoleInputMode = GetConsoleInputMode();
 
         // This envvar will force VT mode on or off depending on the setting 1 or 0.
         var overrideVtInput = Environment.GetEnvironmentVariable("PSREADLINE_VTINPUT");
@@ -143,7 +143,7 @@ static class PlatformWindows
             // This handles the case where input was not redirected and the user
             // didn't specify a preference. The default is to use the pre-existing
             // console mode.
-            _enableVtInput = (_prePSReadlineConsoleInputMode & ENABLE_VIRTUAL_TERMINAL_INPUT) == ENABLE_VIRTUAL_TERMINAL_INPUT;
+            _enableVtInput = (_prePSReadLineConsoleInputMode & ENABLE_VIRTUAL_TERMINAL_INPUT) == ENABLE_VIRTUAL_TERMINAL_INPUT;
         }
 
         if (_enableVtInput)
@@ -163,7 +163,7 @@ static class PlatformWindows
         // Also clear a couple flags so we don't mask the input that we ignore:
         //     ENABLE_MOUSE_INPUT - mouse events
         //     ENABLE_WINDOW_INPUT - window resize events
-        var mode = _prePSReadlineConsoleInputMode &
+        var mode = _prePSReadLineConsoleInputMode &
                    ~(ENABLE_PROCESSED_INPUT | ENABLE_LINE_INPUT | ENABLE_WINDOW_INPUT | ENABLE_MOUSE_INPUT);
         if (_enableVtInput)
         {
@@ -192,7 +192,7 @@ static class PlatformWindows
     {
         if (!IsHandleRedirected(stdin: true))
         {
-            SetConsoleInputMode(_prePSReadlineConsoleInputMode);
+            SetConsoleInputMode(_prePSReadLineConsoleInputMode);
         }
     }
 
@@ -205,15 +205,15 @@ static class PlatformWindows
             return func();
         }
 
-        uint psReadlineConsoleMode = GetConsoleInputMode();
+        uint psReadLineConsoleMode = GetConsoleInputMode();
         try
         {
-            SetConsoleInputMode(_prePSReadlineConsoleInputMode);
+            SetConsoleInputMode(_prePSReadLineConsoleInputMode);
             return func();
         }
         finally
         {
-            SetConsoleInputMode(psReadlineConsoleMode);
+            SetConsoleInputMode(psReadLineConsoleMode);
         }
     }
 
@@ -226,7 +226,7 @@ static class PlatformWindows
             return;
         }
 
-        uint psReadlineConsoleMode = GetConsoleInputMode();
+        uint psReadLineConsoleMode = GetConsoleInputMode();
         try
         {
             SetOurInputMode();
@@ -234,7 +234,7 @@ static class PlatformWindows
         }
         finally
         {
-            SetConsoleInputMode(psReadlineConsoleMode);
+            SetConsoleInputMode(psReadLineConsoleMode);
         }
     }
 

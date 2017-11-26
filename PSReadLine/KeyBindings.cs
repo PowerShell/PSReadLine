@@ -37,7 +37,7 @@ namespace Microsoft.PowerShell
     }
 
     /// <summary>
-    /// The class is used as the output type for the cmdlet Get-PSReadlineKeyHandler
+    /// The class is used as the output type for the cmdlet Get-PSReadLineKeyHandler
     /// </summary>
     public class KeyHandler
     {
@@ -378,7 +378,7 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Used to group the built in functions for help and Get-PSReadlineKeyHander output.
+        /// Used to group the built in functions for help and Get-PSReadLineKeyHander output.
         /// </summary>
         public static KeyHandlerGroup GetDisplayGrouping(string function)
         {

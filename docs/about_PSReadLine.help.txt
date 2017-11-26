@@ -1,14 +1,14 @@
 TOPIC
-    about_PSReadline
+    about_PSReadLine
 
 SHORT DESCRIPTION
 
-    PSReadline provides an improved command line editing experience in
+    PSReadLine provides an improved command line editing experience in
     the PowerShell console.
 
 LONG DESCRIPTION
 
-    PSReadline provides a powerful command line editing experience for the
+    PSReadLine provides a powerful command line editing experience for the
     PowerShell console.  It provides:
 
       * Syntax coloring of the command line
@@ -28,10 +28,10 @@ LONG DESCRIPTION
   Custom Key Bindings
   -------------------
 
-  PSReadline supports custom key bindings using the cmdlet Set-PSReadlineKeyHandler.  Most
+  PSReadLine supports custom key bindings using the cmdlet Set-PSReadLineKeyHandler.  Most
   custom key bindings will call one of the above functions, for example:
 
-      Set-PSReadlineKeyHandler -Key UpArrow -Function HistorySearchBackward
+      Set-PSReadLineKeyHandler -Key UpArrow -Function HistorySearchBackward
 
   You can bind a ScriptBlock to a key.  The ScriptBlock can do pretty much anything you want.
   Some useful examples include:
@@ -53,7 +53,7 @@ LONG DESCRIPTION
   useful when you realize you forgot to do something, but don't want to re-enter the command line
   you've already entered.
 
-        Set-PSReadlineKeyHandler -Key Alt+w `
+        Set-PSReadLineKeyHandler -Key Alt+w `
                                  -BriefDescription SaveInHistory `
                                  -LongDescription "Save current line in history but do not execute" `
                                  -ScriptBlock {
@@ -71,8 +71,8 @@ LONG DESCRIPTION
             [Microsoft.PowerShell.PSConsoleReadLine]::RevertLine()
         }
 
-  You can see many more examples in the file SamplePSReadlineProfile.ps1 which is installed in the
-  PSReadline module folder.
+  You can see many more examples in the file SamplePSReadLineProfile.ps1 which is installed in the
+  PSReadLine module folder.
 
   Most key bindings will want to take advantage of some helper functions for editing the command
   line those APIs are documented in the next section.
@@ -80,7 +80,7 @@ LONG DESCRIPTION
   Custom Key Binding Support APIs
   -------------------------------
 
-  The following functions are public in Microsoft.PowerShell.PSConsoleReadline, but cannot be directly
+  The following functions are public in Microsoft.PowerShell.PSConsoleReadLine, but cannot be directly
   bound to a key.  Most are useful in custom key bindings.
 
     void AddToHistory(string command)
@@ -108,12 +108,12 @@ LONG DESCRIPTION
 
     IEnumerable[Microsoft.PowerShell.KeyHandler] GetKeyHandlers(bool includeBound, bool includeUnbound)
 
-        This function is used by Get-PSReadlineKeyHandler and probably isn't useful in a custom
+        This function is used by Get-PSReadLineKeyHandler and probably isn't useful in a custom
         key binding.
 
-    Microsoft.PowerShell.PSConsoleReadlineOptions GetOptions()
+    Microsoft.PowerShell.PSConsoleReadLineOptions GetOptions()
 
-        This function is used by Get-PSReadlineOption and probably isn't too useful in a custom
+        This function is used by Get-PSReadLineOption and probably isn't too useful in a custom
         key binding.
 
     void GetSelectionState([ref] int start, [ref] int length)
@@ -128,12 +128,12 @@ LONG DESCRIPTION
 
     string ReadLine(runspace remoteRunspace, System.Management.Automation.EngineIntrinsics engineIntrinsics)
 
-        This is the main entry point to PSReadline. It does not support recursion, so is not useful
+        This is the main entry point to PSReadLine. It does not support recursion, so is not useful
         in a custom key binding.
 
     void RemoveKeyHandler(string[] key)
 
-        This function is used by Remove-PSReadlineKeyHandler and probably isn't too useful in a
+        This function is used by Remove-PSReadLineKeyHandler and probably isn't too useful in a
         custom key binding.
 
     void Replace(int start, int length, string replacement)
@@ -146,9 +146,9 @@ LONG DESCRIPTION
 
         Move the cursor to the given offset.  Cursor movement is not tracked for undo.
 
-    void SetOptions(Microsoft.PowerShell.SetPSReadlineOption options)
+    void SetOptions(Microsoft.PowerShell.SetPSReadLineOption options)
 
-        This function is a helper method used by the cmdlet Set-PSReadlineOption, but might be
+        This function is a helper method used by the cmdlet Set-PSReadLineOption, but might be
         useful to a custom key binding that wants to temporarily change a setting.
 
     bool TryGetArgAsInt(System.Object arg, [ref] int numericArg, int defaultNumericArg)
@@ -161,12 +161,12 @@ LONG DESCRIPTION
 
 POWERSHELL COMPATIBILITY
 
-    PSReadline requires PowerShell version 3 or greater and the console host.  It
+    PSReadLine requires PowerShell version 3 or greater and the console host.  It
     will not work in the ISE.
 
 FEEDBACK
 
-    https://github.com/lzybkr/PSReadline
+    https://github.com/lzybkr/PSReadLine
 
 CONTRIBUTING TO PSREADLINE
 
@@ -174,6 +174,6 @@ CONTRIBUTING TO PSREADLINE
 
 SEE ALSO
 
-    PSReadline is heavily influenced by the GNU Readline library:
+    PSReadLine is heavily influenced by the GNU readline library:
 
         http://tiswww.case.edu/php/chet/readline/rltop.html
