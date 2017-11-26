@@ -84,6 +84,7 @@ $buildAboutTopicParams = @{
          Get-ChildItem docs/about_PSReadLine.help.txt
          "PSReadLine/bin/$Configuration/Microsoft.PowerShell.PSReadLine.dll"
          "$PSScriptRoot/GenerateFunctionHelp.ps1"
+         "$PSScriptRoot/CheckHelp.ps1"
     }
     Outputs = "$targetDir/en-US/about_PSReadLine.help.txt"
 }
@@ -93,9 +94,13 @@ Synopsis: Generate about topic with function help
 #>
 task BuildAboutTopic @buildAboutTopicParams {
     $functionDescriptions = (& $PSScriptRoot/GenerateFunctionHelp.ps1 -Configuration $Configuration) -join [Environment]::NewLine
+    assert ($LASTEXITCODE -eq 0) "Generating function help failed"
     $aboutTopic = Get-Content -Raw $PSScriptRoot/docs/about_PSReadLine.help.txt
     $newAboutTopic = $aboutTopic -replace '{{FUNCTION_DESCRIPTIONS}}', $functionDescriptions
     Set-Content -Path "$targetDir/en-US/about_PSReadLine.help.txt" -Value $newAboutTopic -Encoding Ascii
+
+    & $PSScriptRoot/CheckHelp.ps1 -Configuration $Configuration
+    assert ($LASTEXITCODE -eq 0) "Checking help and function signatures failed"
 }
 
 $binaryModuleParams = @{

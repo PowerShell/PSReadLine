@@ -1,6 +1,31 @@
-Import-Module -Name PSReadline
+param($Configuration = 'Release')
 
-$about_topic = Get-Help -Name about_PSReadline
+$ourAssembly = "$PSScriptRoot\PSReadLine\bin\$Configuration\Microsoft.PowerShell.PSReadLine.dll"
+
+$t ='Microsoft.PowerShell.PSConsoleReadLine' -as [type]
+if ($null -ne $t -and $t.Assembly.Location -ne $ourAssembly)
+{
+    # Make sure we're runnning in a non-interactive session by relaunching
+    powershell -NoProfile -NonInteractive -File $PSCommandPath $Configuration
+    exit $LASTEXITCODE
+}
+
+$save_PSModulePath = $env:PSModulePath
+$env:PSModulePath = "$PSScriptRoot\bin\$Configuration;${env:PSModulePath}"
+Import-Module PSReadLine
+
+$errorCount = 0
+
+function ReportError
+{
+    [CmdletBinding()]
+    param([string]$msg)
+
+    $script:errorCount++
+    $host.UI.WriteErrorLine($msg)
+}
+
+$about_topic = Get-Content -Raw "$PSScriptRoot\bin\$Configuration\PSReadLine\en-US\about_PSReadLine.help.txt"
 
 $methods = [Microsoft.PowerShell.PSConsoleReadLine].GetMethods('public,static') |
     Where-Object {
@@ -16,22 +41,22 @@ foreach ($method in $methods)
     $parameters = $method.GetParameters()
     if ($parameters[0].Name -ne 'key' -or $parameters[1].Name -ne 'arg')
     {
-        "Function $($method.Name) parameter names should be key and arg"
+        ReportError "Function $($method.Name) parameter names should be key and arg"
     }
     if (!$parameters[1].HasDefaultValue -or ($null -ne $parameters[1].DefaultValue))
     {
-        "Function $($method.Name) arg parameter missing default"
+        ReportError "Function $($method.Name) arg parameter missing default"
     }
     if (!$parameters[0].HasDefaultValue -or ($null -ne $parameters[0].DefaultValue))
     {
-        "Function $($method.Name) key parameter missing default"
+        ReportError "Function $($method.Name) key parameter missing default"
     }
 }
 
 $methods.Name | ForEach-Object {
-    if ($about_topic -cnotmatch "\n +$_ +")
+    if ($about_topic -cnotmatch $_)
     {
-        "Function not documented: $_"
+        ReportError "Function not documented: $_"
     }
 }
 
@@ -49,7 +74,7 @@ Get-Command -Type Cmdlet -Module PSReadline |
                     $parameterHelp = $cmdletHelp.Parameters.parameter | Where-Object Name -eq $parameterName
                     if ($parameterHelp -eq $null)
                     {
-                        "Parameter $parameterName not documented in cmdlet $cmdletName"
+                        ReportError "Parameter $parameterName not documented in cmdlet $cmdletName"
                     }
                 }
             }
@@ -58,5 +83,9 @@ Get-Command -Type Cmdlet -Module PSReadline |
 Get-PSReadlineKeyHandler -Bound -Unbound |
     Where-Object { $_.Function -eq $_.Description } |
     ForEach-Object {
-        "Function missing description: $($_.Function)"
+        ReportError "Function missing description: $($_.Function)"
     }
+
+
+$env:PSModulePath = $save_PSModulePath
+exit $errorCount
