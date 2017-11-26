@@ -145,17 +145,7 @@ namespace Microsoft.PowerShell
         /// Returns 0 if the cursor is allowed to go past the last character in the line, -1 otherwise.
         /// </summary>
         /// <seealso cref="ForwardChar"/>
-        private static int ViEndOfLineFactor
-        {
-            get
-            {
-                if (_singleton._dispatchTable == _viCmdKeyMap)
-                {
-                    return -1;
-                }
-                return 0;
-            }
-        }
+        private static int ViEndOfLineFactor => InViCommandMode() ? -1 : 0;
 
         /// <summary>
         /// Move the cursor to the end of the input.

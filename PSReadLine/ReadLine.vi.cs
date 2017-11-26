@@ -476,6 +476,11 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
+        /// Returns true if in Vi Command mode, otherwise false.
+        /// </summary>
+        public static bool InViCommandMode() => _singleton._dispatchTable == _viCmdKeyMap;
+
+        /// <summary>
         /// Temporarily swap in Vi-Command dispatch tables. Used for setting handlers.
         /// </summary>
         internal static IDisposable UseViCommandModeTables()
@@ -896,6 +901,9 @@ namespace Microsoft.PowerShell
             _searchHistoryCommandCount++;
 
             int incr = _searchHistoryBackward ? -1 : +1;
+            var moveCursor = Options.HistorySearchCursorMovesToEnd
+                ? HistoryMoveCursor.ToEnd
+                : HistoryMoveCursor.DontMove;
             for (int i = _currentHistoryIndex + incr; i >= 0 && i < _history.Count; i += incr)
             {
                 if (Options.HistoryStringComparison.HasFlag(StringComparison.OrdinalIgnoreCase))
@@ -903,7 +911,7 @@ namespace Microsoft.PowerShell
                     if (_history[i]._line.ToLower().Contains(_searchHistoryPrefix.ToLower()))
                     {
                         _currentHistoryIndex = i;
-                        UpdateFromHistory(moveCursor: Options.HistorySearchCursorMovesToEnd);
+                        UpdateFromHistory(moveCursor);
                         return;
                     }
                 }
@@ -912,7 +920,7 @@ namespace Microsoft.PowerShell
                     if (_history[i]._line.Contains(_searchHistoryPrefix))
                     {
                         _currentHistoryIndex = i;
-                        UpdateFromHistory(moveCursor: Options.HistorySearchCursorMovesToEnd);
+                        UpdateFromHistory(moveCursor);
                         return;
                     }
                 }

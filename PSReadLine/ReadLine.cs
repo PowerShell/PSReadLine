@@ -587,7 +587,7 @@ namespace Microsoft.PowerShell
             if (_getNextHistoryIndex > 0)
             {
                 _currentHistoryIndex = _getNextHistoryIndex;
-                UpdateFromHistory(moveCursor: true);
+                UpdateFromHistory(HistoryMoveCursor.ToEnd);
                 _getNextHistoryIndex = 0;
                 if (_searchHistoryCommandCount > 0)
                 {

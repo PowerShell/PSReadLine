@@ -291,7 +291,9 @@ namespace Microsoft.PowerShell
             _singleton._currentHistoryIndex = 0;
         }
 
-        private void UpdateFromHistory(bool moveCursor)
+        enum HistoryMoveCursor { ToEnd, ToBeginning, DontMove }
+
+        private void UpdateFromHistory(HistoryMoveCursor moveCursor)
         {
             string line;
             if (_currentHistoryIndex == _history.Count)
@@ -308,17 +310,21 @@ namespace Microsoft.PowerShell
             }
             _buffer.Clear();
             _buffer.Append(line);
-            if (moveCursor)
+
+            switch (moveCursor)
             {
-                _current = Math.Max(0, _buffer.Length + ViEndOfLineFactor);
-            }
-            else if (_options.EditMode == EditMode.Vi)
-            {
-                _current = 0;
-            }
-            else if (_current > _buffer.Length)
-            {
-                _current = Math.Max(0, _buffer.Length + ViEndOfLineFactor);
+                case HistoryMoveCursor.ToEnd:
+                    _current = Math.Max(0, _buffer.Length + ViEndOfLineFactor);
+                    break;
+                case HistoryMoveCursor.ToBeginning:
+                    _current = 0;
+                    break;
+                default:
+                    if (_current > _buffer.Length)
+                    {
+                        _current = Math.Max(0, _buffer.Length + ViEndOfLineFactor);
+                    }
+                    break;
             }
             Render();
         }
@@ -388,7 +394,10 @@ namespace Microsoft.PowerShell
             if (newHistoryIndex >= 0 && newHistoryIndex <= _history.Count)
             {
                 _currentHistoryIndex = newHistoryIndex;
-                UpdateFromHistory(moveCursor: Options.HistorySearchCursorMovesToEnd);
+                var moveCursor = InViCommandMode() && !_options.HistorySearchCursorMovesToEnd
+                    ? HistoryMoveCursor.ToBeginning
+                    : HistoryMoveCursor.ToEnd;
+                UpdateFromHistory(moveCursor);
             }
         }
 
@@ -479,7 +488,10 @@ namespace Microsoft.PowerShell
             if (newHistoryIndex >= 0 && newHistoryIndex <= _history.Count)
             {
                 _currentHistoryIndex = newHistoryIndex;
-                UpdateFromHistory(moveCursor: true);
+                var moveCursor = InViCommandMode()
+                    ? HistoryMoveCursor.ToBeginning
+                    : HistoryMoveCursor.ToEnd;
+                UpdateFromHistory(moveCursor);
             }
         }
 
@@ -490,7 +502,7 @@ namespace Microsoft.PowerShell
         {
             _singleton.SaveCurrentLine();
             _singleton._currentHistoryIndex = 0;
-            _singleton.UpdateFromHistory(moveCursor: true);
+            _singleton.UpdateFromHistory(HistoryMoveCursor.ToEnd);
         }
 
         /// <summary>
@@ -499,7 +511,7 @@ namespace Microsoft.PowerShell
         public static void EndOfHistory(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton._currentHistoryIndex = _singleton._history.Count;
-            _singleton.UpdateFromHistory(moveCursor: true);
+            _singleton.UpdateFromHistory(HistoryMoveCursor.ToEnd);
         }
 
         /// <summary>
@@ -555,7 +567,10 @@ namespace Microsoft.PowerShell
                     _emphasisStart = startIndex;
                     _emphasisLength = toMatch.Length;
                     _currentHistoryIndex = searchFromPoint;
-                    UpdateFromHistory(moveCursor: Options.HistorySearchCursorMovesToEnd);
+                    var moveCursor = Options.HistorySearchCursorMovesToEnd
+                        ? HistoryMoveCursor.ToEnd
+                        : HistoryMoveCursor.DontMove;
+                    UpdateFromHistory(moveCursor);
                     return;
                 }
             }
@@ -608,7 +623,10 @@ namespace Microsoft.PowerShell
                         _statusBuffer.Remove(_statusBuffer.Length - 2, 1);
                         searchPositions.Pop();
                         searchFromPoint = _currentHistoryIndex = searchPositions.Peek();
-                        UpdateFromHistory(moveCursor: Options.HistorySearchCursorMovesToEnd);
+                        var moveCursor = Options.HistorySearchCursorMovesToEnd
+                            ? HistoryMoveCursor.ToEnd
+                            : HistoryMoveCursor.DontMove;
+                        UpdateFromHistory(moveCursor);
 
                         if (_hashedHistory != null)
                         {

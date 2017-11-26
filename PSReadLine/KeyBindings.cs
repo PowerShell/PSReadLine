@@ -518,7 +518,6 @@ namespace Microsoft.PowerShell
             case nameof(NextHistory):
             case nameof(PreviousHistory):
             case nameof(ReverseSearchHistory):
-            case nameof(ViPreviousHistory):
             case nameof(ViSearchHistoryBackward):
                 return KeyHandlerGroup.History;
 
