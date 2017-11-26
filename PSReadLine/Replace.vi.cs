@@ -126,7 +126,10 @@ namespace Microsoft.PowerShell
             ViInsertMode(key, arg);
         }
 
-        private static void ViReplaceLine(ConsoleKeyInfo? key, object arg)
+        /// <summary>
+        /// Erase the entire command line.
+        /// </summary>
+        public static void ViReplaceLine(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton._groupUndoHelper.StartGroup(ViReplaceLine, arg);
             DeleteLine(key, arg);
