@@ -3,6 +3,7 @@ Copyright (c) Microsoft Corporation.  All rights reserved.
 --********************************************************************/
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
@@ -13,27 +14,13 @@ using System.Management.Automation.Language;
 using System.Reflection;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Threading;
 using Microsoft.PowerShell.PSReadLine;
 
 namespace Microsoft.PowerShell
 {
 
 #pragma warning disable 1591
-
-    public enum TokenClassification
-    {
-        None,
-        Comment,
-        Keyword,
-        String,
-        Operator,
-        Variable,
-        Command,
-        Parameter,
-        Type,
-        Number,
-        Member,
-    }
 
     public enum EditMode
     {
@@ -428,21 +415,37 @@ namespace Microsoft.PowerShell
             ErrorColor        = DefaultErrorColor;
         }
 
-        internal void SetColor(TokenClassification tokenKind, object color)
+        private static Dictionary<string, Action<PSConsoleReadLineOptions, object>> ColorSetters = null;
+
+        internal void SetColor(string property, object value)
         {
-            switch (tokenKind)
+            if (ColorSetters == null)
             {
-            case TokenClassification.None:      DefaultTokenColor = color; break;
-            case TokenClassification.Comment:   CommentColor = color; break;
-            case TokenClassification.Keyword:   KeywordColor = color; break;
-            case TokenClassification.String:    StringColor = color; break;
-            case TokenClassification.Operator:  OperatorColor = color; break;
-            case TokenClassification.Variable:  VariableColor = color; break;
-            case TokenClassification.Command:   CommandColor = color; break;
-            case TokenClassification.Parameter: ParameterColor = color; break;
-            case TokenClassification.Type:      TypeColor = color; break;
-            case TokenClassification.Number:    NumberColor = color; break;
-            case TokenClassification.Member:    MemberColor = color; break;
+                var setters =
+                    new Dictionary<string, Action<PSConsoleReadLineOptions, object>>(StringComparer.OrdinalIgnoreCase)
+                    {
+                        {"ContinuationPrompt", (o, v) => o.ContinuationPromptColor = v},
+                        {"Emphasis", (o, v) => o.EmphasisColor = v},
+                        {"Error", (o, v) => o.ErrorColor = v},
+                        {"Default", (o, v) => o.DefaultTokenColor = v},
+                        {"Comment", (o, v) => o.CommentColor = v},
+                        {"Keyword", (o, v) => o.KeywordColor = v},
+                        {"String", (o, v) => o.StringColor = v},
+                        {"Operator", (o, v) => o.OperatorColor = v},
+                        {"Variable", (o, v) => o.VariableColor = v},
+                        {"Command", (o, v) => o.CommandColor = v},
+                        {"Parameter", (o, v) => o.ParameterColor = v},
+                        {"Type", (o, v) => o.TypeColor = v},
+                        {"Number", (o, v) => o.NumberColor = v},
+                        {"Member", (o, v) => o.MemberColor = v},
+                    };
+
+                Interlocked.CompareExchange(ref ColorSetters, setters, null);
+            }
+
+            if (ColorSetters.TryGetValue(property, out var setter))
+            {
+                setter(this, value);
             }
         }
     }
@@ -461,7 +464,7 @@ namespace Microsoft.PowerShell
     [Cmdlet("Set", "PSReadLineOption", HelpUri = "https://go.microsoft.com/fwlink/?LinkId=528811")]
     public class SetPSReadLineOption : PSCmdlet
     {
-        [Parameter(ParameterSetName = "OptionsSet")]
+        [Parameter]
         public EditMode EditMode
         {
             get => _editMode.GetValueOrDefault();
@@ -469,26 +472,11 @@ namespace Microsoft.PowerShell
         }
         internal EditMode? _editMode;
 
-        [Parameter(ParameterSetName = "OptionsSet")]
+        [Parameter]
         [AllowEmptyString]
         public string ContinuationPrompt { get; set; }
 
-        [Parameter(ParameterSetName = "OptionsSet")]
-        [Alias("ContinuationPromptForegroundColor")]
-        [ValidateColor]
-        public object ContinuationPromptColor { get; set; }
-
-        [Parameter(ParameterSetName = "OptionsSet")]
-        [Alias("EmphasisForegroundColor")]
-        [ValidateColor]
-        public object EmphasisColor { get; set; }
-
-        [Parameter(ParameterSetName = "OptionsSet")]
-        [Alias("ErrorForegroundColor")]
-        [ValidateColor]
-        public object ErrorColor { get; set; }
-
-        [Parameter(ParameterSetName = "OptionsSet")]
+        [Parameter]
         public SwitchParameter HistoryNoDuplicates
         {
             get => _historyNoDuplicates.GetValueOrDefault();
@@ -496,7 +484,7 @@ namespace Microsoft.PowerShell
         }
         internal SwitchParameter? _historyNoDuplicates;
 
-        [Parameter(ParameterSetName = "OptionsSet")]
+        [Parameter]
         [AllowNull]
         public Func<string, bool> AddToHistoryHandler
         {
@@ -510,7 +498,7 @@ namespace Microsoft.PowerShell
         private Func<string, bool> _addToHistoryHandler;
         internal bool _addToHistoryHandlerSpecified;
 
-        [Parameter(ParameterSetName = "OptionsSet")]
+        [Parameter]
         [AllowNull]
         public Action<CommandAst> CommandValidationHandler
         {
@@ -524,7 +512,7 @@ namespace Microsoft.PowerShell
         private Action<CommandAst> _commandValidationHandler;
         internal bool _commandValidationHandlerSpecified;
 
-        [Parameter(ParameterSetName = "OptionsSet")]
+        [Parameter]
         public SwitchParameter HistorySearchCursorMovesToEnd
         {
             get => _historySearchCursorMovesToEnd.GetValueOrDefault();
@@ -532,7 +520,7 @@ namespace Microsoft.PowerShell
         }
         internal SwitchParameter? _historySearchCursorMovesToEnd;
 
-        [Parameter(ParameterSetName = "OptionsSet")]
+        [Parameter]
         [ValidateRange(1, int.MaxValue)]
         public int MaximumHistoryCount
         {
@@ -541,7 +529,7 @@ namespace Microsoft.PowerShell
         }
         internal int? _maximumHistoryCount;
 
-        [Parameter(ParameterSetName = "OptionsSet")]
+        [Parameter]
         public int MaximumKillRingCount
         {
             get => _maximumKillRingCount.GetValueOrDefault();
@@ -549,15 +537,7 @@ namespace Microsoft.PowerShell
         }
         internal int? _maximumKillRingCount;
 
-        [Parameter(ParameterSetName = "OptionsSet")]
-        public SwitchParameter ResetTokenColors
-        {
-            get => _resetTokenColors.GetValueOrDefault();
-            set => _resetTokenColors = value;
-        }
-        internal SwitchParameter? _resetTokenColors;
-
-        [Parameter(ParameterSetName = "OptionsSet")]
+        [Parameter]
         public SwitchParameter ShowToolTips
         {
             get => _showToolTips.GetValueOrDefault();
@@ -565,7 +545,7 @@ namespace Microsoft.PowerShell
         }
         internal SwitchParameter? _showToolTips;
 
-        [Parameter(ParameterSetName = "OptionsSet")]
+        [Parameter]
         public int ExtraPromptLineCount
         {
             get => _extraPromptLineCount.GetValueOrDefault();
@@ -573,7 +553,7 @@ namespace Microsoft.PowerShell
         }
         internal int? _extraPromptLineCount;
 
-        [Parameter(ParameterSetName = "OptionsSet")]
+        [Parameter]
         public int DingTone
         {
             get => _dingTone.GetValueOrDefault();
@@ -581,7 +561,7 @@ namespace Microsoft.PowerShell
         }
         internal int? _dingTone;
 
-        [Parameter(ParameterSetName = "OptionsSet")]
+        [Parameter]
         public int DingDuration
         {
             get => _dingDuration.GetValueOrDefault();
@@ -589,7 +569,7 @@ namespace Microsoft.PowerShell
         }
         internal int? _dingDuration;
 
-        [Parameter(ParameterSetName = "OptionsSet")]
+        [Parameter]
         public BellStyle BellStyle
         {
             get => _bellStyle.GetValueOrDefault();
@@ -597,7 +577,7 @@ namespace Microsoft.PowerShell
         }
         internal BellStyle? _bellStyle;
 
-        [Parameter(ParameterSetName = "OptionsSet")]
+        [Parameter]
         public int CompletionQueryItems
         {
             get => _completionQueryItems.GetValueOrDefault();
@@ -605,10 +585,10 @@ namespace Microsoft.PowerShell
         }
         internal int? _completionQueryItems;
 
-        [Parameter(ParameterSetName = "OptionsSet")]
+        [Parameter]
         public string WordDelimiters { get; set; }
 
-        [Parameter(ParameterSetName = "OptionsSet")]
+        [Parameter]
         public SwitchParameter HistorySearchCaseSensitive
         {
             get => _historySearchCaseSensitive.GetValueOrDefault();
@@ -616,7 +596,7 @@ namespace Microsoft.PowerShell
         }
         internal SwitchParameter? _historySearchCaseSensitive;
 
-        [Parameter(ParameterSetName = "OptionsSet")]
+        [Parameter]
         public HistorySaveStyle HistorySaveStyle
         {
             get => _historySaveStyle.GetValueOrDefault();
@@ -624,7 +604,7 @@ namespace Microsoft.PowerShell
         }
         internal HistorySaveStyle? _historySaveStyle;
 
-        [Parameter(ParameterSetName = "OptionsSet")]
+        [Parameter]
         [ValidateNotNullOrEmpty]
         public string HistorySavePath
         {
@@ -638,7 +618,7 @@ namespace Microsoft.PowerShell
         }
         private string _historySavePath;
 
-        [Parameter(ParameterSetName = "OptionsSet")]
+        [Parameter]
         [ValidateRange(25, 1000)]
         public int AnsiEscapeTimeout
         {
@@ -647,11 +627,11 @@ namespace Microsoft.PowerShell
         }
         internal int? _ansiEscapeTimeout;
 
-        [Parameter(ParameterSetName = "OptionsSet")]
+        [Parameter]
         [ValidateNotNull]
         public string PromptText { get; set; }
 
-        [Parameter(ParameterSetName = "OptionsSet")]
+        [Parameter]
         public ViModeStyle ViModeIndicator
         {
             get => _viModeIndicator.GetValueOrDefault();
@@ -659,18 +639,8 @@ namespace Microsoft.PowerShell
         }
         internal ViModeStyle? _viModeIndicator;
 
-        [Parameter(ParameterSetName = "ColorSet", Position = 0, Mandatory = true)]
-        public TokenClassification TokenKind
-        {
-            get => _tokenKind.GetValueOrDefault();
-            set => _tokenKind = value;
-        }
-        internal TokenClassification? _tokenKind;
-
-        [Parameter(ParameterSetName = "ColorSet", Position = 1)]
-        [Alias("ForegroundColor")]
-        [ValidateColor]
-        public object Color { get; set; }
+        [Parameter]
+        public Hashtable Colors { get; set; }
 
         [ExcludeFromCodeCoverage]
         protected override void EndProcessing()

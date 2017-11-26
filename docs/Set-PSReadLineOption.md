@@ -11,8 +11,6 @@ Customizes the behavior of command line editing in PSReadLine.
 
 ## SYNTAX
 
-### OptionsSet
-
 ```
 Set-PSReadLineOption
  [-EditMode <EditMode>]
@@ -22,16 +20,13 @@ Set-PSReadLineOption
  [-HistorySearchCaseSensitive]
  [-PromptText <string>]
  [-ExtraPromptLineCount <Int32>]
+ [-Colors <Hashtable>]
  [-AddToHistoryHandler <Func[String, Boolean]>]
  [-CommandValidationHandler <Action[CommandAst]>]
  [-ContinuationPrompt <String>]
- [-ContinuationPromptColor <ConsoleColor|string>]
- [-EmphasisColor <ConsoleColor|string>]
- [-ErrorColor <ConsoleColor|string>]
  [-HistorySearchCursorMovesToEnd]
  [-MaximumHistoryCount <Int32>]
  [-MaximumKillRingCount <Int32>]
- [-ResetTokenColors]
  [-ShowToolTips]
  [-DingTone <Int32>]
  [-DingDuration <Int32>]
@@ -42,25 +37,44 @@ Set-PSReadLineOption
  [-ViModeIndicator <ViModeStyle>]
 ```
 
-### ColorSet
-
-```
-Set-PSReadLineOption [-TokenKind] <TokenClassification> [[-Color] <ConsoleColor|string>]
-```
-
 ## DESCRIPTION
 
 The Set-PSReadLineOption cmdlet is used to customize the behavior of the PSReadLine module when editing the command line.
 
-Color parameters accept either a ConsoleColor or a string.
-
-If a ConsoleColor is specified, it specifies the foreground color.
-
-If a string is specified, it should be a valid escape sequence that could specify the foreground or background color or both.
-The escape sequence could also specify another attribute like bold or inverse.
-A valid sequence will depend on which terminal you use.
-
 ## EXAMPLES
+
+### --------------  Example 1  --------------
+
+This example sets some different colors.
+
+```
+PS C:\> Set-PSReadLineOption -Colors @{
+    # Use a ConsoleColor enum
+    "Error" = [ConsoleColor]::DarkRed
+
+    # 24 bit color escape sequence
+    "String" = "$([char]0x1b)[38;5;100m"
+
+    # RGB value
+    "Command" = "#8181f7"
+}
+```
+
+### --------------  Example 2  --------------
+
+This example demonstrates something almost like a theme using splatting:
+
+```
+PS C:\> $PSReadLineOptions = @{
+    EditMode = "Emacs"
+    HistoryNoDuplicates = $true
+    HistorySearchCursorMovesToEnd = $true
+    Colors = @{
+        "Command" = "#8181f7"
+    }
+}
+PS C:\> Set-PSReadLineOption @PSReadLineOptions
+```
 
 ## PARAMETERS
 
@@ -79,7 +93,7 @@ Valid values are:
 
 ```yaml
 Type: EditMode
-Parameter Sets: OptionsSet
+Parameter Sets: (All)
 Aliases:
 
 Required: False
@@ -100,19 +114,16 @@ be sure to include any trailing whitespace.
 
 For example, if my prompt function looked like:
 
-	function prompt {
-		Write-Host -NoNewLine -ForegroundColor Yellow "$pwd"
-		return "# "
-	}
+    function prompt { Write-Host -NoNewLine -ForegroundColor Yellow "$pwd"; return "# " }
 
 Then set:
 
-	Set-PSReadLineOption -PromptText "# "
+    Set-PSReadLineOption -PromptText "# "
 
 
 ```yaml
 Type: String
-Parameter Sets: OptionsSet
+Parameter Sets: (All)
 Aliases:
 
 Required: False
@@ -130,60 +141,12 @@ The empty string is valid.
 
 ```yaml
 Type: String
-Parameter Sets: OptionsSet
+Parameter Sets: (All)
 Aliases:
 
 Required: False
 Position: Named
 Default value: >>
-Accept pipeline input: false
-Accept wildcard characters: False
-```
-
-### -ContinuationPromptColor
-
-Specifies the color of the continuation prompt.
-
-```yaml
-Type: ConsoleColor or string
-Parameter Sets: OptionsSet
-Aliases:
-
-Required: False
-Position: Named
-Default value:
-Accept pipeline input: false
-Accept wildcard characters: False
-```
-
-### -EmphasisColor
-
-Specifies the color used for emphasis, e.g. to highlight search text.
-
-```yaml
-Type: ConsoleColor or string
-Parameter Sets: OptionsSet
-Aliases:
-
-Required: False
-Position: Named
-Default value: Cyan
-Accept pipeline input: false
-Accept wildcard characters: False
-```
-
-### -ErrorColor
-
-Specifies the color used for errors.
-
-```yaml
-Type: ConsoleColor or string
-Parameter Sets: OptionsSet
-Aliases:
-
-Required: False
-Position: Named
-Default value: Red
 Accept pipeline input: false
 Accept wildcard characters: False
 ```
@@ -199,7 +162,7 @@ but if this option is set, only the most recent invocation will appear when reca
 
 ```yaml
 Type: switch
-Parameter Sets: OptionsSet
+Parameter Sets: (All)
 Aliases:
 
 Required: False
@@ -218,7 +181,7 @@ If the ScriptBlock returns `$true`, the command line is added to history, otherw
 
 ```yaml
 Type: Func[String, Boolean]
-Parameter Sets: OptionsSet
+Parameter Sets: (All)
 Aliases:
 
 Required: False
@@ -237,7 +200,7 @@ If an exception is thrown, validation fails and the error is reported.
 
 ```yaml
 Type: Action[CommandAst]
-Parameter Sets: OptionsSet
+Parameter Sets: (All)
 Aliases:
 
 Required: False
@@ -255,7 +218,7 @@ To move the cursor to end of the line just like when there is no search string, 
 
 ```yaml
 Type: switch
-Parameter Sets: OptionsSet
+Parameter Sets: (All)
 Aliases:
 
 Required: False
@@ -273,7 +236,7 @@ Note that PSReadLine history is separate from PowerShell history.
 
 ```yaml
 Type: Int32
-Parameter Sets: OptionsSet
+Parameter Sets: (All)
 Aliases:
 
 Required: False
@@ -289,28 +252,12 @@ Specifies the maximum number of items stored in the kill ring.
 
 ```yaml
 Type: Int32
-Parameter Sets: OptionsSet
+Parameter Sets: (All)
 Aliases:
 
 Required: False
 Position: Named
 Default value: 10
-Accept pipeline input: false
-Accept wildcard characters: False
-```
-
-### -ResetTokenColors
-
-Restore the token colors to the default settings.
-
-```yaml
-Type: switch
-Parameter Sets: OptionsSet
-Aliases:
-
-Required: False
-Position: Named
-Default value:
 Accept pipeline input: false
 Accept wildcard characters: False
 ```
@@ -324,7 +271,7 @@ To disable, set this option to `$false`.
 
 ```yaml
 Type: switch
-Parameter Sets: OptionsSet
+Parameter Sets: (All)
 Aliases:
 
 Required: False
@@ -342,12 +289,70 @@ This option is needed less than in previous version of PSReadLine, but is useful
 
 ```yaml
 Type: Int32
-Parameter Sets: OptionsSet
+Parameter Sets: (All)
 Aliases:
 
 Required: False
 Position: Named
 Default value: 0
+Accept pipeline input: false
+Accept wildcard characters: False
+```
+
+### -Colors
+
+The Colors parameter is used to specify various colors used by PSReadLine.
+
+The argument is a Hashtable where the keys specify which element and the values specify the color.
+
+Colors can be either a value from ConsoleColor, e.g. [ConsoleColor]::Red, or a valid escape sequence.
+Valid escape sequences depend on your terminal, e.g. "$([char]0x1b)[91m" (Windows PowerShell) or
+"`e[91m" (PowerShell 6.0) specifies Red in most terminals.
+You can specify other escape sequences as well, including but not limited to:
+
+-- 256 color
+-- 24 bit color
+-- Foreground, background, or both
+-- Inverse, bold
+
+The valid keys include:
+
+-- ContinuationPrompt: The color of the continuation prompt.
+
+-- Emphasis: The emphasis color, e.g. the matching text when searching history.
+
+-- Error: The error color, e.g. in the prompt.
+
+-- Default: The default token color.
+
+-- Comment: The comment token color.
+
+-- Keyword: The keyword token color.
+
+-- String: The string token color.
+
+-- Operator: The operator token color.
+
+-- Variable: The variable token color.
+
+-- Command: The command token color.
+
+-- Parameter: The parameter token color.
+
+-- Type: The type token color.
+
+-- Number: The number token color.
+
+-- Member: The member name token color.
+
+```yaml
+Type: Hashtable
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value:
 Accept pipeline input: false
 Accept wildcard characters: False
 ```
@@ -358,7 +363,7 @@ When BellStyle is set to Audible, specifies the tone of the beep.
 
 ```yaml
 Type: Int32
-Parameter Sets: OptionsSet
+Parameter Sets: (All)
 Aliases:
 
 Required: False
@@ -374,7 +379,7 @@ When BellStyle is set to Audible, specifies the duration of the beep.
 
 ```yaml
 Type: Int32
-Parameter Sets: OptionsSet
+Parameter Sets: (All)
 Aliases:
 
 Required: False
@@ -398,7 +403,7 @@ Valid values are:
 
 ```yaml
 Type: BellStyle
-Parameter Sets: OptionsSet
+Parameter Sets: (All)
 Aliases:
 
 Required: False
@@ -416,7 +421,7 @@ If the number of items to show is greater than this value, PSReadLine will promp
 
 ```yaml
 Type: Int32
-Parameter Sets: OptionsSet
+Parameter Sets: (All)
 Aliases:
 
 Required: False
@@ -432,7 +437,7 @@ Specifies the characters that delimit words for functions like ForwardWord or Ki
 
 ```yaml
 Type: string
-Parameter Sets: OptionsSet
+Parameter Sets: (All)
 Aliases:
 
 Required: False
@@ -448,7 +453,7 @@ Specifies the searching history is case sensitive in functions like ReverseSearc
 
 ```yaml
 Type: switch
-Parameter Sets: OptionsSet
+Parameter Sets: (All)
 Aliases:
 
 Required: False
@@ -472,7 +477,7 @@ Valid values are:
 
 ```yaml
 Type: HistorySaveStyle
-Parameter Sets: OptionsSet
+Parameter Sets: (All)
 Aliases:
 
 Required: False
@@ -488,7 +493,7 @@ Specifies the path to the file where history is saved.
 
 ```yaml
 Type: String
-Parameter Sets: OptionsSet
+Parameter Sets: (All)
 Aliases:
 
 Required: False
@@ -511,7 +516,7 @@ You can experiment with this timeout if you see issues or random unexpected char
 
 ```yaml
 Type: int
-Parameter Sets: OptionsSet
+Parameter Sets: (All)
 Aliases:
 
 Required: False
@@ -535,43 +540,11 @@ Valid values are:
 
 ```yaml
 Type: ViModeStyle
-Parameter Sets: OptionsSet
+Parameter Sets: (All)
 Aliases:
 
 Required: False
 Position: Named
-Default value:
-Accept pipeline input: false
-Accept wildcard characters: False
-```
-
-### -TokenKind
-
-Specifies the kind of token when setting token coloring options with the -Color parameter.
-
-```yaml
-Type: TokenClassification
-Parameter Sets: ColorSet
-Aliases:
-
-Required: True
-Position: 0
-Default value:
-Accept pipeline input: false
-Accept wildcard characters: False
-```
-
-### -Color
-
-Specifies the color for the token kind specified by the parameter -TokenKind.
-
-```yaml
-Type: ConsoleColor or string
-Parameter Sets: ColorSet
-Aliases:
-
-Required: False
-Position: 1
 Default value:
 Accept pipeline input: false
 Accept wildcard characters: False

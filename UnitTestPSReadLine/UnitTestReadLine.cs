@@ -367,6 +367,21 @@ namespace UnitTestPSReadLine
         };
     }
 
+    public enum TokenClassification
+    {
+        None,
+        Comment,
+        Keyword,
+        String,
+        Operator,
+        Variable,
+        Command,
+        Parameter,
+        Type,
+        Number,
+        Member,
+    }
+
     [TestClass]
     public partial class UnitTest
     {
@@ -832,11 +847,8 @@ namespace UnitTestPSReadLine
                 BellStyle                         = PSConsoleReadLineOptions.DefaultBellStyle,
                 CompletionQueryItems              = PSConsoleReadLineOptions.DefaultCompletionQueryItems,
                 ContinuationPrompt                = PSConsoleReadLineOptions.DefaultContinuationPrompt,
-                ContinuationPromptColor           = MakeCombinedColor(_console.ForegroundColor, _console.BackgroundColor),
                 DingDuration                      = 1,  // Make tests virtually silent when they ding
                 DingTone                          = 37, // Make tests virtually silent when they ding
-                EmphasisColor                     = MakeCombinedColor(PSConsoleReadLineOptions.DefaultEmphasisColor, _console.BackgroundColor),
-                ErrorColor                        = MakeCombinedColor(ConsoleColor.Red, ConsoleColor.DarkRed),
                 ExtraPromptLineCount              = PSConsoleReadLineOptions.DefaultExtraPromptLineCount,
                 HistoryNoDuplicates               = PSConsoleReadLineOptions.DefaultHistoryNoDuplicates,
                 HistorySaveStyle                  = HistorySaveStyle.SaveNothing,
@@ -844,10 +856,14 @@ namespace UnitTestPSReadLine
                 HistorySearchCursorMovesToEnd     = PSConsoleReadLineOptions.DefaultHistorySearchCursorMovesToEnd,
                 MaximumHistoryCount               = PSConsoleReadLineOptions.DefaultMaximumHistoryCount,
                 MaximumKillRingCount              = PSConsoleReadLineOptions.DefaultMaximumKillRingCount,
-                ResetTokenColors                  = true,
                 ShowToolTips                      = PSConsoleReadLineOptions.DefaultShowToolTips,
                 WordDelimiters                    = PSConsoleReadLineOptions.DefaultWordDelimiters,
                 PromptText                        = "",
+                Colors = new Hashtable {
+                    { "ContinuationPrompt",       MakeCombinedColor(_console.ForegroundColor, _console.BackgroundColor) },
+                    { "Emphasis",                 MakeCombinedColor(PSConsoleReadLineOptions.DefaultEmphasisColor, _console.BackgroundColor) },
+                    { "Error",                    MakeCombinedColor(ConsoleColor.Red, ConsoleColor.DarkRed) },
+                }
             };
 
             switch (keyMode)
@@ -870,14 +886,18 @@ namespace UnitTestPSReadLine
                 PSConsoleReadLine.SetKeyHandler(new [] {keyHandler.Chord}, keyHandler.Handler, "", "");
             }
 
-            var colorOptions = new SetPSReadLineOption();
-            foreach (var val in typeof(TokenClassification).GetEnumValues())
+            var tokenTypes = new[]
             {
-                colorOptions.TokenKind = (TokenClassification)val;
-                colorOptions.Color = MakeCombinedColor(Colors[(int) val], BackgroundColors[(int) val]);
-
-                PSConsoleReadLine.SetOptions(colorOptions);
+                "Default", "Comment", "Keyword", "String", "Operator", "Variable",
+                "Command", "Parameter", "Type", "Number", "Member"
+            };
+            var colors = new Hashtable();
+            for (var i = 0; i < tokenTypes.Length; i++)
+            {
+                colors.Add(tokenTypes[i], MakeCombinedColor(Colors[i], BackgroundColors[i]));
             }
+            var colorOptions = new SetPSReadLineOption {Colors = colors};
+            PSConsoleReadLine.SetOptions(colorOptions);
         }
 
     }

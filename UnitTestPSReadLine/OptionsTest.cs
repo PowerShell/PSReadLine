@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.PowerShell;
@@ -39,7 +40,9 @@ namespace UnitTestPSReadLine
             var continuationPrompt = "::::: ";
             PSConsoleReadLine.SetOptions(new SetPSReadLineOption{
                 ContinuationPrompt = continuationPrompt,
-                ContinuationPromptColor = MakeCombinedColor(ConsoleColor.Magenta, ConsoleColor.DarkYellow),
+                Colors = new Hashtable {
+                    { "ContinuationPrompt", MakeCombinedColor(ConsoleColor.Magenta, ConsoleColor.DarkYellow) }
+                },
             });
             Test("", Keys(
                 "{\n}",
@@ -89,7 +92,6 @@ namespace UnitTestPSReadLine
             var useless = ((object)options.AddToHistoryHandler ?? options).GetHashCode()
                           + options.EditMode.GetHashCode()
                           + ((object)options.ContinuationPrompt ?? options).GetHashCode()
-                          + (options.ContinuationPromptColor ?? options).GetHashCode()
                           + options.HistoryNoDuplicates.GetHashCode()
                           + options.HistorySearchCursorMovesToEnd.GetHashCode()
                           + options.MaximumHistoryCount.GetHashCode()
@@ -100,7 +102,6 @@ namespace UnitTestPSReadLine
                           + options.ExtraPromptLineCount.GetHashCode()
                           + options.ShowToolTips.GetHashCode()
                           + options.CompletionQueryItems.GetHashCode()
-                          + (options.EmphasisColor ?? options).GetHashCode()
                           + options.HistorySearchCaseSensitive.GetHashCode()
                           + getKeyHandlerCommand.Bound.GetHashCode()
                           + getKeyHandlerCommand.Unbound.GetHashCode();

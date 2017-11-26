@@ -3,6 +3,7 @@ Copyright (c) Microsoft Corporation.  All rights reserved.
 --********************************************************************/
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Management.Automation;
@@ -19,25 +20,9 @@ namespace Microsoft.PowerShell
 
         private void SetOptionsInternal(SetPSReadLineOption options)
         {
-            if (options.ResetTokenColors)
-            {
-                Options.ResetColors();
-            }
             if (options.ContinuationPrompt != null)
             {
                 Options.ContinuationPrompt = options.ContinuationPrompt;
-            }
-            if (options.ContinuationPromptColor != null)
-            {
-                Options.ContinuationPromptColor = options.ContinuationPromptColor;
-            }
-            if (options.EmphasisColor != null)
-            {
-                Options.EmphasisColor = options.EmphasisColor;
-            }
-            if (options.ErrorColor != null)
-            {
-                Options.ErrorColor = options.ErrorColor;
             }
             if (options._historyNoDuplicates.HasValue)
             {
@@ -142,11 +127,15 @@ namespace Microsoft.PowerShell
             {
                 Options.PromptText = options.PromptText;
             }
-            if (options._tokenKind.HasValue)
+            if (options.Colors != null)
             {
-                if (options.Color != null)
+                IDictionaryEnumerator e = options.Colors.GetEnumerator();
+                while (e.MoveNext())
                 {
-                    Options.SetColor(options.TokenKind, options.Color);
+                    if (e.Key is string property)
+                    {
+                        Options.SetColor(property, e.Value);
+                    }
                 }
             }
         }
