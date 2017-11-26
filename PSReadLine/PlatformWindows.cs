@@ -6,7 +6,6 @@ using System;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 using Microsoft.PowerShell;
-using Microsoft.PowerShell.Internal;
 using Microsoft.Win32.SafeHandles;
 
 static class PlatformWindows
@@ -98,17 +97,23 @@ static class PlatformWindows
         _singleton = singleton;
         var breakHandlerGcHandle = GCHandle.Alloc(new BreakHandler(OnBreak));
         SetConsoleCtrlHandler((BreakHandler)breakHandlerGcHandle.Target, true);
+        _enableVtOutput = SetConsoleOutputVirtualTerminalProcessing();
     }
 
+    // Input modes
     const uint ENABLE_PROCESSED_INPUT        = 0x0001;
     const uint ENABLE_LINE_INPUT             = 0x0002;
     const uint ENABLE_WINDOW_INPUT           = 0x0008;
     const uint ENABLE_MOUSE_INPUT            = 0x0010;
     const uint ENABLE_VIRTUAL_TERMINAL_INPUT = 0x0200;
 
+    // Output modes
+    const uint ENABLE_VIRTUAL_TERMINAL_PROCESSING = 0x0004;
+
     static uint _prePSReadLineConsoleInputMode;
     // Need to remember this decision for CallUsingOurInputMode.
     static bool _enableVtInput;
+    static bool _enableVtOutput;
     internal static void Init(ref ICharMap charMap)
     {
         // If either stdin or stdout is redirected, PSReadLine doesn't really work, so throw
@@ -118,40 +123,50 @@ static class PlatformWindows
             throw new NotSupportedException();
         }
 
+        if (_enableVtOutput)
+        {
+            // This is needed because PowerShell does not restore the console mode
+            // after running external applications, and some popular applications
+            // clear VT, e.g. git.
+            SetConsoleOutputVirtualTerminalProcessing();
+        }
+
         // If input is redirected, we can't use console APIs and have to use VT input.
         if (IsHandleRedirected(stdin: true))
         {
             EnableAnsiInput(ref charMap);
-            return;
-        }
-
-        _prePSReadLineConsoleInputMode = GetConsoleInputMode();
-
-        // This envvar will force VT mode on or off depending on the setting 1 or 0.
-        var overrideVtInput = Environment.GetEnvironmentVariable("PSREADLINE_VTINPUT");
-        if (overrideVtInput == "1")
-        {
-            _enableVtInput = true;
-        }
-        else if (overrideVtInput == "0")
-        {
-            _enableVtInput = false;
         }
         else
         {
-            // If the console was already in VT mode, use the appropriate CharMap.
-            // This handles the case where input was not redirected and the user
-            // didn't specify a preference. The default is to use the pre-existing
-            // console mode.
-            _enableVtInput = (_prePSReadLineConsoleInputMode & ENABLE_VIRTUAL_TERMINAL_INPUT) == ENABLE_VIRTUAL_TERMINAL_INPUT;
-        }
+            _prePSReadLineConsoleInputMode = GetConsoleInputMode();
 
-        if (_enableVtInput)
-        {
-            EnableAnsiInput(ref charMap);
-        }
+            // This envvar will force VT mode on or off depending on the setting 1 or 0.
+            var overrideVtInput = Environment.GetEnvironmentVariable("PSREADLINE_VTINPUT");
+            if (overrideVtInput == "1")
+            {
+                _enableVtInput = true;
+            }
+            else if (overrideVtInput == "0")
+            {
+                _enableVtInput = false;
+            }
+            else
+            {
+                // If the console was already in VT mode, use the appropriate CharMap.
+                // This handles the case where input was not redirected and the user
+                // didn't specify a preference. The default is to use the pre-existing
+                // console mode.
+                _enableVtInput = (_prePSReadLineConsoleInputMode & ENABLE_VIRTUAL_TERMINAL_INPUT) ==
+                                 ENABLE_VIRTUAL_TERMINAL_INPUT;
+            }
 
-        SetOurInputMode();
+            if (_enableVtInput)
+            {
+                EnableAnsiInput(ref charMap);
+            }
+
+            SetOurInputMode();
+        }
     }
 
     internal static void SetOurInputMode()
@@ -243,10 +258,32 @@ static class PlatformWindows
         // We use CreateFile here instead of GetStdWin32Handle, as GetStdWin32Handle will return redirected handles
         var handle = CreateFile(
             "CONIN$",
-            (UInt32)(AccessQualifiers.GenericRead | AccessQualifiers.GenericWrite),
-            (UInt32)ShareModes.ShareWrite,
+            (uint)(AccessQualifiers.GenericRead | AccessQualifiers.GenericWrite),
+            (uint)ShareModes.ShareWrite,
             (IntPtr)0,
-            (UInt32)CreationDisposition.OpenExisting,
+            (uint)CreationDisposition.OpenExisting,
+            0,
+            (IntPtr)0);
+
+        if (handle == INVALID_HANDLE_VALUE)
+        {
+            int err = Marshal.GetLastWin32Error();
+            Win32Exception innerException = new Win32Exception(err);
+            throw new Exception("Failed to retrieve the input console handle.", innerException);
+        }
+
+        return new SafeFileHandle(handle, true);
+    });
+
+    private static readonly Lazy<SafeFileHandle> _outputHandle = new Lazy<SafeFileHandle>(() =>
+    {
+        // We use CreateFile here instead of GetStdWin32Handle, as GetStdWin32Handle will return redirected handles
+        var handle = CreateFile(
+            "CONOUT$",
+            (uint)(AccessQualifiers.GenericRead | AccessQualifiers.GenericWrite),
+            (uint)ShareModes.ShareWrite,
+            (IntPtr)0,
+            (uint)CreationDisposition.OpenExisting,
             0,
             (IntPtr)0);
 
@@ -261,7 +298,7 @@ static class PlatformWindows
     });
 
     [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-    private static extern bool GetConsoleMode(IntPtr hConsoleOutput, out uint dwMode);
+    private static extern bool GetConsoleMode(IntPtr hConsole, out uint dwMode);
 
     private static uint GetConsoleInputMode()
     {
@@ -271,12 +308,19 @@ static class PlatformWindows
     }
 
     [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-    private static extern bool SetConsoleMode(IntPtr hConsoleOutput, uint dwMode);
+    private static extern bool SetConsoleMode(IntPtr hConsole, uint dwMode);
 
     private static void SetConsoleInputMode(uint mode)
     {
         var handle = _inputHandle.Value.DangerousGetHandle();
         SetConsoleMode(handle, mode);
+    }
+
+    private static bool SetConsoleOutputVirtualTerminalProcessing()
+    {
+        var handle = _outputHandle.Value.DangerousGetHandle();
+        return GetConsoleMode(handle, out uint mode)
+            && SetConsoleMode(handle, mode | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
     }
 
     private static bool IsHandleRedirected(bool stdin)
