@@ -1,5 +1,12 @@
 
-param($Configuration = 'Release')
+param(
+    $Configuration = 'Release',
+
+    [Parameter(Mandatory)]
+    $OutFile
+)
+
+$errorActionPreference = "Stop"
 
 $ourAssembly = "$PSScriptRoot\PSReadLine\bin\$Configuration\Microsoft.PowerShell.PSReadLine.dll"
 
@@ -7,11 +14,11 @@ $t ='Microsoft.PowerShell.PSConsoleReadLine' -as [type]
 if ($null -ne $t -and $t.Assembly.Location -ne $ourAssembly)
 {
     # Make sure we're runnning in a non-interactive session by relaunching
-    powershell -NoProfile -NonInteractive -File $PSCommandPath $Configuration
+    powershell -NoProfile -NonInteractive -File $PSCommandPath $Configuration $OutFile
     exit $LASTEXITCODE
 }
 
-Import-Module "$PSScriptRoot\PSReadLine\bin\$Configuration\Microsoft.PowerShell.PSReadLine.dll"
+Import-Module "$PSScriptRoot\bin\$Configuration\PSReadLine\PSReadLine.psd1"
 
 $helpContent = [xml](Get-Content "$PSScriptRoot\PSReadLine\bin\$Configuration\Microsoft.PowerShell.PSReadLine.xml")
 
@@ -118,7 +125,7 @@ $allFunctions.Values |
     ForEach-Object {
         $label = $groupingDescriptions[$_.Name]
         "  {0}`n  {1}`n" -f $label, ('-' * $label.Length)
-        
+
         $_.Group | Sort-Object Function | ForEach-Object {
             $desc = $_.Description -replace "`n",'' -replace " +"," "
             if ($desc.Length - $indent.Length -gt $maxWidth)
@@ -184,5 +191,4 @@ $allFunctions.Values |
 
             "    {0}:`n`n{1}{2}`n`n{3}`n" -f $_.Function, $indent, $desc, $bindings
         }
-
-    }
+    } | Out-File -LiteralPath $OutFile -Encoding ascii

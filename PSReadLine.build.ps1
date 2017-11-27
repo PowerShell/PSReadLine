@@ -93,11 +93,14 @@ $buildAboutTopicParams = @{
 Synopsis: Generate about topic with function help
 #>
 task BuildAboutTopic @buildAboutTopicParams {
-    $functionDescriptions = (& $PSScriptRoot/GenerateFunctionHelp.ps1 -Configuration $Configuration) -join [Environment]::NewLine
+    $generatedFunctionHelpFile = New-TemporaryFile
+	& $PSScriptRoot/GenerateFunctionHelp.ps1 -Configuration $Configuration -OutFile $generatedFunctionHelpFile.FullName
     assert ($LASTEXITCODE -eq 0) "Generating function help failed"
+    $functionDescriptions = Get-Content -Raw $generatedFunctionHelpFile
     $aboutTopic = Get-Content -Raw $PSScriptRoot/docs/about_PSReadLine.help.txt
     $newAboutTopic = $aboutTopic -replace '{{FUNCTION_DESCRIPTIONS}}', $functionDescriptions
-    Set-Content -Path "$targetDir/en-US/about_PSReadLine.help.txt" -Value $newAboutTopic -Encoding Ascii
+	$newAboutTopic = $newAboutTopic -replace "`r`n","`n"
+	[System.IO.File]::WriteAllText("$targetDir/en-US/about_PSReadLine.help.txt", $newAboutTopic, [System.Text.Encoding]::ASCII)
 
     & $PSScriptRoot/CheckHelp.ps1 -Configuration $Configuration
     assert ($LASTEXITCODE -eq 0) "Checking help and function signatures failed"
@@ -153,7 +156,7 @@ task RunUnitTests BuildUnitTests, {
 <#
 Synopsis: Copy all of the files that belong in the module to one place in the layout for installation
 #>
-task LayoutModule BuildMainModule, BuildMamlHelp, BuildAboutTopic, {
+task LayoutModule BuildMainModule, BuildMamlHelp, {
     $extraFiles =
         'PSReadLine/Changes.txt',
         'PSReadLine/License.txt',
@@ -180,7 +183,7 @@ task LayoutModule BuildMainModule, BuildMamlHelp, BuildAboutTopic, {
     {
         $file.IsReadOnly = $false
     }
-}
+}, BuildAboutTopic
 
 
 <#
