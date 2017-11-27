@@ -101,7 +101,7 @@ task BuildAboutTopic @buildAboutTopicParams {
     $aboutTopic = Get-Content -Raw $PSScriptRoot/docs/about_PSReadLine.help.txt
     $newAboutTopic = $aboutTopic -replace '{{FUNCTION_DESCRIPTIONS}}', $functionDescriptions
     $newAboutTopic = $newAboutTopic -replace "`r`n","`n"
-    [System.IO.File]::WriteAllText("$targetDir/en-US/about_PSReadLine.help.txt", $newAboutTopic, [System.Text.Encoding]::ASCII)
+    [System.IO.File]::WriteAllText("$targetDir\en-US\about_PSReadLine.help.txt", $newAboutTopic, [System.Text.Encoding]::ASCII)
 
     & $PSScriptRoot/CheckHelp.ps1 -Configuration $Configuration
     assert ($LASTEXITCODE -eq 0) "Checking help and function signatures failed"
