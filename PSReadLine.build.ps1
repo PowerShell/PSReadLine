@@ -101,7 +101,7 @@ task BuildAboutTopic @buildAboutTopicParams {
     $aboutTopic = Get-Content -Raw $PSScriptRoot/docs/about_PSReadLine.help.txt
     $newAboutTopic = $aboutTopic -replace '{{FUNCTION_DESCRIPTIONS}}', $functionDescriptions
     $newAboutTopic = $newAboutTopic -replace "`r`n","`n"
-    [System.IO.File]::WriteAllText("$targetDir\en-US\about_PSReadLine.help.txt", $newAboutTopic, [System.Text.Encoding]::ASCII)
+    $newAboutTopic | Out-File -FilePath $targetDir\en-US\about_PSReadLine.help.txt -NoNewline -Encoding ascii
 
     & $PSScriptRoot/CheckHelp.ps1 -Configuration $Configuration
     assert ($LASTEXITCODE -eq 0) "Checking help and function signatures failed"
@@ -124,6 +124,7 @@ Synopsis: Generate the file catalog
 #>
 task GenerateCatalog {
     exec {
+        Remove-Item -ea Ignore $PSScriptRoot/bin/$Configuration/PSReadLine/PSReadLine.cat
         $null = New-FileCatalog -CatalogFilePath $PSScriptRoot/bin/$Configuration/PSReadLine/PSReadLine.cat `
                                 -Path $PSScriptRoot/bin/$Configuration/PSReadLine `
                                 -CatalogVersion 2.0
@@ -194,7 +195,7 @@ task LayoutModule BuildMainModule, BuildMamlHelp, {
     {
         $file.IsReadOnly = $false
     }
-}, BuildAboutTopic, GenerateCatalog
+}, BuildAboutTopic
 
 
 <#
