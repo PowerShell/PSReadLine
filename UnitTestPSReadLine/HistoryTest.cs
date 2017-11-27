@@ -69,8 +69,26 @@ namespace UnitTestPSReadLine
             SetHistory();
             Test(" ", Keys(' ', _.UpArrow, _.DownArrow));
 
+            PSConsoleReadLine.SetOptions(new SetPSReadLineOption {HistorySearchCursorMovesToEnd = false});
             var emphasisColors = Tuple.Create(PSConsoleReadLineOptions.DefaultEmphasisColor, _console.BackgroundColor);
 
+            SetHistory("dosomething", "ps p*", "dir", "echo zzz");
+            Test("dosomething", Keys(
+                "d",
+                _.UpArrow,   CheckThat(() => {
+                    AssertScreenIs(1,
+                        emphasisColors, 'd',
+                        TokenClassification.Command, "ir");
+                    AssertCursorLeftIs(1);
+                }),
+                _.UpArrow,   CheckThat(() => {
+                    AssertScreenIs(1,
+                        emphasisColors, 'd',
+                        TokenClassification.Command, "osomething");
+                    AssertCursorLeftIs(1);
+            })));
+
+            PSConsoleReadLine.SetOptions(new SetPSReadLineOption {HistorySearchCursorMovesToEnd = true});
             SetHistory("dosomething", "ps p*", "dir", "echo zzz");
             Test("dosomething", Keys(
                 "d",

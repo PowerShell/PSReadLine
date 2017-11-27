@@ -562,7 +562,9 @@ namespace Microsoft.PowerShell
                 _currentHistoryIndex = newHistoryIndex;
                 var moveCursor = InViCommandMode()
                     ? HistoryMoveCursor.ToBeginning
-                    : HistoryMoveCursor.ToEnd;
+                    : Options.HistorySearchCursorMovesToEnd
+                        ? HistoryMoveCursor.ToEnd
+                        : HistoryMoveCursor.DontMove;
                 UpdateFromHistory(moveCursor);
             }
         }
