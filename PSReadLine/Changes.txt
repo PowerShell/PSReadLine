@@ -1,39 +1,69 @@
 ### Version 2.0
 
+Pre-release notes:
+
+There are known issues:
+
+* Some custom key bindings are broken (#580)
+* You must use a real terminal emulator, e.g. Windows 10 Creators Update or later, or ConEmu or any Unix terminal. (#596)
+* Selection highlighting is weird and broken with extended colors on Windows (#597)
+* Rendering artifacts w/ MenuComplete at the bottom of the buffer (#598)
+
+Breaking changes:
+* Requires PowerShell V5 or later and .Net 4.6.1
+* Set-PSReadLineOption options have changed
+  - To specify colors, use the new `-Color` parameter and pass a Hashtable
+  - All other color options have been removed include `-ResetTokenColors`
+  - To specify background colors, you must now use a VT escape sequence.
+* Changing the end of the prompt to red may not work automatically anymore if
+  your prompt is non-trivial. To fix, use `Set-PSReadLineOption -PromptText "> "`.
+* Consistently use `PSReadLine` instead of `PSReadline` everywhere, APIs, cmdlets, files, etc.
+* Building requires VS2017
+
 New features:
-* Interactive filtering during menu complete.
+* Interactive filtering during menu complete (#515) (Thanks @MVKozlov!)
+* Redirected input now works (#564) (Thanks @parkovski!)
 * Tooltips always on in MenuComplete (only displayed
   if they give more information than the completion.)
+* Get-PSReadLineKeyHandler output is grouped by category. (#114)
 * Support for VT escape sequences to specify colors.
+* Shift+Insert bound to Paste in Windows mode (#484)
+* Ctrl+t bound to SwapCharacters in Emacs mode (#538) (Thanks andrewcromwell!)
+* Ctrl+x,Ctrl+e bound to ViEditVisually in Emacs mode (#478)
+* HistoryNoDuplicates is now on by default (#208)
 
 Bug fixes:
 * DeleteChar no longer deletes any text left of the cursor in Windows/Emacs
   and matches vim behavior of working like <x> in command mode.
 * Fix InvokePrompt when the prompt is > 1 line.
-* Avoid reporting an error when stdin/stdout is redirected. There is still
-  no support for redirected stdin/stdout though.
 * Fix YankToPercent off by 1 error.
 * Fix error reported when running in container.
-* Remove Ding from Backspace on an empty line
-* Fix occasional hang reading history file
-* Honor HistorySearchCursorMovesToEnd in Vi mode
-* Fix cursor placement with CJK characters
-* Fix key bindings with certain Windows keyboard layouts
+* Catch and ignore execptions in InvokePrompt (#583)
+* Get new completions on 2nd tab if 1st had 1 result (#238)
+* Tab replaced with 4 spaces during paste (#144)
+* Fix rendering after buffer resize (#418)
+* Invoke external editor w/o AcceptLine (#339)
+* Fix exception with UpArrow after a command line edit in vi-mode (#573) (Thanks @srdubya!)
+* Treat DingDuration=0 as BellStyle.None (#364)
+* Color long name parameters like --force as a parameter (#398)
+* Allow CaptureScreen to be used w/o a key binding (#419)
+* Ignore duplicates during tab completion (#413)
+* Fix exception with negative count in Delete (#502)
+* Use correct help file name (#507)
+* Fix exception in ShowKeyBinding w/ custom handler (#505)
+* Normalize filename for saving history (#512)
+* Treat end of buffer as whitespace for vi words (#536)
+* Fix exception with invalid CompletionResult (#534)
+* Fix exception with negative count in Kill* (#540) (Thanks andrewcromwell!)
+* Fixes to SwapCharacters (#538) (Thanks andrewcromwell!)
+* Fix cursor placement with CJK characters (#542)
+* Fix key bindings with certain Windows keyboard layouts (#168 #556)
+* Remove Ding from Backspace on an empty line (#422)
+* Fix occasional hang reading history file (#524)
+* HistorySearchCursorMovesToEnd previously only worked in incremental search.
+  It is now on by default, honored in the non-incremental search (HistorySearch)
+  and also in Vi Command mode for non-search history recall. (#438 #530) (Thanks @srdubya!)
 
-Breaking changes:
-* Requires PowerShell V5 or later and .Net 4.6.1
-* Building requires VS2017
-* Set-PSReadLineOption color parameters have changed
-  - Accept `object` instead of `ConsoleColor` to support accepting both
-    strings (VT escape sequences) and ConsoleColor
-  - Parameter names changed - no explicit Foreground/Background options anymore,
-    but aliases introduced so `-ForegroundColor` is the same as `-Color` and
-    `-ErrorForegroundColor` is the same as `-ErrorColor`.
-    To specify background colors, you must now use a VT escape sequence.
-* Changing the end of the prompt to red may not work automatically anymore if
-  your prompt is non-trivial. To fix, use `Set-PSReadLineOption -PromptText "> "`,
-  replacing the string with the text that should turn red - be sure to include
-  any whitespace.
 
 ### Version 1.2
 
