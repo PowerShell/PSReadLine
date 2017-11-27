@@ -104,7 +104,7 @@ namespace Microsoft.PowerShell
             }
         }
 
-        abstract class EditItem
+        internal abstract class EditItem
         {
             public Action<ConsoleKeyInfo?, object> _instigator;
             public object _instigatorArg;

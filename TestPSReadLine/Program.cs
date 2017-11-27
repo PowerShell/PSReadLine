@@ -49,7 +49,7 @@ namespace TestPSReadLine
             PSConsoleReadLine.SetOptions(new SetPSReadLineOption
             {
                 EditMode = EditMode.Emacs,
-                HistoryNoDuplicates = true,
+                HistoryNoDuplicates = false,
             });
             var options = PSConsoleReadLine.GetOptions();
             options.CommandColor = "#8181f7";

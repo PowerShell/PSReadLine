@@ -15,18 +15,49 @@ namespace Microsoft.PowerShell
 {
     public partial class PSConsoleReadLine
     {
-        [DebuggerDisplay("{" + nameof(_line) + "}")]
-        class HistoryItem
+        /// <summary>
+        /// History details including the command line, source, and start and approximate execution time.
+        /// </summary>
+        [DebuggerDisplay("{" + nameof(CommandLine) + "}")]
+        public class HistoryItem
         {
-            public string _line;
-            public List<EditItem> _edits;
-            public int _undoEditIndex;
-            public bool _saved;
-            public bool _fromDifferentLiveSession;
+            /// <summary>
+            /// The command line, or if multiple lines, the lines joined
+            /// with a newline.
+            /// </summary>
+            public string CommandLine { get; internal set; }
+
+            /// <summary>
+            /// The time at which the command was added to history in UTC.
+            /// </summary>
+            public DateTime StartTime { get; internal set; }
+
+            /// <summary>
+            /// The approximate elapsed time (includes time to invoke Prompt).
+            /// The value can be 0 ticks if if accessed before PSReadLine
+            /// gets a chance to set it.
+            /// </summary>
+            public TimeSpan ApproximateElapsedTime { get; internal set; }
+
+            /// <summary>
+            /// True if the command was from another running session
+            /// (as opposed to read from the history file at startup.)
+            /// </summary>
+            public bool FromOtherSession { get; internal set; }
+
+            /// <summary>
+            /// True if the command was read in from the history file at startup.
+            /// </summary>
+            public bool FromHistoryFile { get; internal set; }
+
+            internal bool _saved;
+            internal List<EditItem> _edits;
+            internal int _undoEditIndex;
         }
 
         // History state
         private HistoryQueue<HistoryItem> _history;
+        private HistoryItem _previousHistoryItem;
         private Dictionary<string, int> _hashedHistory;
         private int _currentHistoryIndex;
         private int _getNextHistoryIndex;
@@ -45,25 +76,58 @@ namespace Microsoft.PowerShell
         private const string _failedForwardISearchPrompt = "failed-fwd-i-search: ";
         private const string _failedBackwardISearchPrompt = "failed-bck-i-search: ";
 
-        private string MaybeAddToHistory(string result, List<EditItem> edits, int undoEditIndex, bool readingHistoryFile, bool fromDifferentSession)
+        private string MaybeAddToHistory(
+            string result,
+            List<EditItem> edits,
+            int undoEditIndex,
+            bool fromDifferentSession = false,
+            bool fromInitialRead = false)
         {
-            bool addToHistory = !string.IsNullOrWhiteSpace(result) && ((Options.AddToHistoryHandler == null) || Options.AddToHistoryHandler(result));
-            if (addToHistory)
+            bool AddToHistory(string line)
             {
-                _history.Enqueue(new HistoryItem
+                // Whitespace only is useless, never add.
+                if (string.IsNullOrWhiteSpace(line)) return false;
+
+                // If the user says don't add it, then don't.
+                if (Options.AddToHistoryHandler != null && !Options.AddToHistoryHandler(result)) return false;
+
+                // Under "no dupes" (which is on by default), immediately drop dupes of the previous line.
+                if (Options.HistoryNoDuplicates && _history.Count > 0)
+                    return !string.Equals(_history[_history.Count - 1].CommandLine, result, StringComparison.Ordinal);
+
+                return true;
+            }
+
+            if (AddToHistory(result))
+            {
+                var fromHistoryFile = fromDifferentSession || fromInitialRead;
+                _previousHistoryItem = new HistoryItem
                 {
-                    _line = result,
+                    CommandLine = result,
                     _edits = edits,
                     _undoEditIndex = undoEditIndex,
-                    _saved = readingHistoryFile,
-                    _fromDifferentLiveSession = fromDifferentSession,
-                });
+                    _saved = fromHistoryFile,
+                    FromOtherSession = fromDifferentSession,
+                    FromHistoryFile = fromInitialRead,
+                };
+                if (!fromHistoryFile)
+                {
+                    _previousHistoryItem.StartTime = DateTime.UtcNow;
+                }
+
+                _history.Enqueue(_previousHistoryItem);
+
+
                 _currentHistoryIndex = _history.Count;
 
-                if (_options.HistorySaveStyle == HistorySaveStyle.SaveIncrementally && !readingHistoryFile)
+                if (_options.HistorySaveStyle == HistorySaveStyle.SaveIncrementally && !fromHistoryFile)
                 {
                     IncrementalHistoryWrite();
                 }
+            }
+            else
+            {
+                _previousHistoryItem = null;
             }
 
             // Clear the saved line unless we used AcceptAndGetNext in which
@@ -71,7 +135,7 @@ namespace Microsoft.PowerShell
             // to recall the saved line.
             if (_getNextHistoryIndex == 0)
             {
-                _savedCurrentLine._line = null;
+                _savedCurrentLine.CommandLine = null;
                 _savedCurrentLine._edits = null;
                 _savedCurrentLine._undoEditIndex = 0;
             }
@@ -178,7 +242,7 @@ namespace Microsoft.PowerShell
                         for (var i = start; i <= end; i++)
                         {
                             _history[i]._saved = true;
-                            var line = _history[i]._line.Replace("\n", "`\n");
+                            var line = _history[i].CommandLine.Replace("\n", "`\n");
                             file.WriteLine(line);
                         }
                     }
@@ -218,7 +282,7 @@ namespace Microsoft.PowerShell
                                 historyLines.Add(sr.ReadLine());
                             }
                         }
-                        UpdateHistoryFromFile(historyLines, fromDifferentSession: true);
+                        UpdateHistoryFromFile(historyLines, fromDifferentSession: true, fromInitialRead: false);
 
                         _historyFileLastSavedSize = fileInfo.Length;
                     }
@@ -239,13 +303,13 @@ namespace Microsoft.PowerShell
                 }
 
                 var historyLines = File.ReadAllLines(Options.HistorySavePath);
-                UpdateHistoryFromFile(historyLines, fromDifferentSession: false);
+                UpdateHistoryFromFile(historyLines, fromDifferentSession: false, fromInitialRead: true);
                 var fileInfo = new FileInfo(Options.HistorySavePath);
                 _historyFileLastSavedSize = fileInfo.Length;
             });
         }
 
-        void UpdateHistoryFromFile(IEnumerable<string> historyLines, bool fromDifferentSession)
+        void UpdateHistoryFromFile(IEnumerable<string> historyLines, bool fromDifferentSession, bool fromInitialRead)
         {
             var sb = new StringBuilder();
             foreach (var line in historyLines)
@@ -260,13 +324,13 @@ namespace Microsoft.PowerShell
                     sb.Append(line);
                     var l = sb.ToString();
                     var editItems = new List<EditItem> {EditItemInsertString.Create(l, 0)};
-                    MaybeAddToHistory(l, editItems, 1, /*readingHistoryFile*/ true, fromDifferentSession);
+                    MaybeAddToHistory(l, editItems, 1, fromDifferentSession, fromInitialRead);
                     sb.Clear();
                 }
                 else
                 {
                     var editItems = new List<EditItem> {EditItemInsertString.Create(line, 0)};
-                    MaybeAddToHistory(line, editItems, 1, /*readingHistoryFile*/ true, fromDifferentSession);
+                    MaybeAddToHistory(line, editItems, 1, fromDifferentSession, fromInitialRead);
                 }
             }
         }
@@ -279,7 +343,7 @@ namespace Microsoft.PowerShell
         {
             command = command.Replace("\r\n", "\n");
             var editItems = new List<EditItem> {EditItemInsertString.Create(command, 0)};
-            _singleton.MaybeAddToHistory(command, editItems, 1, readingHistoryFile: false, fromDifferentSession: false);
+            _singleton.MaybeAddToHistory(command, editItems, 1);
         }
 
         /// <summary>
@@ -291,6 +355,14 @@ namespace Microsoft.PowerShell
             _singleton._currentHistoryIndex = 0;
         }
 
+        /// <summary>
+        /// Return a collection of history items.
+        /// </summary>
+        public static HistoryItem[] GetHistoryItems()
+        {
+            return _singleton._history.ToArray();
+        }
+
         enum HistoryMoveCursor { ToEnd, ToBeginning, DontMove }
 
         private void UpdateFromHistory(HistoryMoveCursor moveCursor)
@@ -298,13 +370,13 @@ namespace Microsoft.PowerShell
             string line;
             if (_currentHistoryIndex == _history.Count)
             {
-                line = _savedCurrentLine._line;
+                line = _savedCurrentLine.CommandLine;
                 _edits = _savedCurrentLine._edits;
                 _undoEditIndex = _savedCurrentLine._undoEditIndex;
             }
             else
             {
-                line = _history[_currentHistoryIndex]._line;
+                line = _history[_currentHistoryIndex].CommandLine;
                 _edits = new List<EditItem>(_history[_currentHistoryIndex]._edits);
                 _undoEditIndex = _history[_currentHistoryIndex]._undoEditIndex;
             }
@@ -335,9 +407,9 @@ namespace Microsoft.PowerShell
             // to check if we need to load history from another sessions now.
             MaybeReadHistoryFile();
 
-            if (_savedCurrentLine._line == null)
+            if (_savedCurrentLine.CommandLine == null)
             {
-                _savedCurrentLine._line = _buffer.ToString();
+                _savedCurrentLine.CommandLine = _buffer.ToString();
                 _savedCurrentLine._edits = _edits;
                 _savedCurrentLine._undoEditIndex = _undoEditIndex;
             }
@@ -367,14 +439,14 @@ namespace Microsoft.PowerShell
                     break;
                 }
 
-                if (_history[newHistoryIndex]._fromDifferentLiveSession)
+                if (_history[newHistoryIndex].FromOtherSession)
                 {
                     continue;
                 }
 
                 if (Options.HistoryNoDuplicates)
                 {
-                    var line = _history[newHistoryIndex]._line;
+                    var line = _history[newHistoryIndex].CommandLine;
                     if (!_hashedHistory.TryGetValue(line, out var index))
                     {
                         _hashedHistory.Add(line, newHistoryIndex);
@@ -458,12 +530,12 @@ namespace Microsoft.PowerShell
                     break;
                 }
 
-                if (_history[newHistoryIndex]._fromDifferentLiveSession && _searchHistoryPrefix.Length == 0)
+                if (_history[newHistoryIndex].FromOtherSession && _searchHistoryPrefix.Length == 0)
                 {
                     continue;
                 }
 
-                var line = newHistoryIndex == _history.Count ? _savedCurrentLine._line : _history[newHistoryIndex]._line;
+                var line = newHistoryIndex == _history.Count ? _savedCurrentLine.CommandLine : _history[newHistoryIndex].CommandLine;
                 if (line.StartsWith(_searchHistoryPrefix, Options.HistoryStringComparison))
                 {
                     if (Options.HistoryNoDuplicates)
@@ -547,7 +619,7 @@ namespace Microsoft.PowerShell
             searchFromPoint += direction;
             for (; searchFromPoint >= 0 && searchFromPoint < _history.Count; searchFromPoint += direction)
             {
-                var line = _history[searchFromPoint]._line;
+                var line = _history[searchFromPoint].CommandLine;
                 var startIndex = line.IndexOf(toMatch, Options.HistoryStringComparison);
                 if (startIndex >= 0)
                 {

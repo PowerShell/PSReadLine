@@ -244,7 +244,7 @@ namespace Microsoft.PowerShell
             }
 
             var buffer = _history[yankLastArgState.historyIndex];
-            Parser.ParseInput(buffer._line, out var tokens, out var unused);
+            Parser.ParseInput(buffer.CommandLine, out var tokens, out var unused);
 
             int arg = (yankLastArgState.argument < 0)
                           ? tokens.Length + yankLastArgState.argument - 1

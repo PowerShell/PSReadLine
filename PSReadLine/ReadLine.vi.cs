@@ -908,7 +908,7 @@ namespace Microsoft.PowerShell
             {
                 if (Options.HistoryStringComparison.HasFlag(StringComparison.OrdinalIgnoreCase))
                 {
-                    if (_history[i]._line.ToLower().Contains(_searchHistoryPrefix.ToLower()))
+                    if (_history[i].CommandLine.ToLower().Contains(_searchHistoryPrefix.ToLower()))
                     {
                         _currentHistoryIndex = i;
                         UpdateFromHistory(moveCursor);
@@ -917,7 +917,7 @@ namespace Microsoft.PowerShell
                 }
                 else
                 {
-                    if (_history[i]._line.Contains(_searchHistoryPrefix))
+                    if (_history[i].CommandLine.Contains(_searchHistoryPrefix))
                     {
                         _currentHistoryIndex = i;
                         UpdateFromHistory(moveCursor);

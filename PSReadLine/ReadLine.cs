@@ -382,7 +382,7 @@ namespace Microsoft.PowerShell
                 ProcessOneKey(key, _dispatchTable, ignoreIfNoAction: false, arg: null);
                 if (_inputAccepted)
                 {
-                    return MaybeAddToHistory(_buffer.ToString(), _edits, _undoEditIndex, readingHistoryFile: false, fromDifferentSession: false);
+                    return MaybeAddToHistory(_buffer.ToString(), _edits, _undoEditIndex);
                 }
 
                 if (killCommandCount == _killCommandCount)
@@ -565,11 +565,6 @@ namespace Microsoft.PowerShell
             _inputAccepted = false;
             _initialX = _console.CursorLeft;
             _initialY = _console.CursorTop;
-            _killCommandCount = 0;
-            _yankCommandCount = 0;
-            _yankLastArgCommandCount = 0;
-            _tabCommandCount = 0;
-            _visualSelectionCommandCount = 0;
             _statusIsErrorMessage = false;
 
             _initialOutputEncoding = Console.OutputEncoding;
@@ -600,7 +595,12 @@ namespace Microsoft.PowerShell
             }
             else
             {
+                _currentHistoryIndex = _history.Count;
                 _searchHistoryCommandCount = 0;
+            }
+            if (_previousHistoryItem != null)
+            {
+                _previousHistoryItem.ApproximateElapsedTime = DateTime.UtcNow - _previousHistoryItem.StartTime;
             }
         }
 

@@ -426,6 +426,7 @@ namespace UnitTestPSReadLine
             PSConsoleReadLine.SetOptions(new SetPSReadLineOption {HistoryNoDuplicates = false});
 
             SetHistory("zzzz", "aaaa", "bbbb", "bbbb", "cccc");
+            Assert.AreEqual(5, PSConsoleReadLine.GetHistoryItems().Length);
             Test("aaaa", Keys(Enumerable.Repeat(_.UpArrow, 4)));
 
             // Changing the option should affect existing history.
@@ -433,12 +434,14 @@ namespace UnitTestPSReadLine
             Test("zzzz", Keys(Enumerable.Repeat(_.UpArrow, 4)));
 
             SetHistory("aaaa", "bbbb", "bbbb", "cccc");
+            Assert.AreEqual(3, PSConsoleReadLine.GetHistoryItems().Length);
             Test("aaaa", Keys(Enumerable.Repeat(_.UpArrow, 3)));
 
             SetHistory("aaaa", "bbbb", "bbbb", "cccc");
             Test("cccc", Keys(
                 Enumerable.Repeat(_.UpArrow, 3),
                 Enumerable.Repeat(_.DownArrow, 2)));
+
 
             // No history
             SetHistory();

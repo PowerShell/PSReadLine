@@ -53,6 +53,32 @@ $d = [Microsoft.PowerShell.KeyHandler]::GetGroupingDescription($_.Group)
       </TableControl>
     </View>
     <View>
+      <Name>PSReadLine-HistoryItem</Name>
+      <ViewSelectedBy>
+        <TypeName>Microsoft.PowerShell.PSConsoleReadLine+HistoryItem</TypeName>
+      </ViewSelectedBy>
+      <ListControl>
+        <ListEntries>
+          <ListEntry>
+            <ListItems>
+              <ListItem>
+                <PropertyName>CommandLine</PropertyName>
+              </ListItem>
+              <ListItem>
+                <ItemSelectionCondition><ScriptBlock>$_.StartTime.Ticks -ne 0</ScriptBlock></ItemSelectionCondition>
+                <Label>StartTime</Label>
+                <ScriptBlock>$_.StartTime.ToLocalTime()</ScriptBlock>
+              </ListItem>
+              <ListItem>
+                <ItemSelectionCondition><ScriptBlock>$_.ApproximateElapsedTime.Ticks -ne 0</ScriptBlock></ItemSelectionCondition>
+                <PropertyName>ApproximateElapsedTime</PropertyName>
+              </ListItem>
+            </ListItems>
+          </ListEntry>
+        </ListEntries>
+      </ListControl>
+    </View>
+    <View>
       <Name>PSReadLine-Options</Name>
       <ViewSelectedBy>
         <TypeName>Microsoft.PowerShell.PSConsoleReadLineOptions</TypeName>
