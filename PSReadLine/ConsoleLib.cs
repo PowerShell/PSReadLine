@@ -31,10 +31,10 @@ namespace Microsoft.PowerShell.Internal
         private int _unixCursorSize = 25;
         public int CursorSize
         {
-            get => PlatformWindows.IsConsoleApiAvailable(input: true, output: false) ? Console.CursorSize : _unixCursorSize;
+            get => PlatformWindows.IsConsoleApiAvailable(input: false, output: true) ? Console.CursorSize : _unixCursorSize;
             set
             {
-                if (PlatformWindows.IsConsoleApiAvailable(input: true, output: false))
+                if (PlatformWindows.IsConsoleApiAvailable(input: false, output: true))
                 {
                     Console.CursorSize = value;
                 }

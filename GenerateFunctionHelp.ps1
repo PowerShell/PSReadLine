@@ -197,6 +197,15 @@ $allFunctions.Values |
 
 } catch
 {
+    & {
+        [Microsoft.PowerShell.PSConsoleReadLine].Assembly.Location | Out-String
+        $_ | Out-String
+        $_.Exception | Out-String
+        $_.Exception.StackTrace | Out-String
+        $_.Exception.InnerException | Out-String
+        $_.Exception.InnerException.StackTrace | Out-String
+
+    } | Out-Host
     exit 1
 }
 
