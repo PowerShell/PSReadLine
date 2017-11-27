@@ -10,7 +10,7 @@ before_build:
 
 build_script:
   - ps: |
-      Invoke-Build -Task Layout -Configuration Release
+      Invoke-Build -Task ZipRelease -Configuration Release
       platyPS\Get-HelpPreview .\bin\Release\PSReadLine\en-US\Microsoft.PowerShell.PSReadLine.dll-help.xml > .\bin\Release\PSReadLine.txt
 
 artifacts:
