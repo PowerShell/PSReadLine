@@ -18,6 +18,8 @@ if ($null -ne $t -and $t.Assembly.Location -ne $ourAssembly)
     exit $LASTEXITCODE
 }
 
+try {
+
 Import-Module "$PSScriptRoot\bin\$Configuration\PSReadLine\PSReadLine.psd1"
 
 $helpContent = [xml](Get-Content "$PSScriptRoot\PSReadLine\bin\$Configuration\Microsoft.PowerShell.PSReadLine.xml")
@@ -192,3 +194,10 @@ $allFunctions.Values |
             "    {0}:`n`n{1}{2}`n`n{3}`n" -f $_.Function, $indent, $desc, $bindings
         }
     } | Out-File -LiteralPath $OutFile -Encoding ascii
+
+} catch
+{
+    exit 1
+}
+
+exit 0

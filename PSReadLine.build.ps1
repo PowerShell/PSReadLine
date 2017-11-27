@@ -94,13 +94,14 @@ Synopsis: Generate about topic with function help
 #>
 task BuildAboutTopic @buildAboutTopicParams {
     $generatedFunctionHelpFile = New-TemporaryFile
-	& $PSScriptRoot/GenerateFunctionHelp.ps1 -Configuration $Configuration -OutFile $generatedFunctionHelpFile.FullName
+    & $PSScriptRoot/GenerateFunctionHelp.ps1 -Configuration $Configuration -OutFile $generatedFunctionHelpFile.FullName
     assert ($LASTEXITCODE -eq 0) "Generating function help failed"
+
     $functionDescriptions = Get-Content -Raw $generatedFunctionHelpFile
     $aboutTopic = Get-Content -Raw $PSScriptRoot/docs/about_PSReadLine.help.txt
     $newAboutTopic = $aboutTopic -replace '{{FUNCTION_DESCRIPTIONS}}', $functionDescriptions
-	$newAboutTopic = $newAboutTopic -replace "`r`n","`n"
-	[System.IO.File]::WriteAllText("$targetDir/en-US/about_PSReadLine.help.txt", $newAboutTopic, [System.Text.Encoding]::ASCII)
+    $newAboutTopic = $newAboutTopic -replace "`r`n","`n"
+    [System.IO.File]::WriteAllText("$targetDir/en-US/about_PSReadLine.help.txt", $newAboutTopic, [System.Text.Encoding]::ASCII)
 
     & $PSScriptRoot/CheckHelp.ps1 -Configuration $Configuration
     assert ($LASTEXITCODE -eq 0) "Checking help and function signatures failed"
@@ -118,6 +119,16 @@ task BuildMainModule @binaryModuleParams RestoreNugetPackages, {
     exec { msbuild PSReadLine/PSReadLine.csproj /t:Rebuild /p:Configuration=$Configuration /p:Platform=AnyCPU }
 }
 
+<#
+Synopsis: Generate the file catalog
+#>
+task GenerateCatalog {
+    exec {
+        $null = New-FileCatalog -CatalogFilePath $PSScriptRoot/bin/$Configuration/PSReadLine/PSReadLine.cat `
+                                -Path $PSScriptRoot/bin/$Configuration/PSReadLine `
+                                -CatalogVersion 2.0
+    }
+}
 
 $buildTestParams = @{
     Inputs  = { Get-ChildItem TestPSReadLine/*.cs, TestPSReadLine/TestPSReadLine.csproj }
@@ -183,7 +194,7 @@ task LayoutModule BuildMainModule, BuildMamlHelp, {
     {
         $file.IsReadOnly = $false
     }
-}, BuildAboutTopic
+}, BuildAboutTopic, GenerateCatalog
 
 
 <#
