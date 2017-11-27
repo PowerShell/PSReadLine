@@ -93,8 +93,11 @@ $buildAboutTopicParams = @{
 Synopsis: Generate about topic with function help
 #>
 task BuildAboutTopic @buildAboutTopicParams {
+    # This step loads the dll that was just built, so only do that in another process
+    # so the file isn't locked in any way for the rest of the build.
+
     $generatedFunctionHelpFile = New-TemporaryFile
-    & $PSScriptRoot/GenerateFunctionHelp.ps1 -Configuration $Configuration -OutFile $generatedFunctionHelpFile.FullName
+    powershell -NoProfile -NonInteractive -File $PSScriptRoot/GenerateFunctionHelp.ps1 $Configuration $generatedFunctionHelpFile.FullName
     assert ($LASTEXITCODE -eq 0) "Generating function help failed"
 
     $functionDescriptions = Get-Content -Raw $generatedFunctionHelpFile
@@ -103,7 +106,7 @@ task BuildAboutTopic @buildAboutTopicParams {
     $newAboutTopic = $newAboutTopic -replace "`r`n","`n"
     $newAboutTopic | Out-File -FilePath $targetDir\en-US\about_PSReadLine.help.txt -NoNewline -Encoding ascii
 
-    & $PSScriptRoot/CheckHelp.ps1 -Configuration $Configuration
+    powershell -NoProfile -NonInteractive -File $PSScriptRoot/CheckHelp.ps1 $Configuration
     assert ($LASTEXITCODE -eq 0) "Checking help and function signatures failed"
 }
 

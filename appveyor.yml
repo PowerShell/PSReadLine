@@ -4,13 +4,13 @@ image: Visual Studio 2017
 before_build:
   - ps: |
       nuget install platyPS -Version 0.4.0 -source https://www.powershellgallery.com/api/v2 -outputDirectory . -ExcludeVersion
-      nuget install InvokeBuild -Version 3.6.4 -source https://www.powershellgallery.com/api/v2 -outputDirectory . -ExcludeVersion
+      nuget install InvokeBuild -Version 4.0.2 -source https://www.powershellgallery.com/api/v2 -outputDirectory . -ExcludeVersion
       Import-Module .\platyPS
       Import-Module .\InvokeBuild
 
 build_script:
   - ps: |
-      Invoke-Build -Task ZipRelease -Configuration Release
+      Invoke-Build -Task Layout -Configuration Release
       platyPS\Get-HelpPreview .\bin\Release\PSReadLine\en-US\Microsoft.PowerShell.PSReadLine.dll-help.xml > .\bin\Release\PSReadLine.txt
 
 artifacts:
