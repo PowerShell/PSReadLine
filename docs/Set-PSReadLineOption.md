@@ -323,6 +323,8 @@ The valid keys include:
 
 -- Error: The error color, e.g. in the prompt.
 
+-- Selection: The color to highlight the menu selection or selected text.
+
 -- Default: The default token color.
 
 -- Comment: The comment token color.

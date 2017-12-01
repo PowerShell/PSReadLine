@@ -384,6 +384,12 @@ namespace Microsoft.PowerShell
             set => _errorColor = VTColorUtils.AsEscapeSequence(value);
         }
 
+        public object SelectionColor
+        {
+            get => _selectionColor;
+            set => _selectionColor = VTColorUtils.AsEscapeSequence(value);
+        }
+
         internal string _defaultTokenColor;
         internal string _commentColor;
         internal string _keywordColor;
@@ -397,10 +403,12 @@ namespace Microsoft.PowerShell
         internal string _memberColor;
         internal string _emphasisColor;
         internal string _errorColor;
+        internal string _selectionColor;
 
         internal void ResetColors()
         {
-            DefaultTokenColor = Console.ForegroundColor;
+            var fg = Console.ForegroundColor;
+            DefaultTokenColor = fg;
             CommentColor      = DefaultCommentColor;
             KeywordColor      = DefaultKeywordColor;
             StringColor       = DefaultStringColor;
@@ -413,6 +421,16 @@ namespace Microsoft.PowerShell
             MemberColor       = DefaultNumberColor;
             EmphasisColor     = DefaultEmphasisColor;
             ErrorColor        = DefaultErrorColor;
+
+            var bg = Console.BackgroundColor;
+            if (fg == VTColorUtils.UnknownColor || bg == VTColorUtils.UnknownColor)
+            {
+                // TODO: light vs. dark
+                fg = ConsoleColor.Black;
+                bg = ConsoleColor.Gray;
+            }
+
+            SelectionColor = VTColorUtils.AsEscapeSequence(bg, fg);
         }
 
         private static Dictionary<string, Action<PSConsoleReadLineOptions, object>> ColorSetters = null;
@@ -438,6 +456,7 @@ namespace Microsoft.PowerShell
                         {"Type", (o, v) => o.TypeColor = v},
                         {"Number", (o, v) => o.NumberColor = v},
                         {"Member", (o, v) => o.MemberColor = v},
+                        {"Selection", (o, v) => o.SelectionColor = v },
                     };
 
                 Interlocked.CompareExchange(ref ColorSetters, setters, null);
@@ -649,16 +668,6 @@ namespace Microsoft.PowerShell
         }
     }
 
-    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
-    internal class ValidateColorAttribute : ValidateArgumentsAttribute
-    {
-        protected override void Validate(object arguments, EngineIntrinsics engineIntrinsics)
-        {
-            if (!VTColorUtils.IsValidColor(arguments))
-                throw new ValidationMetadataException(PSReadLineResources.InvalidColorParameter);
-        }
-    }
-
     public class ChangePSReadLineKeyHandlerCommandBase : PSCmdlet
     {
         [Parameter(Position = 0, Mandatory = true)]
@@ -837,9 +846,7 @@ namespace Microsoft.PowerShell
 
     public static class VTColorUtils
     {
-        internal static bool IsValidColorImpl(ConsoleColor c) => true;
-
-        internal static bool IsValidColorImpl(string s) => true;
+        public const ConsoleColor UnknownColor = (ConsoleColor) (-1);
 
         public static bool IsValidColor(object o)
         {
@@ -920,6 +927,20 @@ namespace Microsoft.PowerShell
             }
 
             throw new ArgumentException("o");
+        }
+
+        public static string AsEscapeSequence(ConsoleColor fg, ConsoleColor bg)
+        {
+            if (fg < 0 || fg >= (ConsoleColor) ForegroundColorMap.Length)
+                throw new ArgumentOutOfRangeException(nameof(fg));
+            if (bg < 0 || bg >= (ConsoleColor) ForegroundColorMap.Length)
+                throw new ArgumentOutOfRangeException(nameof(bg));
+
+            string ExtractCode(string s)
+            {
+                return s.Substring(2).TrimEnd(new[] {'m'});
+            }
+            return "\x1b[" + ExtractCode(ForegroundColorMap[(int)fg]) + ";" + ExtractCode(BackgroundColorMap[(int)bg]) + "m";
         }
 
         private static readonly string[] BackgroundColorMap = {

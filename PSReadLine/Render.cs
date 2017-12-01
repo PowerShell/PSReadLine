@@ -145,12 +145,13 @@ namespace Microsoft.PowerShell
             string activeColor = "";
             bool afterLastToken = false;
             int currentLogicalLine = 0;
+            bool inSelectedRegion = false;
 
             void UpdateColorsIfNecessary(string newColor)
             {
                 if (!object.ReferenceEquals(newColor, activeColor))
                 {
-                    _consoleBufferLines[currentLogicalLine].Append(newColor);
+                    if (!inSelectedRegion) _consoleBufferLines[currentLogicalLine].Append(newColor);
                     activeColor = newColor;
                 }
             }
@@ -177,7 +178,6 @@ namespace Microsoft.PowerShell
                 Color = defaultColor
             });
 
-            bool inSelectedRegion = false;
             int selectionStart = -1;
             int selectionEnd = -1;
             if (_visualSelectionCommandCount > 0)
@@ -194,12 +194,13 @@ namespace Microsoft.PowerShell
             {
                 if (i == selectionStart)
                 {
-                    _consoleBufferLines[currentLogicalLine].Append("\x1b[7m");
+                    _consoleBufferLines[currentLogicalLine].Append(Options.SelectionColor);
                     inSelectedRegion = true;
                 }
                 else if (i == selectionEnd)
                 {
-                    _consoleBufferLines[currentLogicalLine].Append("\x1b[27m");
+                    _consoleBufferLines[currentLogicalLine].Append("\x1b[0m");
+                    _consoleBufferLines[currentLogicalLine].Append(activeColor);
                     inSelectedRegion = false;
                 }
 
@@ -270,7 +271,7 @@ namespace Microsoft.PowerShell
                     if (inSelectedRegion)
                     {
                         // Turn off inverse before end of line, turn on after continuation prompt
-                        _consoleBufferLines[currentLogicalLine].Append("\x1b[27m");
+                        _consoleBufferLines[currentLogicalLine].Append("\x1b[0m");
                     }
 
                     currentLogicalLine += 1;
@@ -288,7 +289,7 @@ namespace Microsoft.PowerShell
                     if (inSelectedRegion)
                     {
                         // Turn off inverse before end of line, turn on after continuation prompt
-                        _consoleBufferLines[currentLogicalLine].Append("\x1b[7m");
+                        _consoleBufferLines[currentLogicalLine].Append(Options.SelectionColor);
                     }
                 }
                 else
@@ -309,7 +310,7 @@ namespace Microsoft.PowerShell
 
             if (inSelectedRegion)
             {
-                _consoleBufferLines[currentLogicalLine].Append("\x1b[27m");
+                _consoleBufferLines[currentLogicalLine].Append("\x1b[0m");
             }
 
             if (_statusLinePrompt != null)
