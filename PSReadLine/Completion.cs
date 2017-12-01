@@ -450,7 +450,11 @@ namespace Microsoft.PowerShell
 
             void EnsureMenuAndInputIsVisible(IConsole console, int tooltipLineCount)
             {
-                var bottom = this.Top + this.Rows + tooltipLineCount;
+                // The +1 lets us write a newline after the last row, which isn't strictly necessary
+                // It does help with:
+                //   * Console selecting multiple lines of text
+                //   * Adds a little extra space underneath the menu
+                var bottom = this.Top + this.Rows + tooltipLineCount + 1;
                 if (bottom > console.BufferHeight)
                 {
                     var toScroll = bottom - console.BufferHeight;

@@ -696,7 +696,13 @@ namespace Microsoft.PowerShell
                         {
                             x = size;
                         }
-                        y += 1;
+
+                        // If the next character is newline, let the next loop
+                        // iteration increment y and adjust x.
+                        if (!(i + 1 < offset && _buffer[i + 1] == '\n'))
+                        {
+                            y += 1;
+                        }
                     }
                 }
             }

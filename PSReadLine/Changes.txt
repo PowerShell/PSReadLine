@@ -7,7 +7,6 @@ There are known issues:
 * Some custom key bindings are broken (#580)
 * You must use a real terminal emulator, e.g. Windows 10 Creators Update or later, or ConEmu or any Unix terminal. (#596)
 * Selection highlighting is weird and broken with extended colors on Windows (#597)
-* Rendering artifacts w/ MenuComplete at the bottom of the buffer (#598)
 
 Breaking changes:
 * Requires PowerShell V5 or later and .Net 4.6.1
