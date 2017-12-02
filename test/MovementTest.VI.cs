@@ -1,15 +1,15 @@
 ﻿using Microsoft.PowerShell;
 using Xunit;
 
-namespace UnitTestPSReadLine
+namespace Test
 {
     // Disgusting language hack to make it easier to read a sequence of keys.
     using _ = Keys;
 
-    public partial class UnitTest
+    public partial class ReadLine
     {
         [Fact]
-        public void ViTestWordMovement()
+        public void ViWordMovement()
         {
             TestSetup(KeyMode.Vi);
 
@@ -265,7 +265,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void ViTestDotWordMovement()
+        public void ViDotWordMovement()
         {
             TestSetup(KeyMode.Vi);
 
@@ -369,7 +369,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void ViTestCursorMovement()
+        public void ViCursorMovement()
         {
             TestSetup(KeyMode.Vi);
 
@@ -415,7 +415,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void ViTestGotoBrace()
+        public void ViGotoBrace()
         {
             TestSetup(KeyMode.Vi);
 
@@ -450,7 +450,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void ViTestCharacterSearch()
+        public void ViCharacterSearch()
         {
             TestSetup(KeyMode.Vi);
 
@@ -536,7 +536,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void ViTestColumnMovement()
+        public void ViColumnMovement()
         {
             TestSetup(KeyMode.Vi);
 
@@ -563,7 +563,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void ViTestBOLErrorCase()
+        public void ViBOLErrorCase()
         {
             TestSetup(KeyMode.Vi);
 
@@ -573,7 +573,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void ViTestCharDelete()
+        public void ViCharDelete()
         {
             TestSetup(KeyMode.Vi);
 
@@ -618,7 +618,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void ViTestDefect456()
+        public void ViDefect456()
         {
             TestSetup(KeyMode.Vi);
 

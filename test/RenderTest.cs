@@ -4,15 +4,15 @@ using System.Text;
 using Microsoft.PowerShell;
 using Xunit;
 
-namespace UnitTestPSReadLine
+namespace Test
 {
     // Disgusting language hack to make it easier to read a sequence of keys.
     using _ = Keys;
 
-    public partial class UnitTest
+    public partial class ReadLine
     {
         [Fact]
-        public void TestClearScreen()
+        public void ClearScreen()
         {
             TestSetup(KeyMode.Emacs);
 
@@ -35,7 +35,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestRender()
+        public void Render()
         {
             TestSetup(KeyMode.Cmd);
 
@@ -110,7 +110,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestMultiLine()
+        public void MultiLine()
         {
             TestSetup(KeyMode.Cmd);
 
@@ -143,7 +143,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestLongLine()
+        public void LongLine()
         {
             TestSetup(KeyMode.Cmd);
 
@@ -157,7 +157,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestInvokePrompt()
+        public void InvokePrompt()
         {
             TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+z", PSConsoleReadLine.InvokePrompt));
 

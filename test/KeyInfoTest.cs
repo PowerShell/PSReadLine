@@ -1,16 +1,15 @@
 ﻿using System;
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.PowerShell;
 using Xunit;
 
-namespace UnitTestPSReadLine
+namespace Test
 {
-        public class KeyInfoConverterTest
+    public class KeyInfo
     {
         private const ConsoleModifiers NoModifiers = 0;
 
         [Fact]
-        public void TestKeyInfoConverterSimpleCharLiteral()
+        public void KeyInfoConverterSimpleCharLiteral()
         {
             void TestOne(char keyChar, ConsoleKey key, ConsoleModifiers mods = NoModifiers)
             {
@@ -49,7 +48,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestKeyInfoConverterSimpleConsoleKey()
+        public void KeyInfoConverterSimpleConsoleKey()
         {
             var cases = new [] {
                 "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12",
@@ -111,7 +110,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestKeyInfoConverterErrors()
+        public void KeyInfoConverterErrors()
         {
             void TestOne(string s)
             {

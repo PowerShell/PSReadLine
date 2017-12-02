@@ -83,7 +83,7 @@
     <Compile Include="HistoryTest.VI.cs" />
     <Compile Include="HistoryTest.cs" />
     <Compile Include="KeyBindingsTest.cs" />
-    <Compile Include="KeyInfoConverterTest.cs" />
+    <Compile Include="KeyInfoTest.cs" />
     <Compile Include="BasicEditingTest.cs" />
     <Compile Include="KillYankTest.cs" />
     <Compile Include="MovementTest.VI.cs" />

@@ -4,15 +4,15 @@ using System.Diagnostics.CodeAnalysis;
 using Microsoft.PowerShell;
 using Xunit;
 
-namespace UnitTestPSReadLine
+namespace Test
 {
     // Disgusting language hack to make it easier to read a sequence of keys.
     using _ = Keys;
 
-    public partial class UnitTest
+    public partial class ReadLine
     {
         [Fact]
-        public void TestContinuationPrompt()
+        public void ContinuationPrompt()
         {
             TestSetup(KeyMode.Cmd);
 
@@ -59,7 +59,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestGetKeyHandlers()
+        public void GetKeyHandlers()
         {
             foreach (var keymode in new[] {KeyMode.Cmd, KeyMode.Emacs})
             {
@@ -83,7 +83,7 @@ namespace UnitTestPSReadLine
 
         [Fact]
         [ExcludeFromCodeCoverage]
-        public void TestUselessStuffForBetterCoverage()
+        public void UselessStuffForBetterCoverage()
         {
             // Useless test to just make sure coverage numbers are better, written
             // in the first way I could think of that doesn't warn about doing something useless.

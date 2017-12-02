@@ -1,15 +1,15 @@
 ﻿using Microsoft.PowerShell;
 using Xunit;
 
-namespace UnitTestPSReadLine
+namespace Test
 {
     // Disgusting language hack to make it easier to read a sequence of keys.
     using _ = Keys;
 
-    public partial class UnitTest
+    public partial class ReadLine
     {
         [Fact]
-        public void ViTestChangeWord()
+        public void ViChangeWord()
         {
             TestSetup(KeyMode.Vi);
 

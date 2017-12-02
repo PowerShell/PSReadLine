@@ -13,7 +13,7 @@ using Microsoft.PowerShell;
 using Microsoft.PowerShell.Internal;
 using Xunit;
 
-namespace UnitTestPSReadLine
+namespace Test
 {
     // Disgusting language hack to make it easier to read a sequence of keys.
     using _ = Keys;
@@ -29,7 +29,7 @@ namespace UnitTestPSReadLine
 
         public CommandCompletion CompleteInput(string input, int cursorIndex, Hashtable options, PowerShell powershell)
         {
-            return UnitTest.MockedCompleteInput(input, cursorIndex, options, powershell);
+            return ReadLine.MockedCompleteInput(input, cursorIndex, options, powershell);
         }
 
         public bool RunspaceIsRemote(Runspace runspace)
@@ -104,8 +104,8 @@ namespace UnitTestPSReadLine
 
         internal TestConsole()
         {
-            BackgroundColor = UnitTest.BackgroundColors[0];
-            ForegroundColor = UnitTest.Colors[0];
+            BackgroundColor = ReadLine.BackgroundColors[0];
+            ForegroundColor = ReadLine.Colors[0];
             CursorLeft = 0;
             CursorTop = 0;
             _bufferWidth = _windowWidth = 60;
@@ -326,8 +326,8 @@ namespace UnitTestPSReadLine
             SetCursorPosition(_savedX, _savedY);
         }
 
-        private static readonly ConsoleColor DefaultForeground = UnitTest.Colors[0];
-        private static readonly ConsoleColor DefaultBackground = UnitTest.BackgroundColors[0];
+        private static readonly ConsoleColor DefaultForeground = ReadLine.Colors[0];
+        private static readonly ConsoleColor DefaultBackground = ReadLine.BackgroundColors[0];
 
         private static void ToggleNegative(TestConsole c, bool b)
         {
@@ -396,9 +396,9 @@ namespace UnitTestPSReadLine
         Member,
     }
 
-        public partial class UnitTest
+        public partial class ReadLine
     {
-        static UnitTest()
+        static ReadLine()
         {
             var iss = InitialSessionState.CreateDefault2();
             var rs = RunspaceFactory.CreateRunspace(iss);

@@ -5,15 +5,15 @@ using System.Reflection;
 using Microsoft.PowerShell;
 using Xunit;
 
-namespace UnitTestPSReadLine
+namespace Test
 {
     // Disgusting language hack to make it easier to read a sequence of keys.
     using _ = Keys;
 
-    public partial class UnitTest
+    public partial class ReadLine
     {
         [Fact]
-        public void TestTabComplete()
+        public void TabComplete()
         {
             TestSetup(KeyMode.Cmd);
 
@@ -41,7 +41,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestInvalidCompletionResult()
+        public void InvalidCompletionResult()
         {
             TestSetup(KeyMode.Cmd);
 
@@ -53,7 +53,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestComplete()
+        public void Complete()
         {
             TestSetup(KeyMode.Emacs);
 
@@ -65,7 +65,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestPossibleCompletions()
+        public void PossibleCompletions()
         {
             TestSetup(KeyMode.Emacs);
 
@@ -119,7 +119,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestPossibleCompletionsPrompt()
+        public void PossibleCompletionsPrompt()
         {
             TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+Spacebar", PSConsoleReadLine.PossibleCompletions));
 
@@ -148,7 +148,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestShowTooltips()
+        public void ShowTooltips()
         {
             TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+Spacebar", PSConsoleReadLine.PossibleCompletions));
 
@@ -158,7 +158,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestDirectoryCompletion()
+        public void DirectoryCompletion()
         {
             TestSetup(KeyMode.Cmd);
 

@@ -2,15 +2,15 @@
 using Microsoft.PowerShell;
 using Xunit;
 
-namespace UnitTestPSReadLine
+namespace Test
 {
     // Disgusting language hack to make it easier to read a sequence of keys.
     using _ = Keys;
 
-    public partial class UnitTest
+    public partial class ReadLine
     {
         [Fact]
-        public void TestWhatIsKey()
+        public void WhatIsKey()
         {
             TestSetup(KeyMode.Cmd);
 
@@ -36,7 +36,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestShowKeyBindings()
+        public void ShowKeyBindings()
         {
             // I'm too lazy to validate the output as there's a lot of output.  So
             // just run it a few times to make sure nothing crashes.

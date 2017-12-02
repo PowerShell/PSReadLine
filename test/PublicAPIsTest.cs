@@ -3,15 +3,15 @@ using System.Management.Automation.Language;
 using Microsoft.PowerShell;
 using Xunit;
 
-namespace UnitTestPSReadLine
+namespace Test
 {
     // Disgusting language hack to make it easier to read a sequence of keys.
     using _ = Keys;
 
-    public partial class UnitTest
+    public partial class ReadLine
     {
         [Fact]
-        public void TestInsertAPI()
+        public void InsertAPI()
         {
             TestSetup(KeyMode.Cmd);
 
@@ -30,7 +30,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestDeleteAPI()
+        public void DeleteAPI()
         {
             TestSetup(KeyMode.Cmd);
 
@@ -40,7 +40,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestReplaceAPI()
+        public void ReplaceAPI()
         {
             TestSetup(KeyMode.Cmd);
 
@@ -72,7 +72,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestGetBufferStateAPI()
+        public void GetBufferStateAPI()
         {
             TestSetup(KeyMode.Cmd);
 
@@ -94,7 +94,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestGetSelectionStateAPI()
+        public void GetSelectionStateAPI()
         {
             TestSetup(KeyMode.Cmd);
 
@@ -123,7 +123,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestSetCursorPositionAPI()
+        public void SetCursorPositionAPI()
         {
             TestSetup(KeyMode.Cmd);
 

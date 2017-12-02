@@ -3,15 +3,15 @@ using System.Linq;
 using Microsoft.PowerShell;
 using Xunit;
 
-namespace UnitTestPSReadLine
+namespace Test
 {
     // Disgusting language hack to make it easier to read a sequence of keys.
     using _ = Keys;
 
-    public partial class UnitTest
+    public partial class ReadLine
     {
         [Fact]
-        public void TestInput()
+        public void Input()
         {
             TestSetup(KeyMode.Cmd);
 
@@ -22,7 +22,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestRevertLine()
+        public void RevertLine()
         {
             // Add one test for chords
             TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+x,Escape", PSConsoleReadLine.RevertLine));
@@ -36,7 +36,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestCancelLine()
+        public void CancelLine()
         {
             TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+C", PSConsoleReadLine.CancelLine));
 
@@ -75,7 +75,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestForwardDeleteLine()
+        public void ForwardDeleteLine()
         {
             TestSetup(KeyMode.Cmd);
 
@@ -90,7 +90,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestBackwardDeleteLine()
+        public void BackwardDeleteLine()
         {
             TestSetup(KeyMode.Cmd);
 
@@ -106,7 +106,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestBackwardDeleteChar()
+        public void BackwardDeleteChar()
         {
             TestSetup(KeyMode.Cmd);
 
@@ -130,7 +130,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestDeleteChar()
+        public void DeleteChar()
         {
             TestSetup(KeyMode.Cmd);
 
@@ -151,7 +151,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestDeleteCharOrExit()
+        public void DeleteCharOrExit()
         {
             TestSetup(KeyMode.Emacs);
 
@@ -163,7 +163,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestSwapCharacters()
+        public void SwapCharacters()
         {
             TestSetup(KeyMode.Emacs);
 
@@ -187,7 +187,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestAcceptAndGetNext()
+        public void AcceptAndGetNext()
         {
             TestSetup(KeyMode.Emacs);
 
@@ -216,7 +216,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestAcceptAndGetNextWithHistorySearch()
+        public void AcceptAndGetNextWithHistorySearch()
         {
             TestSetup(KeyMode.Emacs,
                       new KeyHandler("UpArrow", PSConsoleReadLine.HistorySearchBackward),
@@ -229,7 +229,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestAddLine()
+        public void AddLine()
         {
             TestSetup(KeyMode.Cmd);
 
@@ -237,7 +237,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestInsertLineAbove()
+        public void InsertLineAbove()
         {
             TestSetup(KeyMode.Cmd);
 
@@ -287,7 +287,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestInsertLineBelow()
+        public void InsertLineBelow()
         {
             TestSetup(KeyMode.Cmd);
 
@@ -340,7 +340,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestMultilineHomeBugFixed()
+        public void MultilineHomeBugFixed()
         {
             TestSetup(KeyMode.Cmd);
 
@@ -352,7 +352,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestIgnore()
+        public void Ignore()
         {
             TestSetup(KeyMode.Emacs);
 

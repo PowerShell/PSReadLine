@@ -3,12 +3,12 @@ using System.Linq;
 using Microsoft.PowerShell;
 using Xunit;
 
-namespace UnitTestPSReadLine
+namespace Test
 {
     // Disgusting language hack to make it easier to read a sequence of keys.
     using _ = Keys;
 
-    public partial class UnitTest
+    public partial class ReadLine
     {
         private ConsoleKeyInfo[] StringToCKI(string str)
         {
@@ -16,7 +16,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestMapControlChars()
+        public void MapControlChars()
         {
             var map = new WindowsAnsiCharMap();
             // Enter (Ctrl+J)
@@ -60,7 +60,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestValidEscapeSequences()
+        public void ValidEscapeSequences()
         {
             // Use a high timeout value so there's no way it will try to convert
             // part of a sequence to Alt+something.
@@ -105,7 +105,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestAltSequences()
+        public void AltSequences()
         {
             var map = new WindowsAnsiCharMap(1000);
 
@@ -195,7 +195,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestPartialEscapeSequences()
+        public void PartialEscapeSequences()
         {
             var map = new WindowsAnsiCharMap(1000);
 

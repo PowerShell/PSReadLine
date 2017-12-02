@@ -5,15 +5,15 @@ using System.Windows;
 using Microsoft.PowerShell;
 using Xunit;
 
-namespace UnitTestPSReadLine
+namespace Test
 {
     // Disgusting language hack to make it easier to read a sequence of keys.
     using _ = Keys;
 
-    public partial class UnitTest
+    public partial class ReadLine
     {
         [Fact]
-        public void TestKillWord()
+        public void KillWord()
         {
             TestSetup(KeyMode.Emacs);
 
@@ -26,7 +26,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestBackwardKillWord()
+        public void BackwardKillWord()
         {
             TestSetup(KeyMode.Emacs);
 
@@ -39,7 +39,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestUnixWordRubout()
+        public void UnixWordRubout()
         {
             TestSetup(KeyMode.Emacs);
 
@@ -47,7 +47,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestKillRegion()
+        public void KillRegion()
         {
             TestSetup(KeyMode.Emacs, new KeyHandler("Ctrl+z", PSConsoleReadLine.KillRegion));
 
@@ -55,7 +55,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestYankPop()
+        public void YankPop()
         {
             TestSetup(KeyMode.Emacs);
 
@@ -100,7 +100,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestKillLine()
+        public void KillLine()
         {
             TestSetup(KeyMode.Emacs);
 
@@ -114,7 +114,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestBackwardKillLine()
+        public void BackwardKillLine()
         {
             TestSetup(KeyMode.Emacs);
 
@@ -133,7 +133,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestKillAppend()
+        public void KillAppend()
         {
             TestSetup(KeyMode.Emacs);
 
@@ -172,7 +172,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestShellKillWord()
+        public void ShellKillWord()
         {
             TestSetup(KeyMode.Emacs,
                 new KeyHandler("Alt+d", PSConsoleReadLine.ShellKillWord));
@@ -188,7 +188,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestShellBackwardKillWord()
+        public void ShellBackwardKillWord()
         {
             TestSetup(KeyMode.Emacs,
                 new KeyHandler("Alt+Backspace", PSConsoleReadLine.ShellBackwardKillWord));
@@ -204,7 +204,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestExchangePointAndMark()
+        public void ExchangePointAndMark()
         {
             TestSetup(KeyMode.Emacs,
                       new KeyHandler("Ctrl+z", PSConsoleReadLine.ExchangePointAndMark));
@@ -233,7 +233,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestYankLastNth()
+        public void YankLastNth()
         {
             TestSetup(KeyMode.Emacs);
 
@@ -264,7 +264,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestYankLastArg()
+        public void YankLastArg()
         {
             TestSetup(KeyMode.Emacs);
 
@@ -300,7 +300,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestPaste()
+        public void Paste()
         {
             TestSetup(KeyMode.Cmd);
 
@@ -313,7 +313,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestCut()
+        public void Cut()
         {
             TestSetup(KeyMode.Cmd);
 
@@ -324,7 +324,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestCopy()
+        public void Copy()
         {
             TestSetup(KeyMode.Cmd);
 
@@ -340,7 +340,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestCopyOrCancelLine()
+        public void CopyOrCancelLine()
         {
             TestSetup(KeyMode.Cmd);
 
@@ -357,7 +357,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestSelectBackwardChar()
+        public void SelectBackwardChar()
         {
             TestSetup(KeyMode.Cmd);
 
@@ -370,7 +370,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestSelectForwardChar()
+        public void SelectForwardChar()
         {
             TestSetup(KeyMode.Cmd);
 
@@ -383,7 +383,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestSelectBackwardWord()
+        public void SelectBackwardWord()
         {
             TestSetup(KeyMode.Cmd);
 
@@ -397,7 +397,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestSelectNextWord()
+        public void SelectNextWord()
         {
             TestSetup(KeyMode.Cmd);
 
@@ -411,7 +411,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestSelectForwardWord()
+        public void SelectForwardWord()
         {
             TestSetup(KeyMode.Emacs);
 
@@ -424,7 +424,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestSelectShellForwardWord()
+        public void SelectShellForwardWord()
         {
             TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+z", PSConsoleReadLine.SelectShellForwardWord));
 
@@ -437,7 +437,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestSelectShellNextWord()
+        public void SelectShellNextWord()
         {
             TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+z", PSConsoleReadLine.SelectShellNextWord));
 
@@ -450,7 +450,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestSelectShellBackwardWord()
+        public void SelectShellBackwardWord()
         {
             TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+z", PSConsoleReadLine.SelectShellBackwardWord));
 
@@ -464,7 +464,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestSelectBackwardsLine()
+        public void SelectBackwardsLine()
         {
             TestSetup(KeyMode.Emacs);
 
@@ -476,7 +476,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestSelectLine()
+        public void SelectLine()
         {
             TestSetup(KeyMode.Cmd);
 
@@ -488,7 +488,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestSelectAll()
+        public void SelectAll()
         {
             TestSetup(KeyMode.Cmd);
 

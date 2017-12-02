@@ -2,15 +2,15 @@
 using Microsoft.PowerShell;
 using Xunit;
 
-namespace UnitTestPSReadLine
+namespace Test
 {
     // Disgusting language hack to make it easier to read a sequence of keys.
     using _ = Keys;
 
-    public partial class UnitTest
+    public partial class ReadLine
     {
         [Fact]
-        public void TestBackwardWord()
+        public void BackwardWord()
         {
             TestSetup(KeyMode.Cmd);
 
@@ -35,7 +35,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestEmacsBackwardWord()
+        public void EmacsBackwardWord()
         {
             TestSetup(KeyMode.Emacs);
 
@@ -59,7 +59,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestForwardWord()
+        public void ForwardWord()
         {
             TestSetup(KeyMode.Emacs);
 
@@ -81,7 +81,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestShellBackwardWord()
+        public void ShellBackwardWord()
         {
             TestSetup(KeyMode.Cmd,
                 new KeyHandler("Ctrl+LeftArrow", PSConsoleReadLine.ShellBackwardWord));
@@ -103,7 +103,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestShellNextWord()
+        public void ShellNextWord()
         {
             TestSetup(KeyMode.Cmd,
                 new KeyHandler("Ctrl+RightArrow", PSConsoleReadLine.ShellNextWord));
@@ -136,7 +136,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestShellForwardWord()
+        public void ShellForwardWord()
         {
             TestSetup(KeyMode.Emacs,
                 new KeyHandler("Alt+f", PSConsoleReadLine.ShellForwardWord));

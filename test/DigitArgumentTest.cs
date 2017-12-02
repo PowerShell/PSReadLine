@@ -2,15 +2,15 @@
 using Microsoft.PowerShell;
 using Xunit;
 
-namespace UnitTestPSReadLine
+namespace Test
 {
     // Disgusting language hack to make it easier to read a sequence of keys.
     using _ = Keys;
 
-    public partial class UnitTest
+    public partial class ReadLine
     {
         [Fact]
-        public void TestDigitArgumentValues()
+        public void DigitArgumentValues()
         {
             int argValue = 0;
             TestSetup(KeyMode.Emacs,
@@ -48,7 +48,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestDigitArgumentPrompt()
+        public void DigitArgumentPrompt()
         {
             TestSetup(KeyMode.Emacs);
 
@@ -70,7 +70,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestDigitArgumentWithSelfInsert()
+        public void DigitArgumentWithSelfInsert()
         {
             TestSetup(KeyMode.Emacs);
 

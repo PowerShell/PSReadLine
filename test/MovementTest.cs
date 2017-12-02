@@ -1,15 +1,15 @@
 ﻿using Microsoft.PowerShell;
 using Xunit;
 
-namespace UnitTestPSReadLine
+namespace Test
 {
     // Disgusting language hack to make it easier to read a sequence of keys.
     using _ = Keys;
 
-    public partial class UnitTest
+    public partial class ReadLine
     {
         [Fact]
-        public void TestEndOfLine()
+        public void EndOfLine()
         {
             TestSetup(KeyMode.Cmd);
 
@@ -35,7 +35,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestMultilineCursorMovement()
+        public void MultilineCursorMovement()
         {
             TestSetup(KeyMode.Cmd);
 
@@ -110,7 +110,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestCursorMovement()
+        public void CursorMovement()
         {
             TestSetup(KeyMode.Cmd);
 
@@ -138,7 +138,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestGotoBrace()
+        public void GotoBrace()
         {
             TestSetup(KeyMode.Cmd);
 
@@ -172,7 +172,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestCharacterSearch()
+        public void CharacterSearch()
         {
             TestSetup(KeyMode.Cmd);
 
@@ -208,7 +208,7 @@ namespace UnitTestPSReadLine
         }
 
         [Fact]
-        public void TestCharacterSearchBackward()
+        public void CharacterSearchBackward()
         {
             TestSetup(KeyMode.Cmd);
 
