@@ -1,6 +1,6 @@
 ---
 schema: 2.0.0
-external help file: Microsoft.PowerShell.PSReadLine.dll-help.xml
+external help file: Microsoft.PowerShell.PSReadLine2.dll-help.xml
 ---
 
 # Set-PSReadLineOption

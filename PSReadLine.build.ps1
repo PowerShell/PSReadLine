@@ -69,20 +69,20 @@ task RestoreNugetPackages @restoreNugetParameters CheckNugetInstalled,{
 
 $buildMamlParams = @{
     Inputs  = { Get-ChildItem docs/*.md }
-    Outputs = "$targetDir/en-US/Microsoft.PowerShell.PSReadLine.dll-help.xml"
+    Outputs = "$targetDir/en-US/Microsoft.PowerShell.PSReadLine2.dll-help.xml"
 }
 
 <#
 Synopsis: Generate maml help from markdown
 #>
 task BuildMamlHelp @buildMamlParams {
-    platyPS\New-ExternalHelp docs -Force -OutputPath $targetDir/en-US/Microsoft.PowerShell.PSReadLine.dll-help.xml
+    platyPS\New-ExternalHelp docs -Force -OutputPath $targetDir/en-US/Microsoft.PowerShell.PSReadLine2.dll-help.xml
 }
 
 $buildAboutTopicParams = @{
     Inputs = {
          Get-ChildItem docs/about_PSReadLine.help.txt
-         "PSReadLine/bin/$Configuration/Microsoft.PowerShell.PSReadLine.dll"
+         "PSReadLine/bin/$Configuration/Microsoft.PowerShell.PSReadLine2.dll"
          "$PSScriptRoot/GenerateFunctionHelp.ps1"
          "$PSScriptRoot/CheckHelp.ps1"
     }
@@ -112,7 +112,7 @@ task BuildAboutTopic @buildAboutTopicParams {
 
 $binaryModuleParams = @{
     Inputs  = { Get-ChildItem PSReadLine/*.cs, PSReadLine/PSReadLine.csproj, PSReadLine/PSReadLineResources.resx }
-    Outputs = "PSReadLine/bin/$Configuration/Microsoft.PowerShell.PSReadLine.dll"
+    Outputs = "PSReadLine/bin/$Configuration/Microsoft.PowerShell.PSReadLine2.dll"
 }
 
 <#
@@ -185,11 +185,11 @@ task LayoutModule BuildMainModule, BuildMamlHelp, {
     }
 
 
-    Copy-Item PSReadLine/bin/$Configuration/Microsoft.PowerShell.PSReadLine.dll $targetDir
+    Copy-Item PSReadLine/bin/$Configuration/Microsoft.PowerShell.PSReadLine2.dll $targetDir
     Copy-Item PSReadLine/bin/$Configuration/System.Runtime.InteropServices.RuntimeInformation.dll $targetDir
 
     # Copy module manifest, but fix the version to match what we've specified in the binary module.
-    $version = (Get-ChildItem -Path $targetDir/Microsoft.PowerShell.PSReadLine.dll).VersionInfo.FileVersion
+    $version = (Get-ChildItem -Path $targetDir/Microsoft.PowerShell.PSReadLine2.dll).VersionInfo.FileVersion
     $moduleManifestContent = Get-Content -Path 'PSReadLine/PSReadLine.psd1' -Raw
     [regex]::Replace($moduleManifestContent, "ModuleVersion = '.*'", "ModuleVersion = '$version'") | Set-Content -Path $targetDir/PSReadLine.psd1
 

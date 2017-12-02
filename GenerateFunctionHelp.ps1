@@ -8,7 +8,7 @@ param(
 
 $errorActionPreference = "Stop"
 
-$ourAssembly = "$PSScriptRoot\PSReadLine\bin\$Configuration\Microsoft.PowerShell.PSReadLine.dll"
+$ourAssembly = "$PSScriptRoot\PSReadLine\bin\$Configuration\Microsoft.PowerShell.PSReadLine2.dll"
 
 $t ='Microsoft.PowerShell.PSConsoleReadLine' -as [type]
 if ($null -ne $t -and $t.Assembly.Location -ne $ourAssembly)

@@ -7,7 +7,7 @@
     <ProjectGuid>{615788CB-1B9A-4B34-97B3-4608686E59CA}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.PowerShell.PSReadLine</RootNamespace>
-    <AssemblyName>Microsoft.PowerShell.PSReadLine</AssemblyName>
+    <AssemblyName>Microsoft.PowerShell.PSReadLine2</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile>
