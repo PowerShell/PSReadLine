@@ -642,15 +642,16 @@ namespace Microsoft.PowerShell
         public static void SwapCharacters(ConsoleKeyInfo? key = null, object arg = null)
         {
             // if in vi command mode, the cursor can't go as far
-            int cursorRightLimit = _singleton._buffer.Length + ViEndOfLineFactor;
-            if (_singleton._current <= 0 || _singleton._current > cursorRightLimit)
+            var bufferLength = _singleton._buffer.Length;
+            int cursorRightLimit = bufferLength + ViEndOfLineFactor;
+            if (_singleton._current <= 0 || bufferLength < 2 || _singleton._current > cursorRightLimit)
             {
                 Ding();
                 return;
             }
 
             int cursor = _singleton._current;
-            if (cursor == _singleton._buffer.Length)
+            if (cursor == bufferLength)
                 --cursor; // if at end of line, swap previous two chars
 
             char current = _singleton._buffer[cursor];

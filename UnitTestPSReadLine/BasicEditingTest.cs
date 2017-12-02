@@ -167,6 +167,10 @@ namespace UnitTestPSReadLine
         {
             TestSetup(KeyMode.Emacs);
 
+            TestMustDing("", Keys(_.CtrlT));
+            TestMustDing("a", Keys("a", _.CtrlT));
+            TestMustDing("abc", Keys("abc", _.Home, _.CtrlT));
+
             Test("abc", Keys(
                 "abc", CheckThat(() => AssertLineIs("abc")),
                 _.CtrlT, CheckThat(() => AssertLineIs("acb")),
