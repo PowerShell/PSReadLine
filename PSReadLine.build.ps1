@@ -213,25 +213,29 @@ task ZipRelease LayoutModule, {
 Synopsis: Install newly built PSReadLine
 #>
 task Install LayoutModule, {
-    $InstallDir = "$HOME\Documents\WindowsPowerShell\Modules"
 
-    if (!(Test-Path -Path $InstallDir))
-    {
-        New-Item -ItemType Directory -Force $InstallDir
-    }
-
-    try
-    {
-        if (Test-Path -Path $InstallDir\PSReadLine)
+    function Install($InstallDir) {
+        if (!(Test-Path -Path $InstallDir))
         {
-            Remove-Item -Recurse -Force $InstallDir\PSReadLine -ErrorAction Stop
+            New-Item -ItemType Directory -Force $InstallDir
         }
-        Copy-Item -Recurse $targetDir $InstallDir
+
+        try
+        {
+            if (Test-Path -Path $InstallDir\PSReadLine)
+            {
+                Remove-Item -Recurse -Force $InstallDir\PSReadLine -ErrorAction Stop
+            }
+            Copy-Item -Recurse $targetDir $InstallDir
+        }
+        catch
+        {
+            Write-Error -Message "Can't install, module is probably in use."
+        }
     }
-    catch
-    {
-        Write-Error -Message "Can't install, module is probably in use."
-    }
+
+    Install "$HOME\Documents\WindowsPowerShell\Modules"
+    Install "$HOME\Documents\PowerShell\Modules"
 }
 
 <#
