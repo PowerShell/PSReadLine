@@ -19,20 +19,19 @@ namespace UnitTestPSReadLine
         public void TestMapControlChars()
         {
             var map = new WindowsAnsiCharMap();
-            ConsoleKeyInfo processedKey;
             // Enter (Ctrl+J)
             map.ProcessKey(new ConsoleKeyInfo('\x0D', 0, false, false, false));
-            Assert.Equal(true, map.KeyAvailable);
-            processedKey = map.ReadKey();
-            Assert.Equal(processedKey.Key, ConsoleKey.Enter);
-            Assert.Equal(processedKey.Modifiers, (ConsoleModifiers)0);
-            Assert.Equal(false, map.KeyAvailable);
+            Assert.True(map.KeyAvailable);
+            var processedKey = map.ReadKey();
+            Assert.Equal(ConsoleKey.Enter, processedKey.Key);
+            Assert.Equal((ConsoleModifiers)0, processedKey.Modifiers);
+            Assert.False(map.KeyAvailable);
 
             // Ctrl+C
             map.ProcessKey(new ConsoleKeyInfo('\x03', 0, false, false, false));
             processedKey = map.ReadKey();
-            Assert.Equal(processedKey.Key, ConsoleKey.C);
-            Assert.Equal(processedKey.Modifiers, ConsoleModifiers.Control);
+            Assert.Equal(ConsoleKey.C, processedKey.Key);
+            Assert.Equal(ConsoleModifiers.Control, processedKey.Modifiers);
         }
 
         private void CheckEscapeInput(ICharMap map, ConsoleKeyInfo intended, ConsoleKeyInfo[] keys, bool inputOnly = false)
@@ -42,7 +41,7 @@ namespace UnitTestPSReadLine
                 map.ProcessKey(keys[i]);
                 if (i < keys.Length - 1)
                 {
-                    Assert.Equal(false, map.KeyAvailable);
+                    Assert.False(map.KeyAvailable);
                 }
             }
             if (inputOnly)
@@ -54,9 +53,9 @@ namespace UnitTestPSReadLine
                 map.EscapeTimeout = escapeTimeout;
                 return;
             }
-            Assert.Equal(true, map.KeyAvailable);
+            Assert.True(map.KeyAvailable);
             var processedKey = map.ReadKey();
-            Assert.Equal(false, map.KeyAvailable);
+            Assert.False(map.KeyAvailable);
             Assert.Equal(intended, processedKey);
         }
 
@@ -109,21 +108,20 @@ namespace UnitTestPSReadLine
         public void TestAltSequences()
         {
             var map = new WindowsAnsiCharMap(1000);
-            ConsoleKeyInfo processedKey;
 
             // ^[[ = Alt+[
             CheckEscapeInput(map, default(ConsoleKeyInfo), StringToCKI("\x1b["), true);
-            processedKey = map.ReadKey();
+            var processedKey = map.ReadKey();
             Assert.Equal('[', processedKey.KeyChar);
             Assert.Equal(ConsoleModifiers.Alt, processedKey.Modifiers);
-            Assert.Equal(false, map.KeyAvailable);
+            Assert.False(map.KeyAvailable);
 
             // ^[j = Alt+j
             CheckEscapeInput(map, default(ConsoleKeyInfo), StringToCKI("\x1bj"), true);
             processedKey = map.ReadKey();
             Assert.Equal('j', processedKey.KeyChar);
             Assert.Equal(ConsoleModifiers.Alt, processedKey.Modifiers);
-            Assert.Equal(false, map.KeyAvailable);
+            Assert.False(map.KeyAvailable);
 
             // ^[X = Alt+X
             // Currently shift is not set for capitals, so just check the alt
@@ -132,14 +130,14 @@ namespace UnitTestPSReadLine
             processedKey = map.ReadKey();
             Assert.Equal('X', processedKey.KeyChar);
             Assert.Equal(ConsoleModifiers.Alt, processedKey.Modifiers & ConsoleModifiers.Alt);
-            Assert.Equal(false, map.KeyAvailable);
+            Assert.False(map.KeyAvailable);
 
             // ^[^A = Alt+Ctrl+A
             CheckEscapeInput(map, default(ConsoleKeyInfo), StringToCKI("\x1b\x01"), true);
             processedKey = map.ReadKey();
             Assert.Equal('\x01', processedKey.KeyChar);
             Assert.Equal(ConsoleModifiers.Alt | ConsoleModifiers.Control, processedKey.Modifiers);
-            Assert.Equal(false, map.KeyAvailable);
+            Assert.False(map.KeyAvailable);
 
             // This is a "tricky" one since ^[O can start a sequence and the second
             // escape needs to cancel sequence processing, make an Alt+O available,
@@ -150,7 +148,7 @@ namespace UnitTestPSReadLine
             {
                 map.ProcessKey(ck);
             }
-            Assert.Equal(true, map.KeyAvailable);
+            Assert.True(map.KeyAvailable);
             processedKey = map.ReadKey();
             // Alt+O
             Assert.Equal('O', processedKey.KeyChar);
@@ -158,9 +156,9 @@ namespace UnitTestPSReadLine
             // Make the map stop looking for an escape sequence.
             map.EscapeTimeout = 0;
             // Esc
-            Assert.Equal(true, map.KeyAvailable);
+            Assert.True(map.KeyAvailable);
             Assert.Equal('\x1b', map.ReadKey().KeyChar);
-            Assert.Equal(false, map.KeyAvailable);
+            Assert.False(map.KeyAvailable);
             map.EscapeTimeout = 1000;
 
             // ^[^[ = Esc Esc, not Alt+Esc.
@@ -169,10 +167,10 @@ namespace UnitTestPSReadLine
             {
                 map.ProcessKey(ck);
             }
-            Assert.Equal(true, map.KeyAvailable);
+            Assert.True(map.KeyAvailable);
             map.ReadKey();
             map.EscapeTimeout = 0;
-            Assert.Equal(true, map.KeyAvailable);
+            Assert.True(map.KeyAvailable);
             map.ReadKey();
         }
 
@@ -181,7 +179,7 @@ namespace UnitTestPSReadLine
             foreach (var key in keys)
             {
                 map.ProcessKey(key);
-                Assert.Equal(false, map.KeyAvailable);
+                Assert.False(map.KeyAvailable);
             }
             int keyCount = 0;
             // Hack to make the map think the timeout is up.

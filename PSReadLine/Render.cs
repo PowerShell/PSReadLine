@@ -415,8 +415,7 @@ namespace Microsoft.PowerShell
                 var lineData = renderLines[logicalLine];
                 _console.Write(lineData.line);
 
-                int lenLastLine;
-                physicalLine += PhysicalLineCount(lineData.columns, logicalLine == 0, out lenLastLine);
+                physicalLine += PhysicalLineCount(lineData.columns, logicalLine == 0, out var lenLastLine);
 
                 // Find the previous logical line (if any) that would have rendered
                 // the current physical line because we may need to clear it.

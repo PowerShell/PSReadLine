@@ -14,7 +14,7 @@ namespace UnitTestPSReadLine
         // Disabled because the test is not portable without some mocking that
         // probably not worth the effort.
         //[TestMethod]
-        public void TestCaptureScreen()
+        private void TestCaptureScreen()
         {
             TestSetup(KeyMode.Cmd,
                 new KeyHandler("Ctrl+z", PSConsoleReadLine.CaptureScreen));

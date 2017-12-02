@@ -8,7 +8,6 @@ namespace UnitTestPSReadLine
 
     public partial class UnitTest
     {
-
         [Fact]
         public void ViTestGetKeyHandlers()
         {

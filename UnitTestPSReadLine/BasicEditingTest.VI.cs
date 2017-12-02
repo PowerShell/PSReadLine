@@ -416,7 +416,7 @@ namespace UnitTestPSReadLine
                 ));
 
             Test("Ins delete", Keys(
-                "xxIns delete", _.LeftArrow, _.LeftArrow, _.LeftArrow, _.LeftArrow, _.LeftArrow, _.LeftArrow, 
+                "xxIns delete", _.LeftArrow, _.LeftArrow, _.LeftArrow, _.LeftArrow, _.LeftArrow, _.LeftArrow,
                 _.LeftArrow, _.LeftArrow, _.LeftArrow, _.LeftArrow, _.LeftArrow, _.LeftArrow,
                 CheckThat(() => AssertCursorLeftIs(0)),
                 _.Delete, _.Delete, CheckThat(() => AssertCursorLeftIs(0))

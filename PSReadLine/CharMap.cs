@@ -107,7 +107,7 @@ namespace Microsoft.PowerShell
 
                 if (
                     _addKeyIndex > 0 &&
-                    _pendingKeys[0].KeyChar == '\x1b' && 
+                    _pendingKeys[0].KeyChar == '\x1b' &&
                     _escTimeoutStopwatch.ElapsedMilliseconds >= EscapeTimeout
                 )
                 {
@@ -237,7 +237,7 @@ namespace Microsoft.PowerShell
                 SetKey(i, new ConsoleKeyInfo('\x1b', ConsoleKey.Escape, false, false, false));
                 _escTimeoutStopwatch.Restart();
                 // Don't let escape set KeyAvailable.
-                return; 
+                return;
             case 0x1C:
                 consoleKey = (ConsoleKey)'\\';
                 break;

@@ -727,7 +727,7 @@ namespace UnitTestPSReadLine
             }
             else
             {
-                Assert.IsAssignableFrom(typeof(Action),t);
+                Assert.IsAssignableFrom<Action>(t);
                 list.Add(t);
             }
         }

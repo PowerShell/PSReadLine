@@ -80,20 +80,15 @@ namespace UnitTestPSReadLine
                 "echo",
                 CheckThat(() =>
                 {
-                    string input;
-                    int cursor;
-                    PSConsoleReadLine.GetBufferState(out input, out cursor);
+                    PSConsoleReadLine.GetBufferState(out var input, out var cursor);
                     Assert.Equal("echo", input);
                     Assert.Equal(4, cursor);
 
-                    Ast ast;
-                    Token[] tokens;
-                    ParseError[] parseErrors;
-                    PSConsoleReadLine.GetBufferState(out ast, out tokens, out parseErrors, out cursor);
+                    PSConsoleReadLine.GetBufferState(out var ast, out var tokens, out var parseErrors, out cursor);
                     Assert.NotNull(ast);
-                    Assert.True(ast is ScriptBlockAst && ((ScriptBlockAst)ast).EndBlock.Statements.Count == 1);
-                    Assert.Equal((tokens[0].TokenFlags & TokenFlags.CommandName), TokenFlags.CommandName);
-                    Assert.Equal(0, parseErrors.Length);
+                    Assert.True(ast is ScriptBlockAst sbast && sbast.EndBlock.Statements.Count == 1);
+                    Assert.Equal(TokenFlags.CommandName, (tokens[0].TokenFlags & TokenFlags.CommandName));
+                    Assert.Empty(parseErrors);
                     Assert.Equal(4, cursor);
                 })));
         }
@@ -107,29 +102,23 @@ namespace UnitTestPSReadLine
                 "echo",
                 CheckThat(() =>
                 {
-                    int start;
-                    int length;
-                    PSConsoleReadLine.GetSelectionState(out start, out length);
-                    Assert.Equal(start, -1);
-                    Assert.Equal(length, -1);
+                    PSConsoleReadLine.GetSelectionState(out var start, out var length);
+                    Assert.Equal(-1, start);
+                    Assert.Equal(-1, length);
                 }),
                 _.ShiftHome,
                 CheckThat(() =>
                 {
-                    int start;
-                    int length;
-                    PSConsoleReadLine.GetSelectionState(out start, out length);
-                    Assert.Equal(start, 0);
-                    Assert.Equal(length, 4);
+                    PSConsoleReadLine.GetSelectionState(out var start, out var length);
+                    Assert.Equal(0, start);
+                    Assert.Equal(4, length);
                 }),
                 _.ShiftRightArrow,
                 CheckThat(() =>
                 {
-                    int start;
-                    int length;
-                    PSConsoleReadLine.GetSelectionState(out start, out length);
-                    Assert.Equal(start, 1);
-                    Assert.Equal(length, 3);
+                    PSConsoleReadLine.GetSelectionState(out var start, out var length);
+                    Assert.Equal(1, start);
+                    Assert.Equal(3, length);
                 })));
         }
 

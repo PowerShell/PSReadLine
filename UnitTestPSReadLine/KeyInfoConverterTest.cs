@@ -16,7 +16,7 @@ namespace UnitTestPSReadLine
             {
                 var r = ConsoleKeyChordConverter.Convert(keyChar.ToString());
                 Assert.NotNull(r);
-                Assert.Equal(1, r.Length);
+                Assert.Single(r);
                 Assert.Equal(keyChar, r[0].KeyChar);
                 if (key != 0) Assert.Equal(key, r[0].Key);
                 Assert.Equal(mods, r[0].Modifiers);
@@ -86,7 +86,7 @@ namespace UnitTestPSReadLine
                 {
                     var r = ConsoleKeyChordConverter.Convert(input);
                     Assert.NotNull(r);
-                    Assert.Equal(1, r.Length);
+                    Assert.Single(r);
                     Assert.Equal(Enum.Parse(typeof(ConsoleKey), s), r[0].Key);
                     Assert.Equal(m, r[0].Modifiers);
                 }
