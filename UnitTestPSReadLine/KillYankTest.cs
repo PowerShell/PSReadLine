@@ -363,9 +363,9 @@ namespace UnitTestPSReadLine
 
             Test("echo", Keys(
                 "eczz", _.ShiftLeftArrow,
-                CheckThat(() => AssertScreenIs(1, TokenClassification.Command, "ecz", Inverted, "z", Inverted)),
+                CheckThat(() => AssertScreenIs(1, TokenClassification.Command, "ecz", Selected("z"))),
                 _.ShiftLeftArrow,
-                CheckThat(() => AssertScreenIs(1, TokenClassification.Command, "ec", Inverted, "zz", Inverted)),
+                CheckThat(() => AssertScreenIs(1, TokenClassification.Command, "ec", Selected("zz"))),
                 _.Delete, "ho"));
         }
 
@@ -376,9 +376,9 @@ namespace UnitTestPSReadLine
 
             Test("echo", Keys(
                 "zzho", _.Home, _.ShiftRightArrow,
-                CheckThat(() => AssertScreenIs(1, TokenClassification.Command, Inverted, "z", Inverted, "zho")),
+                CheckThat(() => AssertScreenIs(1, TokenClassification.Command, Selected("z"), "zho")),
                 _.ShiftRightArrow,
-                CheckThat(() => AssertScreenIs(1, TokenClassification.Command, Inverted, "zz", Inverted, "ho")),
+                CheckThat(() => AssertScreenIs(1, TokenClassification.Command, Selected("zz"), "ho")),
                 "ec"));
         }
 
@@ -392,7 +392,7 @@ namespace UnitTestPSReadLine
                 CheckThat(() => AssertScreenIs(1,
                     TokenClassification.Command, "echo",
                     TokenClassification.None, " ",
-                    Inverted, "foo ", Inverted, "bar")),
+                    Selected("foo "), "bar")),
                 _.Delete));
         }
 
@@ -404,8 +404,8 @@ namespace UnitTestPSReadLine
             Test("echo bar", Keys(
                 "foo echo bar", _.Home, _.CtrlShiftRightArrow,
                 CheckThat(() => AssertScreenIs(1,
-                    TokenClassification.Command, Inverted, "foo",
-                    TokenClassification.None, Inverted, " ", Inverted,
+                    TokenClassification.Command, Selected("foo"),
+                    TokenClassification.None, Selected(" "),
                     TokenClassification.None, "echo bar")),
                 _.Delete));
         }
@@ -418,7 +418,7 @@ namespace UnitTestPSReadLine
             Test(" echo bar", Keys(
                 "foo echo bar", _.Home, _.AltShiftF,
                 CheckThat(() => AssertScreenIs(1,
-                    TokenClassification.Command, Inverted, "foo", Inverted,
+                    TokenClassification.Command, Selected("foo"),
                     TokenClassification.None, " echo bar")),
                 _.Delete));
         }
@@ -431,7 +431,7 @@ namespace UnitTestPSReadLine
             Test(" echo bar", Keys(
                 "a\\b\\c echo bar", _.Home, _.CtrlZ,
                 CheckThat(() => AssertScreenIs(1,
-                    TokenClassification.Command, Inverted, "a\\b\\c", Inverted,
+                    TokenClassification.Command, Selected("a\\b\\c"),
                     TokenClassification.None, " echo bar")),
                 _.Delete));
         }
@@ -444,8 +444,7 @@ namespace UnitTestPSReadLine
             Test("echo bar", Keys(
                 "a\\b\\c echo bar", _.Home, _.CtrlZ,
                 CheckThat(() => AssertScreenIs(1,
-                    TokenClassification.Command, Inverted, "a\\b\\c",
-                    TokenClassification.None, Inverted, " ",
+                    TokenClassification.Command, Selected("a\\b\\c "),
                     TokenClassification.None, "echo bar")),
                 _.Delete));
         }
@@ -460,7 +459,7 @@ namespace UnitTestPSReadLine
                 CheckThat(() => AssertScreenIs(1,
                     TokenClassification.Command, "echo",
                     TokenClassification.None, " bar ",
-                    TokenClassification.String, Inverted, "'a b c'")),
+                    TokenClassification.String, Selected("'a b c'"))),
                 _.Delete));
         }
 
@@ -472,8 +471,7 @@ namespace UnitTestPSReadLine
             Test("", Keys(
                 "echo foo", _.ShiftHome,
                 CheckThat(() => AssertScreenIs(1,
-                    TokenClassification.Command, Inverted, "echo",
-                    TokenClassification.None, Inverted, " foo")),
+                    TokenClassification.Command, Selected("echo foo"))),
                 _.Backspace));
         }
 
@@ -485,8 +483,7 @@ namespace UnitTestPSReadLine
             Test("", Keys(
                 "echo foo", _.Home, _.ShiftEnd,
                 CheckThat(() => AssertScreenIs(1,
-                    TokenClassification.Command, Inverted, "echo",
-                    TokenClassification.None, Inverted, " foo")),
+                    TokenClassification.Command, Selected("echo foo"))),
                 _.Delete));
         }
 
@@ -498,16 +495,14 @@ namespace UnitTestPSReadLine
             Test("", Keys(
                 "echo foo", _.CtrlA,
                 CheckThat(() => AssertScreenIs(1,
-                    TokenClassification.Command, Inverted, "echo",
-                    TokenClassification.None, Inverted, " foo")),
+                    TokenClassification.Command, Selected("echo foo"))),
                 _.Delete
                 ));
 
             Test("", Keys(
                 "echo foo", _.CtrlLeftArrow, _.CtrlA,
                 CheckThat(() => AssertScreenIs(1,
-                    TokenClassification.Command, Inverted, "echo",
-                    TokenClassification.None, Inverted, " foo")),
+                    TokenClassification.Command, Selected("echo foo"))),
                 CheckThat(() => AssertCursorLeftIs(8)),
                 _.Delete
                 ));

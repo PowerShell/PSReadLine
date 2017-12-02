@@ -326,6 +326,9 @@ namespace UnitTestPSReadLine
             c.Negative = b;
         }
         private static readonly Dictionary<string, Action<TestConsole>> EscapeSequenceActions = new Dictionary<string, Action<TestConsole>> {
+            {"\x1b[30;47m", c => {
+                c.ForegroundColor = ConsoleColor.Black;
+                c.BackgroundColor = ConsoleColor.Gray; } },
             {"\x1b[7m", c => ToggleNegative(c, true) },
             {"\x1b[27m", c => ToggleNegative(c, false) },
             {"\x1b[40m", c => c.BackgroundColor = ConsoleColor.Black},
@@ -577,8 +580,8 @@ namespace UnitTestPSReadLine
         private class NextLineToken { }
         static readonly NextLineToken NextLine = new NextLineToken();
 
-        private class InvertedToken { }
-        static readonly InvertedToken Inverted = new InvertedToken();
+        private class SelectionToken { public string _text; }
+        private static SelectionToken Selected(string s) { return new SelectionToken {_text = s}; }
 
         private CHAR_INFO[] CreateCharInfoBuffer(int lines, params object[] items)
         {
@@ -594,10 +597,9 @@ namespace UnitTestPSReadLine
                     result.Add(new CHAR_INFO((char)item, fg, bg));
                     continue;
                 }
-                if (item is InvertedToken)
+                if (item is SelectionToken st)
                 {
-                    fg = (ConsoleColor)((int)fg ^ 7);
-                    bg = (ConsoleColor)((int)bg ^ 7);
+                    result.AddRange(st._text.Select(c => new CHAR_INFO(c, ConsoleColor.Black, ConsoleColor.Gray)));
                     continue;
                 }
                 if (item is NextLineToken)
