@@ -3,9 +3,11 @@ Copyright (c) Microsoft Corporation.  All rights reserved.
 --********************************************************************/
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 using Microsoft.PowerShell;
+using Microsoft.PowerShell.Internal;
 using Microsoft.Win32.SafeHandles;
 
 static class PlatformWindows
@@ -92,12 +94,14 @@ static class PlatformWindows
     }
 
     private static PSConsoleReadLine _singleton;
-    internal static void OneTimeInit(PSConsoleReadLine singleton)
+    internal static IConsole OneTimeInit(PSConsoleReadLine singleton)
     {
         _singleton = singleton;
         var breakHandlerGcHandle = GCHandle.Alloc(new BreakHandler(OnBreak));
         SetConsoleCtrlHandler((BreakHandler)breakHandlerGcHandle.Target, true);
         _enableVtOutput = SetConsoleOutputVirtualTerminalProcessing();
+
+        return _enableVtOutput ? new VirtualTerminal() : new LegacyWin32Console();
     }
 
     // Input modes
@@ -358,5 +362,167 @@ static class PlatformWindows
             return false;
         }
         return true;
+    }
+
+    internal class LegacyWin32Console : VirtualTerminal
+    {
+        private static ConsoleColor InitialFG = Console.ForegroundColor;
+        private static ConsoleColor InitialBG = Console.BackgroundColor;
+
+        private static readonly Dictionary<string, Action> EscapeSequenceActions = new Dictionary<string, Action> {
+            {"\x1b[30;47m", () => {
+                Console.ForegroundColor = ConsoleColor.Black;
+                Console.BackgroundColor = ConsoleColor.Gray; } },
+            {"\x1b[40m", () => Console.BackgroundColor = ConsoleColor.Black},
+            {"\x1b[44m", () => Console.BackgroundColor = ConsoleColor.DarkBlue },
+            {"\x1b[42m", () => Console.BackgroundColor = ConsoleColor.DarkGreen},
+            {"\x1b[46m", () => Console.BackgroundColor = ConsoleColor.DarkCyan},
+            {"\x1b[41m", () => Console.BackgroundColor = ConsoleColor.DarkRed},
+            {"\x1b[45m", () => Console.BackgroundColor = ConsoleColor.DarkMagenta},
+            {"\x1b[43m", () => Console.BackgroundColor = ConsoleColor.DarkYellow},
+            {"\x1b[47m", () => Console.BackgroundColor = ConsoleColor.Gray},
+            {"\x1b[100m", () => Console.BackgroundColor = ConsoleColor.DarkGray},
+            {"\x1b[104m", () => Console.BackgroundColor = ConsoleColor.Blue},
+            {"\x1b[102m", () => Console.BackgroundColor = ConsoleColor.Green},
+            {"\x1b[106m", () => Console.BackgroundColor = ConsoleColor.Cyan},
+            {"\x1b[101m", () => Console.BackgroundColor = ConsoleColor.Red},
+            {"\x1b[105m", () => Console.BackgroundColor = ConsoleColor.Magenta},
+            {"\x1b[103m", () => Console.BackgroundColor = ConsoleColor.Yellow},
+            {"\x1b[107m", () => Console.BackgroundColor = ConsoleColor.White},
+            {"\x1b[30m", () => Console.ForegroundColor = ConsoleColor.Black},
+            {"\x1b[34m", () => Console.ForegroundColor = ConsoleColor.DarkBlue},
+            {"\x1b[32m", () => Console.ForegroundColor = ConsoleColor.DarkGreen},
+            {"\x1b[36m", () => Console.ForegroundColor = ConsoleColor.DarkCyan},
+            {"\x1b[31m", () => Console.ForegroundColor = ConsoleColor.DarkRed},
+            {"\x1b[35m", () => Console.ForegroundColor = ConsoleColor.DarkMagenta},
+            {"\x1b[33m", () => Console.ForegroundColor = ConsoleColor.DarkYellow},
+            {"\x1b[37m", () => Console.ForegroundColor = ConsoleColor.Gray},
+            {"\x1b[90m", () => Console.ForegroundColor = ConsoleColor.DarkGray},
+            {"\x1b[94m", () => Console.ForegroundColor = ConsoleColor.Blue},
+            {"\x1b[92m", () => Console.ForegroundColor = ConsoleColor.Green},
+            {"\x1b[96m", () => Console.ForegroundColor = ConsoleColor.Cyan},
+            {"\x1b[91m", () => Console.ForegroundColor = ConsoleColor.Red},
+            {"\x1b[95m", () => Console.ForegroundColor = ConsoleColor.Magenta},
+            {"\x1b[93m", () => Console.ForegroundColor = ConsoleColor.Yellow},
+            {"\x1b[97m", () => Console.ForegroundColor = ConsoleColor.White},
+            {"\x1b[0m", () => {
+                Console.ForegroundColor = InitialFG;
+                Console.BackgroundColor = InitialBG;
+            }}
+        };
+
+        private void WriteHelper(string s, bool line)
+        {
+            var from = 0;
+            for (int i = 0; i < s.Length; i++)
+            {
+                if (s[i] == '\x1b')
+                {
+                    // Escape sequence - limited support here.
+                    var endSequence = s.IndexOf("m", i, StringComparison.Ordinal);
+                    if (endSequence > 0)
+                    {
+                        var escapeSequence = s.Substring(i, endSequence - i + 1);
+                        if (EscapeSequenceActions.TryGetValue(escapeSequence, out var action))
+                        {
+                            Console.Write(s.Substring(from, i - from));
+                            action();
+                            i = endSequence;
+                            from = i + 1;
+                        }
+                    }
+                }
+            }
+
+            var tailSegment = s.Substring(from);
+            if (line) Console.WriteLine(tailSegment);
+            else Console.Write(tailSegment);
+        }
+
+        public override void Write(string s)
+        {
+            WriteHelper(s, false);
+        }
+
+        public override void WriteLine(string s)
+        {
+            WriteHelper(s, true);
+        }
+
+        public struct SMALL_RECT
+        {
+            public short Left;
+            public short Top;
+            public short Right;
+            public short Bottom;
+        }
+
+        internal struct COORD
+        {
+            public short X;
+            public short Y;
+        }
+
+        public struct CHAR_INFO
+        {
+            public ushort UnicodeChar;
+            public ushort Attributes;
+            public CHAR_INFO(char c, ConsoleColor foreground, ConsoleColor background)
+            {
+                UnicodeChar = c;
+                Attributes = (ushort)(((int)background << 4) | (int)foreground);
+            }
+        }
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+        public static extern bool ScrollConsoleScreenBuffer(IntPtr hConsoleOutput,
+            ref SMALL_RECT lpScrollRectangle,
+            IntPtr lpClipRectangle,
+            COORD dwDestinationOrigin,
+            ref CHAR_INFO lpFill);
+
+        public override void ScrollBuffer(int lines)
+        {
+            var handle = GetStdHandle((uint) StandardHandleId.Output);
+            var scrollRectangle = new SMALL_RECT
+            {
+                Top = (short) lines,
+                Left = 0,
+                Bottom = (short)(Console.BufferHeight - 1),
+                Right = (short)Console.BufferWidth
+            };
+            var destinationOrigin = new COORD {X = 0, Y = 0};
+            var fillChar = new CHAR_INFO(' ', Console.ForegroundColor, Console.BackgroundColor);
+            ScrollConsoleScreenBuffer(handle, ref scrollRectangle, IntPtr.Zero, destinationOrigin, ref fillChar);
+        }
+
+        public override int CursorSize
+        {
+            get => IsConsoleApiAvailable(input: false, output: true) ? Console.CursorSize : _unixCursorSize;
+            set
+            {
+                if (IsConsoleApiAvailable(input: false, output: true))
+                {
+                    Console.CursorSize = value;
+                }
+                else
+                {
+                    // I'm not sure the cursor is even visible, at any rate, no escape sequences supported.
+                    _unixCursorSize = value;
+                }
+            }
+        }
+
+        public override void BlankRestOfLine()
+        {
+            // This shouldn't scroll, but I'm lazy and don't feel like using a P/Invoke.
+            var x = CursorLeft;
+            var y = CursorTop;
+
+            for (int i = 0; i < BufferWidth - x; i++) Console.Write(' ');
+            if (CursorTop != y+1) y -= 1;
+
+            SetCursorPosition(x, y);
+        }
     }
 }

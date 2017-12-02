@@ -501,8 +501,9 @@ namespace Microsoft.PowerShell
                     // from a previous menu.
                     if (cells < bufferWidth)
                     {
-                        console.Write(Spaces(bufferWidth - cells));
+                        console.BlankRestOfLine();
                     }
+
                     // Explicit newline so consoles see each row as distinct lines.
                     console.Write("\n");
                 }

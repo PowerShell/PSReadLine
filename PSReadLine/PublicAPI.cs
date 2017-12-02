@@ -47,6 +47,7 @@ namespace Microsoft.PowerShell
             void WriteLine(string s);
             void Write(string s);
             void ScrollBuffer(int lines);
+            void BlankRestOfLine();
 
             void SaveCursor();
             void RestoreCursor();

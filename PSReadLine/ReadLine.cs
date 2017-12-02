@@ -503,7 +503,9 @@ namespace Microsoft.PowerShell
         private PSConsoleReadLine()
         {
             _mockableMethods = this;
-            _console = new ConhostConsole();
+            _console = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                ? PlatformWindows.OneTimeInit(this)
+                : new VirtualTerminal();
             _charMap = new DotNetCharMap();
 
             _buffer = new StringBuilder(8 * 1024);
@@ -687,11 +689,6 @@ namespace Microsoft.PowerShell
             _singleton._closingWaitHandle = new ManualResetEvent(false);
             _singleton._requestKeyWaitHandles = new WaitHandle[] {_singleton._keyReadWaitHandle, _singleton._closingWaitHandle};
             _singleton._threadProcWaitHandles = new WaitHandle[] {_singleton._readKeyWaitHandle, _singleton._closingWaitHandle};
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                PlatformWindows.OneTimeInit(_singleton);
-            }
 
             // This is for a "being hosted in an alternate appdomain scenario" (the
             // DomainUnload event is not raised for the default appdomain). It allows us

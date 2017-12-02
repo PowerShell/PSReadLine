@@ -280,6 +280,17 @@ namespace UnitTestPSReadLine
         {
         }
 
+        public void BlankRestOfLine()
+        {
+            var writePos = CursorTop * BufferWidth + CursorLeft;
+            for (int i = 0; i < BufferWidth - CursorLeft; i++)
+            {
+                buffer[writePos + i].UnicodeChar = ' ';
+                buffer[writePos + i].BackgroundColor = BackgroundColor;
+                buffer[writePos + i].ForegroundColor = ForegroundColor;
+            }
+        }
+
         public void Clear()
         {
             SetCursorPosition(0, 0);

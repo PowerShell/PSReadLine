@@ -6,15 +6,8 @@ using System;
 
 namespace Microsoft.PowerShell.Internal
 {
-    internal class ConhostConsole : IConsole
+    internal class VirtualTerminal : IConsole
     {
-        public ConsoleKeyInfo ReadKey()
-        {
-            return Console.ReadKey(true);
-        }
-
-        public bool KeyAvailable => Console.KeyAvailable;
-
         public int CursorLeft
         {
             get => Console.CursorLeft;
@@ -28,8 +21,8 @@ namespace Microsoft.PowerShell.Internal
         }
 
         // .NET doesn't implement this API, so we fake it with a commonly supported escape sequence.
-        private int _unixCursorSize = 25;
-        public int CursorSize
+        protected int _unixCursorSize = 25;
+        public virtual int CursorSize
         {
             get => PlatformWindows.IsConsoleApiAvailable(input: false, output: true) ? Console.CursorSize : _unixCursorSize;
             set
@@ -41,16 +34,8 @@ namespace Microsoft.PowerShell.Internal
                 else
                 {
                     _unixCursorSize = value;
-                    if (value > 50)
-                    {
-                        // Solid blinking block
-                        Write("\x1b[2 q");
-                    }
-                    else
-                    {
-                        // Blinking vertical bar
-                        Write("\x1b[5 q");
-                    }
+                    // Solid blinking block or blinking vertical bar
+                    Write(value > 50 ? "\x1b[2 q" : "\x1b[5 q");
                 }
             }
         }
@@ -103,30 +88,14 @@ namespace Microsoft.PowerShell.Internal
             set => Console.ForegroundColor = value;
         }
 
-        public void SetWindowPosition(int left, int top)
-        {
-            Console.SetWindowPosition(left, top);
-        }
-
-        public void SetCursorPosition(int left, int top)
-        {
-            Console.SetCursorPosition(left, top);
-        }
-
-        public void Write(string value)
-        {
-            Console.Write(value);
-        }
-
-        public void WriteLine(string value)
-        {
-            Console.WriteLine(value);
-        }
-
-        public void ScrollBuffer(int lines)
-        {
-            Console.Write("\x1b[" + lines + "S");
-        }
+        public ConsoleKeyInfo ReadKey()                  => Console.ReadKey(true);
+        public bool KeyAvailable                         => Console.KeyAvailable;
+        public void SetWindowPosition(int left, int top) => Console.SetWindowPosition(left, top);
+        public void SetCursorPosition(int left, int top) => Console.SetCursorPosition(left, top);
+        public virtual void Write(string value)          => Console.Write(value);
+        public virtual void WriteLine(string value)      => Console.WriteLine(value);
+        public virtual void ScrollBuffer(int lines)      => Console.Write("\x1b[" + lines + "S");
+        public virtual void BlankRestOfLine()            => Console.Write("\x1b[K");
 
         private int _savedX, _savedY;
 
@@ -136,9 +105,6 @@ namespace Microsoft.PowerShell.Internal
             _savedY = Console.CursorTop;
         }
 
-        public void RestoreCursor()
-        {
-            Console.SetCursorPosition(_savedX, _savedY);
-        }
+        public void RestoreCursor() => Console.SetCursorPosition(_savedX, _savedY);
     }
 }
