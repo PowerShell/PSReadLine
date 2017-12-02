@@ -72,7 +72,7 @@ namespace Microsoft.PowerShell.Internal
         [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool GlobalUnlock(IntPtr hMem);
 
-        [DllImport("kernel32.dll", EntryPoint = "CopyMemory", SetLastError = false)]
+        [DllImport("kernel32.dll", ExactSpelling = true, EntryPoint = "RtlMoveMemory", SetLastError = true)]
         private static extern void CopyMemory(IntPtr dest, IntPtr src, uint count);
 
         [DllImport("user32.dll", SetLastError = false)]
