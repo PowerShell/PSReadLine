@@ -7,7 +7,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PSReadLine", "PSReadLine.cs
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestPSReadLine", "..\TestPSReadLine\TestPSReadLine.csproj", "{08218B1A-8B85-4722-9E3F-4D6C0BF58AD8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTestPSReadLine", "..\UnitTestPSReadLine\UnitTestPSReadLine.csproj", "{8ED51D01-158C-4B29-824A-35B9B861E45A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PSReadLine.Tests", "..\test\PSReadLine.Tests.csproj", "{8ED51D01-158C-4B29-824A-35B9B861E45A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
