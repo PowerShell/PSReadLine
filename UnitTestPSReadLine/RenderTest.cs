@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Management.Automation;
 using System.Text;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.PowerShell;
+using Xunit;
 
 namespace UnitTestPSReadLine
 {
@@ -11,7 +11,7 @@ namespace UnitTestPSReadLine
 
     public partial class UnitTest
     {
-        [TestMethod]
+        [Fact]
         public void TestClearScreen()
         {
             TestSetup(KeyMode.Emacs);
@@ -34,7 +34,7 @@ namespace UnitTestPSReadLine
                 ), resetCursor: false);
         }
 
-        [TestMethod]
+        [Fact]
         public void TestRender()
         {
             TestSetup(KeyMode.Cmd);
@@ -109,7 +109,7 @@ namespace UnitTestPSReadLine
                 '"'), prompt: promptLine);
         }
 
-        [TestMethod]
+        [Fact]
         public void TestMultiLine()
         {
             TestSetup(KeyMode.Cmd);
@@ -142,7 +142,7 @@ namespace UnitTestPSReadLine
                 _.Enter, CheckThat(() => AssertCursorLeftTopIs(0, 2))));
         }
 
-        [TestMethod]
+        [Fact]
         public void TestLongLine()
         {
             TestSetup(KeyMode.Cmd);
@@ -156,7 +156,7 @@ namespace UnitTestPSReadLine
             Test(input, Keys(input));
         }
 
-        [TestMethod]
+        [Fact]
         public void TestInvokePrompt()
         {
             TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+z", PSConsoleReadLine.InvokePrompt));

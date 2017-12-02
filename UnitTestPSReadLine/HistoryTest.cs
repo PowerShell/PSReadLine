@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.PowerShell;
+using Xunit;
 
 namespace UnitTestPSReadLine
 {
@@ -19,7 +19,7 @@ namespace UnitTestPSReadLine
             }
         }
 
-        [TestMethod]
+        [Fact]
         public void TestHistory()
         {
             TestSetup(KeyMode.Cmd);
@@ -34,7 +34,7 @@ namespace UnitTestPSReadLine
             Test("dir c*", Keys(_.UpArrow, _.UpArrow, _.DownArrow));
         }
 
-        [TestMethod]
+        [Fact]
         public void TestHistoryRecallCurrentLine()
         {
             TestSetup(KeyMode.Cmd);
@@ -43,7 +43,7 @@ namespace UnitTestPSReadLine
             Test("ec", Keys("ec", _.UpArrow, _.UpArrow, _.DownArrow, _.DownArrow));
         }
 
-        [TestMethod]
+        [Fact]
         public void TestHistorySearchCurrentLine()
         {
             TestSetup(KeyMode.Cmd,
@@ -54,7 +54,7 @@ namespace UnitTestPSReadLine
             Test("ec", Keys("ec", _.UpArrow, _.UpArrow, _.DownArrow, _.DownArrow));
         }
 
-        [TestMethod]
+        [Fact]
         public void TestSearchHistory()
         {
             TestSetup(KeyMode.Cmd,
@@ -119,7 +119,7 @@ namespace UnitTestPSReadLine
                 })));
         }
 
-        [TestMethod]
+        [Fact]
         public void TestHistorySearchCursorMovesToEnd()
         {
             TestSetup(KeyMode.Cmd,
@@ -159,7 +159,7 @@ namespace UnitTestPSReadLine
                 })));
         }
 
-        [TestMethod]
+        [Fact]
         public void TestBeginningOfHistory()
         {
             TestSetup(KeyMode.Emacs);
@@ -171,7 +171,7 @@ namespace UnitTestPSReadLine
             Test("echo second", Keys(_.AltLess, _.DownArrow));
         }
 
-        [TestMethod]
+        [Fact]
         public void TestEndOfHistory()
         {
             TestSetup(KeyMode.Emacs);
@@ -188,7 +188,7 @@ namespace UnitTestPSReadLine
             Test("", Keys(_.AltGreater));
         }
 
-        [TestMethod]
+        [Fact]
         public void TestInteractiveHistorySearch()
         {
             TestSetup(KeyMode.Emacs);
@@ -427,7 +427,7 @@ namespace UnitTestPSReadLine
             // TODO: "fast" typing in search where buffered keys after search is accepted
         }
 
-        [TestMethod]
+        [Fact]
         public void TestAddToHistoryHandler()
         {
             TestSetup(KeyMode.Cmd);
@@ -437,14 +437,14 @@ namespace UnitTestPSReadLine
             Test("zzzz", Keys(_.UpArrow));
         }
 
-        [TestMethod]
+        [Fact]
         public void TestHistoryNoDuplicates()
         {
             TestSetup(KeyMode.Cmd);
             PSConsoleReadLine.SetOptions(new SetPSReadLineOption {HistoryNoDuplicates = false});
 
             SetHistory("zzzz", "aaaa", "bbbb", "bbbb", "cccc");
-            Assert.AreEqual(5, PSConsoleReadLine.GetHistoryItems().Length);
+            Assert.Equal(5, PSConsoleReadLine.GetHistoryItems().Length);
             Test("aaaa", Keys(Enumerable.Repeat(_.UpArrow, 4)));
 
             // Changing the option should affect existing history.
@@ -452,7 +452,7 @@ namespace UnitTestPSReadLine
             Test("zzzz", Keys(Enumerable.Repeat(_.UpArrow, 4)));
 
             SetHistory("aaaa", "bbbb", "bbbb", "cccc");
-            Assert.AreEqual(3, PSConsoleReadLine.GetHistoryItems().Length);
+            Assert.Equal(3, PSConsoleReadLine.GetHistoryItems().Length);
             Test("aaaa", Keys(Enumerable.Repeat(_.UpArrow, 3)));
 
             SetHistory("aaaa", "bbbb", "bbbb", "cccc");
@@ -466,7 +466,7 @@ namespace UnitTestPSReadLine
             Test("", Keys(_.UpArrow, _.DownArrow));
         }
 
-        [TestMethod]
+        [Fact]
         public void TestHistorySearchNoDuplicates()
         {
             TestSetup(KeyMode.Cmd,
@@ -484,7 +484,7 @@ namespace UnitTestPSReadLine
                 Enumerable.Repeat(_.DownArrow, 2)));
         }
 
-        [TestMethod]
+        [Fact]
         public void TestInteractiveHistorySearchNoDuplicates()
         {
             TestSetup(KeyMode.Emacs);
@@ -503,7 +503,7 @@ namespace UnitTestPSReadLine
                 _.CtrlR, "echo", _.CtrlR, _.CtrlR, _.CtrlH, _.CtrlR, _.CtrlR));
         }
 
-        [TestMethod]
+        [Fact]
         public void TestHistoryCount()
         {
             TestSetup(KeyMode.Cmd);

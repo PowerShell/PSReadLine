@@ -1,6 +1,6 @@
 ﻿using System.Linq;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.PowerShell;
+using Xunit;
 
 namespace UnitTestPSReadLine
 {
@@ -9,7 +9,7 @@ namespace UnitTestPSReadLine
 
     public partial class UnitTest
     {
-        [TestMethod]
+        [Fact]
         public void TestBackwardWord()
         {
             TestSetup(KeyMode.Cmd);
@@ -34,7 +34,7 @@ namespace UnitTestPSReadLine
                 _.Alt2, _.CtrlLeftArrow, CheckThat(() => AssertCursorLeftIs(0))));
         }
 
-        [TestMethod]
+        [Fact]
         public void TestEmacsBackwardWord()
         {
             TestSetup(KeyMode.Emacs);
@@ -58,7 +58,7 @@ namespace UnitTestPSReadLine
                 _.Alt4, _.AltB, CheckThat(() => AssertCursorLeftIs(0))));
         }
 
-        [TestMethod]
+        [Fact]
         public void TestForwardWord()
         {
             TestSetup(KeyMode.Emacs);
@@ -80,7 +80,7 @@ namespace UnitTestPSReadLine
                 _.Alt3, _.AltMinus, _.AltF, CheckThat(() => AssertCursorLeftIs(7))));
         }
 
-        [TestMethod]
+        [Fact]
         public void TestShellBackwardWord()
         {
             TestSetup(KeyMode.Cmd,
@@ -102,7 +102,7 @@ namespace UnitTestPSReadLine
                 _.Alt1, _.AltMinus, _.CtrlLeftArrow, CheckThat(() => AssertCursorLeftIs(15))));
         }
 
-        [TestMethod]
+        [Fact]
         public void TestShellNextWord()
         {
             TestSetup(KeyMode.Cmd,
@@ -135,7 +135,7 @@ namespace UnitTestPSReadLine
                 ));
         }
 
-        [TestMethod]
+        [Fact]
         public void TestShellForwardWord()
         {
             TestSetup(KeyMode.Emacs,

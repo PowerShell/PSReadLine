@@ -1,26 +1,25 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.PowerShell;
+using Xunit;
 
 namespace UnitTestPSReadLine
 {
-    [TestClass]
-    public class KeyInfoConverterTest
+        public class KeyInfoConverterTest
     {
         private const ConsoleModifiers NoModifiers = 0;
 
-        [TestMethod]
+        [Fact]
         public void TestKeyInfoConverterSimpleCharLiteral()
         {
             void TestOne(char keyChar, ConsoleKey key, ConsoleModifiers mods = NoModifiers)
             {
                 var r = ConsoleKeyChordConverter.Convert(keyChar.ToString());
-                Assert.IsNotNull(r);
-                Assert.AreEqual(1, r.Length);
-                Assert.AreEqual(keyChar, r[0].KeyChar);
-                if (key != 0) Assert.AreEqual(key, r[0].Key);
-                Assert.AreEqual(mods, r[0].Modifiers);
+                Assert.NotNull(r);
+                Assert.Equal(1, r.Length);
+                Assert.Equal(keyChar, r[0].KeyChar);
+                if (key != 0) Assert.Equal(key, r[0].Key);
+                Assert.Equal(mods, r[0].Modifiers);
             }
 
             for (char c = 'a'; c <= 'z'; c++)
@@ -49,7 +48,7 @@ namespace UnitTestPSReadLine
             }
         }
 
-        [TestMethod]
+        [Fact]
         public void TestKeyInfoConverterSimpleConsoleKey()
         {
             var cases = new [] {
@@ -86,10 +85,10 @@ namespace UnitTestPSReadLine
                 void VerifyOne(string input, ConsoleModifiers m)
                 {
                     var r = ConsoleKeyChordConverter.Convert(input);
-                    Assert.IsNotNull(r);
-                    Assert.AreEqual(1, r.Length);
-                    Assert.AreEqual(Enum.Parse(typeof(ConsoleKey), s), r[0].Key);
-                    Assert.AreEqual(m, r[0].Modifiers);
+                    Assert.NotNull(r);
+                    Assert.Equal(1, r.Length);
+                    Assert.Equal(Enum.Parse(typeof(ConsoleKey), s), r[0].Key);
+                    Assert.Equal(m, r[0].Modifiers);
                 }
 
                 VerifyOne(s, NoModifiers);
@@ -111,7 +110,7 @@ namespace UnitTestPSReadLine
             }
         }
 
-        [TestMethod]
+        [Fact]
         public void TestKeyInfoConverterErrors()
         {
             void TestOne(string s)
@@ -126,10 +125,7 @@ namespace UnitTestPSReadLine
                     ex = e;
                 }
 
-                if (!(ex is ArgumentException))
-                {
-                    Assert.Fail($"Input `${s}` did not throw an ArgumentException");
-                }
+                Assert.IsType<ArgumentException>(ex);
             }
 
             var cases = new [] {

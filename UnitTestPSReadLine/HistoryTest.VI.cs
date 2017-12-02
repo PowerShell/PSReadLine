@@ -1,5 +1,5 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.PowerShell;
+﻿using Microsoft.PowerShell;
+using Xunit;
 
 namespace UnitTestPSReadLine
 {
@@ -8,7 +8,7 @@ namespace UnitTestPSReadLine
 
     public partial class UnitTest
     {
-        [TestMethod]
+        [Fact]
         public void ViTestHistory()
         {
             TestSetup(KeyMode.Vi);
@@ -52,7 +52,7 @@ namespace UnitTestPSReadLine
             Test("003", Keys(_.Escape, "---+"));
         }
 
-        [TestMethod]
+        [Fact]
         public void ViTestSearchHistory()
         {
             TestSetup( KeyMode.Vi );
@@ -86,7 +86,7 @@ namespace UnitTestPSReadLine
                 ));
         }
 
-        [TestMethod]
+        [Fact]
         public void ViTestHistoryRepeat()
         {
             TestSetup( KeyMode.Vi );
@@ -113,7 +113,7 @@ namespace UnitTestPSReadLine
 
         }
 
-        [TestMethod]
+        [Fact]
         public void ViTestMovementAfterHistory()
         {
             TestSetup(KeyMode.Vi);
@@ -126,7 +126,7 @@ namespace UnitTestPSReadLine
                 ));
         }
 
-        [TestMethod]
+        [Fact]
         public void ViTestChangeAfterHistory()
         {
             TestSetup(KeyMode.Vi);
@@ -139,7 +139,7 @@ namespace UnitTestPSReadLine
                 ));
         }
 
-        [TestMethod]
+        [Fact]
         public void ViTestAppendAfterHistory()
         {
             TestSetup(KeyMode.Vi);
@@ -157,7 +157,7 @@ namespace UnitTestPSReadLine
                 ));
         }
 
-        [TestMethod]
+        [Fact]
         public void ViTestHistoryCursorPosition()
         {
             TestSetup(KeyMode.Vi);

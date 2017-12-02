@@ -1,5 +1,5 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.PowerShell;
+﻿using Microsoft.PowerShell;
+using Xunit;
 
 namespace UnitTestPSReadLine
 {
@@ -8,7 +8,7 @@ namespace UnitTestPSReadLine
 
     public partial class UnitTest
     {
-        [TestMethod]
+        [Fact]
         public void ViTestChangeWord()
         {
             TestSetup(KeyMode.Vi);

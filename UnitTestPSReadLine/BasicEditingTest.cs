@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.PowerShell;
+using Xunit;
 
 namespace UnitTestPSReadLine
 {
@@ -10,7 +10,7 @@ namespace UnitTestPSReadLine
 
     public partial class UnitTest
     {
-        [TestMethod]
+        [Fact]
         public void TestInput()
         {
             TestSetup(KeyMode.Cmd);
@@ -21,7 +21,7 @@ namespace UnitTestPSReadLine
                 CheckThat(() => AssertCursorLeftIs(0))));
         }
 
-        [TestMethod]
+        [Fact]
         public void TestRevertLine()
         {
             // Add one test for chords
@@ -35,7 +35,7 @@ namespace UnitTestPSReadLine
             Test("ls", Keys("di", _.AltR, "ls"));
         }
 
-        [TestMethod]
+        [Fact]
         public void TestCancelLine()
         {
             TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+C", PSConsoleReadLine.CancelLine));
@@ -74,7 +74,7 @@ namespace UnitTestPSReadLine
                 InputAcceptedNow));
         }
 
-        [TestMethod]
+        [Fact]
         public void TestForwardDeleteLine()
         {
             TestSetup(KeyMode.Cmd);
@@ -89,7 +89,7 @@ namespace UnitTestPSReadLine
             Test("a", Keys("abc", _.LeftArrow, _.LeftArrow, _.CtrlEnd));
         }
 
-        [TestMethod]
+        [Fact]
         public void TestBackwardDeleteLine()
         {
             TestSetup(KeyMode.Cmd);
@@ -105,7 +105,7 @@ namespace UnitTestPSReadLine
             Test("", Keys("abc", _.CtrlHome));
         }
 
-        [TestMethod]
+        [Fact]
         public void TestBackwardDeleteChar()
         {
             TestSetup(KeyMode.Cmd);
@@ -129,7 +129,7 @@ namespace UnitTestPSReadLine
             Test("ac", Keys("abc", _.LeftArrow, _.Backspace));
         }
 
-        [TestMethod]
+        [Fact]
         public void TestDeleteChar()
         {
             TestSetup(KeyMode.Cmd);
@@ -150,7 +150,7 @@ namespace UnitTestPSReadLine
             Test("ac", Keys("abc", _.Home, _.RightArrow, _.Delete));
         }
 
-        [TestMethod]
+        [Fact]
         public void TestDeleteCharOrExit()
         {
             TestSetup(KeyMode.Emacs);
@@ -162,7 +162,7 @@ namespace UnitTestPSReadLine
             Test("exit", Keys("foo", _.Home, Enumerable.Repeat(_.CtrlD, 4), InputAcceptedNow));
         }
 
-        [TestMethod]
+        [Fact]
         public void TestSwapCharacters()
         {
             TestSetup(KeyMode.Emacs);
@@ -186,7 +186,7 @@ namespace UnitTestPSReadLine
                 ));
         }
 
-        [TestMethod]
+        [Fact]
         public void TestAcceptAndGetNext()
         {
             TestSetup(KeyMode.Emacs);
@@ -215,7 +215,7 @@ namespace UnitTestPSReadLine
             Test("eee", Keys(_.DownArrow, _.DownArrow, "ee", _.Enter));
         }
 
-        [TestMethod]
+        [Fact]
         public void TestAcceptAndGetNextWithHistorySearch()
         {
             TestSetup(KeyMode.Emacs,
@@ -228,7 +228,7 @@ namespace UnitTestPSReadLine
             Test("zzz", Keys(_.DownArrow, _.Enter));
         }
 
-        [TestMethod]
+        [Fact]
         public void TestAddLine()
         {
             TestSetup(KeyMode.Cmd);
@@ -236,7 +236,7 @@ namespace UnitTestPSReadLine
             Test("1\n2", Keys('1', _.ShiftEnter, '2'));
         }
 
-        [TestMethod]
+        [Fact]
         public void TestInsertLineAbove()
         {
             TestSetup(KeyMode.Cmd);
@@ -286,7 +286,7 @@ namespace UnitTestPSReadLine
                                           "9ABC"));
         }
 
-        [TestMethod]
+        [Fact]
         public void TestInsertLineBelow()
         {
             TestSetup(KeyMode.Cmd);
@@ -339,7 +339,7 @@ namespace UnitTestPSReadLine
                                           "9ABC"));
         }
 
-        [TestMethod]
+        [Fact]
         public void TestMultilineHomeBugFixed()
         {
             TestSetup(KeyMode.Cmd);
@@ -351,7 +351,7 @@ namespace UnitTestPSReadLine
             Test("1234\n9ABC", Keys("1234", _.ShiftEnter, "9ABC", _.UpArrow, _.LeftArrow, _.Home, CheckThat(() => AssertCursorLeftTopIs(0, 0))));
         }
 
-        [TestMethod]
+        [Fact]
         public void TestIgnore()
         {
             TestSetup(KeyMode.Emacs);

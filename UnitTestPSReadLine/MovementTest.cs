@@ -1,5 +1,5 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.PowerShell;
+﻿using Microsoft.PowerShell;
+using Xunit;
 
 namespace UnitTestPSReadLine
 {
@@ -8,7 +8,7 @@ namespace UnitTestPSReadLine
 
     public partial class UnitTest
     {
-        [TestMethod]
+        [Fact]
         public void TestEndOfLine()
         {
             TestSetup(KeyMode.Cmd);
@@ -34,7 +34,7 @@ namespace UnitTestPSReadLine
                 ));
         }
 
-        [TestMethod]
+        [Fact]
         public void TestMultilineCursorMovement()
         {
             TestSetup(KeyMode.Cmd);
@@ -109,7 +109,7 @@ namespace UnitTestPSReadLine
                 ));
         }
 
-        [TestMethod]
+        [Fact]
         public void TestCursorMovement()
         {
             TestSetup(KeyMode.Cmd);
@@ -137,7 +137,7 @@ namespace UnitTestPSReadLine
                 _.AltMinus, _.Alt7, _.RightArrow, CheckThat(() => AssertCursorLeftIs(2))));
         }
 
-        [TestMethod]
+        [Fact]
         public void TestGotoBrace()
         {
             TestSetup(KeyMode.Cmd);
@@ -171,7 +171,7 @@ namespace UnitTestPSReadLine
             }
         }
 
-        [TestMethod]
+        [Fact]
         public void TestCharacterSearch()
         {
             TestSetup(KeyMode.Cmd);
@@ -207,7 +207,7 @@ namespace UnitTestPSReadLine
                 _.CtrlZ, CheckThat(() => AssertCursorLeftIs(12))));
         }
 
-        [TestMethod]
+        [Fact]
         public void TestCharacterSearchBackward()
         {
             TestSetup(KeyMode.Cmd);

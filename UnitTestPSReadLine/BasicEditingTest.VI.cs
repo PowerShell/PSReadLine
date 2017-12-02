@@ -1,5 +1,5 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.PowerShell;
+﻿using Microsoft.PowerShell;
+using Xunit;
 
 namespace UnitTestPSReadLine
 {
@@ -8,7 +8,7 @@ namespace UnitTestPSReadLine
 
     public partial class UnitTest
     {
-        [TestMethod]
+        [Fact]
         public void ViTestInput()
         {
             TestSetup(KeyMode.Vi);
@@ -20,7 +20,7 @@ namespace UnitTestPSReadLine
                 ));
         }
 
-        [TestMethod]
+        [Fact]
         public void ViTestAppend()
         {
             TestSetup(KeyMode.Vi);
@@ -34,7 +34,7 @@ namespace UnitTestPSReadLine
                 ));
         }
 
-        [TestMethod]
+        [Fact]
         public void ViTestChangeMovement()
         {
             TestSetup(KeyMode.Vi);
@@ -90,7 +90,7 @@ namespace UnitTestPSReadLine
                 ));
         }
 
-        [TestMethod]
+        [Fact]
         public void ViTestChangeMovementUndo()
         {
             TestSetup(KeyMode.Vi);
@@ -211,7 +211,7 @@ namespace UnitTestPSReadLine
                 ));
         }
 
-        [TestMethod]
+        [Fact]
         public void ViTestDelete()
         {
             TestSetup(KeyMode.Vi);
@@ -423,7 +423,7 @@ namespace UnitTestPSReadLine
                 ));
         }
 
-        [TestMethod]
+        [Fact]
         public void ViTestGlobDelete()
         {
             TestSetup(KeyMode.Vi);
@@ -464,7 +464,7 @@ namespace UnitTestPSReadLine
                 ));
         }
 
-        [TestMethod]
+        [Fact]
         public void ViTestPercent()
         {
             TestSetup(KeyMode.Vi);
@@ -561,7 +561,7 @@ namespace UnitTestPSReadLine
                 ));
         }
 
-        [TestMethod]
+        [Fact]
         public void ViTestCTRL()
         {
             TestSetup(KeyMode.Vi);
@@ -584,7 +584,7 @@ namespace UnitTestPSReadLine
                 ));
         }
 
-        [TestMethod]
+        [Fact]
         public void ViTestMisc()
         {
             TestSetup(KeyMode.Vi);
@@ -605,7 +605,7 @@ namespace UnitTestPSReadLine
                 ));
         }
 
-        [TestMethod]
+        [Fact]
         public void ViTestChange()
         {
             TestSetup(KeyMode.Vi);
@@ -696,7 +696,7 @@ namespace UnitTestPSReadLine
                 ));
         }
 
-        [TestMethod]
+        [Fact]
         public void ViTestInsertLine()
         {
             int adder = PSConsoleReadLineOptions.DefaultContinuationPrompt.Length;
@@ -742,7 +742,7 @@ namespace UnitTestPSReadLine
                 ));
         }
 
-        [TestMethod]
+        [Fact]
         public void ViTestJoinLines()
         {
             TestSetup(KeyMode.Vi);
@@ -765,7 +765,7 @@ namespace UnitTestPSReadLine
                 ));
         }
 
-        [TestMethod]
+        [Fact]
         public void ViTestChangeChar()
         {
             TestSetup(KeyMode.Vi);
@@ -817,7 +817,7 @@ namespace UnitTestPSReadLine
                 ));
         }
 
-        [TestMethod]
+        [Fact]
         public void ViTestComplete()
         {
             TestSetup(KeyMode.Vi);

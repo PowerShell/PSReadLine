@@ -1,5 +1,5 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.PowerShell;
+﻿using Microsoft.PowerShell;
+using Xunit;
 
 namespace UnitTestPSReadLine
 {
@@ -8,7 +8,7 @@ namespace UnitTestPSReadLine
 
     public partial class UnitTest
     {
-        [TestMethod]
+        [Fact]
         public void ViTestWordMovement()
         {
             TestSetup(KeyMode.Vi);
@@ -264,7 +264,7 @@ namespace UnitTestPSReadLine
                 ));
         }
 
-        [TestMethod]
+        [Fact]
         public void ViTestDotWordMovement()
         {
             TestSetup(KeyMode.Vi);
@@ -368,7 +368,7 @@ namespace UnitTestPSReadLine
                 ));
         }
 
-        [TestMethod]
+        [Fact]
         public void ViTestCursorMovement()
         {
             TestSetup(KeyMode.Vi);
@@ -414,7 +414,7 @@ namespace UnitTestPSReadLine
                 ));
         }
 
-        [TestMethod]
+        [Fact]
         public void ViTestGotoBrace()
         {
             TestSetup(KeyMode.Vi);
@@ -449,7 +449,7 @@ namespace UnitTestPSReadLine
             }
         }
 
-        [TestMethod]
+        [Fact]
         public void ViTestCharacterSearch()
         {
             TestSetup(KeyMode.Vi);
@@ -535,7 +535,7 @@ namespace UnitTestPSReadLine
                 ));
         }
 
-        [TestMethod]
+        [Fact]
         public void ViTestColumnMovement()
         {
             TestSetup(KeyMode.Vi);
@@ -562,7 +562,7 @@ namespace UnitTestPSReadLine
                 ));
         }
 
-        [TestMethod]
+        [Fact]
         public void ViTestBOLErrorCase()
         {
             TestSetup(KeyMode.Vi);
@@ -572,7 +572,7 @@ namespace UnitTestPSReadLine
                 ));
         }
 
-        [TestMethod]
+        [Fact]
         public void ViTestCharDelete()
         {
             TestSetup(KeyMode.Vi);
@@ -617,7 +617,7 @@ namespace UnitTestPSReadLine
                 ));
         }
 
-        [TestMethod]
+        [Fact]
         public void ViTestDefect456()
         {
             TestSetup(KeyMode.Vi);

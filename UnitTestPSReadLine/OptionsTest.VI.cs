@@ -1,5 +1,5 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.PowerShell;
+﻿using Microsoft.PowerShell;
+using Xunit;
 
 namespace UnitTestPSReadLine
 {
@@ -9,23 +9,23 @@ namespace UnitTestPSReadLine
     public partial class UnitTest
     {
 
-        [TestMethod]
+        [Fact]
         public void ViTestGetKeyHandlers()
         {
             TestSetup(KeyMode.Vi);
 
             foreach (var handler in PSConsoleReadLine.GetKeyHandlers(includeBound: false, includeUnbound: true))
             {
-                Assert.AreEqual("Unbound", handler.Key);
-                Assert.IsFalse(string.IsNullOrWhiteSpace(handler.Function));
-                Assert.IsFalse(string.IsNullOrWhiteSpace(handler.Description));
+                Assert.Equal("Unbound", handler.Key);
+                Assert.False(string.IsNullOrWhiteSpace(handler.Function));
+                Assert.False(string.IsNullOrWhiteSpace(handler.Description));
             }
 
             foreach (var handler in PSConsoleReadLine.GetKeyHandlers(includeBound: true, includeUnbound: false))
             {
-                Assert.AreNotEqual("Unbound", handler.Key);
-                Assert.IsFalse(string.IsNullOrWhiteSpace(handler.Function));
-                Assert.IsFalse(string.IsNullOrWhiteSpace(handler.Description));
+                Assert.NotEqual("Unbound", handler.Key);
+                Assert.False(string.IsNullOrWhiteSpace(handler.Function));
+                Assert.False(string.IsNullOrWhiteSpace(handler.Description));
             }
         }
     }

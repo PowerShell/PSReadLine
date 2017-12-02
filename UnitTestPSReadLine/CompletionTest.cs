@@ -2,8 +2,8 @@
 using System.Collections.ObjectModel;
 using System.Management.Automation;
 using System.Reflection;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.PowerShell;
+using Xunit;
 
 namespace UnitTestPSReadLine
 {
@@ -12,7 +12,7 @@ namespace UnitTestPSReadLine
 
     public partial class UnitTest
     {
-        [TestMethod]
+        [Fact]
         public void TestTabComplete()
         {
             TestSetup(KeyMode.Cmd);
@@ -40,7 +40,7 @@ namespace UnitTestPSReadLine
                 CheckThat(() => AssertLineIs("$this"))));
         }
 
-        [TestMethod]
+        [Fact]
         public void TestInvalidCompletionResult()
         {
             TestSetup(KeyMode.Cmd);
@@ -52,7 +52,7 @@ namespace UnitTestPSReadLine
             }
         }
 
-        [TestMethod]
+        [Fact]
         public void TestComplete()
         {
             TestSetup(KeyMode.Emacs);
@@ -64,7 +64,7 @@ namespace UnitTestPSReadLine
                 '1'));
         }
 
-        [TestMethod]
+        [Fact]
         public void TestPossibleCompletions()
         {
             TestSetup(KeyMode.Emacs);
@@ -118,7 +118,7 @@ namespace UnitTestPSReadLine
                 CheckThat(() => AssertScreenIs(2, TokenClassification.Command, "none", NextLine))));
         }
 
-        [TestMethod]
+        [Fact]
         public void TestPossibleCompletionsPrompt()
         {
             TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+Spacebar", PSConsoleReadLine.PossibleCompletions));
@@ -147,7 +147,7 @@ namespace UnitTestPSReadLine
                     "Get-Many2   Get-Many5   Get-Many8   Get-Many11  Get-Many14"))));
         }
 
-        [TestMethod]
+        [Fact]
         public void TestShowTooltips()
         {
             TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+Spacebar", PSConsoleReadLine.PossibleCompletions));
@@ -157,7 +157,7 @@ namespace UnitTestPSReadLine
             // TODO:
         }
 
-        [TestMethod]
+        [Fact]
         public void TestDirectoryCompletion()
         {
             TestSetup(KeyMode.Cmd);

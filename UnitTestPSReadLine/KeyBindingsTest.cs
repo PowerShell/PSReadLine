@@ -1,6 +1,6 @@
 ﻿using System.Linq;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.PowerShell;
+using Xunit;
 
 namespace UnitTestPSReadLine
 {
@@ -9,7 +9,7 @@ namespace UnitTestPSReadLine
 
     public partial class UnitTest
     {
-        [TestMethod]
+        [Fact]
         public void TestWhatIsKey()
         {
             TestSetup(KeyMode.Cmd);
@@ -35,7 +35,7 @@ namespace UnitTestPSReadLine
                 CheckThat(() => AssertScreenIs(2, NextLine, "Ctrl+x,Ctrl+u: Undo - Undo a previous edit"))));
         }
 
-        [TestMethod]
+        [Fact]
         public void TestShowKeyBindings()
         {
             // I'm too lazy to validate the output as there's a lot of output.  So

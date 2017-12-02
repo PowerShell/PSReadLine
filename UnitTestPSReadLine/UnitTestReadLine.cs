@@ -9,9 +9,9 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Windows;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.PowerShell;
 using Microsoft.PowerShell.Internal;
+using Xunit;
 
 namespace UnitTestPSReadLine
 {
@@ -396,8 +396,7 @@ namespace UnitTestPSReadLine
         Member,
     }
 
-    [TestClass]
-    public partial class UnitTest
+        public partial class UnitTest
     {
         static UnitTest()
         {
@@ -505,18 +504,18 @@ namespace UnitTestPSReadLine
 
         private void AssertCursorLeftIs(int expected)
         {
-            Assert.AreEqual(expected, _console.CursorLeft);
+            Assert.Equal(expected, _console.CursorLeft);
         }
 
         private void AssertCursorTopIs(int expected)
         {
-            Assert.AreEqual(expected, _console.CursorTop);
+            Assert.Equal(expected, _console.CursorTop);
         }
 
         private void AssertLineIs(string expected)
         {
             PSConsoleReadLine.GetBufferState(out var input, out var unused);
-            Assert.AreEqual(expected, input);
+            Assert.Equal(expected, input);
         }
 
         private static string GetClipboardText()
@@ -528,7 +527,7 @@ namespace UnitTestPSReadLine
                 {
                     try
                     {
-                        Assert.IsTrue(Clipboard.ContainsText());
+                        Assert.True(Clipboard.ContainsText());
                         fromClipboard = Clipboard.GetText();
                     }
                     catch (System.Runtime.InteropServices.COMException)
@@ -542,7 +541,7 @@ namespace UnitTestPSReadLine
         private void AssertClipboardTextIs(string text)
         {
             var fromClipboard = GetClipboardText();
-            Assert.AreEqual(text, fromClipboard);
+            Assert.Equal(text, fromClipboard);
         }
 
         private void AssertScreenCaptureClipboardIs(params string[] lines)
@@ -554,7 +553,7 @@ namespace UnitTestPSReadLine
             {
                 text = text + newline;
             }
-            Assert.AreEqual(text, fromClipboard);
+            Assert.Equal(text, fromClipboard);
         }
 
         private static void ExecuteOnSTAThread(Action action)
@@ -728,7 +727,7 @@ namespace UnitTestPSReadLine
             }
             else
             {
-                Assert.IsInstanceOfType(t, typeof(Action));
+                Assert.IsAssignableFrom(typeof(Action),t);
                 list.Add(t);
             }
         }
@@ -738,15 +737,15 @@ namespace UnitTestPSReadLine
             var consoleBuffer = _console.ReadBufferLines(0, lines);
 
             var expectedBuffer = CreateCharInfoBuffer(lines, items);
-            Assert.AreEqual(expectedBuffer.Length, consoleBuffer.Length);
+            Assert.Equal(expectedBuffer.Length, consoleBuffer.Length);
             for (var i = 0; i < expectedBuffer.Length; i++)
             {
                 // Comparing CHAR_INFO should work, but randomly some attributes are set
                 // that shouldn't be and aren't ever set by any code in PSReadLine, so we'll
                 // ignore those bits and just check the stuff we do set.
-                Assert.AreEqual(expectedBuffer[i].UnicodeChar, consoleBuffer[i].UnicodeChar);
-                Assert.AreEqual(expectedBuffer[i].ForegroundColor, consoleBuffer[i].ForegroundColor);
-                Assert.AreEqual(expectedBuffer[i].BackgroundColor, consoleBuffer[i].BackgroundColor);
+                Assert.Equal(expectedBuffer[i].UnicodeChar, consoleBuffer[i].UnicodeChar);
+                Assert.Equal(expectedBuffer[i].ForegroundColor, consoleBuffer[i].ForegroundColor);
+                Assert.Equal(expectedBuffer[i].BackgroundColor, consoleBuffer[i].BackgroundColor);
             }
         }
 
@@ -819,11 +818,11 @@ namespace UnitTestPSReadLine
                 ((Action)item)();
             }
 
-            Assert.AreEqual(expectedResult, result);
+            Assert.Equal(expectedResult, result);
 
             if (mustDing)
             {
-                Assert.IsTrue(_mockedMethods.didDing);
+                Assert.True(_mockedMethods.didDing);
             }
         }
 
