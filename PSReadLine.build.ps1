@@ -170,7 +170,7 @@ task RunTests BuildTests, {
         if ($env:APPVEYOR)
         {
             $outXml = "$PSScriptRoot\xunit-results.xml"
-            & $runner $PSScriptRoot\test\bin\$Configuration\PSReadLine.Tests.dll /appveyor /xml $outXml
+            & $runner $PSScriptRoot\test\bin\$Configuration\PSReadLine.Tests.dll -appveyor -xml $outXml
             $wc = New-Object 'System.Net.WebClient'
             $wc.UploadFile("https://ci.appveyor.com/api/testresults/xunit/$($env:APPVEYOR_JOB_ID)", $outXml)
         }
