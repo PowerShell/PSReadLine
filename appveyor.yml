@@ -13,6 +13,11 @@ build_script:
       Invoke-Build -Task ZipRelease -Configuration Release
       platyPS\Get-HelpPreview .\bin\Release\PSReadLine\en-US\Microsoft.PowerShell.PSReadLine2.dll-help.xml > .\bin\Release\PSReadLine.txt
 
+test:
+  assemblies:
+    only:
+      - .\test\bin\Release\PSReadLine.Tests.dll
+
 artifacts:
   - path: .\bin\Release\PSReadLine.zip
   - path: .\bin\Release\PSReadLine.txt
