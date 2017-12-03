@@ -356,7 +356,7 @@ namespace Microsoft.PowerShell
                 }
                 finally
                 {
-                    Console.OutputEncoding = _singleton._initialOutputEncoding;
+                    try { Console.OutputEncoding = _singleton._initialOutputEncoding; } catch { }
                     if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                     {
                         PlatformWindows.Complete();
@@ -570,7 +570,7 @@ namespace Microsoft.PowerShell
             _statusIsErrorMessage = false;
 
             _initialOutputEncoding = Console.OutputEncoding;
-            Console.OutputEncoding = Encoding.UTF8;
+            try { Console.OutputEncoding = Encoding.UTF8;} catch { }
             _lastRenderTime = Stopwatch.StartNew();
 
             _killCommandCount = 0;

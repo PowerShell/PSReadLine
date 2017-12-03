@@ -99,7 +99,7 @@ static class PlatformWindows
         _singleton = singleton;
         var breakHandlerGcHandle = GCHandle.Alloc(new BreakHandler(OnBreak));
         SetConsoleCtrlHandler((BreakHandler)breakHandlerGcHandle.Target, true);
-        _enableVtOutput = SetConsoleOutputVirtualTerminalProcessing();
+        _enableVtOutput = !Console.IsOutputRedirected && SetConsoleOutputVirtualTerminalProcessing();
 
         return _enableVtOutput ? new VirtualTerminal() : new LegacyWin32Console();
     }
@@ -120,13 +120,6 @@ static class PlatformWindows
     static bool _enableVtOutput;
     internal static void Init(ref ICharMap charMap)
     {
-        // If either stdin or stdout is redirected, PSReadLine doesn't really work, so throw
-        // and let PowerShell call Console.ReadLine or do whatever else it decides to do.
-        if (IsHandleRedirected(stdin: false) || IsHandleRedirected(stdin: true))
-        {
-            throw new NotSupportedException();
-        }
-
         if (_enableVtOutput)
         {
             // This is needed because PowerShell does not restore the console mode

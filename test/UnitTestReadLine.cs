@@ -856,6 +856,7 @@ namespace Test
             var options = new SetPSReadLineOption
             {
                 AddToHistoryHandler               = null,
+                AnsiEscapeTimeout                 = 0,
                 BellStyle                         = PSConsoleReadLineOptions.DefaultBellStyle,
                 CompletionQueryItems              = PSConsoleReadLineOptions.DefaultCompletionQueryItems,
                 ContinuationPrompt                = PSConsoleReadLineOptions.DefaultContinuationPrompt,
