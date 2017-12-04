@@ -101,7 +101,7 @@ namespace Microsoft.PowerShell
                 }
                 start += input.Length;
 
-                if (!MapKeyChar(input, (mods & ConsoleModifiers.Control) != 0, out var key, out var keyChar))
+                if (!MapKeyChar(input, ref mods, out var key, out var keyChar))
                 {
                     throw CantConvert(PSReadLineResources.UnrecognizedKey, input);
                 }
@@ -221,8 +221,9 @@ namespace Microsoft.PowerShell
                 { "UpArrow",    new KeyPair { Key = ConsoleKey.UpArrow} },
             };
 
-        static bool MapKeyChar(string input, bool isCtrl, out ConsoleKey key, out char keyChar)
+        static bool MapKeyChar(string input, ref ConsoleModifiers mods, out ConsoleKey key, out char keyChar)
         {
+            var isCtrl = (mods & ConsoleModifiers.Control) != 0;
             if (input.Length == 1)
             {
                 keyChar = input[0];
@@ -233,6 +234,7 @@ namespace Microsoft.PowerShell
                 else if (keyChar >= 'A' && keyChar <= 'Z')
                 {
                     key = ConsoleKey.A + (keyChar - 'A');
+                    mods |= ConsoleModifiers.Shift;
                 }
                 else if (keyChar >= '0' && keyChar <= '9')
                 {
