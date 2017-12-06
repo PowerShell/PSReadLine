@@ -10,7 +10,7 @@ using System.Diagnostics.CodeAnalysis;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("PSReadLine")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("Great command line editing in PowerShell")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("PSReadLine")]
@@ -37,7 +37,8 @@ using System.Diagnostics.CodeAnalysis;
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("2.0.0.0")]
-[assembly: AssemblyFileVersion("2.0")]
+[assembly: AssemblyFileVersion("2.0.0")]
+[assembly: AssemblyInformationalVersion("2.0.0-beta1")]
 
 
 [assembly: SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]

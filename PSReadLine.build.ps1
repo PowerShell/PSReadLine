@@ -191,7 +191,23 @@ task LayoutModule BuildMainModule, BuildMamlHelp, {
     # Copy module manifest, but fix the version to match what we've specified in the binary module.
     $version = (Get-ChildItem -Path $targetDir/Microsoft.PowerShell.PSReadLine2.dll).VersionInfo.FileVersion
     $moduleManifestContent = Get-Content -Path 'PSReadLine/PSReadLine.psd1' -Raw
-    [regex]::Replace($moduleManifestContent, "ModuleVersion = '.*'", "ModuleVersion = '$version'") | Set-Content -Path $targetDir/PSReadLine.psd1
+
+    $b = Get-Content -Encoding Byte -Raw ./bin/$Configuration/PSReadLine/Microsoft.PowerShell.PSReadLine2.dll
+    $a = [System.Reflection.Assembly]::Load($b)
+    $semVer = ($a.GetCustomAttributes([System.Reflection.AssemblyInformationalVersionAttribute], $false)).InformationalVersion
+
+    if ($semVer -match "(.*)-(.*)")
+    {
+        # Make sure versions match
+        if ($matches[1] -ne $version) { throw "AssemblyFileVersion mismatch with AssemblyInformationalVersion" }
+        $prerelease = $matches[2]
+
+        # Put the prerelease tag in private data
+        $moduleManifestContent = [regex]::Replace($moduleManifestContent, "}", "PrivateData = @{ PSData = @{ Prerelease = '$prerelease' } }$([System.Environment]::Newline)}")
+    }
+
+    $moduleManifestContent = [regex]::Replace($moduleManifestContent, "ModuleVersion = '.*'", "ModuleVersion = '$version'")
+    $moduleManifestContent | Set-Content -Path $targetDir/PSReadLine.psd1
 
     # Make sure we don't ship any read-only files
     foreach ($file in (Get-ChildItem -Recurse -File $targetDir))
@@ -236,6 +252,44 @@ task Install LayoutModule, {
 
     Install "$HOME\Documents\WindowsPowerShell\Modules"
     Install "$HOME\Documents\PowerShell\Modules"
+}
+
+<#
+Synopsis: Publish to PSGallery
+#>
+task Publish -If ($Configuration -eq 'Release') LayoutModule, {
+
+    $manifest = Import-PowerShellDataFile $PSScriptRoot/bin/Release/PSReadLine/PSReadLine.psd1
+
+    $version = $manifest.ModuleVersion
+    if ($null -ne $manifest.PrivateData)
+    {
+        $psdata = $manifest.PrivateData['PSData']
+        if ($null -ne $psdata)
+        {
+            $prerelease = $psdata['Prerelease']
+            if ($null -ne $prerelease)
+            {
+                $version = $version + '-' + $prerelease
+            }
+        }
+    }
+
+    $yes = Read-Host "Publish version $version (y/n)"
+
+    if ($yes -ne 'y') { throw "Publish aborted" }
+
+    $nugetApiKey = Read-Host "Nuget api key for PSGallery"
+
+    $publishParams = @{
+        Path = "$PSScriptRoot/bin/Release/PSReadLine"
+        NuGetApiKey = $nugetApiKey
+        Repository = "PSGallery"
+        ReleaseNotes = (Get-Content -Raw $PSScriptRoot/bin/Release/PSReadLine/Changes.txt)
+        ProjectUri = 'https://github.com/lzybkr/PSReadLine'
+    }
+
+    Publish-Module @publishParams
 }
 
 <#
