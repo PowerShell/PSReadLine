@@ -13,14 +13,14 @@ namespace UnitTestPSReadLine
         [TestMethod]
         public void TestKeyInfoConverterSimpleCharLiteral()
         {
-            void TestOne(char keyChar, ConsoleKey key)
+            void TestOne(char keyChar, ConsoleKey key, ConsoleModifiers mods = NoModifiers)
             {
                 var r = ConsoleKeyChordConverter.Convert(keyChar.ToString());
                 Assert.IsNotNull(r);
                 Assert.AreEqual(1, r.Length);
                 Assert.AreEqual(keyChar, r[0].KeyChar);
                 if (key != 0) Assert.AreEqual(key, r[0].Key);
-                Assert.AreEqual(NoModifiers, r[0].Modifiers);
+                Assert.AreEqual(mods, r[0].Modifiers);
             }
 
             for (char c = 'a'; c <= 'z'; c++)
@@ -30,7 +30,7 @@ namespace UnitTestPSReadLine
 
             for (char c = 'A'; c <= 'Z'; c++)
             {
-                TestOne(c, ConsoleKey.A + (c - 'A'));
+                TestOne(c, ConsoleKey.A + (c - 'A'), ConsoleModifiers.Shift);
             }
 
             for (char c = '0'; c <= '9'; c++)
