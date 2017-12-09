@@ -370,9 +370,6 @@ static class PlatformWindows
         private static ConsoleColor InitialBG = Console.BackgroundColor;
 
         private static readonly Dictionary<string, Action> EscapeSequenceActions = new Dictionary<string, Action> {
-            {"\x1b[30;47m", () => {
-                Console.ForegroundColor = ConsoleColor.Black;
-                Console.BackgroundColor = ConsoleColor.Gray; } },
             {"\x1b[40m", () => Console.BackgroundColor = ConsoleColor.Black},
             {"\x1b[44m", () => Console.BackgroundColor = ConsoleColor.DarkBlue },
             {"\x1b[42m", () => Console.BackgroundColor = ConsoleColor.DarkGreen},
@@ -422,14 +419,28 @@ static class PlatformWindows
                     var endSequence = s.IndexOf("m", i, StringComparison.Ordinal);
                     if (endSequence > 0)
                     {
-                        var escapeSequence = s.Substring(i, endSequence - i + 1);
-                        if (EscapeSequenceActions.TryGetValue(escapeSequence, out var action))
-                        {
-                            Console.Write(s.Substring(from, i - from));
-                            action();
+                        Console.Write(s.Substring(from, i - from));
+                        if ((endSequence - i) > 2 && (i + 2) < s.Length) {
+                            string[] Seqences = s.Substring(i + 2, endSequence - i - 2).Split(';');
+                            foreach (string seq in Seqences)
+                            {
+                                var escapeSequence = "\x1b[" + seq + 'm';
+                                if (EscapeSequenceActions.TryGetValue(escapeSequence, out var action))
+                                {
+                                    action();
+                                }
+                                else
+                                {
+                                    Console.Write(escapeSequence);
+                                }
+                            }
                             i = endSequence;
-                            from = i + 1;
                         }
+                        else {
+                            // invalid esc sequence, just write it
+                            Console.Write(s[i]);
+                        }
+                        from = i + 1;
                     }
                 }
             }
