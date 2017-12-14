@@ -413,62 +413,68 @@ static class PlatformWindows
             var from = 0;
             for (int i = 0; i < s.Length; i++)
             {
-                // Look for escape sequences, ignoring (mostly) things we don't understand.
+                // Process escapes we understand, write out (likely garbage) ones we don't.
                 // The shortest pattern is 4 characters, <ESC>[0m
-                if (s[i] == '\x1b' && (i+3) < s.Length && s[i+1] == '[')
+                if (s[i] != '\x1b' || (i + 3) >= s.Length || s[i + 1] != '[') continue;
+
+                Console.Write(s.Substring(from, i - from));
+                from = i;
+
+                Action action1 = null;
+                Action action2 = null;
+                var j = i+2;
+                var b = 1;
+                var color = 0;
+                var done = false;
+                var invalidSequence = false;
+                while (!done && j < s.Length)
                 {
-                    var j = i+2;
-                    var b = 1;
-                    var color = 0;
-                    var done = false;
-                    while (!done && j < s.Length)
+                    switch (s[j])
                     {
-                        switch (s[j])
-                        {
-                            case '0': case '1': case '2': case '3': case '4':
-                            case '5': case '6': case '7': case '8': case '9':
-                                color = color * b + (s[j] - '0');
-                                b *= 10;
-                                if (b > 1000)
-                                {
-                                    goto default;
-                                }
+                        case '0': case '1': case '2': case '3': case '4':
+                        case '5': case '6': case '7': case '8': case '9':
+                            if (b > 100)
+                            {
+                                invalidSequence = true;
+                                goto default;
+                            }
+                            color = color * b + (s[j] - '0');
+                            b *= 10;
+                            break;
+
+                        case 'm':
+                            done = true;
+                            goto case ';';
+
+                        case ';':
+                            if (VTColorAction.TryGetValue(color, out var action))
+                            {
+                                if (action1 == null) action1 = action;
+                                else if (action2 == null) action2 = action;
+                                else invalidSequence = true;
+                                color = 0;
+                                b = 1;
                                 break;
+                            }
+                            else
+                            {
+                                invalidSequence = true;
+                                goto default;
+                            }
 
-                            case 'm':
-                                done = true;
-                                goto case ';';
-
-                            case ';':
-                                if (VTColorAction.TryGetValue(color, out var action))
-                                {
-                                    if (from != i)
-                                    {
-                                        Console.Write(s.Substring(from, i - from));
-                                        from = i;
-                                    }
-                                    action();
-                                    color = 0;
-                                    b = 1;
-                                    break;
-                                }
-                                else
-                                {
-                                    goto default;
-                                }
-
-                            default:
-                                done = true;
-                                break;
-                        }
-                        j += 1;
+                        default:
+                            done = true;
+                            break;
                     }
+                    j += 1;
+                }
 
-                    if (from == i)
-                    {
-                        from = j;
-                        i = j - 1;
-                    }
+                if (!invalidSequence)
+                {
+                    action1?.Invoke();
+                    action2?.Invoke();
+                    from = j;
+                    i = j - 1;
                 }
             }
 
