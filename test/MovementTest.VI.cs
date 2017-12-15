@@ -1,15 +1,15 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.PowerShell;
+﻿using Microsoft.PowerShell;
+using Xunit;
 
-namespace UnitTestPSReadLine
+namespace Test
 {
     // Disgusting language hack to make it easier to read a sequence of keys.
     using _ = Keys;
 
-    public partial class UnitTest
+    public partial class ReadLine
     {
-        [TestMethod]
-        public void ViTestWordMovement()
+        [Fact]
+        public void ViWordMovement()
         {
             TestSetup(KeyMode.Vi);
 
@@ -264,8 +264,8 @@ namespace UnitTestPSReadLine
                 ));
         }
 
-        [TestMethod]
-        public void ViTestDotWordMovement()
+        [Fact]
+        public void ViDotWordMovement()
         {
             TestSetup(KeyMode.Vi);
 
@@ -368,8 +368,8 @@ namespace UnitTestPSReadLine
                 ));
         }
 
-        [TestMethod]
-        public void ViTestCursorMovement()
+        [Fact]
+        public void ViCursorMovement()
         {
             TestSetup(KeyMode.Vi);
 
@@ -414,8 +414,8 @@ namespace UnitTestPSReadLine
                 ));
         }
 
-        [TestMethod]
-        public void ViTestGotoBrace()
+        [Fact]
+        public void ViGotoBrace()
         {
             TestSetup(KeyMode.Vi);
 
@@ -449,8 +449,8 @@ namespace UnitTestPSReadLine
             }
         }
 
-        [TestMethod]
-        public void ViTestCharacterSearch()
+        [Fact]
+        public void ViCharacterSearch()
         {
             TestSetup(KeyMode.Vi);
 
@@ -535,8 +535,8 @@ namespace UnitTestPSReadLine
                 ));
         }
 
-        [TestMethod]
-        public void ViTestColumnMovement()
+        [Fact]
+        public void ViColumnMovement()
         {
             TestSetup(KeyMode.Vi);
 
@@ -562,8 +562,8 @@ namespace UnitTestPSReadLine
                 ));
         }
 
-        [TestMethod]
-        public void ViTestBOLErrorCase()
+        [Fact]
+        public void ViBOLErrorCase()
         {
             TestSetup(KeyMode.Vi);
 
@@ -572,8 +572,8 @@ namespace UnitTestPSReadLine
                 ));
         }
 
-        [TestMethod]
-        public void ViTestCharDelete()
+        [Fact]
+        public void ViCharDelete()
         {
             TestSetup(KeyMode.Vi);
 
@@ -617,8 +617,8 @@ namespace UnitTestPSReadLine
                 ));
         }
 
-        [TestMethod]
-        public void ViTestDefect456()
+        [Fact]
+        public void ViDefect456()
         {
             TestSetup(KeyMode.Vi);
 

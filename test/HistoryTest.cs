@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Linq;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.PowerShell;
+using Xunit;
 
-namespace UnitTestPSReadLine
+namespace Test
 {
     // Disgusting language hack to make it easier to read a sequence of keys.
     using _ = Keys;
 
-    public partial class UnitTest
+    public partial class ReadLine
     {
         private void SetHistory(params string[] historyItems)
         {
@@ -19,8 +19,8 @@ namespace UnitTestPSReadLine
             }
         }
 
-        [TestMethod]
-        public void TestHistory()
+        [Fact]
+        public void History()
         {
             TestSetup(KeyMode.Cmd);
 
@@ -34,8 +34,8 @@ namespace UnitTestPSReadLine
             Test("dir c*", Keys(_.UpArrow, _.UpArrow, _.DownArrow));
         }
 
-        [TestMethod]
-        public void TestHistoryRecallCurrentLine()
+        [Fact]
+        public void HistoryRecallCurrentLine()
         {
             TestSetup(KeyMode.Cmd);
 
@@ -43,8 +43,8 @@ namespace UnitTestPSReadLine
             Test("ec", Keys("ec", _.UpArrow, _.UpArrow, _.DownArrow, _.DownArrow));
         }
 
-        [TestMethod]
-        public void TestHistorySearchCurrentLine()
+        [Fact]
+        public void HistorySearchCurrentLine()
         {
             TestSetup(KeyMode.Cmd,
                       new KeyHandler("UpArrow", PSConsoleReadLine.HistorySearchBackward),
@@ -54,8 +54,8 @@ namespace UnitTestPSReadLine
             Test("ec", Keys("ec", _.UpArrow, _.UpArrow, _.DownArrow, _.DownArrow));
         }
 
-        [TestMethod]
-        public void TestSearchHistory()
+        [Fact]
+        public void SearchHistory()
         {
             TestSetup(KeyMode.Cmd,
                       new KeyHandler("UpArrow", PSConsoleReadLine.HistorySearchBackward),
@@ -119,8 +119,8 @@ namespace UnitTestPSReadLine
                 })));
         }
 
-        [TestMethod]
-        public void TestHistorySearchCursorMovesToEnd()
+        [Fact]
+        public void HistorySearchCursorMovesToEnd()
         {
             TestSetup(KeyMode.Cmd,
                       new KeyHandler("UpArrow", PSConsoleReadLine.HistorySearchBackward),
@@ -159,8 +159,8 @@ namespace UnitTestPSReadLine
                 })));
         }
 
-        [TestMethod]
-        public void TestBeginningOfHistory()
+        [Fact]
+        public void BeginningOfHistory()
         {
             TestSetup(KeyMode.Emacs);
 
@@ -171,8 +171,8 @@ namespace UnitTestPSReadLine
             Test("echo second", Keys(_.AltLess, _.DownArrow));
         }
 
-        [TestMethod]
-        public void TestEndOfHistory()
+        [Fact]
+        public void EndOfHistory()
         {
             TestSetup(KeyMode.Emacs);
 
@@ -188,8 +188,8 @@ namespace UnitTestPSReadLine
             Test("", Keys(_.AltGreater));
         }
 
-        [TestMethod]
-        public void TestInteractiveHistorySearch()
+        [Fact]
+        public void InteractiveHistorySearch()
         {
             TestSetup(KeyMode.Emacs);
 
@@ -427,8 +427,8 @@ namespace UnitTestPSReadLine
             // TODO: "fast" typing in search where buffered keys after search is accepted
         }
 
-        [TestMethod]
-        public void TestAddToHistoryHandler()
+        [Fact]
+        public void AddToHistoryHandler()
         {
             TestSetup(KeyMode.Cmd);
             PSConsoleReadLine.SetOptions(new SetPSReadLineOption {AddToHistoryHandler = s => s.StartsWith("z")});
@@ -437,14 +437,14 @@ namespace UnitTestPSReadLine
             Test("zzzz", Keys(_.UpArrow));
         }
 
-        [TestMethod]
-        public void TestHistoryNoDuplicates()
+        [Fact]
+        public void HistoryNoDuplicates()
         {
             TestSetup(KeyMode.Cmd);
             PSConsoleReadLine.SetOptions(new SetPSReadLineOption {HistoryNoDuplicates = false});
 
             SetHistory("zzzz", "aaaa", "bbbb", "bbbb", "cccc");
-            Assert.AreEqual(5, PSConsoleReadLine.GetHistoryItems().Length);
+            Assert.Equal(5, PSConsoleReadLine.GetHistoryItems().Length);
             Test("aaaa", Keys(Enumerable.Repeat(_.UpArrow, 4)));
 
             // Changing the option should affect existing history.
@@ -452,7 +452,7 @@ namespace UnitTestPSReadLine
             Test("zzzz", Keys(Enumerable.Repeat(_.UpArrow, 4)));
 
             SetHistory("aaaa", "bbbb", "bbbb", "cccc");
-            Assert.AreEqual(3, PSConsoleReadLine.GetHistoryItems().Length);
+            Assert.Equal(3, PSConsoleReadLine.GetHistoryItems().Length);
             Test("aaaa", Keys(Enumerable.Repeat(_.UpArrow, 3)));
 
             SetHistory("aaaa", "bbbb", "bbbb", "cccc");
@@ -466,8 +466,8 @@ namespace UnitTestPSReadLine
             Test("", Keys(_.UpArrow, _.DownArrow));
         }
 
-        [TestMethod]
-        public void TestHistorySearchNoDuplicates()
+        [Fact]
+        public void HistorySearchNoDuplicates()
         {
             TestSetup(KeyMode.Cmd,
                       new KeyHandler("UpArrow", PSConsoleReadLine.HistorySearchBackward),
@@ -484,8 +484,8 @@ namespace UnitTestPSReadLine
                 Enumerable.Repeat(_.DownArrow, 2)));
         }
 
-        [TestMethod]
-        public void TestInteractiveHistorySearchNoDuplicates()
+        [Fact]
+        public void InteractiveHistorySearchNoDuplicates()
         {
             TestSetup(KeyMode.Emacs);
 
@@ -503,8 +503,8 @@ namespace UnitTestPSReadLine
                 _.CtrlR, "echo", _.CtrlR, _.CtrlR, _.CtrlH, _.CtrlR, _.CtrlR));
         }
 
-        [TestMethod]
-        public void TestHistoryCount()
+        [Fact]
+        public void HistoryCount()
         {
             TestSetup(KeyMode.Cmd);
 

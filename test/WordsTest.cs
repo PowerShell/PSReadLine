@@ -1,16 +1,16 @@
 ﻿using System.Linq;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.PowerShell;
+using Xunit;
 
-namespace UnitTestPSReadLine
+namespace Test
 {
     // Disgusting language hack to make it easier to read a sequence of keys.
     using _ = Keys;
 
-    public partial class UnitTest
+    public partial class ReadLine
     {
-        [TestMethod]
-        public void TestBackwardWord()
+        [Fact]
+        public void BackwardWord()
         {
             TestSetup(KeyMode.Cmd);
 
@@ -34,8 +34,8 @@ namespace UnitTestPSReadLine
                 _.Alt2, _.CtrlLeftArrow, CheckThat(() => AssertCursorLeftIs(0))));
         }
 
-        [TestMethod]
-        public void TestEmacsBackwardWord()
+        [Fact]
+        public void EmacsBackwardWord()
         {
             TestSetup(KeyMode.Emacs);
 
@@ -58,8 +58,8 @@ namespace UnitTestPSReadLine
                 _.Alt4, _.AltB, CheckThat(() => AssertCursorLeftIs(0))));
         }
 
-        [TestMethod]
-        public void TestForwardWord()
+        [Fact]
+        public void ForwardWord()
         {
             TestSetup(KeyMode.Emacs);
 
@@ -80,8 +80,8 @@ namespace UnitTestPSReadLine
                 _.Alt3, _.AltMinus, _.AltF, CheckThat(() => AssertCursorLeftIs(7))));
         }
 
-        [TestMethod]
-        public void TestShellBackwardWord()
+        [Fact]
+        public void ShellBackwardWord()
         {
             TestSetup(KeyMode.Cmd,
                 new KeyHandler("Ctrl+LeftArrow", PSConsoleReadLine.ShellBackwardWord));
@@ -102,8 +102,8 @@ namespace UnitTestPSReadLine
                 _.Alt1, _.AltMinus, _.CtrlLeftArrow, CheckThat(() => AssertCursorLeftIs(15))));
         }
 
-        [TestMethod]
-        public void TestShellNextWord()
+        [Fact]
+        public void ShellNextWord()
         {
             TestSetup(KeyMode.Cmd,
                 new KeyHandler("Ctrl+RightArrow", PSConsoleReadLine.ShellNextWord));
@@ -135,8 +135,8 @@ namespace UnitTestPSReadLine
                 ));
         }
 
-        [TestMethod]
-        public void TestShellForwardWord()
+        [Fact]
+        public void ShellForwardWord()
         {
             TestSetup(KeyMode.Emacs,
                 new KeyHandler("Alt+f", PSConsoleReadLine.ShellForwardWord));

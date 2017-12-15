@@ -1,15 +1,15 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.PowerShell;
+﻿using Microsoft.PowerShell;
+using Xunit;
 
-namespace UnitTestPSReadLine
+namespace Test
 {
     // Disgusting language hack to make it easier to read a sequence of keys.
     using _ = Keys;
 
-    public partial class UnitTest
+    public partial class ReadLine
     {
-        [TestMethod]
-        public void ViTestHistory()
+        [Fact]
+        public void ViHistory()
         {
             TestSetup(KeyMode.Vi);
 
@@ -52,8 +52,8 @@ namespace UnitTestPSReadLine
             Test("003", Keys(_.Escape, "---+"));
         }
 
-        [TestMethod]
-        public void ViTestSearchHistory()
+        [Fact]
+        public void ViSearchHistory()
         {
             TestSetup( KeyMode.Vi );
 
@@ -86,8 +86,8 @@ namespace UnitTestPSReadLine
                 ));
         }
 
-        [TestMethod]
-        public void ViTestHistoryRepeat()
+        [Fact]
+        public void ViHistoryRepeat()
         {
             TestSetup( KeyMode.Vi );
             // Clear history in case the above added some history (but it shouldn't)
@@ -95,7 +95,7 @@ namespace UnitTestPSReadLine
             Test( " ", Keys( ' ', _.UpArrow, _.DownArrow ) );
 
             SetHistory( "dosomething", "this way", "that way", "anyway", "no way", "yah way" );
-            Test( "anyway", Keys( 
+            Test( "anyway", Keys(
                 _.Escape, _.Slash, "way", _.Enter, CheckThat( () => AssertLineIs( "yah way" ) ),
                 "nn", CheckThat( () => AssertLineIs( "anyway" ) ),
                 "N", CheckThat( () => AssertLineIs( "no way" ) ),
@@ -113,8 +113,8 @@ namespace UnitTestPSReadLine
 
         }
 
-        [TestMethod]
-        public void ViTestMovementAfterHistory()
+        [Fact]
+        public void ViMovementAfterHistory()
         {
             TestSetup(KeyMode.Vi);
             PSConsoleReadLine.SetOptions(new SetPSReadLineOption { HistorySearchCursorMovesToEnd = true });
@@ -126,8 +126,8 @@ namespace UnitTestPSReadLine
                 ));
         }
 
-        [TestMethod]
-        public void ViTestChangeAfterHistory()
+        [Fact]
+        public void ViChangeAfterHistory()
         {
             TestSetup(KeyMode.Vi);
 
@@ -139,8 +139,8 @@ namespace UnitTestPSReadLine
                 ));
         }
 
-        [TestMethod]
-        public void ViTestAppendAfterHistory()
+        [Fact]
+        public void ViAppendAfterHistory()
         {
             TestSetup(KeyMode.Vi);
 
@@ -150,15 +150,15 @@ namespace UnitTestPSReadLine
                 _.Escape, "kj", CheckThat(() => AssertLineIs("")),
                 "axyz", _.Escape
                 ));
-            
+
             Test("xyz", Keys(
                 _.Escape, "kj", CheckThat(() => AssertLineIs("")),
                 "Axyz", _.Escape
                 ));
         }
 
-        [TestMethod]
-        public void ViTestHistoryCursorPosition()
+        [Fact]
+        public void ViHistoryCursorPosition()
         {
             TestSetup(KeyMode.Vi);
             PSConsoleReadLine.SetOptions(new SetPSReadLineOption { HistorySearchCursorMovesToEnd = false });

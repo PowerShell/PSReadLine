@@ -148,24 +148,39 @@ task BuildTestHost @buildTestParams BuildMainModule, {
 
 
 $buildUnitTestParams = @{
-    Inputs  = { Get-ChildItem UnitTestPSReadLine/*.cs, UnitTestPSReadLine/UnitTestPSReadLine.csproj }
-    Outputs = "UnitTestPSReadLine/bin/$Configuration/UnitTestPSReadLine.dll"
+    Inputs  = { Get-ChildItem test/*.cs, test/PSReadLine.Tests.csproj }
+    Outputs = "test/bin/$Configuration/PSReadLine.Tests.dll"
 }
 
 
 <#
 Synopsis: Build the unit tests
 #>
-task BuildUnitTests @buildUnitTestParams BuildMainModule, {
-    exec { msbuild UnitTestPSReadLine/UnitTestPSReadLine.csproj /t:Rebuild /p:Configuration=$Configuration /p:Platform=AnyCPU }
+task BuildTests @buildUnitTestParams BuildMainModule, {
+    exec { msbuild test/PSReadLine.tests.csproj /t:Rebuild /p:Configuration=$Configuration /p:Platform=AnyCPU }
 }
 
 
 <#
 Synopsis: Run the unit tests
 #>
-task RunUnitTests BuildUnitTests, {
-    exec { mstest /testcontainer:"./UnitTestPSReadLine/bin/$Configuration/UnitTestPSReadLine.dll" }
+task RunTests BuildTests, {
+    exec {
+        $env:PSREADLINE_TESTRUN = 1
+        $runner = "$PSScriptRoot\PSReadLine\packages\xunit.runner.console.2.3.1\tools\net452\xunit.console.exe"
+        if ($env:APPVEYOR)
+        {
+            $outXml = "$PSScriptRoot\xunit-results.xml"
+            & $runner $PSScriptRoot\test\bin\$Configuration\PSReadLine.Tests.dll -appveyor -xml $outXml
+            $wc = New-Object 'System.Net.WebClient'
+            $wc.UploadFile("https://ci.appveyor.com/api/testresults/xunit/$($env:APPVEYOR_JOB_ID)", $outXml)
+        }
+        else
+        {
+            & $runner $PSScriptRoot\test\bin\$Configuration\PSReadLine.Tests.dll
+        }
+        Remove-Item env:PSREADLINE_TESTRUN
+    }
 }
 
 <#
@@ -220,7 +235,7 @@ task LayoutModule BuildMainModule, BuildMamlHelp, {
 <#
 Synopsis: Zip up the binary for release.
 #>
-task ZipRelease LayoutModule, {
+task ZipRelease RunTests, LayoutModule, {
     Compress-Archive -Force -LiteralPath $targetDir -DestinationPath "bin/$Configuration/PSReadLine.zip"
 }
 
@@ -295,5 +310,5 @@ task Publish -If ($Configuration -eq 'Release') LayoutModule, {
 <#
 Synopsis: Default build rule - build and create module layout
 #>
-task . LayoutModule, BuildUnitTests, BuildTestHost
+task . LayoutModule, RunTests
 

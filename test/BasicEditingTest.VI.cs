@@ -1,15 +1,15 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.PowerShell;
+﻿using Microsoft.PowerShell;
+using Xunit;
 
-namespace UnitTestPSReadLine
+namespace Test
 {
     // Disgusting language hack to make it easier to read a sequence of keys.
     using _ = Keys;
 
-    public partial class UnitTest
+    public partial class ReadLine
     {
-        [TestMethod]
-        public void ViTestInput()
+        [Fact]
+        public void ViInput()
         {
             TestSetup(KeyMode.Vi);
 
@@ -20,8 +20,8 @@ namespace UnitTestPSReadLine
                 ));
         }
 
-        [TestMethod]
-        public void ViTestAppend()
+        [Fact]
+        public void ViAppend()
         {
             TestSetup(KeyMode.Vi);
 
@@ -34,8 +34,8 @@ namespace UnitTestPSReadLine
                 ));
         }
 
-        [TestMethod]
-        public void ViTestChangeMovement()
+        [Fact]
+        public void ViChangeMovement()
         {
             TestSetup(KeyMode.Vi);
 
@@ -90,8 +90,8 @@ namespace UnitTestPSReadLine
                 ));
         }
 
-        [TestMethod]
-        public void ViTestChangeMovementUndo()
+        [Fact]
+        public void ViChangeMovementUndo()
         {
             TestSetup(KeyMode.Vi);
 
@@ -211,8 +211,8 @@ namespace UnitTestPSReadLine
                 ));
         }
 
-        [TestMethod]
-        public void ViTestDelete()
+        [Fact]
+        public void ViDelete()
         {
             TestSetup(KeyMode.Vi);
 
@@ -416,15 +416,15 @@ namespace UnitTestPSReadLine
                 ));
 
             Test("Ins delete", Keys(
-                "xxIns delete", _.LeftArrow, _.LeftArrow, _.LeftArrow, _.LeftArrow, _.LeftArrow, _.LeftArrow, 
+                "xxIns delete", _.LeftArrow, _.LeftArrow, _.LeftArrow, _.LeftArrow, _.LeftArrow, _.LeftArrow,
                 _.LeftArrow, _.LeftArrow, _.LeftArrow, _.LeftArrow, _.LeftArrow, _.LeftArrow,
                 CheckThat(() => AssertCursorLeftIs(0)),
                 _.Delete, _.Delete, CheckThat(() => AssertCursorLeftIs(0))
                 ));
         }
 
-        [TestMethod]
-        public void ViTestGlobDelete()
+        [Fact]
+        public void ViGlobDelete()
         {
             TestSetup(KeyMode.Vi);
 
@@ -464,8 +464,8 @@ namespace UnitTestPSReadLine
                 ));
         }
 
-        [TestMethod]
-        public void ViTestPercent()
+        [Fact]
+        public void ViPercent()
         {
             TestSetup(KeyMode.Vi);
 
@@ -561,8 +561,8 @@ namespace UnitTestPSReadLine
                 ));
         }
 
-        [TestMethod]
-        public void ViTestCTRL()
+        [Fact]
+        public void ViCTRL()
         {
             TestSetup(KeyMode.Vi);
 
@@ -584,8 +584,8 @@ namespace UnitTestPSReadLine
                 ));
         }
 
-        [TestMethod]
-        public void ViTestMisc()
+        [Fact]
+        public void ViMisc()
         {
             TestSetup(KeyMode.Vi);
 
@@ -605,8 +605,8 @@ namespace UnitTestPSReadLine
                 ));
         }
 
-        [TestMethod]
-        public void ViTestChange()
+        [Fact]
+        public void ViChange()
         {
             TestSetup(KeyMode.Vi);
 
@@ -696,8 +696,8 @@ namespace UnitTestPSReadLine
                 ));
         }
 
-        [TestMethod]
-        public void ViTestInsertLine()
+        [Fact]
+        public void ViInsertLine()
         {
             int adder = PSConsoleReadLineOptions.DefaultContinuationPrompt.Length;
             TestSetup(KeyMode.Vi);
@@ -742,8 +742,8 @@ namespace UnitTestPSReadLine
                 ));
         }
 
-        [TestMethod]
-        public void ViTestJoinLines()
+        [Fact]
+        public void ViJoinLines()
         {
             TestSetup(KeyMode.Vi);
 
@@ -765,8 +765,8 @@ namespace UnitTestPSReadLine
                 ));
         }
 
-        [TestMethod]
-        public void ViTestChangeChar()
+        [Fact]
+        public void ViChangeChar()
         {
             TestSetup(KeyMode.Vi);
 
@@ -817,8 +817,8 @@ namespace UnitTestPSReadLine
                 ));
         }
 
-        [TestMethod]
-        public void ViTestComplete()
+        [Fact]
+        public void ViComplete()
         {
             TestSetup(KeyMode.Vi);
 

@@ -2,18 +2,18 @@
 using System.Collections.ObjectModel;
 using System.Management.Automation;
 using System.Reflection;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.PowerShell;
+using Xunit;
 
-namespace UnitTestPSReadLine
+namespace Test
 {
     // Disgusting language hack to make it easier to read a sequence of keys.
     using _ = Keys;
 
-    public partial class UnitTest
+    public partial class ReadLine
     {
-        [TestMethod]
-        public void TestTabComplete()
+        [Fact]
+        public void TabComplete()
         {
             TestSetup(KeyMode.Cmd);
 
@@ -40,8 +40,8 @@ namespace UnitTestPSReadLine
                 CheckThat(() => AssertLineIs("$this"))));
         }
 
-        [TestMethod]
-        public void TestInvalidCompletionResult()
+        [Fact]
+        public void InvalidCompletionResult()
         {
             TestSetup(KeyMode.Cmd);
 
@@ -52,8 +52,8 @@ namespace UnitTestPSReadLine
             }
         }
 
-        [TestMethod]
-        public void TestComplete()
+        [Fact]
+        public void Complete()
         {
             TestSetup(KeyMode.Emacs);
 
@@ -64,8 +64,8 @@ namespace UnitTestPSReadLine
                 '1'));
         }
 
-        [TestMethod]
-        public void TestPossibleCompletions()
+        [Fact]
+        public void PossibleCompletions()
         {
             TestSetup(KeyMode.Emacs);
 
@@ -118,8 +118,8 @@ namespace UnitTestPSReadLine
                 CheckThat(() => AssertScreenIs(2, TokenClassification.Command, "none", NextLine))));
         }
 
-        [TestMethod]
-        public void TestPossibleCompletionsPrompt()
+        [Fact]
+        public void PossibleCompletionsPrompt()
         {
             TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+Spacebar", PSConsoleReadLine.PossibleCompletions));
 
@@ -147,8 +147,8 @@ namespace UnitTestPSReadLine
                     "Get-Many2   Get-Many5   Get-Many8   Get-Many11  Get-Many14"))));
         }
 
-        [TestMethod]
-        public void TestShowTooltips()
+        [Fact]
+        public void ShowTooltips()
         {
             TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+Spacebar", PSConsoleReadLine.PossibleCompletions));
 
@@ -157,8 +157,8 @@ namespace UnitTestPSReadLine
             // TODO:
         }
 
-        [TestMethod]
-        public void TestDirectoryCompletion()
+        [Fact]
+        public void DirectoryCompletion()
         {
             TestSetup(KeyMode.Cmd);
 

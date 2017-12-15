@@ -1,15 +1,15 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.PowerShell;
+﻿using Microsoft.PowerShell;
+using Xunit;
 
-namespace UnitTestPSReadLine
+namespace Test
 {
     // Disgusting language hack to make it easier to read a sequence of keys.
     using _ = Keys;
 
-    public partial class UnitTest
+    public partial class ReadLine
     {
-        [TestMethod]
-        public void ViTestPasteAfterDeleteChar()
+        [Fact]
+        public void ViPasteAfterDeleteChar()
         {
             TestSetup(KeyMode.Vi);
 
@@ -46,8 +46,8 @@ namespace UnitTestPSReadLine
                 ));
         }
 
-        [TestMethod]
-        public void ViTestPasteAfterDelete()
+        [Fact]
+        public void ViPasteAfterDelete()
         {
             TestSetup(KeyMode.Vi);
 
@@ -100,8 +100,8 @@ namespace UnitTestPSReadLine
                 ));
         }
 
-        [TestMethod]
-        public void ViTestPasteAfterDeleteBraces()
+        [Fact]
+        public void ViPasteAfterDeleteBraces()
         {
             TestSetup(KeyMode.Vi);
 
@@ -122,8 +122,8 @@ namespace UnitTestPSReadLine
                 ));
         }
 
-        [TestMethod]
-        public void ViTestPasteAfterDeleteWord()
+        [Fact]
+        public void ViPasteAfterDeleteWord()
         {
             TestSetup(KeyMode.Vi);
 
@@ -192,8 +192,8 @@ namespace UnitTestPSReadLine
                 ));
         }
 
-        [TestMethod]
-        public void ViTestPasteAfterDeleteLine()
+        [Fact]
+        public void ViPasteAfterDeleteLine()
         {
             TestSetup(KeyMode.Vi);
 
@@ -207,8 +207,8 @@ namespace UnitTestPSReadLine
                 ));
         }
 
-        [TestMethod]
-        public void ViTestPasteAfterYankLine()
+        [Fact]
+        public void ViPasteAfterYankLine()
         {
             TestSetup(KeyMode.Vi);
 
@@ -221,8 +221,8 @@ namespace UnitTestPSReadLine
                 ));
         }
 
-        [TestMethod]
-        public void ViTestPasteAfterYankMovement()
+        [Fact]
+        public void ViPasteAfterYankMovement()
         {
             TestSetup(KeyMode.Vi);
 
@@ -258,8 +258,8 @@ namespace UnitTestPSReadLine
                 ));
         }
 
-        [TestMethod]
-        public void ViTestPasteAfterYankWord()
+        [Fact]
+        public void ViPasteAfterYankWord()
         {
             TestSetup(KeyMode.Vi);
 
@@ -320,8 +320,8 @@ namespace UnitTestPSReadLine
                 ));
         }
 
-        [TestMethod]
-        public void ViTestPasteAfterYankBeginningOfLine()
+        [Fact]
+        public void ViPasteAfterYankBeginningOfLine()
         {
             TestSetup(KeyMode.Vi);
 
@@ -338,8 +338,8 @@ namespace UnitTestPSReadLine
                 ));
         }
 
-        [TestMethod]
-        public void ViTestPasteAfterYankFirstNoneBlank()
+        [Fact]
+        public void ViPasteAfterYankFirstNoneBlank()
         {
             TestSetup(KeyMode.Vi);
 
@@ -356,8 +356,8 @@ namespace UnitTestPSReadLine
                 ));
         }
 
-        [TestMethod]
-        public void ViTestPasteAfterYankPercent()
+        [Fact]
+        public void ViPasteAfterYankPercent()
         {
             TestSetup(KeyMode.Vi);
 
@@ -392,8 +392,8 @@ namespace UnitTestPSReadLine
                 ));
         }
 
-        [TestMethod]
-        public void ViTestPasteAfterYankPreviousGlob()
+        [Fact]
+        public void ViPasteAfterYankPreviousGlob()
         {
             TestSetup(KeyMode.Vi);
 
@@ -416,8 +416,8 @@ namespace UnitTestPSReadLine
                 "u"
                 ));
         }
-        [TestMethod]
-        public void ViTestPasteAfterYankNextGlob()
+        [Fact]
+        public void ViPasteAfterYankNextGlob()
         {
             TestSetup(KeyMode.Vi);
 
@@ -441,8 +441,8 @@ namespace UnitTestPSReadLine
                 ));
         }
 
-        [TestMethod]
-        public void ViTestPasteAfterYankEndOfGlob()
+        [Fact]
+        public void ViPasteAfterYankEndOfGlob()
         {
             TestSetup(KeyMode.Vi);
 

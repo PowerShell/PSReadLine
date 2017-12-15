@@ -1,18 +1,18 @@
 ﻿using System;
 using System.Management.Automation;
 using System.Text;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.PowerShell;
+using Xunit;
 
-namespace UnitTestPSReadLine
+namespace Test
 {
     // Disgusting language hack to make it easier to read a sequence of keys.
     using _ = Keys;
 
-    public partial class UnitTest
+    public partial class ReadLine
     {
-        [TestMethod]
-        public void TestClearScreen()
+        [Fact]
+        public void ClearScreen()
         {
             TestSetup(KeyMode.Emacs);
 
@@ -34,8 +34,8 @@ namespace UnitTestPSReadLine
                 ), resetCursor: false);
         }
 
-        [TestMethod]
-        public void TestRender()
+        [Fact]
+        public void Render()
         {
             TestSetup(KeyMode.Cmd);
 
@@ -109,8 +109,8 @@ namespace UnitTestPSReadLine
                 '"'), prompt: promptLine);
         }
 
-        [TestMethod]
-        public void TestMultiLine()
+        [Fact]
+        public void MultiLine()
         {
             TestSetup(KeyMode.Cmd);
 
@@ -142,8 +142,8 @@ namespace UnitTestPSReadLine
                 _.Enter, CheckThat(() => AssertCursorLeftTopIs(0, 2))));
         }
 
-        [TestMethod]
-        public void TestLongLine()
+        [Fact]
+        public void LongLine()
         {
             TestSetup(KeyMode.Cmd);
 
@@ -156,8 +156,8 @@ namespace UnitTestPSReadLine
             Test(input, Keys(input));
         }
 
-        [TestMethod]
-        public void TestInvokePrompt()
+        [Fact]
+        public void InvokePrompt()
         {
             TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+z", PSConsoleReadLine.InvokePrompt));
 

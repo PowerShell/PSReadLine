@@ -1,17 +1,17 @@
 ﻿using System;
 using System.Management.Automation.Language;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.PowerShell;
+using Xunit;
 
-namespace UnitTestPSReadLine
+namespace Test
 {
     // Disgusting language hack to make it easier to read a sequence of keys.
     using _ = Keys;
 
-    public partial class UnitTest
+    public partial class ReadLine
     {
-        [TestMethod]
-        public void TestInsertAPI()
+        [Fact]
+        public void InsertAPI()
         {
             TestSetup(KeyMode.Cmd);
 
@@ -29,8 +29,8 @@ namespace UnitTestPSReadLine
                 })));
         }
 
-        [TestMethod]
-        public void TestDeleteAPI()
+        [Fact]
+        public void DeleteAPI()
         {
             TestSetup(KeyMode.Cmd);
 
@@ -39,8 +39,8 @@ namespace UnitTestPSReadLine
                 CheckThat(() => PSConsoleReadLine.Delete(4, 4))));
         }
 
-        [TestMethod]
-        public void TestReplaceAPI()
+        [Fact]
+        public void ReplaceAPI()
         {
             TestSetup(KeyMode.Cmd);
 
@@ -55,24 +55,24 @@ namespace UnitTestPSReadLine
                 {
                     try { PSConsoleReadLine.Replace(-1, 6, "zzz"); }
                     catch (ArgumentException) { throws = true; }
-                    Assert.IsTrue(throws, "Negative start should throw");
+                    Assert.True(throws, "Negative start should throw");
 
                     try { PSConsoleReadLine.Replace(11, 6, "zzz"); }
                     catch (ArgumentException) { throws = true; }
-                    Assert.IsTrue(throws, "Start beyond end of buffer should throw");
+                    Assert.True(throws, "Start beyond end of buffer should throw");
 
                     try { PSConsoleReadLine.Replace(0, 12, "zzz"); }
                     catch (ArgumentException) { throws = true; }
-                    Assert.IsTrue(throws, "Length too long should throw");
+                    Assert.True(throws, "Length too long should throw");
 
                     try { PSConsoleReadLine.Replace(0, -1, "zzz"); }
                     catch (ArgumentException) { throws = true; }
-                    Assert.IsTrue(throws, "Negative length should throw");
+                    Assert.True(throws, "Negative length should throw");
                 })));
         }
 
-        [TestMethod]
-        public void TestGetBufferStateAPI()
+        [Fact]
+        public void GetBufferStateAPI()
         {
             TestSetup(KeyMode.Cmd);
 
@@ -80,26 +80,21 @@ namespace UnitTestPSReadLine
                 "echo",
                 CheckThat(() =>
                 {
-                    string input;
-                    int cursor;
-                    PSConsoleReadLine.GetBufferState(out input, out cursor);
-                    Assert.AreEqual("echo", input);
-                    Assert.AreEqual(4, cursor);
+                    PSConsoleReadLine.GetBufferState(out var input, out var cursor);
+                    Assert.Equal("echo", input);
+                    Assert.Equal(4, cursor);
 
-                    Ast ast;
-                    Token[] tokens;
-                    ParseError[] parseErrors;
-                    PSConsoleReadLine.GetBufferState(out ast, out tokens, out parseErrors, out cursor);
-                    Assert.IsNotNull(ast);
-                    Assert.IsTrue(ast is ScriptBlockAst && ((ScriptBlockAst)ast).EndBlock.Statements.Count == 1);
-                    Assert.IsTrue((tokens[0].TokenFlags & TokenFlags.CommandName) == TokenFlags.CommandName);
-                    Assert.AreEqual(0, parseErrors.Length);
-                    Assert.AreEqual(4, cursor);
+                    PSConsoleReadLine.GetBufferState(out var ast, out var tokens, out var parseErrors, out cursor);
+                    Assert.NotNull(ast);
+                    Assert.True(ast is ScriptBlockAst sbast && sbast.EndBlock.Statements.Count == 1);
+                    Assert.Equal(TokenFlags.CommandName, (tokens[0].TokenFlags & TokenFlags.CommandName));
+                    Assert.Empty(parseErrors);
+                    Assert.Equal(4, cursor);
                 })));
         }
 
-        [TestMethod]
-        public void TestGetSelectionStateAPI()
+        [Fact]
+        public void GetSelectionStateAPI()
         {
             TestSetup(KeyMode.Cmd);
 
@@ -107,34 +102,28 @@ namespace UnitTestPSReadLine
                 "echo",
                 CheckThat(() =>
                 {
-                    int start;
-                    int length;
-                    PSConsoleReadLine.GetSelectionState(out start, out length);
-                    Assert.AreEqual(start, -1);
-                    Assert.AreEqual(length, -1);
+                    PSConsoleReadLine.GetSelectionState(out var start, out var length);
+                    Assert.Equal(-1, start);
+                    Assert.Equal(-1, length);
                 }),
                 _.ShiftHome,
                 CheckThat(() =>
                 {
-                    int start;
-                    int length;
-                    PSConsoleReadLine.GetSelectionState(out start, out length);
-                    Assert.AreEqual(start, 0);
-                    Assert.AreEqual(length, 4);
+                    PSConsoleReadLine.GetSelectionState(out var start, out var length);
+                    Assert.Equal(0, start);
+                    Assert.Equal(4, length);
                 }),
                 _.ShiftRightArrow,
                 CheckThat(() =>
                 {
-                    int start;
-                    int length;
-                    PSConsoleReadLine.GetSelectionState(out start, out length);
-                    Assert.AreEqual(start, 1);
-                    Assert.AreEqual(length, 3);
+                    PSConsoleReadLine.GetSelectionState(out var start, out var length);
+                    Assert.Equal(1, start);
+                    Assert.Equal(3, length);
                 })));
         }
 
-        [TestMethod]
-        public void TestSetCursorPositionAPI()
+        [Fact]
+        public void SetCursorPositionAPI()
         {
             TestSetup(KeyMode.Cmd);
 

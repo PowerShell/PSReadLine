@@ -1,15 +1,15 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.PowerShell;
+﻿using Microsoft.PowerShell;
+using Xunit;
 
-namespace UnitTestPSReadLine
+namespace Test
 {
     // Disgusting language hack to make it easier to read a sequence of keys.
     using _ = Keys;
 
-    public partial class UnitTest
+    public partial class ReadLine
     {
-        [TestMethod]
-        public void TestEndOfLine()
+        [Fact]
+        public void EndOfLine()
         {
             TestSetup(KeyMode.Cmd);
 
@@ -34,8 +34,8 @@ namespace UnitTestPSReadLine
                 ));
         }
 
-        [TestMethod]
-        public void TestMultilineCursorMovement()
+        [Fact]
+        public void MultilineCursorMovement()
         {
             TestSetup(KeyMode.Cmd);
 
@@ -109,8 +109,8 @@ namespace UnitTestPSReadLine
                 ));
         }
 
-        [TestMethod]
-        public void TestCursorMovement()
+        [Fact]
+        public void CursorMovement()
         {
             TestSetup(KeyMode.Cmd);
 
@@ -137,8 +137,8 @@ namespace UnitTestPSReadLine
                 _.AltMinus, _.Alt7, _.RightArrow, CheckThat(() => AssertCursorLeftIs(2))));
         }
 
-        [TestMethod]
-        public void TestGotoBrace()
+        [Fact]
+        public void GotoBrace()
         {
             TestSetup(KeyMode.Cmd);
 
@@ -171,8 +171,8 @@ namespace UnitTestPSReadLine
             }
         }
 
-        [TestMethod]
-        public void TestCharacterSearch()
+        [Fact]
+        public void CharacterSearch()
         {
             TestSetup(KeyMode.Cmd);
 
@@ -207,8 +207,8 @@ namespace UnitTestPSReadLine
                 _.CtrlZ, CheckThat(() => AssertCursorLeftIs(12))));
         }
 
-        [TestMethod]
-        public void TestCharacterSearchBackward()
+        [Fact]
+        public void CharacterSearchBackward()
         {
             TestSetup(KeyMode.Cmd);
 

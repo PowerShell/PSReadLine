@@ -1,20 +1,20 @@
 ﻿using System;
 using System.Linq;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.PowerShell;
+using Xunit;
 
-namespace UnitTestPSReadLine
+namespace Test
 {
     // Disgusting language hack to make it easier to read a sequence of keys.
     using _ = Keys;
 
-    public partial class UnitTest
+    public partial class ReadLine
     {
 
         // Disabled because the test is not portable without some mocking that
         // probably not worth the effort.
         //[TestMethod]
-        public void TestCaptureScreen()
+        private void CaptureScreen()
         {
             TestSetup(KeyMode.Cmd,
                 new KeyHandler("Ctrl+z", PSConsoleReadLine.CaptureScreen));

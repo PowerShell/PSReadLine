@@ -1,18 +1,18 @@
 ﻿using System;
 using System.Collections;
 using System.Diagnostics.CodeAnalysis;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.PowerShell;
+using Xunit;
 
-namespace UnitTestPSReadLine
+namespace Test
 {
     // Disgusting language hack to make it easier to read a sequence of keys.
     using _ = Keys;
 
-    public partial class UnitTest
+    public partial class ReadLine
     {
-        [TestMethod]
-        public void TestContinuationPrompt()
+        [Fact]
+        public void ContinuationPrompt()
         {
             TestSetup(KeyMode.Cmd);
 
@@ -58,8 +58,8 @@ namespace UnitTestPSReadLine
                 ));
         }
 
-        [TestMethod]
-        public void TestGetKeyHandlers()
+        [Fact]
+        public void GetKeyHandlers()
         {
             foreach (var keymode in new[] {KeyMode.Cmd, KeyMode.Emacs})
             {
@@ -67,23 +67,23 @@ namespace UnitTestPSReadLine
 
                 foreach (var handler in PSConsoleReadLine.GetKeyHandlers(includeBound: false, includeUnbound: true))
                 {
-                    Assert.AreEqual("Unbound", handler.Key);
-                    Assert.IsFalse(string.IsNullOrWhiteSpace(handler.Function));
-                    Assert.IsFalse(string.IsNullOrWhiteSpace(handler.Description));
+                    Assert.Equal("Unbound", handler.Key);
+                    Assert.False(string.IsNullOrWhiteSpace(handler.Function));
+                    Assert.False(string.IsNullOrWhiteSpace(handler.Description));
                 }
 
                 foreach (var handler in PSConsoleReadLine.GetKeyHandlers(includeBound: true, includeUnbound: false))
                 {
-                    Assert.AreNotEqual("Unbound", handler.Key);
-                    Assert.IsFalse(string.IsNullOrWhiteSpace(handler.Function));
-                    Assert.IsFalse(string.IsNullOrWhiteSpace(handler.Description));
+                    Assert.NotEqual("Unbound", handler.Key);
+                    Assert.False(string.IsNullOrWhiteSpace(handler.Function));
+                    Assert.False(string.IsNullOrWhiteSpace(handler.Description));
                 }
             }
         }
 
-        [TestMethod]
+        [Fact]
         [ExcludeFromCodeCoverage]
-        public void TestUselessStuffForBetterCoverage()
+        public void UselessStuffForBetterCoverage()
         {
             // Useless test to just make sure coverage numbers are better, written
             // in the first way I could think of that doesn't warn about doing something useless.
@@ -106,7 +106,7 @@ namespace UnitTestPSReadLine
                           + getKeyHandlerCommand.Bound.GetHashCode()
                           + getKeyHandlerCommand.Unbound.GetHashCode();
             // This assertion just avoids annoying warnings about unused variables.
-            Assert.AreNotEqual(Math.PI, useless);
+            Assert.NotEqual(Math.PI, useless);
         }
     }
 }

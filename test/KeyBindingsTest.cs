@@ -1,16 +1,16 @@
 ﻿using System.Linq;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.PowerShell;
+using Xunit;
 
-namespace UnitTestPSReadLine
+namespace Test
 {
     // Disgusting language hack to make it easier to read a sequence of keys.
     using _ = Keys;
 
-    public partial class UnitTest
+    public partial class ReadLine
     {
-        [TestMethod]
-        public void TestWhatIsKey()
+        [Fact]
+        public void WhatIsKey()
         {
             TestSetup(KeyMode.Cmd);
 
@@ -35,8 +35,8 @@ namespace UnitTestPSReadLine
                 CheckThat(() => AssertScreenIs(2, NextLine, "Ctrl+x,Ctrl+u: Undo - Undo a previous edit"))));
         }
 
-        [TestMethod]
-        public void TestShowKeyBindings()
+        [Fact]
+        public void ShowKeyBindings()
         {
             // I'm too lazy to validate the output as there's a lot of output.  So
             // just run it a few times to make sure nothing crashes.
