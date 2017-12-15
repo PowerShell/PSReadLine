@@ -126,3 +126,6 @@ ChocolateyPackage/PSReadLine/
 
 # Visual Studio cache/options directory
 .vs/
+
+# Rider files
+.idea/
