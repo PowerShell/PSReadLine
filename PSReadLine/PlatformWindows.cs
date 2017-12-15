@@ -120,6 +120,18 @@ static class PlatformWindows
     static bool _enableVtOutput;
     internal static void Init(ref ICharMap charMap)
     {
+        // If either stdin or stdout is redirected, PSReadLine doesn't really work, so throw
+        // and let PowerShell call Console.ReadLine or do whatever else it decides to do.
+        if (IsHandleRedirected(stdin: false) || IsHandleRedirected(stdin: true))
+        {
+            // If running in AppVeyor or local testing, this environment variable can be set
+            // to skip the exception.
+            if (Environment.GetEnvironmentVariable("PSREADLINE_TESTRUN") == null)
+            {
+                throw new NotSupportedException();
+            }
+        }
+
         if (_enableVtOutput)
         {
             // This is needed because PowerShell does not restore the console mode

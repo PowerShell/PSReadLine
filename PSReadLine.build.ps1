@@ -166,6 +166,7 @@ Synopsis: Run the unit tests
 #>
 task RunTests BuildTests, {
     exec {
+        $env:PSREADLINE_TESTRUN = 1
         $runner = "$PSScriptRoot\PSReadLine\packages\xunit.runner.console.2.3.1\tools\net452\xunit.console.exe"
         if ($env:APPVEYOR)
         {
@@ -178,6 +179,7 @@ task RunTests BuildTests, {
         {
             & $runner $PSScriptRoot\test\bin\$Configuration\PSReadLine.Tests.dll
         }
+        Remove-Item env:PSREADLINE_TESTRUN
     }
 }
 
