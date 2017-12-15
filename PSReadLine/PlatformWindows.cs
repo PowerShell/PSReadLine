@@ -369,43 +369,40 @@ static class PlatformWindows
         private static ConsoleColor InitialFG = Console.ForegroundColor;
         private static ConsoleColor InitialBG = Console.BackgroundColor;
 
-        private static readonly Dictionary<string, Action> EscapeSequenceActions = new Dictionary<string, Action> {
-            {"\x1b[30;47m", () => {
-                Console.ForegroundColor = ConsoleColor.Black;
-                Console.BackgroundColor = ConsoleColor.Gray; } },
-            {"\x1b[40m", () => Console.BackgroundColor = ConsoleColor.Black},
-            {"\x1b[44m", () => Console.BackgroundColor = ConsoleColor.DarkBlue },
-            {"\x1b[42m", () => Console.BackgroundColor = ConsoleColor.DarkGreen},
-            {"\x1b[46m", () => Console.BackgroundColor = ConsoleColor.DarkCyan},
-            {"\x1b[41m", () => Console.BackgroundColor = ConsoleColor.DarkRed},
-            {"\x1b[45m", () => Console.BackgroundColor = ConsoleColor.DarkMagenta},
-            {"\x1b[43m", () => Console.BackgroundColor = ConsoleColor.DarkYellow},
-            {"\x1b[47m", () => Console.BackgroundColor = ConsoleColor.Gray},
-            {"\x1b[100m", () => Console.BackgroundColor = ConsoleColor.DarkGray},
-            {"\x1b[104m", () => Console.BackgroundColor = ConsoleColor.Blue},
-            {"\x1b[102m", () => Console.BackgroundColor = ConsoleColor.Green},
-            {"\x1b[106m", () => Console.BackgroundColor = ConsoleColor.Cyan},
-            {"\x1b[101m", () => Console.BackgroundColor = ConsoleColor.Red},
-            {"\x1b[105m", () => Console.BackgroundColor = ConsoleColor.Magenta},
-            {"\x1b[103m", () => Console.BackgroundColor = ConsoleColor.Yellow},
-            {"\x1b[107m", () => Console.BackgroundColor = ConsoleColor.White},
-            {"\x1b[30m", () => Console.ForegroundColor = ConsoleColor.Black},
-            {"\x1b[34m", () => Console.ForegroundColor = ConsoleColor.DarkBlue},
-            {"\x1b[32m", () => Console.ForegroundColor = ConsoleColor.DarkGreen},
-            {"\x1b[36m", () => Console.ForegroundColor = ConsoleColor.DarkCyan},
-            {"\x1b[31m", () => Console.ForegroundColor = ConsoleColor.DarkRed},
-            {"\x1b[35m", () => Console.ForegroundColor = ConsoleColor.DarkMagenta},
-            {"\x1b[33m", () => Console.ForegroundColor = ConsoleColor.DarkYellow},
-            {"\x1b[37m", () => Console.ForegroundColor = ConsoleColor.Gray},
-            {"\x1b[90m", () => Console.ForegroundColor = ConsoleColor.DarkGray},
-            {"\x1b[94m", () => Console.ForegroundColor = ConsoleColor.Blue},
-            {"\x1b[92m", () => Console.ForegroundColor = ConsoleColor.Green},
-            {"\x1b[96m", () => Console.ForegroundColor = ConsoleColor.Cyan},
-            {"\x1b[91m", () => Console.ForegroundColor = ConsoleColor.Red},
-            {"\x1b[95m", () => Console.ForegroundColor = ConsoleColor.Magenta},
-            {"\x1b[93m", () => Console.ForegroundColor = ConsoleColor.Yellow},
-            {"\x1b[97m", () => Console.ForegroundColor = ConsoleColor.White},
-            {"\x1b[0m", () => {
+        private static readonly Dictionary<int, Action> VTColorAction = new Dictionary<int, Action> {
+            {40, () => Console.BackgroundColor = ConsoleColor.Black},
+            {44, () => Console.BackgroundColor = ConsoleColor.DarkBlue },
+            {42, () => Console.BackgroundColor = ConsoleColor.DarkGreen},
+            {46, () => Console.BackgroundColor = ConsoleColor.DarkCyan},
+            {41, () => Console.BackgroundColor = ConsoleColor.DarkRed},
+            {45, () => Console.BackgroundColor = ConsoleColor.DarkMagenta},
+            {43, () => Console.BackgroundColor = ConsoleColor.DarkYellow},
+            {47, () => Console.BackgroundColor = ConsoleColor.Gray},
+            {100, () => Console.BackgroundColor = ConsoleColor.DarkGray},
+            {104, () => Console.BackgroundColor = ConsoleColor.Blue},
+            {102, () => Console.BackgroundColor = ConsoleColor.Green},
+            {106, () => Console.BackgroundColor = ConsoleColor.Cyan},
+            {101, () => Console.BackgroundColor = ConsoleColor.Red},
+            {105, () => Console.BackgroundColor = ConsoleColor.Magenta},
+            {103, () => Console.BackgroundColor = ConsoleColor.Yellow},
+            {107, () => Console.BackgroundColor = ConsoleColor.White},
+            {30, () => Console.ForegroundColor = ConsoleColor.Black},
+            {34, () => Console.ForegroundColor = ConsoleColor.DarkBlue},
+            {32, () => Console.ForegroundColor = ConsoleColor.DarkGreen},
+            {36, () => Console.ForegroundColor = ConsoleColor.DarkCyan},
+            {31, () => Console.ForegroundColor = ConsoleColor.DarkRed},
+            {35, () => Console.ForegroundColor = ConsoleColor.DarkMagenta},
+            {33, () => Console.ForegroundColor = ConsoleColor.DarkYellow},
+            {37, () => Console.ForegroundColor = ConsoleColor.Gray},
+            {90, () => Console.ForegroundColor = ConsoleColor.DarkGray},
+            {94, () => Console.ForegroundColor = ConsoleColor.Blue},
+            {92, () => Console.ForegroundColor = ConsoleColor.Green},
+            {96, () => Console.ForegroundColor = ConsoleColor.Cyan},
+            {91, () => Console.ForegroundColor = ConsoleColor.Red},
+            {95, () => Console.ForegroundColor = ConsoleColor.Magenta},
+            {93, () => Console.ForegroundColor = ConsoleColor.Yellow},
+            {97, () => Console.ForegroundColor = ConsoleColor.White},
+            {0, () => {
                 Console.ForegroundColor = InitialFG;
                 Console.BackgroundColor = InitialBG;
             }}
@@ -416,21 +413,68 @@ static class PlatformWindows
             var from = 0;
             for (int i = 0; i < s.Length; i++)
             {
-                if (s[i] == '\x1b')
+                // Process escapes we understand, write out (likely garbage) ones we don't.
+                // The shortest pattern is 4 characters, <ESC>[0m
+                if (s[i] != '\x1b' || (i + 3) >= s.Length || s[i + 1] != '[') continue;
+
+                Console.Write(s.Substring(from, i - from));
+                from = i;
+
+                Action action1 = null;
+                Action action2 = null;
+                var j = i+2;
+                var b = 1;
+                var color = 0;
+                var done = false;
+                var invalidSequence = false;
+                while (!done && j < s.Length)
                 {
-                    // Escape sequence - limited support here.
-                    var endSequence = s.IndexOf("m", i, StringComparison.Ordinal);
-                    if (endSequence > 0)
+                    switch (s[j])
                     {
-                        var escapeSequence = s.Substring(i, endSequence - i + 1);
-                        if (EscapeSequenceActions.TryGetValue(escapeSequence, out var action))
-                        {
-                            Console.Write(s.Substring(from, i - from));
-                            action();
-                            i = endSequence;
-                            from = i + 1;
-                        }
+                        case '0': case '1': case '2': case '3': case '4':
+                        case '5': case '6': case '7': case '8': case '9':
+                            if (b > 100)
+                            {
+                                invalidSequence = true;
+                                goto default;
+                            }
+                            color = color * b + (s[j] - '0');
+                            b *= 10;
+                            break;
+
+                        case 'm':
+                            done = true;
+                            goto case ';';
+
+                        case ';':
+                            if (VTColorAction.TryGetValue(color, out var action))
+                            {
+                                if (action1 == null) action1 = action;
+                                else if (action2 == null) action2 = action;
+                                else invalidSequence = true;
+                                color = 0;
+                                b = 1;
+                                break;
+                            }
+                            else
+                            {
+                                invalidSequence = true;
+                                goto default;
+                            }
+
+                        default:
+                            done = true;
+                            break;
                     }
+                    j += 1;
+                }
+
+                if (!invalidSequence)
+                {
+                    action1?.Invoke();
+                    action2?.Invoke();
+                    from = j;
+                    i = j - 1;
                 }
             }
 
