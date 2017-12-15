@@ -35,7 +35,7 @@ task CheckNugetInstalled `
         $script:nugetExe = "${env:TEMP}/nuget.exe"
         if (!(Test-Path $nugetExe))
         {
-            Invoke-WebRequest http://nuget.org/nuget.exe -OutFile $nugetExe
+            Invoke-WebRequest https://dist.nuget.org/win-x86-commandline/latest/nuget.exe -OutFile $nugetExe
         }
     }
 }
