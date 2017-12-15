@@ -126,7 +126,8 @@ static class PlatformWindows
         {
             // If running in AppVeyor or local testing, this environment variable can be set
             // to skip the exception.
-            if (Environment.GetEnvironmentVariable("PSREADLINE_TESTRUN") == null)
+            if (Environment.GetEnvironmentVariable("PSREADLINE_TESTRUN") == null
+                && Environment.GetEnvironmentVariable("APPVEYOR") == null)
             {
                 throw new NotSupportedException();
             }
