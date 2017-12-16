@@ -278,9 +278,19 @@ namespace Microsoft.PowerShell
         {
             var console = _singleton._console;
 
+            var oldControlCAsInput = false;
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 PlatformWindows.Init(ref _singleton._charMap);
+            }
+            else
+            {
+                try
+                {
+                    oldControlCAsInput = Console.TreatControlCAsInput;
+                    Console.TreatControlCAsInput = true;
+                }
+                catch {}
             }
 
             bool firstTime = true;
@@ -356,7 +366,16 @@ namespace Microsoft.PowerShell
                 }
                 finally
                 {
-                    try { Console.OutputEncoding = _singleton._initialOutputEncoding; } catch { }
+                    try
+                    {
+                        Console.OutputEncoding = _singleton._initialOutputEncoding;
+                        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                        {
+                            Console.TreatControlCAsInput = oldControlCAsInput;
+                        }
+                    }
+                    catch { }
+
                     if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                     {
                         PlatformWindows.Complete();
