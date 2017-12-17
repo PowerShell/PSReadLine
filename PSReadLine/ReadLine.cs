@@ -368,10 +368,15 @@ namespace Microsoft.PowerShell
                 {
                     try
                     {
-                        Console.OutputEncoding = _singleton._initialOutputEncoding;
-                        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                        // If we are closing, restoring the old console settings isn't needed,
+                        // and some operating systems, it can cause a hang.
+                        if (!_singleton._closingWaitHandle.WaitOne(0))
                         {
-                            Console.TreatControlCAsInput = oldControlCAsInput;
+                            Console.OutputEncoding = _singleton._initialOutputEncoding;
+                            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                            {
+                                Console.TreatControlCAsInput = oldControlCAsInput;
+                            }
                         }
                     }
                     catch { }
