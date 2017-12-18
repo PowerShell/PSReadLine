@@ -3,6 +3,7 @@ Copyright (c) Microsoft Corporation.  All rights reserved.
 --********************************************************************/
 
 using System;
+using System.Text;
 
 namespace Microsoft.PowerShell.Internal
 {
@@ -86,6 +87,14 @@ namespace Microsoft.PowerShell.Internal
         {
             get => Console.ForegroundColor;
             set => Console.ForegroundColor = value;
+        }
+
+        public Encoding OutputEncoding
+        {
+            // Catch and ignore exceptions - if we can't change the encoding, output is
+            // probably redirected, but it can also happen with the legacy console on Windows.
+            get { try { return Console.OutputEncoding; } catch { return Encoding.Default; } }
+            set { try { Console.OutputEncoding = value; } catch { } }
         }
 
         public ConsoleKeyInfo ReadKey()                  => Console.ReadKey(true);

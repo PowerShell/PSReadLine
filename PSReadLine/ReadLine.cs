@@ -372,7 +372,7 @@ namespace Microsoft.PowerShell
                         // and some operating systems, it can cause a hang.
                         if (!_singleton._closingWaitHandle.WaitOne(0))
                         {
-                            Console.OutputEncoding = _singleton._initialOutputEncoding;
+                            console.OutputEncoding = _singleton._initialOutputEncoding;
                             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                             {
                                 Console.TreatControlCAsInput = oldControlCAsInput;
@@ -472,14 +472,14 @@ namespace Microsoft.PowerShell
         {
             try
             {
-                Console.OutputEncoding = _initialOutputEncoding;
+                _console.OutputEncoding = _initialOutputEncoding;
                 return RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
                     ? PlatformWindows.CallPossibleExternalApplication(func)
                     : func();
             }
             finally
             {
-                Console.OutputEncoding = Encoding.UTF8;
+                _console.OutputEncoding = Encoding.UTF8;
             }
         }
 
@@ -593,8 +593,8 @@ namespace Microsoft.PowerShell
             _initialY = _console.CursorTop;
             _statusIsErrorMessage = false;
 
-            _initialOutputEncoding = Console.OutputEncoding;
-            try { Console.OutputEncoding = Encoding.UTF8;} catch { }
+            _initialOutputEncoding = _console.OutputEncoding;
+            _console.OutputEncoding = Encoding.UTF8;
             _lastRenderTime = Stopwatch.StartNew();
 
             _killCommandCount = 0;

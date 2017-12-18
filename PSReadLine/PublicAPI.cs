@@ -8,6 +8,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Management.Automation;
 using System.Management.Automation.Language;
 using System.Management.Automation.Runspaces;
+using System.Text;
 using Microsoft.PowerShell.PSReadLine;
 
 
@@ -42,6 +43,7 @@ namespace Microsoft.PowerShell
             int WindowTop { get; set; }
             ConsoleColor BackgroundColor { get; set; }
             ConsoleColor ForegroundColor { get; set; }
+            Encoding OutputEncoding { get; set; }
             void SetWindowPosition(int left, int top);
             void SetCursorPosition(int left, int top);
             void WriteLine(string s);

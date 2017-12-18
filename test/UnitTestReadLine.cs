@@ -198,6 +198,12 @@ namespace Test
         }
         private ConsoleColor _foregroundColor;
 
+        public Encoding OutputEncoding
+        {
+            get => Encoding.Default;
+            set { }
+        }
+
         private bool Negative;
 
         public void SetWindowPosition(int left, int top)
