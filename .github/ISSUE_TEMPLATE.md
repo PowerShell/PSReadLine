@@ -15,13 +15,18 @@ Environment data
 ```powershell
 & {
     "PS version: $($PSVersionTable.PSVersion)"
-    "PSReadline version: $((Get-Module PSReadline).Version)"
+    $v = (Get-Module PSReadline).Version
+    $m = Get-Content "$(Split-Path -Parent (Get-Module PSReadLine).Path)\PSReadLine.psd1" | Select-String "Prerelease = '(.*)'"
+    if ($m) {
+        $v = "$v-" + $m.Matches[0].Groups[1].Value
+    }
+    "PSReadline version: $v"
     if ($IsLinux -or $IsOSX) {
         "os: $(uname -a)"
     } else {
         "os: $((dir $env:SystemRoot\System32\cmd.exe).VersionInfo.FileVersion)"
     }
-    "PS file version: $((dir $pshome\powershell.exe).VersionInfo.FileVersion)"
+    "PS file version: $((dir $pshome\p*[hl].exe).VersionInfo.FileVersion)"
 }
 ```
 -->
