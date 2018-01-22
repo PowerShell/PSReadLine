@@ -65,9 +65,9 @@ namespace Microsoft.PowerShell
             bool shift = false;
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                var scan = VkKeyScan((short) c);
-                if ((scan & 0x100) != 0) { shift = true; }
-                key = (ConsoleKey)(scan & 0xff);
+                var keyWithMods = WindowsKeyScan(c);
+                shift = (keyWithMods.Modifiers & ConsoleModifiers.Shift) != 0;
+                key = keyWithMods.Key;
                 c = '\0';
             }
             else
@@ -363,6 +363,17 @@ namespace Microsoft.PowerShell
         [DllImport("user32.dll")]
         public static extern int VkKeyScan(short wAsciiVal);
 
+        static KeyWithModifiers WindowsKeyScan(char c)
+        {
+            var scan = VkKeyScan((short)c);
+            var key = (ConsoleKey)(scan & 0xff);
+            var mods = default(ConsoleModifiers);
+            if ((scan & 0x100) != 0) { mods |= ConsoleModifiers.Shift; }
+            if ((scan & 0x200) != 0) { mods |= ConsoleModifiers.Control; }
+            if ((scan & 0x400) != 0) { mods |= ConsoleModifiers.Alt; }
+            return new KeyWithModifiers(key, mods);
+        }
+
         struct KeyWithModifiers
         {
             public KeyWithModifiers(ConsoleKey key, ConsoleModifiers mods = 0)
@@ -414,13 +425,7 @@ namespace Microsoft.PowerShell
                 // Oem5 with a Portuguese keyboard.
                 foreach (char c in "`~!@#$%^&*()-_=+[{]}\\|;:'\",<.>/?")
                 {
-                    var scan = VkKeyScan((short) c);
-                    ConsoleModifiers mods = 0;
-                    if ((scan & 0x100) != 0) { mods |= ConsoleModifiers.Shift; }
-                    if ((scan & 0x200) != 0) { mods |= ConsoleModifiers.Control; }
-                    if ((scan & 0x400) != 0) { mods |= ConsoleModifiers.Alt; }
-                    var key = new KeyWithModifiers((ConsoleKey)(scan & 0xff), mods);
-                    CtrlKeyToKeyCharMap.Add(key, c);
+                    CtrlKeyToKeyCharMap.Add(WindowsKeyScan(c), c);
                 }
             }
         }
@@ -545,8 +550,25 @@ namespace Microsoft.PowerShell
 
         internal static bool ShouldInsert(this ConsoleKeyInfo key)
         {
-            return key.KeyChar != '\0' &&
-                   (key.Modifiers & (ConsoleModifiers.Alt | ConsoleModifiers.Control)) == 0;
+            if (key.KeyChar == '\0') return false;
+
+            if (key.Modifiers != 0)
+            {
+                // We want to ignore control sequences - but distinguishing a control sequence
+                // isn't as simple as it could be because we will get inconsistent modifiers
+                // depending on the OS or keyboard layout.
+                //
+                // Windows will give us the key state even if we didn't care, e.g. it's normal
+                // to see Alt+Control (AltGr) on a Spanish, French, or German keyboard for many normal
+                // characters. So we just ask the OS what mods to expect for a given key.
+                // On non-Windows - anything but Shift is assumed to be a control sequence.
+                var expectedMods = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                    ? WindowsKeyScan(key.KeyChar).Modifiers
+                    : key.Modifiers & ConsoleModifiers.Shift;
+                return key.Modifiers == expectedMods;
+            }
+
+            return true;
         }
 
         internal static bool IsUnmodifiedChar(this ConsoleKeyInfo key, char c)
