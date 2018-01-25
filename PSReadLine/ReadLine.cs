@@ -30,6 +30,8 @@ namespace Microsoft.PowerShell
     {
         private static readonly PSConsoleReadLine _singleton = new PSConsoleReadLine();
 
+        private static readonly CancellationToken _defaultCancellationToken = new CancellationTokenSource().Token;
+
         private bool _delayedOneTimeInitCompleted;
 
         private IPSConsoleReadLineMockableMethods _mockableMethods;
@@ -41,6 +43,7 @@ namespace Microsoft.PowerShell
         private Thread _readKeyThread;
         private AutoResetEvent _readKeyWaitHandle;
         private AutoResetEvent _keyReadWaitHandle;
+        private CancellationToken _cancelReadCancellationToken;
         internal ManualResetEvent _closingWaitHandle;
         private WaitHandle[] _threadProcWaitHandles;
         private WaitHandle[] _requestKeyWaitHandles;
@@ -139,7 +142,12 @@ namespace Microsoft.PowerShell
                 if (handleId == 1) // It was the _closingWaitHandle that was signaled.
                     break;
 
+                var localCancellationToken = _singleton._cancelReadCancellationToken;
                 ReadOneOrMoreKeys();
+                if (localCancellationToken.IsCancellationRequested)
+                {
+                    continue;
+                }
 
                 // One or more keys were read - let ReadKey know we're done.
                 _keyReadWaitHandle.Set();
@@ -249,6 +257,13 @@ namespace Microsoft.PowerShell
                 throw new OperationCanceledException();
             }
 
+            if (handleId == 2)
+            {
+                // ReadLine was cancelled by the host, throw an exception so we can return
+                // an empty string.
+                throw new OperationCanceledException();
+            }
+
             var key = _singleton._queuedKeys.Dequeue();
             return key;
         }
@@ -275,6 +290,18 @@ namespace Microsoft.PowerShell
         /// </summary>
         /// <returns>The complete command line.</returns>
         public static string ReadLine(Runspace runspace, EngineIntrinsics engineIntrinsics)
+        {
+            // Use a default cancellation token instead of CancellationToken.None because the
+            // WaitHandle is shared and could be triggered accidently.
+            return ReadLine(runspace, engineIntrinsics, _defaultCancellationToken);
+        }
+
+        /// <summary>
+        /// Entry point - called from the PowerShell function PSConsoleHostReadLine
+        /// after the prompt has been displayed.
+        /// </summary>
+        /// <returns>The complete command line.</returns>
+        public static string ReadLine(Runspace runspace, EngineIntrinsics engineIntrinsics, CancellationToken cancellationToken)
         {
             var console = _singleton._console;
 
@@ -304,6 +331,8 @@ namespace Microsoft.PowerShell
                         _singleton.Initialize(runspace, engineIntrinsics);
                     }
 
+                    _singleton._cancelReadCancellationToken = cancellationToken;
+                    _singleton._requestKeyWaitHandles[2] = _singleton._cancelReadCancellationToken.WaitHandle;
                     return _singleton.InputLoop();
                 }
                 catch (OperationCanceledException)
@@ -711,7 +740,7 @@ namespace Microsoft.PowerShell
             _singleton._readKeyWaitHandle = new AutoResetEvent(false);
             _singleton._keyReadWaitHandle = new AutoResetEvent(false);
             _singleton._closingWaitHandle = new ManualResetEvent(false);
-            _singleton._requestKeyWaitHandles = new WaitHandle[] {_singleton._keyReadWaitHandle, _singleton._closingWaitHandle};
+            _singleton._requestKeyWaitHandles = new WaitHandle[] {_singleton._keyReadWaitHandle, _singleton._closingWaitHandle, _defaultCancellationToken.WaitHandle};
             _singleton._threadProcWaitHandles = new WaitHandle[] {_singleton._readKeyWaitHandle, _singleton._closingWaitHandle};
 
             // This is for a "being hosted in an alternate appdomain scenario" (the
