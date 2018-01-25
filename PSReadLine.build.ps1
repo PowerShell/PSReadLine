@@ -202,6 +202,9 @@ task LayoutModule BuildMainModule, BuildMamlHelp, {
 
     Copy-Item PSReadLine/bin/$Configuration/Microsoft.PowerShell.PSReadLine2.dll $targetDir
     Copy-Item PSReadLine/bin/$Configuration/System.Runtime.InteropServices.RuntimeInformation.dll $targetDir
+    Copy-Item PSReadLine/bin/$Configuration/UnixConsoleEcho.dll $targetDir
+    Copy-Item PSReadLine/bin/$Configuration/libdisablekeyecho.so $targetDir
+    Copy-Item PSReadLine/bin/$Configuration/libdisablekeyecho.dylib $targetDir
 
     # Copy module manifest, but fix the version to match what we've specified in the binary module.
     $version = (Get-ChildItem -Path $targetDir/Microsoft.PowerShell.PSReadLine2.dll).VersionInfo.FileVersion

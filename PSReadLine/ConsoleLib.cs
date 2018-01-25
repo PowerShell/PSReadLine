@@ -97,7 +97,32 @@ namespace Microsoft.PowerShell.Internal
             set { try { Console.OutputEncoding = value; } catch { } }
         }
 
-        public ConsoleKeyInfo ReadKey()                  => Console.ReadKey(true);
+        private void WaitForKeyAvailable()
+        {
+            // On Unix platforms input echo is on by default. If we wait for KeyAvailable without
+            // disabling it, all input will be echoed.
+            UnixConsoleEcho.InputEcho.Disable();
+            try
+            {
+                while (!Console.KeyAvailable)
+                {
+                    System.Threading.Thread.Sleep(50);
+                }
+            }
+            finally
+            {
+                UnixConsoleEcho.InputEcho.Enable();
+            }
+        }
+
+        public ConsoleKeyInfo ReadKey()
+        {
+            // Wait for a key to be pressed before calling ReadKey to avoid locking stdin on
+            // non-Windows platforms.
+            WaitForKeyAvailable();
+            return Console.ReadKey(true);
+        }
+
         public bool KeyAvailable                         => Console.KeyAvailable;
         public void SetWindowPosition(int left, int top) => Console.SetWindowPosition(left, top);
         public void SetCursorPosition(int left, int top) => Console.SetCursorPosition(left, top);
