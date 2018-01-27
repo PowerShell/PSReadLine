@@ -61,7 +61,7 @@ namespace Microsoft.PowerShell
                 { Keys.RightArrow,      MakeKeyHandler(ForwardChar,            "ForwardChar") },
                 { Keys.CtrlLeftArrow,   MakeKeyHandler(BackwardWord,           "BackwardWord") },
                 { Keys.CtrlRightArrow,  MakeKeyHandler(NextWord,               "NextWord") },
-                { Keys.UpArrow,         MakeKeyHandler(PreviousHistory,        "PreviousHistory") },
+                { Keys.UpArrow,         MakeKeyHandler(ViPreviousHistory,      "ViPreviousHistory") },
                 { Keys.DownArrow,       MakeKeyHandler(NextHistory,            "NextHistory") },
                 { Keys.Home,            MakeKeyHandler(BeginningOfLine,        "BeginningOfLine") },
                 { Keys.End,             MakeKeyHandler(EndOfLine,              "EndOfLine") },
