@@ -250,13 +250,13 @@ namespace Microsoft.PowerShell
 
         private static void ViReplaceToChar(char keyChar, ConsoleKeyInfo? key = null, object arg = null)
         {
-            bool shouldAppend = _singleton._current > 0;
+            int initialCurrent = _singleton._current;
 
             _singleton._groupUndoHelper.StartGroup(ReplaceChar, arg);
             ViCharacterSearcher.Set(keyChar, isBackward: false, isBackoff: false);
             if (ViCharacterSearcher.SearchDelete(keyChar, arg, backoff: false, instigator: (_key, _arg) => ViReplaceToChar(keyChar, _key, _arg)))
             {
-                if (shouldAppend)
+                if (_singleton._current < initialCurrent || _singleton._current >= _singleton._buffer.Length)
                 {
                     ViInsertWithAppend(key, arg);
                 }

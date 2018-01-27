@@ -91,6 +91,22 @@ namespace Test
         }
 
         [Fact]
+        public void ViDefect623()
+        {
+            TestSetup(KeyMode.Vi);
+
+            Test("012 4568", Keys(
+                "012 4567", _.Escape, CheckThat(() => AssertCursorLeftIs(7)),
+                "s8", _.Escape, CheckThat(() => AssertCursorLeftIs(7)), CheckThat(() => AssertLineIs("012 4568"))
+                ));
+
+            Test("asdf bzdf", Keys(
+                "asdf asdf", _.Escape, "0wcfs", CheckThat(() => AssertCursorLeftIs(5)),
+                "bz"
+                ));
+        }
+
+        [Fact]
         public void ViChangeMovementUndo()
         {
             TestSetup(KeyMode.Vi);
