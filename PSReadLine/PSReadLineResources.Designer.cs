@@ -1693,6 +1693,15 @@ namespace Microsoft.PowerShell.PSReadLine {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Replace the current input with the &apos;previous&apos; item from PSReadLine history..
+        /// </summary>
+        internal static string ViPreviousHistory {
+            get {
+                return ResourceManager.GetString("ViPreviousHistory", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Replace all characters between the current brace character and it&apos;s matching partner..
         /// </summary>
         internal static string ViReplaceBraceDescription {
