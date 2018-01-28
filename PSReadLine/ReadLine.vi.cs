@@ -576,7 +576,14 @@ namespace Microsoft.PowerShell
         public static void ViInsertWithDelete(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton._groupUndoHelper.StartGroup(ViInsertWithDelete, arg);
+
+            var isEOL = _singleton._current == _singleton._buffer.Length + ViEndOfLineFactor;
+
             DeleteChar(key, arg);
+            if(isEOL)
+            {
+                _singleton._current++;
+            }
             ViInsertMode(key, arg);
         }
 
