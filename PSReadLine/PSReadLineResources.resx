@@ -771,7 +771,7 @@ Or not saving history with:
   <data name="CustomGrouping" xml:space="preserve">
     <value>User defined functions</value>
   </data>
-  <data name="ViPreviousHistory" xml:space="preserve">
+  <data name="ViPreviousHistoryDescription" xml:space="preserve">
     <value>Replace the current input with the 'previous' item from PSReadLine history.</value>
   </data>
 </root>
