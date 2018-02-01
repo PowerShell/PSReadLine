@@ -51,9 +51,6 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
-    <Reference Include="UnixConsoleEcho, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\UnixConsoleEcho.0.1.0\lib\net461\UnixConsoleEcho.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyInfo.cs" />
@@ -124,13 +121,6 @@
     ..\..\CopyDLL.cmd $(TargetPath)
 )</PostBuildEvent>
   </PropertyGroup>
-  <Import Project="packages\UnixConsoleEcho.0.1.0\build\net461\UnixConsoleEcho.targets" Condition="Exists('packages\UnixConsoleEcho.0.1.0\build\net461\UnixConsoleEcho.targets')" />
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('packages\UnixConsoleEcho.0.1.0\build\net461\UnixConsoleEcho.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\UnixConsoleEcho.0.1.0\build\net461\UnixConsoleEcho.targets'))" />
-  </Target>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
