@@ -259,8 +259,13 @@ namespace Microsoft.PowerShell
 
             if (handleId == 2)
             {
-                // ReadLine was cancelled by the host, throw an exception so we can return
-                // an empty string.
+                // ReadLine was cancelled. Save the current line to be restored next time ReadLine
+                // is called, clear the buffer and throw an exception so we can return an empty string.
+                _singleton.SaveCurrentLine();
+                _singleton._getNextHistoryIndex = _singleton._history.Count;
+                _singleton._current = 0;
+                _singleton._buffer.Clear();
+                _singleton.Render();
                 throw new OperationCanceledException();
             }
 
@@ -297,8 +302,8 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Entry point - called from the PowerShell function PSConsoleHostReadLine
-        /// after the prompt has been displayed.
+        /// Entry point - called by custom PSHost implementations that require the
+        /// ability to cancel ReadLine.
         /// </summary>
         /// <returns>The complete command line.</returns>
         public static string ReadLine(Runspace runspace, EngineIntrinsics engineIntrinsics, CancellationToken cancellationToken)
@@ -337,7 +342,8 @@ namespace Microsoft.PowerShell
                 }
                 catch (OperationCanceledException)
                 {
-                    // Console is exiting - return value isn't too critical - null or 'exit' could work equally well.
+                    // Console is either exiting or the cancellation of ReadLine has been requested
+                    // by a custom PSHost implementation.
                     return "";
                 }
                 catch (ExitException)
