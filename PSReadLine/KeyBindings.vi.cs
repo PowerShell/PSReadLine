@@ -70,6 +70,7 @@ namespace Microsoft.PowerShell
                 { Keys.CtrlSpace,       MakeKeyHandler(PossibleCompletions,    "PossibleCompletions") },
                 { Keys.Tab,             MakeKeyHandler(ViTabCompleteNext,      "ViTabCompleteNext") },
                 { Keys.ShiftTab,        MakeKeyHandler(ViTabCompletePrevious,  "ViTabCompletePrevious") },
+                { Keys.CtrlU,           MakeKeyHandler(BackwardDeleteLine,     "BackwardDeleteLine") },
                 { Keys.CtrlV,           MakeKeyHandler(Paste,                  "Paste") },
                 { Keys.CtrlC,           MakeKeyHandler(CancelLine,             "CancelLine") },
                 { Keys.CtrlL,           MakeKeyHandler(ClearScreen,            "ClearScreen") },
