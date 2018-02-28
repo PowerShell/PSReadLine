@@ -112,7 +112,11 @@ namespace Test
             TestSetup(KeyMode.Vi);
 
             Test("alsf", Keys(
-                "lsf lsf", _.Escape, "bi", _.CtrlU, "a"
+                "lsf lsf", _.Escape, "bi", _.CtrlU, 'a'
+                ));
+
+            Test("a", Keys(
+                "lsf lsf", _.CtrlU, 'a'
                 ));
         }
 
