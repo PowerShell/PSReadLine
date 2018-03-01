@@ -21,7 +21,7 @@ Environment data
         $v = "$v-" + $m.Matches[0].Groups[1].Value
     }
     "PSReadline version: $v"
-    if ($IsLinux -or $IsOSX) {
+    if ($IsLinux -or $IsMacOS) {
         "os: $(uname -a)"
     } else {
         "os: $((dir $env:SystemRoot\System32\cmd.exe).VersionInfo.FileVersion)"
