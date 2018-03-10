@@ -15,7 +15,7 @@ Environment data
 ```powershell
 & {
     "PS version: $($PSVersionTable.PSVersion)"
-    $v = (Get-Module PSReadline).Version
+    $v = (Get-Module PSReadline -ListAvailable).Version
     $m = Get-Content "$(Split-Path -Parent (Get-Module PSReadLine).Path)\PSReadLine.psd1" | Select-String "Prerelease = '(.*)'"
     if ($m) {
         $v = "$v-" + $m.Matches[0].Groups[1].Value
