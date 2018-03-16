@@ -285,6 +285,15 @@ namespace Microsoft.PowerShell
             }
             else
             {
+                if (Console.IsInputRedirected || Console.IsOutputRedirected)
+                {
+                    // System.Console doesn't handle redirected input. It matches the behavior on Windows
+                    // by throwing an "InvalidOperationException".
+                    // Therefore, if either stdin or stdout is redirected, PSReadLine doesn't really work,
+                    // so throw and let PowerShell call Console.ReadLine or do whatever else it decides to do.
+                    throw new NotSupportedException();
+                }
+
                 try
                 {
                     oldControlCAsInput = Console.TreatControlCAsInput;
