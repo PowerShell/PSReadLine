@@ -107,6 +107,20 @@ namespace Test
         }
 
         [Fact]
+        public void ViDefect628()
+        {
+            TestSetup(KeyMode.Vi);
+
+            Test("alsf", Keys(
+                "lsf lsf", _.Escape, "bi", _.CtrlU, 'a'
+                ));
+
+            Test("a", Keys(
+                "lsf lsf", _.CtrlU, 'a'
+                ));
+        }
+
+        [Fact]
         public void ViChangeMovementUndo()
         {
             TestSetup(KeyMode.Vi);
