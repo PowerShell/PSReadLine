@@ -394,16 +394,17 @@ namespace Microsoft.PowerShell
         public static void ClearScreen(ConsoleKeyInfo? key = null, object arg = null)
         {
             var console = _singleton._console;
-            if (_singleton._initialY + console.WindowHeight > console.BufferHeight)
+            int newY = _singleton._initialY - _singleton.Options.ExtraPromptLineCount;
+            if (newY + console.WindowHeight > console.BufferHeight)
             {
-                var scrollCount = _singleton._initialY - console.WindowTop;
+                var scrollCount = newY - console.WindowTop;
                 console.ScrollBuffer(scrollCount);
                 _singleton._initialY -= scrollCount;
                 console.SetCursorPosition(console.CursorLeft, console.CursorTop - scrollCount);
             }
             else
             {
-                console.SetWindowPosition(0, _singleton._initialY);
+                console.SetWindowPosition(0, newY);
             }
         }
 
