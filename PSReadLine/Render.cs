@@ -361,15 +361,22 @@ namespace Microsoft.PowerShell
             PlaceCursor(_initialX, _initialY);
 
             // Possibly need to flip the color on the prompt if the error state changed.
-            if (!string.IsNullOrEmpty(_options.PromptText))
+            var promptText = _options.PromptText;
+            if (!string.IsNullOrEmpty(promptText))
             {
                 renderData.errorPrompt = (_parseErrors != null && _parseErrors.Length > 0);
                 if (renderData.errorPrompt != _previousRender.errorPrompt)
                 {
                     // We need to update the prompt
-                    _console.CursorLeft -= _options.PromptText.Length;
-                    UpdateColorsIfNecessary(renderData.errorPrompt ? _options._errorColor : defaultColor);
-                    _console.Write(_options.PromptText);
+
+                    // promptBufferCells is the number of visible characters in the prompt
+                    var promptBufferCells = LengthInBufferCells(promptText);
+                    _console.CursorLeft -= promptBufferCells;
+                    var color = renderData.errorPrompt ? _options._errorColor : defaultColor;
+                    if (renderData.errorPrompt && promptBufferCells != promptText.Length)
+                        promptText = promptText.Substring(promptText.Length - promptBufferCells);
+                    UpdateColorsIfNecessary(color);
+                    _console.Write(promptText);
                     _console.Write("\x1b[0m");
                 }
             }
