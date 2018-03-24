@@ -257,6 +257,11 @@ namespace Test
                 replacementLength = int.MaxValue;
                 completions.Add(new CompletionResult("result"));
                 break;
+            case "ls -H":
+                replacementIndex = cursor;
+                replacementLength = 0;
+                completions.Add(new CompletionResult("idden"));
+                break;
             case "none":
                 break;
             }

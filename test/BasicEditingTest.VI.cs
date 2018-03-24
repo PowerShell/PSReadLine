@@ -727,6 +727,18 @@ namespace Test
         }
 
         [Fact]
+        public void ViDefect651()
+        {
+            TestSetup(KeyMode.Vi, new KeyHandler("Tab", PSConsoleReadLine.MenuComplete));
+
+            Test("ls -Hidden", Keys(
+                "abcd", _.Escape, "0Cls -H", _.Tab, CheckThat(() => AssertLineIs("ls -Hidden")),
+                _.Enter
+                ));
+        }
+
+
+        [Fact]
         public void ViInsertLine()
         {
             int adder = PSConsoleReadLineOptions.DefaultContinuationPrompt.Length;
