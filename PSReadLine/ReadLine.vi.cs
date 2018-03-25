@@ -481,6 +481,11 @@ namespace Microsoft.PowerShell
         public static bool InViCommandMode() => _singleton._dispatchTable == _viCmdKeyMap;
 
         /// <summary>
+        /// Returns true if in Vi Insert mode, otherwise false.
+        /// </summary>
+        public static bool InViInsertMode() => _singleton._dispatchTable == _viInsKeyMap;
+
+        /// <summary>
         /// Temporarily swap in Vi-Command dispatch tables. Used for setting handlers.
         /// </summary>
         internal static IDisposable UseViCommandModeTables()

@@ -219,6 +219,12 @@ namespace Microsoft.PowerShell
 
         private void CompleteImpl(bool menuSelect)
         {
+            if (InViInsertMode())   // must close out the current edit group before engaging menu completion
+            {
+                ViCommandMode();
+                ViInsertWithAppend();
+            }
+
             var completions = GetCompletions();
             if (completions == null || completions.CompletionMatches.Count == 0)
                 return;
