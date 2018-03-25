@@ -246,17 +246,22 @@ namespace Microsoft.PowerShell
                 }
                 if (isCtrl)
                 {
-                    if (keyChar >= 'a' && keyChar <= 'z')
+                    switch (keyChar)
                     {
-                        keyChar = (char)(keyChar - 'a' + 1);
-                    }
-                    else if (keyChar >= 'A' && keyChar <= 'Z')
-                    {
-                        keyChar = (char)(keyChar - 'A' + 1);
-                    }
-                    else
-                    {
-                        keyChar = '\0';
+                        case var _ when (keyChar >= 'a' && keyChar <= 'z'):
+                            keyChar = (char)(keyChar - 'a' + 1);
+                            break;
+                        case var _ when (keyChar >= 'A' && keyChar <= ']'):
+                            keyChar = (char)(keyChar - 'A' + 1);
+                            break;
+                        case '_':
+                            keyChar = Keys.CtrlUnderbar.KeyChar;
+                            mods |= Keys.CtrlUnderbar.Modifiers;
+                            break;
+                        case '^':
+                            keyChar = Keys.CtrlCaret.KeyChar;
+                            mods |= Keys.CtrlCaret.Modifiers;
+                            break;
                     }
                 }
 

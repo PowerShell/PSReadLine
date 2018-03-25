@@ -326,6 +326,7 @@ namespace Microsoft.PowerShell
         public static ConsoleKeyInfo CtrlLBracket        = Ctrl('\x1b');
         public static ConsoleKeyInfo CtrlBackslash       = Ctrl('\x1c');
         public static ConsoleKeyInfo CtrlRBracket        = Ctrl('\x1d');
+        public static ConsoleKeyInfo CtrlCaret           = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? CtrlShift('\x1e') : Ctrl('\x1e');
         public static ConsoleKeyInfo CtrlUnderbar        = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? CtrlShift('\x1f') : Ctrl('\x1f');
         public static ConsoleKeyInfo CtrlBackspace       = Ctrl(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? '\x7f' : '\x08');
         public static ConsoleKeyInfo CtrlDelete          = Ctrl(ConsoleKey.Delete); // !Linux
@@ -478,13 +479,13 @@ namespace Microsoft.PowerShell
 
         private static ConsoleModifiers NormalizeModifiers(this ConsoleKeyInfo key)
         {
+            var keyChar = key.IgnoreKeyChar() ? key.KeyChar : key.NormalizeKeyChar();
             var result = key.Modifiers;
-            if (!char.IsControl(key.KeyChar))
+            if (!char.IsControl(keyChar))
             {
                 // Ignore Shift state unless it's a control character.
                 result = result & ~ConsoleModifiers.Shift;
             }
-
             return result;
         }
 
@@ -537,7 +538,7 @@ namespace Microsoft.PowerShell
             // Because a comparison of two ConsoleKeyInfo objects is a comparison of the
             // combination of the ConsoleKey and Modifiers, we must combine their hashes.
             // Note that if the ConsoleKey is default, we must fall back to the KeyChar,
-           // otherwise every non-special key will compare as the same.
+            // otherwise every non-special key will compare as the same.
             int h1 = obj.IgnoreKeyChar()
                 ? obj.Key.GetHashCode()
                 : obj.NormalizeKeyChar().GetHashCode();
