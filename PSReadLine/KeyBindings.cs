@@ -250,8 +250,9 @@ namespace Microsoft.PowerShell
             // Some bindings are not available on certain platforms
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                // Ctrl+H is interpreted as 'Backspace' on Linux, but not on Windows, so we need to add an entry here.
+                // Ctrl+H is interpreted as 'Backspace' on Linux just like in Bash, but not on Windows, so we need to add an entry here.
                 _dispatchTable.Add(Keys.CtrlH,         MakeKeyHandler(BackwardDeleteChar, "BackwardDeleteChar"));
+                // Ctrl+Backspace generates the same chord as Ctrl+H on Linux, so it's also interpreted as 'Backspace' on Linux.
                 _dispatchTable.Add(Keys.CtrlBackspace, MakeKeyHandler(BackwardKillWord,   "BackwardKillWord"));
                 _dispatchTable.Add(Keys.CtrlSpace,     MakeKeyHandler(MenuComplete,       "MenuComplete"));
                 _dispatchTable.Add(Keys.AltF7,         MakeKeyHandler(ClearHistory,       "ClearHistory"));
