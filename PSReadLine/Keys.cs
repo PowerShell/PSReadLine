@@ -304,12 +304,12 @@ namespace Microsoft.PowerShell
         public static ConsoleKeyInfo CtrlE               = Ctrl('\x05');
         public static ConsoleKeyInfo CtrlF               = Ctrl('\x06');
         public static ConsoleKeyInfo CtrlG               = Ctrl('\a');
-        public static ConsoleKeyInfo CtrlH               = Ctrl('\b');
-        public static ConsoleKeyInfo CtrlI               = Ctrl('\t');
-        public static ConsoleKeyInfo CtrlJ               = Ctrl('\n');
+        public static ConsoleKeyInfo CtrlH               = Ctrl('\b'); // !Linux, generate (keychar: '\b', key: Backspace, mods: 0), same as CtrlBackspace
+        public static ConsoleKeyInfo CtrlI               = Ctrl('\t'); // !Linux, generate (keychar: '\t', key: Tab,       mods: 0)
+        public static ConsoleKeyInfo CtrlJ               = Ctrl('\n'); // !Linux, generate (keychar: '\n', key: Enter,     mods: 0)
         public static ConsoleKeyInfo CtrlK               = Ctrl('\v');
         public static ConsoleKeyInfo CtrlL               = Ctrl('\f');
-        public static ConsoleKeyInfo CtrlM               = Ctrl('\r');
+        public static ConsoleKeyInfo CtrlM               = Ctrl('\r'); // !Linux, same as CtrlJ but 'showkey -a' shows they are different, CLR bug
         public static ConsoleKeyInfo CtrlN               = Ctrl('\x0e');
         public static ConsoleKeyInfo CtrlO               = Ctrl('\x0f');
         public static ConsoleKeyInfo CtrlP               = Ctrl('\x10');
@@ -328,7 +328,7 @@ namespace Microsoft.PowerShell
         public static ConsoleKeyInfo CtrlRBracket        = Ctrl('\x1d');
         public static ConsoleKeyInfo CtrlCaret           = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? CtrlShift('\x1e') : Ctrl('\x1e');
         public static ConsoleKeyInfo CtrlUnderbar        = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? CtrlShift('\x1f') : Ctrl('\x1f');
-        public static ConsoleKeyInfo CtrlBackspace       = Ctrl(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? '\x7f' : '\x08');
+        public static ConsoleKeyInfo CtrlBackspace       = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? Ctrl('\x7f') : Key('\x08');
         public static ConsoleKeyInfo CtrlDelete          = Ctrl(ConsoleKey.Delete); // !Linux
         public static ConsoleKeyInfo CtrlEnd             = Ctrl(ConsoleKey.End); // !Linux
         public static ConsoleKeyInfo CtrlHome            = Ctrl(ConsoleKey.Home); // !Linux
@@ -625,7 +625,10 @@ namespace Microsoft.PowerShell
                     case '\x1d': s = "]";         break;
                     case '\x1f': s = "_";         break;
                     case '\x7f': s = "Backspace"; break;
-                    case '\x08':
+
+                    // 'Ctrl+h' is represented as (keychar: 0x08, key: 0, mods: Control). In the case of 'Ctrl+h',
+                    // we don't want the keychar to be interpreted as 'Backspace'.
+                    case '\x08' when !isCtrl:
                         s = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "Backspace" : "Ctrl+Backspace";
                         break;
 
