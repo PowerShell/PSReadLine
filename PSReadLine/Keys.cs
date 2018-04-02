@@ -309,7 +309,7 @@ namespace Microsoft.PowerShell
         public static ConsoleKeyInfo CtrlJ               = Ctrl('\n'); // !Linux, generate (keychar: '\n', key: Enter,     mods: 0)
         public static ConsoleKeyInfo CtrlK               = Ctrl('\v');
         public static ConsoleKeyInfo CtrlL               = Ctrl('\f');
-        public static ConsoleKeyInfo CtrlM               = Ctrl('\r'); // !Linux, same as CtrlJ
+        public static ConsoleKeyInfo CtrlM               = Ctrl('\r'); // !Linux, same as CtrlJ but 'showkey -a' shows they are different, CLR bug
         public static ConsoleKeyInfo CtrlN               = Ctrl('\x0e');
         public static ConsoleKeyInfo CtrlO               = Ctrl('\x0f');
         public static ConsoleKeyInfo CtrlP               = Ctrl('\x10');
