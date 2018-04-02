@@ -203,7 +203,7 @@ namespace Microsoft.PowerShell
         public static ConsoleKeyInfo Plus                = Key('+');
         public static ConsoleKeyInfo Eq                  = Key('=');
         public static ConsoleKeyInfo Space               = Key(' ');
-        public static ConsoleKeyInfo Backspace           = Key(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? '\x08' : '\x7f');
+        public static ConsoleKeyInfo Backspace           = Key(ConsoleKey.Backspace);
         public static ConsoleKeyInfo Delete              = Key(ConsoleKey.Delete);
         public static ConsoleKeyInfo DownArrow           = Key(ConsoleKey.DownArrow);
         public static ConsoleKeyInfo End                 = Key(ConsoleKey.End);
@@ -290,7 +290,7 @@ namespace Microsoft.PowerShell
         public static ConsoleKeyInfo AltEquals           = Alt('=');  // !Linux, CLR bug
         public static ConsoleKeyInfo AltMinus            = Alt('-');
         public static ConsoleKeyInfo AltUnderbar         = Alt('_');  // !Linux, CLR bug
-        public static ConsoleKeyInfo AltBackspace        = Alt(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? '\x08' : '\x7f');
+        public static ConsoleKeyInfo AltBackspace        = Alt(ConsoleKey.Backspace);
         public static ConsoleKeyInfo AltLess             = Alt('<');  // !Linux, CLR bug
         public static ConsoleKeyInfo AltGreater          = Alt('>');  // !Linux, CLR bug
         public static ConsoleKeyInfo AltQuestion         = Alt('?');  // !Linux, CLR bug
@@ -304,12 +304,12 @@ namespace Microsoft.PowerShell
         public static ConsoleKeyInfo CtrlE               = Ctrl('\x05');
         public static ConsoleKeyInfo CtrlF               = Ctrl('\x06');
         public static ConsoleKeyInfo CtrlG               = Ctrl('\a');
-        public static ConsoleKeyInfo CtrlH               = Ctrl('\b');
-        public static ConsoleKeyInfo CtrlI               = Ctrl('\t');
-        public static ConsoleKeyInfo CtrlJ               = Ctrl('\n');
+        public static ConsoleKeyInfo CtrlH               = Ctrl('\b'); // !Linux, generate (keychar: '\b', key: Backspace, mods: 0), same as CtrlBackspace
+        public static ConsoleKeyInfo CtrlI               = Ctrl('\t'); // !Linux, generate (keychar: '\t', key: Tab,       mods: 0)
+        public static ConsoleKeyInfo CtrlJ               = Ctrl('\n'); // !Linux, generate (keychar: '\n', key: Enter,     mods: 0)
         public static ConsoleKeyInfo CtrlK               = Ctrl('\v');
         public static ConsoleKeyInfo CtrlL               = Ctrl('\f');
-        public static ConsoleKeyInfo CtrlM               = Ctrl('\r');
+        public static ConsoleKeyInfo CtrlM               = Ctrl('\r'); // !Linux, same as CtrlJ but 'showkey -a' shows they are different, CLR bug
         public static ConsoleKeyInfo CtrlN               = Ctrl('\x0e');
         public static ConsoleKeyInfo CtrlO               = Ctrl('\x0f');
         public static ConsoleKeyInfo CtrlP               = Ctrl('\x10');
@@ -328,7 +328,7 @@ namespace Microsoft.PowerShell
         public static ConsoleKeyInfo CtrlRBracket        = Ctrl('\x1d');
         public static ConsoleKeyInfo CtrlCaret           = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? CtrlShift('\x1e') : Ctrl('\x1e');
         public static ConsoleKeyInfo CtrlUnderbar        = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? CtrlShift('\x1f') : Ctrl('\x1f');
-        public static ConsoleKeyInfo CtrlBackspace       = Ctrl(RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? '\x7f' : '\x08');
+        public static ConsoleKeyInfo CtrlBackspace       = Ctrl(ConsoleKey.Backspace); // !Linux, same as CtrlH
         public static ConsoleKeyInfo CtrlDelete          = Ctrl(ConsoleKey.Delete); // !Linux
         public static ConsoleKeyInfo CtrlEnd             = Ctrl(ConsoleKey.End); // !Linux
         public static ConsoleKeyInfo CtrlHome            = Ctrl(ConsoleKey.Home); // !Linux
@@ -459,6 +459,7 @@ namespace Microsoft.PowerShell
                 case ConsoleKey.F22:
                 case ConsoleKey.F23:
                 case ConsoleKey.F24:
+                case ConsoleKey.Backspace:
                 case ConsoleKey.Delete:
                 case ConsoleKey.DownArrow:
                 case ConsoleKey.End:
@@ -624,10 +625,6 @@ namespace Microsoft.PowerShell
                     case '\x1c': s = "\\";        break;
                     case '\x1d': s = "]";         break;
                     case '\x1f': s = "_";         break;
-                    case '\x7f': s = "Backspace"; break;
-                    case '\x08':
-                        s = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "Backspace" : "Ctrl+Backspace";
-                        break;
 
                     case char _ when c <= 26:
                         s = ((char)((isShift ? 'A' : 'a') + c - 1)).ToString();

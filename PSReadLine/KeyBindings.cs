@@ -220,7 +220,7 @@ namespace Microsoft.PowerShell
                 { Keys.CtrlX,                  MakeKeyHandler(Cut,                       "Cut") },
                 { Keys.CtrlY,                  MakeKeyHandler(Redo,                      "Redo") },
                 { Keys.CtrlZ,                  MakeKeyHandler(Undo,                      "Undo") },
-                { Keys.CtrlBackspace,          MakeKeyHandler(BackwardKillWord,          "BackwardKillWord") },
+                { Keys.AltBackspace,           MakeKeyHandler(BackwardKillWord,          "BackwardKillWord") },
                 { Keys.CtrlHome,               MakeKeyHandler(BackwardDeleteLine,        "BackwardDeleteLine") },
                 { Keys.CtrlRBracket,           MakeKeyHandler(GotoBrace,                 "GotoBrace") },
                 { Keys.CtrlAltQuestion,        MakeKeyHandler(ShowKeyBindings,           "ShowKeyBindings") },
@@ -250,10 +250,14 @@ namespace Microsoft.PowerShell
             // Some bindings are not available on certain platforms
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                _dispatchTable.Add(Keys.CtrlSpace,  MakeKeyHandler(MenuComplete,      "MenuComplete"));
-                _dispatchTable.Add(Keys.AltF7,      MakeKeyHandler(ClearHistory,      "ClearHistory"));
-                _dispatchTable.Add(Keys.CtrlDelete, MakeKeyHandler(KillWord,          "KillWord"));
-                _dispatchTable.Add(Keys.CtrlEnd,    MakeKeyHandler(ForwardDeleteLine, "ForwardDeleteLine"));
+                // Ctrl+H is interpreted as 'Backspace' on Linux just like in Bash, but not on Windows, so we need to add an entry here.
+                _dispatchTable.Add(Keys.CtrlH,         MakeKeyHandler(BackwardDeleteChar, "BackwardDeleteChar"));
+                // Ctrl+Backspace generates the same chord as Ctrl+H on Linux, so it's also interpreted as 'Backspace' on Linux.
+                _dispatchTable.Add(Keys.CtrlBackspace, MakeKeyHandler(BackwardKillWord,   "BackwardKillWord"));
+                _dispatchTable.Add(Keys.CtrlSpace,     MakeKeyHandler(MenuComplete,       "MenuComplete"));
+                _dispatchTable.Add(Keys.AltF7,         MakeKeyHandler(ClearHistory,       "ClearHistory"));
+                _dispatchTable.Add(Keys.CtrlDelete,    MakeKeyHandler(KillWord,           "KillWord"));
+                _dispatchTable.Add(Keys.CtrlEnd,       MakeKeyHandler(ForwardDeleteLine,  "ForwardDeleteLine"));
             }
 
             _chordDispatchTable = new Dictionary<ConsoleKeyInfo, Dictionary<ConsoleKeyInfo, KeyHandler>>(ConsoleKeyInfoComparer.Instance);
@@ -290,7 +294,6 @@ namespace Microsoft.PowerShell
                 { Keys.CtrlG,           MakeKeyHandler(Abort,                "Abort") },
                 { Keys.CtrlL,           MakeKeyHandler(ClearScreen,          "ClearScreen") },
                 { Keys.CtrlK,           MakeKeyHandler(KillLine,             "KillLine") },
-                { Keys.CtrlM,           MakeKeyHandler(ValidateAndAcceptLine,"ValidateAndAcceptLine") },
                 { Keys.CtrlN,           MakeKeyHandler(NextHistory,          "NextHistory") },
                 { Keys.CtrlO,           MakeKeyHandler(AcceptAndGetNext,     "AcceptAndGetNext") },
                 { Keys.CtrlP,           MakeKeyHandler(PreviousHistory,      "PreviousHistory") },
@@ -337,6 +340,7 @@ namespace Microsoft.PowerShell
             // Some bindings are not available on certain platforms
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
+                _dispatchTable.Add(Keys.CtrlM,        MakeKeyHandler(ValidateAndAcceptLine,"ValidateAndAcceptLine"));
                 _dispatchTable.Add(Keys.CtrlSpace,    MakeKeyHandler(MenuComplete,          "MenuComplete"));
                 _dispatchTable.Add(Keys.CtrlEnd,      MakeKeyHandler(ScrollDisplayToCursor, "ScrollDisplayToCursor"));
                 _dispatchTable.Add(Keys.CtrlHome,     MakeKeyHandler(ScrollDisplayTop,      "ScrollDisplayTop"));
@@ -345,8 +349,6 @@ namespace Microsoft.PowerShell
             }
             else
             {
-                // Ctrl+H is the same KeyChar as Backspace on Windows, but not on Linux, so we need another entry.
-                _dispatchTable.Add(Keys.CtrlH,        MakeKeyHandler(BackwardDeleteChar,    "BackwardDeleteChar"));
                 _dispatchTable.Add(Keys.AltSpace,     MakeKeyHandler(SetMark,               "SetMark"));
             }
 

@@ -271,16 +271,7 @@ namespace Microsoft.PowerShell
             if (KeyMappings.TryGetValue(input, out var keyPair))
             {
                 key = keyPair.Key;
-
-                if (key == ConsoleKey.Backspace)
-                {
-                    keyChar = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) == isCtrl
-                        ? '\x7f' : '\x08';
-                }
-                else
-                {
-                    keyChar = keyPair.KeyChar;
-                }
+                keyChar = keyPair.KeyChar;
                 return true;
             }
 

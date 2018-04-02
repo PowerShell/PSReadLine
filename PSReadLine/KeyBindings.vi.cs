@@ -77,7 +77,7 @@ namespace Microsoft.PowerShell
                 { Keys.CtrlT,           MakeKeyHandler(SwapCharacters,         "SwapCharacters") },
                 { Keys.CtrlY,           MakeKeyHandler(Redo,                   "Redo") },
                 { Keys.CtrlZ,           MakeKeyHandler(Undo,                   "Undo") },
-                { Keys.CtrlBackspace,   MakeKeyHandler(BackwardKillWord,       "BackwardKillWord") },
+                { Keys.AltBackspace,    MakeKeyHandler(BackwardKillWord,       "BackwardKillWord") },
                 { Keys.CtrlEnd,         MakeKeyHandler(ForwardDeleteLine,      "ForwardDeleteLine") },
                 { Keys.CtrlHome,        MakeKeyHandler(BackwardDeleteLine,     "BackwardDeleteLine") },
                 { Keys.CtrlRBracket,    MakeKeyHandler(GotoBrace,              "GotoBrace") },
@@ -91,7 +91,8 @@ namespace Microsoft.PowerShell
             // Some bindings are not available on certain platforms
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                _viInsKeyMap.Add(Keys.CtrlDelete, MakeKeyHandler(KillWord, "KillWord"));
+                _viInsKeyMap.Add(Keys.CtrlDelete,    MakeKeyHandler(KillWord,         "KillWord"));
+                _viInsKeyMap.Add(Keys.CtrlBackspace, MakeKeyHandler(BackwardKillWord, "BackwardKillWord"));
             }
 
             _viCmdKeyMap = new Dictionary<ConsoleKeyInfo, KeyHandler>(ConsoleKeyInfoComparer.Instance)
@@ -122,7 +123,7 @@ namespace Microsoft.PowerShell
                 { Keys.CtrlW,           MakeKeyHandler(BackwardDeleteWord,   "BackwardDeleteWord") },
                 { Keys.CtrlY,           MakeKeyHandler(Redo,                 "Redo") },
                 { Keys.CtrlZ,           MakeKeyHandler(Undo,                 "Undo") },
-                { Keys.CtrlBackspace,   MakeKeyHandler(BackwardKillWord,     "BackwardKillWord") },
+                { Keys.AltBackspace,    MakeKeyHandler(BackwardKillWord,     "BackwardKillWord") },
                 { Keys.CtrlEnd,         MakeKeyHandler(ForwardDeleteLine,    "ForwardDeleteLine") },
                 { Keys.CtrlHome,        MakeKeyHandler(BackwardDeleteLine,   "BackwardDeleteLine") },
                 { Keys.CtrlRBracket,    MakeKeyHandler(GotoBrace,            "GotoBrace") },
@@ -210,7 +211,8 @@ namespace Microsoft.PowerShell
             // Some bindings are not available on certain platforms
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                _viCmdKeyMap.Add(Keys.CtrlDelete, MakeKeyHandler(KillWord, "KillWord"));
+                _viCmdKeyMap.Add(Keys.CtrlDelete,    MakeKeyHandler(KillWord,         "KillWord"));
+                _viCmdKeyMap.Add(Keys.CtrlBackspace, MakeKeyHandler(BackwardKillWord, "BackwardKillWord"));
             }
 
 
