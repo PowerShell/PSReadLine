@@ -551,8 +551,12 @@ namespace Microsoft.PowerShell
 
         internal static bool ShouldInsert(this ConsoleKeyInfo key)
         {
-            if (key.KeyChar == '\0') return false;
-
+            var keyChar = key.KeyChar;
+            if (keyChar == '\0') return false;
+            foreach (char c in "`~!@#$%^&*()-_=+[{]}\\|;:'\",<.>/?") {
+                // we always want to insert chars essential to the PowerShell experience
+                if (keyChar == c) { return true; }
+            }
             if (key.Modifiers != 0)
             {
                 // We want to ignore control sequences - but distinguishing a control sequence
