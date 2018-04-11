@@ -269,6 +269,8 @@ namespace Microsoft.PowerShell
                 { Keys.ShiftEnter,      MakeKeyHandler(AddLine,              "AddLine") },
                 { Keys.LeftArrow,       MakeKeyHandler(BackwardChar,         "BackwardChar") },
                 { Keys.RightArrow,      MakeKeyHandler(ForwardChar,          "ForwardChar") },
+                { Keys.CtrlLeftArrow,   MakeKeyHandler(BackwardWord,         "BackwardWord") },
+                { Keys.CtrlRightArrow,  MakeKeyHandler(NextWord,             "NextWord") },
                 { Keys.ShiftLeftArrow,  MakeKeyHandler(SelectBackwardChar,   "SelectBackwardChar") },
                 { Keys.ShiftRightArrow, MakeKeyHandler(SelectForwardChar,    "SelectForwardChar") },
                 { Keys.UpArrow,         MakeKeyHandler(PreviousHistory,      "PreviousHistory") },
