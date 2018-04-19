@@ -112,6 +112,14 @@ namespace Microsoft.PowerShell
             {
                 Options.ViModeIndicator = options.ViModeIndicator;
             }
+            if (options.ViModeChangeHandler != null)
+            {
+                if (Options.ViModeIndicator != ViModeStyle.Script)
+                {
+                    throw new ParameterBindingException("ViModeChangeHandler option requires ViModeStyle.Script");
+                }
+                Options.ViModeChangeHandler = options.ViModeChangeHandler;
+            }
             if (options.HistorySavePath != null)
             {
                 Options.HistorySavePath = options.HistorySavePath;

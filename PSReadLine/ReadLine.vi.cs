@@ -534,6 +534,10 @@ namespace Microsoft.PowerShell
                 InvokePrompt();
                 _console.BackgroundColor = savedBackground;
             }
+            else if (_options.ViModeIndicator == ViModeStyle.Script && _options.ViModeChangeHandler != null)
+            {
+                _options.ViModeChangeHandler.InvokeReturnAsIs(ViMode.Command);
+            }
         }
 
         private void ViIndicateInsertMode()
@@ -545,6 +549,10 @@ namespace Microsoft.PowerShell
             else if (_options.ViModeIndicator == ViModeStyle.Prompt)
             {
                 InvokePrompt();
+            }
+            else if (_options.ViModeIndicator == ViModeStyle.Script && _options.ViModeChangeHandler != null)
+            {
+                _options.ViModeChangeHandler.InvokeReturnAsIs(ViMode.Insert);
             }
         }
 
