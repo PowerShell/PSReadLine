@@ -35,6 +35,7 @@ Set-PSReadLineOption
  [-WordDelimiters <string>]
  [-AnsiEscapeTimeout <int>]
  [-ViModeIndicator <ViModeStyle>]
+ [-ViModeChangeHandler <ScriptBlock>]
 ```
 
 ## DESCRIPTION
@@ -74,6 +75,23 @@ PS C:\> $PSReadLineOptions = @{
     }
 }
 PS C:\> Set-PSReadLineOption @PSReadLineOptions
+```
+
+### --------------  Example 3  --------------
+
+This example emits a cursor change VT escape in response to a vi mode change:
+
+```
+PS C:\> function OnViModeChange {
+    if ($args[0] -eq 'Command') {
+        # Set the cursor to a blinking block.
+        Write-Host -NoNewLine "`e[1 q"
+    } else {
+        # Set the cursor to a blinking line.
+        Write-Host -NoNewLine "`e[5 q"
+    }
+}
+PS C:\> Set-PSReadLineOption -ViModeIndicator Script -ViModeChangeHandler OnViModeChange
 ```
 
 ## PARAMETERS
@@ -540,6 +558,8 @@ Valid values are:
 
 -- Cursor - the cursor changes size
 
+-- Script - user-specified text is printed
+
 ```yaml
 Type: ViModeStyle
 Parameter Sets: (All)
@@ -550,6 +570,22 @@ Position: Named
 Default value:
 Accept pipeline input: false
 Accept wildcard characters: False
+```
+
+### -ViModeChangeHandler
+
+When the `ViModeIndicator` is set to `Script`, the script block provided will be invoked every time the mode changes. The script block is provided one argument of type `ViMode`. Example usage is shown in Example 3 in this document.
+
+```yaml
+Type: ScriptBlock
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value:
+Accept pipeline input: false
+Accept wildcard characters: false
 ```
 
 ## INPUTS

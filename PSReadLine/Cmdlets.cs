@@ -40,7 +40,8 @@ namespace Microsoft.PowerShell
     {
         None,
         Prompt,
-        Cursor
+        Cursor,
+        Script
     }
 
     public enum ViMode
@@ -284,7 +285,15 @@ namespace Microsoft.PowerShell
         public bool HistorySearchCaseSensitive { get; set; }
         internal StringComparison HistoryStringComparison => HistorySearchCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
 
+        /// <summary>
+        /// How are command and insert modes indicated when in vi edit mode?
+        /// </summary>
         public ViModeStyle ViModeIndicator { get; set; }
+
+        /// <summary>
+        /// The script block to execute when the indicator mode is set to Script.
+        /// </summary>
+        public ScriptBlock ViModeChangeHandler { get; set; }
 
         /// <summary>
         /// The path to the saved history.
@@ -659,6 +668,9 @@ namespace Microsoft.PowerShell
         internal ViModeStyle? _viModeIndicator;
 
         [Parameter]
+        public ScriptBlock ViModeChangeHandler { get; set; }
+
+        [Parameter]
         public Hashtable Colors { get; set; }
 
         [ExcludeFromCodeCoverage]
@@ -1005,15 +1017,20 @@ namespace Microsoft.PowerShell
             return (isBackground ? BackgroundColorMap : ForegroundColorMap)[index];
         }
 
+        public static string FormatEscape(string esc)
+        {
+            var replacement = (typeof(PSObject).Assembly.GetName().Version.Major < 6)
+                ? "$([char]0x1b)"
+                : "`e";
+            return esc.Replace("\x1b", replacement);
+        }
+
         public static string FormatColor(object seq)
         {
             var result = seq.ToString();
             if (seq is ConsoleColor) return result;
 
-            var replacement = (typeof(PSObject).Assembly.GetName().Version.Major < 6)
-                ? "$([char]0x1b)"
-                : "`e";
-            result = result + "\"" + result.Replace("\x1b", replacement) + "\"" + "\x1b[0m";
+            result = result + "\"" + FormatEscape(result) + "\"" + "\x1b[0m";
             return result;
         }
     }
