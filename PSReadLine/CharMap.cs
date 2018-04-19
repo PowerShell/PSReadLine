@@ -165,6 +165,15 @@ namespace Microsoft.PowerShell
             }
         }
 
+        // Modify the state when a sequence of raw characters was condensed into
+        // a single readable character (an escape sequence was finished).
+        private void CondenseState()
+        {
+            _addKeyIndex = 1;
+            _readKeyIndexFrom = 0;
+            _readKeyIndexTo = 1;
+        }
+
         public void SetKey(int index, ConsoleKeyInfo key)
         {
             if (index >= _pendingKeys.Count)
@@ -433,6 +442,17 @@ namespace Microsoft.PowerShell
                     // ^[[n - expecting possibly 1 more number and a '~'.
                     return ProcessBracketNTildeSequence();
                 }
+                else if (ch == 'Z')
+                {
+                    // ^[[Z - Shift-Tab
+                    SetKey(0,
+                        new ConsoleKeyInfo('\0', ConsoleKey.Tab,
+                          shift: true, alt: false, control: false
+                        )
+                    );
+                    CondenseState();
+                    return true;
+                }
                 else
                 {
                     // Completed ^[[x sequence (if the lookup succeeds).
@@ -442,9 +462,7 @@ namespace Microsoft.PowerShell
                         return false;
                     }
                     SetKey(0, new ConsoleKeyInfo('\0', _escBracketConsoleKeys[index], false, false, false));
-                    _addKeyIndex = 1;
-                    _readKeyIndexFrom = 0;
-                    _readKeyIndexTo = 1;
+                    CondenseState();
                     return true;
                 }
             }
@@ -462,9 +480,7 @@ namespace Microsoft.PowerShell
                     return false;
                 }
                 SetKey(0, new ConsoleKeyInfo('\0', _escBracketConsoleKeys[index], false, false, false));
-                _addKeyIndex = 1;
-                _readKeyIndexFrom = 0;
-                _readKeyIndexTo = 1;
+                CondenseState();
                 return true;
             }
             else
@@ -521,9 +537,7 @@ namespace Microsoft.PowerShell
                 control: (modifiers & ConsoleModifiers.Control) == ConsoleModifiers.Control
             );
             SetKey(0, key);
-            _addKeyIndex = 1;
-            _readKeyIndexFrom = 0;
-            _readKeyIndexTo = 1;
+            CondenseState();
             return true;
         }
 
@@ -696,9 +710,7 @@ namespace Microsoft.PowerShell
                 control: (modifiers & ConsoleModifiers.Control) == ConsoleModifiers.Control
             );
             SetKey(0, keyInfo);
-            _addKeyIndex = 1;
-            _readKeyIndexFrom = 0;
-            _readKeyIndexTo = 1;
+            CondenseState();
             return true;
         }
     }
