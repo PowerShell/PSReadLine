@@ -97,8 +97,32 @@ namespace Microsoft.PowerShell.Internal
             set { try { Console.OutputEncoding = value; } catch { } }
         }
 
-        public ConsoleKeyInfo ReadKey()                  => Console.ReadKey(true);
-        public bool KeyAvailable                         => Console.KeyAvailable;
+        public ConsoleKeyInfo ReadKey()
+        {
+            if (Console.IsInputRedirected)
+            {
+                return (ConsoleKeyChordConverter.Convert(((char)Console.Read()).ToString()))[0];
+            }
+            else
+            {
+              return Console.ReadKey(true);
+            }
+        }
+
+        public bool KeyAvailable
+        {
+            get
+            {
+                if (Console.IsInputRedirected)
+                {
+                    return Console.In.Peek() != -1;
+                }
+                else
+                {
+                    return Console.KeyAvailable;
+                }
+            }
+        }
         public void SetWindowPosition(int left, int top) => Console.SetWindowPosition(left, top);
         public void SetCursorPosition(int left, int top) => Console.SetCursorPosition(left, top);
         public virtual void Write(string value)          => Console.Write(value);
