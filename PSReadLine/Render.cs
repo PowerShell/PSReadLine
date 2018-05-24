@@ -393,7 +393,7 @@ namespace Microsoft.PowerShell
                     if (columns > maxFirstLine)
                     {
                         cnt += 1;
-                        columns -= maxFirstLine;
+                        columns -= maxFirstLine + 1;
                     }
                     else
                     {
