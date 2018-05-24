@@ -403,6 +403,14 @@ namespace Microsoft.PowerShell
                 }
 
                 lenLastPhysicalLine = columns % bufferWidth;
+                if(lenLastPhysicalLine == 0)
+                {
+                    // Handle the last column when the columns is equal to n * bufferWidth
+                    // where n >= 1 integers
+                    lenLastPhysicalLine = bufferWidth;
+                    return cnt + (columns - 1) / bufferWidth;
+                }
+
                 return cnt + columns / bufferWidth;
             }
 
