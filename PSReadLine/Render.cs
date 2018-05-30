@@ -427,15 +427,42 @@ namespace Microsoft.PowerShell
             var logicalLine = 0;
             var physicalLine = 0;
             var lenPrevLastLine = 0;
+            var suppressTopLineIfScrolled = true;
 
             for (; logicalLine < renderLines.Length; logicalLine++)
             {
                 if (logicalLine != 0) _console.Write("\n");
 
                 var lineData = renderLines[logicalLine];
-                _console.Write(lineData.line);
+                var physicalLineCount = PhysicalLineCount(lineData.columns, logicalLine == 0, out var lenLastLine);
 
-                physicalLine += PhysicalLineCount(lineData.columns, logicalLine == 0, out var lenLastLine);
+                // If the initial position was scrolled off the screen, only output for lines still
+                // in the screen buffer
+                if (_initialY + physicalLine >= 0)
+                {
+                    // First time redrawing from the top
+                    if (_initialY < 0 && suppressTopLineIfScrolled)
+                    {
+                        suppressTopLineIfScrolled = false;
+                        // Handle case where top of screen buffer is a partial line
+                        if (_console.CursorTop != 0 && _initialY + physicalLine != physicalLineCount)
+                        {
+                            var linesToSkip = _initialY + physicalLine;
+                            PlaceCursor(0, linesToSkip);
+                        }
+                    }
+                    _console.Write(lineData.line);
+                }
+
+                physicalLine += physicalLineCount;
+
+                // On non-Windows, if the last line fills the width exactly, it doesn't automatically scroll, so we
+                // need to decrement the count to make sure the y location is correct next time
+                if (_console.CursorTop == _console.BufferHeight - 1 && lineData.columns % _console.BufferWidth == 0)
+                {
+                    physicalLine--;
+                    previousPhysicalLine--;
+                }
 
                 // Find the previous logical line (if any) that would have rendered
                 // the current physical line because we may need to clear it.
@@ -670,6 +697,12 @@ namespace Microsoft.PowerShell
                 _console.ScrollBuffer(scrollCount);
                 _initialY -= scrollCount;
                 y -= scrollCount;
+            }
+
+            // y can be less than the screen buffer when a more text than the height of the buffer is pasted at once
+            if (y < 0)
+            {
+                y = 0;
             }
             _console.SetCursorPosition(x, y);
         }
