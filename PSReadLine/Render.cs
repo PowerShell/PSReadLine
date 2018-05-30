@@ -36,6 +36,7 @@ namespace Microsoft.PowerShell
         class RenderData
         {
             public int bufferWidth;
+            public int bufferHeight;
             public bool errorPrompt;
             public RenderedLineData[] lines;
         }
@@ -351,10 +352,12 @@ namespace Microsoft.PowerShell
             // TODO: avoid writing everything.
 
             var bufferWidth = _console.BufferWidth;
+            var bufferHeight = _console.BufferHeight;
 
             // In case the buffer was resized
             RecomputeInitialCoords();
             renderData.bufferWidth = bufferWidth;
+            renderData.bufferHeight = bufferHeight;
 
             // Move the cursor to where we started, but make cursor invisible while we're rendering.
             _console.CursorVisible = false;
@@ -633,7 +636,8 @@ namespace Microsoft.PowerShell
 
         private void RecomputeInitialCoords()
         {
-            if (_previousRender.bufferWidth != _console.BufferWidth)
+            if ((_previousRender.bufferWidth != _console.BufferWidth)
+            ||  (_previousRender.bufferHeight != _console.BufferHeight))
             {
                 // If the buffer width changed, our initial coordinates
                 // may have as well.
@@ -665,6 +669,7 @@ namespace Microsoft.PowerShell
             // In case the buffer was resized
             RecomputeInitialCoords();
             _previousRender.bufferWidth = _console.BufferWidth;
+            _previousRender.bufferHeight = _console.BufferHeight;
 
             var point = ConvertOffsetToPoint(newCursor);
             PlaceCursor(point.X, point.Y);
