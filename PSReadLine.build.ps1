@@ -207,7 +207,19 @@ task LayoutModule BuildMainModule, BuildMamlHelp, {
     $version = (Get-ChildItem -Path $targetDir/Microsoft.PowerShell.PSReadLine2.dll).VersionInfo.FileVersion
     $moduleManifestContent = Get-Content -Path 'PSReadLine/PSReadLine.psd1' -Raw
 
-    $b = Get-Content -Encoding Byte -Raw ./bin/$Configuration/PSReadLine/Microsoft.PowerShell.PSReadLine2.dll
+    $getContentArgs = @{
+        Raw = $true;
+        Path = "./bin/$Configuration/PSReadLine/Microsoft.PowerShell.PSReadLine2.dll"
+    }
+    if ($PSVersionTable.PSEdition -eq 'Core')
+    {
+        $getContentArgs += @{AsByteStream = $true}
+    }
+    else
+    {
+        $getContentArgs += @{Encoding = "Byte"}
+    }
+    $b = Get-Content @getContentArgs
     $a = [System.Reflection.Assembly]::Load($b)
     $semVer = ($a.GetCustomAttributes([System.Reflection.AssemblyInformationalVersionAttribute], $false)).InformationalVersion
 
