@@ -9,6 +9,9 @@ namespace Microsoft.PowerShell.Internal
 {
     internal class VirtualTerminal : IConsole
     {
+        // These two fields are used by PowerShellEditorServices to inject a
+        // custom ReadKey implementation. This is not a public API, but it is
+        // part of a private contract with that project.
         private static Func<bool, ConsoleKeyInfo> _readKeyOverride;
 
         private static Lazy<Func<bool, ConsoleKeyInfo>> _readKeyMethod = new Lazy<Func<bool, ConsoleKeyInfo>>(
