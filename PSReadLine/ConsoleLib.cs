@@ -9,6 +9,11 @@ namespace Microsoft.PowerShell.Internal
 {
     internal class VirtualTerminal : IConsole
     {
+        private static Func<bool, ConsoleKeyInfo> _readKeyOverride;
+
+        private static Lazy<Func<bool, ConsoleKeyInfo>> _readKeyMethod = new Lazy<Func<bool, ConsoleKeyInfo>>(
+            () => _readKeyOverride == null ? Console.ReadKey : _readKeyOverride);
+
         public int CursorLeft
         {
             get => Console.CursorLeft;
@@ -97,7 +102,7 @@ namespace Microsoft.PowerShell.Internal
             set { try { Console.OutputEncoding = value; } catch { } }
         }
 
-        public ConsoleKeyInfo ReadKey()                  => Console.ReadKey(true);
+        public ConsoleKeyInfo ReadKey()                  => _readKeyMethod.Value(true);
         public bool KeyAvailable                         => Console.KeyAvailable;
         public void SetWindowPosition(int left, int top) => Console.SetWindowPosition(left, top);
         public void SetCursorPosition(int left, int top) => Console.SetCursorPosition(left, top);
