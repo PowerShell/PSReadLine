@@ -4,66 +4,66 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.PowerShell.PSReadLine</RootNamespace>
     <AssemblyName>Microsoft.PowerShell.PSReadLine2</AssemblyName>
-    <TargetFramework>netstandard20</TargetFramework>
+    <TargetFrameworks>net461;netstandard20</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="PowerShellStandard.Library" version="5.1.0-*" />
     <PackageReference Include="Microsoft.CSharp" version="4.5.0-*" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\PSReadLine\PSReadLine.psd1" />
-    <None Include="..\PSReadLine\PSReadLine.psm1" />
-    <None Include="..\PSReadLine\SamplePSReadLineProfile.ps1" />
-    <None Include="..\PSReadLine\Changes.txt" />
-    <None Include="..\PSReadLine\License.txt" />
+    <None Include="PSReadLine.psd1" />
+    <None Include="PSReadLine.psm1" />
+    <None Include="SamplePSReadLineProfile.ps1" />
+    <None Include="Changes.txt" />
+    <None Include="License.txt" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\docs\about_PSReadLine.help.txt" />
-    <None Include="..\docs\Get-PSReadLineKeyHandler.md" />
-    <None Include="..\docs\Get-PSReadLineOption.md" />
-    <None Include="..\docs\Set-PSReadLineKeyHandler.md" />
-    <None Include="..\docs\Set-PSReadLineOption.md" />
+    <None Include="docs\about_PSReadLine.help.txt" />
+    <None Include="docs\Get-PSReadLineKeyHandler.md" />
+    <None Include="docs\Get-PSReadLineOption.md" />
+    <None Include="docs\Set-PSReadLineKeyHandler.md" />
+    <None Include="docs\Set-PSReadLineOption.md" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\PSReadLine\BasicEditing.cs" />
-    <Compile Include="..\PSReadLine\CharMap.cs" />
-    <Compile Include="..\PSReadLine\Clipboard.cs" />
-    <Compile Include="..\PSReadLine\Cmdlets.cs" />
-    <Compile Include="..\PSReadLine\Completion.cs" />
-    <Compile Include="..\PSReadLine\Completion.vi.cs" />
-    <Compile Include="..\PSReadLine\ConsoleKeyChordConverter.cs" />
-    <Compile Include="..\PSReadLine\ConsoleLib.cs" />
-    <Compile Include="..\PSReadLine\Disposable.cs" />
-    <Compile Include="..\PSReadLine\History.cs" />
-    <Compile Include="..\PSReadLine\HistoryQueue.cs" />
-    <Compile Include="..\PSReadLine\KeyBindings.cs" />
-    <Compile Include="..\PSReadLine\KeyBindings.vi.cs" />
-    <Compile Include="..\PSReadLine\Keys.cs" />
-    <Compile Include="..\PSReadLine\KillYank.cs" />
-    <Compile Include="..\PSReadLine\Movement.cs" />
-    <Compile Include="..\PSReadLine\Movement.vi.cs" />
-    <Compile Include="..\PSReadLine\Options.cs" />
-    <Compile Include="..\PSReadLine\PlatformWindows.cs" />
-    <Compile Include="..\PSReadLine\PSReadLineResources.Designer.cs">
+    <Compile Include="BasicEditing.cs" />
+    <Compile Include="CharMap.cs" />
+    <Compile Include="Clipboard.cs" />
+    <Compile Include="Cmdlets.cs" />
+    <Compile Include="Completion.cs" />
+    <Compile Include="Completion.vi.cs" />
+    <Compile Include="ConsoleKeyChordConverter.cs" />
+    <Compile Include="ConsoleLib.cs" />
+    <Compile Include="Disposable.cs" />
+    <Compile Include="History.cs" />
+    <Compile Include="HistoryQueue.cs" />
+    <Compile Include="KeyBindings.cs" />
+    <Compile Include="KeyBindings.vi.cs" />
+    <Compile Include="Keys.cs" />
+    <Compile Include="KillYank.cs" />
+    <Compile Include="Movement.cs" />
+    <Compile Include="Movement.vi.cs" />
+    <Compile Include="Options.cs" />
+    <Compile Include="PlatformWindows.cs" />
+    <Compile Include="PSReadLineResources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>PSReadLineResources.resx</DependentUpon>
     </Compile>
-    <Compile Include="..\PSReadLine\PublicAPI.cs" />
-    <Compile Include="..\PSReadLine\ReadLine.cs" />
-    <Compile Include="..\PSReadLine\Replace.vi.cs" />
-    <Compile Include="..\PSReadLine\ReadLine.vi.cs" />
-    <Compile Include="..\PSReadLine\Render.cs" />
-    <Compile Include="..\PSReadLine\ScreenCapture.cs" />
-    <Compile Include="..\PSReadLine\UndoRedo.vi.cs" />
-    <Compile Include="..\PSReadLine\UndoRedo.cs" />
-    <Compile Include="..\PSReadLine\VisualEditing.vi.cs" />
-    <Compile Include="..\PSReadLine\Words.cs" />
-    <Compile Include="..\PSReadLine\Words.vi.cs" />
-    <Compile Include="..\PSReadLine\YankPaste.vi.cs" />
+    <Compile Include="PublicAPI.cs" />
+    <Compile Include="ReadLine.cs" />
+    <Compile Include="Replace.vi.cs" />
+    <Compile Include="ReadLine.vi.cs" />
+    <Compile Include="Render.cs" />
+    <Compile Include="ScreenCapture.cs" />
+    <Compile Include="UndoRedo.vi.cs" />
+    <Compile Include="UndoRedo.cs" />
+    <Compile Include="VisualEditing.vi.cs" />
+    <Compile Include="Words.cs" />
+    <Compile Include="Words.vi.cs" />
+    <Compile Include="YankPaste.vi.cs" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="..\PSReadLine\PSReadLineResources.resx">
+    <EmbeddedResource Include="PSReadLineResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LogicalName>Microsoft.PowerShell.PSReadLine.PSReadLineResources.resources</LogicalName>
       <LastGenOutput>PSReadLineResources.Designer.cs</LastGenOutput>

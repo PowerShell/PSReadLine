@@ -14,7 +14,8 @@ $t ='Microsoft.PowerShell.PSConsoleReadLine' -as [type]
 if ($null -ne $t -and $t.Assembly.Location -ne $ourAssembly)
 {
     # Make sure we're runnning in a non-interactive session by relaunching
-    powershell -NoProfile -NonInteractive -File $PSCommandPath $Configuration $OutFile
+    $powershell = [System.AppDomain]::CurrentDomain.FriendlyName
+    & $powershell -NoProfile -NonInteractive -File $PSCommandPath $Configuration $OutFile
     exit $LASTEXITCODE
 }
 
@@ -22,7 +23,7 @@ try {
 
 Import-Module "$PSScriptRoot\bin\$Configuration\PSReadLine\PSReadLine.psd1"
 
-$helpContent = [xml](Get-Content "$PSScriptRoot\PSReadLine\bin\$Configuration\Microsoft.PowerShell.PSReadLine.xml")
+$helpContent = [xml](Get-Content "$PSScriptRoot\bin\$Configuration\PSReadLine\en-US\Microsoft.PowerShell.PSReadLine2.dll-help.xml")
 
 Set-PSReadLineOption -EditMode Windows
 $cmdKeyBindings = Get-PSReadLineKeyHandler -Bound
