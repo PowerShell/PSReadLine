@@ -43,6 +43,7 @@ namespace Microsoft.PowerShell
         private Thread _readKeyThread;
         private AutoResetEvent _readKeyWaitHandle;
         private AutoResetEvent _keyReadWaitHandle;
+        private AutoResetEvent _forceEventWaitHandle;
         private CancellationToken _cancelReadCancellationToken;
         internal ManualResetEvent _closingWaitHandle;
         private WaitHandle[] _threadProcWaitHandles;
@@ -182,9 +183,10 @@ namespace Microsoft.PowerShell
                     //   - a key is pressed
                     //   - the console is exiting
                     //   - 300ms - to process events if we're idle
-
+                    //   - processing of events is requested externally
+                    //   - ReadLine cancellation is requested externally
                     handleId = WaitHandle.WaitAny(_singleton._requestKeyWaitHandles, 300);
-                    if (handleId != WaitHandle.WaitTimeout)
+                    if (handleId != WaitHandle.WaitTimeout && handleId != 3)
                         break;
 
                     // If we timed out, check for event subscribers (which is just
@@ -745,8 +747,9 @@ namespace Microsoft.PowerShell
 
             _singleton._readKeyWaitHandle = new AutoResetEvent(false);
             _singleton._keyReadWaitHandle = new AutoResetEvent(false);
+            _singleton._forceEventWaitHandle = new AutoResetEvent(false);
             _singleton._closingWaitHandle = new ManualResetEvent(false);
-            _singleton._requestKeyWaitHandles = new WaitHandle[] {_singleton._keyReadWaitHandle, _singleton._closingWaitHandle, _defaultCancellationToken.WaitHandle};
+            _singleton._requestKeyWaitHandles = new WaitHandle[] {_singleton._keyReadWaitHandle, _singleton._closingWaitHandle, _defaultCancellationToken.WaitHandle, _singleton._forceEventWaitHandle};
             _singleton._threadProcWaitHandles = new WaitHandle[] {_singleton._readKeyWaitHandle, _singleton._closingWaitHandle};
 
             // This is for a "being hosted in an alternate appdomain scenario" (the
@@ -764,6 +767,17 @@ namespace Microsoft.PowerShell
 
             _singleton._readKeyThread = new Thread(_singleton.ReadKeyThreadProc) {IsBackground = true};
             _singleton._readKeyThread.Start();
+        }
+
+        /// <summary>
+        /// Used by PowerShellEditorServices to force immediate
+        /// event handling during the <see cref="PSConsoleReadLine.ReadKey" />
+        /// method. This is not a public API, but it is part of a private contract
+        /// with that project.
+        /// </summary>
+        private static void ForcePSEventHandling()
+        {
+            _singleton._forceEventWaitHandle.Set();
         }
 
         private static void Chord(ConsoleKeyInfo? key = null, object arg = null)
