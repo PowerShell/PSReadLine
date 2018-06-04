@@ -28,6 +28,12 @@ namespace Microsoft.PowerShell
 
     public partial class PSConsoleReadLine : IPSConsoleReadLineMockableMethods
     {
+        private const int ConsoleExiting = 1;
+
+        private const int CancellationRequested = 2;
+
+        private const int EventProcessingRequested = 3;
+
         private static readonly PSConsoleReadLine _singleton = new PSConsoleReadLine();
 
         private static readonly CancellationToken _defaultCancellationToken = new CancellationTokenSource().Token;
@@ -186,7 +192,7 @@ namespace Microsoft.PowerShell
                     //   - processing of events is requested externally
                     //   - ReadLine cancellation is requested externally
                     handleId = WaitHandle.WaitAny(_singleton._requestKeyWaitHandles, 300);
-                    if (handleId != WaitHandle.WaitTimeout && handleId != 3)
+                    if (handleId != WaitHandle.WaitTimeout && handleId != EventProcessingRequested)
                         break;
 
                     // If we timed out, check for event subscribers (which is just
@@ -246,7 +252,7 @@ namespace Microsoft.PowerShell
                 ps?.Dispose();
             }
 
-            if (handleId == 1)
+            if (handleId == ConsoleExiting)
             {
                 // The console is exiting - throw an exception to unwind the stack to the point
                 // where we can return from ReadLine.
@@ -259,7 +265,7 @@ namespace Microsoft.PowerShell
                 throw new OperationCanceledException();
             }
 
-            if (handleId == 2)
+            if (handleId == CancellationRequested)
             {
                 // ReadLine was cancelled. Save the current line to be restored next time ReadLine
                 // is called, clear the buffer and throw an exception so we can return an empty string.
