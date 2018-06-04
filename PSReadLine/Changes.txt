@@ -1,4 +1,26 @@
-### Version 2.0
+### Version 2.0.0-beta2
+
+Pre-release notes:
+
+Bug fixes:
+
+* Fix issue with keyboard layout changes (#667) (Thanks @powercode)
+* Fix cursor placement after window resize (#682) (Thanks @jianyunt)
+* Fix rendering of long lines on non-Windows (#686) (Thanks @jianyunt)
+* Fix Ctrl+h/Backspace on non-Windows (#619) (Thanks @daxian-dbw)
+* Fix some custom key bindings on Windows (#580) (Thanks @daxian-dbw)
+* Fixed CompleteMenu in vi insert mode (#651) (Thanks @srdubya)
+* Fix ExtraPromptLineCount for ClearScreen (#634) (Thanks @daxian-dbw)
+* Support color escape sequences in PromptText (#653) (Thanks @powercode)
+* Support Ctrl+u in vi insert mode (#628) (Thanks @srdubya)
+* Fix keys needing AltGr (#617)
+* Fix vi-mode cursor placement issues (#623) (Thanks @srdubya)
+* Ignore exceptions when setting OutputEncoding
+* Fix hang on closing on pre-Win10 (#609)
+* Enable Ctrl+c on non-Windows (#610)
+* Improve VT emulation for pre-Win10 (#605)
+
+### Version 2.0.0-beta1
 
 Pre-release notes:
 
