@@ -3,7 +3,7 @@ image: Visual Studio 2017
 
 before_build:
   - ps: |
-      nuget install platyPS -Version 0.4.0 -source https://www.powershellgallery.com/api/v2 -outputDirectory . -ExcludeVersion
+      nuget install platyPS -Version 0.9.0 -source https://www.powershellgallery.com/api/v2 -outputDirectory . -ExcludeVersion
       nuget install InvokeBuild -Version 4.1.0 -source https://www.powershellgallery.com/api/v2 -outputDirectory . -ExcludeVersion
       Import-Module .\platyPS
       Import-Module .\InvokeBuild
