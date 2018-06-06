@@ -473,17 +473,25 @@ namespace Microsoft.PowerShell
                 }
             }
 
-            public void DrawMenu(Menu previousMenu)
+            public void DrawMenu(Menu previousMenu, bool menuSelect)
             {
                 IConsole console = Singleton._console;
 
-                // Move cursor to the start of the first line after our input.
-                this.Top = Singleton.ConvertOffsetToPoint(Singleton._buffer.Length).Y + 1;
-                EnsureMenuAndInputIsVisible(console, tooltipLineCount: 0);
+                if (menuSelect)
+                {
+                    // Move cursor to the start of the first line after our input.
+                    this.Top = Singleton.ConvertOffsetToPoint(Singleton._buffer.Length).Y + 1;
+                    EnsureMenuAndInputIsVisible(console, tooltipLineCount: 0);
 
-                console.CursorVisible = false;
-                console.SaveCursor();
-                console.SetCursorPosition(0, this.Top);
+                    console.CursorVisible = false;
+                    console.SaveCursor();
+                    console.SetCursorPosition(0, this.Top);
+                }
+                else
+                {
+                    // Start a new line to show the menu contents
+                    console.Write("\n");
+                }
 
                 var bufferWidth = console.BufferWidth;
                 var columnWidth = this.ColumnWidth;
@@ -522,8 +530,18 @@ namespace Microsoft.PowerShell
                     }
                 }
 
-                console.RestoreCursor();
-                console.CursorVisible = true;
+                if (menuSelect)
+                {
+                    console.RestoreCursor();
+                    console.CursorVisible = true;
+                }
+                else
+                {
+                    // Update the cursor position to the start of the first line after our input.
+                    _singleton._initialX = console.CursorLeft;
+                    _singleton._initialY = console.CursorTop;
+                    _singleton._previousRender = _initialPrevRender;
+                }
             }
 
             public void Clear()
@@ -732,8 +750,8 @@ namespace Microsoft.PowerShell
             }
             else
             {
-                menu.DrawMenu(null);
-                InvokePrompt(key: null, arg: menu.Top + menu.Rows);
+                menu.DrawMenu(null, menuSelect:false);
+                InvokePrompt(key: null, arg:null);
             }
         }
 
@@ -780,7 +798,7 @@ namespace Microsoft.PowerShell
             var userInitialCompletionLength = userCompletionText.Length;
 
             completions.CurrentMatchIndex = 0;
-            menu.DrawMenu(null);
+            menu.DrawMenu(null, menuSelect:true);
 
             bool processingKeys = true;
             int previousSelection = -1;
@@ -811,7 +829,7 @@ namespace Microsoft.PowerShell
                     if (topAdjustment != 0)
                     {
                         menu.Top += topAdjustment;
-                        menu.DrawMenu(null);
+                        menu.DrawMenu(null, menuSelect:true);
                     }
                     if (topAdjustment > 0)
                     {
@@ -888,7 +906,7 @@ namespace Microsoft.PowerShell
                     {
                         var newMenu = menuStack.Pop();
 
-                        newMenu.DrawMenu(menu);
+                        newMenu.DrawMenu(menu, menuSelect:true);
                         previousSelection = -1;
 
                         menu = newMenu;
@@ -950,7 +968,7 @@ namespace Microsoft.PowerShell
                         {
                             var newMenu = CreateCompletionMenu(newMatches);
 
-                            newMenu.DrawMenu(menu);
+                            newMenu.DrawMenu(menu, menuSelect:true);
                             previousSelection = -1;
 
                             // Remember the current menu for when we see Backspace.
