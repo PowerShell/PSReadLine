@@ -553,7 +553,7 @@ namespace Microsoft.PowerShell
         {
             var keyChar = key.KeyChar;
             if (keyChar == '\0') return false;
-            foreach (char c in "`~!@#$%^&*()-_=+[{]}\\|;:'\",<.>/?") {
+            foreach (char c in " `~!@#$%^&*()-_=+[{]}\\|;:'\",<.>/?") {
                 // we always want to insert chars essential to the PowerShell experience
                 if (keyChar == c) { return true; }
             }
