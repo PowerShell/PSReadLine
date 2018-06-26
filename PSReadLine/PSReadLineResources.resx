@@ -395,10 +395,14 @@ Report on GitHub: https://github.com/lzybkr/PSReadLine/issues/new</value>
   <data name="OopsAnErrorMessage2" xml:space="preserve">
     <value>-----------------------------------------------------------------------
 Last {0} Keys:
+```
 {1}
+```
 
 Exception:
+```
 {2}
+```
 -----------------------------------------------------------------------</value>
   </data>
   <data name="NextLineDescription" xml:space="preserve">
