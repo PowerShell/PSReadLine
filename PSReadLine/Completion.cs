@@ -226,14 +226,6 @@ namespace Microsoft.PowerShell
             }
 
             var completions = GetCompletions();
-            // GetCompletions can triager the PowerShell Write-Progress that may scroll the console screen.
-            // For example, cd and hit the tab under the CloudShell Azure drive, it will go out to fetch data and show the
-            // progress bar. We need to update the _initialY in case the current cursor postion has moved up.
-            if (_singleton._initialY > _console.CursorTop)
-            {
-                _singleton._initialY = _console.CursorTop;
-            }
-
             if (completions == null || completions.CompletionMatches.Count == 0)
                 return;
 
@@ -337,6 +329,16 @@ namespace Microsoft.PowerShell
                 }
                 catch (Exception)
                 {
+                }
+                finally
+                {
+                    // GetCompletions can triager the PowerShell Write-Progress that may scroll the console screen.
+                    // For example, cd and hit the tab under the CloudShell Azure drive, it will go out to fetch data and show the
+                    // progress bar. We need to update the _initialY in case the current cursor postion has changed.
+                    if (_singleton._initialY > _console.CursorTop)
+                    {
+                        _singleton._initialY = _console.CursorTop;
+                    }
                 }
             }
 
