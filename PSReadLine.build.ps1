@@ -20,15 +20,23 @@ param([switch]$Install,
 
 # Final bits to release go here
 $targetDir = "bin/$Configuration/PSReadLine"
+$target = "netcoreapp2.1"
 
-if ($IsWindows -eq $false)
+<#
+Synopsis: Ensure dotnet is installed
+#>
+task CheckDotnetInstalled `
 {
-    $target = "netcoreapp21"
-    $dotnet = Get-Command dotnet -ErrorAction SilentlyContinue
-    if ($dotnet -eq $null)
+#    if ($IsWindows -eq $true)
+#    {
+#        return
+#    }
+
+    $script:dotnet = (Get-Command dotnet -ErrorAction Ignore).Path
+    if ($script:dotnet -eq $null)
     {
-        $dotnet = "~/.dotnet/dotnet"
-        if (!(Test-Path $dotnet))
+        $script:dotnet = "~/.dotnet/dotnet"
+        if (!(Test-Path $script:dotnet))
         {
             throw "Could not find 'dotnet' command.  Install DotNetCore SDK."
         }
@@ -40,10 +48,6 @@ Synopsis: Ensure nuget is installed
 #>
 task CheckNugetInstalled `
 {
-    if ($IsWindows -eq $false)
-    {
-        return
-    }
     $script:nugetExe = (Get-Command nuget.exe -ea Ignore).Path
     if ($null -eq $nugetExe)
     {
@@ -119,8 +123,8 @@ $binaryModuleParams = @{
 <#
 Synopsis: Build main binary module
 #>
-task BuildMainModule @binaryModuleParams {
-    exec { & $dotnet publish -f $target -c $Configuration PSReadLine }
+task BuildMainModule @binaryModuleParams CheckDotnetInstalled, {
+    exec { & $script:dotnet publish -f $target -c $Configuration PSReadLine }
 }
 
 <#
@@ -144,14 +148,14 @@ $buildTestParams = @{
 Synopsis: Build executable for interactive testing/development
 #>
 task BuildTestHost @buildTestParams BuildMainModule, {
-    if ($IsWindows -eq $false)
-    {
-        exec { & $dotnet publish -f $target -c $Configuration TestPSReadLine }
-    }
-    else
-    {
-        exec { msbuild TestPSReadLine/TestPSReadLine.csproj /t:Rebuild /p:Configuration=$Configuration /p:Platform=AnyCPU }
-    }
+#    if ($IsWindows -eq $false)
+#    {
+#        exec { & $script:dotnet publish -f $target -c $Configuration TestPSReadLine -r $script:runtime }
+#    }
+#    else
+#    {
+#        exec { msbuild TestPSReadLine/TestPSReadLine.csproj /t:Rebuild /p:Configuration=$Configuration /p:Platform=AnyCPU }
+#    }
 }
 
 
@@ -165,14 +169,14 @@ $buildUnitTestParams = @{
 Synopsis: Build the unit tests
 #>
 task BuildTests @buildUnitTestParams BuildMainModule, {
-    if ($IsWindows -eq $false)
-    {
-        exec { & $dotnet publish -f $target -c $Configuration TestPSReadLine }
-    }
-    else
-    {
-        exec { msbuild test/PSReadLine.tests.csproj /t:Rebuild /p:Configuration=$Configuration /p:Platform=AnyCPU }
-    }
+#    if ($IsWindows -eq $false)
+#    {
+#        exec { & $script:dotnet publish -f $target -c $Configuration test -r $script:runtime }
+#    }
+#    else
+#    {
+#        exec { msbuild test/PSReadLine.tests.csproj /t:Rebuild /p:Configuration=$Configuration /p:Platform=AnyCPU }
+#    }
 }
 
 
@@ -181,26 +185,37 @@ Synopsis: Run the unit tests
 #>
 task RunTests BuildTests, {
     $env:PSREADLINE_TESTRUN = 1
-    if ($IsWindows -eq $false)
+#    if ($IsWindows -eq $false)
+#    {
+        $runner = $script:dotnet
+#    }
+#    else
+#    {
+#        $runner = "$PSScriptRoot\PSReadLine\packages\xunit.runner.console.2.3.1\tools\net452\xunit.console.exe"
+#    }
+
+    $psAssemblies = "System.Management.Automation.dll", "Newtonsoft.Json.dll"
+    foreach ($assembly in $psAssemblies)
     {
-        $runner = $dotnet
-    }
-    else
-    {
-        $runner = "$PSScriptRoot\PSReadLine\packages\xunit.runner.console.2.3.1\tools\net452\xunit.console.exe"
+        if (Test-Path "$PSHOME\$assembly")
+        {
+            Copy-Item "$PSHOME\$assembly" "test\bin\$configuration\$target"
+        }
     }
 
     if ($env:APPVEYOR)
     {
         $outXml = "$PSScriptRoot\xunit-results.xml"
-        exec { & $runner $PSScriptRoot\test\bin\$Configuration\PSReadLine.Tests.dll -appveyor -xml $outXml }
+        Push-Location test
+        exec { & $runner xunit -appveyor -xml $outXml }
         $wc = New-Object 'System.Net.WebClient'
         $wc.UploadFile("https://ci.appveyor.com/api/testresults/xunit/$($env:APPVEYOR_JOB_ID)", $outXml)
+        Pop-Location test
     }
     else
     {
         Push-Location test
-        exec { & $runner xunit }
+        exec { & $runner test --no-build -c $configuration -f $target }
         Pop-Location
     }
 
@@ -226,7 +241,7 @@ task LayoutModule BuildMainModule, BuildMamlHelp, {
         Copy-Item $file $targetDir
     }
 
-    $binPath = "PSReadLine/bin/$Configuration/$target"
+    $binPath = "PSReadLine/bin/$Configuration/$target/publish"
     Copy-Item $binPath/Microsoft.PowerShell.PSReadLine2.dll $targetDir
 
     # Copy module manifest, but fix the version to match what we've specified in the binary module.

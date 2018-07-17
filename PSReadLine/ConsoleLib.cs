@@ -12,7 +12,9 @@ namespace Microsoft.PowerShell.Internal
         // These two fields are used by PowerShellEditorServices to inject a
         // custom ReadKey implementation. This is not a public API, but it is
         // part of a private contract with that project.
+        #pragma warning disable CS0649
         private static Func<bool, ConsoleKeyInfo> _readKeyOverride;
+        #pragma warning restore CS0649
 
         private static Lazy<Func<bool, ConsoleKeyInfo>> _readKeyMethod = new Lazy<Func<bool, ConsoleKeyInfo>>(
             () => _readKeyOverride == null ? Console.ReadKey : _readKeyOverride);

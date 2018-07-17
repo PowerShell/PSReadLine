@@ -408,7 +408,7 @@ namespace Test
     {
         static ReadLine()
         {
-            var iss = InitialSessionState.CreateDefault2();
+            var iss = InitialSessionState.CreateDefault();
             var rs = RunspaceFactory.CreateRunspace(iss);
             rs.Open();
             Runspace.DefaultRunspace = rs;

@@ -13,12 +13,19 @@
     <TestProjectType>UnitTest</TestProjectType>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.PowerShell.SDK" Version="6.1.0-preview.3" />
-    <PackageReference Include="System.Runtime.InteropServices.RuntimeInformation" version="4.3.0" />
-    <PackageReference Include="xunit.assert" version="2.3.1" />
+    <PackageReference Include="xunit" Version="2.3.1" />
+    <!--PackageReference Include="xunit.assert" version="2.3.1" />
     <PackageReference Include="xunit.core" version="2.3.1" />
-    <PackageReference Include="xunit.analyzers" version="0.9.0" />
-    <DotNetCliToolReference Include="dotnet-xunit" Version="2.3.1" />
+    <PackageReference Include="xunit.analyzers" version="0.9.0" /-->
+    <PackageReference Include="System.Xml.XDocument" version="4.3.0" />
+    <PackageReference Include="System.Data.DataSetExtensions" version="4.5.0" />
+    <PackageReference Include="System.Runtime.InteropServices.RuntimeInformation" version="4.3.0" />
+    <PackageReference Include="Microsoft.CSharp" version="4.5.0" />
+    <PackageReference Include="Microsoft.PowerShell.SDK" Version="6.1.0-preview.3" />
+    <PackageReference Include="Newtonsoft.Json" Version="11.0.1"/>
+    <!--DotNetCliToolReference Include="dotnet-xunit" Version="2.3.1" /-->
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.7.0" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.0" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\PSReadLine\Keys.cs">
