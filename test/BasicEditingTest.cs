@@ -1,6 +1,7 @@
-﻿using System;
+﻿using Microsoft.PowerShell;
+using System;
 using System.Linq;
-using Microsoft.PowerShell;
+using System.Runtime.InteropServices;
 using Xunit;
 
 namespace Test
@@ -77,16 +78,26 @@ namespace Test
         [Fact]
         public void ForwardDeleteLine()
         {
-            TestSetup(KeyMode.Cmd);
+            ConsoleKeyInfo deleteToEnd;
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                TestSetup(KeyMode.Cmd);
+                deleteToEnd = _.CtrlEnd;
+            }
+            else
+            {
+                TestSetup(KeyMode.Emacs);
+                deleteToEnd = _.CtrlK;
+            }
 
             // Empty input (does nothing but don't crash)
-            Test("", Keys("", _.CtrlEnd));
+            Test("", Keys("", deleteToEnd));
 
             // at end of input - doesn't change anything
-            Test("abc", Keys("abc", _.CtrlEnd));
+            Test("abc", Keys("abc", deleteToEnd));
 
             // More normal usage - actually delete stuff
-            Test("a", Keys("abc", _.LeftArrow, _.LeftArrow, _.CtrlEnd));
+            Test("a", Keys("abc", _.LeftArrow, _.LeftArrow, deleteToEnd));
         }
 
         [Fact]

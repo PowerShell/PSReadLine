@@ -23,7 +23,16 @@ $targetDir = "bin/$Configuration/PSReadLine"
 
 if ($IsWindows -eq $false)
 {
-    $target = "netstandard20"
+    $target = "netcoreapp21"
+    $dotnet = Get-Command dotnet -ErrorAction SilentlyContinue
+    if ($dotnet -eq $null)
+    {
+        $dotnet = "~/.dotnet/dotnet"
+        if (!(Test-Path $dotnet))
+        {
+            throw "Could not find 'dotnet' command.  Install DotNetCore SDK."
+        }
+    }
 }
 
 <#
@@ -111,16 +120,7 @@ $binaryModuleParams = @{
 Synopsis: Build main binary module
 #>
 task BuildMainModule @binaryModuleParams {
-    $dotnet = Get-Command dotnet -ErrorAction SilentlyContinue
-    if ($dotnet -eq $null)
-    {
-        $dotnet = "~/.dotnet/dotnet"
-        if (!(Test-Path $dotnet))
-        {
-            throw "Could not find 'dotnet' command.  Install DotNetCore SDK."
-        }
-    }
-    exec { & $dotnet publish -f netstandard20 -c $Configuration PSReadLine }
+    exec { & $dotnet publish -f $target -c $Configuration PSReadLine }
 }
 
 <#
@@ -146,16 +146,7 @@ Synopsis: Build executable for interactive testing/development
 task BuildTestHost @buildTestParams BuildMainModule, {
     if ($IsWindows -eq $false)
     {
-        $dotnet = Get-Command dotnet -ErrorAction SilentlyContinue
-        if ($dotnet -eq $null)
-        {
-            $dotnet = "~/.dotnet/dotnet"
-            if (!(Test-Path $dotnet))
-            {
-                throw "Could not find 'dotnet' command.  Install DotNetCore SDK."
-            }
-        }
-        exec { & $dotnet publish -f netcoreapp21 -c $Configuration TestPSReadLine }
+        exec { & $dotnet publish -f $target -c $Configuration TestPSReadLine }
     }
     else
     {
@@ -176,7 +167,7 @@ Synopsis: Build the unit tests
 task BuildTests @buildUnitTestParams BuildMainModule, {
     if ($IsWindows -eq $false)
     {
-
+        exec { & $dotnet publish -f $target -c $Configuration TestPSReadLine }
     }
     else
     {
@@ -189,28 +180,33 @@ task BuildTests @buildUnitTestParams BuildMainModule, {
 Synopsis: Run the unit tests
 #>
 task RunTests BuildTests, {
+    $env:PSREADLINE_TESTRUN = 1
     if ($IsWindows -eq $false)
     {
-
+        $runner = $dotnet
     }
     else
     {
-        exec {
-            $env:PSREADLINE_TESTRUN = 1
-            $runner = "$PSScriptRoot\PSReadLine\packages\xunit.runner.console.2.3.1\tools\net452\xunit.console.exe"
-            if ($env:APPVEYOR)
-            {
-                $outXml = "$PSScriptRoot\xunit-results.xml"
-                & $runner $PSScriptRoot\test\bin\$Configuration\PSReadLine.Tests.dll -appveyor -xml $outXml
-                $wc = New-Object 'System.Net.WebClient'
-                $wc.UploadFile("https://ci.appveyor.com/api/testresults/xunit/$($env:APPVEYOR_JOB_ID)", $outXml)
-            }
-            else
-            {
-                & $runner $PSScriptRoot\test\bin\$Configuration\PSReadLine.Tests.dll
-            }
-            Remove-Item env:PSREADLINE_TESTRUN
-        }
+        $runner = "$PSScriptRoot\PSReadLine\packages\xunit.runner.console.2.3.1\tools\net452\xunit.console.exe"
+    }
+
+    if ($env:APPVEYOR)
+    {
+        $outXml = "$PSScriptRoot\xunit-results.xml"
+        exec { & $runner $PSScriptRoot\test\bin\$Configuration\PSReadLine.Tests.dll -appveyor -xml $outXml }
+        $wc = New-Object 'System.Net.WebClient'
+        $wc.UploadFile("https://ci.appveyor.com/api/testresults/xunit/$($env:APPVEYOR_JOB_ID)", $outXml)
+    }
+    else
+    {
+        Push-Location test
+        exec { & $runner xunit }
+        Pop-Location
+    }
+
+    if (Test-Path env:PSREADLINE_TESTRUN)
+    {
+        Remove-Item env:PSREADLINE_TESTRUN
     }
 }
 

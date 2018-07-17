@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Management.Automation;
 using System.Reflection;
 using Microsoft.PowerShell;
@@ -164,17 +165,17 @@ namespace Test
 
             Test("", Keys(
                 "Get-Directory", _.Tab,
-                CheckThat(() => AssertLineIs("abc\\")),
+                CheckThat(() => AssertLineIs("abc" + Path.DirectorySeparatorChar)),
                 _.Tab,
-                CheckThat(() => AssertLineIs("'e f\\'")),
+                CheckThat(() => AssertLineIs("'e f" + Path.DirectorySeparatorChar + "'")),
                 CheckThat(() => AssertCursorLeftIs(5)),
                 _.Tab,
-                CheckThat(() => AssertLineIs("a\\")),
+                CheckThat(() => AssertLineIs("a" + Path.DirectorySeparatorChar)),
                 _.Tab,
-                CheckThat(() => AssertLineIs("'a b\\'")),
+                CheckThat(() => AssertLineIs("'a b" + Path.DirectorySeparatorChar + "'")),
                 CheckThat(() => AssertCursorLeftIs(5)),
                 _.Tab,
-                CheckThat(() => AssertLineIs("\"a b\\\"")),
+                CheckThat(() => AssertLineIs("\"a b" + Path.DirectorySeparatorChar + "\"")),
                 CheckThat(() => AssertCursorLeftIs(5)),
                 _.CtrlC, InputAcceptedNow));
         }
@@ -234,8 +235,8 @@ namespace Test
                 completions.Add(new CompletionResult("abc", "abc", CompletionResultType.ProviderContainer, "abc"));
                 completions.Add(new CompletionResult("'e f'", "'e f'", CompletionResultType.ProviderContainer, "'e f'"));
                 completions.Add(new CompletionResult("a", "a", CompletionResultType.ProviderContainer, "a"));
-                completions.Add(new CompletionResult("'a b\\'", "a b\\'", CompletionResultType.ProviderContainer, "a b\\'"));
-                completions.Add(new CompletionResult("\"a b\\\"", "\"a b\\\"", CompletionResultType.ProviderContainer, "\"a b\\\""));
+                completions.Add(new CompletionResult("'a b" + Path.DirectorySeparatorChar + "'", "a b" + Path.DirectorySeparatorChar + "'", CompletionResultType.ProviderContainer, "a b" + Path.DirectorySeparatorChar + "'"));
+                completions.Add(new CompletionResult("\"a b" + Path.DirectorySeparatorChar + "\"", "\"a b" + Path.DirectorySeparatorChar + "\"", CompletionResultType.ProviderContainer, "\"a b" + Path.DirectorySeparatorChar + "\""));
                 break;
             case "invalid result 1":
                 replacementIndex = -1;

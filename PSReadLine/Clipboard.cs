@@ -3,6 +3,7 @@ Copyright (c) Microsoft Corporation.  All rights reserved.
 --********************************************************************/
 
 using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
 
@@ -12,29 +13,90 @@ namespace Microsoft.PowerShell.Internal
     {
         public static string GetText()
         {
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            string clipboardText = "";
+            string tool = "";
+            string args = "";
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                ExecuteOnStaThread(() => GetTextImpl(out clipboardText));
+                return clipboardText;
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                tool = "xclip";
+                args = "-selection clipboard -out";
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                tool = "pbpaste";
+            }
+            else
             {
                 PSConsoleReadLine.Ding();
                 return "";
             }
 
-            string clipboardText = "";
-            ExecuteOnStaThread(() => GetTextImpl(out clipboardText));
+            ProcessStartInfo startInfo = new ProcessStartInfo();
+            startInfo.UseShellExecute = false;
+            startInfo.RedirectStandardInput = true;
+            startInfo.RedirectStandardOutput = true;
+            startInfo.RedirectStandardError = true;
+            startInfo.FileName = tool;
+            startInfo.Arguments = args;
+
+            using (Process process = new Process())
+            {
+                process.StartInfo = startInfo;
+                process.Start();
+                clipboardText = process.StandardOutput.ReadToEnd();
+                process.WaitForExit(250);
+            }
 
             return clipboardText;
         }
 
         public static void SetText(string text)
         {
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            if (string.IsNullOrEmpty(text)) return;
+
+            string tool = "";
+            string args = "";
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                ExecuteOnStaThread(() => SetClipboardData(Tuple.Create(text, CF_UNICODETEXT)));
+                return;
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                tool = "xclip";
+                args = "-selection clipboard -in";
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                tool = "pbcopy";
+            }
+            else
             {
                 PSConsoleReadLine.Ding();
                 return;
             }
 
-            if (string.IsNullOrEmpty(text)) return;
+            ProcessStartInfo startInfo = new ProcessStartInfo();
+            startInfo.UseShellExecute = false;
+            startInfo.RedirectStandardInput = true;
+            startInfo.RedirectStandardOutput = true;
+            startInfo.RedirectStandardError = true;
+            startInfo.FileName = tool;
+            startInfo.Arguments = args;
 
-            ExecuteOnStaThread(() => SetClipboardData(Tuple.Create(text, CF_UNICODETEXT)));
+            using (Process process = new Process())
+            {
+                process.StartInfo = startInfo;
+                process.Start();
+                process.StandardInput.Write(text);
+                process.StandardInput.Close();
+                process.WaitForExit(250);
+            }
         }
 
         public static void SetRtf(string plainText, string rtfText)
