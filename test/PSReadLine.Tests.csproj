@@ -6,28 +6,33 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>UnitTestPSReadLine</RootNamespace>
     <AssemblyName>PSReadLine.Tests</AssemblyName>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFrameworks>net461;netcoreapp2.1</TargetFrameworks>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <IsCodedUITest>False</IsCodedUITest>
     <TestProjectType>UnitTest</TestProjectType>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="xunit" Version="2.3.1" />
-    <!--PackageReference Include="xunit.assert" version="2.3.1" />
-    <PackageReference Include="xunit.core" version="2.3.1" />
-    <PackageReference Include="xunit.analyzers" version="0.9.0" /-->
     <PackageReference Include="System.Xml.XDocument" version="4.3.0" />
     <PackageReference Include="System.Data.DataSetExtensions" version="4.5.0" />
     <PackageReference Include="System.Runtime.InteropServices.RuntimeInformation" version="4.3.0" />
     <PackageReference Include="Microsoft.CSharp" version="4.5.0" />
-    <PackageReference Include="Microsoft.PowerShell.SDK" Version="6.1.0-preview.3" />
-    <PackageReference Include="Newtonsoft.Json" Version="11.0.1"/>
-    <!--DotNetCliToolReference Include="dotnet-xunit" Version="2.3.1" /-->
+    <PackageReference Include="Newtonsoft.Json" Version="11.0.1" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.7.0" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.0" />
+    <!--PackageReference Include="xunit.runner.visualstudio" Version="2.4.0" /-->
+    <PackageReference Include="xunit" Version="2.3.1" />
+    <DotNetCliToolReference Include="dotnet-xunit" Version="2.3.1" />
   </ItemGroup>
-  <ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp2.1'">
+    <PackageReference Include="Microsoft.PowerShell.SDK" Version="6.1.0-preview.3" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net461'">
+    <Reference Include="System.Management.Automation">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(windir)\Microsoft.NET\assembly\GAC_MSIL\System.Management.Automation\v4.0_3.0.0.0__31bf3856ad364e35\System.Management.Automation.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+    <ItemGroup>
     <Compile Include="..\PSReadLine\Keys.cs">
       <Link>Keys.cs</Link>
     </Compile>

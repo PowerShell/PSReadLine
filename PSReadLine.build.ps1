@@ -20,25 +20,38 @@ param([switch]$Install,
 
 # Final bits to release go here
 $targetDir = "bin/$Configuration/PSReadLine"
-$target = "netcoreapp2.1"
+if ($PSVersionTable.PSEdition -eq "Core")
+{
+    $target = "netcoreapp2.1"
+}
+else
+{
+    $target = "net461"
+}
+Write-Verbose "Building for '$target'" -Verbose
 
 <#
 Synopsis: Ensure dotnet is installed
 #>
 task CheckDotnetInstalled `
 {
-#    if ($IsWindows -eq $true)
-#    {
-#        return
-#    }
-
     $script:dotnet = (Get-Command dotnet -ErrorAction Ignore).Path
     if ($script:dotnet -eq $null)
     {
-        $script:dotnet = "~/.dotnet/dotnet"
-        if (!(Test-Path $script:dotnet))
+        $searchPaths = "~/.dotnet/dotnet", "~\AppData\Local\Microsoft\dotnet\dotnet.exe"
+        $foundDotnet = $false
+        foreach ($path in $searchPaths)
         {
-            throw "Could not find 'dotnet' command.  Install DotNetCore SDK."
+            if (Test-Path $path)
+            {
+                $foundDotnet = $true
+                $script:dotnet = $path
+                break
+            }
+        }
+        if (!$foundDotnet)
+        {
+            throw "Could not find 'dotnet' command.  Install DotNetCore SDK and ensure it is in the path."
         }
     }
 }
@@ -101,7 +114,7 @@ task BuildAboutTopic @buildAboutTopicParams {
     # so the file isn't locked in any way for the rest of the build.
 
     $generatedFunctionHelpFile = New-TemporaryFile
-    $powershell = [System.AppDomain]::CurrentDomain.FriendlyName
+    $powershell = [System.Diagnostics.Process]::GetCurrentProcess().MainModule.Filename
     & $powershell -NoProfile -NonInteractive -File $PSScriptRoot/GenerateFunctionHelp.ps1 $Configuration $generatedFunctionHelpFile.FullName
     assert ($LASTEXITCODE -eq 0) "Generating function help failed"
 
@@ -144,62 +157,27 @@ $buildTestParams = @{
     Outputs = "TestPSReadLine/bin/$Configuration/TestPSReadLine.exe"
 }
 
-<#
-Synopsis: Build executable for interactive testing/development
-#>
-task BuildTestHost @buildTestParams BuildMainModule, {
-#    if ($IsWindows -eq $false)
-#    {
-#        exec { & $script:dotnet publish -f $target -c $Configuration TestPSReadLine -r $script:runtime }
-#    }
-#    else
-#    {
-#        exec { msbuild TestPSReadLine/TestPSReadLine.csproj /t:Rebuild /p:Configuration=$Configuration /p:Platform=AnyCPU }
-#    }
-}
-
-
-$buildUnitTestParams = @{
-    Inputs  = { Get-ChildItem test/*.cs, test/PSReadLine.Tests.csproj }
-    Outputs = "test/bin/$Configuration/PSReadLine.Tests.dll"
-}
-
-
-<#
-Synopsis: Build the unit tests
-#>
-task BuildTests @buildUnitTestParams BuildMainModule, {
-#    if ($IsWindows -eq $false)
-#    {
-#        exec { & $script:dotnet publish -f $target -c $Configuration test -r $script:runtime }
-#    }
-#    else
-#    {
-#        exec { msbuild test/PSReadLine.tests.csproj /t:Rebuild /p:Configuration=$Configuration /p:Platform=AnyCPU }
-#    }
-}
-
 
 <#
 Synopsis: Run the unit tests
 #>
-task RunTests BuildTests, {
+task RunTests {
     $env:PSREADLINE_TESTRUN = 1
-#    if ($IsWindows -eq $false)
-#    {
-        $runner = $script:dotnet
-#    }
-#    else
-#    {
-#        $runner = "$PSScriptRoot\PSReadLine\packages\xunit.runner.console.2.3.1\tools\net452\xunit.console.exe"
-#    }
+    $runner = $script:dotnet
 
-    $psAssemblies = "System.Management.Automation.dll", "Newtonsoft.Json.dll"
-    foreach ($assembly in $psAssemblies)
+    if ($PSVersionTable.PSEdition -eq "Core")
     {
-        if (Test-Path "$PSHOME\$assembly")
+        $psAssemblies = "System.Management.Automation.dll", "Newtonsoft.Json.dll", "System.Management.dll", "System.DirectoryServices.dll"
+        foreach ($assembly in $psAssemblies)
         {
-            Copy-Item "$PSHOME\$assembly" "test\bin\$configuration\$target"
+            if (Test-Path "$PSHOME\$assembly")
+            {
+                Copy-Item "$PSHOME\$assembly" "test\bin\$configuration\$target"
+            }
+            else
+            {
+                throw "Could not find '$PSHOME\$assembly'"    
+            }
         }
     }
 
@@ -207,7 +185,7 @@ task RunTests BuildTests, {
     {
         $outXml = "$PSScriptRoot\xunit-results.xml"
         Push-Location test
-        exec { & $runner xunit -appveyor -xml $outXml }
+        exec { & $runner xunit -c $configuration -f $target -appveyor -xml $outXml }
         $wc = New-Object 'System.Net.WebClient'
         $wc.UploadFile("https://ci.appveyor.com/api/testresults/xunit/$($env:APPVEYOR_JOB_ID)", $outXml)
         Pop-Location test
@@ -215,7 +193,7 @@ task RunTests BuildTests, {
     else
     {
         Push-Location test
-        exec { & $runner test --no-build -c $configuration -f $target }
+        exec { & $runner xunit -c $configuration -f $target }
         Pop-Location
     }
 

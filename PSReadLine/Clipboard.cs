@@ -11,8 +11,16 @@ namespace Microsoft.PowerShell.Internal
 {
     static class Clipboard
     {
+        private static bool? _clipboardSupported;
+
         public static string GetText()
         {
+            if (_clipboardSupported == false)
+            {
+                PSConsoleReadLine.Ding();
+                return "";
+            }
+
             string clipboardText = "";
             string tool = "";
             string args = "";
@@ -32,6 +40,7 @@ namespace Microsoft.PowerShell.Internal
             }
             else
             {
+                _clipboardSupported = false;
                 PSConsoleReadLine.Ding();
                 return "";
             }
@@ -50,6 +59,15 @@ namespace Microsoft.PowerShell.Internal
                 process.Start();
                 clipboardText = process.StandardOutput.ReadToEnd();
                 process.WaitForExit(250);
+
+                if (process.ExitCode != 0)
+                {
+                    _clipboardSupported = false;
+                }
+                else
+                {
+                    _clipboardSupported = true;
+                }
             }
 
             return clipboardText;
@@ -58,6 +76,12 @@ namespace Microsoft.PowerShell.Internal
         public static void SetText(string text)
         {
             if (string.IsNullOrEmpty(text)) return;
+
+            if (_clipboardSupported == false)
+            {
+                PSConsoleReadLine.Ding();
+                return;
+            }
 
             string tool = "";
             string args = "";
@@ -77,6 +101,7 @@ namespace Microsoft.PowerShell.Internal
             }
             else
             {
+                _clipboardSupported = false;
                 PSConsoleReadLine.Ding();
                 return;
             }
@@ -96,6 +121,15 @@ namespace Microsoft.PowerShell.Internal
                 process.StandardInput.Write(text);
                 process.StandardInput.Close();
                 process.WaitForExit(250);
+
+                if (process.ExitCode != 0)
+                {
+                    _clipboardSupported = false;
+                }
+                else
+                {
+                    _clipboardSupported = true;
+                }
             }
         }
 

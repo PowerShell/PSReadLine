@@ -6,7 +6,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>TestPSReadLine</RootNamespace>
     <AssemblyName>TestPSReadLine</AssemblyName>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFrameworks>net461;netcoreapp2.1</TargetFrameworks>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
   <ItemGroup>
