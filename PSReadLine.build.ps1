@@ -185,7 +185,7 @@ task RunTests {
     {
         $outXml = "$PSScriptRoot\xunit-results.xml"
         Push-Location test
-        exec { & $runner xunit -c $configuration -f $target -appveyor -xml $outXml }
+        exec { & $runner test --no-build -c $configuration -f $target --logger "trx;LogFileName=$outXml" }
         $wc = New-Object 'System.Net.WebClient'
         $wc.UploadFile("https://ci.appveyor.com/api/testresults/xunit/$($env:APPVEYOR_JOB_ID)", $outXml)
         Pop-Location test
@@ -193,7 +193,7 @@ task RunTests {
     else
     {
         Push-Location test
-        exec { & $runner xunit -c $configuration -f $target }
+        exec { & $runner test --no-build -c $configuration -f $target }
         Pop-Location
     }
 

@@ -56,7 +56,17 @@ namespace Microsoft.PowerShell.Internal
             using (Process process = new Process())
             {
                 process.StartInfo = startInfo;
-                process.Start();
+                try
+                {
+                    process.Start();
+                }
+                catch (System.ComponentModel.Win32Exception)
+                {
+                    _clipboardSupported = false;
+                    PSConsoleReadLine.Ding();
+                    return "";
+                }
+
                 clipboardText = process.StandardOutput.ReadToEnd();
                 process.WaitForExit(250);
 
@@ -117,7 +127,17 @@ namespace Microsoft.PowerShell.Internal
             using (Process process = new Process())
             {
                 process.StartInfo = startInfo;
-                process.Start();
+                try
+                {
+                    process.Start();
+                }
+                catch (System.ComponentModel.Win32Exception)
+                {
+                    _clipboardSupported = false;
+                    PSConsoleReadLine.Ding();
+                    return;
+                }
+
                 process.StandardInput.Write(text);
                 process.StandardInput.Close();
                 process.WaitForExit(250);
