@@ -1,4 +1,4 @@
-[![Build status](https://ci.appveyor.com/api/projects/status/0xu8r817dl6qt0g4?svg=true)](https://ci.appveyor.com/project/lzybkr/PSReadLine)
+[![Build status](https://ci.appveyor.com/api/projects/status/0xu8r817dl6qt0g4?svg=true)](https://ci.appveyor.com/project/lzybkr/PSReadLine/branch/master)
 
 # PSReadLine
 

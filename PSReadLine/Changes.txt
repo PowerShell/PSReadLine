@@ -80,7 +80,7 @@ Bug fixes:
 * Remove Ding from Backspace on an empty line (#422)
 * Fix occasional hang reading history file (#524)
 * HistorySearchCursorMovesToEnd previously only worked in incremental search.
-  It is now on by default, honored in the non-incremental search (HistorySearch)
+  It is now honored in the non-incremental search (HistorySearch)
   and also in Vi Command mode for non-search history recall. (#438 #530) (Thanks @srdubya!)
 
 
