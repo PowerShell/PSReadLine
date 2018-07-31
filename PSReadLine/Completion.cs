@@ -537,7 +537,7 @@ namespace Microsoft.PowerShell
                 }
                 else
                 {
-                    // Update the cursor position to the start of the first line after our input.
+                    // Update the cursor coordinates after showing the menu.
                     _singleton._initialX = console.CursorLeft;
                     _singleton._initialY = console.CursorTop;
                     _singleton._previousRender = _initialPrevRender;
@@ -751,7 +751,7 @@ namespace Microsoft.PowerShell
             else
             {
                 menu.DrawMenu(null, menuSelect:false);
-                InvokePrompt(key: null, arg:null);
+                InvokePrompt(key: null, arg: _console.CursorTop);
             }
         }
 
