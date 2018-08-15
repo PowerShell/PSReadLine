@@ -332,9 +332,9 @@ namespace Microsoft.PowerShell
                 }
                 finally
                 {
-                    // GetCompletions can triager the PowerShell Write-Progress that may scroll the console screen.
-                    // For example, cd and hit the tab under the CloudShell Azure drive, it will go out to fetch data and show the
-                    // progress bar. We need to update the _initialY in case the current cursor postion has changed.
+                    // GetCompletions could scroll the screen, e.g. via Write-Progress. For example,
+                    // cd <TAB> under the CloudShell Azure drive will show the progress bar while fetching data.
+                    // We need to update the _initialY in case the current cursor postion has changed.
                     if (_singleton._initialY > _console.CursorTop)
                     {
                         _singleton._initialY = _console.CursorTop;
