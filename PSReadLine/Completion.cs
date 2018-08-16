@@ -330,6 +330,16 @@ namespace Microsoft.PowerShell
                 catch (Exception)
                 {
                 }
+                finally
+                {
+                    // GetCompletions could scroll the screen, e.g. via Write-Progress. For example,
+                    // cd <TAB> under the CloudShell Azure drive will show the progress bar while fetching data.
+                    // We need to update the _initialY in case the current cursor postion has changed.
+                    if (_singleton._initialY > _console.CursorTop)
+                    {
+                        _singleton._initialY = _console.CursorTop;
+                    }
+                }
             }
 
             return _tabCompletions;
