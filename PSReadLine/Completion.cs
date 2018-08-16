@@ -599,7 +599,8 @@ namespace Microsoft.PowerShell
                         }
                     }
 
-                    if (BufferLines + Rows + toolTipLines > console.WindowHeight)
+                    // The +1 is for a new line after showing the tool tips
+                    if ((Top + Rows + toolTipLines + 1) > console.WindowHeight)
                     {
                         showTooltips = false;
                     }
