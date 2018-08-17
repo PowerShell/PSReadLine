@@ -464,13 +464,13 @@ namespace Microsoft.PowerShell
             internal CompletionResult CurrentMenuItem => MenuItems[CurrentSelection];
             internal int CurrentSelection;
 
-            void EnsureMenuAndInputIsVisible(IConsole console, int tooltipLineCount)
+            void EnsureMenuAndInputIsVisible(IConsole console, int tooltipLineCount, int rows)
             {
                 // The +1 lets us write a newline after the last row, which isn't strictly necessary
                 // It does help with:
                 //   * Console selecting multiple lines of text
                 //   * Adds a little extra space underneath the menu
-                var bottom = this.Top + this.Rows + tooltipLineCount + 1;
+                var bottom = this.Top + rows + tooltipLineCount + 1;
                 if (bottom > console.BufferHeight)
                 {
                     var toScroll = bottom - console.BufferHeight;
@@ -487,21 +487,21 @@ namespace Microsoft.PowerShell
             {
                 IConsole console = Singleton._console;
 
+                // Move cursor to the start of the first line after our input.
+                this.Top = Singleton.ConvertOffsetToPoint(Singleton._buffer.Length).Y + 1;
                 if (menuSelect)
                 {
-                    // Move cursor to the start of the first line after our input.
-                    this.Top = Singleton.ConvertOffsetToPoint(Singleton._buffer.Length).Y + 1;
-                    EnsureMenuAndInputIsVisible(console, tooltipLineCount: 0);
+                    EnsureMenuAndInputIsVisible(console, tooltipLineCount: 0, rows:this.Rows);
 
                     console.CursorVisible = false;
                     console.SaveCursor();
-                    console.SetCursorPosition(0, this.Top);
                 }
                 else
                 {
-                    // Start a new line to show the menu contents
-                    console.Write("\n");
+                    EnsureMenuAndInputIsVisible(console, tooltipLineCount: 0, rows:0);
                 }
+
+                console.SetCursorPosition(0, this.Top);
 
                 var bufferWidth = console.BufferWidth;
                 var columnWidth = this.ColumnWidth;
@@ -618,7 +618,7 @@ namespace Microsoft.PowerShell
 
                 if (showTooltips)
                 {
-                    EnsureMenuAndInputIsVisible(console, toolTipLines);
+                    EnsureMenuAndInputIsVisible(console, toolTipLines, this.Rows);
                 }
 
                 console.SaveCursor();
