@@ -545,13 +545,6 @@ namespace Microsoft.PowerShell
                     console.RestoreCursor();
                     console.CursorVisible = true;
                 }
-                else
-                {
-                    // Update the cursor coordinates after showing the menu.
-                    _singleton._initialX = console.CursorLeft;
-                    _singleton._initialY = console.CursorTop;
-                    _singleton._previousRender = _initialPrevRender;
-                }
             }
 
             public void Clear()
