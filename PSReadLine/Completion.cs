@@ -483,17 +483,30 @@ namespace Microsoft.PowerShell
                 }
             }
 
-            public void DrawMenu(Menu previousMenu)
+            public void DrawMenu(Menu previousMenu, bool menuSelect)
             {
                 IConsole console = Singleton._console;
 
                 // Move cursor to the start of the first line after our input.
                 this.Top = Singleton.ConvertOffsetToPoint(Singleton._buffer.Length).Y + 1;
-                EnsureMenuAndInputIsVisible(console, tooltipLineCount: 0);
+                if (menuSelect)
+                {
+                    EnsureMenuAndInputIsVisible(console, tooltipLineCount: 0);
 
-                console.CursorVisible = false;
-                console.SaveCursor();
-                console.SetCursorPosition(0, this.Top);
+                    console.CursorVisible = false;
+                    console.SaveCursor();
+                    console.SetCursorPosition(0, this.Top);
+                }
+                else
+                {
+                    // Start a new line to show the menu contents
+                    console.SetCursorPosition(0, this.Top);
+                    // Scroll one line up if the cursor is at the bottom of the window
+                    if (this.Top == console.BufferHeight)
+                    {
+                        console.Write("\n");
+                    }
+                }
 
                 var bufferWidth = console.BufferWidth;
                 var columnWidth = this.ColumnWidth;
@@ -532,8 +545,11 @@ namespace Microsoft.PowerShell
                     }
                 }
 
-                console.RestoreCursor();
-                console.CursorVisible = true;
+                if (menuSelect)
+                {
+                    console.RestoreCursor();
+                    console.CursorVisible = true;
+                }
             }
 
             public void Clear()
@@ -591,7 +607,8 @@ namespace Microsoft.PowerShell
                         }
                     }
 
-                    if (BufferLines + Rows + toolTipLines > console.WindowHeight)
+                    // The +1 is for a new line after showing the tool tips
+                    if ((Top + Rows + toolTipLines + 1) > console.WindowHeight)
                     {
                         showTooltips = false;
                     }
@@ -742,8 +759,8 @@ namespace Microsoft.PowerShell
             }
             else
             {
-                menu.DrawMenu(null);
-                InvokePrompt(key: null, arg: menu.Top + menu.Rows);
+                menu.DrawMenu(null, menuSelect:false);
+                InvokePrompt(key: null, arg: _console.CursorTop);
             }
         }
 
@@ -790,7 +807,7 @@ namespace Microsoft.PowerShell
             var userInitialCompletionLength = userCompletionText.Length;
 
             completions.CurrentMatchIndex = 0;
-            menu.DrawMenu(null);
+            menu.DrawMenu(null, menuSelect:true);
 
             bool processingKeys = true;
             int previousSelection = -1;
@@ -821,7 +838,7 @@ namespace Microsoft.PowerShell
                     if (topAdjustment != 0)
                     {
                         menu.Top += topAdjustment;
-                        menu.DrawMenu(null);
+                        menu.DrawMenu(null, menuSelect:true);
                     }
                     if (topAdjustment > 0)
                     {
@@ -898,7 +915,7 @@ namespace Microsoft.PowerShell
                     {
                         var newMenu = menuStack.Pop();
 
-                        newMenu.DrawMenu(menu);
+                        newMenu.DrawMenu(menu, menuSelect:true);
                         previousSelection = -1;
 
                         menu = newMenu;
@@ -960,7 +977,7 @@ namespace Microsoft.PowerShell
                         {
                             var newMenu = CreateCompletionMenu(newMatches);
 
-                            newMenu.DrawMenu(menu);
+                            newMenu.DrawMenu(menu, menuSelect:true);
                             previousSelection = -1;
 
                             // Remember the current menu for when we see Backspace.
