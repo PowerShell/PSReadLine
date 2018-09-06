@@ -500,7 +500,7 @@ Aliases:
 
 Required: False
 Position: Named
-Default value: On Windows - ~\AppData\Roaming\Microsoft\Windows\PowerShell\PSReadLine\$($host.Name)_history.txt otherwise $XDG_DATA_HOME/powershell/PSReadLine/$($host.Name)_history.txt or $HOME/.local/share//powershell/PSReadLine/$($host.Name)_history.txt
+Default value: On Windows - $env:APPDATA\Microsoft\Windows\PowerShell\PSReadLine\$($host.Name)_history.txt otherwise $XDG_DATA_HOME/powershell/PSReadLine/$($host.Name)_history.txt or $HOME/.local/share/powershell/PSReadLine/$($host.Name)_history.txt
 Accept pipeline input: false
 Accept wildcard characters: False
 ```
