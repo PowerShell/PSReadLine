@@ -500,7 +500,7 @@ Aliases:
 
 Required: False
 Position: Named
-Default value: A file named $($host.Name)_history.txt in $env:APPDATA\Microsoft\Windows\PowerShell\PSReadLine on Windows, $env:XDG_DATA_HOME/powershell/PSReadLine on macOS, and $env:HOME/.local/share/powershell/PSReadLine on Linux
+Default value: A file named $($host.Name)_history.txt in $env:APPDATA\Microsoft\Windows\PowerShell\PSReadLine on Windows and $env:XDG_DATA_HOME/powershell/PSReadLine or $env:HOME/.local/share/powershell/PSReadLine on non-Windows platforms
 Accept pipeline input: false
 Accept wildcard characters: False
 ```
