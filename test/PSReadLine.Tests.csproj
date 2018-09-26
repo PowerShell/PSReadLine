@@ -17,14 +17,14 @@
     <PackageReference Include="System.Data.DataSetExtensions" version="4.5.0" />
     <PackageReference Include="System.Runtime.InteropServices.RuntimeInformation" version="4.3.0" />
     <PackageReference Include="Microsoft.CSharp" version="4.5.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="11.0.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.7.0" />
     <PackageReference Include="xunit" Version="2.4.0" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.0" />
     <!--DotNetCliToolReference Include="dotnet-xunit" Version="2.4.0-beta.1.build3958" /-->
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp2.1'">
-    <PackageReference Include="Microsoft.PowerShell.SDK" Version="6.1.0-preview.3" />
+    <PackageReference Include="Microsoft.PowerShell.SDK" Version="6.1.0" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net461'">
     <Reference Include="System.Management.Automation">

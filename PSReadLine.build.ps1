@@ -161,10 +161,11 @@ $buildTestParams = @{
 <#
 Synopsis: Run the unit tests
 #>
-task RunTests {
+task RunTests BuildMainModule, {
     $env:PSREADLINE_TESTRUN = 1
     $runner = $script:dotnet
 
+    # need to copy implemented assemblies so test code can host powershell otherwise we have to build for a specific runtime
     if ($PSVersionTable.PSEdition -eq "Core")
     {
         $psAssemblies = "System.Management.Automation.dll", "Newtonsoft.Json.dll", "System.Management.dll", "System.DirectoryServices.dll"
@@ -197,11 +198,8 @@ task RunTests {
         Pop-Location
     }
 
-    if (Test-Path env:PSREADLINE_TESTRUN)
-    {
         Remove-Item env:PSREADLINE_TESTRUN
     }
-}
 
 <#
 Synopsis: Copy all of the files that belong in the module to one place in the layout for installation
@@ -221,6 +219,15 @@ task LayoutModule BuildMainModule, BuildMamlHelp, {
 
     $binPath = "PSReadLine/bin/$Configuration/$target/publish"
     Copy-Item $binPath/Microsoft.PowerShell.PSReadLine2.dll $targetDir
+
+    if (Test-Path $binPath/System.Runtime.InteropServices.RuntimeInformation.dll)
+    {
+        Copy-Item $binPath/System.Runtime.InteropServices.RuntimeInformation.dll $targetDir
+    }
+    else
+    {
+        Write-Warning "Build using $target is not sufficient to be downlevel compatible"
+    }
 
     # Copy module manifest, but fix the version to match what we've specified in the binary module.
     $version = (Get-ChildItem -Path $targetDir/Microsoft.PowerShell.PSReadLine2.dll).VersionInfo.FileVersion

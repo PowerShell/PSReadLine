@@ -13,6 +13,49 @@ namespace Microsoft.PowerShell.Internal
     {
         private static bool? _clipboardSupported;
 
+        private static string StartProcess(
+            string tool,
+            string args,
+            string stdin = ""
+        )
+        {
+            ProcessStartInfo startInfo = new ProcessStartInfo();
+            startInfo.UseShellExecute = false;
+            startInfo.RedirectStandardInput = true;
+            startInfo.RedirectStandardOutput = true;
+            startInfo.RedirectStandardError = true;
+            startInfo.FileName = tool;
+            startInfo.Arguments = args;
+            string stdout;
+
+            using (Process process = new Process())
+            {
+                process.StartInfo = startInfo;
+                try
+                {
+                    process.Start();
+                }
+                catch (System.ComponentModel.Win32Exception)
+                {
+                    _clipboardSupported = false;
+                    PSConsoleReadLine.Ding();
+                    return "";
+                }
+
+                if (stdin != "")
+                {
+                    process.StandardInput.Write(stdin);
+                    process.StandardInput.Close();
+                }
+                stdout = process.StandardOutput.ReadToEnd();
+                process.WaitForExit(250);
+
+                _clipboardSupported = process.ExitCode == 0;
+            }
+
+            return stdout;
+        }
+
         public static string GetText()
         {
             if (_clipboardSupported == false)
@@ -21,11 +64,11 @@ namespace Microsoft.PowerShell.Internal
                 return "";
             }
 
-            string clipboardText = "";
             string tool = "";
             string args = "";
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
+                string clipboardText = "";
                 ExecuteOnStaThread(() => GetTextImpl(out clipboardText));
                 return clipboardText;
             }
@@ -45,42 +88,7 @@ namespace Microsoft.PowerShell.Internal
                 return "";
             }
 
-            ProcessStartInfo startInfo = new ProcessStartInfo();
-            startInfo.UseShellExecute = false;
-            startInfo.RedirectStandardInput = true;
-            startInfo.RedirectStandardOutput = true;
-            startInfo.RedirectStandardError = true;
-            startInfo.FileName = tool;
-            startInfo.Arguments = args;
-
-            using (Process process = new Process())
-            {
-                process.StartInfo = startInfo;
-                try
-                {
-                    process.Start();
-                }
-                catch (System.ComponentModel.Win32Exception)
-                {
-                    _clipboardSupported = false;
-                    PSConsoleReadLine.Ding();
-                    return "";
-                }
-
-                clipboardText = process.StandardOutput.ReadToEnd();
-                process.WaitForExit(250);
-
-                if (process.ExitCode != 0)
-                {
-                    _clipboardSupported = false;
-                }
-                else
-                {
-                    _clipboardSupported = true;
-                }
-            }
-
-            return clipboardText;
+            return StartProcess(tool, args);
         }
 
         public static void SetText(string text)
@@ -116,41 +124,7 @@ namespace Microsoft.PowerShell.Internal
                 return;
             }
 
-            ProcessStartInfo startInfo = new ProcessStartInfo();
-            startInfo.UseShellExecute = false;
-            startInfo.RedirectStandardInput = true;
-            startInfo.RedirectStandardOutput = true;
-            startInfo.RedirectStandardError = true;
-            startInfo.FileName = tool;
-            startInfo.Arguments = args;
-
-            using (Process process = new Process())
-            {
-                process.StartInfo = startInfo;
-                try
-                {
-                    process.Start();
-                }
-                catch (System.ComponentModel.Win32Exception)
-                {
-                    _clipboardSupported = false;
-                    PSConsoleReadLine.Ding();
-                    return;
-                }
-
-                process.StandardInput.Write(text);
-                process.StandardInput.Close();
-                process.WaitForExit(250);
-
-                if (process.ExitCode != 0)
-                {
-                    _clipboardSupported = false;
-                }
-                else
-                {
-                    _clipboardSupported = true;
-                }
-            }
+            StartProcess(tool, args, text);
         }
 
         public static void SetRtf(string plainText, string rtfText)

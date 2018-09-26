@@ -4,6 +4,7 @@ image: Visual Studio 2017
 install:
   - ps: |
       $env:DOTNET_INSTALL_DIR = "$pwd\.dotnet"
+      $env:CLI_VERSION = "2.1.300"
       mkdir $env:DOTNET_INSTALL_DIR -Force | Out-Null
       Invoke-WebRequest -Uri "https://raw.githubusercontent.com/dotnet/cli/release/2.1/scripts/obtain/dotnet-install.ps1" -OutFile "$($env:DOTNET_INSTALL_DIR)/dotnet-install.ps1"
       '& "$($env:DOTNET_INSTALL_DIR)/dotnet-install.ps1" -Version $env:CLI_VERSION -InstallDir $env:DOTNET_INSTALL_DIR'

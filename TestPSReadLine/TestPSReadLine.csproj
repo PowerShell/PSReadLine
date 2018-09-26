@@ -13,8 +13,8 @@
     <PackageReference Include="System.Xml.XDocument" version="4.3.0" />
     <PackageReference Include="System.Data.DataSetExtensions" version="4.5.0" />
     <PackageReference Include="Microsoft.CSharp" version="4.5.0" />
-    <PackageReference Include="Microsoft.PowerShell.SDK" Version="6.1.0-preview.3" />
-    <PackageReference Include="Microsoft.PowerShell.Commands.Management" Version="6.1.0-preview.3" />
+    <PackageReference Include="Microsoft.PowerShell.SDK" Version="6.1.0" />
+    <PackageReference Include="Microsoft.PowerShell.Commands.Management" Version="6.1.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\PSReadLine\PSReadLine.csproj">

@@ -164,6 +164,27 @@ If you want to change the command line in some unimplmented way in your custom k
     [Microsoft.PowerShell.PSConsoleReadLine]::SetCursorPosition
 ```
 
+## Building
+
+### Prerequisites
+
+To build PSReadLine on Windows, Linux, or macOS, you must have [.NET Core SDK 2.1.400 or newer](https://www.microsoft.com/net/download) installed.
+The build script also depends on [InvokeBuild](https://www.powershellgallery.com/packages/InvokeBuild) which can be installed using:
+
+```powershell
+  install-module invokebuild -scope currentuser
+```
+
+### Building and running tests
+
+You can create a new build and run tests by simply running within PowerShell:
+
+```powershell
+  invoke-build
+```
+
+After a successful build, the tests are automatically run.
+
 ## Change Log
 
 The change log is available [here](https://github.com/lzybkr/PSReadLine/blob/master/PSReadLine/Changes.txt).
