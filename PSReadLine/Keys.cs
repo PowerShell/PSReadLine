@@ -401,26 +401,13 @@ namespace Microsoft.PowerShell
             }
         }
 
-        private static readonly Dictionary<KeyWithModifiers, char> CtrlKeyToKeyCharMap
-            = new Dictionary<KeyWithModifiers, char>();
+        private static readonly Dictionary<KeyWithModifiers, char> CtrlKeyToKeyCharMap;
 
         static Keys()
         {
-            int i;
-            for (i = 0; i < 26; i++)
-            {
-                CtrlKeyToKeyCharMap.Add(new KeyWithModifiers(ConsoleKey.A + i), (char)(i + 1));
-            }
-
-            for (i = 0; i < 10; i++)
-            {
-                char c = i == 2 ? '\0' : i == 6 ? '\x1e' : (char) ('0' + i);
-                CtrlKeyToKeyCharMap.Add(new KeyWithModifiers(ConsoleKey.D0 + i), c);
-                CtrlKeyToKeyCharMap.Add(new KeyWithModifiers(ConsoleKey.NumPad0 + i), c);
-            }
-
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
+                CtrlKeyToKeyCharMap = new Dictionary<KeyWithModifiers, char>();
                 // These mapping are needed to support different keyboard
                 // layouts, e.g. ']' is Oem6 with an English keyboard, but
                 // Oem5 with a Portuguese keyboard.
@@ -493,18 +480,31 @@ namespace Microsoft.PowerShell
         {
             if (key.KeyChar == '\0' && (key.Modifiers & ConsoleModifiers.Control) != 0)
             {
-                // On Windows, ConsoleKeyInfo.Key is something we wanted to ignore, but
-                // a few bindings force us to do something with it.
-                var mods = key.Modifiers & ConsoleModifiers.Shift;
-                var keyWithMods = new KeyWithModifiers(key.Key, mods);
-                if (CtrlKeyToKeyCharMap.TryGetValue(keyWithMods, out var keyChar))
-                    return keyChar;
-
                 if (key.Key >= ConsoleKey.A && key.Key <= ConsoleKey.Z)
                 {
                     return (char)(key.Key - ConsoleKey.A + 1);
                 }
 
+                int d = key.Key >= ConsoleKey.D0 && key.Key <= ConsoleKey.D9
+                    ? key.Key - ConsoleKey.D0
+                    : key.Key >= ConsoleKey.NumPad0 && key.Key <= ConsoleKey.NumPad9
+                        ? key.Key - ConsoleKey.NumPad0
+                        : -1;
+
+                switch (d) {
+                    case 2: return '\0';
+                    case 6: return '\x1e';
+                    case 0: case 1: case 3: case 4:
+                    case 5: case 7: case 8: case 9:
+                        return (char)('0' + d);
+                }
+
+                // On Windows, ConsoleKeyInfo.Key is something we wanted to ignore, but
+                // a few bindings force us to do something with it.
+                var mods = key.Modifiers & ConsoleModifiers.Shift;
+                var keyWithMods = new KeyWithModifiers(key.Key, mods);
+                if (CtrlKeyToKeyCharMap != null && CtrlKeyToKeyCharMap.TryGetValue(keyWithMods, out var keyChar))
+                    return keyChar;
             }
             return key.KeyChar;
         }
