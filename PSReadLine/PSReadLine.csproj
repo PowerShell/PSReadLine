@@ -4,6 +4,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.PowerShell.PSReadLine</RootNamespace>
     <AssemblyName>Microsoft.PowerShell.PSReadLine2</AssemblyName>
+    <AssemblyVersion>2.0.0</AssemblyVersion>
     <TargetFrameworks>net461;netcoreapp2.1</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup>
