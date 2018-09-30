@@ -3,6 +3,7 @@ Copyright (c) Microsoft Corporation.  All rights reserved.
 --********************************************************************/
 
 using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
 
@@ -10,31 +11,120 @@ namespace Microsoft.PowerShell.Internal
 {
     static class Clipboard
     {
+        private static bool? _clipboardSupported;
+
+        private static string StartProcess(
+            string tool,
+            string args,
+            string stdin = ""
+        )
+        {
+            ProcessStartInfo startInfo = new ProcessStartInfo();
+            startInfo.UseShellExecute = false;
+            startInfo.RedirectStandardInput = true;
+            startInfo.RedirectStandardOutput = true;
+            startInfo.RedirectStandardError = true;
+            startInfo.FileName = tool;
+            startInfo.Arguments = args;
+            string stdout;
+
+            using (Process process = new Process())
+            {
+                process.StartInfo = startInfo;
+                try
+                {
+                    process.Start();
+                }
+                catch (System.ComponentModel.Win32Exception)
+                {
+                    _clipboardSupported = false;
+                    PSConsoleReadLine.Ding();
+                    return "";
+                }
+
+                if (stdin != "")
+                {
+                    process.StandardInput.Write(stdin);
+                    process.StandardInput.Close();
+                }
+                stdout = process.StandardOutput.ReadToEnd();
+                process.WaitForExit(250);
+
+                _clipboardSupported = process.ExitCode == 0;
+            }
+
+            return stdout;
+        }
+
         public static string GetText()
         {
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            if (_clipboardSupported == false)
             {
                 PSConsoleReadLine.Ding();
                 return "";
             }
 
-            string clipboardText = "";
-            ExecuteOnStaThread(() => GetTextImpl(out clipboardText));
+            string tool = "";
+            string args = "";
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                string clipboardText = "";
+                ExecuteOnStaThread(() => GetTextImpl(out clipboardText));
+                return clipboardText;
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                tool = "xclip";
+                args = "-selection clipboard -out";
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                tool = "pbpaste";
+            }
+            else
+            {
+                _clipboardSupported = false;
+                PSConsoleReadLine.Ding();
+                return "";
+            }
 
-            return clipboardText;
+            return StartProcess(tool, args);
         }
 
         public static void SetText(string text)
         {
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            if (string.IsNullOrEmpty(text)) return;
+
+            if (_clipboardSupported == false)
             {
                 PSConsoleReadLine.Ding();
                 return;
             }
 
-            if (string.IsNullOrEmpty(text)) return;
+            string tool = "";
+            string args = "";
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                ExecuteOnStaThread(() => SetClipboardData(Tuple.Create(text, CF_UNICODETEXT)));
+                return;
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                tool = "xclip";
+                args = "-selection clipboard -in";
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                tool = "pbcopy";
+            }
+            else
+            {
+                _clipboardSupported = false;
+                PSConsoleReadLine.Ding();
+                return;
+            }
 
-            ExecuteOnStaThread(() => SetClipboardData(Tuple.Create(text, CF_UNICODETEXT)));
+            StartProcess(tool, args, text);
         }
 
         public static void SetRtf(string plainText, string rtfText)

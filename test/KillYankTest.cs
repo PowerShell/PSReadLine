@@ -4,6 +4,7 @@ using System.Linq;
 using System.Windows;
 using Microsoft.PowerShell;
 using Xunit;
+using Microsoft.PowerShell.Internal;
 
 namespace Test
 {
@@ -304,10 +305,10 @@ namespace Test
         {
             TestSetup(KeyMode.Cmd);
 
-            ExecuteOnSTAThread(() => Clipboard.SetText("pastetest1"));
+            Clipboard.SetText("pastetest1");
             Test("pastetest1", Keys(_.CtrlV));
 
-            ExecuteOnSTAThread(() => Clipboard.SetText("pastetest2"));
+            Clipboard.SetText("pastetest2");
             Test("echo pastetest2", Keys(
                 "echo foobar", _.CtrlShiftLeftArrow, _.CtrlV));
         }
@@ -317,7 +318,7 @@ namespace Test
         {
             TestSetup(KeyMode.Cmd);
 
-            ExecuteOnSTAThread(() => Clipboard.SetText(""));
+            Clipboard.SetText("");
             Test("", Keys(
                 "cuttest1", _.CtrlShiftLeftArrow, _.CtrlX));
             AssertClipboardTextIs("cuttest1");
@@ -328,12 +329,12 @@ namespace Test
         {
             TestSetup(KeyMode.Cmd);
 
-            ExecuteOnSTAThread(() => Clipboard.SetText(""));
+            Clipboard.SetText("");
             Test("copytest1", Keys(
                 "copytest1", _.CtrlShiftC));
             AssertClipboardTextIs("copytest1");
 
-            ExecuteOnSTAThread(() => Clipboard.SetText(""));
+            Clipboard.SetText("");
             Test("echo copytest2", Keys(
                 "echo copytest2", _.CtrlShiftLeftArrow, _.CtrlShiftC));
             AssertClipboardTextIs("copytest2");
@@ -344,7 +345,7 @@ namespace Test
         {
             TestSetup(KeyMode.Cmd);
 
-            ExecuteOnSTAThread(() => Clipboard.SetText(""));
+            Clipboard.SetText("");
             Test("echo copytest2", Keys(
                 "echo copytest2", _.CtrlShiftLeftArrow, _.CtrlC));
             AssertClipboardTextIs("copytest2");

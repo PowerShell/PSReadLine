@@ -408,7 +408,7 @@ namespace Test
     {
         static ReadLine()
         {
-            var iss = InitialSessionState.CreateDefault2();
+            var iss = InitialSessionState.CreateDefault();
             var rs = RunspaceFactory.CreateRunspace(iss);
             rs.Open();
             Runspace.DefaultRunspace = rs;
@@ -528,22 +528,7 @@ namespace Test
 
         private static string GetClipboardText()
         {
-            string fromClipboard = null;
-            ExecuteOnSTAThread(() =>
-            {
-                for (int i = 0; i < 5; i++)
-                {
-                    try
-                    {
-                        Assert.True(Clipboard.ContainsText());
-                        fromClipboard = Clipboard.GetText();
-                    }
-                    catch (System.Runtime.InteropServices.COMException)
-                    {
-                    }
-                }
-            });
-            return fromClipboard;
+            return Clipboard.GetText();
         }
 
         private void AssertClipboardTextIs(string text)
