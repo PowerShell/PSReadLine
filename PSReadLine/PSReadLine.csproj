@@ -5,8 +5,8 @@
     <RootNamespace>Microsoft.PowerShell.PSReadLine</RootNamespace>
     <AssemblyName>Microsoft.PowerShell.PSReadLine2</AssemblyName>
     <AssemblyVersion>2.0.0.0</AssemblyVersion>
-    <AssemblyFileVersion>2.0.0</AssemblyFileVersion>
-    <AssemblyInformationalVersion>2.0.0-beta3</AssemblyInformationalVersion>
+    <FileVersion>2.0.0</FileVersion>
+    <InformationalVersion>2.0.0-beta3</InformationalVersion>
     <TargetFrameworks>net461;netcoreapp2.1</TargetFrameworks>
   </PropertyGroup>
   <ItemGroup>
