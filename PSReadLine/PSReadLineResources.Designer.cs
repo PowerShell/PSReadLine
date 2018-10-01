@@ -804,13 +804,19 @@ namespace Microsoft.PowerShell.PSReadLine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to -----------------------------------------------------------------------
-        ///Last {0} Keys:
-        ///{1}
+        ///   Looks up a localized string similar to ### Environment
+        ///PSReadLine: {0}
+        ///PowerShell: {1}
+        ///OS: {2}
+        ///Last {3} Keys
+        ///```
+        ///{4}
+        ///```
         ///
-        ///Exception:
-        ///{2}
-        ///-----------------------------------------------------------------------.
+        ///### Exception
+        ///```
+        ///{5}
+        ///```
         /// </summary>
         internal static string OopsAnErrorMessage2 {
             get {

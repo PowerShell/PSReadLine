@@ -7,9 +7,11 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.Linq;
 using System.Management.Automation;
 using System.Management.Automation.Language;
 using System.Management.Automation.Runspaces;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
@@ -410,7 +412,13 @@ namespace Microsoft.PowerShell
                         }
                     }
 
-                    console.WriteLine(string.Format(CultureInfo.CurrentUICulture, PSReadLineResources.OopsAnErrorMessage2, _lastNKeys.Count, sb, e));
+                    var psVersion = PSObject.AsPSObject(engineIntrinsics.Host.Version).ToString();
+                    var ourVersion = typeof(PSConsoleReadLine).Assembly.GetCustomAttributes<AssemblyInformationalVersionAttribute>().First().InformationalVersion;
+                    var osInfo = RuntimeInformation.OSDescription;
+
+                    console.WriteLine(string.Format(CultureInfo.CurrentUICulture, PSReadLineResources.OopsAnErrorMessage2,
+                        ourVersion, psVersion, osInfo,
+                        _lastNKeys.Count, sb, e));
                     var lineBeforeCrash = _singleton._buffer.ToString();
                     _singleton.Initialize(runspace, _singleton._engineIntrinsics);
                     InvokePrompt();

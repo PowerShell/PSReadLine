@@ -393,17 +393,20 @@ Oops, something went wrong.  Please report this bug with the details below.
 Report on GitHub: https://github.com/lzybkr/PSReadLine/issues/new</value>
   </data>
   <data name="OopsAnErrorMessage2" xml:space="preserve">
-    <value>-----------------------------------------------------------------------
-Last {0} Keys:
+    <value>### Environment
+PSReadLine: {0}
+PowerShell: {1}
+OS: {2}
+Last {3} Keys
 ```
-{1}
+{4}
 ```
 
-Exception:
+### Exception
 ```
-{2}
+{5}
 ```
------------------------------------------------------------------------</value>
+</value>
   </data>
   <data name="NextLineDescription" xml:space="preserve">
     <value>Move the cursor to the next line if the input has multiple lines.</value>
@@ -751,28 +754,28 @@ Or not saving history with:
   <data name="InvalidColorParameter" xml:space="preserve">
     <value>Parameter must be a ConsoleColor, ANSI escape sequence, or RGB value with optional leading '#'.</value>
   </data>
-  <data name="BasicGrouping"  xml:space="preserve">
+  <data name="BasicGrouping" xml:space="preserve">
     <value>Basic editing functions</value>
   </data>
-  <data name="CursorMovementGrouping"  xml:space="preserve">
+  <data name="CursorMovementGrouping" xml:space="preserve">
     <value>Cursor movement functions</value>
   </data>
-  <data name="HistoryGrouping"  xml:space="preserve">
+  <data name="HistoryGrouping" xml:space="preserve">
     <value>History functions</value>
   </data>
-  <data name="CompletionGrouping"  xml:space="preserve">
+  <data name="CompletionGrouping" xml:space="preserve">
     <value>Completion functions</value>
   </data>
-  <data name="MiscellaneousGrouping"  xml:space="preserve">
+  <data name="MiscellaneousGrouping" xml:space="preserve">
     <value>Miscellaneous functions</value>
   </data>
-  <data name="SelectionGrouping"  xml:space="preserve">
+  <data name="SelectionGrouping" xml:space="preserve">
     <value>Selection functions</value>
   </data>
-  <data name="SearchGrouping"  xml:space="preserve">
+  <data name="SearchGrouping" xml:space="preserve">
     <value>Search functions</value>
   </data>
-  <data name="CustomGrouping"  xml:space="preserve">
+  <data name="CustomGrouping" xml:space="preserve">
     <value>User defined functions</value>
   </data>
 </root>
