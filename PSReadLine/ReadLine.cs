@@ -2,6 +2,7 @@
 Copyright (c) Microsoft Corporation.  All rights reserved.
 --********************************************************************/
 
+using ConsoleHandle = Microsoft.Win32.SafeHandles.SafeFileHandle;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -44,7 +45,7 @@ namespace Microsoft.PowerShell
         private IConsole _console;
         private ICharMap _charMap;
         private Encoding _initialOutputEncoding;
-
+        private bool _changeOutputEncoding;
         private EngineIntrinsics _engineIntrinsics;
         private Thread _readKeyThread;
         private AutoResetEvent _readKeyWaitHandle;
@@ -531,7 +532,10 @@ namespace Microsoft.PowerShell
             }
             finally
             {
-                _console.OutputEncoding = Encoding.UTF8;
+                if (_changeOutputEncoding)
+                {
+                    _console.OutputEncoding = Encoding.UTF8;
+                }
             }
         }
 
@@ -647,7 +651,19 @@ namespace Microsoft.PowerShell
             _statusIsErrorMessage = false;
 
             _initialOutputEncoding = _console.OutputEncoding;
-            _console.OutputEncoding = Encoding.UTF8;
+
+            // Don't change the OutputEncoding if already UTF8 or using raster font on Windows
+            _changeOutputEncoding = _initialOutputEncoding != Encoding.UTF8;
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && PlatformWindows.IsUsingRasterFont())
+            {
+                _changeOutputEncoding = false;
+            }
+
+            if (_changeOutputEncoding)
+            {
+                _console.OutputEncoding = Encoding.UTF8;
+            }
+
             _lastRenderTime = Stopwatch.StartNew();
 
             _killCommandCount = 0;
