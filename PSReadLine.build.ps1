@@ -310,9 +310,33 @@ task Install LayoutModule, {
 <#
 Synopsis: Publish to PSGallery
 #>
-task Publish -If ($Configuration -eq 'Release') LayoutModule, {
+task Publish -If ($Configuration -eq 'Release') {
 
-    $manifest = Import-PowerShellDataFile $PSScriptRoot/bin/Release/PSReadLine/PSReadLine.psd1
+    $binDir = "$PSScriptRoot/bin/Release/PSReadLine"
+
+    # Check signatures before publishing
+    Get-ChildItem -Recurse $binDir -Include "*.dll","*.ps*1" | Get-AuthenticodeSignature | ForEach-Object {
+        if ($_.Status -ne 'Valid') {
+            throw "$($_.Path) is not signed"
+        }
+        if ($_.SignerCertificate.Subject -notmatch 'CN=Microsoft Corporation.*') {
+            throw "$($_.Path) is not signed with a Microsoft signature"
+        }
+    }
+
+    # Check newlines in signed files before publishing
+    Get-ChildItem -Recurse $binDir -Include "*.ps*1" | Get-AuthenticodeSignature | ForEach-Object {
+        $lines = (Get-Content $_.Path | Measure-Object).Count
+        $fileBytes = [System.IO.File]::ReadAllBytes($_.Path)
+        $toMatch = ($fileBytes | ForEach-Object { "{0:X2}" -f $_ }) -join ';'
+        $crlf = ([regex]::Matches($toMatch, ";0D;0A") | Measure-Object).Count
+
+        if ($lines -ne $crlf) {
+            throw "$($_.Path) appears to have mixed newlines"
+        }
+    }
+
+    $manifest = Import-PowerShellDataFile $binDir/PSReadLine.psd1
 
     $version = $manifest.ModuleVersion
     if ($null -ne $manifest.PrivateData)
@@ -332,13 +356,13 @@ task Publish -If ($Configuration -eq 'Release') LayoutModule, {
 
     if ($yes -ne 'y') { throw "Publish aborted" }
 
-    $nugetApiKey = Read-Host "Nuget api key for PSGallery"
+    $nugetApiKey = Read-Host -AsSecureString "Nuget api key for PSGallery"
 
     $publishParams = @{
-        Path = "$PSScriptRoot/bin/Release/PSReadLine"
-        NuGetApiKey = $nugetApiKey
+        Path = $binDir
+        NuGetApiKey = [PSCredential]::new("user", $nugetApiKey).GetNetworkCredential().Password
         Repository = "PSGallery"
-        ReleaseNotes = (Get-Content -Raw $PSScriptRoot/bin/Release/PSReadLine/Changes.txt)
+        ReleaseNotes = (Get-Content -Raw $binDir/Changes.txt)
         ProjectUri = 'https://github.com/lzybkr/PSReadLine'
     }
 
