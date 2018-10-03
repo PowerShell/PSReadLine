@@ -579,7 +579,7 @@ namespace Microsoft.PowerShell
                 var toolTipLines = 2;
                 if (showTooltips)
                 {
-                    // Determine if showing the tooltip would scroll the screen, if so, also don't show it.
+                    // Determine if showing the tooltip would scroll the top of our buffer off the screen.
 
                     int lineLength = 0;
                     for (var i = 0; i < toolTip.Length; i++)
@@ -607,8 +607,8 @@ namespace Microsoft.PowerShell
                         }
                     }
 
-                    // The +1 is for a new line after showing the tool tips
-                    if ((Top + Rows + toolTipLines + 1) > console.WindowHeight)
+                    // The +1 is for the blank line between the menu and tooltips.
+                    if (BufferLines + Rows + toolTipLines + 1 > console.WindowHeight)
                     {
                         showTooltips = false;
                     }
