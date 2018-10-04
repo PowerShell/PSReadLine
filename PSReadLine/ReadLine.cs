@@ -654,7 +654,7 @@ namespace Microsoft.PowerShell
 
             // Don't change the OutputEncoding if already UTF8 or using raster font on Windows
             _changeOutputEncoding = _initialOutputEncoding != Encoding.UTF8;
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && PlatformWindows.IsUsingRasterFont())
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && PlatformWindows.IsConsoleInput() && PlatformWindows.IsUsingRasterFont())
             {
                 _changeOutputEncoding = false;
             }

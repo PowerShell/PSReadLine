@@ -368,13 +368,18 @@ static class PlatformWindows
             && SetConsoleMode(handle, mode | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
     }
 
+    internal static bool IsConsoleInput()
+    {
+        var handle = GetStdHandle((uint)StandardHandleId.Input);
+        return GetFileType(handle) == FILE_TYPE_CHAR;
+    }
+
     private static bool IsHandleRedirected(bool stdin)
     {
         var handle = GetStdHandle((uint)(stdin ? StandardHandleId.Input : StandardHandleId.Output));
 
         // If handle is not to a character device, we must be redirected:
-        int fileType = GetFileType(handle);
-        if ((fileType & FILE_TYPE_CHAR) != FILE_TYPE_CHAR)
+        if (GetFileType(handle) != FILE_TYPE_CHAR)
             return true;
 
         // Char device - if GetConsoleMode succeeds, we are NOT redirected.
