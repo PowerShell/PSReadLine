@@ -2,7 +2,6 @@
 Copyright (c) Microsoft Corporation.  All rights reserved.
 --********************************************************************/
 
-using ConsoleHandle = Microsoft.Win32.SafeHandles.SafeFileHandle;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
