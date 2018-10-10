@@ -93,6 +93,41 @@ static class PlatformWindows
         return false;
     }
 
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+    private struct CONSOLE_FONT_INFO_EX
+    {
+        internal int cbSize;
+        internal int nFont;
+        internal short FontWidth;
+        internal short FontHeight;
+        internal FontFamily FontFamily;
+        internal uint FontWeight;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]
+        internal string FontFace;
+    }
+
+    [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+    private static extern bool GetCurrentConsoleFontEx(IntPtr consoleOutput, bool bMaximumWindow, ref CONSOLE_FONT_INFO_EX consoleFontInfo);
+
+    [Flags()]
+    internal enum FontFamily : uint
+    {
+        TMPF_FIXED_PITCH = 0x01
+    }
+
+    internal static bool IsUsingRasterFont()
+    {
+        CONSOLE_FONT_INFO_EX fontInfo = new CONSOLE_FONT_INFO_EX();
+        fontInfo.cbSize = Marshal.SizeOf(fontInfo);
+        var handle = _outputHandle.Value.DangerousGetHandle();
+        bool result = GetCurrentConsoleFontEx(handle, false, ref fontInfo);
+        // If this bit is set the font is a variable pitch font.
+        // If this bit is clear the font is a fixed pitch font.
+        // Note very carefully that those meanings are the opposite of what the constant name implies.
+        return !fontInfo.FontFamily.HasFlag(FontFamily.TMPF_FIXED_PITCH);
+    }
+
+
     private static PSConsoleReadLine _singleton;
     internal static IConsole OneTimeInit(PSConsoleReadLine singleton)
     {
@@ -333,13 +368,18 @@ static class PlatformWindows
             && SetConsoleMode(handle, mode | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
     }
 
+    internal static bool IsConsoleInput()
+    {
+        var handle = GetStdHandle((uint)StandardHandleId.Input);
+        return GetFileType(handle) == FILE_TYPE_CHAR;
+    }
+
     private static bool IsHandleRedirected(bool stdin)
     {
         var handle = GetStdHandle((uint)(stdin ? StandardHandleId.Input : StandardHandleId.Output));
 
         // If handle is not to a character device, we must be redirected:
-        int fileType = GetFileType(handle);
-        if ((fileType & FILE_TYPE_CHAR) != FILE_TYPE_CHAR)
+        if (GetFileType(handle) != FILE_TYPE_CHAR)
             return true;
 
         // Char device - if GetConsoleMode succeeds, we are NOT redirected.

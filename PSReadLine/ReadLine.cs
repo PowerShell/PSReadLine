@@ -46,7 +46,7 @@ namespace Microsoft.PowerShell
         private IConsole _console;
         private ICharMap _charMap;
         private Encoding _initialOutputEncoding;
-
+        private bool _skipOutputEncodingChange;
         private EngineIntrinsics _engineIntrinsics;
         private Thread _readKeyThread;
         private AutoResetEvent _readKeyWaitHandle;
@@ -539,7 +539,10 @@ namespace Microsoft.PowerShell
             }
             finally
             {
-                _console.OutputEncoding = Encoding.UTF8;
+                if (!_skipOutputEncodingChange)
+                {
+                    _console.OutputEncoding = Encoding.UTF8;
+                }
             }
         }
 
@@ -655,7 +658,17 @@ namespace Microsoft.PowerShell
             _statusIsErrorMessage = false;
 
             _initialOutputEncoding = _console.OutputEncoding;
-            _console.OutputEncoding = Encoding.UTF8;
+
+            // Don't change the OutputEncoding if already UTF8, no console, or using raster font on Windows
+            _skipOutputEncodingChange = _initialOutputEncoding == Encoding.UTF8
+                || (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                    && PlatformWindows.IsConsoleInput()
+                    && PlatformWindows.IsUsingRasterFont());
+
+            if (!_skipOutputEncodingChange) {
+                _console.OutputEncoding = Encoding.UTF8;
+            }
+
             _lastRenderTime = Stopwatch.StartNew();
 
             _killCommandCount = 0;
