@@ -1,14 +1,14 @@
 
 image: Visual Studio 2017
 
-install:
-  - ps: |
-      $env:DOTNET_INSTALL_DIR = "$pwd\.dotnet"
-      $env:CLI_VERSION = "2.1.300"
-      mkdir $env:DOTNET_INSTALL_DIR -Force | Out-Null
-      Invoke-WebRequest -Uri "https://raw.githubusercontent.com/dotnet/cli/release/2.1/scripts/obtain/dotnet-install.ps1" -OutFile "$($env:DOTNET_INSTALL_DIR)/dotnet-install.ps1"
-      '& "$($env:DOTNET_INSTALL_DIR)/dotnet-install.ps1" -Version $env:CLI_VERSION -InstallDir $env:DOTNET_INSTALL_DIR'
-      $env:Path = "$env:DOTNET_INSTALL_DIR;$env:Path"
+environment:
+  POWERSHELL_TELEMETRY_OPTOUT: 1
+  # Avoid expensive initialization of dotnet cli, see: http://donovanbrown.com/post/Stop-wasting-time-during-NET-Core-builds
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+
+cache:
+  - '%HOMEDRIVE%%HOMEPATH%\.nuget\packages -> PSReadLine.build.ps1'
+  - '%LocalAppData%\Microsoft\dotnet -> PSReadLine.build.ps1'
 
 before_build:
   - ps: |
