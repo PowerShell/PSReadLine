@@ -30,6 +30,8 @@ else
 }
 Write-Verbose "Building for '$target'" -Verbose
 
+$CLI_VERSION = "2.1.300"
+
 <#
 Synopsis: Ensure dotnet is installed
 #>
@@ -49,9 +51,22 @@ task CheckDotnetInstalled `
                 break
             }
         }
+
         if (!$foundDotnet)
         {
-            throw "Could not find 'dotnet' command.  Install DotNetCore SDK and ensure it is in the path."
+            if ($env:APPVEYOR)
+            {
+                # Install dotnet to the default location, it will be cached via appveyor.yml
+                $installScriptUri = "https://raw.githubusercontent.com/dotnet/cli/release/2.1/scripts/obtain/dotnet-install.ps1" 
+                $installDir = "${env:LOCALAPPDATA}\Microsoft\dotnet"
+                Invoke-WebRequest -Uri $installScriptUri -OutFile "${env:TEMP}/dotnet-install.ps1"
+                & "$env:TEMP/dotnet-install.ps1" -Version $CLI_VERSION -InstallDir $installDir
+                $script:dotnet = Join-Path $installDir "dotnet.exe"
+            }
+            else
+            {
+                throw "Could not find 'dotnet' command.  Install DotNetCore SDK and ensure it is in the path."
+            }
         }
     }
 }
@@ -198,8 +213,8 @@ task RunTests BuildMainModule, {
         Pop-Location
     }
 
-        Remove-Item env:PSREADLINE_TESTRUN
-    }
+    Remove-Item env:PSREADLINE_TESTRUN
+}
 
 <#
 Synopsis: Copy all of the files that belong in the module to one place in the layout for installation
