@@ -433,8 +433,18 @@ namespace Microsoft.PowerShell
                         if (!_singleton._closingWaitHandle.WaitOne(0))
                         {
                             console.OutputEncoding = _singleton._initialOutputEncoding;
-                            console.ForegroundColor = _singleton._initialForeground;
-                            console.BackgroundColor = _singleton._initialBackground;
+
+                            bool IsValid(ConsoleColor color)
+                            {
+                                return color >= ConsoleColor.Black && color <= ConsoleColor.White;
+                            }
+
+                            if (IsValid(_singleton._initialForeground)) {
+                                console.ForegroundColor = _singleton._initialForeground;
+                            }
+                            if (IsValid(_singleton._initialBackground)) {
+                                console.BackgroundColor = _singleton._initialBackground;
+                            }
                             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                             {
                                 Console.TreatControlCAsInput = oldControlCAsInput;
