@@ -865,10 +865,10 @@ namespace Microsoft.PowerShell
                             menu.WriteBlankLines(menu.Top + menu.Rows, -topAdjustment + menu.ToolTipLines);
                         }
                         menu.UpdateMenuSelection(previousSelection, /*select*/ false,
-                            /*showToolTips*/false, VTColorUtils.AsEscapeSequence(Options.EmphasisColor));
+                            /*showToolTips*/false, Options._emphasisColor);
                     }
                     menu.UpdateMenuSelection(menu.CurrentSelection, /*select*/ true,
-                        Options.ShowToolTips, VTColorUtils.AsEscapeSequence(Options.EmphasisColor));
+                        Options.ShowToolTips, Options._emphasisColor);
 
                     previousSelection = menu.CurrentSelection;
                 }

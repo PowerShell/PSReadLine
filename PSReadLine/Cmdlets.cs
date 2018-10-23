@@ -859,6 +859,26 @@ namespace Microsoft.PowerShell
     public static class VTColorUtils
     {
         public const ConsoleColor UnknownColor = (ConsoleColor) (-1);
+        private static readonly Dictionary<string, ConsoleColor> ConsoleColors =
+            new Dictionary<string, ConsoleColor>(StringComparer.OrdinalIgnoreCase)
+            {
+                {"Black", ConsoleColor.Black},
+                {"DarkBlue", ConsoleColor.DarkBlue},
+                {"DarkGreen", ConsoleColor.DarkGreen},
+                {"DarkCyan", ConsoleColor.DarkCyan},
+                {"DarkRed", ConsoleColor.DarkRed},
+                {"DarkMagenta", ConsoleColor.DarkMagenta},
+                {"DarkYellow", ConsoleColor.DarkYellow},
+                {"Gray", ConsoleColor.Gray},
+                {"DarkGray", ConsoleColor.DarkGray},
+                {"Blue", ConsoleColor.Blue},
+                {"Green", ConsoleColor.Green},
+                {"Cyan", ConsoleColor.Cyan},
+                {"Red", ConsoleColor.Red},
+                {"Magenta", ConsoleColor.Magenta},
+                {"Yellow", ConsoleColor.Yellow},
+                {"White", ConsoleColor.White},
+            };
 
         public static bool IsValidColor(object o)
         {
@@ -871,7 +891,7 @@ namespace Microsoft.PowerShell
                     if (s.Length > 0)
                     {
                         // String can be converted to ConsoleColor, so is it a ConsoleColor?
-                        if (LanguagePrimitives.TryConvertTo(s, out ConsoleColor unused1))
+                        if (ConsoleColors.ContainsKey(s))
                             return true;
 
                         // Escape sequence - assume it's fine as is
@@ -908,7 +928,7 @@ namespace Microsoft.PowerShell
                     if (s.Length > 0)
                     {
                         // String can be converted to ConsoleColor, so it is a ConsoleColor
-                        if (LanguagePrimitives.TryConvertTo(s, out ConsoleColor c))
+                        if (ConsoleColors.TryGetValue(s, out ConsoleColor c))
                             return MapColorToEscapeSequence(c, isBackground);
 
                         // Escape sequence - assume it's fine as is
