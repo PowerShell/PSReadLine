@@ -50,9 +50,6 @@ namespace Microsoft.PowerShell
             void Write(string s);
             void ScrollBuffer(int lines);
             void BlankRestOfLine();
-
-            void SaveCursor();
-            void RestoreCursor();
         }
 
 #pragma warning restore 1591

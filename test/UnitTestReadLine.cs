@@ -324,19 +324,6 @@ namespace Test
             return result;
         }
 
-        private int _savedX, _savedY;
-
-        public void SaveCursor()
-        {
-            _savedX = CursorLeft;
-            _savedY = CursorTop;
-        }
-
-        public void RestoreCursor()
-        {
-            SetCursorPosition(_savedX, _savedY);
-        }
-
         private static readonly ConsoleColor DefaultForeground = ReadLine.Colors[0];
         private static readonly ConsoleColor DefaultBackground = ReadLine.BackgroundColors[0];
 

@@ -115,15 +115,5 @@ namespace Microsoft.PowerShell.Internal
         public virtual void WriteLine(string value)      => Console.WriteLine(value);
         public virtual void ScrollBuffer(int lines)      => Console.Write("\x1b[" + lines + "S");
         public virtual void BlankRestOfLine()            => Console.Write("\x1b[K");
-
-        private int _savedX, _savedY;
-
-        public void SaveCursor()
-        {
-            _savedX = Console.CursorLeft;
-            _savedY = Console.CursorTop;
-        }
-
-        public void RestoreCursor() => Console.SetCursorPosition(_savedX, _savedY);
     }
 }

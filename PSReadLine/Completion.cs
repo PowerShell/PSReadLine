@@ -113,14 +113,6 @@ namespace Microsoft.PowerShell
             return GetUnquotedText(s, consistentQuoting);
         }
 
-        private void WriteBlankLines(int top, int count)
-        {
-            _console.SaveCursor();
-            _console.SetCursorPosition(0, top);
-            WriteBlankLines(count);
-            _console.RestoreCursor();
-        }
-
         private void WriteBlankLines(int count)
         {
             var spaces = Spaces(_console.BufferWidth);
@@ -464,48 +456,20 @@ namespace Microsoft.PowerShell
             internal CompletionResult CurrentMenuItem => MenuItems[CurrentSelection];
             internal int CurrentSelection;
 
-            void EnsureMenuAndInputIsVisible(IConsole console, int tooltipLineCount)
-            {
-                // The +1 lets us write a newline after the last row, which isn't strictly necessary
-                // It does help with:
-                //   * Console selecting multiple lines of text
-                //   * Adds a little extra space underneath the menu
-                var bottom = this.Top + this.Rows + tooltipLineCount + 1;
-                if (bottom > console.BufferHeight)
-                {
-                    var toScroll = bottom - console.BufferHeight;
-                    console.ScrollBuffer(toScroll);
-                    Singleton._initialY -= toScroll;
-                    this.Top -= toScroll;
-
-                    var point = Singleton.ConvertOffsetToPoint(Singleton._current);
-                    Singleton.PlaceCursor(point.X, point.Y);
-                }
-            }
-
             public void DrawMenu(Menu previousMenu, bool menuSelect)
             {
                 IConsole console = Singleton._console;
 
                 // Move cursor to the start of the first line after our input.
-                this.Top = Singleton.ConvertOffsetToPoint(Singleton._buffer.Length).Y + 1;
+                var bufferEndPoint = Singleton.ConvertOffsetToPoint(Singleton._buffer.Length);
+                console.SetCursorPosition(bufferEndPoint.X, bufferEndPoint.Y);
+                AdjustForPossibleScroll(1);
+                MoveCursorDown(1);
+                this.Top = bufferEndPoint.Y + 1;
                 if (menuSelect)
                 {
-                    EnsureMenuAndInputIsVisible(console, tooltipLineCount: 0);
-
                     console.CursorVisible = false;
-                    console.SaveCursor();
-                    console.SetCursorPosition(0, this.Top);
-                }
-                else
-                {
-                    // Start a new line to show the menu contents
-                    console.SetCursorPosition(0, this.Top);
-                    // Scroll one line up if the cursor is at the bottom of the window
-                    if (this.Top == console.BufferHeight)
-                    {
-                        console.Write("\n");
-                    }
+                    SaveCursor();
                 }
 
                 var bufferWidth = console.BufferWidth;
@@ -533,8 +497,12 @@ namespace Microsoft.PowerShell
                         console.BlankRestOfLine();
                     }
 
-                    // Explicit newline so consoles see each row as distinct lines.
-                    console.Write("\n");
+                    // Explicit newline so consoles see each row as distinct lines, but skip the
+                    // last line so we don't scroll.
+                    if (row != (this.Rows - 1) || !menuSelect) {
+                        AdjustForPossibleScroll(1);
+                        MoveCursorDown(1);
+                    }
                 }
 
                 if (previousMenu != null)
@@ -547,14 +515,14 @@ namespace Microsoft.PowerShell
 
                 if (menuSelect)
                 {
-                    console.RestoreCursor();
+                    RestoreCursor();
                     console.CursorVisible = true;
                 }
             }
 
             public void Clear()
             {
-                Singleton.WriteBlankLines(Top, Rows + ToolTipLines);
+                WriteBlankLines(Top, Rows + ToolTipLines);
             }
 
             public void UpdateMenuSelection(int selectedItem, bool select, bool showTooltips, string toolTipColor)
@@ -579,7 +547,7 @@ namespace Microsoft.PowerShell
                 var toolTipLines = 2;
                 if (showTooltips)
                 {
-                    // Determine if showing the tooltip would scroll the screen, if so, also don't show it.
+                    // Determine if showing the tooltip would scroll the top of our buffer off the screen.
 
                     int lineLength = 0;
                     for (var i = 0; i < toolTip.Length; i++)
@@ -607,19 +575,14 @@ namespace Microsoft.PowerShell
                         }
                     }
 
-                    // The +1 is for a new line after showing the tool tips
-                    if ((Top + Rows + toolTipLines + 1) > console.WindowHeight)
+                    // The +1 is for the blank line between the menu and tooltips.
+                    if (BufferLines + Rows + toolTipLines + 1 > console.WindowHeight)
                     {
                         showTooltips = false;
                     }
                 }
 
-                if (showTooltips)
-                {
-                    EnsureMenuAndInputIsVisible(console, toolTipLines);
-                }
-
-                console.SaveCursor();
+                SaveCursor();
 
                 var row = Top + selectedItem % Rows;
                 var col = ColumnWidth * (selectedItem / Rows);
@@ -634,7 +597,10 @@ namespace Microsoft.PowerShell
                 if (showTooltips)
                 {
                     Debug.Assert(select, "On unselect, caller must clear the tooltip");
-                    console.SetCursorPosition(0, Top + Rows + 1);
+                    console.SetCursorPosition(0, Top + Rows - 1);
+                    // Move down 2 so we have 1 blank line between the menu and buffer.
+                    AdjustForPossibleScroll(toolTipLines);
+                    MoveCursorDown(2);
                     console.Write(toolTipColor);
                     console.Write(toolTip);
                     ToolTipLines = toolTipLines;
@@ -642,7 +608,7 @@ namespace Microsoft.PowerShell
                     console.Write("\x1b[0m");
                 }
 
-                console.RestoreCursor();
+                RestoreCursor();
             }
 
             public void MoveRight()    => CurrentSelection = Math.Min(CurrentSelection + Rows, MenuItems.Count - 1);
@@ -661,6 +627,47 @@ namespace Microsoft.PowerShell
                     CurrentSelection += MenuItems.Count;
                 }
             }
+
+            private void MoveCursorDown(int cnt)
+            {
+                IConsole console = Singleton._console;
+                while (cnt-- > 0)
+                {
+                    console.Write("\n");
+                }
+            }
+
+            private void AdjustForPossibleScroll(int cnt)
+            {
+                IConsole console = Singleton._console;
+                var scrollCnt = console.CursorTop + cnt + 1 - console.BufferHeight;
+                if (scrollCnt > 0)
+                {
+                    Top -= scrollCnt;
+                    _singleton._initialY -= scrollCnt;
+                    _savedCursorTop -= scrollCnt;
+                }
+            }
+
+            public void WriteBlankLines(int top, int count)
+            {
+                SaveCursor();
+                Singleton._console.SetCursorPosition(0, top);
+                Singleton.WriteBlankLines(count);
+                RestoreCursor();
+            }
+
+            private int _savedCursorLeft;
+            private int _savedCursorTop;
+
+            public void SaveCursor()
+            {
+                IConsole console = Singleton._console;
+                _savedCursorLeft = console.CursorLeft;
+                _savedCursorTop = console.CursorTop;
+            }
+
+            public void RestoreCursor() => Singleton._console.SetCursorPosition(_savedCursorLeft, _savedCursorTop);
         }
 
         private Menu CreateCompletionMenu(Collection<CompletionResult> matches)
@@ -746,7 +753,7 @@ namespace Microsoft.PowerShell
                 // if not, we'll skip the menu.
 
                 var endBufferPoint = ConvertOffsetToPoint(_buffer.Length);
-                menu.BufferLines = endBufferPoint.Y - _initialY + 1;
+                menu.BufferLines = endBufferPoint.Y - _initialY + 1 + _options.ExtraPromptLineCount;
                 if (menu.BufferLines + menu.Rows > _console.WindowHeight)
                 {
                     menuSelect = false;
@@ -844,10 +851,10 @@ namespace Microsoft.PowerShell
                     {
                         // Render did not clear the rest of the command line which flowed
                         // into the menu, so we must do that here.
-                        _console.SaveCursor();
+                        menu.SaveCursor();
                         _console.SetCursorPosition(endOfCommandLine.X, endOfCommandLine.Y);
                         _console.Write(Spaces(_console.BufferWidth - endOfCommandLine.X));
-                        _console.RestoreCursor();
+                        menu.RestoreCursor();
                     }
 
                     if (previousSelection != -1)
@@ -855,7 +862,7 @@ namespace Microsoft.PowerShell
                         if (menu.ToolTipLines > 0)
                         {
                             // Erase previous tooltip, taking into account if the menu moved up/down.
-                            WriteBlankLines(menu.Top + menu.Rows, -topAdjustment + menu.ToolTipLines);
+                            menu.WriteBlankLines(menu.Top + menu.Rows, -topAdjustment + menu.ToolTipLines);
                         }
                         menu.UpdateMenuSelection(previousSelection, /*select*/ false,
                             /*showToolTips*/false, VTColorUtils.AsEscapeSequence(Options.EmphasisColor));
