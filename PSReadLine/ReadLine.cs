@@ -433,6 +433,8 @@ namespace Microsoft.PowerShell
                         if (!_singleton._closingWaitHandle.WaitOne(0))
                         {
                             console.OutputEncoding = _singleton._initialOutputEncoding;
+                            console.ForegroundColor = _singleton._initialForeground;
+                            console.BackgroundColor = _singleton._initialBackground;
                             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                             {
                                 Console.TreatControlCAsInput = oldControlCAsInput;
@@ -655,6 +657,8 @@ namespace Microsoft.PowerShell
             _inputAccepted = false;
             _initialX = _console.CursorLeft;
             _initialY = _console.CursorTop;
+            _initialForeground = _console.ForegroundColor;
+            _initialBackground = _console.BackgroundColor;
             _statusIsErrorMessage = false;
 
             _initialOutputEncoding = _console.OutputEncoding;
