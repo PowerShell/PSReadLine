@@ -51,6 +51,8 @@ namespace Microsoft.PowerShell
         };
         private int _initialX;
         private int _initialY;
+        private ConsoleColor _initialForeground;
+        private ConsoleColor _initialBackground;
         private int _current;
         private int _emphasisStart;
         private int _emphasisLength;
