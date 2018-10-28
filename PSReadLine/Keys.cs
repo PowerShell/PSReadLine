@@ -66,8 +66,11 @@ namespace Microsoft.PowerShell
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 var keyWithMods = WindowsKeyScan(c);
-                shift = (keyWithMods.Modifiers & ConsoleModifiers.Shift) != 0;
-                key = keyWithMods.Key;
+                if (keyWithMods.HasValue)
+                {
+                    shift = (keyWithMods.Value.Modifiers & ConsoleModifiers.Shift) != 0;
+                    key = keyWithMods.Value.Key;
+                }
                 c = '\0';
             }
             else
@@ -364,9 +367,13 @@ namespace Microsoft.PowerShell
         [DllImport("user32.dll")]
         public static extern int VkKeyScan(short wAsciiVal);
 
-        static KeyWithModifiers WindowsKeyScan(char c)
+        static KeyWithModifiers? WindowsKeyScan(char c)
         {
             var scan = VkKeyScan((short)c);
+            if (scan == -1)
+            {
+                return null;
+            }
             var key = (ConsoleKey)(scan & 0xff);
             var mods = default(ConsoleModifiers);
             if ((scan & 0x100) != 0) { mods |= ConsoleModifiers.Shift; }
@@ -413,7 +420,11 @@ namespace Microsoft.PowerShell
                 // Oem5 with a Portuguese keyboard.
                 foreach (char c in "`~!@#$%^&*()-_=+[{]}\\|;:'\",<.>/?")
                 {
-                    CtrlKeyToKeyCharMap.Add(WindowsKeyScan(c), c);
+                    var keyWithMods = WindowsKeyScan(c);
+                    if (keyWithMods.HasValue)
+                    {
+                        CtrlKeyToKeyCharMap.Add(keyWithMods.Value, c);
+                    }
                 }
             }
         }
@@ -567,9 +578,19 @@ namespace Microsoft.PowerShell
                 // to see Alt+Control (AltGr) on a Spanish, French, or German keyboard for many normal
                 // characters. So we just ask the OS what mods to expect for a given key.
                 // On non-Windows - anything but Shift is assumed to be a control sequence.
-                var expectedMods = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-                    ? WindowsKeyScan(key.KeyChar).Modifiers
-                    : key.Modifiers & ConsoleModifiers.Shift;
+                ConsoleModifiers expectedMods = default(ConsoleModifiers);
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    var keyWithMods = WindowsKeyScan(key.KeyChar);
+                    if (keyWithMods.HasValue)
+                    {
+                        expectedMods = keyWithMods.Value.Modifiers;
+                    }
+                }
+                else
+                {
+                    expectedMods = key.Modifiers & ConsoleModifiers.Shift;
+                }
                 return key.Modifiers == expectedMods;
             }
 
