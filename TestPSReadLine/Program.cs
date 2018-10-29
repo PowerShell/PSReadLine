@@ -37,9 +37,8 @@ namespace TestPSReadLine
         static void Main()
         {
             var handle = GetStdHandle((uint)StandardHandleId.Output);
-            uint mode;
-            GetConsoleMode(handle, out mode);
-            var b = SetConsoleMode(handle, mode | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+            GetConsoleMode(handle, out var mode);
+            var vtEnabled = SetConsoleMode(handle, mode | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
 
             var iss = InitialSessionState.CreateDefault2();
             var rs = RunspaceFactory.CreateRunspace(iss);
@@ -51,33 +50,33 @@ namespace TestPSReadLine
                 EditMode = EditMode.Emacs,
                 HistoryNoDuplicates = false,
             });
-            var options = PSConsoleReadLine.GetOptions();
-            options.CommandColor = "#8181f7";
-            options.StringColor = "\x1b[38;5;100m";
-            PSConsoleReadLine.SetKeyHandler(new[] {"Ctrl+LeftArrow"}, PSConsoleReadLine.ShellBackwardWord, "", "");
-            PSConsoleReadLine.SetKeyHandler(new[] {"Ctrl+RightArrow"}, PSConsoleReadLine.ShellNextWord, "", "");
-            PSConsoleReadLine.SetKeyHandler(new[] {"F4"}, PSConsoleReadLine.HistorySearchBackward, "", "");
-            PSConsoleReadLine.SetKeyHandler(new[] {"F5"}, PSConsoleReadLine.HistorySearchForward, "", "");
-            PSConsoleReadLine.SetKeyHandler(new[] {"Ctrl+D,Ctrl+C"}, PSConsoleReadLine.CaptureScreen, "", "");
-            PSConsoleReadLine.SetKeyHandler(new[] {"Ctrl+D,Ctrl+P"}, PSConsoleReadLine.InvokePrompt, "", "");
-            PSConsoleReadLine.SetKeyHandler(new[] {"Ctrl+D,Ctrl+X"}, CauseCrash, "", "");
-            PSConsoleReadLine.SetKeyHandler(new[] {"F6"}, PSConsoleReadLine.PreviousLine, "", "");
-            PSConsoleReadLine.SetKeyHandler(new[] {"F7"}, PSConsoleReadLine.NextLine, "", "");
-            PSConsoleReadLine.SetKeyHandler(new[] {"F2"}, PSConsoleReadLine.ValidateAndAcceptLine, "", "");
-            PSConsoleReadLine.SetKeyHandler(new[] {"Enter"}, PSConsoleReadLine.AcceptLine, "", "");
 
+            if (vtEnabled)
+            {
+                var options = PSConsoleReadLine.GetOptions();
+                options.CommandColor = "#8181f7";
+                options.StringColor = "\x1b[38;5;100m";
+            }
+            PSConsoleReadLine.SetKeyHandler(new[] {"Ctrl+LeftArrow"}, PSConsoleReadLine.ShellBackwardWord, "ShellBackwardWord", "");
+            PSConsoleReadLine.SetKeyHandler(new[] {"Ctrl+RightArrow"}, PSConsoleReadLine.ShellNextWord, "ShellNextWord", "");
+            PSConsoleReadLine.SetKeyHandler(new[] {"F4"}, PSConsoleReadLine.HistorySearchBackward, "HistorySearchBackward", "");
+            PSConsoleReadLine.SetKeyHandler(new[] {"F5"}, PSConsoleReadLine.HistorySearchForward, "HistorySearchForward", "");
+            PSConsoleReadLine.SetKeyHandler(new[] {"Ctrl+d,Ctrl+c"}, PSConsoleReadLine.CaptureScreen, "CaptureScreen", "");
+            PSConsoleReadLine.SetKeyHandler(new[] {"Ctrl+d,Ctrl+p"}, PSConsoleReadLine.InvokePrompt, "InvokePrompt", "");
+            PSConsoleReadLine.SetKeyHandler(new[] {"Ctrl+d,Ctrl+x"}, CauseCrash, "CauseCrash", "Throw exception to test error handling");
+            PSConsoleReadLine.SetKeyHandler(new[] {"F6"}, PSConsoleReadLine.PreviousLine, "PreviousLine", "");
+            PSConsoleReadLine.SetKeyHandler(new[] {"F7"}, PSConsoleReadLine.NextLine, "NextLine", "");
+            PSConsoleReadLine.SetKeyHandler(new[] {"F2"}, PSConsoleReadLine.ValidateAndAcceptLine, "ValidateAndAcceptLine", "");
+            PSConsoleReadLine.SetKeyHandler(new[] {"Enter"}, PSConsoleReadLine.AcceptLine, "AcceptLine", "");
 
-            EngineIntrinsics executionContext;
             using (var ps = PowerShell.Create(RunspaceMode.CurrentRunspace))
             {
-                executionContext =
-                    ps.AddScript("$ExecutionContext").Invoke<EngineIntrinsics>().FirstOrDefault();
+                var executionContext = ps.AddScript("$ExecutionContext").Invoke<EngineIntrinsics>().First();
 
                 // Detect if the read loop will enter VT input mode.
                 var vtInputEnvVar = Environment.GetEnvironmentVariable("PSREADLINE_VTINPUT");
                 var stdin = GetStdHandle((uint)StandardHandleId.Input);
-                uint inputMode;
-                GetConsoleMode(stdin, out inputMode);
+                GetConsoleMode(stdin, out var inputMode);
                 if (vtInputEnvVar == "1" || (inputMode & ENABLE_VIRTUAL_TERMINAL_INPUT) != 0)
                 {
                     Console.WriteLine("\x1b[33mDefault input mode = virtual terminal\x1b[m");

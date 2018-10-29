@@ -624,7 +624,8 @@ namespace Microsoft.PowerShell
 
             // Don't overwrite any of the line - so move to first line after the end of our buffer.
             var point = _singleton.ConvertOffsetToPoint(_singleton._buffer.Length);
-            _singleton.PlaceCursor(0, point.Y + 1);
+            console.SetCursorPosition(point.X, point.Y);
+            console.Write("\n");
 
             console.WriteLine(buffer.ToString());
             InvokePrompt(key: null, arg: _singleton._console.CursorTop);
@@ -677,12 +678,14 @@ namespace Microsoft.PowerShell
 
             _singleton.ClearStatusMessage(render: false);
 
+            var console = _singleton._console;
             // Don't overwrite any of the line - so move to first line after the end of our buffer.
             var point = _singleton.ConvertOffsetToPoint(_singleton._buffer.Length);
-            _singleton.PlaceCursor(0, point.Y + 1);
+            console.SetCursorPosition(point.X, point.Y);
+            console.Write("\n");
 
-            _singleton._console.WriteLine(buffer.ToString());
-            InvokePrompt(key: null, arg: _singleton._console.CursorTop);
+            console.WriteLine(buffer.ToString());
+            InvokePrompt(key: null, arg: console.CursorTop);
         }
     }
 }

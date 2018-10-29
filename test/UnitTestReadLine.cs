@@ -8,7 +8,6 @@ using System.Management.Automation.Runspaces;
 using System.Reflection;
 using System.Text;
 using System.Threading;
-using System.Windows;
 using Microsoft.PowerShell;
 using Microsoft.PowerShell.Internal;
 using Xunit;
@@ -224,6 +223,7 @@ namespace Test
             CursorTop += 1;
         }
 
+        static readonly char[] endEscapeChars = { 'm', 'J' };
         public void Write(string s)
         {
             // Crappy code here - no checks for a string that's too long, no scrolling.
@@ -235,8 +235,9 @@ namespace Test
                     // Escape sequence - limited support here, and assumed to be well formed.
                     if (s[i+1] != '[') throw new ArgumentException("Unexpected escape sequence", nameof(s));
 
-                    var endSequence = s.IndexOf("m", i, StringComparison.Ordinal);
-                    var escapeSequence = s.Substring(i + 2, endSequence - i - 2);
+                    var endSequence = s.IndexOfAny(endEscapeChars, i);
+                    var len = endSequence - i - (s[endSequence] != 'm' ? 1 : 2);
+                    var escapeSequence = s.Substring(i + 2, len);
                     foreach (var subsequence in escapeSequence.Split(';'))
                     {
                         EscapeSequenceActions[subsequence](this);
@@ -285,10 +286,6 @@ namespace Test
                     writePos += 1;
                 }
             }
-        }
-
-        public void ScrollBuffer(int lines)
-        {
         }
 
         public void BlankRestOfLine()
@@ -372,7 +369,8 @@ namespace Test
             {"0", c => {
                 c.ForegroundColor = DefaultForeground;
                 c.BackgroundColor = DefaultBackground;
-            }}
+            }},
+            {"2J", c => c.SetCursorPosition(0, 0) }
         };
     }
 
