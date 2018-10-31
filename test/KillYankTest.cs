@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Windows;
 using Microsoft.PowerShell;
 using Xunit;
@@ -311,6 +312,23 @@ namespace Test
             Clipboard.SetText("pastetest2");
             Test("echo pastetest2", Keys(
                 "echo foobar", _.CtrlShiftLeftArrow, _.CtrlV));
+        }
+
+        [Fact]
+        public void PasteLarge()
+        {
+            TestSetup(KeyMode.Cmd);
+
+            StringBuilder text = new StringBuilder();
+            text.Append("@{");
+            for (int i = 0; i < _console.BufferHeight + 10; i++)
+            {
+                text.Append(string.Format("prop{0}={0}", i));
+            }
+            text.Append("}");
+
+            Clipboard.SetText(text.ToString());
+            Test(text.ToString(), Keys(_.CtrlV));
         }
 
         [Fact]

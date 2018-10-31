@@ -50,6 +50,9 @@ namespace Microsoft.PowerShell
             lines = new[] { new RenderedLineData{ columns = 0, line = ""}}
         };
         private int _initialX;
+
+        // This represents the initial Y position of the cursor.  If this position has scrolled off screen, this value will be negative indicating
+        // the number of lines off screen.
         private int _initialY;
         private ConsoleColor _initialForeground;
         private ConsoleColor _initialBackground;
@@ -436,8 +439,8 @@ namespace Microsoft.PowerShell
                 var lineData = renderLines[logicalLine];
                 var physicalLineCount = PhysicalLineCount(lineData.columns, logicalLine == 0, out var lenLastLine);
 
-                // If the initial position was scrolled off the screen, only output for lines still
-                // in the screen buffer
+                // If the initial position was scrolled off the screen, _initialY will be negative.
+                // Only output for lines still in the screen buffer.
                 if (_initialY + physicalLine >= 0)
                 {
                     // First time redrawing from the top
