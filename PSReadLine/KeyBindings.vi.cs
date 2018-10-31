@@ -40,6 +40,7 @@ namespace Microsoft.PowerShell
         private static Dictionary<ConsoleKeyInfo, KeyHandler> _viInsKeyMap;
         private static Dictionary<ConsoleKeyInfo, KeyHandler> _viCmdKeyMap;
         private static Dictionary<ConsoleKeyInfo, KeyHandler> _viChordDTable;
+        private static Dictionary<ConsoleKeyInfo, KeyHandler> _viChordGTable;
         private static Dictionary<ConsoleKeyInfo, KeyHandler> _viChordCTable;
         private static Dictionary<ConsoleKeyInfo, KeyHandler> _viChordYTable;
 
@@ -134,7 +135,7 @@ namespace Microsoft.PowerShell
                 { Keys.D,               MakeKeyHandler(ViChord,                "ChordFirstKey") },
                 { Keys.E,               MakeKeyHandler(NextWordEnd,          "NextWordEnd") },
                 { Keys.F,               MakeKeyHandler(SearchChar,           "SearchChar") },
-                { Keys.G,               MakeKeyHandler(Ding,                 "Ignore") },
+                { Keys.G,               MakeKeyHandler(ViChord,                 "ChordFirstKey") },
                 { Keys.H,               MakeKeyHandler(BackwardChar,         "BackwardChar") },
                 { Keys.I,               MakeKeyHandler(ViInsertMode,         "ViInsertMode") },
                 { Keys.J,               MakeKeyHandler(NextHistory,          "NextHistory") },
@@ -160,7 +161,7 @@ namespace Microsoft.PowerShell
                 { Keys.ucD,             MakeKeyHandler(DeleteToEnd,          "DeleteToEnd") },
                 { Keys.ucE,             MakeKeyHandler(ViEndOfGlob,          "ViEndOfGlob") },
                 { Keys.ucF,             MakeKeyHandler(SearchCharBackward,   "SearchCharBackward") },
-                { Keys.ucG,             MakeKeyHandler(Ding,                 "Ignore") },
+                { Keys.ucG,             MakeKeyHandler(MoveToLastLine,      "ViMultilineMoveToLastLine") },
                 { Keys.ucH,             MakeKeyHandler(Ding,                 "Ignore") },
                 { Keys.ucI,             MakeKeyHandler(ViInsertAtBegining,   "ViInsertAtBegining") },
                 { Keys.ucJ,             MakeKeyHandler(ViJoinLines,          "ViJoinLines") },
@@ -258,6 +259,11 @@ namespace Microsoft.PowerShell
                 { Keys.ucT,             MakeKeyHandler( ViReplaceToBeforeCharBackward,    "ViReplaceToBeforeCharBackward") },
             };
 
+            _viChordGTable = new Dictionary<ConsoleKeyInfo, KeyHandler>(ConsoleKeyInfoComparer.Instance)
+            {
+                { Keys.G,               MakeKeyHandler( MoveToFirstLine,                    "MoveToFirstLine") },
+            };
+
             _viChordYTable = new Dictionary<ConsoleKeyInfo, KeyHandler>(ConsoleKeyInfoComparer.Instance)
             {
                 { Keys.Y,               MakeKeyHandler( ViYankLine,            "ViYankLine") },
@@ -281,6 +287,7 @@ namespace Microsoft.PowerShell
 
             _dispatchTable = _viInsKeyMap;
             _chordDispatchTable = _viInsChordTable;
+            _viCmdChordTable[Keys.G] = _viChordGTable;
             _viCmdChordTable[Keys.D] = _viChordDTable;
             _viCmdChordTable[Keys.C] = _viChordCTable;
             _viCmdChordTable[Keys.Y] = _viChordYTable;

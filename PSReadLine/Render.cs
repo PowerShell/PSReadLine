@@ -799,6 +799,40 @@ namespace Microsoft.PowerShell
             return (point.Y == y) ? offset : -1;
         }
 
+        /// <summary>
+        /// Returns the line number under the cursor.
+        /// </summary>
+        /// <returns></returns>
+        private int GetCurrentLine()
+        {
+            var current = _current;
+            var number = 1;
+
+            for (int i = 0; i < current; i++)
+            {
+                if (_buffer[i] == '\n')
+                    number++;
+            }
+            return number;
+
+        }
+
+        /// <summary>
+        /// Returns the number of lines in a multi-line buffer
+        /// </summary>
+        /// <returns></returns>
+        private int GetLineCount()
+        {
+            var count = 1;
+
+            for (int i = 0; i < _buffer.Length; i++)
+            {
+                if (_buffer[i] == '\n')
+                    count++;
+            }
+            return count;
+        }
+
         private bool LineIsMultiLine()
         {
             for (int i = 0; i < _buffer.Length; i++)
