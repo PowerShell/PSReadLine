@@ -256,7 +256,7 @@ function Start-TestRun
                     # We want to run tests in as many layouts as possible. We have key info
                     # data for layouts that might not be installed, and tests would fail
                     # if we don't set the system wide layout to match the key data we'll use.
-                    $layouts = [KeyboardLayoutHelper]::GetKeyboardLayouts()
+                    $layouts = "en-US"
                     Write-Log "Available layouts: $layouts"
 
                     foreach ($layout in $layouts)
@@ -309,7 +309,8 @@ function Start-TestRun
 function Test-XUnitTestResults
 {
     param(
-        [Parameter(Mandatory, ValueFromPipeline)]
+        [Parameter(Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName)]
+        [Alias("FullName")]
         [string] $TestResultsFile
     )
 

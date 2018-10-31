@@ -48,7 +48,7 @@ $polyFillerParams = @{
 
 $binaryModuleParams = @{
     Inputs  = { Get-ChildItem PSReadLine/*.cs, PSReadLine/PSReadLine.csproj, PSReadLine/PSReadLineResources.resx, Polyfill/*.cs, Polyfill/Polyfill.csproj }
-    Outputs = "PSReadLine/bin/$Configuration/$Framework/Microsoft.PowerShell.PSReadLine2.dll"
+    Outputs = "PSReadLine/bin/$Configuration/$Framework/Microsoft.PowerShell.PSReadLine3.dll"
 }
 
 $xUnitTestParams = @{
@@ -119,8 +119,8 @@ task LayoutModule BuildPolyfiller, BuildMainModule, {
         'License.txt',
         'PSReadLine/Changes.txt',
         'PSReadLine/SamplePSReadLineProfile.ps1',
-        'PSReadLine/PSReadLine.format.ps1xml',
-        'PSReadLine/PSReadLine.psm1'
+        'PSReadLine/PSReadLine3.format.ps1xml',
+        'PSReadLine/PSReadLine3.psm1'
 
     foreach ($file in $extraFiles) {
         # ensure files have \r\n line endings as the signing tool only uses those endings to avoid mixed endings
@@ -141,7 +141,8 @@ task LayoutModule BuildPolyfiller, BuildMainModule, {
     }
 
     $binPath = "PSReadLine/bin/$Configuration/$Framework/publish"
-    Copy-Item $binPath/Microsoft.PowerShell.PSReadLine2.dll $targetDir
+    Write-Host "$binPath/Microsoft.PowerShell.PSReadLine3.dll"
+    Copy-Item $binPath/Microsoft.PowerShell.PSReadLine3.dll $targetDir
     Copy-Item $binPath/Microsoft.PowerShell.Pager.dll $targetDir
 
     if ($Configuration -eq 'Debug') {
@@ -156,7 +157,7 @@ task LayoutModule BuildPolyfiller, BuildMainModule, {
 
     # Copy module manifest, but fix the version to match what we've specified in the binary module.
     $moduleManifestContent = ConvertTo-CRLF (Get-Content -Path 'PSReadLine/PSReadLine.psd1' -Raw)
-    $versionInfo = (Get-ChildItem -Path $targetDir/Microsoft.PowerShell.PSReadLine2.dll).VersionInfo
+    $versionInfo = (Get-ChildItem -Path $targetDir/Microsoft.PowerShell.PSReadLine3.dll).VersionInfo
     $version = $versionInfo.FileVersion
     $semVer = $versionInfo.ProductVersion
 

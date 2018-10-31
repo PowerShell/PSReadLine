@@ -3,15 +3,20 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.PowerShell.PSReadLine</RootNamespace>
-    <AssemblyName>Microsoft.PowerShell.PSReadLine2</AssemblyName>
+    <AssemblyName>Microsoft.PowerShell.PSReadLine3</AssemblyName>
     <NoWarn>$(NoWarn);CA1416</NoWarn>
-    <AssemblyVersion>2.2.0.0</AssemblyVersion>
-    <FileVersion>2.2.0</FileVersion>
-    <InformationalVersion>2.2.0-beta4</InformationalVersion>
+    <AssemblyVersion>3.0.0.0</AssemblyVersion>
+    <FileVersion>3.0.0</FileVersion>
+    <InformationalVersion>3.0.0-beta3</InformationalVersion>
     <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
     <TargetFrameworks>net461;net6.0</TargetFrameworks>
     <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
     <LangVersion>9.0</LangVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net5.0'">
+    <OutputPath>bin\$(Configuration)\PSReadLine3</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net461'">
@@ -35,5 +40,16 @@
     <None Include="PSReadLine.format.ps1xml" CopyToOutputDirectory="PreserveNewest" />
     <None Include="SamplePSReadLineProfile.ps1" />
     <None Include="Changes.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="PSReadLine3.format.ps1xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="PSReadLine3.psd1">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="PSReadLine3.psm1">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 </Project>
