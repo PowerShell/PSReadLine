@@ -574,20 +574,6 @@ static class PlatformWindows
             WriteHelper(s, true);
         }
 
-        public struct SMALL_RECT
-        {
-            public short Left;
-            public short Top;
-            public short Right;
-            public short Bottom;
-        }
-
-        internal struct COORD
-        {
-            public short X;
-            public short Y;
-        }
-
         public struct CHAR_INFO
         {
             public ushort UnicodeChar;
