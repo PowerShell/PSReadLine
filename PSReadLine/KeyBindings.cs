@@ -379,7 +379,7 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Used to group the built in functions for help and Get-PSReadLineKeyHander output.
+        /// Used to group the built in functions for help and Get-PSReadLineKeyHandler output.
         /// </summary>
         public static KeyHandlerGroup GetDisplayGrouping(string function)
         {
@@ -495,6 +495,8 @@ namespace Microsoft.PowerShell
             case nameof(GotoColumn):
             case nameof(GotoFirstNonBlankOfLine):
             case nameof(MoveToEndOfLine):
+            case nameof(MoveToFirstLine):
+            case nameof(MoveToLastLine):
             case nameof(NextLine):
             case nameof(NextWord):
             case nameof(NextWordEnd):

@@ -788,6 +788,44 @@ namespace Microsoft.PowerShell
             return (point.Y == y) ? offset : -1;
         }
 
+        /// <summary>
+        /// Returns the logical line number under the cursor in a multi-line buffer.
+        /// When rendering, a logical line may span multiple physical lines.
+        /// </summary>
+        private int GetLogicalLineNumber()
+        {
+            var current = _current;
+            var lineNumber = 1;
+
+            for (int i = 0; i < current; i++)
+            {
+                if (_buffer[i] == '\n')
+                {
+                    lineNumber++;
+                }
+            }
+            return lineNumber;
+
+        }
+
+        /// <summary>
+        /// Returns the number of logical lines in a multi-line buffer.
+        /// When rendering, a logical line may span multiple physical lines.
+        /// </summary>
+        private int GetLogicalLineCount()
+        {
+            var count = 1;
+
+            for (int i = 0; i < _buffer.Length; i++)
+            {
+                if (_buffer[i] == '\n')
+                {
+                    count++;
+                }
+            }
+            return count;
+        }
+
         private bool LineIsMultiLine()
         {
             for (int i = 0; i < _buffer.Length; i++)

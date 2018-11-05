@@ -46,24 +46,10 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void BeginningOfLine(ConsoleKeyInfo? key = null, object arg = null)
         {
-            if (_singleton.LineIsMultiLine())
-            {
-                int i = Math.Max(0, _singleton._current - 1);
-                for (; i > 0; i--)
-                {
-                    if (_singleton._buffer[i] == '\n')
-                    {
-                        i += 1;
-                        break;
-                    }
-                }
+            var newCurrent = GetBeginningOfLinePos(_singleton._current);
+            newCurrent = newCurrent == _singleton._current ? 0 : newCurrent;
 
-                _singleton.MoveCursor((i == _singleton._current) ? 0 : i);
-            }
-            else
-            {
-                _singleton.MoveCursor(0);
-            }
+            _singleton.MoveCursor(newCurrent);
         }
 
         /// <summary>
