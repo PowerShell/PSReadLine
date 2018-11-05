@@ -48,7 +48,6 @@ namespace Microsoft.PowerShell
             void SetCursorPosition(int left, int top);
             void WriteLine(string s);
             void Write(string s);
-            void ScrollBuffer(int lines);
             void BlankRestOfLine();
         }
 

@@ -270,7 +270,8 @@ namespace Microsoft.PowerShell
             }
 
             var point = ConvertOffsetToPoint(_current);
-            PlaceCursor(0, point.Y + 1);
+            _console.SetCursorPosition(point.X, point.Y);
+            _console.Write("\n");
             _inputAccepted = true;
             return true;
         }
