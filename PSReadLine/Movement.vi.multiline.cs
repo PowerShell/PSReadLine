@@ -10,7 +10,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         /// <param name="key" />
         /// <param name="arg" />
-        public void MoveToFirstLogicalLine(ConsoleKeyInfo? key = null, object arg = null)
+        public void MoveToFirstLine(ConsoleKeyInfo? key = null, object arg = null)
         {
             if (!LineIsMultiLine())
             {
@@ -36,7 +36,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         /// <param name="key" />
         /// <param name="arg" />
-        public void MoveToLastLogicalLine(ConsoleKeyInfo? key = null, object arg = null)
+        public void MoveToLastLine(ConsoleKeyInfo? key = null, object arg = null)
         {
             if (!LineIsMultiLine())
             {
