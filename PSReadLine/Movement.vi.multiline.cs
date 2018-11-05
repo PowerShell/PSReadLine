@@ -1,25 +1,28 @@
 ﻿using System;
-using System.IO;
 
 namespace Microsoft.PowerShell
 {
     public partial class PSConsoleReadLine
     {
         /// <summary>
-        /// Moves the cursor to the beginning of the first line.
+        /// Moves the cursor to the beginning of the first logical line
+        /// of a multi-line buffer.
         /// </summary>
-        /// <param name="key"></param>
-        /// <param name="arg"></param>
-        public void MoveToFirstLine(ConsoleKeyInfo? key = null, object arg = null)
+        /// <param name="key" />
+        /// <param name="arg" />
+        public void MoveToFirstLogicalLine(ConsoleKeyInfo? key = null, object arg = null)
         {
             if (!LineIsMultiLine())
+            {
                 Ding(key, arg);
+                return;
+            }
 
-            var number = GetCurrentLine();
+            var currentLine =  GetLogicalLineNumber(); 
 
             var pos = ConvertOffsetToPoint(_singleton._current);
 
-            pos.Y -= number -1;
+            pos.Y -= currentLine -1;
 
             var newCurrent = ConvertLineAndColumnToOffset(pos);
             var position = GetBeginningOfLinePos(newCurrent);
@@ -28,21 +31,25 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Moves the cursor to the beginning of the last line.
+        /// Moves the cursor to the beginning of the last logical logical line.
+        /// of a multi-line buffer.
         /// </summary>
-        /// <param name="key"></param>
-        /// <param name="arg"></param>
-        public void MoveToLastLine(ConsoleKeyInfo? key = null, object arg = null)
+        /// <param name="key" />
+        /// <param name="arg" />
+        public void MoveToLastLogicalLine(ConsoleKeyInfo? key = null, object arg = null)
         {
             if (!LineIsMultiLine())
+            {
                 Ding(key, arg);
+                return;
+            }
 
-            var count = GetLineCount();
-            var number = GetCurrentLine();
+            var count = GetLogicalLineCount();
+            var currentLine = GetLogicalLineNumber();
 
             var pos = ConvertOffsetToPoint(_singleton._current);
 
-            pos.Y += (count - number);
+            pos.Y += (count - currentLine);
 
             var newCurrent = ConvertLineAndColumnToOffset(pos);
             var position = GetBeginningOfLinePos(newCurrent);

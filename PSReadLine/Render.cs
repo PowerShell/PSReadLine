@@ -800,35 +800,41 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Returns the line number under the cursor.
+        /// Returns the logical line number under the cursor in a multi-line buffer.
+        /// When rendering, a logical line may span multiple physical lines.
         /// </summary>
-        /// <returns></returns>
-        private int GetCurrentLine()
+        /// <returns>The current logical line number, the first line being numbered 1.</returns>
+        private int GetLogicalLineNumber()
         {
             var current = _current;
-            var number = 1;
+            var lineNumber = 1;
 
             for (int i = 0; i < current; i++)
             {
                 if (_buffer[i] == '\n')
-                    number++;
+                {
+                    lineNumber++;
+                }
             }
-            return number;
+            return lineNumber;
 
         }
 
         /// <summary>
-        /// Returns the number of lines in a multi-line buffer
+        /// Returns the number of logical lines in a multi-line buffer.
+        /// When rendering, a logical line may span multiple physical lines.
         /// </summary>
-        /// <returns></returns>
-        private int GetLineCount()
+        /// <returns>The number of logical lines, the first line being numbered 1.</returns>
+        private int GetLogicalLineCount()
         {
             var count = 1;
 
             for (int i = 0; i < _buffer.Length; i++)
             {
                 if (_buffer[i] == '\n')
+                {
                     count++;
+                }
             }
             return count;
         }

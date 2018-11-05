@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Management.Automation.Language;
 using Microsoft.PowerShell;
 using Xunit;
@@ -10,7 +11,7 @@ namespace Test
     public partial class ReadLine
     {
         [Fact]
-        public void ViMoveToFirstLine()
+        public void ViMoveToFirstLogicalLineThenJumpToLastLogicalLine()
         {
             TestSetup(KeyMode.Vi);
 
@@ -28,7 +29,44 @@ namespace Test
                 "gg", CheckThat(() => AssertCursorLeftTopIs(0, 0)),
                 'G', CheckThat(() => AssertCursorLeftTopIs(continuationPrefixLength, 4))
             ));
+        }
 
+        [Fact]
+        public void ViMoveToLastLogicalLine_MustDing_ForEmptyLine()
+        {
+            const string buffer = "";
+            var keys = new object[] {"", _.Escape, 'G',};
+            ViJumpMustDing(buffer, keys);
+        }
+
+        [Fact]
+        public void ViMoveToFirstLogicalLine_MustDing_ForEmptyLine()
+        {
+            const string buffer = "";
+            var keys = new object[] {"", _.Escape, "gg",};
+            ViJumpMustDing(buffer, keys);
+        }
+
+        [Fact]
+        public void ViMoveToLastLogicalLine_MustDing_ForSingleLine()
+        {
+            const string buffer = "Ding";
+            var keys = new object[] {"Ding", _.Escape, 'G',};
+            ViJumpMustDing(buffer, keys);
+        }
+
+        [Fact]
+        public void ViMoveToFirstLogicalLine_MustDing_ForSingleLine()
+        {
+            const string buffer = "Ding";
+            var keys = new object[] {"Ding", _.Escape, "gg",};
+            ViJumpMustDing(buffer, keys);
+        }
+
+        private void ViJumpMustDing(string expectedResult, params object[] keys)
+        {
+            TestSetup(KeyMode.Vi);
+            TestMustDing(expectedResult, Keys(keys));
         }
     }
 }

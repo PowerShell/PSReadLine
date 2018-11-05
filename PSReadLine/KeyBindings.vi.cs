@@ -161,7 +161,7 @@ namespace Microsoft.PowerShell
                 { Keys.ucD,             MakeKeyHandler(DeleteToEnd,          "DeleteToEnd") },
                 { Keys.ucE,             MakeKeyHandler(ViEndOfGlob,          "ViEndOfGlob") },
                 { Keys.ucF,             MakeKeyHandler(SearchCharBackward,   "SearchCharBackward") },
-                { Keys.ucG,             MakeKeyHandler(MoveToLastLine,      "ViMultilineMoveToLastLine") },
+                { Keys.ucG,             MakeKeyHandler(MoveToLastLogicalLine,      "MoveToLastLogicalLine") },
                 { Keys.ucH,             MakeKeyHandler(Ding,                 "Ignore") },
                 { Keys.ucI,             MakeKeyHandler(ViInsertAtBegining,   "ViInsertAtBegining") },
                 { Keys.ucJ,             MakeKeyHandler(ViJoinLines,          "ViJoinLines") },
@@ -261,7 +261,7 @@ namespace Microsoft.PowerShell
 
             _viChordGTable = new Dictionary<ConsoleKeyInfo, KeyHandler>(ConsoleKeyInfoComparer.Instance)
             {
-                { Keys.G,               MakeKeyHandler( MoveToFirstLine,                    "MoveToFirstLine") },
+                { Keys.G,               MakeKeyHandler( MoveToFirstLogicalLine,                    "MoveToFirstLogicalLine") },
             };
 
             _viChordYTable = new Dictionary<ConsoleKeyInfo, KeyHandler>(ConsoleKeyInfoComparer.Instance)
