@@ -5,6 +5,7 @@ Copyright (c) Microsoft Corporation.  All rights reserved.
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Microsoft.PowerShell;
 using Microsoft.PowerShell.Internal;
@@ -414,6 +415,7 @@ static class PlatformWindows
     {
         private static ConsoleColor InitialFG = Console.ForegroundColor;
         private static ConsoleColor InitialBG = Console.BackgroundColor;
+        private static int maxTop = 0;
 
         private static readonly Dictionary<int, Action> VTColorAction = new Dictionary<int, Action> {
             {40, () => Console.BackgroundColor = ConsoleColor.Black},
@@ -463,7 +465,12 @@ static class PlatformWindows
                 // The shortest pattern is 4 characters, <ESC>[0m
                 if (s[i] != '\x1b' || (i + 3) >= s.Length || s[i + 1] != '[') continue;
 
-                Console.Write(s.Substring(from, i - from));
+                var prefix = s.Substring(from, i - from);
+                if (prefix.Length > 0)
+                {
+                    Console.Write(prefix);
+                    maxTop = Console.CursorTop;
+                }
                 from = i;
 
                 Action action1 = null;
@@ -491,6 +498,23 @@ static class PlatformWindows
                         case 'm':
                             done = true;
                             goto case ';';
+
+                        case 'J':
+                            // We'll only support entire display for ED (Erase in Display)
+                            if (color == 2) {
+                                var cursorVisible = Console.CursorVisible;
+                                var left = Console.CursorLeft;
+                                var toScroll = maxTop - Console.WindowTop + 1;
+                                Console.CursorVisible = false;
+                                Console.SetCursorPosition(0, Console.WindowTop + Console.WindowHeight - 1);
+                                for (int k = 0; k < toScroll; k++)
+                                {
+                                    Console.WriteLine();
+                                }
+                                Console.SetCursorPosition(left, Console.WindowTop + toScroll - 1);
+                                Console.CursorVisible = cursorVisible;
+                            }
+                            break;
 
                         case ';':
                             if (VTColorAction.TryGetValue(color, out var action))
@@ -525,8 +549,19 @@ static class PlatformWindows
             }
 
             var tailSegment = s.Substring(from);
-            if (line) Console.WriteLine(tailSegment);
-            else Console.Write(tailSegment);
+            if (line)
+            {
+                Console.WriteLine(tailSegment);
+                maxTop = Console.CursorTop;
+            }
+            else
+            {
+                Console.Write(tailSegment);
+                if (tailSegment.Length > 0)
+                {
+                    maxTop = Console.CursorTop;
+                }
+            }
         }
 
         public override void Write(string s)
@@ -539,20 +574,6 @@ static class PlatformWindows
             WriteHelper(s, true);
         }
 
-        public struct SMALL_RECT
-        {
-            public short Left;
-            public short Top;
-            public short Right;
-            public short Bottom;
-        }
-
-        internal struct COORD
-        {
-            public short X;
-            public short Y;
-        }
-
         public struct CHAR_INFO
         {
             public ushort UnicodeChar;
@@ -562,28 +583,6 @@ static class PlatformWindows
                 UnicodeChar = c;
                 Attributes = (ushort)(((int)background << 4) | (int)foreground);
             }
-        }
-
-        [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-        public static extern bool ScrollConsoleScreenBuffer(IntPtr hConsoleOutput,
-            ref SMALL_RECT lpScrollRectangle,
-            IntPtr lpClipRectangle,
-            COORD dwDestinationOrigin,
-            ref CHAR_INFO lpFill);
-
-        public override void ScrollBuffer(int lines)
-        {
-            var handle = GetStdHandle((uint) StandardHandleId.Output);
-            var scrollRectangle = new SMALL_RECT
-            {
-                Top = (short) lines,
-                Left = 0,
-                Bottom = (short)(Console.BufferHeight - 1),
-                Right = (short)Console.BufferWidth
-            };
-            var destinationOrigin = new COORD {X = 0, Y = 0};
-            var fillChar = new CHAR_INFO(' ', Console.ForegroundColor, Console.BackgroundColor);
-            ScrollConsoleScreenBuffer(handle, ref scrollRectangle, IntPtr.Zero, destinationOrigin, ref fillChar);
         }
 
         public override int CursorSize

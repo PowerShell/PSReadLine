@@ -955,12 +955,6 @@ namespace Microsoft.PowerShell
 
             if (arg is int newY)
             {
-                if (newY >= console.BufferHeight)
-                {
-                    var toScroll = newY - console.BufferHeight + 1;
-                    console.ScrollBuffer(toScroll);
-                    newY -= toScroll;
-                }
                 console.SetCursorPosition(0, newY);
             }
             else

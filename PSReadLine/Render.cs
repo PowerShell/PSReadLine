@@ -4,6 +4,7 @@ Copyright (c) Microsoft Corporation.  All rights reserved.
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
@@ -51,6 +52,7 @@ namespace Microsoft.PowerShell
         };
         private int _initialX;
         private int _initialY;
+
         private ConsoleColor _initialForeground;
         private ConsoleColor _initialBackground;
         private int _current;
@@ -363,7 +365,7 @@ namespace Microsoft.PowerShell
 
             // Move the cursor to where we started, but make cursor invisible while we're rendering.
             _console.CursorVisible = false;
-            PlaceCursor(_initialX, _initialY);
+            _console.SetCursorPosition(_initialX, _initialY);
 
             // Possibly need to flip the color on the prompt if the error state changed.
             var promptText = _options.PromptText;
@@ -512,7 +514,7 @@ namespace Microsoft.PowerShell
             }
 
             var point = ConvertOffsetToPoint(_current);
-            PlaceCursor(point.X, point.Y);
+            _console.SetCursorPosition(point.X, point.Y);
             _console.CursorVisible = true;
 
             // TODO: set WindowTop if necessary
@@ -661,19 +663,6 @@ namespace Microsoft.PowerShell
             }
         }
 
-        private void PlaceCursor(int x, int y)
-        {
-            int statusLineCount = GetStatusLineCount();
-            if ((y + statusLineCount) >= _console.BufferHeight)
-            {
-                var scrollCount = y + statusLineCount - _console.BufferHeight + 1;
-                _console.ScrollBuffer(scrollCount);
-                _initialY -= scrollCount;
-                y -= scrollCount;
-            }
-            _console.SetCursorPosition(x, y);
-        }
-
         private void MoveCursor(int newCursor)
         {
             // In case the buffer was resized
@@ -682,7 +671,7 @@ namespace Microsoft.PowerShell
             _previousRender.bufferHeight = _console.BufferHeight;
 
             var point = ConvertOffsetToPoint(newCursor);
-            PlaceCursor(point.X, point.Y);
+            _console.SetCursorPosition(point.X, point.Y);
             _current = newCursor;
         }
 

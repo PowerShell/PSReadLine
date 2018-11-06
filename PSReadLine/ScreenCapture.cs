@@ -161,12 +161,6 @@ namespace Microsoft.PowerShell
 
             int bufferWidth = Console.BufferWidth;
             int bufferLineCount = buffer.Length / bufferWidth;
-            if ((top + bufferLineCount) > Console.BufferHeight)
-            {
-                var scrollCount = (top + bufferLineCount) - Console.BufferHeight;
-                console.ScrollBuffer(scrollCount);
-                top -= scrollCount;
-            }
             var bufferSize = new COORD
             {
                 X = (short) bufferWidth,

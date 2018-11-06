@@ -87,6 +87,7 @@ namespace Test
                 ps.AddScript($@"function prompt {{ ""{promptLine1}`n{promptLine2}"" }}");
                 ps.Invoke();
             }
+            PSConsoleReadLine.SetOptions(new SetPSReadLineOption {ExtraPromptLineCount = 1});
 
             _console.Clear();
             Test("psvar", Keys(
@@ -108,7 +109,7 @@ namespace Test
 
             using (var ps = PowerShell.Create(RunspaceMode.CurrentRunspace))
             {
-                ps.AddCommand("Remove-Item").AddArgument("prompt");
+                ps.AddCommand("Remove-Item").AddArgument("function:prompt");
                 ps.Invoke();
             }
 
