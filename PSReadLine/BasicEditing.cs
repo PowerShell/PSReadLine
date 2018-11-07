@@ -121,8 +121,8 @@ namespace Microsoft.PowerShell
         {
             if (_singleton._current > 0)
             {
-                _singleton._clipboard = _singleton._buffer.ToString(0, _singleton._current);
-                _singleton.SaveEditItem(EditItemDelete.Create(_singleton._clipboard, 0));
+                _clipboard.Record(_singleton._buffer, 0, _singleton._current);
+                _singleton.SaveEditItem(EditItemDelete.Create(_clipboard, 0));
                 _singleton._buffer.Remove(0, _singleton._current);
                 _singleton._current = 0;
                 _singleton.Render();

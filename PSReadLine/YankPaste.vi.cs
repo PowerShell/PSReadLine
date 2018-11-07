@@ -1,21 +1,25 @@
-﻿/********************************************************************++
+/********************************************************************++
 Copyright (c) Microsoft Corporation.  All rights reserved.
 --********************************************************************/
 
 using System;
+using System.Text;
 
 namespace Microsoft.PowerShell
 {
     public partial class PSConsoleReadLine
     {
-        private string _clipboard = string.Empty;
+        // *must* be initialized in the static ctor
+        // because it depends on static member _singleton
+        // being initialized first.
+        private static readonly ViRegister _clipboard;
 
         /// <summary>
         /// Paste the clipboard after the cursor, moving the cursor to the end of the pasted text.
         /// </summary>
         public static void PasteAfter(ConsoleKeyInfo? key = null, object arg = null)
         {
-            if (string.IsNullOrEmpty(_singleton._clipboard))
+            if (_clipboard.IsEmpty)
             {
                 Ding();
                 return;
@@ -29,7 +33,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void PasteBefore(ConsoleKeyInfo? key = null, object arg = null)
         {
-            if (string.IsNullOrEmpty(_singleton._clipboard))
+            if (_clipboard.IsEmpty)
             {
                 Ding();
                 return;
@@ -39,25 +43,31 @@ namespace Microsoft.PowerShell
 
         private void PasteAfterImpl()
         {
-            if (_current < _buffer.Length)
-            {
-                _current++;
-            }
-            Insert(_clipboard);
-            _current--;
+            _current = _clipboard.PasteAfter(_buffer, _current);
             Render();
         }
 
         private void PasteBeforeImpl()
         {
-            Insert(_clipboard);
-            _current--;
+            _current = _clipboard.PasteBefore(_buffer, _current);
             Render();
         }
 
         private void SaveToClipboard(int startIndex, int length)
         {
-            _clipboard = _buffer.ToString(startIndex, length);
+            _clipboard.Record(_buffer, startIndex, length);
+        }
+
+        /// <summary>
+        /// Saves a number of logical lines in the unnamed register
+        /// starting at the specified line number and specified count.
+        /// </summary>
+        /// <param name="lineIndex">The logical number of the current line, starting at 0.</param>
+        /// <param name="lineCount">The number of lines to record to the unnamed register</param>
+        private void SaveLinesToClipboard(int lineIndex, int lineCount)
+        {
+            var range = MultiLineBufferHelper.GetRange(_buffer, lineIndex, lineCount);
+            _clipboard.LinewiseRecord(_buffer.ToString(range.Offset, range.Count));
         }
 
         /// <summary>
@@ -65,7 +75,9 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void ViYankLine(ConsoleKeyInfo? key = null, object arg = null)
         {
-            _singleton.SaveToClipboard(0, _singleton._buffer.Length);
+            TryGetArgAsInt(arg, out var lineCount, 1);
+            var lineIndex = _singleton.GetLogicalLineNumber() - 1;
+            _singleton.SaveLinesToClipboard(lineIndex, lineCount);
         }
 
         /// <summary>
