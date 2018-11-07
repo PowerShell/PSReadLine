@@ -1189,6 +1189,10 @@ namespace Microsoft.PowerShell
             {
                 return true;
             }
+            if (_current == _buffer.Length && _buffer[_current - 1] == '\n')
+            {
+                return true;
+            }
             if (_buffer[_current] == '\n')
             {
                 return true;
