@@ -333,7 +333,13 @@ namespace Microsoft.PowerShell
                     // by throwing an "InvalidOperationException".
                     // Therefore, if either stdin or stdout is redirected, PSReadLine doesn't really work,
                     // so throw and let PowerShell call Console.ReadLine or do whatever else it decides to do.
-                    throw new NotSupportedException();
+                    //
+                    // Some CI environments redirect stdin/stdout, but that doesn't affect our test runs
+                    // because the console is mocked, so we can skip the exception.
+                    if (!IsRunningCI())
+                    {
+                        throw new NotSupportedException();
+                    }
                 }
 
                 try
@@ -1050,6 +1056,11 @@ namespace Microsoft.PowerShell
                 newPrompt = "PS>";
 
             return newPrompt;
+        }
+
+        internal static bool IsRunningCI()
+        {
+            return Environment.GetEnvironmentVariable("PSREADLINE_TESTRUN") != null;
         }
     }
 }
