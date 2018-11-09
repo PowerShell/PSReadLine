@@ -197,21 +197,9 @@ task RunTests BuildMainModule, {
         }
     }
 
-    if ($env:APPVEYOR)
-    {
-        $outXml = "$PSScriptRoot\xunit-results.xml"
-        Push-Location test
-        exec { & $runner test --no-build -c $configuration -f $target --logger "trx;LogFileName=$outXml" }
-        $wc = New-Object 'System.Net.WebClient'
-        $wc.UploadFile("https://ci.appveyor.com/api/testresults/xunit/$($env:APPVEYOR_JOB_ID)", $outXml)
-        Pop-Location
-    }
-    else
-    {
-        Push-Location test
-        exec { & $runner test --no-build -c $configuration -f $target }
-        Pop-Location
-    }
+    Push-Location test
+    exec { & $runner test --no-build -c $configuration -f $target }
+    Pop-Location
 
     Remove-Item env:PSREADLINE_TESTRUN
 }
@@ -288,7 +276,7 @@ task LayoutModule BuildMainModule, BuildMamlHelp, {
 <#
 Synopsis: Zip up the binary for release.
 #>
-task ZipRelease CheckDotNetInstalled, LayoutModule, RunTests, {
+task ZipRelease CheckDotNetInstalled, LayoutModule, {
     Compress-Archive -Force -LiteralPath $targetDir -DestinationPath "bin/$Configuration/PSReadLine.zip"
 }
 
