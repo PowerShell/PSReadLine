@@ -39,9 +39,6 @@
     <Compile Include="..\PSReadLine\CharMap.cs">
       <Link>CharMap.cs</Link>
     </Compile>
-    <Compile Include="..\PSReadLine\Clipboard.cs">
-      <Link>Clipboard.cs</Link>
-    </Compile>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\PSReadLine\PSReadLine.csproj">

@@ -12,6 +12,9 @@ namespace Microsoft.PowerShell.Internal
     static class Clipboard
     {
         private static bool? _clipboardSupported;
+        // Used if an external clipboard is not available, e.g. if xclip is missing.
+        // This is useful for testing in CI as well.
+        private static string _internalClipboard;
 
         private static string StartProcess(
             string tool,
@@ -61,7 +64,7 @@ namespace Microsoft.PowerShell.Internal
             if (_clipboardSupported == false)
             {
                 PSConsoleReadLine.Ding();
-                return "";
+                return _internalClipboard ?? "";
             }
 
             string tool = "";
@@ -97,6 +100,7 @@ namespace Microsoft.PowerShell.Internal
 
             if (_clipboardSupported == false)
             {
+                _internalClipboard = text;
                 PSConsoleReadLine.Ding();
                 return;
             }
@@ -125,6 +129,10 @@ namespace Microsoft.PowerShell.Internal
             }
 
             StartProcess(tool, args, text);
+            if (_clipboardSupported == false)
+            {
+                _internalClipboard = text;
+            }
         }
 
         public static void SetRtf(string plainText, string rtfText)

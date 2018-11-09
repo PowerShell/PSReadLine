@@ -305,10 +305,10 @@ namespace Test
         {
             TestSetup(KeyMode.Cmd);
 
-            Clipboard.SetText("pastetest1");
+            SetClipboardText("pastetest1");
             Test("pastetest1", Keys(_.CtrlV));
 
-            Clipboard.SetText("pastetest2");
+            SetClipboardText("pastetest2");
             Test("echo pastetest2", Keys(
                 "echo foobar", _.CtrlShiftLeftArrow, _.CtrlV));
         }
@@ -318,7 +318,7 @@ namespace Test
         {
             TestSetup(KeyMode.Cmd);
 
-            Clipboard.SetText("");
+            SetClipboardText("");
             Test("", Keys(
                 "cuttest1", _.CtrlShiftLeftArrow, _.CtrlX));
             AssertClipboardTextIs("cuttest1");
@@ -329,12 +329,12 @@ namespace Test
         {
             TestSetup(KeyMode.Cmd);
 
-            Clipboard.SetText("");
+            SetClipboardText("");
             Test("copytest1", Keys(
                 "copytest1", _.CtrlShiftC));
             AssertClipboardTextIs("copytest1");
 
-            Clipboard.SetText("");
+            SetClipboardText("");
             Test("echo copytest2", Keys(
                 "echo copytest2", _.CtrlShiftLeftArrow, _.CtrlShiftC));
             AssertClipboardTextIs("copytest2");
@@ -345,7 +345,7 @@ namespace Test
         {
             TestSetup(KeyMode.Cmd);
 
-            Clipboard.SetText("");
+            SetClipboardText("");
             Test("echo copytest2", Keys(
                 "echo copytest2", _.CtrlShiftLeftArrow, _.CtrlC));
             AssertClipboardTextIs("copytest2");
