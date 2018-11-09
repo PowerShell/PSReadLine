@@ -519,7 +519,7 @@ namespace Microsoft.PowerShell
                 if (bufferEndPoint.Y < PreviousTop)
                 {
                     console.BlankRestOfLine();
-                    Singleton.WriteBlankLines(1);
+                    Singleton.WriteBlankLines(PreviousTop - bufferEndPoint.Y);
                 }
 
                 PreviousTop = bufferEndPoint.Y;
