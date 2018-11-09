@@ -160,10 +160,9 @@ static class PlatformWindows
         // and let PowerShell call Console.ReadLine or do whatever else it decides to do.
         if (IsHandleRedirected(stdin: false) || IsHandleRedirected(stdin: true))
         {
-            // If running in AppVeyor or local testing, this environment variable can be set
-            // to skip the exception.
-            if (Environment.GetEnvironmentVariable("PSREADLINE_TESTRUN") == null
-                && Environment.GetEnvironmentVariable("APPVEYOR") == null)
+            // Some CI environments redirect stdin/stdout, but that doesn't affect our test runs
+            // because the console is mocked, so we can skip the exception.
+            if (!PSConsoleReadLine.IsRunningCI())
             {
                 throw new NotSupportedException();
             }
