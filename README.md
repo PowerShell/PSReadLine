@@ -1,4 +1,5 @@
 [![Build status](https://ci.appveyor.com/api/projects/status/0xu8r817dl6qt0g4?svg=true)](https://ci.appveyor.com/project/lzybkr/PSReadLine/branch/master)
+[![Build Status](https://lzybkr.visualstudio.com/AzurePipelines/_apis/build/status/PSReadLine%20Azure%20Pipeline)](https://lzybkr.visualstudio.com/AzurePipelines/_build/latest?definitionId=6)
 
 # PSReadLine
 
