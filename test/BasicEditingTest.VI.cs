@@ -121,6 +121,19 @@ namespace Test
         }
 
         [Fact]
+        public void Defect796()
+        {
+            TestSetup(KeyMode.Vi);
+
+            Test("\"\n\n\"", Keys(
+                _.DQuote, _.Enter, _.Escape, CheckThat(() => AssertCursorTopIs(0)),
+                'j', CheckThat(() => AssertCursorTopIs(1)),
+                'o', CheckThat(() => AssertCursorTopIs(2)),
+                _.DQuote
+                ));
+        }
+
+        [Fact]
         public void ViChangeMovementUndo()
         {
             TestSetup(KeyMode.Vi);
