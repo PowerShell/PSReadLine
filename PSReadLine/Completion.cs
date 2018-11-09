@@ -447,6 +447,8 @@ namespace Microsoft.PowerShell
         {
             internal PSConsoleReadLine Singleton;
             internal int Top;
+
+            internal int PreviousTop;
             internal int ColumnWidth;
             internal int BufferLines;
             internal int Rows;
@@ -512,6 +514,15 @@ namespace Microsoft.PowerShell
                         Singleton.WriteBlankLines(previousMenu.Rows + previousMenu.ToolTipLines - Rows);
                     }
                 }
+
+                // if the menu has moved, we need to clear the lines under it
+                if (bufferEndPoint.Y < PreviousTop)
+                {
+                    console.BlankRestOfLine();
+                    Singleton.WriteBlankLines(PreviousTop - bufferEndPoint.Y);
+                }
+
+                PreviousTop = bufferEndPoint.Y;
 
                 if (menuSelect)
                 {
