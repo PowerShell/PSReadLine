@@ -511,9 +511,20 @@ namespace Test
             Assert.Equal(expected, input);
         }
 
+        static readonly MethodInfo ClipboardGetTextMethod =
+            typeof(PSConsoleReadLine).Assembly.GetType("Microsoft.PowerShell.Internal.Clipboard")
+                .GetMethod("GetText", BindingFlags.Static | BindingFlags.Public);
+        static readonly MethodInfo ClipboardSetTextMethod =
+            typeof(PSConsoleReadLine).Assembly.GetType("Microsoft.PowerShell.Internal.Clipboard")
+                .GetMethod("SetText", BindingFlags.Static | BindingFlags.Public);
         private static string GetClipboardText()
         {
-            return Clipboard.GetText();
+            return (string)ClipboardGetTextMethod.Invoke(null, null);
+        }
+
+        private static void SetClipboardText(string text)
+        {
+            ClipboardSetTextMethod.Invoke(null, new[] { text });
         }
 
         private void AssertClipboardTextIs(string text)
