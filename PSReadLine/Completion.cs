@@ -462,17 +462,18 @@ namespace Microsoft.PowerShell
             {
                 IConsole console = Singleton._console;
 
+                if (menuSelect)
+                {
+                    console.CursorVisible = false;
+                    SaveCursor();
+                }
+
                 // Move cursor to the start of the first line after our input.
                 var bufferEndPoint = Singleton.ConvertOffsetToPoint(Singleton._buffer.Length);
                 console.SetCursorPosition(bufferEndPoint.X, bufferEndPoint.Y);
                 AdjustForPossibleScroll(1);
                 MoveCursorDown(1);
                 this.Top = bufferEndPoint.Y + 1;
-                if (menuSelect)
-                {
-                    console.CursorVisible = false;
-                    SaveCursor();
-                }
 
                 var bufferWidth = console.BufferWidth;
                 var columnWidth = this.ColumnWidth;
