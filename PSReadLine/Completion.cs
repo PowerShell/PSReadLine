@@ -447,6 +447,8 @@ namespace Microsoft.PowerShell
         {
             internal PSConsoleReadLine Singleton;
             internal int Top;
+
+            internal int PreviousTop;
             internal int ColumnWidth;
             internal int BufferLines;
             internal int Rows;
@@ -460,17 +462,18 @@ namespace Microsoft.PowerShell
             {
                 IConsole console = Singleton._console;
 
+                if (menuSelect)
+                {
+                    console.CursorVisible = false;
+                    SaveCursor();
+                }
+
                 // Move cursor to the start of the first line after our input.
                 var bufferEndPoint = Singleton.ConvertOffsetToPoint(Singleton._buffer.Length);
                 console.SetCursorPosition(bufferEndPoint.X, bufferEndPoint.Y);
                 AdjustForPossibleScroll(1);
                 MoveCursorDown(1);
                 this.Top = bufferEndPoint.Y + 1;
-                if (menuSelect)
-                {
-                    console.CursorVisible = false;
-                    SaveCursor();
-                }
 
                 var bufferWidth = console.BufferWidth;
                 var columnWidth = this.ColumnWidth;
@@ -512,6 +515,15 @@ namespace Microsoft.PowerShell
                         Singleton.WriteBlankLines(previousMenu.Rows + previousMenu.ToolTipLines - Rows);
                     }
                 }
+
+                // if the menu has moved, we need to clear the lines under it
+                if (bufferEndPoint.Y < PreviousTop)
+                {
+                    console.BlankRestOfLine();
+                    Singleton.WriteBlankLines(PreviousTop - bufferEndPoint.Y);
+                }
+
+                PreviousTop = bufferEndPoint.Y;
 
                 if (menuSelect)
                 {

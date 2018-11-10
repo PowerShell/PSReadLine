@@ -156,6 +156,9 @@ $d = [Microsoft.PowerShell.KeyHandler]::GetGroupingDescription($_.Group)
                 <PropertyName>WordDelimiters</PropertyName>
               </ListItem>
               <ListItem>
+                <PropertyName>AnsiEscapeTimeout</PropertyName>
+              </ListItem>
+              <ListItem>
                 <Label>CommandColor</Label>
                 <ScriptBlock>[Microsoft.PowerShell.VTColorUtils]::FormatColor($_.CommandColor)</ScriptBlock>
               </ListItem>
