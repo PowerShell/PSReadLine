@@ -196,6 +196,7 @@ namespace Microsoft.PowerShell
                 { Keys.Pound,           MakeKeyHandler(PrependAndAccept,     "PrependAndAccept") },
                 { Keys.Pipe,            MakeKeyHandler(GotoColumn,           "GotoColumn") },
                 { Keys.Uphat,           MakeKeyHandler(GotoFirstNonBlankOfLine, "GotoFirstNonBlankOfLine") },
+                { Keys.Underbar,        MakeKeyHandler(GotoFirstNonBlankOfLine, "GotoFirstNonBlankOfLine") },
                 { Keys.Tilde,           MakeKeyHandler(InvertCase,           "InvertCase") },
                 { Keys.Slash,           MakeKeyHandler(ViSearchHistoryBackward,   "ViSearchHistoryBackward") },
                 { Keys.CtrlR,           MakeKeyHandler(ViSearchHistoryBackward,   "ViSearchHistoryBackward") },

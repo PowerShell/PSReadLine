@@ -63,6 +63,57 @@ namespace Test
             ViJumpMustDing(buffer, keys);
         }
 
+        [Fact]
+        public void ViMoveToFirstNonBlankOfLogicalLineThenJumpToEndOfLogicalLine()
+        {
+            TestSetup(KeyMode.Vi);
+
+            var continuationPrefixLength = PSConsoleReadLineOptions.DefaultContinuationPrompt.Length;
+
+            const string buffer = "\"\n  line\"";
+
+            Test(buffer, Keys(
+                _.DQuote, _.Enter, "  line", _.DQuote, _.Escape, CheckThat(() => AssertCursorLeftIs(continuationPrefixLength + 6)),
+                _.Underbar, CheckThat(() => AssertCursorLeftTopIs(continuationPrefixLength + 2, 1)),
+                _.Dollar, CheckThat(() => AssertCursorLeftTopIs(continuationPrefixLength + 6, 1)),
+                // also works forward
+                '0', CheckThat(() => AssertCursorLeftTopIs(continuationPrefixLength, 1)),
+                _.Underbar, CheckThat(() => AssertCursorLeftTopIs(continuationPrefixLength + 2, 1))
+                ));
+        }
+
+        [Fact]
+        public void ViMoveToFirstNonBlankOfLogicalLine_NoOp_OnEmptyLine()
+        {
+            TestSetup(KeyMode.Vi);
+
+            var continuationPrefixLength = PSConsoleReadLineOptions.DefaultContinuationPrompt.Length;
+
+            const string buffer = "\"\n\n\"";
+
+            Test(buffer, Keys(
+                _.DQuote, _.Enter, _.Enter, _.DQuote, _.Escape, _.K,
+                CheckThat(() => AssertCursorLeftTopIs(continuationPrefixLength + 0, 1)),
+                _.Underbar, CheckThat(() => AssertCursorLeftTopIs(continuationPrefixLength + 0, 1))
+            ));
+        }
+
+        [Fact]
+        public void ViMoveToEndOfLine_NoOp_OnEmptyLine()
+        {
+            TestSetup(KeyMode.Vi);
+
+            var continuationPrefixLength = PSConsoleReadLineOptions.DefaultContinuationPrompt.Length;
+
+            const string buffer = "\"\n\n\"";
+
+            Test(buffer, Keys(
+                _.DQuote, _.Enter, _.Enter, _.DQuote, _.Escape, _.K,
+                CheckThat(() => AssertCursorLeftTopIs(continuationPrefixLength + 0, 1)),
+                _.Dollar, CheckThat(() => AssertCursorLeftTopIs(continuationPrefixLength + 0, 1))
+            ));
+        }
+
         private void ViJumpMustDing(string expectedResult, params object[] keys)
         {
             TestSetup(KeyMode.Vi);
