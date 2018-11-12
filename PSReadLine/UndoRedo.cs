@@ -224,18 +224,26 @@ namespace Microsoft.PowerShell
         [DebuggerDisplay("Delete '{_deletedString}' ({_deleteStartPosition})")]
         class EditItemDelete : EditItem
         {
-            private string _deletedString;
-            private int _deleteStartPosition;
+            private readonly string _deletedString;
+            private readonly int _deleteStartPosition;
+
+            protected EditItemDelete(string str, int position, Action<ConsoleKeyInfo?, object> instigator, object instigatorArg)
+            {
+                _deletedString = str;
+                _deleteStartPosition = position;
+                _instigator = instigator;
+                _instigatorArg = instigatorArg;
+            }
 
             public static EditItem Create(string str, int position, Action<ConsoleKeyInfo?, object> instigator = null, object instigatorArg = null)
             {
                 return new EditItemDelete
-                {
-                    _deletedString = str,
-                    _deleteStartPosition = position,
-                    _instigator = instigator,
-                    _instigatorArg = instigatorArg
-                };
+                (
+                    str,
+                    position,
+                    instigator,
+                    instigatorArg
+                );
             }
 
             public override void Undo()
@@ -248,6 +256,29 @@ namespace Microsoft.PowerShell
             {
                 _singleton._buffer.Remove(_deleteStartPosition, _deletedString.Length);
                 _singleton._current = _deleteStartPosition;
+            }
+        }
+
+        [DebuggerDisplay("DeleteLines '{_deletedString}' ({_deleteStartPosition}, Anchor: {_deleteAnchor})")]
+        class EditItemDeleteLines : EditItemDelete
+        {
+            private readonly int _deleteAnchor;
+
+            private EditItemDeleteLines(string str, int position, int anchor, Action<ConsoleKeyInfo?, object> instigator, object instigatorArg)
+                : base(str, position, instigator, instigatorArg)
+            {
+                _deleteAnchor = anchor;
+            }
+
+            public static EditItem Create(string str, int position, int anchor, Action<ConsoleKeyInfo?, object> instigator = null, object instigatorArg = null)
+            {
+                return new EditItemDeleteLines(str, position, anchor, instigator, instigatorArg);
+            }
+
+            public override void Undo()
+            {
+                base.Undo();
+                _singleton._current = _deleteAnchor;
             }
         }
 

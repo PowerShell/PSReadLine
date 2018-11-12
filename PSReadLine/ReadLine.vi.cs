@@ -722,11 +722,65 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void DeleteLine(ConsoleKeyInfo? key = null, object arg = null)
         {
-            _clipboard.Record(_singleton._buffer);
-            _singleton.SaveEditItem(EditItemDelete.Create(_clipboard, 0));
-            _singleton._current = 0;
-            _singleton._buffer.Remove(0, _singleton._buffer.Length);
-            _singleton.Render();
+            if (_singleton.LineIsMultiLine())
+            {
+                var lineCount = _singleton.GetLogicalLineCount();
+                var lineIndex = _singleton.GetLogicalLineNumber() - 1;
+
+                TryGetArgAsInt(arg, out var requestedLineCount, 1);
+
+                var deletePosition = DeleteLineImpl(lineIndex, requestedLineCount);
+
+                // goto the first character of the first remaining logical line
+
+                var newCurrent = deletePosition + 1;
+
+                if (lineIndex + requestedLineCount >= lineCount)
+                {
+                    // if the delete operation has removed all the remaining lines
+                    // goto the first character of the previous logical line 
+
+                    newCurrent = GetBeginningOfLinePos(deletePosition);
+                }
+
+                _singleton._current = newCurrent;
+                _singleton.Render();
+            }
+            else
+            {
+                _clipboard.Record(_singleton._buffer);
+                _singleton.SaveEditItem(EditItemDelete.Create(_clipboard, 0));
+                _singleton._current = 0;
+                _singleton._buffer.Remove(0, _singleton._buffer.Length);
+                _singleton.Render();
+            }
+        }
+
+        /// <summary>
+        /// Deletes as many requested lines from the buffer
+        /// starting from the specified line index, and
+        /// return the offset to the deleted position.
+        /// </summary>
+        /// <returns></returns>
+        private static int DeleteLineImpl(int lineIndex, int lineCount)
+        {
+            var range = _singleton._buffer.GetRange(lineIndex, lineCount);
+
+            _clipboard.LinewiseRecord(_singleton._buffer.ToString(range.Offset, range.Count));
+
+            var deleteText = _singleton._buffer.ToString(range.Offset, range.Count);
+            var deletePosition = range.Offset;
+            var anchor = _singleton._current;
+
+            _singleton._buffer.Remove(range.Offset, range.Count);
+
+            _singleton.SaveEditItem(EditItemDeleteLines.Create(
+                deleteText,
+                deletePosition,
+                anchor
+            ));
+
+            return deletePosition;
         }
 
         /// <summary>
