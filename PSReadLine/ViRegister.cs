@@ -97,6 +97,11 @@ namespace Microsoft.PowerShell
                 {
                     var text = _text;
 
+                    if (text[0] != '\n')
+                    {
+                        text = '\n' + text;
+                    }
+
                     // paste text after the next line
 
                     var pastePosition = -1;
@@ -106,26 +111,19 @@ namespace Microsoft.PowerShell
                     {
                         if (buffer[index] == '\n')
                         {
-                            pastePosition = index + 1;
-                            newCursorPosition = pastePosition;
+                            pastePosition = index;
                             break;
                         }
                     }
 
                     if (pastePosition == -1)
                     {
-                        if (text[0] != '\n')
-                        {
-                            text = '\n' + text;
-                        }
-
                         pastePosition = buffer.Length;
-                        newCursorPosition = pastePosition + 1;
                     }
 
                     InsertAt(buffer, text, pastePosition, position);
 
-                    return newCursorPosition;
+                    return pastePosition + 1;
                 }
 
                 else
@@ -155,6 +153,11 @@ namespace Microsoft.PowerShell
 
                     var text = _text;
 
+                    if (text[0] == '\n')
+                    {
+                        text = text.Remove(0, 1);
+                    }
+
                     if (text[text.Length - 1] != '\n')
                     {
                         text += '\n';
@@ -164,12 +167,15 @@ namespace Microsoft.PowerShell
 
                     var previousLinePos = -1;
 
-                    for (var index = position; index > 0; index--)
+                    if (buffer.Length > 0)
                     {
-                        if (buffer[index] == '\n')
+                        for (var index = position; index >= 0; index--)
                         {
-                            previousLinePos = index + 1;
-                            break;
+                            if (buffer[index] == '\n')
+                            {
+                                previousLinePos = index + 1;
+                                break;
+                            }
                         }
                     }
 
