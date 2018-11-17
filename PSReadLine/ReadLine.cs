@@ -625,8 +625,7 @@ namespace Microsoft.PowerShell
             {
                 try
                 {
-                    ps.AddCommand("Get-Variable").AddParameter("Name", "host").AddParameter("ValueOnly");
-                    var results = ps.Invoke();
+                    var results = ps.AddScript("$Host").Invoke();
                     dynamic host = results.Count == 1 ? results[0] : null;
                     if (host != null)
                     {
