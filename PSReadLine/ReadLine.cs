@@ -628,10 +628,7 @@ namespace Microsoft.PowerShell
                 {
                     var results = ps.AddScript("$Host").Invoke<PSHost>();
                     PSHost host = results.Count == 1 ? results[0] : null;
-                    if (host != null)
-                    {
-                        hostName = host.Name as string;
-                    }
+                    hostName = host?.Name;
                 }
                 catch
                 {
