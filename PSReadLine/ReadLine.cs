@@ -9,6 +9,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Management.Automation;
+using System.Management.Automation.Host;
 using System.Management.Automation.Language;
 using System.Management.Automation.Runspaces;
 using System.Reflection;
@@ -625,13 +626,9 @@ namespace Microsoft.PowerShell
             {
                 try
                 {
-                    ps.AddCommand("Get-Variable").AddParameter("Name", "host").AddParameter("ValueOnly");
-                    var results = ps.Invoke();
-                    dynamic host = results.Count == 1 ? results[0] : null;
-                    if (host != null)
-                    {
-                        hostName = host.Name as string;
-                    }
+                    var results = ps.AddScript("$Host").Invoke<PSHost>();
+                    PSHost host = results.Count == 1 ? results[0] : null;
+                    hostName = host?.Name;
                 }
                 catch
                 {
