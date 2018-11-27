@@ -208,24 +208,10 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void GotoFirstNonBlankOfLine(ConsoleKeyInfo? key = null, object arg = null)
         {
-            if (_singleton.LineIsMultiLine())
+            var newCurrent = GetFirstNonBlankOfLogicalLinePos(_singleton._current);
+            if (newCurrent != _singleton._current)
             {
-                var newCurrent = GetFirstNonBlankOfLogicalLinePos(_singleton._current);
-                if (newCurrent != _singleton._current)
-                {
-                    _singleton.MoveCursor(newCurrent);
-                }
-            }
-            else
-            {
-                for (int i = 0; i < _singleton._buffer.Length; i++)
-                {
-                    if (!Char.IsWhiteSpace(_singleton._buffer[i]))
-                    {
-                        _singleton.MoveCursor(i);
-                        return;
-                    }
-                }
+                _singleton.MoveCursor(newCurrent);
             }
         }
 
