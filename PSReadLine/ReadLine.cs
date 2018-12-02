@@ -600,7 +600,7 @@ namespace Microsoft.PowerShell
                     handler.Action(key, arg);
                 }
             }
-            else if (!ignoreIfNoAction && key.ShouldInsert())
+            else if (!ignoreIfNoAction)
             {
                 SelfInsert(key, arg);
             }
