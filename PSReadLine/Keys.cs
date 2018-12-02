@@ -363,6 +363,9 @@ namespace Microsoft.PowerShell
         public static ConsoleKeyInfo CtrlAltRBracket     = CtrlAlt(']');
         public static ConsoleKeyInfo CtrlAltQuestion     = CtrlAlt('?');
 
+        public static ConsoleKeyInfo VolumeUp   = Key(ConsoleKey.VolumeUp);
+        public static ConsoleKeyInfo VolumeDown = Key(ConsoleKey.VolumeDown);
+        public static ConsoleKeyInfo VolumeMute = Key(ConsoleKey.VolumeMute);
 
         [DllImport("user32.dll")]
         public static extern int VkKeyScan(short wAsciiVal);
@@ -469,6 +472,9 @@ namespace Microsoft.PowerShell
                 case ConsoleKey.RightArrow:
                 case ConsoleKey.Tab:
                 case ConsoleKey.UpArrow:
+                case ConsoleKey.VolumeUp:
+                case ConsoleKey.VolumeDown:
+                case ConsoleKey.VolumeMute:
                     return true;
             }
 

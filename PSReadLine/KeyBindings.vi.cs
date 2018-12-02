@@ -86,7 +86,10 @@ namespace Microsoft.PowerShell
                 { Keys.ShiftF3,         MakeKeyHandler(CharacterSearchBackward,"CharacterSearchBackward") },
                 { Keys.CtrlAltQuestion, MakeKeyHandler(ShowKeyBindings,        "ShowKeyBindings") },
                 { Keys.CtrlR,           MakeKeyHandler(ViSearchHistoryBackward,"ViSearchHistoryBackward") },
-                { Keys.CtrlS,           MakeKeyHandler(SearchForward,          "SearchForward") }
+                { Keys.CtrlS,           MakeKeyHandler(SearchForward,          "SearchForward") },
+                { Keys.VolumeDown,      MakeKeyHandler(Ignore,                 "Ignore") },
+                { Keys.VolumeUp,        MakeKeyHandler(Ignore,                 "Ignore") },
+                { Keys.VolumeMute,      MakeKeyHandler(Ignore,                 "Ignore") },
             };
 
             // Some bindings are not available on certain platforms
@@ -205,7 +208,10 @@ namespace Microsoft.PowerShell
                 { Keys.Minus,           MakeKeyHandler(PreviousHistory,      "PreviousHistory") },
                 { Keys.Period,          MakeKeyHandler(RepeatLastCommand,    "RepeatLastCommand") },
                 { Keys.Semicolon,       MakeKeyHandler(RepeatLastCharSearch, "RepeatLastCharSearch") },
-                { Keys.Comma,           MakeKeyHandler(RepeatLastCharSearchBackwards, "RepeatLastCharSearchBackwards") }
+                { Keys.Comma,           MakeKeyHandler(RepeatLastCharSearchBackwards, "RepeatLastCharSearchBackwards") },
+                { Keys.VolumeDown,      MakeKeyHandler(Ignore,               "Ignore") },
+                { Keys.VolumeUp,        MakeKeyHandler(Ignore,               "Ignore") },
+                { Keys.VolumeMute,      MakeKeyHandler(Ignore,               "Ignore") },
             };
 
             // Some bindings are not available on certain platforms

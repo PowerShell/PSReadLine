@@ -848,6 +848,11 @@ namespace Microsoft.PowerShell
             }
         }
 
+        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
+        private static void Ignore(ConsoleKeyInfo? key = null, object arg = null)
+        {
+        }
+
         /// <summary>
         /// Abort current action, e.g. incremental history search.
         /// </summary>
