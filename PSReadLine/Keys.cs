@@ -363,6 +363,9 @@ namespace Microsoft.PowerShell
         public static ConsoleKeyInfo CtrlAltRBracket     = CtrlAlt(']');
         public static ConsoleKeyInfo CtrlAltQuestion     = CtrlAlt('?');
 
+        public static ConsoleKeyInfo VolumeUp   = Key(ConsoleKey.VolumeUp);
+        public static ConsoleKeyInfo VolumeDown = Key(ConsoleKey.VolumeDown);
+        public static ConsoleKeyInfo VolumeMute = Key(ConsoleKey.VolumeMute);
 
         [DllImport("user32.dll")]
         public static extern int VkKeyScan(short wAsciiVal);
@@ -469,6 +472,9 @@ namespace Microsoft.PowerShell
                 case ConsoleKey.RightArrow:
                 case ConsoleKey.Tab:
                 case ConsoleKey.UpArrow:
+                case ConsoleKey.VolumeUp:
+                case ConsoleKey.VolumeDown:
+                case ConsoleKey.VolumeMute:
                     return true;
             }
 
@@ -558,43 +564,6 @@ namespace Microsoft.PowerShell
 
             // This is based on Tuple.GetHashCode
             return unchecked(((h1 << 5) + h1) ^ h2);
-        }
-
-        internal static bool ShouldInsert(this ConsoleKeyInfo key)
-        {
-            var keyChar = key.KeyChar;
-            if (keyChar == '\0') return false;
-            foreach (char c in " `~!@#$%^&*()-_=+[{]}\\|;:'\",<.>/?") {
-                // we always want to insert chars essential to the PowerShell experience
-                if (keyChar == c) { return true; }
-            }
-            if (key.Modifiers != 0)
-            {
-                // We want to ignore control sequences - but distinguishing a control sequence
-                // isn't as simple as it could be because we will get inconsistent modifiers
-                // depending on the OS or keyboard layout.
-                //
-                // Windows will give us the key state even if we didn't care, e.g. it's normal
-                // to see Alt+Control (AltGr) on a Spanish, French, or German keyboard for many normal
-                // characters. So we just ask the OS what mods to expect for a given key.
-                // On non-Windows - anything but Shift is assumed to be a control sequence.
-                ConsoleModifiers expectedMods = default(ConsoleModifiers);
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                {
-                    var keyWithMods = WindowsKeyScan(key.KeyChar);
-                    if (keyWithMods.HasValue)
-                    {
-                        expectedMods = keyWithMods.Value.Modifiers;
-                    }
-                }
-                else
-                {
-                    expectedMods = key.Modifiers & ConsoleModifiers.Shift;
-                }
-                return key.Modifiers == expectedMods;
-            }
-
-            return true;
         }
 
         internal static bool IsUnmodifiedChar(this ConsoleKeyInfo key, char c)

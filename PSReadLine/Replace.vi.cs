@@ -44,7 +44,7 @@ namespace Microsoft.PowerShell
                         _singleton.Render();
                     }
                 }
-                else if (nextKey.ShouldInsert())
+                else
                 {
                     if (_singleton._current >= _singleton._buffer.Length)
                     {

@@ -245,6 +245,9 @@ namespace Microsoft.PowerShell
                 { Keys.PageDown,               MakeKeyHandler(ScrollDisplayDown,         "ScrollDisplayDown") },
                 { Keys.CtrlPageUp,             MakeKeyHandler(ScrollDisplayUpLine,       "ScrollDisplayUpLine") },
                 { Keys.CtrlPageDown,           MakeKeyHandler(ScrollDisplayDownLine,     "ScrollDisplayDownLine") },
+                { Keys.VolumeDown,             MakeKeyHandler(Ignore,                    "Ignore") },
+                { Keys.VolumeUp,               MakeKeyHandler(Ignore,                    "Ignore") },
+                { Keys.VolumeMute,             MakeKeyHandler(Ignore,                    "Ignore") },
             };
 
             // Some bindings are not available on certain platforms
@@ -334,6 +337,9 @@ namespace Microsoft.PowerShell
                 { Keys.CtrlAltY,        MakeKeyHandler(YankNthArg,           "YankNthArg") },
                 { Keys.PageUp,          MakeKeyHandler(ScrollDisplayUp,      "ScrollDisplayUp") },
                 { Keys.PageDown,        MakeKeyHandler(ScrollDisplayDown,    "ScrollDisplayDown") },
+                { Keys.VolumeDown,      MakeKeyHandler(Ignore,               "Ignore") },
+                { Keys.VolumeUp,        MakeKeyHandler(Ignore,               "Ignore") },
+                { Keys.VolumeMute,      MakeKeyHandler(Ignore,               "Ignore") },
             };
 
             // Some bindings are not available on certain platforms

@@ -600,7 +600,7 @@ namespace Microsoft.PowerShell
                     handler.Action(key, arg);
                 }
             }
-            else if (!ignoreIfNoAction && key.ShouldInsert())
+            else if (!ignoreIfNoAction)
             {
                 SelfInsert(key, arg);
             }
@@ -846,6 +846,11 @@ namespace Microsoft.PowerShell
                 var secondKey = ReadKey();
                 _singleton.ProcessOneKey(secondKey, secondKeyDispatchTable, ignoreIfNoAction: true, arg: arg);
             }
+        }
+
+        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
+        private static void Ignore(ConsoleKeyInfo? key = null, object arg = null)
+        {
         }
 
         /// <summary>
