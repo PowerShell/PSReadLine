@@ -110,24 +110,27 @@ static class PlatformWindows
     [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
     private static extern bool GetCurrentConsoleFontEx(IntPtr consoleOutput, bool bMaximumWindow, ref CONSOLE_FONT_INFO_EX consoleFontInfo);
 
-    [Flags()]
+    [Flags]
     internal enum FontFamily : uint
     {
-        TMPF_FIXED_PITCH = 0x01
+        // If this bit is set the font is a variable pitch font.
+        // If this bit is clear the font is a fixed pitch font.
+        TMPF_FIXED_PITCH = 0x01,
+        TMPF_VECTOR      = 0x02,
+        TMPF_TRUETYPE    = 0x04,
+        TMPF_DEVICE      = 0x08,
+        LOWORDER_BITS    = TMPF_FIXED_PITCH | TMPF_VECTOR | TMPF_TRUETYPE | TMPF_DEVICE,
     }
 
     internal static bool IsUsingRasterFont()
     {
-        CONSOLE_FONT_INFO_EX fontInfo = new CONSOLE_FONT_INFO_EX();
-        fontInfo.cbSize = Marshal.SizeOf(fontInfo);
         var handle = _outputHandle.Value.DangerousGetHandle();
+        var fontInfo = new CONSOLE_FONT_INFO_EX { cbSize = Marshal.SizeOf(typeof(CONSOLE_FONT_INFO_EX)) };
         bool result = GetCurrentConsoleFontEx(handle, false, ref fontInfo);
-        // If this bit is set the font is a variable pitch font.
-        // If this bit is clear the font is a fixed pitch font.
-        // Note very carefully that those meanings are the opposite of what the constant name implies.
-        return !fontInfo.FontFamily.HasFlag(FontFamily.TMPF_FIXED_PITCH);
+        // From https://docs.microsoft.com/en-us/windows/desktop/api/wingdi/ns-wingdi-tagtextmetrica
+        // tmPitchAndFamily - A monospace bitmap font has all of these low-order bits clear;
+        return result && (fontInfo.FontFamily & FontFamily.LOWORDER_BITS) == 0;
     }
-
 
     private static PSConsoleReadLine _singleton;
     internal static IConsole OneTimeInit(PSConsoleReadLine singleton)
