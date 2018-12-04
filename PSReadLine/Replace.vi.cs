@@ -21,9 +21,9 @@ namespace Microsoft.PowerShell
             StringBuilder deletedStr = new StringBuilder();
 
             var nextKey = ReadKey();
-            while (!nextKey.EqualsNormalized(Keys.Escape) && !nextKey.EqualsNormalized(Keys.Enter))
+            while (nextKey != Keys.Escape && nextKey != Keys.Enter)
             {
-                if (nextKey.EqualsNormalized(Keys.Backspace))
+                if (nextKey == Keys.Backspace)
                 {
                     if (_singleton._current == startingCursor)
                     {
@@ -70,7 +70,7 @@ namespace Microsoft.PowerShell
                 _singleton.EndEditGroup();
             }
 
-            if (nextKey.EqualsNormalized(Keys.Enter))
+            if (nextKey == Keys.Enter)
             {
                 ViAcceptLine(nextKey);
             }
@@ -223,11 +223,11 @@ namespace Microsoft.PowerShell
         private static void ReplaceCharInPlace(ConsoleKeyInfo? key, object arg)
         {
             var nextKey = ReadKey();
-            if (_singleton._buffer.Length > 0 && nextKey.KeyChar > 0 && nextKey.Key != ConsoleKey.Escape && nextKey.Key != ConsoleKey.Enter)
+            if (_singleton._buffer.Length > 0 && nextKey.KeyStr.Length == 1)
             {
                 _singleton.StartEditGroup();
                 _singleton.SaveEditItem(EditItemDelete.Create(_singleton._buffer[_singleton._current].ToString(), _singleton._current));
-                _singleton.SaveEditItem(EditItemInsertString.Create(nextKey.KeyChar.ToString(), _singleton._current));
+                _singleton.SaveEditItem(EditItemInsertString.Create(nextKey.KeyStr, _singleton._current));
                 _singleton.EndEditGroup();
 
                 _singleton._buffer[_singleton._current] = nextKey.KeyChar;

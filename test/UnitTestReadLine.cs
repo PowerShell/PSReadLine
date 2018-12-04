@@ -12,8 +12,6 @@ using Microsoft.PowerShell;
 using Microsoft.PowerShell.Internal;
 using Xunit;
 
-using PSKeyInfo = System.ConsoleKeyInfo;
-
 namespace Test
 {
     // Disgusting language hack to make it easier to read a sequence of keys.
@@ -122,7 +120,7 @@ namespace Test
             this.validationFailure = null;
         }
 
-        public PSKeyInfo ReadKey()
+        public ConsoleKeyInfo ReadKey()
         {
             while (index < inputOrValidateItems.Length)
             {
@@ -402,15 +400,15 @@ namespace Test
 
             for (var i = 'a'; i <= 'z'; i++)
             {
-                CharToKeyInfo[i] = new PSKeyInfo(i, ConsoleKey.A + i - 'a', false, false, false);
+                CharToKeyInfo[i] = new ConsoleKeyInfo(i, ConsoleKey.A + i - 'a', false, false, false);
             }
             for (var i = 'A'; i <= 'Z'; i++)
             {
-                CharToKeyInfo[i] = new PSKeyInfo(i, ConsoleKey.A + i - 'A', true, false, false);
+                CharToKeyInfo[i] = new ConsoleKeyInfo(i, ConsoleKey.A + i - 'A', true, false, false);
             }
             for (var i = '0'; i <= '9'; i++)
             {
-                CharToKeyInfo[i] = new PSKeyInfo(i, ConsoleKey.D0 + i - '0', false, false, false);
+                CharToKeyInfo[i] = new ConsoleKeyInfo(i, ConsoleKey.D0 + i - '0', false, false, false);
             }
             CharToKeyInfo['{'] = _.LCurly;
             CharToKeyInfo['}'] = _.RCurly;
@@ -434,8 +432,8 @@ namespace Test
             CharToKeyInfo['\''] = _.SQuote;
             CharToKeyInfo['\\'] = _.Backslash;
             CharToKeyInfo['/'] = _.Slash;
-            CharToKeyInfo['\n'] = new PSKeyInfo('\r', ConsoleKey.Enter, false, false, false);
-            CharToKeyInfo['\r'] = new PSKeyInfo('\r', ConsoleKey.Enter, false, false, false);
+            CharToKeyInfo['\n'] = new ConsoleKeyInfo('\r', ConsoleKey.Enter, false, false, false);
+            CharToKeyInfo['\r'] = new ConsoleKeyInfo('\r', ConsoleKey.Enter, false, false, false);
         }
 
         private enum KeyMode

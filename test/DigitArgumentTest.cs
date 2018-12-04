@@ -2,8 +2,6 @@
 using Microsoft.PowerShell;
 using Xunit;
 
-using PSKeyInfo = System.ConsoleKeyInfo;
-
 namespace Test
 {
     // Disgusting language hack to make it easier to read a sequence of keys.
@@ -79,8 +77,8 @@ namespace Test
             for (int i = 0; i < 9; i++)
             {
                 var line = new string('a', i);
-                var digitArgKey = new PSKeyInfo(
-                    (char)('0' + i), ConsoleKey.D0 + i, false, true, false);
+                var digitArgKey = (PSKeyInfo)(new ConsoleKeyInfo(
+                    (char)('0' + i), ConsoleKey.D0 + i, false, true, false));
                 Test(line, Keys(digitArgKey, 'a'));
 
                 line = new string('z', i * 10);

@@ -219,6 +219,9 @@ namespace Microsoft.PowerShell
                 { "Spacebar",   new KeyPair { Key = ConsoleKey.Spacebar, KeyChar = ' ' } },
                 { "Tab",        new KeyPair { Key = ConsoleKey.Tab, KeyChar = '\t' }  },
                 { "UpArrow",    new KeyPair { Key = ConsoleKey.UpArrow} },
+                { "VolumeDown", new KeyPair { Key = ConsoleKey.VolumeDown } },
+                { "VolumeMute", new KeyPair { Key = ConsoleKey.VolumeMute } },
+                { "VolumeUp",   new KeyPair { Key = ConsoleKey.VolumeUp } },
             };
 
         static bool MapKeyChar(string input, ref ConsoleModifiers mods, out ConsoleKey key, out char keyChar)
@@ -255,12 +258,16 @@ namespace Microsoft.PowerShell
                             keyChar = (char)(keyChar - 'A' + 1);
                             break;
                         case '_':
-                            keyChar = Keys.CtrlUnderbar.KeyChar;
-                            mods |= Keys.CtrlUnderbar.Modifiers;
+                            keyChar = '\x1f';
+                            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
+                                mods |= ConsoleModifiers.Shift;
+                            }
                             break;
                         case '^':
-                            keyChar = Keys.CtrlCaret.KeyChar;
-                            mods |= Keys.CtrlCaret.Modifiers;
+                            keyChar = '\x1e';
+                            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
+                                mods |= ConsoleModifiers.Shift;
+                            }
                             break;
                     }
                 }

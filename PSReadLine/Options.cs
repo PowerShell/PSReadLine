@@ -11,8 +11,6 @@ using System.Reflection;
 using System.Threading;
 using Microsoft.PowerShell.PSReadLine;
 
-using PSKeyInfo = System.ConsoleKeyInfo;
-
 namespace Microsoft.PowerShell
 {
     public partial class PSConsoleReadLine
@@ -164,7 +162,7 @@ namespace Microsoft.PowerShell
                     _dispatchTable[chord[0]] = MakeKeyHandler(Chord, "ChordFirstKey");
                     if (!_chordDispatchTable.TryGetValue(chord[0], out var secondDispatchTable))
                     {
-                        secondDispatchTable = new Dictionary<PSKeyInfo, KeyHandler>(ConsoleKeyInfoComparer.Instance);
+                        secondDispatchTable = new Dictionary<PSKeyInfo, KeyHandler>();
                         _chordDispatchTable[chord[0]] = secondDispatchTable;
                     }
                     secondDispatchTable[chord[1]] = MakeKeyHandler(handler, briefDescription, longDescription, scriptBlock);
@@ -294,7 +292,7 @@ namespace Microsoft.PowerShell
                 {
                     yield return new PowerShell.KeyHandler
                     {
-                        Key = entry.Key.ToGestureString(),
+                        Key = entry.Key.KeyStr,
                         Function = entry.Value.BriefDescription,
                         Description = entry.Value.LongDescription,
                         Group = GetDisplayGrouping(entry.Value.BriefDescription),
@@ -317,7 +315,7 @@ namespace Microsoft.PowerShell
                     {
                         yield return new PowerShell.KeyHandler
                         {
-                            Key = "<" + entry.Key.ToGestureString() + ">",
+                            Key = "<" + entry.Key.KeyStr + ">",
                             Function = entry.Value.BriefDescription,
                             Description = entry.Value.LongDescription,
                             Group = GetDisplayGrouping(entry.Value.BriefDescription),
@@ -335,7 +333,7 @@ namespace Microsoft.PowerShell
                     {
                         yield return new PowerShell.KeyHandler
                         {
-                            Key = entry.Key.ToGestureString() + "," + secondEntry.Key.ToGestureString(),
+                            Key = entry.Key.KeyStr + "," + secondEntry.Key.KeyStr,
                             Function = secondEntry.Value.BriefDescription,
                             Description = secondEntry.Value.LongDescription,
                             Group = GetDisplayGrouping(secondEntry.Value.BriefDescription),
@@ -360,7 +358,7 @@ namespace Microsoft.PowerShell
                         {
                             yield return new PowerShell.KeyHandler
                             {
-                                Key = "<" + entry.Key.ToGestureString() + "," + secondEntry.Key.ToGestureString() + ">",
+                                Key = "<" + entry.Key.KeyStr + "," + secondEntry.Key.KeyStr + ">",
                                 Function = secondEntry.Value.BriefDescription,
                                 Description = secondEntry.Value.LongDescription,
                                 Group = GetDisplayGrouping(secondEntry.Value.BriefDescription),

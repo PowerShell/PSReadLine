@@ -20,8 +20,6 @@ using Microsoft.PowerShell.Commands;
 using Microsoft.PowerShell.Internal;
 using Microsoft.PowerShell.PSReadLine;
 
-using PSKeyInfo = System.ConsoleKeyInfo;
-
 [module: SuppressMessage("Microsoft.Design", "CA1014:MarkAssembliesWithClsCompliant")]
 [module: SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
 
@@ -138,7 +136,7 @@ namespace Microsoft.PowerShell
                 }
                 while (_charMap.KeyAvailable)
                 {
-                    var key = _charMap.ReadKey();
+                    PSKeyInfo key = _charMap.ReadKey();
                     _lastNKeys.Enqueue(key);
                     _queuedKeys.Enqueue(key);
                 }
@@ -323,6 +321,21 @@ namespace Microsoft.PowerShell
         {
             var console = _singleton._console;
 
+            if (Console.IsInputRedirected || Console.IsOutputRedirected)
+            {
+                // System.Console doesn't handle redirected input. It matches the behavior on Windows
+                // by throwing an "InvalidOperationException".
+                // Therefore, if either stdin or stdout is redirected, PSReadLine doesn't really work,
+                // so throw and let PowerShell call Console.ReadLine or do whatever else it decides to do.
+                //
+                // Some CI environments redirect stdin/stdout, but that doesn't affect our test runs
+                // because the console is mocked, so we can skip the exception.
+                if (!IsRunningCI(console))
+                {
+                    throw new NotSupportedException();
+                }
+            }
+
             var oldControlCAsInput = false;
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
@@ -330,21 +343,6 @@ namespace Microsoft.PowerShell
             }
             else
             {
-                if (Console.IsInputRedirected || Console.IsOutputRedirected)
-                {
-                    // System.Console doesn't handle redirected input. It matches the behavior on Windows
-                    // by throwing an "InvalidOperationException".
-                    // Therefore, if either stdin or stdout is redirected, PSReadLine doesn't really work,
-                    // so throw and let PowerShell call Console.ReadLine or do whatever else it decides to do.
-                    //
-                    // Some CI environments redirect stdin/stdout, but that doesn't affect our test runs
-                    // because the console is mocked, so we can skip the exception.
-                    if (!IsRunningCI())
-                    {
-                        throw new NotSupportedException();
-                    }
-                }
-
                 try
                 {
                     oldControlCAsInput = Console.TreatControlCAsInput;
@@ -411,7 +409,7 @@ namespace Microsoft.PowerShell
                     for (int i = 0; i < _lastNKeys.Count; i++)
                     {
                         sb.Append(' ');
-                        sb.Append(_lastNKeys[i].ToGestureString());
+                        sb.Append(_lastNKeys[i].KeyStr);
 
                         if (_singleton._dispatchTable.TryGetValue(_lastNKeys[i], out var handler) &&
                             "AcceptLine".Equals(handler.BriefDescription, StringComparison.OrdinalIgnoreCase))
@@ -587,7 +585,7 @@ namespace Microsoft.PowerShell
                 // shift hadn't be pressed.  This cleanly allows Shift+Backspace without adding a key binding.
                 if (key.KeyChar > 0 && char.IsControl(key.KeyChar) && key.Modifiers == ConsoleModifiers.Shift)
                 {
-                    key = new PSKeyInfo(key.KeyChar, key.Key, false, false, false);
+                    key = new ConsoleKeyInfo(key.KeyChar, key.Key, false, false, false);
                     dispatchTable.TryGetValue(key, out handler);
                 }
             }
@@ -1062,9 +1060,9 @@ namespace Microsoft.PowerShell
             return newPrompt;
         }
 
-        internal static bool IsRunningCI()
+        internal static bool IsRunningCI(IConsole console)
         {
-            return Environment.GetEnvironmentVariable("PSREADLINE_TESTRUN") != null;
+            return console.GetType().FullName == "Test.TestConsole";
         }
     }
 }

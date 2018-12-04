@@ -5,8 +5,6 @@ Copyright (c) Microsoft Corporation.  All rights reserved.
 using System;
 using System.Text;
 
-using PSKeyInfo = System.ConsoleKeyInfo;
-
 namespace Microsoft.PowerShell.Internal
 {
     internal class VirtualTerminal : IConsole
@@ -109,7 +107,7 @@ namespace Microsoft.PowerShell.Internal
             set { try { Console.OutputEncoding = value; } catch { } }
         }
 
-        public PSKeyInfo ReadKey()                       => _readKeyMethod.Value(true);
+        public ConsoleKeyInfo ReadKey()                  => _readKeyMethod.Value(true);
         public bool KeyAvailable                         => Console.KeyAvailable;
         public void SetWindowPosition(int left, int top) => Console.SetWindowPosition(left, top);
         public void SetCursorPosition(int left, int top) => Console.SetCursorPosition(left, top);

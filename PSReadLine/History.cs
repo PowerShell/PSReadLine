@@ -11,8 +11,6 @@ using System.Text;
 using System.Threading;
 using Microsoft.PowerShell.PSReadLine;
 
-using PSKeyInfo = System.ConsoleKeyInfo;
-
 namespace Microsoft.PowerShell
 {
     public partial class PSConsoleReadLine
@@ -690,8 +688,8 @@ namespace Microsoft.PowerShell
                     UpdateHistoryDuringInteractiveSearch(toMatch.ToString(), +1, ref searchFromPoint);
                 }
                 else if (function == BackwardDeleteChar
-                    || key.EqualsNormalized(Keys.Backspace)
-                    || key.EqualsNormalized(Keys.CtrlH))
+                    || key == Keys.Backspace
+                    || key == Keys.CtrlH)
                 {
                     if (toMatch.Length > 0)
                     {
@@ -735,7 +733,7 @@ namespace Microsoft.PowerShell
                         Ding();
                     }
                 }
-                else if (key.EqualsNormalized(Keys.Escape))
+                else if (key == Keys.Escape)
                 {
                     // End search
                     break;

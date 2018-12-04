@@ -6,8 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 
-using PSKeyInfo = System.ConsoleKeyInfo;
-
 namespace Microsoft.PowerShell
 {
     public partial class PSConsoleReadLine
@@ -885,18 +883,18 @@ namespace Microsoft.PowerShell
             while (true)
             {
                 var nextKey = ReadKey();
-                if (nextKey.EqualsNormalized(Keys.Enter) || nextKey.EqualsNormalized(Keys.Tab))
+                if (nextKey == Keys.Enter || nextKey == Keys.Tab)
                 {
                     _searchHistoryPrefix = argBuffer.ToString();
                     _searchHistoryBackward = backward;
                     HistorySearch();
                     break;
                 }
-                if (nextKey.EqualsNormalized(Keys.Escape))
+                if (nextKey == Keys.Escape)
                 {
                     break;
                 }
-                if (nextKey.EqualsNormalized(Keys.Backspace))
+                if (nextKey == Keys.Backspace)
                 {
                     if (argBuffer.Length > 0)
                     {
@@ -1062,7 +1060,7 @@ namespace Microsoft.PowerShell
                 var nextKey = ReadKey();
                 if (_singleton._dispatchTable.TryGetValue(nextKey, out var handler) && handler.Action == DigitArgument)
                 {
-                    if (nextKey.EqualsNormalized(Keys.Minus))
+                    if (nextKey == Keys.Minus)
                     {
                         if (argBuffer[0] == '-')
                         {

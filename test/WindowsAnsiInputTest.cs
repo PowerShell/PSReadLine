@@ -3,8 +3,6 @@ using System.Linq;
 using Microsoft.PowerShell;
 using Xunit;
 
-using PSKeyInfo = System.ConsoleKeyInfo;
-
 namespace Test
 {
     // Disgusting language hack to make it easier to read a sequence of keys.
@@ -12,9 +10,9 @@ namespace Test
 
     public partial class ReadLine
     {
-        private PSKeyInfo[] StringToCKI(string str)
+        private ConsoleKeyInfo[] StringToCKI(string str)
         {
-            return str.Select(c => new PSKeyInfo(c, 0, false, false, false)).ToArray();
+            return str.Select(c => new ConsoleKeyInfo(c, 0, false, false, false)).ToArray();
         }
 
         [Fact]
@@ -22,7 +20,7 @@ namespace Test
         {
             var map = new WindowsAnsiCharMap();
             // Enter (Ctrl+J)
-            map.ProcessKey(new PSKeyInfo('\x0D', 0, false, false, false));
+            map.ProcessKey(new ConsoleKeyInfo('\x0D', 0, false, false, false));
             Assert.True(map.KeyAvailable);
             var processedKey = map.ReadKey();
             Assert.Equal(ConsoleKey.Enter, processedKey.Key);
@@ -30,13 +28,13 @@ namespace Test
             Assert.False(map.KeyAvailable);
 
             // Ctrl+C
-            map.ProcessKey(new PSKeyInfo('\x03', 0, false, false, false));
+            map.ProcessKey(new ConsoleKeyInfo('\x03', 0, false, false, false));
             processedKey = map.ReadKey();
             Assert.Equal(ConsoleKey.C, processedKey.Key);
             Assert.Equal(ConsoleModifiers.Control, processedKey.Modifiers);
         }
 
-        private void CheckEscapeInput(ICharMap map, PSKeyInfo intended, PSKeyInfo[] keys, bool inputOnly = false)
+        private void CheckEscapeInput(ICharMap map, ConsoleKeyInfo intended, ConsoleKeyInfo[] keys, bool inputOnly = false)
         {
             for (int i = 0; i < keys.Length; i++)
             {
@@ -76,31 +74,31 @@ namespace Test
 
             // ^[[1;2B = Shift+DownArrow
             CheckEscapeInput(map,
-                new PSKeyInfo('\0', ConsoleKey.DownArrow, shift: true, alt: false, control: false),
+                new ConsoleKeyInfo('\0', ConsoleKey.DownArrow, shift: true, alt: false, control: false),
                 StringToCKI("\x1b[1;2B")
             );
 
             // ^[[1;8C = Ctrl+Alt+Shift+RightArrow
             CheckEscapeInput(map,
-                new PSKeyInfo('\0', ConsoleKey.RightArrow, shift: true, alt: true, control: true),
+                new ConsoleKeyInfo('\0', ConsoleKey.RightArrow, shift: true, alt: true, control: true),
                 StringToCKI("\x1b[1;8C")
             );
 
             // ^[[1;6D = Ctrl+Shift+LeftArrow
             CheckEscapeInput(map,
-                new PSKeyInfo('\0', ConsoleKey.LeftArrow, shift: true, alt: false, control: true),
+                new ConsoleKeyInfo('\0', ConsoleKey.LeftArrow, shift: true, alt: false, control: true),
                 StringToCKI("\x1b[1;6D")
             );
 
             // ^[[3~ = Delete
             CheckEscapeInput(map,
-                new PSKeyInfo('\0', ConsoleKey.Delete, shift: false, alt: false, control: false),
+                new ConsoleKeyInfo('\0', ConsoleKey.Delete, shift: false, alt: false, control: false),
                 StringToCKI("\x1b[3~")
             );
 
             // ^[[15;5~ = Control+F5
             CheckEscapeInput(map,
-                new PSKeyInfo('\0', ConsoleKey.F5, shift: false, alt: false, control: true),
+                new ConsoleKeyInfo('\0', ConsoleKey.F5, shift: false, alt: false, control: true),
                 StringToCKI("\x1b[15;5~")
             );
 
@@ -112,14 +110,14 @@ namespace Test
             var map = new WindowsAnsiCharMap(1000);
 
             // ^[[ = Alt+[
-            CheckEscapeInput(map, default(PSKeyInfo), StringToCKI("\x1b["), true);
+            CheckEscapeInput(map, default(ConsoleKeyInfo), StringToCKI("\x1b["), true);
             var processedKey = map.ReadKey();
             Assert.Equal('[', processedKey.KeyChar);
             Assert.Equal(ConsoleModifiers.Alt, processedKey.Modifiers);
             Assert.False(map.KeyAvailable);
 
             // ^[j = Alt+j
-            CheckEscapeInput(map, default(PSKeyInfo), StringToCKI("\x1bj"), true);
+            CheckEscapeInput(map, default(ConsoleKeyInfo), StringToCKI("\x1bj"), true);
             processedKey = map.ReadKey();
             Assert.Equal('j', processedKey.KeyChar);
             Assert.Equal(ConsoleModifiers.Alt, processedKey.Modifiers);
@@ -128,14 +126,14 @@ namespace Test
             // ^[X = Alt+X
             // Currently shift is not set for capitals, so just check the alt
             // parts to allow that behavior to change without breaking this test.
-            CheckEscapeInput(map, default(PSKeyInfo), StringToCKI("\x1bX"), true);
+            CheckEscapeInput(map, default(ConsoleKeyInfo), StringToCKI("\x1bX"), true);
             processedKey = map.ReadKey();
             Assert.Equal('X', processedKey.KeyChar);
             Assert.Equal(ConsoleModifiers.Alt, processedKey.Modifiers & ConsoleModifiers.Alt);
             Assert.False(map.KeyAvailable);
 
             // ^[^A = Alt+Ctrl+A
-            CheckEscapeInput(map, default(PSKeyInfo), StringToCKI("\x1b\x01"), true);
+            CheckEscapeInput(map, default(ConsoleKeyInfo), StringToCKI("\x1b\x01"), true);
             processedKey = map.ReadKey();
             Assert.Equal('\x01', processedKey.KeyChar);
             Assert.Equal(ConsoleModifiers.Alt | ConsoleModifiers.Control, processedKey.Modifiers);
@@ -176,7 +174,7 @@ namespace Test
             map.ReadKey();
         }
 
-        private void CheckPartialEscapeInput(ICharMap map, int expectedCount, PSKeyInfo[] keys)
+        private void CheckPartialEscapeInput(ICharMap map, int expectedCount, ConsoleKeyInfo[] keys)
         {
             foreach (var key in keys)
             {
