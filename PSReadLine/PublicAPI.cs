@@ -11,6 +11,7 @@ using System.Management.Automation.Runspaces;
 using System.Text;
 using Microsoft.PowerShell.PSReadLine;
 
+using PSKeyInfo = System.ConsoleKeyInfo;
 
 namespace Microsoft.PowerShell
 {
@@ -30,7 +31,7 @@ namespace Microsoft.PowerShell
         [SuppressMessage("Microsoft.MSInternal", "CA903:InternalNamespaceShouldNotContainPublicTypes")]
         public interface IConsole
         {
-            ConsoleKeyInfo ReadKey();
+            PSKeyInfo ReadKey();
             bool KeyAvailable { get; }
             int CursorLeft { get; set; }
             int CursorTop { get; set;}

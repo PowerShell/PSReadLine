@@ -6,6 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
+using PSKeyInfo = System.ConsoleKeyInfo;
+
 namespace Microsoft.PowerShell
 {
     // Character sequence translator for platforms that behavior is not
@@ -23,19 +25,19 @@ namespace Microsoft.PowerShell
         bool InEscapeSequence { get; }
         // Read a key from the processing buffer. An unspecified value
         // is returned if `KeyAvailable` is false.
-        ConsoleKeyInfo ReadKey();
+        PSKeyInfo ReadKey();
         // Insert a new key into the processing buffer. It is important that
         // immediately after every call to this, you check `KeyAvailable` as
         // the implementations are not designed to hold keys that don't form
         // a recognizable sequence.
-        void ProcessKey(ConsoleKeyInfo key);
+        void ProcessKey(PSKeyInfo key);
     }
 
     // No-op - relies on whatever processing the .NET Console class does,
     // which on Unix reads from terminfo, and on Windows is none to very little.
     internal class DotNetCharMap : ICharMap
     {
-        private ConsoleKeyInfo _key;
+        private PSKeyInfo _key;
 
         // Unused
         public long EscapeTimeout {
@@ -47,13 +49,13 @@ namespace Microsoft.PowerShell
 
         public bool InEscapeSequence { get; } = false;
 
-        public ConsoleKeyInfo ReadKey()
+        public PSKeyInfo ReadKey()
         {
             KeyAvailable = false;
             return _key;
         }
 
-        public void ProcessKey(ConsoleKeyInfo key)
+        public void ProcessKey(PSKeyInfo key)
         {
             _key = key;
             KeyAvailable = true;
@@ -63,7 +65,7 @@ namespace Microsoft.PowerShell
     // Hard-coded translator for the only VT mode Windows supports.
     internal class WindowsAnsiCharMap : ICharMap
     {
-        private List<ConsoleKeyInfo> _pendingKeys;
+        private List<PSKeyInfo> _pendingKeys;
         // The next index in `_pendingKeys` to write to.
         private int _addKeyIndex;
         // The next index in `_pendingKeys` to read from. This index becomes
@@ -83,11 +85,11 @@ namespace Microsoft.PowerShell
             // Windows spewed a whole bunch of stuff to the console and crashed
             // it somehow (Alt+numpad), so just to be safe use a List in case
             // the buffer needs to expand.
-            this._pendingKeys = new List<ConsoleKeyInfo>(6);
+            this._pendingKeys = new List<PSKeyInfo>(6);
             // Several places assume that _pendingKeys[0] is valid. Since
             // elements are never removed from the list, only overwritten,
             // doing this will avoid any problems with that assumption.
-            this._pendingKeys.Add(default(ConsoleKeyInfo));
+            this._pendingKeys.Add(default(PSKeyInfo));
             this._addKeyIndex = 0;
             this._readKeyIndexFrom = 0;
             this._readKeyIndexTo = 0;
@@ -134,7 +136,7 @@ namespace Microsoft.PowerShell
             }
         }
 
-        public ConsoleKeyInfo ReadKey()
+        public PSKeyInfo ReadKey()
         {
             if (_readKeyIndexFrom < _readKeyIndexTo)
             {
@@ -152,11 +154,11 @@ namespace Microsoft.PowerShell
             }
             else
             {
-                return default(ConsoleKeyInfo);
+                return default(PSKeyInfo);
             }
         }
 
-        public void ProcessKey(ConsoleKeyInfo key)
+        public void ProcessKey(PSKeyInfo key)
         {
             ProcessSingleKey(key);
             if (_addKeyIndex > 1)
@@ -174,7 +176,7 @@ namespace Microsoft.PowerShell
             _readKeyIndexTo = 1;
         }
 
-        public void SetKey(int index, ConsoleKeyInfo key)
+        public void SetKey(int index, PSKeyInfo key)
         {
             if (index >= _pendingKeys.Count)
             {
@@ -186,7 +188,7 @@ namespace Microsoft.PowerShell
             }
         }
 
-        private void ProcessSingleKey(ConsoleKeyInfo key)
+        private void ProcessSingleKey(PSKeyInfo key)
         {
             var ch = key.KeyChar;
             if (ch == 0)
@@ -243,7 +245,7 @@ namespace Microsoft.PowerShell
                 control = false;
                 break;
             case 0x1B:
-                SetKey(i, new ConsoleKeyInfo('\x1b', ConsoleKey.Escape, false, false, false));
+                SetKey(i, new PSKeyInfo('\x1b', ConsoleKey.Escape, false, false, false));
                 _escTimeoutStopwatch.Restart();
                 // Don't let escape set KeyAvailable.
                 return;
@@ -266,7 +268,7 @@ namespace Microsoft.PowerShell
                 break;
             }
 
-            SetKey(i, new ConsoleKeyInfo(ch, consoleKey, shift: shift, alt: false, control: control));
+            SetKey(i, new PSKeyInfo(ch, consoleKey, shift: shift, alt: false, control: control));
             if (i == 0)
             {
                 _readKeyIndexTo = 1;
@@ -308,7 +310,7 @@ namespace Microsoft.PowerShell
             }
 
             var key = _pendingKeys[1];
-            _pendingKeys[0] = new ConsoleKeyInfo(
+            _pendingKeys[0] = new PSKeyInfo(
                 ch,
                 key.Key,
                 shift: (key.Modifiers & ConsoleModifiers.Shift) != 0,
@@ -446,7 +448,7 @@ namespace Microsoft.PowerShell
                 {
                     // ^[[Z - Shift-Tab
                     SetKey(0,
-                        new ConsoleKeyInfo('\0', ConsoleKey.Tab,
+                        new PSKeyInfo('\0', ConsoleKey.Tab,
                           shift: true, alt: false, control: false
                         )
                     );
@@ -461,7 +463,7 @@ namespace Microsoft.PowerShell
                     {
                         return false;
                     }
-                    SetKey(0, new ConsoleKeyInfo('\0', _escBracketConsoleKeys[index], false, false, false));
+                    SetKey(0, new PSKeyInfo('\0', _escBracketConsoleKeys[index], false, false, false));
                     CondenseState();
                     return true;
                 }
@@ -479,7 +481,7 @@ namespace Microsoft.PowerShell
                 {
                     return false;
                 }
-                SetKey(0, new ConsoleKeyInfo('\0', _escBracketConsoleKeys[index], false, false, false));
+                SetKey(0, new PSKeyInfo('\0', _escBracketConsoleKeys[index], false, false, false));
                 CondenseState();
                 return true;
             }
@@ -529,7 +531,7 @@ namespace Microsoft.PowerShell
 
             // We did it! A full escape sequence!
             var modifiers = _escBracketModifiers[modifierIndex];
-            var key = new ConsoleKeyInfo(
+            var key = new PSKeyInfo(
                 '\0',
                 _escBracketConsoleKeys[charIndex],
                 shift: (modifiers & ConsoleModifiers.Shift) == ConsoleModifiers.Shift,
@@ -702,7 +704,7 @@ namespace Microsoft.PowerShell
                 return false;
             }
 
-            var keyInfo = new ConsoleKeyInfo(
+            var keyInfo = new PSKeyInfo(
                 '\0',
                 key,
                 shift: (modifiers & ConsoleModifiers.Shift) == ConsoleModifiers.Shift,

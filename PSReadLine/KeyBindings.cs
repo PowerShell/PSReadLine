@@ -11,6 +11,8 @@ using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.PowerShell.PSReadLine;
 
+using PSKeyInfo = System.ConsoleKeyInfo;
+
 namespace Microsoft.PowerShell
 {
     /// <summary>
@@ -114,7 +116,7 @@ namespace Microsoft.PowerShell
             //
             // The first argument is the key that caused the action to be called
             // (the second key when it's a 2 key chord).  The default is null (it's nullable)
-            // because PowerShell can't handle default(ConsoleKeyInfo) as a default.
+            // because PowerShell can't handle default(PSKeyInfo) as a default.
             // Most actions will ignore this argument.
             //
             // The second argument is an arbitrary object.  It will usually be either a number
@@ -132,18 +134,18 @@ namespace Microsoft.PowerShell
             public ScriptBlock ScriptBlock;
         }
 
-        internal class ConsoleKeyInfoComparer : IEqualityComparer<ConsoleKeyInfo>
+        internal class ConsoleKeyInfoComparer : IEqualityComparer<PSKeyInfo>
         {
             public static ConsoleKeyInfoComparer Instance { get; } = new ConsoleKeyInfoComparer();
 
             private ConsoleKeyInfoComparer() { }
 
-            public bool Equals(ConsoleKeyInfo x, ConsoleKeyInfo y)
+            public bool Equals(PSKeyInfo x, PSKeyInfo y)
             {
                 return x.EqualsNormalized(y);
             }
 
-            public int GetHashCode(ConsoleKeyInfo obj)
+            public int GetHashCode(PSKeyInfo obj)
             {
                 return obj.GetNormalizedHashCode();
             }
@@ -160,8 +162,8 @@ namespace Microsoft.PowerShell
             };
         }
 
-        private Dictionary<ConsoleKeyInfo, KeyHandler> _dispatchTable;
-        private Dictionary<ConsoleKeyInfo, Dictionary<ConsoleKeyInfo, KeyHandler>> _chordDispatchTable;
+        private Dictionary<PSKeyInfo, KeyHandler> _dispatchTable;
+        private Dictionary<PSKeyInfo, Dictionary<PSKeyInfo, KeyHandler>> _chordDispatchTable;
 
         /// <summary>
         /// Helper to set bindings based on EditMode
@@ -184,7 +186,7 @@ namespace Microsoft.PowerShell
 
         void SetDefaultWindowsBindings()
         {
-            _dispatchTable = new Dictionary<ConsoleKeyInfo, KeyHandler>(ConsoleKeyInfoComparer.Instance)
+            _dispatchTable = new Dictionary<PSKeyInfo, KeyHandler>(ConsoleKeyInfoComparer.Instance)
             {
                 { Keys.Enter,                  MakeKeyHandler(AcceptLine,                "AcceptLine") },
                 { Keys.ShiftEnter,             MakeKeyHandler(AddLine,                   "AddLine") },
@@ -260,12 +262,12 @@ namespace Microsoft.PowerShell
                 _dispatchTable.Add(Keys.CtrlH,      MakeKeyHandler(BackwardDeleteChar,"BackwardDeleteChar"));
             }
 
-            _chordDispatchTable = new Dictionary<ConsoleKeyInfo, Dictionary<ConsoleKeyInfo, KeyHandler>>(ConsoleKeyInfoComparer.Instance);
+            _chordDispatchTable = new Dictionary<PSKeyInfo, Dictionary<PSKeyInfo, KeyHandler>>(ConsoleKeyInfoComparer.Instance);
         }
 
         void SetDefaultEmacsBindings()
         {
-            _dispatchTable = new Dictionary<ConsoleKeyInfo, KeyHandler>(ConsoleKeyInfoComparer.Instance)
+            _dispatchTable = new Dictionary<PSKeyInfo, KeyHandler>(ConsoleKeyInfoComparer.Instance)
             {
                 { Keys.Backspace,       MakeKeyHandler(BackwardDeleteChar,   "BackwardDeleteChar") },
                 { Keys.Enter,           MakeKeyHandler(AcceptLine,           "AcceptLine") },
@@ -357,10 +359,10 @@ namespace Microsoft.PowerShell
                 _dispatchTable.Add(Keys.AltSpace,     MakeKeyHandler(SetMark,               "SetMark"));
             }
 
-            _chordDispatchTable = new Dictionary<ConsoleKeyInfo, Dictionary<ConsoleKeyInfo, KeyHandler>>(ConsoleKeyInfoComparer.Instance)
+            _chordDispatchTable = new Dictionary<PSKeyInfo, Dictionary<PSKeyInfo, KeyHandler>>(ConsoleKeyInfoComparer.Instance)
             {
                 // Escape,<key> table (meta key)
-                [Keys.Escape] = new Dictionary<ConsoleKeyInfo, KeyHandler>(ConsoleKeyInfoComparer.Instance)
+                [Keys.Escape] = new Dictionary<PSKeyInfo, KeyHandler>(ConsoleKeyInfoComparer.Instance)
                 {
                     { Keys.B,         MakeKeyHandler(BackwardWord,     "BackwardWord") },
                     { Keys.D,         MakeKeyHandler(KillWord,         "KillWord")},
@@ -374,7 +376,7 @@ namespace Microsoft.PowerShell
                 },
 
                 // Ctrl+X,<key> table
-                [Keys.CtrlX] = new Dictionary<ConsoleKeyInfo, KeyHandler>(ConsoleKeyInfoComparer.Instance)
+                [Keys.CtrlX] = new Dictionary<PSKeyInfo, KeyHandler>(ConsoleKeyInfoComparer.Instance)
                 {
                     { Keys.Backspace, MakeKeyHandler(BackwardKillLine,     "BackwardKillLine") },
                     { Keys.CtrlE,     MakeKeyHandler(ViEditVisually,       "ViEditVisually") },

@@ -6,6 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
+using PSKeyInfo = System.ConsoleKeyInfo;
+
 namespace Microsoft.PowerShell
 {
     public partial class PSConsoleReadLine
@@ -37,22 +39,22 @@ namespace Microsoft.PowerShell
 
         private int _normalCursorSize = 10;
 
-        private static Dictionary<ConsoleKeyInfo, KeyHandler> _viInsKeyMap;
-        private static Dictionary<ConsoleKeyInfo, KeyHandler> _viCmdKeyMap;
-        private static Dictionary<ConsoleKeyInfo, KeyHandler> _viChordDTable;
-        private static Dictionary<ConsoleKeyInfo, KeyHandler> _viChordGTable;
-        private static Dictionary<ConsoleKeyInfo, KeyHandler> _viChordCTable;
-        private static Dictionary<ConsoleKeyInfo, KeyHandler> _viChordYTable;
+        private static Dictionary<PSKeyInfo, KeyHandler> _viInsKeyMap;
+        private static Dictionary<PSKeyInfo, KeyHandler> _viCmdKeyMap;
+        private static Dictionary<PSKeyInfo, KeyHandler> _viChordDTable;
+        private static Dictionary<PSKeyInfo, KeyHandler> _viChordGTable;
+        private static Dictionary<PSKeyInfo, KeyHandler> _viChordCTable;
+        private static Dictionary<PSKeyInfo, KeyHandler> _viChordYTable;
 
-        private static Dictionary<ConsoleKeyInfo, Dictionary<ConsoleKeyInfo, KeyHandler>> _viCmdChordTable;
-        private static Dictionary<ConsoleKeyInfo, Dictionary<ConsoleKeyInfo, KeyHandler>> _viInsChordTable;
+        private static Dictionary<PSKeyInfo, Dictionary<PSKeyInfo, KeyHandler>> _viCmdChordTable;
+        private static Dictionary<PSKeyInfo, Dictionary<PSKeyInfo, KeyHandler>> _viInsChordTable;
 
         /// <summary>
         /// Sets up the key bindings for vi operations.
         /// </summary>
         private void SetDefaultViBindings()
         {
-            _viInsKeyMap = new Dictionary<ConsoleKeyInfo, KeyHandler>(ConsoleKeyInfoComparer.Instance)
+            _viInsKeyMap = new Dictionary<PSKeyInfo, KeyHandler>(ConsoleKeyInfoComparer.Instance)
             {
                 { Keys.Enter,           MakeKeyHandler(AcceptLine,             "AcceptLine" ) },
                 { Keys.CtrlD,           MakeKeyHandler(ViAcceptLineOrExit,     "ViAcceptLineOrExit" ) },
@@ -98,7 +100,7 @@ namespace Microsoft.PowerShell
                 _viInsKeyMap.Add(Keys.CtrlDelete, MakeKeyHandler(KillWord, "KillWord"));
             }
 
-            _viCmdKeyMap = new Dictionary<ConsoleKeyInfo, KeyHandler>(ConsoleKeyInfoComparer.Instance)
+            _viCmdKeyMap = new Dictionary<PSKeyInfo, KeyHandler>(ConsoleKeyInfoComparer.Instance)
             {
                 { Keys.Enter,           MakeKeyHandler(ViAcceptLine,         "ViAcceptLine") },
                 { Keys.CtrlD,           MakeKeyHandler(ViAcceptLineOrExit,   "ViAcceptLineOrExit") },
@@ -221,7 +223,7 @@ namespace Microsoft.PowerShell
             }
 
 
-            _viChordDTable = new Dictionary<ConsoleKeyInfo, KeyHandler>(ConsoleKeyInfoComparer.Instance)
+            _viChordDTable = new Dictionary<PSKeyInfo, KeyHandler>(ConsoleKeyInfoComparer.Instance)
             {
                 { Keys.D,               MakeKeyHandler( DeleteLine,                   "DeleteLine") },
                 { Keys.Dollar,          MakeKeyHandler( DeleteToEnd,                  "DeleteToEnd") },
@@ -243,7 +245,7 @@ namespace Microsoft.PowerShell
                 { Keys.ucT,             MakeKeyHandler( ViDeleteToBeforeCharBackward, "ViDeleteToBeforeCharBackward") },
             };
 
-            _viChordCTable = new Dictionary<ConsoleKeyInfo, KeyHandler>(ConsoleKeyInfoComparer.Instance)
+            _viChordCTable = new Dictionary<PSKeyInfo, KeyHandler>(ConsoleKeyInfoComparer.Instance)
             {
                 { Keys.C,               MakeKeyHandler( ViReplaceLine,                    "ViReplaceLine") },
                 { Keys.Dollar,          MakeKeyHandler( ViReplaceToEnd,                   "ViReplaceToEnd") },
@@ -265,12 +267,12 @@ namespace Microsoft.PowerShell
                 { Keys.ucT,             MakeKeyHandler( ViReplaceToBeforeCharBackward,    "ViReplaceToBeforeCharBackward") },
             };
 
-            _viChordGTable = new Dictionary<ConsoleKeyInfo, KeyHandler>(ConsoleKeyInfoComparer.Instance)
+            _viChordGTable = new Dictionary<PSKeyInfo, KeyHandler>(ConsoleKeyInfoComparer.Instance)
             {
                 { Keys.G,               MakeKeyHandler( MoveToFirstLine,                    "MoveToFirstLine") },
             };
 
-            _viChordYTable = new Dictionary<ConsoleKeyInfo, KeyHandler>(ConsoleKeyInfoComparer.Instance)
+            _viChordYTable = new Dictionary<PSKeyInfo, KeyHandler>(ConsoleKeyInfoComparer.Instance)
             {
                 { Keys.Y,               MakeKeyHandler( ViYankLine,            "ViYankLine") },
                 { Keys.Dollar,          MakeKeyHandler( ViYankToEndOfLine,     "ViYankToEndOfLine") },
@@ -288,8 +290,8 @@ namespace Microsoft.PowerShell
                 { Keys.Percent,         MakeKeyHandler( ViYankPercent,         "ViYankPercent") },
             };
 
-            _viCmdChordTable = new Dictionary<ConsoleKeyInfo, Dictionary<ConsoleKeyInfo, KeyHandler>>(ConsoleKeyInfoComparer.Instance);
-            _viInsChordTable = new Dictionary<ConsoleKeyInfo, Dictionary<ConsoleKeyInfo, KeyHandler>>(ConsoleKeyInfoComparer.Instance);
+            _viCmdChordTable = new Dictionary<PSKeyInfo, Dictionary<PSKeyInfo, KeyHandler>>(ConsoleKeyInfoComparer.Instance);
+            _viInsChordTable = new Dictionary<PSKeyInfo, Dictionary<PSKeyInfo, KeyHandler>>(ConsoleKeyInfoComparer.Instance);
 
             _dispatchTable = _viInsKeyMap;
             _chordDispatchTable = _viInsChordTable;

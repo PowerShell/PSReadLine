@@ -4,6 +4,8 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using Xunit;
 
+using PSKeyInfo = System.ConsoleKeyInfo;
+
 namespace Test
 {
     // Disgusting language hack to make it easier to read a sequence of keys.
@@ -78,7 +80,7 @@ namespace Test
         [Fact]
         public void ForwardDeleteLine()
         {
-            ConsoleKeyInfo deleteToEnd;
+            PSKeyInfo deleteToEnd;
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 TestSetup(KeyMode.Cmd);
@@ -367,10 +369,7 @@ namespace Test
         {
             TestSetup(KeyMode.Emacs);
 
-            var volumeUp   = new ConsoleKeyInfo('\0', ConsoleKey.VolumeUp, false, false, false);
-            var volumeDown = new ConsoleKeyInfo('\0', ConsoleKey.VolumeDown, false, false, false);
-            var volumeMute = new ConsoleKeyInfo('\0', ConsoleKey.VolumeMute, false, false, false);
-            Test("ab", Keys("a", volumeDown, volumeMute, volumeUp, "b"));
+            Test("ab", Keys("a", _.VolumeDown, _.VolumeMute, _.VolumeUp, "b"));
         }
     }
 }

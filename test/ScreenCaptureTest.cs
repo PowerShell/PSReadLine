@@ -3,6 +3,8 @@ using System.Linq;
 using Microsoft.PowerShell;
 using Xunit;
 
+using PSKeyInfo = System.ConsoleKeyInfo;
+
 namespace Test
 {
     // Disgusting language hack to make it easier to read a sequence of keys.
@@ -35,8 +37,8 @@ namespace Test
             // Make sure we know where we are on the screen.
             AssertCursorTopIs(4);
 
-            var shiftUpArrow = new ConsoleKeyInfo('\0', ConsoleKey.UpArrow, true, false, false);
-            var shiftDownArrow = new ConsoleKeyInfo('\0', ConsoleKey.DownArrow, true, false, false);
+            var shiftUpArrow = new PSKeyInfo('\0', ConsoleKey.UpArrow, true, false, false);
+            var shiftDownArrow = new PSKeyInfo('\0', ConsoleKey.DownArrow, true, false, false);
 
             Test("", Keys(
                 // Basic up/down arrows

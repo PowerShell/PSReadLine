@@ -11,6 +11,8 @@ using System.Text;
 using System.Threading;
 using Microsoft.PowerShell.PSReadLine;
 
+using PSKeyInfo = System.ConsoleKeyInfo;
+
 namespace Microsoft.PowerShell
 {
     public partial class PSConsoleReadLine
@@ -772,7 +774,7 @@ namespace Microsoft.PowerShell
             }
         }
 
-        private static bool EndInteractiveHistorySearch(ConsoleKeyInfo key)
+        private static bool EndInteractiveHistorySearch(PSKeyInfo key)
         {
             return char.IsControl(key.KeyChar)
                 || (key.Modifiers & (ConsoleModifiers.Alt | ConsoleModifiers.Control)) != 0;

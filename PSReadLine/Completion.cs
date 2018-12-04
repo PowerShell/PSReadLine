@@ -15,6 +15,8 @@ using System.Management.Automation.Runspaces;
 using Microsoft.PowerShell.Internal;
 using Microsoft.PowerShell.PSReadLine;
 
+using PSKeyInfo = System.ConsoleKeyInfo;
+
 namespace Microsoft.PowerShell
 {
     public partial class PSConsoleReadLine
@@ -24,8 +26,8 @@ namespace Microsoft.PowerShell
         private CommandCompletion _tabCompletions;
         private Runspace _runspace;
 
-        private static readonly Dictionary<CompletionResultType, ConsoleKeyInfo []> KeysEndingCompletion =
-            new Dictionary<CompletionResultType, ConsoleKeyInfo []>
+        private static readonly Dictionary<CompletionResultType, PSKeyInfo []> KeysEndingCompletion =
+            new Dictionary<CompletionResultType, PSKeyInfo []>
         {
             { CompletionResultType.Variable,          new[] { Keys.Period } },
             { CompletionResultType.Namespace,         new[] { Keys.Period } },
@@ -733,7 +735,7 @@ namespace Microsoft.PowerShell
                 : match.CompletionText.IndexOf(userCompletionText, StringComparison.OrdinalIgnoreCase);
         }
 
-        private bool IsDoneWithCompletions(CompletionResult currentCompletion, ConsoleKeyInfo nextKey)
+        private bool IsDoneWithCompletions(CompletionResult currentCompletion, PSKeyInfo nextKey)
         {
             return nextKey.EqualsNormalized(Keys.Space)
                 || nextKey.EqualsNormalized(Keys.Enter)

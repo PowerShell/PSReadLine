@@ -6,6 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 
+using PSKeyInfo = System.ConsoleKeyInfo;
+
 namespace Microsoft.PowerShell
 {
     public partial class PSConsoleReadLine
@@ -1019,7 +1021,7 @@ namespace Microsoft.PowerShell
             }
         }
 
-        private static bool IsNumeric(ConsoleKeyInfo key)
+        private static bool IsNumeric(PSKeyInfo key)
         {
             return key.KeyChar >= '0' && key.KeyChar <= '9' && key.Modifiers == 0;
         }

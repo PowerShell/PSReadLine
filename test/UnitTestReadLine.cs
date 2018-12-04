@@ -12,6 +12,8 @@ using Microsoft.PowerShell;
 using Microsoft.PowerShell.Internal;
 using Xunit;
 
+using PSKeyInfo = System.ConsoleKeyInfo;
+
 namespace Test
 {
     // Disgusting language hack to make it easier to read a sequence of keys.
@@ -120,14 +122,14 @@ namespace Test
             this.validationFailure = null;
         }
 
-        public ConsoleKeyInfo ReadKey()
+        public PSKeyInfo ReadKey()
         {
             while (index < inputOrValidateItems.Length)
             {
                 var item = inputOrValidateItems[index++];
-                if (item is ConsoleKeyInfo)
+                if (item is PSKeyInfo)
                 {
-                    return (ConsoleKeyInfo)item;
+                    return (PSKeyInfo)item;
                 }
                 try
                 {
@@ -149,7 +151,7 @@ namespace Test
             return _.CtrlC;
         }
 
-        public bool KeyAvailable => index < inputOrValidateItems.Length && inputOrValidateItems[index] is ConsoleKeyInfo;
+        public bool KeyAvailable => index < inputOrValidateItems.Length && inputOrValidateItems[index] is PSKeyInfo;
 
         public int CursorLeft { get; set; }
         public int CursorTop { get; set; }
@@ -400,15 +402,15 @@ namespace Test
 
             for (var i = 'a'; i <= 'z'; i++)
             {
-                CharToKeyInfo[i] = new ConsoleKeyInfo(i, ConsoleKey.A + i - 'a', false, false, false);
+                CharToKeyInfo[i] = new PSKeyInfo(i, ConsoleKey.A + i - 'a', false, false, false);
             }
             for (var i = 'A'; i <= 'Z'; i++)
             {
-                CharToKeyInfo[i] = new ConsoleKeyInfo(i, ConsoleKey.A + i - 'A', true, false, false);
+                CharToKeyInfo[i] = new PSKeyInfo(i, ConsoleKey.A + i - 'A', true, false, false);
             }
             for (var i = '0'; i <= '9'; i++)
             {
-                CharToKeyInfo[i] = new ConsoleKeyInfo(i, ConsoleKey.D0 + i - '0', false, false, false);
+                CharToKeyInfo[i] = new PSKeyInfo(i, ConsoleKey.D0 + i - '0', false, false, false);
             }
             CharToKeyInfo['{'] = _.LCurly;
             CharToKeyInfo['}'] = _.RCurly;
@@ -432,8 +434,8 @@ namespace Test
             CharToKeyInfo['\''] = _.SQuote;
             CharToKeyInfo['\\'] = _.Backslash;
             CharToKeyInfo['/'] = _.Slash;
-            CharToKeyInfo['\n'] = new ConsoleKeyInfo('\r', ConsoleKey.Enter, false, false, false);
-            CharToKeyInfo['\r'] = new ConsoleKeyInfo('\r', ConsoleKey.Enter, false, false, false);
+            CharToKeyInfo['\n'] = new PSKeyInfo('\r', ConsoleKey.Enter, false, false, false);
+            CharToKeyInfo['\r'] = new PSKeyInfo('\r', ConsoleKey.Enter, false, false, false);
         }
 
         private enum KeyMode
@@ -475,7 +477,7 @@ namespace Test
         /*Member*/    ConsoleColor.Yellow,
         };
 
-        static readonly Dictionary<char, ConsoleKeyInfo> CharToKeyInfo = new Dictionary<char, ConsoleKeyInfo>();
+        static readonly Dictionary<char, PSKeyInfo> CharToKeyInfo = new Dictionary<char, PSKeyInfo>();
 
         class KeyHandler
         {
@@ -685,7 +687,7 @@ namespace Test
                     // We've skipped any actions at the end, this is
                     // the last key.  If it's not Enter, add Enter at the
                     // end for convenience.
-                    var key = (ConsoleKeyInfo)list[i];
+                    var key = (PSKeyInfo)list[i];
                     if (key.Key != ConsoleKey.Enter || key.Modifiers != 0)
                     {
                         list.Add(_.Enter);
@@ -706,7 +708,7 @@ namespace Test
                     list.Add(CharToKeyInfo[c]);
                 }
             }
-            else if (t is ConsoleKeyInfo)
+            else if (t is PSKeyInfo)
             {
                 list.Add(t);
             }

@@ -11,6 +11,8 @@ using System.Reflection;
 using System.Threading;
 using Microsoft.PowerShell.PSReadLine;
 
+using PSKeyInfo = System.ConsoleKeyInfo;
+
 namespace Microsoft.PowerShell
 {
     public partial class PSConsoleReadLine
@@ -162,7 +164,7 @@ namespace Microsoft.PowerShell
                     _dispatchTable[chord[0]] = MakeKeyHandler(Chord, "ChordFirstKey");
                     if (!_chordDispatchTable.TryGetValue(chord[0], out var secondDispatchTable))
                     {
-                        secondDispatchTable = new Dictionary<ConsoleKeyInfo, KeyHandler>(ConsoleKeyInfoComparer.Instance);
+                        secondDispatchTable = new Dictionary<PSKeyInfo, KeyHandler>(ConsoleKeyInfoComparer.Instance);
                         _chordDispatchTable[chord[0]] = secondDispatchTable;
                     }
                     secondDispatchTable[chord[1]] = MakeKeyHandler(handler, briefDescription, longDescription, scriptBlock);

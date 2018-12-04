@@ -20,7 +20,7 @@ namespace Microsoft.PowerShell
             int startingCursor = _singleton._current;
             StringBuilder deletedStr = new StringBuilder();
 
-            ConsoleKeyInfo nextKey = ReadKey();
+            var nextKey = ReadKey();
             while (!nextKey.EqualsNormalized(Keys.Escape) && !nextKey.EqualsNormalized(Keys.Enter))
             {
                 if (nextKey.EqualsNormalized(Keys.Backspace))
@@ -222,7 +222,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         private static void ReplaceCharInPlace(ConsoleKeyInfo? key, object arg)
         {
-            ConsoleKeyInfo nextKey = ReadKey();
+            var nextKey = ReadKey();
             if (_singleton._buffer.Length > 0 && nextKey.KeyChar > 0 && nextKey.Key != ConsoleKey.Escape && nextKey.Key != ConsoleKey.Enter)
             {
                 _singleton.StartEditGroup();

@@ -20,6 +20,8 @@ using Microsoft.PowerShell.Commands;
 using Microsoft.PowerShell.Internal;
 using Microsoft.PowerShell.PSReadLine;
 
+using PSKeyInfo = System.ConsoleKeyInfo;
+
 [module: SuppressMessage("Microsoft.Design", "CA1014:MarkAssembliesWithClsCompliant")]
 [module: SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
 
@@ -67,12 +69,12 @@ namespace Microsoft.PowerShell
         private int _undoEditIndex;
         private int _mark;
         private bool _inputAccepted;
-        private readonly Queue<ConsoleKeyInfo> _queuedKeys;
+        private readonly Queue<PSKeyInfo> _queuedKeys;
         private Stopwatch _lastRenderTime;
         private static readonly Stopwatch _readkeyStopwatch = new Stopwatch();
 
         // Save a fixed # of keys so we can reconstruct a repro after a crash
-        private static readonly HistoryQueue<ConsoleKeyInfo> _lastNKeys = new HistoryQueue<ConsoleKeyInfo>(200);
+        private static readonly HistoryQueue<PSKeyInfo> _lastNKeys = new HistoryQueue<PSKeyInfo>(200);
 
         // Tokens etc.
         private Token[] _tokens;
@@ -164,7 +166,7 @@ namespace Microsoft.PowerShell
             }
         }
 
-        internal static ConsoleKeyInfo ReadKey()
+        internal static PSKeyInfo ReadKey()
         {
             // Reading a key is handled on a different thread.  During process shutdown,
             // PowerShell will wait in it's ConsoleCtrlHandler until the pipeline has completed.
@@ -284,12 +286,12 @@ namespace Microsoft.PowerShell
             return key;
         }
 
-        private void PrependQueuedKeys(ConsoleKeyInfo key)
+        private void PrependQueuedKeys(PSKeyInfo key)
         {
             if (_queuedKeys.Count > 0)
             {
                 // This should almost never happen so being inefficient is fine.
-                var list = new List<ConsoleKeyInfo>(_queuedKeys);
+                var list = new List<PSKeyInfo>(_queuedKeys);
                 _queuedKeys.Clear();
                 _queuedKeys.Enqueue(key);
                 list.ForEach(k => _queuedKeys.Enqueue(k));
@@ -570,11 +572,11 @@ namespace Microsoft.PowerShell
             CallPossibleExternalApplication<object>(() => { action(); return null; });
         }
 
-        void ProcessOneKey(ConsoleKeyInfo key, Dictionary<ConsoleKeyInfo, KeyHandler> dispatchTable, bool ignoreIfNoAction, object arg)
+        void ProcessOneKey(PSKeyInfo key, Dictionary<PSKeyInfo, KeyHandler> dispatchTable, bool ignoreIfNoAction, object arg)
         {
             // Our dispatch tables are built as much as possible in a portable way, so for example,
             // we avoid depending on scan codes like ConsoleKey.Oem6 and instead look at the
-            // ConsoleKeyInfo.Key. We also want to ignore the shift state as that may differ on
+            // PSKeyInfo.Key. We also want to ignore the shift state as that may differ on
             // different keyboard layouts.
             //
             // That said, we first look up exactly what we get from Console.ReadKey - that will fail
@@ -585,7 +587,7 @@ namespace Microsoft.PowerShell
                 // shift hadn't be pressed.  This cleanly allows Shift+Backspace without adding a key binding.
                 if (key.KeyChar > 0 && char.IsControl(key.KeyChar) && key.Modifiers == ConsoleModifiers.Shift)
                 {
-                    key = new ConsoleKeyInfo(key.KeyChar, key.Key, false, false, false);
+                    key = new PSKeyInfo(key.KeyChar, key.Key, false, false, false);
                     dispatchTable.TryGetValue(key, out handler);
                 }
             }
@@ -617,7 +619,7 @@ namespace Microsoft.PowerShell
             _buffer = new StringBuilder(8 * 1024);
             _statusBuffer = new StringBuilder(256);
             _savedCurrentLine = new HistoryItem();
-            _queuedKeys = new Queue<ConsoleKeyInfo>();
+            _queuedKeys = new Queue<PSKeyInfo>();
 
             string hostName = null;
             // This works mostly by luck - we're not doing anything to guarantee the constructor for our
