@@ -32,7 +32,6 @@ namespace Microsoft.PowerShell
 
         public ConsoleKey Key => ((ConsoleKeyInfo)(this)).Key;
         public char KeyChar => ((ConsoleKeyInfo)(this)).KeyChar;
-        public ConsoleModifiers Modifiers => ((ConsoleKeyInfo)(this)).Modifiers;
         public string KeyStr { get; }
         public bool Shift { get; private set; }
         public bool Alt { get; private set; }

@@ -1021,7 +1021,7 @@ namespace Microsoft.PowerShell
 
         private static bool IsNumeric(PSKeyInfo key)
         {
-            return key.KeyChar >= '0' && key.KeyChar <= '9' && key.Modifiers == 0;
+            return key.KeyChar >= '0' && key.KeyChar <= '9' && !key.Control && !key.Alt;
         }
 
         /// <summary>

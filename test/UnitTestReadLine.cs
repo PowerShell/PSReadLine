@@ -686,7 +686,7 @@ namespace Test
                     // the last key.  If it's not Enter, add Enter at the
                     // end for convenience.
                     var key = (PSKeyInfo)list[i];
-                    if (key.Key != ConsoleKey.Enter || key.Modifiers != 0)
+                    if (key.Key != ConsoleKey.Enter || key.Control || key.Alt || key.Shift)
                     {
                         list.Add(_.Enter);
                     }

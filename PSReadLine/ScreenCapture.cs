@@ -387,7 +387,7 @@ namespace Microsoft.PowerShell
                     if (currentY > 0)
                     {
                         currentY -= 1;
-                        if ((k.Modifiers & ConsoleModifiers.Shift) == ConsoleModifiers.Shift)
+                        if (k.Shift)
                         {
                             if (currentY < selectionTop)
                             {
@@ -417,7 +417,7 @@ namespace Microsoft.PowerShell
                     if (currentY < (console.BufferHeight - 1))
                     {
                         currentY += 1;
-                        if ((k.Modifiers & ConsoleModifiers.Shift) == ConsoleModifiers.Shift)
+                        if (k.Shift)
                         {
                             if (currentY == (selectionTop + selectionHeight))
                             {
