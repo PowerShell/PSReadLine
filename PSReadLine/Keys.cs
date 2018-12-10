@@ -30,19 +30,19 @@ namespace Microsoft.PowerShell
 
         public override string ToString() => KeyStr;
 
-        public ConsoleKey Key => ((ConsoleKeyInfo)(this)).Key;
-        public char KeyChar => ((ConsoleKeyInfo)(this)).KeyChar;
+        public ConsoleKey Key => AsConsoleKeyInfo().Key;
+        public char KeyChar => AsConsoleKeyInfo().KeyChar;
         public string KeyStr { get; }
         public bool Shift { get; private set; }
         public bool Alt { get; private set; }
         public bool Control { get; private set; }
 
-        public static implicit operator ConsoleKeyInfo(PSKeyInfo self)
+        public ConsoleKeyInfo AsConsoleKeyInfo()
         {
-            return ConsoleKeyChordConverter.Convert(self.KeyStr)[0];
+            return ConsoleKeyChordConverter.Convert(KeyStr)[0];
         }
 
-        public static implicit operator PSKeyInfo(ConsoleKeyInfo keyInfo)
+        public static PSKeyInfo FromConsoleKeyInfo(ConsoleKeyInfo keyInfo)
         {
             var result = new PSKeyInfo(KeyInfoAsString(keyInfo))
             {

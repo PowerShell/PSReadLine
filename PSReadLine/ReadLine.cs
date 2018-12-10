@@ -96,7 +96,7 @@ namespace Microsoft.PowerShell
                 _charMap.ProcessKey(_console.ReadKey());
                 while (_charMap.KeyAvailable)
                 {
-                    var key = _charMap.ReadKey();
+                    var key = PSKeyInfo.FromConsoleKeyInfo(_charMap.ReadKey());
                     _lastNKeys.Enqueue(key);
                     _queuedKeys.Enqueue(key);
                 }
@@ -136,7 +136,7 @@ namespace Microsoft.PowerShell
                 }
                 while (_charMap.KeyAvailable)
                 {
-                    PSKeyInfo key = _charMap.ReadKey();
+                    var key = PSKeyInfo.FromConsoleKeyInfo(_charMap.ReadKey());
                     _lastNKeys.Enqueue(key);
                     _queuedKeys.Enqueue(key);
                 }
@@ -585,24 +585,25 @@ namespace Microsoft.PowerShell
                 // shift hadn't be pressed.  This cleanly allows Shift+Backspace without adding a key binding.
                 if (key.KeyChar > 0 && char.IsControl(key.KeyChar) && key.Shift && !key.Control && !key.Alt)
                 {
-                    key = new ConsoleKeyInfo(key.KeyChar, key.Key, false, false, false);
+                    key = PSKeyInfo.From(key.KeyChar);
                     dispatchTable.TryGetValue(key, out handler);
                 }
             }
+            var consoleKey = key.AsConsoleKeyInfo();
             if (handler != null)
             {
                 if (handler.ScriptBlock != null)
                 {
-                    CallPossibleExternalApplication(() => handler.Action(key, arg));
+                    CallPossibleExternalApplication(() => handler.Action(consoleKey, arg));
                 }
                 else
                 {
-                    handler.Action(key, arg);
+                    handler.Action(consoleKey, arg);
                 }
             }
             else if (!ignoreIfNoAction)
             {
-                SelfInsert(key, arg);
+                SelfInsert(consoleKey, arg);
             }
         }
 
@@ -841,7 +842,7 @@ namespace Microsoft.PowerShell
                 throw new ArgumentNullException(nameof(key));
             }
 
-            if (_singleton._chordDispatchTable.TryGetValue(key.Value, out var secondKeyDispatchTable))
+            if (_singleton._chordDispatchTable.TryGetValue(PSKeyInfo.FromConsoleKeyInfo(key.Value), out var secondKeyDispatchTable))
             {
                 var secondKey = ReadKey();
                 _singleton.ProcessOneKey(secondKey, secondKeyDispatchTable, ignoreIfNoAction: true, arg: arg);

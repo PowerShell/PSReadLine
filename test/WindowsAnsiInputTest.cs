@@ -67,10 +67,10 @@ namespace Test
             var map = new WindowsAnsiCharMap(1000);
 
             // ^[[A = UpArrow
-            CheckEscapeInput(map, _.UpArrow, StringToCKI("\x1b[A"));
+            CheckEscapeInput(map, _.UpArrow.AsConsoleKeyInfo(), StringToCKI("\x1b[A"));
 
             // ^[OA = UpArrow (alternate form)
-            CheckEscapeInput(map, _.UpArrow, StringToCKI("\x1bOA"));
+            CheckEscapeInput(map, _.UpArrow.AsConsoleKeyInfo(), StringToCKI("\x1bOA"));
 
             // ^[[1;2B = Shift+DownArrow
             CheckEscapeInput(map,

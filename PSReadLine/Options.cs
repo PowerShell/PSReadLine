@@ -153,19 +153,20 @@ namespace Microsoft.PowerShell
             foreach (var key in keys)
             {
                 var chord = ConsoleKeyChordConverter.Convert(key);
+                var firstKey = PSKeyInfo.FromConsoleKeyInfo(chord[0]);
                 if (chord.Length == 1)
                 {
-                    _dispatchTable[chord[0]] = MakeKeyHandler(handler, briefDescription, longDescription, scriptBlock);
+                    _dispatchTable[firstKey] = MakeKeyHandler(handler, briefDescription, longDescription, scriptBlock);
                 }
                 else
                 {
-                    _dispatchTable[chord[0]] = MakeKeyHandler(Chord, "ChordFirstKey");
-                    if (!_chordDispatchTable.TryGetValue(chord[0], out var secondDispatchTable))
+                    _dispatchTable[firstKey] = MakeKeyHandler(Chord, "ChordFirstKey");
+                    if (!_chordDispatchTable.TryGetValue(firstKey, out var secondDispatchTable))
                     {
                         secondDispatchTable = new Dictionary<PSKeyInfo, KeyHandler>();
-                        _chordDispatchTable[chord[0]] = secondDispatchTable;
+                        _chordDispatchTable[firstKey] = secondDispatchTable;
                     }
-                    secondDispatchTable[chord[1]] = MakeKeyHandler(handler, briefDescription, longDescription, scriptBlock);
+                    secondDispatchTable[PSKeyInfo.FromConsoleKeyInfo(chord[1])] = MakeKeyHandler(handler, briefDescription, longDescription, scriptBlock);
                 }
             }
         }
@@ -175,18 +176,19 @@ namespace Microsoft.PowerShell
             foreach (var key in keys)
             {
                 var chord = ConsoleKeyChordConverter.Convert(key);
+                var firstKey = PSKeyInfo.FromConsoleKeyInfo(chord[0]);
                 if (chord.Length == 1)
                 {
-                    _dispatchTable.Remove(chord[0]);
+                    _dispatchTable.Remove(firstKey);
                 }
                 else
                 {
-                    if (_chordDispatchTable.TryGetValue(chord[0], out var secondDispatchTable))
+                    if (_chordDispatchTable.TryGetValue(firstKey, out var secondDispatchTable))
                     {
-                        secondDispatchTable.Remove(chord[1]);
+                        secondDispatchTable.Remove(PSKeyInfo.FromConsoleKeyInfo(chord[1]));
                         if (secondDispatchTable.Count == 0)
                         {
-                            _dispatchTable.Remove(chord[0]);
+                            _dispatchTable.Remove(firstKey);
                         }
                     }
                 }

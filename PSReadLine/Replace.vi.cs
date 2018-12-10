@@ -72,7 +72,7 @@ namespace Microsoft.PowerShell
 
             if (nextKey == Keys.Enter)
             {
-                ViAcceptLine(nextKey);
+                ViAcceptLine(nextKey.AsConsoleKeyInfo());
             }
         }
 

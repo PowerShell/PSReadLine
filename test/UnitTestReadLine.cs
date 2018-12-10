@@ -125,9 +125,9 @@ namespace Test
             while (index < inputOrValidateItems.Length)
             {
                 var item = inputOrValidateItems[index++];
-                if (item is PSKeyInfo)
+                if (item is PSKeyInfo keyInfo)
                 {
-                    return (PSKeyInfo)item;
+                    return keyInfo.AsConsoleKeyInfo();
                 }
                 try
                 {
@@ -141,12 +141,12 @@ namespace Test
                         validationFailure = e;
                     }
                     // In the hopes of avoiding additional failures, try cancelling via Ctrl+C.
-                    return _.CtrlC;
+                    return _.CtrlC.AsConsoleKeyInfo();
                 }
             }
 
             validationFailure = new Exception("Shouldn't call ReadKey when there are no more keys");
-            return _.CtrlC;
+            return _.CtrlC.AsConsoleKeyInfo();
         }
 
         public bool KeyAvailable => index < inputOrValidateItems.Length && inputOrValidateItems[index] is PSKeyInfo;
@@ -400,15 +400,15 @@ namespace Test
 
             for (var i = 'a'; i <= 'z'; i++)
             {
-                CharToKeyInfo[i] = new ConsoleKeyInfo(i, ConsoleKey.A + i - 'a', false, false, false);
+                CharToKeyInfo[i] = PSKeyInfo.From(i);
             }
             for (var i = 'A'; i <= 'Z'; i++)
             {
-                CharToKeyInfo[i] = new ConsoleKeyInfo(i, ConsoleKey.A + i - 'A', true, false, false);
+                CharToKeyInfo[i] = PSKeyInfo.From(i);
             }
             for (var i = '0'; i <= '9'; i++)
             {
-                CharToKeyInfo[i] = new ConsoleKeyInfo(i, ConsoleKey.D0 + i - '0', false, false, false);
+                CharToKeyInfo[i] = PSKeyInfo.From(i);
             }
             CharToKeyInfo['{'] = _.LCurly;
             CharToKeyInfo['}'] = _.RCurly;
@@ -432,8 +432,8 @@ namespace Test
             CharToKeyInfo['\''] = _.SQuote;
             CharToKeyInfo['\\'] = _.Backslash;
             CharToKeyInfo['/'] = _.Slash;
-            CharToKeyInfo['\n'] = new ConsoleKeyInfo('\r', ConsoleKey.Enter, false, false, false);
-            CharToKeyInfo['\r'] = new ConsoleKeyInfo('\r', ConsoleKey.Enter, false, false, false);
+            CharToKeyInfo['\n'] = PSKeyInfo.From(ConsoleKey.Enter);
+            CharToKeyInfo['\r'] = PSKeyInfo.From(ConsoleKey.Enter);
         }
 
         private enum KeyMode

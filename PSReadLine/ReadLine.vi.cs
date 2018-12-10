@@ -982,7 +982,7 @@ namespace Microsoft.PowerShell
                 return;
             }
 
-            if (_singleton._chordDispatchTable.TryGetValue(key.Value, out var secondKeyDispatchTable))
+            if (_singleton._chordDispatchTable.TryGetValue(PSKeyInfo.FromConsoleKeyInfo(key.Value), out var secondKeyDispatchTable))
             {
                 var secondKey = ReadKey();
                 if (secondKeyDispatchTable.TryGetValue(secondKey, out var handler))
