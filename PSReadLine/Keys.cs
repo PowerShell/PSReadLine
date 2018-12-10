@@ -30,7 +30,6 @@ namespace Microsoft.PowerShell
 
         public override string ToString() => KeyStr;
 
-        public ConsoleKey Key => AsConsoleKeyInfo().Key;
         public char KeyChar => AsConsoleKeyInfo().KeyChar;
         public string KeyStr { get; }
         public bool Shift { get; private set; }
