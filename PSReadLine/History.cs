@@ -774,7 +774,7 @@ namespace Microsoft.PowerShell
 
         private static bool EndInteractiveHistorySearch(PSKeyInfo key)
         {
-            return char.IsControl(key.KeyChar) || key.Alt || key.Control;
+            return key.Alt || key.Control || key.Shift || char.IsControl(key.KeyChar);
         }
 
         private void InteractiveHistorySearch(int direction)

@@ -30,7 +30,35 @@ namespace Microsoft.PowerShell
 
         public override string ToString() => KeyStr;
 
-        public char KeyChar => AsConsoleKeyInfo().KeyChar;
+        public char KeyChar
+        {
+            get
+            {
+                var len = KeyStr.Length;
+                if (len == 1)
+                {
+                    return KeyStr[0];
+                }
+
+                var last = KeyStr[len - 1];
+                var nextToLast = KeyStr[len - 2];
+                if (nextToLast == '+' && (last == '-' || (last >= '0' && last <= '9')))
+                {
+                    return last;
+                }
+
+                switch (KeyStr)
+                {
+                    case "Spacebar": return ' ';
+                    case "Enter": return '\n';
+                    case "Escape": return '\x1b';
+                    case "Tab": return '\t';
+                }
+
+                return '\0';
+            }
+        }
+
         public string KeyStr { get; }
         public bool Shift { get; private set; }
         public bool Alt { get; private set; }

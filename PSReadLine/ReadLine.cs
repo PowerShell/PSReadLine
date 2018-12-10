@@ -583,10 +583,14 @@ namespace Microsoft.PowerShell
             {
                 // If we see a control character where Ctrl wasn't used but shift was, treat that like
                 // shift hadn't be pressed.  This cleanly allows Shift+Backspace without adding a key binding.
-                if (key.KeyChar > 0 && char.IsControl(key.KeyChar) && key.Shift && !key.Control && !key.Alt)
+                if (key.Shift && !key.Control && !key.Alt)
                 {
-                    key = PSKeyInfo.From(key.KeyChar);
-                    dispatchTable.TryGetValue(key, out handler);
+                    var c = key.KeyChar;
+                    if (c != '\0' && char.IsControl(c))
+                    {
+                        key = PSKeyInfo.From(key.KeyChar);
+                        dispatchTable.TryGetValue(key, out handler);
+                    }
                 }
             }
             var consoleKey = key.AsConsoleKeyInfo();
