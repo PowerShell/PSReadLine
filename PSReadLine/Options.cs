@@ -226,7 +226,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void SetKeyHandler(string[] key, ScriptBlock scriptBlock, string briefDescription, string longDescription)
         {
-            Action<ConsoleKeyInfo?, object> handler = (k, arg) =>
+            void HandlerWrapper(ConsoleKeyInfo? k, object arg)
             {
                 try
                 {
@@ -236,7 +236,7 @@ namespace Microsoft.PowerShell
                 {
                     throw new CustomHandlerException(e);
                 }
-            };
+            }
 
             if (string.IsNullOrWhiteSpace(briefDescription))
             {
@@ -246,7 +246,7 @@ namespace Microsoft.PowerShell
             {
                 longDescription = PSReadLineResources.CustomActionDescription;
             }
-            _singleton.SetKeyHandlerInternal(key, handler, briefDescription, longDescription, scriptBlock);
+            _singleton.SetKeyHandlerInternal(key, HandlerWrapper, briefDescription, longDescription, scriptBlock);
         }
 
         /// <summary>

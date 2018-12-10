@@ -130,6 +130,11 @@ namespace Microsoft.PowerShell
             }
             private string _longDescription;
             public ScriptBlock ScriptBlock;
+
+            public override string ToString()
+            {
+                return BriefDescription;
+            }
         }
 
         static KeyHandler MakeKeyHandler(Action<ConsoleKeyInfo?, object> action, string briefDescription, string longDescription = null, ScriptBlock scriptBlock = null)

@@ -3,8 +3,6 @@ Copyright (c) Microsoft Corporation.  All rights reserved.
 --********************************************************************/
 
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
@@ -92,8 +90,8 @@ namespace Microsoft.PowerShell
 
         internal static bool Equals(PSKeyInfo left, PSKeyInfo right)
         {
-            if ((object)left == (object)right) return true;
-            if ((object)left == null || (object)right == null) return false;
+            if (ReferenceEquals(left, right)) return true;
+            if (ReferenceEquals(left, null) || ReferenceEquals(right, null)) return false;
 
             return string.Equals(left.KeyStr, right.KeyStr);
         }

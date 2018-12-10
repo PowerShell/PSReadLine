@@ -13,13 +13,6 @@ namespace Microsoft.PowerShell
 {
     public partial class PSConsoleReadLine
     {
-        internal static void SelfInsert(PSKeyInfo key, object arg)
-        {
-            // Quick and dirty but wrong.
-            var c = key.KeyStr == "Spacebar" ? ' ' : key.KeyStr[0];
-            SelfInsert(c, arg);
-        }
-
         /// <summary>
         /// Insert the key.
         /// </summary>
