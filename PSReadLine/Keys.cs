@@ -527,6 +527,8 @@ namespace Microsoft.PowerShell
         public static PSKeyInfo ShiftPageDown       = Shift(ConsoleKey.PageDown);
         public static PSKeyInfo ShiftLeftArrow      = Shift(ConsoleKey.LeftArrow);
         public static PSKeyInfo ShiftRightArrow     = Shift(ConsoleKey.RightArrow);
+        public static PSKeyInfo ShiftUpArrow        = Shift(ConsoleKey.UpArrow);
+        public static PSKeyInfo ShiftDownArrow      = Shift(ConsoleKey.DownArrow);
         public static PSKeyInfo ShiftTab            = Shift(ConsoleKey.Tab); // !Linux, same as Tab
         public static PSKeyInfo ShiftInsert         = Shift(ConsoleKey.Insert);
 

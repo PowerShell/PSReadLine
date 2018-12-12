@@ -377,7 +377,7 @@ namespace Microsoft.PowerShell
             while (!done)
             {
                 var k = ReadKey();
-                if (k == Keys.K || k == Keys.ucK || k == Keys.UpArrow)
+                if (k == Keys.K || k == Keys.ucK || k == Keys.UpArrow || k == Keys.ShiftUpArrow)
                 {
                     if (TooCloseToTop())
                     {
@@ -409,7 +409,7 @@ namespace Microsoft.PowerShell
                         }
                     }
                 }
-                else if (k == Keys.J || k == Keys.ucJ || k == Keys.DownArrow)
+                else if (k == Keys.J || k == Keys.ucJ || k == Keys.DownArrow || k == Keys.ShiftDownArrow)
                 {
                     if (TooCloseToBottom())
                         ScrollDisplayDownLine();
