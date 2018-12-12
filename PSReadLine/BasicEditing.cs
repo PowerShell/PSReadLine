@@ -23,11 +23,10 @@ namespace Microsoft.PowerShell
                 return;
             }
 
-            SelfInsert(key.Value.KeyChar, arg);
-        }
+            var keyChar = key.Value.KeyChar;
+            if (keyChar == '\0')
+                return;
 
-        internal static void SelfInsert(char keyChar, object arg = null)
-        {
             if (arg is int count)
             {
                 if (count <= 0)

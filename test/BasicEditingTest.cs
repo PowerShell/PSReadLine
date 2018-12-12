@@ -367,7 +367,10 @@ namespace Test
         {
             TestSetup(KeyMode.Emacs);
 
-            Test("ab", Keys("a", _.VolumeDown, _.VolumeMute, _.VolumeUp, "b"));
+            var volumeUp   = PSKeyInfo.FromConsoleKeyInfo(new ConsoleKeyInfo('\0', ConsoleKey.VolumeUp, false, false, false));
+            var volumeDown = PSKeyInfo.FromConsoleKeyInfo(new ConsoleKeyInfo('\0', ConsoleKey.VolumeDown, false, false, false));
+            var volumeMute = PSKeyInfo.FromConsoleKeyInfo(new ConsoleKeyInfo('\0', ConsoleKey.VolumeMute, false, false, false));
+            Test("ab", Keys("a", volumeDown, volumeMute, volumeUp, "b"));
         }
     }
 }

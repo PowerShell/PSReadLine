@@ -219,9 +219,6 @@ namespace Microsoft.PowerShell
                 { "Spacebar",   new KeyPair { Key = ConsoleKey.Spacebar, KeyChar = ' ' } },
                 { "Tab",        new KeyPair { Key = ConsoleKey.Tab, KeyChar = '\t' }  },
                 { "UpArrow",    new KeyPair { Key = ConsoleKey.UpArrow} },
-                { "VolumeDown", new KeyPair { Key = ConsoleKey.VolumeDown } },
-                { "VolumeMute", new KeyPair { Key = ConsoleKey.VolumeMute } },
-                { "VolumeUp",   new KeyPair { Key = ConsoleKey.VolumeUp } },
             };
 
         static bool MapKeyChar(string input, ref ConsoleModifiers mods, out ConsoleKey key, out char keyChar)
@@ -293,7 +290,7 @@ namespace Microsoft.PowerShell
 
             key = 0;
             keyChar = '\0';
-            return false;
+            return Enum.TryParse(input, out key) && !int.TryParse(input, out var asInt);
         }
     }
 }
