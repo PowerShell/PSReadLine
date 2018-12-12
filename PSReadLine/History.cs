@@ -744,15 +744,16 @@ namespace Microsoft.PowerShell
                     EndOfHistory();
                     break;
                 }
-                else if (EndInteractiveHistorySearch(key))
-                {
-                    PrependQueuedKeys(key);
-                    break;
-                }
                 else
                 {
-                    toMatch.Append(key.KeyChar);
-                    _statusBuffer.Insert(_statusBuffer.Length - 1, key.KeyChar);
+                    char toAppend = key.KeyChar;
+                    if (char.IsControl(toAppend))
+                    {
+                        PrependQueuedKeys(key);
+                        break;
+                    }
+                    toMatch.Append(toAppend);
+                    _statusBuffer.Insert(_statusBuffer.Length - 1, toAppend);
 
                     var toMatchStr = toMatch.ToString();
                     var startIndex = _buffer.ToString().IndexOf(toMatchStr, Options.HistoryStringComparison);
@@ -770,11 +771,6 @@ namespace Microsoft.PowerShell
                     searchPositions.Push(_currentHistoryIndex);
                 }
             }
-        }
-
-        private static bool EndInteractiveHistorySearch(PSKeyInfo key)
-        {
-            return key.Alt || key.Control || key.Shift || char.IsControl(key.KeyChar);
         }
 
         private void InteractiveHistorySearch(int direction)
