@@ -6,9 +6,6 @@ using Xunit;
 
 namespace Test
 {
-    // Disgusting language hack to make it easier to read a sequence of keys.
-    using _ = Keys;
-
     public partial class ReadLine
     {
         [Fact]
@@ -18,9 +15,9 @@ namespace Test
 
             Test("echo 1\necho 2\necho 3", Keys(
                 "echo 1",
-                _.ShiftEnter,
+                _.Shift_Enter,
                 "echo 2",
-                _.ShiftEnter,
+                _.Shift_Enter,
                 "echo 3"));
             AssertCursorTopIs(3);
             Test("echo foo", Keys(
@@ -29,7 +26,7 @@ namespace Test
             AssertCursorTopIs(4);
             Test("echo zed", Keys(
                 "echo zed",
-                _.CtrlL,
+                _.Ctrl_l,
                 CheckThat(() => AssertCursorTopIs(0))
                 ), resetCursor: false);
         }
@@ -53,7 +50,7 @@ namespace Test
                         TokenClassification.String, "\"hello ",
                         TokenClassification.Variable, "$name",
                         TokenClassification.String, "\"")),
-                _.CtrlC,
+                _.Ctrl_c,
                 InputAcceptedNow
                 ));
 
@@ -75,7 +72,7 @@ namespace Test
                         TokenClassification.String, "\"",
                         TokenClassification.None, ")",
                         TokenClassification.String, "\"")),
-                _.CtrlC,
+                _.Ctrl_c,
                 InputAcceptedNow
                 ));
 
@@ -88,7 +85,7 @@ namespace Test
                         TokenClassification.String, " c ",
                         TokenClassification.Variable, "$d",
                         TokenClassification.String, " e\"")),
-                _.CtrlC,
+                _.Ctrl_c,
                 InputAcceptedNow
                 ));
 
@@ -168,7 +165,7 @@ namespace Test
                 ps.Invoke();
             }
             Test("dir", Keys(
-                "dir", _.CtrlZ,
+                "dir", _.Ctrl_z,
                 CheckThat(() => AssertScreenIs(1,
                     Tuple.Create(_console.ForegroundColor, _console.BackgroundColor), "PS>",
                     TokenClassification.Command, "dir"))));
@@ -180,7 +177,7 @@ namespace Test
                 ps.Invoke();
             }
             Test("dir", Keys(
-                "dir", _.CtrlZ,
+                "dir", _.Ctrl_z,
                 CheckThat(() => AssertScreenIs(1,
                     Tuple.Create(_console.ForegroundColor, _console.BackgroundColor), "PSREADLINE> ",
                     TokenClassification.Command, "dir"))));
@@ -204,7 +201,7 @@ function prompt {
                 ps.Invoke();
             }
             Test("dir", Keys(
-                "dir", _.CtrlZ,
+                "dir", _.Ctrl_z,
                 CheckThat(() => AssertScreenIs(1,
                     Tuple.Create(ConsoleColor.Blue, ConsoleColor.Magenta), "PSREADLINE>",
                     TokenClassification.Command, "dir"))));

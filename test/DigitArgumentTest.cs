@@ -1,12 +1,8 @@
 ﻿using System;
-using Microsoft.PowerShell;
 using Xunit;
 
 namespace Test
 {
-    // Disgusting language hack to make it easier to read a sequence of keys.
-    using _ = Keys;
-
     public partial class ReadLine
     {
         [Fact]
@@ -17,33 +13,33 @@ namespace Test
                 new KeyHandler("Ctrl+z", (key, arg) => argValue = (int)arg));
 
             Test("", Keys(
-                _.Alt1, _.CtrlZ, CheckThat(() => Assert.Equal(1, argValue)),
-                _.Alt2, _.CtrlZ, CheckThat(() => Assert.Equal(2, argValue)),
-                _.Alt3, _.CtrlZ, CheckThat(() => Assert.Equal(3, argValue)),
-                _.Alt4, _.CtrlZ, CheckThat(() => Assert.Equal(4, argValue)),
-                _.Alt5, _.CtrlZ, CheckThat(() => Assert.Equal(5, argValue)),
-                _.Alt6, _.CtrlZ, CheckThat(() => Assert.Equal(6, argValue)),
-                _.Alt7, _.CtrlZ, CheckThat(() => Assert.Equal(7, argValue)),
-                _.Alt8, _.CtrlZ, CheckThat(() => Assert.Equal(8, argValue)),
-                _.Alt9, _.CtrlZ, CheckThat(() => Assert.Equal(9, argValue)),
-                _.Alt0, _.CtrlZ, CheckThat(() => Assert.Equal(0, argValue)),
-                _.Alt1, _.Alt2, _.CtrlZ, CheckThat(() => Assert.Equal(12, argValue)),
-                _.Alt2, _.Alt3, _.Alt4, _.CtrlZ, CheckThat(() => Assert.Equal(234, argValue)),
-                _.Alt3, _.Alt4, _.Alt5, _.Alt6, _.CtrlZ, CheckThat(() => Assert.Equal(3456, argValue)),
-                _.Alt4, _.Alt5, _.Alt6, _.Alt7, _.Alt8, _.CtrlZ, CheckThat(() => Assert.Equal(45678, argValue)),
-                _.AltMinus, _.Alt1, _.CtrlZ, CheckThat(() => Assert.Equal(-1, argValue)),
-                _.AltMinus, _.Alt2, _.CtrlZ, CheckThat(() => Assert.Equal(-2, argValue)),
-                _.AltMinus, _.Backspace, // Negative backspace should do nothing
-                "a", _.Home, _.AltMinus, _.Delete, // Negative delete should do nothing
+                _.Alt_1, _.Ctrl_z, CheckThat(() => Assert.Equal(1, argValue)),
+                _.Alt_2, _.Ctrl_z, CheckThat(() => Assert.Equal(2, argValue)),
+                _.Alt_3, _.Ctrl_z, CheckThat(() => Assert.Equal(3, argValue)),
+                _.Alt_4, _.Ctrl_z, CheckThat(() => Assert.Equal(4, argValue)),
+                _.Alt_5, _.Ctrl_z, CheckThat(() => Assert.Equal(5, argValue)),
+                _.Alt_6, _.Ctrl_z, CheckThat(() => Assert.Equal(6, argValue)),
+                _.Alt_7, _.Ctrl_z, CheckThat(() => Assert.Equal(7, argValue)),
+                _.Alt_8, _.Ctrl_z, CheckThat(() => Assert.Equal(8, argValue)),
+                _.Alt_9, _.Ctrl_z, CheckThat(() => Assert.Equal(9, argValue)),
+                _.Alt_0, _.Ctrl_z, CheckThat(() => Assert.Equal(0, argValue)),
+                _.Alt_1, _.Alt_2, _.Ctrl_z, CheckThat(() => Assert.Equal(12, argValue)),
+                _.Alt_2, _.Alt_3, _.Alt_4, _.Ctrl_z, CheckThat(() => Assert.Equal(234, argValue)),
+                _.Alt_3, _.Alt_4, _.Alt_5, _.Alt_6, _.Ctrl_z, CheckThat(() => Assert.Equal(3456, argValue)),
+                _.Alt_4, _.Alt_5, _.Alt_6, _.Alt_7, _.Alt_8, _.Ctrl_z, CheckThat(() => Assert.Equal(45678, argValue)),
+                _.Alt_Minus, _.Alt_1, _.Ctrl_z, CheckThat(() => Assert.Equal(-1, argValue)),
+                _.Alt_Minus, _.Alt_2, _.Ctrl_z, CheckThat(() => Assert.Equal(-2, argValue)),
+                _.Alt_Minus, _.Backspace, // Negative backspace should do nothing
+                "a", _.Home, _.Alt_Minus, _.Delete, // Negative delete should do nothing
                 _.Delete, // Delete the 'a' we added above
-                _.Alt1, _.Alt2, _.CtrlZ, CheckThat(() => Assert.Equal(12, argValue)),
-                _.Alt1, _.AltMinus, _.CtrlZ, CheckThat(() => Assert.Equal(-1, argValue)),
-                _.Alt1, _.Alt2, _.AltMinus, _.CtrlZ, CheckThat(() => Assert.Equal(-12, argValue)),
-                _.Alt2, _.AltMinus, _.Alt3, _.Alt4, _.CtrlZ, CheckThat(() => Assert.Equal(-234, argValue)),
-                _.Alt3, _.Alt4, _.AltMinus, _.Alt5, _.Alt6, _.CtrlZ, CheckThat(() => Assert.Equal(-3456, argValue)),
-                _.Alt4, _.Alt5, _.Alt6, _.AltMinus, _.Alt7, _.Alt8, _.CtrlZ, CheckThat(() => Assert.Equal(-45678, argValue)),
-                _.Alt9, _.AltMinus, _.AltMinus, _.Alt7, _.Alt8, _.CtrlZ, CheckThat(() => Assert.Equal(978, argValue)),
-                _.AltMinus, _.AltMinus, _.Alt7, _.Alt8, _.CtrlZ, CheckThat(() => Assert.Equal(78, argValue))
+                _.Alt_1, _.Alt_2, _.Ctrl_z, CheckThat(() => Assert.Equal(12, argValue)),
+                _.Alt_1, _.Alt_Minus, _.Ctrl_z, CheckThat(() => Assert.Equal(-1, argValue)),
+                _.Alt_1, _.Alt_2, _.Alt_Minus, _.Ctrl_z, CheckThat(() => Assert.Equal(-12, argValue)),
+                _.Alt_2, _.Alt_Minus, _.Alt_3, _.Alt_4, _.Ctrl_z, CheckThat(() => Assert.Equal(-234, argValue)),
+                _.Alt_3, _.Alt_4, _.Alt_Minus, _.Alt_5, _.Alt_6, _.Ctrl_z, CheckThat(() => Assert.Equal(-3456, argValue)),
+                _.Alt_4, _.Alt_5, _.Alt_6, _.Alt_Minus, _.Alt_7, _.Alt_8, _.Ctrl_z, CheckThat(() => Assert.Equal(-45678, argValue)),
+                _.Alt_9, _.Alt_Minus, _.Alt_Minus, _.Alt_7, _.Alt_8, _.Ctrl_z, CheckThat(() => Assert.Equal(978, argValue)),
+                _.Alt_Minus, _.Alt_Minus, _.Alt_7, _.Alt_8, _.Ctrl_z, CheckThat(() => Assert.Equal(78, argValue))
                 ));
         }
 
@@ -53,19 +49,19 @@ namespace Test
             TestSetup(KeyMode.Emacs);
 
             Test("", Keys(
-                _.Alt1, CheckThat(() => AssertScreenIs(2, NextLine, "digit-argument: 1")),
-                _.CtrlG,
-                _.AltMinus, CheckThat(() => AssertScreenIs(2, NextLine, "digit-argument: -1")),
-                _.CtrlG,
-                _.AltMinus, _.AltMinus, CheckThat(() => AssertScreenIs(2, NextLine, "digit-argument: 1")),
-                _.CtrlG,
-                _.AltMinus, _.Alt3, CheckThat(() => AssertScreenIs(2, NextLine, "digit-argument: -3")),
-                _.CtrlG,
-                _.AltMinus, _.AltMinus, _.Alt3, CheckThat(() => AssertScreenIs(2, NextLine, "digit-argument: 3")),
-                _.CtrlG,
-                _.Alt2, _.AltMinus, CheckThat(() => AssertScreenIs(2, NextLine, "digit-argument: -2")),
-                _.CtrlG,
-                _.Alt2, _.AltMinus, _.AltMinus, CheckThat(() => AssertScreenIs(2, NextLine, "digit-argument: 2"))
+                _.Alt_1, CheckThat(() => AssertScreenIs(2, NextLine, "digit-argument: 1")),
+                _.Ctrl_g,
+                _.Alt_Minus, CheckThat(() => AssertScreenIs(2, NextLine, "digit-argument: -1")),
+                _.Ctrl_g,
+                _.Alt_Minus, _.Alt_Minus, CheckThat(() => AssertScreenIs(2, NextLine, "digit-argument: 1")),
+                _.Ctrl_g,
+                _.Alt_Minus, _.Alt_3, CheckThat(() => AssertScreenIs(2, NextLine, "digit-argument: -3")),
+                _.Ctrl_g,
+                _.Alt_Minus, _.Alt_Minus, _.Alt_3, CheckThat(() => AssertScreenIs(2, NextLine, "digit-argument: 3")),
+                _.Ctrl_g,
+                _.Alt_2, _.Alt_Minus, CheckThat(() => AssertScreenIs(2, NextLine, "digit-argument: -2")),
+                _.Ctrl_g,
+                _.Alt_2, _.Alt_Minus, _.Alt_Minus, CheckThat(() => AssertScreenIs(2, NextLine, "digit-argument: 2"))
                 ));
         }
 
@@ -74,15 +70,31 @@ namespace Test
         {
             TestSetup(KeyMode.Emacs);
 
+            ConsoleKeyInfo GetDigitArgKey(int i)
+            {
+                switch (i) {
+                    case 0: return _.Alt_0;
+                    case 1: return _.Alt_1;
+                    case 2: return _.Alt_2;
+                    case 3: return _.Alt_3;
+                    case 4: return _.Alt_4;
+                    case 5: return _.Alt_5;
+                    case 6: return _.Alt_6;
+                    case 7: return _.Alt_7;
+                    case 8: return _.Alt_8;
+                    case 9: return _.Alt_9;
+                }
+                throw new Exception("Invalid digit argument key");
+            }
+
             for (int i = 0; i < 9; i++)
             {
                 var line = new string('a', i);
-                var digitArgKey = PSKeyInfo.FromConsoleKeyInfo(new ConsoleKeyInfo(
-                    (char)('0' + i), ConsoleKey.D0 + i, false, true, false));
+                var digitArgKey = GetDigitArgKey(i);
                 Test(line, Keys(digitArgKey, 'a'));
 
                 line = new string('z', i * 10);
-                Test(line, Keys(digitArgKey, _.Alt0, 'z'));
+                Test(line, Keys(digitArgKey, _.Alt_0, 'z'));
             }
         }
     }

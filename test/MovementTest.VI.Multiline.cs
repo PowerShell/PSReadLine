@@ -1,13 +1,8 @@
-﻿using System;
-using System.IO;
-using System.Management.Automation.Language;
-using Microsoft.PowerShell;
+﻿using Microsoft.PowerShell;
 using Xunit;
 
 namespace Test
 {
-    using _ = Keys;
-
     public partial class ReadLine
     {
         [Fact]

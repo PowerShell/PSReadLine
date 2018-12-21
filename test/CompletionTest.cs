@@ -8,9 +8,6 @@ using Xunit;
 
 namespace Test
 {
-    // Disgusting language hack to make it easier to read a sequence of keys.
-    using _ = Keys;
-
     public partial class ReadLine
     {
         [Fact]
@@ -37,7 +34,7 @@ namespace Test
                 CheckThat(() => AssertLineIs("$this")),
                 _.Tab,
                 CheckThat(() => AssertLineIs("$true")),
-                _.ShiftTab,
+                _.Shift_Tab,
                 CheckThat(() => AssertLineIs("$this"))));
         }
 
@@ -73,7 +70,7 @@ namespace Test
             _console.Clear();
             // Test empty input, make sure line after the cursor is blank and cursor didn't move
             Test("", Keys(
-                _.AltEquals,
+                _.Alt_Equals,
                 CheckThat(() =>
                 {
                     AssertCursorLeftTopIs(0, 0);
@@ -92,7 +89,7 @@ namespace Test
             _console.Clear();
             Test("psvar", Keys(
                 "psvar",
-                _.AltEquals,
+                _.Alt_Equals,
                 CheckThat(() => AssertScreenIs(5,
                                                TokenClassification.None, promptLine1,
                                                NextLine,
@@ -116,7 +113,7 @@ namespace Test
             _console.Clear();
             TestMustDing("none", Keys(
                 "none",
-                _.AltEquals,
+                _.Alt_Equals,
                 CheckThat(() => AssertScreenIs(2, TokenClassification.Command, "none", NextLine))));
         }
 
@@ -128,7 +125,7 @@ namespace Test
             PSConsoleReadLine.GetOptions().CompletionQueryItems = 10;
             _console.Clear();
             Test("Get-Many", Keys(
-                "Get-Many", _.CtrlSpace,
+                "Get-Many", _.Ctrl_Spacebar,
                 CheckThat(() => AssertScreenIs(2,
                     TokenClassification.Command, "Get-Many", NextLine,
                     TokenClassification.None, "Display all 15 possibilities? (y or n) _")),
@@ -136,7 +133,7 @@ namespace Test
 
             _console.Clear();
             Test("Get-Many", Keys(
-                "Get-Many", _.CtrlSpace,
+                "Get-Many", _.Ctrl_Spacebar,
                 CheckThat(() => AssertScreenIs(2,
                     TokenClassification.Command, "Get-Many", NextLine,
                     TokenClassification.None, "Display all 15 possibilities? (y or n) _")),
@@ -178,7 +175,7 @@ namespace Test
                 _.Tab,
                 CheckThat(() => AssertLineIs("\"a b" + Path.DirectorySeparatorChar + "\"")),
                 CheckThat(() => AssertCursorLeftIs(5)),
-                _.CtrlC, InputAcceptedNow));
+                _.Ctrl_c, InputAcceptedNow));
         }
 
         internal static CommandCompletion MockedCompleteInput(string input, int cursor, Hashtable options, PowerShell powerShell)

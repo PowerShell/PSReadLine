@@ -5,9 +5,6 @@ using Xunit;
 
 namespace Test
 {
-    // Disgusting language hack to make it easier to read a sequence of keys.
-    using _ = Keys;
-
     public partial class ReadLine
     {
         [Fact]
@@ -106,14 +103,14 @@ namespace Test
                     Assert.Equal(-1, start);
                     Assert.Equal(-1, length);
                 }),
-                _.ShiftHome,
+                _.Shift_Home,
                 CheckThat(() =>
                 {
                     PSConsoleReadLine.GetSelectionState(out var start, out var length);
                     Assert.Equal(0, start);
                     Assert.Equal(4, length);
                 }),
-                _.ShiftRightArrow,
+                _.Shift_RightArrow,
                 CheckThat(() =>
                 {
                     PSConsoleReadLine.GetSelectionState(out var start, out var length);

@@ -141,7 +141,7 @@ namespace Microsoft.PowerShell
                 // emulate GetKeyboardState bitmap - set high order bit for relevant modifier virtual keys
                 var state = toUnicodeStateBuffer.Value;
                 state[VK_SHIFT] = (byte)(((modifiers & ConsoleModifiers.Shift) != 0) ? 0x80 : 0);
-                state[VK_CONTROL] = (byte)(((modifiers & ConsoleModifiers.Control) != 0) ? 0x80 : 0);
+                //state[VK_CONTROL] = (byte)(((modifiers & ConsoleModifiers.Control) != 0) ? 0x80 : 0);
                 state[VK_ALT] = (byte)(((modifiers & ConsoleModifiers.Alt) != 0) ? 0x80 : 0);
 
                 // get corresponding scan code
@@ -149,7 +149,8 @@ namespace Microsoft.PowerShell
 
                 // get corresponding character  - maybe be 0, 1 or 2 in length (diacriticals)
                 var chars = toUnicodeBuffer.Value;
-                int charCount = ToUnicode(virtualKey, scanCode, state, chars, chars.Length, MENU_IS_INACTIVE);
+                var flags = MENU_IS_INACTIVE;
+                int charCount = ToUnicode(virtualKey, scanCode, state, chars, chars.Length, flags);
 
                 // TODO: support diacriticals (charCount == 2)
                 if (charCount == 1)
@@ -312,7 +313,7 @@ namespace Microsoft.PowerShell
         public static PSKeyInfo F7                  = Key(ConsoleKey.F7);
         public static PSKeyInfo F8                  = Key(ConsoleKey.F8);
         public static PSKeyInfo F9                  = Key(ConsoleKey.F9);
-        public static PSKeyInfo Fl0                 = Key(ConsoleKey.F10);
+        public static PSKeyInfo F10                 = Key(ConsoleKey.F10);
         public static PSKeyInfo F11                 = Key(ConsoleKey.F11);
         public static PSKeyInfo F12                 = Key(ConsoleKey.F12);
         public static PSKeyInfo F13                 = Key(ConsoleKey.F13);
@@ -450,7 +451,7 @@ namespace Microsoft.PowerShell
         public static PSKeyInfo AltF7               = Alt(ConsoleKey.F7);
         public static PSKeyInfo AltF8               = Alt(ConsoleKey.F8);
         public static PSKeyInfo AltF9               = Alt(ConsoleKey.F9);
-        public static PSKeyInfo AltFl0              = Alt(ConsoleKey.F10);
+        public static PSKeyInfo AltF10              = Alt(ConsoleKey.F10);
         public static PSKeyInfo AltF11              = Alt(ConsoleKey.F11);
         public static PSKeyInfo AltF12              = Alt(ConsoleKey.F12);
         public static PSKeyInfo AltF13              = Alt(ConsoleKey.F13);

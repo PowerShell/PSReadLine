@@ -3,9 +3,6 @@ using Xunit;
 
 namespace Test
 {
-    // Disgusting language hack to make it easier to read a sequence of keys.
-    using _ = Keys;
-
     public partial class ReadLine
     {
         [Fact]
@@ -44,7 +41,7 @@ namespace Test
                 _.Escape,
                 "0cla", _.Escape, CheckThat(() => AssertCursorLeftIs(0)), CheckThat(() => AssertLineIs("agedcba")),
                 "llchb", _.Escape, CheckThat(() => AssertCursorLeftIs(1)), CheckThat(() => AssertLineIs("abedcba")),
-                "lc", _.Space, "c", _.Escape, CheckThat(() => AssertCursorLeftIs(2)), CheckThat(() => AssertLineIs("abcdcba")),
+                "lc", _.Spacebar, "c", _.Escape, CheckThat(() => AssertCursorLeftIs(2)), CheckThat(() => AssertLineIs("abcdcba")),
                 "lc", _.Dollar, "def", _.Escape, CheckThat(() => AssertLineIs("abcdef")), CheckThat(() => AssertCursorLeftIs(5)),
                 "c00123", _.Escape, CheckThat(() => AssertCursorLeftIs(3)), CheckThat(() => AssertLineIs("0123f"))
                 ));
@@ -112,11 +109,11 @@ namespace Test
             TestSetup(KeyMode.Vi);
 
             Test("alsf", Keys(
-                "lsf lsf", _.Escape, "bi", _.CtrlU, 'a'
+                "lsf lsf", _.Escape, "bi", _.Ctrl_u, 'a'
                 ));
 
             Test("a", Keys(
-                "lsf lsf", _.CtrlU, 'a'
+                "lsf lsf", _.Ctrl_u, 'a'
                 ));
         }
 
@@ -281,7 +278,7 @@ namespace Test
                 "012345678901234567890", _.Escape, CheckThat(() => AssertCursorLeftIs(20)),
                 "dh", CheckThat(() => AssertLineIs("01234567890123456780")), CheckThat(() => AssertCursorLeftIs(19)),
                 "dl", CheckThat(() => AssertLineIs("0123456789012345678")), CheckThat(() => AssertCursorLeftIs(18)),
-                'd', _.Space, CheckThat(() => AssertLineIs("012345678901234567")), CheckThat(() => AssertCursorLeftIs(17)),
+                'd', _.Spacebar, CheckThat(() => AssertLineIs("012345678901234567")), CheckThat(() => AssertCursorLeftIs(17)),
                 "2dh", CheckThat(() => AssertLineIs("0123456789012347")), CheckThat(() => AssertCursorLeftIs(15)),
                 "h2dl", CheckThat(() => AssertLineIs("01234567890123")), CheckThat(() => AssertCursorLeftIs(13)),
                 "0dh", CheckThat(() => AssertLineIs("01234567890123")), CheckThat(() => AssertCursorLeftIs(0)),
@@ -612,18 +609,18 @@ namespace Test
             Test("abc def ghi", Keys(
                 CheckThat(() => AssertLineIs("")),
                 "abc def ghi", _.Escape, CheckThat(() => AssertLineIs("abc def ghi")),
-                _.CtrlW, CheckThat(() => AssertLineIs("abc def i")),
+                _.Ctrl_w, CheckThat(() => AssertLineIs("abc def i")),
                 'u'
                 ));
 
             Test("abc def ghi", Keys(
                 "abc def ghi", _.Escape, CheckThat(() => AssertLineIs("abc def ghi")),
-                _.CtrlU, CheckThat(() => AssertLineIs("i")),
+                _.Ctrl_u, CheckThat(() => AssertLineIs("i")),
                 'u'
                 ));
 
             Test("abc", Keys(
-                "abc", _.Escape, _.CtrlD, InputAcceptedNow
+                "abc", _.Escape, _.Ctrl_d, InputAcceptedNow
                 ));
         }
 
@@ -640,10 +637,10 @@ namespace Test
 
             Test("abcd", Keys(
                 "abcd", _.Escape, CheckThat(() => AssertLineIs("abcd")),
-                "h", _.CtrlT, CheckThat(() => AssertLineIs("acbd")),
-                _.CtrlT, CheckThat(() => AssertLineIs("acdb")),
+                "h", _.Ctrl_t, CheckThat(() => AssertLineIs("acbd")),
+                _.Ctrl_t, CheckThat(() => AssertLineIs("acdb")),
                 CheckThat(() => AssertCursorLeftIs(3)),
-                "0", _.CtrlT, CheckThat(() => AssertLineIs("acdb")),
+                "0", _.Ctrl_t, CheckThat(() => AssertLineIs("acdb")),
                 "uu"
                 ));
         }
@@ -731,7 +728,7 @@ namespace Test
                 ));
 
             Test("", Keys(
-                _.Escape, 'r', _.Space, CheckThat(() => AssertCursorLeftIs(0))
+                _.Escape, 'r', _.Spacebar, CheckThat(() => AssertCursorLeftIs(0))
                 ));
 
             Test("$", Keys(
