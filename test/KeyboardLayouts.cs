@@ -1,8 +1,11 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Dynamic;
+using System.Globalization;
 using System.IO;
+using System.Runtime.InteropServices;
+using System.Threading;
+using Xunit;
 
 namespace Test
 {
@@ -111,9 +114,10 @@ namespace Test
 
         private readonly string _layout;
         private readonly Dictionary<string, ConsoleKeyInfo> _keyMap = new Dictionary<string, ConsoleKeyInfo>();
-        public KeyboardLayout(string s)
+
+        public KeyboardLayout(string lang, string os)
         {
-            var keyInfos = File.ReadAllText($"KeyInfo-{s}.json");
+            var keyInfos = File.ReadAllText($"KeyInfo-{lang}-{os}.json");
             foreach (var keyInfo in Newtonsoft.Json.JsonConvert.DeserializeObject<List<Test.KeyboardLayout.KeyInfo>>(keyInfos))
             {
                 var propName = keyInfo.KeyAsPropertyName();
@@ -121,7 +125,7 @@ namespace Test
                 _keyMap.Add(propName, consoleKeyInfo);
             }
 
-            _layout = s;
+            _layout = lang;
         }
 
         public override bool TryGetMember(GetMemberBinder binder, out object result)
@@ -163,26 +167,5 @@ namespace Test
             }
             return false;
         }
-    }
-
-    public class KeyboardLayouts : IEnumerable<object[]>
-    {
-        static readonly Lazy<KeyboardLayout> en_windows = new Lazy<KeyboardLayout>(() => new KeyboardLayout("en-windows"));
-
-        public IEnumerator<object[]> GetEnumerator()
-        {
-            yield return new object[] { en_windows.Value };
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
-    }
-
-    public class En_Windows : Test.ReadLine
-    {
-        private KeyboardLayout kbLayout = new KeyboardLayout("en-windows");
-        internal override dynamic _ => kbLayout;
     }
 }

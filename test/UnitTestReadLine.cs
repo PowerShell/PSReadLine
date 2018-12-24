@@ -6,9 +6,12 @@ using System.Linq;
 using System.Management.Automation;
 using System.Management.Automation.Runspaces;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using Microsoft.PowerShell;
 using Microsoft.PowerShell.Internal;
 using Xunit;
+
+[assembly: CollectionBehavior(DisableTestParallelization = true)]
 
 namespace Test
 {
@@ -49,7 +52,14 @@ namespace Test
 
     public abstract partial class ReadLine
     {
-        internal abstract dynamic _ { get; }
+        private readonly ConsoleFixture _fixture;
+        protected ReadLine(ConsoleFixture fixture, string lang, string os)
+        {
+            _fixture = fixture;
+            _fixture.Initialize(lang, os);
+        }
+
+        internal dynamic _ => _fixture.KbLayout;
 
         static ReadLine()
         {
@@ -491,6 +501,22 @@ namespace Test
             }
             var colorOptions = new SetPSReadLineOption {Colors = colors};
             PSConsoleReadLine.SetOptions(colorOptions);
+        }
+    }
+
+    public class en_US_Windows : Test.ReadLine, IClassFixture<ConsoleFixture>
+    {
+        public en_US_Windows(ConsoleFixture fixture)
+            : base(fixture, "en-US", "windows")
+        {
+        }
+    }
+
+    public class fr_FR_Windows : Test.ReadLine, IClassFixture<ConsoleFixture>
+    {
+        public fr_FR_Windows(ConsoleFixture fixture)
+            : base(fixture, "fr-FR", "windows")
+        {
         }
     }
 }
