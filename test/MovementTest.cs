@@ -134,9 +134,11 @@ namespace Test
                 _.Alt_Minus, _.Alt_7, _.RightArrow, CheckThat(() => AssertCursorLeftIs(2))));
         }
 
-        [Fact]
+        [SkippableFact]
         public void GotoBrace()
         {
+            Skip.IfNot(KeyboardHasCtrlRBracket);
+
             TestSetup(KeyMode.Cmd);
 
             // Test empty input
@@ -177,6 +179,12 @@ namespace Test
                 "cmd1 | cmd2 | cmd3", _.Home,
                 _.F3, '|', CheckThat(() => AssertCursorLeftIs(5)),
                 _.F3, '|', CheckThat(() => AssertCursorLeftIs(12))));
+        }
+
+        [SkippableFact]
+        public void CharacterSearchEmacs()
+        {
+            Skip.IfNot(KeyboardHasCtrlRBracket);
 
             TestSetup(KeyMode.Emacs);
 
@@ -192,7 +200,11 @@ namespace Test
             TestMustDing("cmd1 | cmd2 | cmd3", Keys(
                 "cmd1 | cmd2 | cmd3",
                 _.Ctrl_RBracket, 'z'));
+        }
 
+        [Fact]
+        public void CharacterSearchApi()
+        {
             int i = 0;
             TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+z",
                 (key, count) => PSConsoleReadLine.CharacterSearch(null, i++ == 0 ? (object)'|' : "|")));
@@ -213,6 +225,12 @@ namespace Test
                 "cmd1 | cmd2 | cmd3",
                 _.Shift_F3, '|', CheckThat(() => AssertCursorLeftIs(12)),
                 _.Shift_F3, '|', CheckThat(() => AssertCursorLeftIs(5))));
+        }
+
+        [SkippableFact]
+        public void CharacterSearchBackwardEmacs()
+        {
+            Skip.IfNot(KeyboardHasCtrlRBracket);
 
             TestSetup(KeyMode.Emacs);
 
@@ -228,7 +246,11 @@ namespace Test
             TestMustDing("cmd1 | cmd2 | cmd3", Keys(
                 "cmd1 | cmd2 | cmd3",
                 _.Ctrl_Alt_RBracket, 'z'));
+        }
 
+        [Fact]
+        public void CharacterSearchBackwardApi()
+        {
             int i = 0;
             TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+z",
                 (key, count) => PSConsoleReadLine.CharacterSearchBackward(null, i++ == 0 ? (object)'|' : "|")));

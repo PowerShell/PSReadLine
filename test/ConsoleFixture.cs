@@ -62,6 +62,11 @@ namespace Test
         public void Dispose()
         {
         }
+
+        public override string ToString()
+        {
+            return _lang + "-" + _os;
+        }
     }
 }
 

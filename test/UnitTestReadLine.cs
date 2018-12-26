@@ -52,14 +52,19 @@ namespace Test
 
     public abstract partial class ReadLine
     {
-        private readonly ConsoleFixture _fixture;
         protected ReadLine(ConsoleFixture fixture, string lang, string os)
         {
-            _fixture = fixture;
-            _fixture.Initialize(lang, os);
+            Fixture = fixture;
+            Fixture.Initialize(lang, os);
         }
 
-        internal dynamic _ => _fixture.KbLayout;
+        internal dynamic _ => Fixture.KbLayout;
+        internal ConsoleFixture Fixture { get; }
+
+        internal virtual bool KeyboardHasLessThan => true;
+        internal virtual bool KeyboardHasGreaterThan => true;
+        internal virtual bool KeyboardHasCtrlRBracket => true;
+        internal virtual bool KeyboardHasCtrlAt => true;
 
         static ReadLine()
         {
@@ -518,5 +523,16 @@ namespace Test
             : base(fixture, "fr-FR", "windows")
         {
         }
+
+        // I don't think this is actually true for real French keyboard, but on my US keyboard,
+        // I have to use Alt 6 0 for `<` and Alt 6 2 for `>` and that means the Alt+< and Alt+>
+        // bindings can't work.
+        internal override bool KeyboardHasLessThan => false;
+        internal override bool KeyboardHasGreaterThan => false;
+
+        // These are most likely an issue with .Net on Windows - AltGr turns into Ctrl+Alt and `]` or `@`
+        // requires AltGr, so you can't tell the difference b/w `]` and `Ctrl+]`.
+        internal override bool KeyboardHasCtrlRBracket => false;
+        internal override bool KeyboardHasCtrlAt => false;
     }
 }

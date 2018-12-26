@@ -156,9 +156,11 @@ namespace Test
                 })));
         }
 
-        [Fact]
+        [SkippableFact]
         public void BeginningOfHistory()
         {
+            Skip.IfNot(KeyboardHasLessThan);
+
             TestSetup(KeyMode.Emacs);
 
             SetHistory("echo first", "echo second", "echo third");
@@ -168,9 +170,11 @@ namespace Test
             Test("echo second", Keys(_.Alt_Less, _.DownArrow));
         }
 
-        [Fact]
+        [SkippableFact()]
         public void EndOfHistory()
         {
+            Skip.IfNot(KeyboardHasGreaterThan);
+
             TestSetup(KeyMode.Emacs);
 
             SetHistory("echo first", "echo second", "echo third");

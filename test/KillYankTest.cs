@@ -42,9 +42,11 @@ namespace Test
             Test("echo abc ", Keys("echo abc a\\b\\c", _.Ctrl_w));
         }
 
-        [Fact]
+        [SkippableFact]
         public void KillRegion()
         {
+            Skip.IfNot(KeyboardHasCtrlAt);
+
             TestSetup(KeyMode.Emacs, new KeyHandler("Ctrl+z", PSConsoleReadLine.KillRegion));
 
             Test("echo foobar", Keys("bar", _.Ctrl_At, "echo foo", _.Ctrl_z, _.Home, _.Ctrl_y));
@@ -199,9 +201,11 @@ namespace Test
             Test("echo foo ", Keys("echo foo 'a b c'", _.Alt_Backspace));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ExchangePointAndMark()
         {
+            Skip.IfNot(KeyboardHasCtrlAt);
+
             TestSetup(KeyMode.Emacs,
                       new KeyHandler("Ctrl+z", PSConsoleReadLine.ExchangePointAndMark));
 
