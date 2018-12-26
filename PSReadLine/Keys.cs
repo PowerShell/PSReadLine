@@ -125,45 +125,38 @@ namespace Microsoft.PowerShell
 
         static readonly ThreadLocal<char[]> toUnicodeBuffer = new ThreadLocal<char[]>(() => new char[2]);
         static readonly ThreadLocal<byte[]> toUnicodeStateBuffer = new ThreadLocal<byte[]>(() => new byte[256]);
-        internal static char GetCharFromConsoleKey(ConsoleKeyInfo key)
+        internal static void TryGetCharFromConsoleKey(ConsoleKeyInfo key, ref char result)
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            var modifiers = key.Modifiers;
+            var virtualKey = key.Key;
+
+            // emulate GetKeyboardState bitmap - set high order bit for relevant modifier virtual keys
+            var state = toUnicodeStateBuffer.Value;
+            state[0x10 /*VK_SHIFT*/] = (byte)((modifiers & ConsoleModifiers.Shift) != 0 ? 0x80 : 0);
+            state[0x11 /*VK_CONTROL*/] = (byte)((modifiers & ConsoleModifiers.Control) != 0 ? 0x80 : 0);
+            state[0x12 /*VK_ALT*/] = (byte)((modifiers & ConsoleModifiers.Alt) != 0 ? 0x80 : 0);
+
+            // get corresponding scan code
+            uint scanCode = MapVirtualKey(virtualKey, 0x0 /*MAPVK_VK_TO_VSC*/);
+
+            // get corresponding character  - maybe be 0, 1 or 2 in length (diacriticals)
+            var chars = toUnicodeBuffer.Value;
+            var flags = 0u; /* If bit 0 is set, a menu is active. */
+            var osVersion = Environment.OSVersion.Version;
+            if (osVersion.Major == 10 && osVersion.Build >= 14393 || osVersion.MajorRevision > 10)
             {
-                const uint MAPVK_VK_TO_VSC = 0x00;
-                const byte VK_SHIFT = 0x10;
-                const byte VK_CONTROL = 0x11;
-                const byte VK_ALT = 0x12;
-                const uint MENU_IS_INACTIVE = 0x00; // windows key
-
-                var modifiers = key.Modifiers;
-                var virtualKey = key.Key;
-
-                // emulate GetKeyboardState bitmap - set high order bit for relevant modifier virtual keys
-                var state = toUnicodeStateBuffer.Value;
-                state[VK_SHIFT] = (byte)(((modifiers & ConsoleModifiers.Shift) != 0) ? 0x80 : 0);
-                //state[VK_CONTROL] = (byte)(((modifiers & ConsoleModifiers.Control) != 0) ? 0x80 : 0);
-                state[VK_ALT] = (byte)(((modifiers & ConsoleModifiers.Alt) != 0) ? 0x80 : 0);
-
-                // get corresponding scan code
-                uint scanCode = MapVirtualKey(virtualKey, MAPVK_VK_TO_VSC);
-
-                // get corresponding character  - maybe be 0, 1 or 2 in length (diacriticals)
-                var chars = toUnicodeBuffer.Value;
-                var flags = MENU_IS_INACTIVE;
-                int charCount = ToUnicode(virtualKey, scanCode, state, chars, chars.Length, flags);
-
-                // TODO: support diacriticals (charCount == 2)
-                if (charCount == 1)
-                {
-                    return chars[0];
-                }
+                flags |= (1 << 2); /* If bit 2 is set, keyboard state is not changed (Windows 10, version 1607 and newer) */
             }
+            int charCount = ToUnicode(virtualKey, scanCode, state, chars, chars.Length, flags);
 
-            return key.KeyChar;
+            // TODO: support diacriticals (charCount == 2)
+            if (charCount == 1)
+            {
+                result = chars[0];
+            }
         }
 
-        static readonly ThreadLocal<StringBuilder> keyInfoStringBuilder
-            = new ThreadLocal<StringBuilder>(() => new StringBuilder());
+        static readonly ThreadLocal<StringBuilder> keyInfoStringBuilder = new ThreadLocal<StringBuilder>(() => new StringBuilder());
         static string KeyInfoAsString(ConsoleKeyInfo key)
         {
             var sb = keyInfoStringBuilder.Value;
@@ -182,7 +175,7 @@ namespace Microsoft.PowerShell
 
             switch (key.Key)
             {
-                // Keys we do or might bind.
+                // Keys we definitely bind or might bind.
                 case ConsoleKey.PageUp: case ConsoleKey.PageDown:
                 case ConsoleKey.LeftArrow: case ConsoleKey.UpArrow: case ConsoleKey.RightArrow: case ConsoleKey.DownArrow:
                 case ConsoleKey.F1: case ConsoleKey.F2: case ConsoleKey.F3: case ConsoleKey.F4:
@@ -209,23 +202,11 @@ namespace Microsoft.PowerShell
                 case ConsoleKey.LeftWindows: case ConsoleKey.RightWindows: case ConsoleKey.Applications:
                 case ConsoleKey.PrintScreen:
 
-                // Keys I don't know anything about, presumably ignore
-                case ConsoleKey.Clear:
-                case ConsoleKey.Pause:
-                case ConsoleKey.Select:
-                case ConsoleKey.Print:
-                case ConsoleKey.Execute:
-                case ConsoleKey.Help:
-                case ConsoleKey.Sleep:
-                case ConsoleKey.Process:
-                case ConsoleKey.Packet:
-                case ConsoleKey.Attention:
-                case ConsoleKey.CrSel:
-                case ConsoleKey.ExSel:
-                case ConsoleKey.EraseEndOfFile:
-                case ConsoleKey.Play:
-                case ConsoleKey.Zoom:
-                case ConsoleKey.NoName:
+                // Keys I'm not familiar with, presumably we'd want to ignore.
+                case ConsoleKey.Clear: case ConsoleKey.Pause: case ConsoleKey.Select: case ConsoleKey.Print:
+                case ConsoleKey.Execute: case ConsoleKey.Help: case ConsoleKey.Sleep: case ConsoleKey.Process:
+                case ConsoleKey.Packet: case ConsoleKey.Attention: case ConsoleKey.CrSel: case ConsoleKey.ExSel:
+                case ConsoleKey.EraseEndOfFile: case ConsoleKey.Play: case ConsoleKey.Zoom: case ConsoleKey.NoName:
                 case ConsoleKey.Pa1:
 
                     if (isShift) { AppendPart("Shift"); }
@@ -235,7 +216,26 @@ namespace Microsoft.PowerShell
                     return sb.ToString();
             }
 
-            var c = char.IsControl(key.KeyChar) ? GetCharFromConsoleKey(key) : key.KeyChar;
+            var c = key.KeyChar;
+            if (char.IsControl(c) )
+            {
+                // We have the virtual key code and Windows has a handy api to map that to the non-control
+                // character that use for a friendly UI.
+                //
+                // If this fails, we rely on some hard coded control characters below.
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    var keySansControl = new ConsoleKeyInfo(key.KeyChar, key.Key, isShift, isAlt, control: false);
+                    TryGetCharFromConsoleKey(keySansControl, ref c);
+                }
+            }
+            else if (isAlt && isCtrl)
+            {
+                // Not a control character, if we have Alt and Control both, then it was probably AltGr.
+                isAlt = false;
+                isCtrl = false;
+            }
+
             string s;
             switch (c)
             {
@@ -272,7 +272,7 @@ namespace Microsoft.PowerShell
                     s = "@";
                     break;
 
-                case char _ when c <= 26:
+                case char _ when (c >= 1 && c <= 26):
                     s = ((char)((isShift ? 'A' : 'a') + c - 1)).ToString();
                     isShift = false;
                     break;
