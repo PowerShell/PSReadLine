@@ -148,6 +148,9 @@ try
         [KeyInfoNativeMethods]::SetConsoleInputMode($mode)
         $setConsoleInputMode = $true
     }
+    else {
+        [Console]::TreatControlCAsInput = $true
+    }
 
     $keyData = [System.Collections.Generic.List[KeyInfo]]::new()
 
@@ -163,9 +166,11 @@ try
 }
 finally
 {
-    if ($setConsoleInputMode)
-    {
+    if ($setConsoleInputMode) {
         [KeyInfoNativeMethods]::SetConsoleInputMode($prevMode)
+    }
+    else {
+        [Console]::TreatControlCAsInput = $false
     }
 
     $keyData | ConvertTo-Json | Out-File -Encoding ascii KeyInfo.json
