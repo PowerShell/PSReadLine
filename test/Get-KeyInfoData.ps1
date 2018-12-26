@@ -1,4 +1,4 @@
-[CmdletBindingAttribute()]
+[CmdletBinding()]
 param($maxKeys = 25)
 
 class KeyInfo
