@@ -16,7 +16,7 @@ namespace Test
             }
         }
 
-        [Fact]
+        [SkippableFact]
         public void History()
         {
             TestSetup(KeyMode.Cmd);
@@ -31,7 +31,7 @@ namespace Test
             Test("dir c*", Keys(_.UpArrow, _.UpArrow, _.DownArrow));
         }
 
-        [Fact]
+        [SkippableFact]
         public void HistoryRecallCurrentLine()
         {
             TestSetup(KeyMode.Cmd);
@@ -40,7 +40,7 @@ namespace Test
             Test("ec", Keys("ec", _.UpArrow, _.UpArrow, _.DownArrow, _.DownArrow));
         }
 
-        [Fact]
+        [SkippableFact]
         public void HistorySearchCurrentLine()
         {
             TestSetup(KeyMode.Cmd,
@@ -51,7 +51,7 @@ namespace Test
             Test("ec", Keys("ec", _.UpArrow, _.UpArrow, _.DownArrow, _.DownArrow));
         }
 
-        [Fact]
+        [SkippableFact]
         public void SearchHistory()
         {
             TestSetup(KeyMode.Cmd,
@@ -116,7 +116,7 @@ namespace Test
                 })));
         }
 
-        [Fact]
+        [SkippableFact]
         public void HistorySearchCursorMovesToEnd()
         {
             TestSetup(KeyMode.Cmd,
@@ -170,7 +170,7 @@ namespace Test
             Test("echo second", Keys(_.Alt_Less, _.DownArrow));
         }
 
-        [SkippableFact()]
+        [SkippableFact]
         public void EndOfHistory()
         {
             Skip.IfNot(KeyboardHasGreaterThan);
@@ -189,7 +189,7 @@ namespace Test
             Test("", Keys(_.Alt_Greater));
         }
 
-        [Fact]
+        [SkippableFact]
         public void InteractiveHistorySearch()
         {
             TestSetup(KeyMode.Emacs);
@@ -428,7 +428,7 @@ namespace Test
             // TODO: "fast" typing in search where buffered keys after search is accepted
         }
 
-        [Fact]
+        [SkippableFact]
         public void AddToHistoryHandler()
         {
             TestSetup(KeyMode.Cmd);
@@ -438,7 +438,7 @@ namespace Test
             Test("zzzz", Keys(_.UpArrow));
         }
 
-        [Fact]
+        [SkippableFact]
         public void HistoryNoDuplicates()
         {
             TestSetup(KeyMode.Cmd);
@@ -467,7 +467,7 @@ namespace Test
             Test("", Keys(_.UpArrow, _.DownArrow));
         }
 
-        [Fact]
+        [SkippableFact]
         public void HistorySearchNoDuplicates()
         {
             TestSetup(KeyMode.Cmd,
@@ -485,7 +485,7 @@ namespace Test
                 Enumerable.Repeat(_.DownArrow, 2)));
         }
 
-        [Fact]
+        [SkippableFact]
         public void InteractiveHistorySearchNoDuplicates()
         {
             TestSetup(KeyMode.Emacs);
@@ -504,7 +504,7 @@ namespace Test
                 _.Ctrl_r, "echo", _.Ctrl_r, _.Ctrl_r, _.Ctrl_h, _.Ctrl_r, _.Ctrl_r));
         }
 
-        [Fact]
+        [SkippableFact]
         public void HistoryCount()
         {
             TestSetup(KeyMode.Cmd);

@@ -4,7 +4,7 @@ namespace Test
 {
     public partial class ReadLine
     {
-        [Fact]
+        [SkippableFact]
         public void ViWordMovement()
         {
             TestSetup(KeyMode.Vi);
@@ -260,7 +260,7 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViDotWordMovement()
         {
             TestSetup(KeyMode.Vi);
@@ -364,7 +364,7 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViCursorMovement()
         {
             TestSetup(KeyMode.Vi);
@@ -410,7 +410,7 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViGotoBrace()
         {
             TestSetup(KeyMode.Vi);
@@ -445,7 +445,7 @@ namespace Test
             }
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViCharacterSearch()
         {
             TestSetup(KeyMode.Vi);
@@ -531,7 +531,7 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViColumnMovement()
         {
             TestSetup(KeyMode.Vi);
@@ -558,7 +558,7 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViBOLErrorCase()
         {
             TestSetup(KeyMode.Vi);
@@ -568,7 +568,7 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViCharDelete()
         {
             TestSetup(KeyMode.Vi);
@@ -613,7 +613,7 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViDefect456()
         {
             TestSetup(KeyMode.Vi);

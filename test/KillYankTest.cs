@@ -8,7 +8,7 @@ namespace Test
 {
     public partial class ReadLine
     {
-        [Fact]
+        [SkippableFact]
         public void KillWord()
         {
             TestSetup(KeyMode.Emacs);
@@ -21,7 +21,7 @@ namespace Test
                 _.End, _.Ctrl_y)); // Yank 'abc' at end of line
         }
 
-        [Fact]
+        [SkippableFact]
         public void BackwardKillWord()
         {
             TestSetup(KeyMode.Emacs);
@@ -34,7 +34,7 @@ namespace Test
                 _.End, _.Ctrl_y));  // Yank 'abc ' at the end
         }
 
-        [Fact]
+        [SkippableFact]
         public void UnixWordRubout()
         {
             TestSetup(KeyMode.Emacs);
@@ -52,7 +52,7 @@ namespace Test
             Test("echo foobar", Keys("bar", _.Ctrl_At, "echo foo", _.Ctrl_z, _.Home, _.Ctrl_y));
         }
 
-        [Fact]
+        [SkippableFact]
         public void YankPop()
         {
             TestSetup(KeyMode.Emacs);
@@ -97,7 +97,7 @@ namespace Test
                 _.Alt_y)); // replace busy with previous text in kill ring
         }
 
-        [Fact]
+        [SkippableFact]
         public void KillLine()
         {
             TestSetup(KeyMode.Emacs);
@@ -111,7 +111,7 @@ namespace Test
             Test("foo", Keys(_.Ctrl_y));
         }
 
-        [Fact]
+        [SkippableFact]
         public void BackwardKillLine()
         {
             TestSetup(KeyMode.Emacs);
@@ -130,7 +130,7 @@ namespace Test
             Test("dir ", Keys(_.Ctrl_y));
         }
 
-        [Fact]
+        [SkippableFact]
         public void KillAppend()
         {
             TestSetup(KeyMode.Emacs);
@@ -169,7 +169,7 @@ namespace Test
                 _.Ctrl_y));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ShellKillWord()
         {
             TestSetup(KeyMode.Emacs,
@@ -185,7 +185,7 @@ namespace Test
             Test("echo foo", Keys("'a b c'echo foo", _.Home, _.Alt_d));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ShellBackwardKillWord()
         {
             TestSetup(KeyMode.Emacs,
@@ -232,7 +232,7 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void YankLastNth()
         {
             TestSetup(KeyMode.Emacs);
@@ -263,7 +263,7 @@ namespace Test
                 _.Alt_Minus, _.Alt_2, _.Ctrl_Alt_y));
         }
 
-        [Fact]
+        [SkippableFact]
         public void YankLastArg()
         {
             TestSetup(KeyMode.Emacs);
@@ -299,7 +299,7 @@ namespace Test
             TestMustDing("a", Keys(_.Alt_Period, _.Ctrl_z));
         }
 
-        [Fact]
+        [SkippableFact]
         public void Paste()
         {
             TestSetup(KeyMode.Cmd);
@@ -312,7 +312,7 @@ namespace Test
                 "echo foobar", _.Ctrl_Shift_LeftArrow, _.Ctrl_v));
         }
 
-        [Fact]
+        [SkippableFact]
         public void Cut()
         {
             TestSetup(KeyMode.Cmd);
@@ -323,7 +323,7 @@ namespace Test
             AssertClipboardTextIs("cuttest1");
         }
 
-        [Fact]
+        [SkippableFact]
         public void Copy()
         {
             TestSetup(KeyMode.Cmd);
@@ -339,7 +339,7 @@ namespace Test
             AssertClipboardTextIs("copytest2");
         }
 
-        [Fact]
+        [SkippableFact]
         public void CopyOrCancelLine()
         {
             TestSetup(KeyMode.Cmd);
@@ -356,7 +356,7 @@ namespace Test
                 InputAcceptedNow));
         }
 
-        [Fact]
+        [SkippableFact]
         public void SelectBackwardChar()
         {
             TestSetup(KeyMode.Cmd);
@@ -369,7 +369,7 @@ namespace Test
                 _.Delete, "ho"));
         }
 
-        [Fact]
+        [SkippableFact]
         public void SelectForwardChar()
         {
             TestSetup(KeyMode.Cmd);
@@ -382,7 +382,7 @@ namespace Test
                 "ec"));
         }
 
-        [Fact]
+        [SkippableFact]
         public void SelectBackwardWord()
         {
             TestSetup(KeyMode.Cmd);
@@ -396,7 +396,7 @@ namespace Test
                 _.Delete));
         }
 
-        [Fact]
+        [SkippableFact]
         public void SelectNextWord()
         {
             TestSetup(KeyMode.Cmd);
@@ -410,7 +410,7 @@ namespace Test
                 _.Delete));
         }
 
-        [Fact]
+        [SkippableFact]
         public void SelectForwardWord()
         {
             TestSetup(KeyMode.Emacs);
@@ -423,7 +423,7 @@ namespace Test
                 _.Delete));
         }
 
-        [Fact]
+        [SkippableFact]
         public void SelectShellForwardWord()
         {
             TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+z", PSConsoleReadLine.SelectShellForwardWord));
@@ -436,7 +436,7 @@ namespace Test
                 _.Delete));
         }
 
-        [Fact]
+        [SkippableFact]
         public void SelectShellNextWord()
         {
             TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+z", PSConsoleReadLine.SelectShellNextWord));
@@ -449,7 +449,7 @@ namespace Test
                 _.Delete));
         }
 
-        [Fact]
+        [SkippableFact]
         public void SelectShellBackwardWord()
         {
             TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+z", PSConsoleReadLine.SelectShellBackwardWord));
@@ -463,7 +463,7 @@ namespace Test
                 _.Delete));
         }
 
-        [Fact]
+        [SkippableFact]
         public void SelectBackwardsLine()
         {
             TestSetup(KeyMode.Emacs);
@@ -475,7 +475,7 @@ namespace Test
                 _.Backspace));
         }
 
-        [Fact]
+        [SkippableFact]
         public void SelectLine()
         {
             TestSetup(KeyMode.Cmd);
@@ -487,7 +487,7 @@ namespace Test
                 _.Delete));
         }
 
-        [Fact]
+        [SkippableFact]
         public void SelectAll()
         {
             TestSetup(KeyMode.Cmd);

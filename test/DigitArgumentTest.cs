@@ -5,7 +5,7 @@ namespace Test
 {
     public partial class ReadLine
     {
-        [Fact]
+        [SkippableFact]
         public void DigitArgumentValues()
         {
             int argValue = 0;
@@ -43,7 +43,7 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void DigitArgumentPrompt()
         {
             TestSetup(KeyMode.Emacs);
@@ -65,7 +65,7 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void DigitArgumentWithSelfInsert()
         {
             TestSetup(KeyMode.Emacs);

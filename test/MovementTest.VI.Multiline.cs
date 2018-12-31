@@ -5,7 +5,7 @@ namespace Test
 {
     public partial class ReadLine
     {
-        [Fact]
+        [SkippableFact]
         public void ViMoveToFirstLogicalLineThenJumpToLastLogicalLine()
         {
             TestSetup(KeyMode.Vi);
@@ -26,7 +26,7 @@ namespace Test
             ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViMoveToLastLogicalLine_MustDing_ForEmptyLine()
         {
             const string buffer = "";
@@ -34,7 +34,7 @@ namespace Test
             ViJumpMustDing(buffer, keys);
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViMoveToFirstLogicalLine_MustDing_ForEmptyLine()
         {
             const string buffer = "";
@@ -42,7 +42,7 @@ namespace Test
             ViJumpMustDing(buffer, keys);
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViMoveToLastLogicalLine_MustDing_ForSingleLine()
         {
             const string buffer = "Ding";
@@ -50,7 +50,7 @@ namespace Test
             ViJumpMustDing(buffer, keys);
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViMoveToFirstLogicalLine_MustDing_ForSingleLine()
         {
             const string buffer = "Ding";

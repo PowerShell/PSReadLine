@@ -6,7 +6,7 @@ namespace Test
 {
     public partial class ReadLine
     {
-        [Fact]
+        [SkippableFact]
         public void BackwardWord()
         {
             TestSetup(KeyMode.Cmd);
@@ -31,7 +31,7 @@ namespace Test
                 _.Alt_2, _.Ctrl_LeftArrow, CheckThat(() => AssertCursorLeftIs(0))));
         }
 
-        [Fact]
+        [SkippableFact]
         public void EmacsBackwardWord()
         {
             TestSetup(KeyMode.Emacs);
@@ -55,7 +55,7 @@ namespace Test
                 _.Alt_4, _.Alt_b, CheckThat(() => AssertCursorLeftIs(0))));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ForwardWord()
         {
             TestSetup(KeyMode.Emacs);
@@ -77,7 +77,7 @@ namespace Test
                 _.Alt_3, _.Alt_Minus, _.Alt_f, CheckThat(() => AssertCursorLeftIs(7))));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ShellBackwardWord()
         {
             TestSetup(KeyMode.Cmd,
@@ -99,7 +99,7 @@ namespace Test
                 _.Alt_1, _.Alt_Minus, _.Ctrl_LeftArrow, CheckThat(() => AssertCursorLeftIs(15))));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ShellNextWord()
         {
             TestSetup(KeyMode.Cmd,
@@ -132,7 +132,7 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ShellForwardWord()
         {
             TestSetup(KeyMode.Emacs,

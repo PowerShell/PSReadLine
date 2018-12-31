@@ -10,6 +10,7 @@ using System.Runtime.InteropServices;
 using Microsoft.PowerShell;
 using Microsoft.PowerShell.Internal;
 using Xunit;
+using Xunit.Abstractions;
 
 [assembly: CollectionBehavior(DisableTestParallelization = true)]
 
@@ -52,14 +53,16 @@ namespace Test
 
     public abstract partial class ReadLine
     {
-        protected ReadLine(ConsoleFixture fixture, string lang, string os)
+        protected ReadLine(ConsoleFixture fixture, ITestOutputHelper output, string lang, string os)
         {
+            Output = output;
             Fixture = fixture;
             Fixture.Initialize(lang, os);
         }
 
         internal dynamic _ => Fixture.KbLayout;
         internal ConsoleFixture Fixture { get; }
+        internal ITestOutputHelper Output { get; }
 
         internal virtual bool KeyboardHasLessThan => true;
         internal virtual bool KeyboardHasGreaterThan => true;
@@ -433,6 +436,9 @@ namespace Test
 
         private void TestSetup(KeyMode keyMode, params KeyHandler[] keyHandlers)
         {
+            Skip.If(WindowsConsoleFixtureHelper.GetKeyboardLayout() != this.Fixture.Lang,
+                    $"Keyboard layout must be set to {this.Fixture.Lang}");
+
             _console = new TestConsole(_);
             _mockedMethods = new MockedMethods();
             var instance = (PSConsoleReadLine)typeof(PSConsoleReadLine)
@@ -511,16 +517,16 @@ namespace Test
 
     public class en_US_Windows : Test.ReadLine, IClassFixture<ConsoleFixture>
     {
-        public en_US_Windows(ConsoleFixture fixture)
-            : base(fixture, "en-US", "windows")
+        public en_US_Windows(ConsoleFixture fixture, ITestOutputHelper output)
+            : base(fixture, output, "en-US", "windows")
         {
         }
     }
 
     public class fr_FR_Windows : Test.ReadLine, IClassFixture<ConsoleFixture>
     {
-        public fr_FR_Windows(ConsoleFixture fixture)
-            : base(fixture, "fr-FR", "windows")
+        public fr_FR_Windows(ConsoleFixture fixture, ITestOutputHelper output)
+            : base(fixture, output, "fr-FR", "windows")
         {
         }
 

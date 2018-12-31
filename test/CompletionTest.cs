@@ -10,7 +10,7 @@ namespace Test
 {
     public partial class ReadLine
     {
-        [Fact]
+        [SkippableFact]
         public void TabComplete()
         {
             TestSetup(KeyMode.Cmd);
@@ -38,7 +38,7 @@ namespace Test
                 CheckThat(() => AssertLineIs("$this"))));
         }
 
-        [Fact]
+        [SkippableFact]
         public void InvalidCompletionResult()
         {
             TestSetup(KeyMode.Cmd);
@@ -50,7 +50,7 @@ namespace Test
             }
         }
 
-        [Fact]
+        [SkippableFact]
         public void Complete()
         {
             TestSetup(KeyMode.Emacs);
@@ -62,7 +62,7 @@ namespace Test
                 '1'));
         }
 
-        [Fact]
+        [SkippableFact]
         public void PossibleCompletions()
         {
             TestSetup(KeyMode.Emacs);
@@ -117,7 +117,7 @@ namespace Test
                 CheckThat(() => AssertScreenIs(2, TokenClassification.Command, "none", NextLine))));
         }
 
-        [Fact]
+        [SkippableFact]
         public void PossibleCompletionsPrompt()
         {
             TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+Spacebar", PSConsoleReadLine.PossibleCompletions));
@@ -146,7 +146,7 @@ namespace Test
                     "Get-Many2   Get-Many5   Get-Many8   Get-Many11  Get-Many14"))));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ShowTooltips()
         {
             TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+Spacebar", PSConsoleReadLine.PossibleCompletions));
@@ -156,7 +156,7 @@ namespace Test
             // TODO:
         }
 
-        [Fact]
+        [SkippableFact]
         public void DirectoryCompletion()
         {
             TestSetup(KeyMode.Cmd);

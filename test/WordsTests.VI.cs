@@ -4,7 +4,7 @@ namespace Test
 {
     public partial class ReadLine
     {
-        [Fact]
+        [SkippableFact]
         public void ViChangeWord()
         {
             TestSetup(KeyMode.Vi);

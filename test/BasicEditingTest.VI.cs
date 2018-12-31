@@ -5,7 +5,7 @@ namespace Test
 {
     public partial class ReadLine
     {
-        [Fact]
+        [SkippableFact]
         public void ViInput()
         {
             TestSetup(KeyMode.Vi);
@@ -17,7 +17,7 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViAppend()
         {
             TestSetup(KeyMode.Vi);
@@ -31,7 +31,7 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViChangeMovement()
         {
             TestSetup(KeyMode.Vi);
@@ -87,7 +87,7 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViDefect623()
         {
             TestSetup(KeyMode.Vi);
@@ -103,7 +103,7 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViDefect628()
         {
             TestSetup(KeyMode.Vi);
@@ -117,7 +117,7 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void Defect796()
         {
             TestSetup(KeyMode.Vi);
@@ -130,7 +130,7 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViChangeMovementUndo()
         {
             TestSetup(KeyMode.Vi);
@@ -251,7 +251,7 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViDelete()
         {
             TestSetup(KeyMode.Vi);
@@ -463,7 +463,7 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViGlobDelete()
         {
             TestSetup(KeyMode.Vi);
@@ -504,7 +504,7 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViPercent()
         {
             TestSetup(KeyMode.Vi);
@@ -601,7 +601,7 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViCTRL()
         {
             TestSetup(KeyMode.Vi);
@@ -624,7 +624,7 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViMisc()
         {
             TestSetup(KeyMode.Vi);
@@ -645,7 +645,7 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViChange()
         {
             TestSetup(KeyMode.Vi);
@@ -736,7 +736,7 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViDefect651()
         {
             TestSetup(KeyMode.Vi, new KeyHandler("Tab", PSConsoleReadLine.MenuComplete));
@@ -748,7 +748,7 @@ namespace Test
         }
 
 
-        [Fact]
+        [SkippableFact]
         public void ViInsertLine()
         {
             int adder = PSConsoleReadLineOptions.DefaultContinuationPrompt.Length;
@@ -794,7 +794,7 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViJoinLines()
         {
             TestSetup(KeyMode.Vi);
@@ -817,7 +817,7 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViChangeChar()
         {
             TestSetup(KeyMode.Vi);
@@ -869,7 +869,7 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViComplete()
         {
             TestSetup(KeyMode.Vi);

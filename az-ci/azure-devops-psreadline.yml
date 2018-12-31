@@ -20,5 +20,5 @@ jobs:
   - powershell: |
       Install-Module InvokeBuild,platyPS -Scope CurrentUser -Force
       Import-Module InvokeBuild,platyPS
-      Invoke-Build -Task ZipRelease -Configuration Release
+      Invoke-Build -Task RunTests,ZipRelease -Configuration Release
 

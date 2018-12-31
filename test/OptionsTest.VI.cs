@@ -5,7 +5,7 @@ namespace Test
 {
     public partial class ReadLine
     {
-        [Fact]
+        [SkippableFact]
         public void ViGetKeyHandlers()
         {
             TestSetup(KeyMode.Vi);

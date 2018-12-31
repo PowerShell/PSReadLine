@@ -8,7 +8,7 @@ namespace Test
 {
     public partial class ReadLine
     {
-        [Fact]
+        [SkippableFact]
         public void ClearScreen()
         {
             TestSetup(KeyMode.Emacs);
@@ -31,7 +31,7 @@ namespace Test
                 ), resetCursor: false);
         }
 
-        [Fact]
+        [SkippableFact]
         public void Render()
         {
             TestSetup(KeyMode.Cmd);
@@ -106,7 +106,7 @@ namespace Test
                 '"'), prompt: promptLine);
         }
 
-        [Fact]
+        [SkippableFact]
         public void MultiLine()
         {
             TestSetup(KeyMode.Cmd);
@@ -139,7 +139,7 @@ namespace Test
                 _.Enter, CheckThat(() => AssertCursorLeftTopIs(0, 2))));
         }
 
-        [Fact]
+        [SkippableFact]
         public void LongLine()
         {
             TestSetup(KeyMode.Cmd);
@@ -153,7 +153,7 @@ namespace Test
             Test(input, Keys(input));
         }
 
-        [Fact]
+        [SkippableFact]
         public void InvokePrompt()
         {
             TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+z", PSConsoleReadLine.InvokePrompt));

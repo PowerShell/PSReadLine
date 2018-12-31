@@ -5,7 +5,7 @@ namespace Test
 {
     public partial class ReadLine
     {
-        [Fact]
+        [SkippableFact]
         public void EndOfLine()
         {
             TestSetup(KeyMode.Cmd);
@@ -31,7 +31,7 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void MultilineCursorMovement()
         {
             TestSetup(KeyMode.Cmd);
@@ -106,7 +106,7 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void CursorMovement()
         {
             TestSetup(KeyMode.Cmd);
@@ -170,7 +170,7 @@ namespace Test
             }
         }
 
-        [Fact]
+        [SkippableFact]
         public void CharacterSearch()
         {
             TestSetup(KeyMode.Cmd);
@@ -202,7 +202,7 @@ namespace Test
                 _.Ctrl_RBracket, 'z'));
         }
 
-        [Fact]
+        [SkippableFact]
         public void CharacterSearchApi()
         {
             int i = 0;
@@ -216,7 +216,7 @@ namespace Test
                 _.Ctrl_z, CheckThat(() => AssertCursorLeftIs(12))));
         }
 
-        [Fact]
+        [SkippableFact]
         public void CharacterSearchBackward()
         {
             TestSetup(KeyMode.Cmd);
@@ -248,7 +248,7 @@ namespace Test
                 _.Ctrl_Alt_RBracket, 'z'));
         }
 
-        [Fact]
+        [SkippableFact]
         public void CharacterSearchBackwardApi()
         {
             int i = 0;

@@ -6,7 +6,7 @@ namespace Test
 {
     public partial class ReadLine
     {
-        [Fact]
+        [SkippableFact]
         public void WhatIsKey()
         {
             TestSetup(KeyMode.Cmd);
@@ -32,7 +32,7 @@ namespace Test
                 CheckThat(() => AssertScreenIs(2, NextLine, "Ctrl+x,Ctrl+u: Undo - Undo a previous edit"))));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ShowKeyBindings()
         {
             // I'm too lazy to validate the output as there's a lot of output.  So

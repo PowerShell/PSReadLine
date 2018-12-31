@@ -8,7 +8,7 @@ namespace Test
 {
     public partial class ReadLine
     {
-        [Fact]
+        [SkippableFact]
         public void ContinuationPrompt()
         {
             TestSetup(KeyMode.Cmd);
@@ -55,7 +55,7 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void GetKeyHandlers()
         {
             foreach (var keymode in new[] {KeyMode.Cmd, KeyMode.Emacs})
@@ -78,7 +78,7 @@ namespace Test
             }
         }
 
-        [Fact]
+        [SkippableFact]
         [ExcludeFromCodeCoverage]
         public void UselessStuffForBetterCoverage()
         {

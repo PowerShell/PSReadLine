@@ -5,7 +5,7 @@ namespace Test
 {
     public partial class ReadLine
     {
-        [Fact]
+        [SkippableFact]
         public void ViPasteAfterDeleteChar()
         {
             TestSetup(KeyMode.Vi);
@@ -43,7 +43,7 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViPasteAfterDelete()
         {
             TestSetup(KeyMode.Vi);
@@ -97,7 +97,7 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViPasteAfterDeleteBraces()
         {
             TestSetup(KeyMode.Vi);
@@ -119,7 +119,7 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViPasteAfterDeleteWord()
         {
             TestSetup(KeyMode.Vi);
@@ -189,7 +189,7 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViPasteAfterDeleteLine()
         {
             TestSetup(KeyMode.Vi);
@@ -204,7 +204,7 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViPasteAfterYankLine()
         {
             TestSetup(KeyMode.Vi);
@@ -218,7 +218,7 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViPasteAfterYankMovement()
         {
             TestSetup(KeyMode.Vi);
@@ -255,7 +255,7 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViPasteAfterYankWord()
         {
             TestSetup(KeyMode.Vi);
@@ -317,7 +317,7 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViPasteAfterYankBeginningOfLine()
         {
             TestSetup(KeyMode.Vi);
@@ -335,7 +335,7 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViPasteAfterYankFirstNoneBlank()
         {
             TestSetup(KeyMode.Vi);
@@ -353,7 +353,7 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViPasteAfterYankPercent()
         {
             TestSetup(KeyMode.Vi);
@@ -389,7 +389,7 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViPasteAfterYankPreviousGlob()
         {
             TestSetup(KeyMode.Vi);
@@ -414,7 +414,7 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViPasteAfterYankNextGlob()
         {
             TestSetup(KeyMode.Vi);
@@ -439,7 +439,7 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViPasteAfterYankEndOfGlob()
         {
             TestSetup(KeyMode.Vi);

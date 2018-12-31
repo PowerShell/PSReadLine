@@ -8,7 +8,7 @@ namespace Test
 {
     public partial class ReadLine
     {
-        [Fact]
+        [SkippableFact]
         public void Input()
         {
             TestSetup(KeyMode.Cmd);
@@ -19,7 +19,7 @@ namespace Test
                 CheckThat(() => AssertCursorLeftIs(0))));
         }
 
-        [Fact]
+        [SkippableFact]
         public void RevertLine()
         {
             // Add one test for chords
@@ -33,7 +33,7 @@ namespace Test
             Test("ls", Keys("di", _.Alt_r, "ls"));
         }
 
-        [Fact]
+        [SkippableFact]
         public void CancelLine()
         {
             TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+C", PSConsoleReadLine.CancelLine));
@@ -72,7 +72,7 @@ namespace Test
                 InputAcceptedNow));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ForwardDeleteLine()
         {
             ConsoleKeyInfo deleteToEnd;
@@ -97,7 +97,7 @@ namespace Test
             Test("a", Keys("abc", _.LeftArrow, _.LeftArrow, deleteToEnd));
         }
 
-        [Fact]
+        [SkippableFact]
         public void BackwardDeleteLine()
         {
             TestSetup(KeyMode.Cmd);
@@ -113,7 +113,7 @@ namespace Test
             Test("", Keys("abc", _.Ctrl_Home));
         }
 
-        [Fact]
+        [SkippableFact]
         public void BackwardDeleteChar()
         {
             TestSetup(KeyMode.Cmd);
@@ -137,7 +137,7 @@ namespace Test
             Test("ac", Keys("abc", _.LeftArrow, _.Backspace));
         }
 
-        [Fact]
+        [SkippableFact]
         public void DeleteChar()
         {
             TestSetup(KeyMode.Cmd);
@@ -158,7 +158,7 @@ namespace Test
             Test("ac", Keys("abc", _.Home, _.RightArrow, _.Delete));
         }
 
-        [Fact]
+        [SkippableFact]
         public void DeleteCharOrExit()
         {
             TestSetup(KeyMode.Emacs);
@@ -170,7 +170,7 @@ namespace Test
             Test("exit", Keys("foo", _.Home, Enumerable.Repeat(_.Ctrl_d, 4), InputAcceptedNow));
         }
 
-        [Fact]
+        [SkippableFact]
         public void SwapCharacters()
         {
             TestSetup(KeyMode.Emacs);
@@ -194,7 +194,7 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void AcceptAndGetNext()
         {
             TestSetup(KeyMode.Emacs);
@@ -223,7 +223,7 @@ namespace Test
             Test("eee", Keys(_.DownArrow, _.DownArrow, "ee", _.Enter));
         }
 
-        [Fact]
+        [SkippableFact]
         public void AcceptAndGetNextWithHistorySearch()
         {
             TestSetup(KeyMode.Emacs,
@@ -236,7 +236,7 @@ namespace Test
             Test("zzz", Keys(_.DownArrow, _.Enter));
         }
 
-        [Fact]
+        [SkippableFact]
         public void AddLine()
         {
             TestSetup(KeyMode.Cmd);
@@ -244,7 +244,7 @@ namespace Test
             Test("1\n2", Keys('1', _.Shift_Enter, '2'));
         }
 
-        [Fact]
+        [SkippableFact]
         public void InsertLineAbove()
         {
             TestSetup(KeyMode.Cmd);
@@ -294,7 +294,7 @@ namespace Test
                                           "9ABC"));
         }
 
-        [Fact]
+        [SkippableFact]
         public void InsertLineBelow()
         {
             TestSetup(KeyMode.Cmd);
@@ -347,7 +347,7 @@ namespace Test
                                           "9ABC"));
         }
 
-        [Fact]
+        [SkippableFact]
         public void MultilineHomeBugFixed()
         {
             TestSetup(KeyMode.Cmd);
@@ -359,7 +359,7 @@ namespace Test
             Test("1234\n9ABC", Keys("1234", _.Shift_Enter, "9ABC", _.UpArrow, _.LeftArrow, _.Home, CheckThat(() => AssertCursorLeftTopIs(0, 0))));
         }
 
-        [Fact]
+        [SkippableFact]
         public void Ignore()
         {
             TestSetup(KeyMode.Emacs);

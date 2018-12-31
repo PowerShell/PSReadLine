@@ -5,7 +5,7 @@ namespace Test
 {
     public partial class ReadLine
     {
-        [Fact]
+        [SkippableFact]
         public void ViHistory()
         {
             TestSetup(KeyMode.Vi);
@@ -49,7 +49,7 @@ namespace Test
             Test("003", Keys(_.Escape, "---+"));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViSearchHistory()
         {
             TestSetup(KeyMode.Vi);
@@ -83,7 +83,7 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViHistoryRepeat()
         {
             TestSetup(KeyMode.Vi);
@@ -109,7 +109,7 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViMovementAfterHistory()
         {
             TestSetup(KeyMode.Vi);
@@ -122,7 +122,7 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViChangeAfterHistory()
         {
             TestSetup(KeyMode.Vi);
@@ -135,7 +135,7 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViAppendAfterHistory()
         {
             TestSetup(KeyMode.Vi);
@@ -153,7 +153,7 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViHistoryCursorPosition()
         {
             TestSetup(KeyMode.Vi);

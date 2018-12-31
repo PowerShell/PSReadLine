@@ -7,7 +7,7 @@ namespace Test
 {
     public partial class ReadLine
     {
-        [Fact]
+        [SkippableFact]
         public void InsertAPI()
         {
             TestSetup(KeyMode.Cmd);
@@ -26,7 +26,7 @@ namespace Test
                 })));
         }
 
-        [Fact]
+        [SkippableFact]
         public void DeleteAPI()
         {
             TestSetup(KeyMode.Cmd);
@@ -36,7 +36,7 @@ namespace Test
                 CheckThat(() => PSConsoleReadLine.Delete(4, 4))));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ReplaceAPI()
         {
             TestSetup(KeyMode.Cmd);
@@ -68,7 +68,7 @@ namespace Test
                 })));
         }
 
-        [Fact]
+        [SkippableFact]
         public void GetBufferStateAPI()
         {
             TestSetup(KeyMode.Cmd);
@@ -90,7 +90,7 @@ namespace Test
                 })));
         }
 
-        [Fact]
+        [SkippableFact]
         public void GetSelectionStateAPI()
         {
             TestSetup(KeyMode.Cmd);
@@ -119,7 +119,7 @@ namespace Test
                 })));
         }
 
-        [Fact]
+        [SkippableFact]
         public void SetCursorPositionAPI()
         {
             TestSetup(KeyMode.Cmd);
