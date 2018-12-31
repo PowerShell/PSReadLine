@@ -21,4 +21,7 @@ jobs:
       Install-Module InvokeBuild,platyPS -Scope CurrentUser -Force
       Import-Module InvokeBuild,platyPS
       Invoke-Build -Task RunTests,ZipRelease -Configuration Release
+  - task: PublishTestResults@2
+    inputs:
+      testResultsFiles: '**/*.trx'
 
