@@ -279,7 +279,9 @@ public class KeyboardLayoutHelper
         # We want to run tests in as many layouts as possible. We have key info
         # data for layouts that might not be installed, and tests would fail
         # if we don't set the system wide layout to match the key data we'll use.
-        foreach ($layout in [KeyboardLayoutHelper]::GetKeyboardLayouts())
+        $layouts = [KeyboardLayoutHelper]::GetKeyboardLayouts()
+        Write-Output "Available layouts:", $layouts
+        foreach ($layout in $layouts)
         {
             if (Test-Path "KeyInfo-${layout}-windows.json")
             {
