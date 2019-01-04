@@ -296,7 +296,7 @@ public class KeyboardLayoutHelper
                     $p = Start-Process -FilePath $script:dotnet -Wait -PassThru -RedirectStandardOutput $os -RedirectStandardError $es -ArgumentList $dnArgs
                     Get-Content $os,$es
                     Remove-Item $os,$es
-                    $global:LASTEXITCODE = $p.ExitCode
+                    #$global:LASTEXITCODE = $p.ExitCode
                 }
             }
         }
