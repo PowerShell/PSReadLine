@@ -23,5 +23,7 @@ jobs:
       Invoke-Build -Task RunTests,ZipRelease -Configuration Release
   - task: PublishTestResults@2
     inputs:
-      testResultsFiles: '**/*.trx'
+      testResultsFormat: 'VSTest'
+      testResultsFiles: '*.trx'
+      searchFolder: '$(System.DefaultWorkingDirectory)/test/TestResults'
 
