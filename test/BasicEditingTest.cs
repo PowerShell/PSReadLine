@@ -6,12 +6,9 @@ using Xunit;
 
 namespace Test
 {
-    // Disgusting language hack to make it easier to read a sequence of keys.
-    using _ = Keys;
-
     public partial class ReadLine
     {
-        [Fact]
+        [SkippableFact]
         public void Input()
         {
             TestSetup(KeyMode.Cmd);
@@ -22,32 +19,32 @@ namespace Test
                 CheckThat(() => AssertCursorLeftIs(0))));
         }
 
-        [Fact]
+        [SkippableFact]
         public void RevertLine()
         {
             // Add one test for chords
             TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+x,Escape", PSConsoleReadLine.RevertLine));
 
             Test("ls", Keys("di", _.Escape, "ls"));
-            Test("ls", Keys("di", _.CtrlX, _.Escape, "ls"));
+            Test("ls", Keys("di", _.Ctrl_x, _.Escape, "ls"));
 
             TestSetup(KeyMode.Emacs);
-            Test("ls", Keys("di", _.Escape, _.R, "ls"));
-            Test("ls", Keys("di", _.AltR, "ls"));
+            Test("ls", Keys("di", _.Escape, _.r, "ls"));
+            Test("ls", Keys("di", _.Alt_r, "ls"));
         }
 
-        [Fact]
+        [SkippableFact]
         public void CancelLine()
         {
             TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+C", PSConsoleReadLine.CancelLine));
 
-            Test("", Keys("oops", _.CtrlC,
+            Test("", Keys("oops", _.Ctrl_C,
                 CheckThat(() => AssertScreenIs(1,
                     TokenClassification.Command, "oops",
                     Tuple.Create(ConsoleColor.Red, _console.BackgroundColor), "^C")),
                 InputAcceptedNow));
 
-            Test("", Keys("exit", _.CtrlC,
+            Test("", Keys("exit", _.Ctrl_C,
                 CheckThat(() => AssertScreenIs(1,
                     TokenClassification.Keyword, "exit",
                     Tuple.Create(ConsoleColor.Red, _console.BackgroundColor), "^C")),
@@ -56,38 +53,38 @@ namespace Test
             // Test near/at/over buffer width input
             var width = _console.BufferWidth;
             var line1 = new string('a', width - 2);
-            Test("", Keys(line1, _.CtrlC,
+            Test("", Keys(line1, _.Ctrl_C,
                 CheckThat(() => AssertScreenIs(1,
                     TokenClassification.Command, line1,
                     Tuple.Create(ConsoleColor.Red, _console.BackgroundColor), "^C")),
                 InputAcceptedNow));
             var line2 = new string('a', width - 1);
-            Test("", Keys(line2, _.CtrlC,
+            Test("", Keys(line2, _.Ctrl_C,
                 CheckThat(() => AssertScreenIs(2,
                     TokenClassification.Command, line2,
                     Tuple.Create(ConsoleColor.Red, _console.BackgroundColor), "^C")),
                 InputAcceptedNow));
             var line3 = new string('a', width);
-            Test("", Keys(line3, _.CtrlC,
+            Test("", Keys(line3, _.Ctrl_C,
                 CheckThat(() => AssertScreenIs(2,
                     TokenClassification.Command, line3,
                     Tuple.Create(ConsoleColor.Red, _console.BackgroundColor), "^C")),
                 InputAcceptedNow));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ForwardDeleteLine()
         {
-            PSKeyInfo deleteToEnd;
+            ConsoleKeyInfo deleteToEnd;
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 TestSetup(KeyMode.Cmd);
-                deleteToEnd = _.CtrlEnd;
+                deleteToEnd = _.Ctrl_End;
             }
             else
             {
                 TestSetup(KeyMode.Emacs);
-                deleteToEnd = _.CtrlK;
+                deleteToEnd = _.Ctrl_k;
             }
 
             // Empty input (does nothing but don't crash)
@@ -100,23 +97,23 @@ namespace Test
             Test("a", Keys("abc", _.LeftArrow, _.LeftArrow, deleteToEnd));
         }
 
-        [Fact]
+        [SkippableFact]
         public void BackwardDeleteLine()
         {
             TestSetup(KeyMode.Cmd);
 
             // Empty input (does nothing but don't crash)
-            Test("", Keys(_.CtrlHome));
+            Test("", Keys(_.Ctrl_Home));
 
             // at beginning of input - doesn't change anything
-            Test("abc", Keys("abc", _.Home, _.CtrlHome));
+            Test("abc", Keys("abc", _.Home, _.Ctrl_Home));
 
             // More typical usage
-            Test("c", Keys("abc", _.LeftArrow, _.CtrlHome));
-            Test("", Keys("abc", _.CtrlHome));
+            Test("c", Keys("abc", _.LeftArrow, _.Ctrl_Home));
+            Test("", Keys("abc", _.Ctrl_Home));
         }
 
-        [Fact]
+        [SkippableFact]
         public void BackwardDeleteChar()
         {
             TestSetup(KeyMode.Cmd);
@@ -140,7 +137,7 @@ namespace Test
             Test("ac", Keys("abc", _.LeftArrow, _.Backspace));
         }
 
-        [Fact]
+        [SkippableFact]
         public void DeleteChar()
         {
             TestSetup(KeyMode.Cmd);
@@ -161,72 +158,72 @@ namespace Test
             Test("ac", Keys("abc", _.Home, _.RightArrow, _.Delete));
         }
 
-        [Fact]
+        [SkippableFact]
         public void DeleteCharOrExit()
         {
             TestSetup(KeyMode.Emacs);
 
-            Test("exit", Keys(_.CtrlD, InputAcceptedNow));
+            Test("exit", Keys(_.Ctrl_d, InputAcceptedNow));
 
-            Test("foo", Keys("foo", _.CtrlD));
-            Test("oo", Keys("foo", _.Home, _.CtrlD));
-            Test("exit", Keys("foo", _.Home, Enumerable.Repeat(_.CtrlD, 4), InputAcceptedNow));
+            Test("foo", Keys("foo", _.Ctrl_d));
+            Test("oo", Keys("foo", _.Home, _.Ctrl_d));
+            Test("exit", Keys("foo", _.Home, Enumerable.Repeat(_.Ctrl_d, 4), InputAcceptedNow));
         }
 
-        [Fact]
+        [SkippableFact]
         public void SwapCharacters()
         {
             TestSetup(KeyMode.Emacs);
 
-            TestMustDing("", Keys(_.CtrlT));
-            TestMustDing("a", Keys("a", _.CtrlT));
-            TestMustDing("abc", Keys("abc", _.Home, _.CtrlT));
+            TestMustDing("", Keys(_.Ctrl_t));
+            TestMustDing("a", Keys("a", _.Ctrl_t));
+            TestMustDing("abc", Keys("abc", _.Home, _.Ctrl_t));
 
             Test("abc", Keys(
                 "abc", CheckThat(() => AssertLineIs("abc")),
-                _.CtrlT, CheckThat(() => AssertLineIs("acb")),
-                _.CtrlUnderbar
+                _.Ctrl_t, CheckThat(() => AssertLineIs("acb")),
+                _.Ctrl_Underbar
                 ));
 
             Test("abcd", Keys(
                 "abcd", CheckThat(() => AssertLineIs("abcd")),
-                _.CtrlA, _.CtrlT, CheckThat(() => AssertLineIs("abcd")),
-                _.CtrlF, Enumerable.Repeat(_.CtrlT, 3), CheckThat(() => AssertLineIs("bcda")),
-                _.CtrlT, CheckThat(() => AssertLineIs("bcad")),
-                Enumerable.Repeat(_.CtrlUnderbar, 4)
+                _.Ctrl_a, _.Ctrl_t, CheckThat(() => AssertLineIs("abcd")),
+                _.Ctrl_f, Enumerable.Repeat(_.Ctrl_t, 3), CheckThat(() => AssertLineIs("bcda")),
+                _.Ctrl_t, CheckThat(() => AssertLineIs("bcad")),
+                Enumerable.Repeat(_.Ctrl_Underbar, 4)
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void AcceptAndGetNext()
         {
             TestSetup(KeyMode.Emacs);
 
             // No history
-            Test("", Keys(_.CtrlO, InputAcceptedNow));
+            Test("", Keys(_.Ctrl_o, InputAcceptedNow));
 
             // One item in history
             SetHistory("echo 1");
-            Test("", Keys(_.CtrlO, InputAcceptedNow));
+            Test("", Keys(_.Ctrl_o, InputAcceptedNow));
 
             // Two items in history, make sure after Ctrl+O, second history item
             // is recalled.
             SetHistory("echo 1", "echo 2");
-            Test("echo 1", Keys(_.UpArrow, _.UpArrow, _.CtrlO, InputAcceptedNow));
+            Test("echo 1", Keys(_.UpArrow, _.UpArrow, _.Ctrl_o, InputAcceptedNow));
             Test("echo 2", Keys(_.Enter));
 
             // Test that the current saved line is saved after AcceptAndGetNext
             SetHistory("echo 1", "echo 2");
-            Test("echo 1", Keys("e", _.UpArrow, _.UpArrow, _.CtrlO, InputAcceptedNow));
+            Test("echo 1", Keys("e", _.UpArrow, _.UpArrow, _.Ctrl_o, InputAcceptedNow));
             Test("e", Keys(_.DownArrow, _.DownArrow, _.Enter));
 
             // Test that we can edit after recalling the current line
             SetHistory("echo 1", "echo 2");
-            Test("echo 1", Keys("e", _.UpArrow, _.UpArrow, _.CtrlO, InputAcceptedNow));
+            Test("echo 1", Keys("e", _.UpArrow, _.UpArrow, _.Ctrl_o, InputAcceptedNow));
             Test("eee", Keys(_.DownArrow, _.DownArrow, "ee", _.Enter));
         }
 
-        [Fact]
+        [SkippableFact]
         public void AcceptAndGetNextWithHistorySearch()
         {
             TestSetup(KeyMode.Emacs,
@@ -235,19 +232,19 @@ namespace Test
 
             // Test that after AcceptAndGetNext, the previous search is not applied
             SetHistory("echo 1", "echo 2", "zzz");
-            Test("echo 1", Keys("e", _.UpArrow, _.UpArrow, _.CtrlO, InputAcceptedNow));
+            Test("echo 1", Keys("e", _.UpArrow, _.UpArrow, _.Ctrl_o, InputAcceptedNow));
             Test("zzz", Keys(_.DownArrow, _.Enter));
         }
 
-        [Fact]
+        [SkippableFact]
         public void AddLine()
         {
             TestSetup(KeyMode.Cmd);
 
-            Test("1\n2", Keys('1', _.ShiftEnter, '2'));
+            Test("1\n2", Keys('1', _.Shift_Enter, '2'));
         }
 
-        [Fact]
+        [SkippableFact]
         public void InsertLineAbove()
         {
             TestSetup(KeyMode.Cmd);
@@ -255,49 +252,49 @@ namespace Test
             var continutationPromptLength = PSConsoleReadLineOptions.DefaultContinuationPrompt.Length;
 
             // Test case - start with single line, cursor at end
-            Test("56\n1234", Keys("1234", _.CtrlEnter, CheckThat(() => AssertCursorLeftTopIs(0, 0)), "56"));
+            Test("56\n1234", Keys("1234", _.Ctrl_Enter, CheckThat(() => AssertCursorLeftTopIs(0, 0)), "56"));
 
             // Test case - start with single line, cursor in home position
-            Test("56\n1234", Keys("1234", _.Home, _.CtrlEnter, CheckThat(() => AssertCursorLeftTopIs(0, 0)), "56"));
+            Test("56\n1234", Keys("1234", _.Home, _.Ctrl_Enter, CheckThat(() => AssertCursorLeftTopIs(0, 0)), "56"));
 
             // Test case - start with single line, cursor in middle
             Test("56\n1234", Keys("1234",
-                                  _.LeftArrow, _.LeftArrow, _.CtrlEnter, CheckThat(() => AssertCursorLeftTopIs(0, 0)),
+                                  _.LeftArrow, _.LeftArrow, _.Ctrl_Enter, CheckThat(() => AssertCursorLeftTopIs(0, 0)),
                                   "56"));
 
 
             // Test case - start with multi-line, cursor at end of second line (end of input)
-            Test("1234\n9ABC\n5678", Keys("1234", _.ShiftEnter, "5678",
-                                          _.CtrlEnter, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 1)),
+            Test("1234\n9ABC\n5678", Keys("1234", _.Shift_Enter, "5678",
+                                          _.Ctrl_Enter, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 1)),
                                           "9ABC"));
 
             // Test case - start with multi-line, cursor at beginning of second line
-            Test("1234\n9ABC\n5678", Keys("1234", _.ShiftEnter, "5678",
+            Test("1234\n9ABC\n5678", Keys("1234", _.Shift_Enter, "5678",
                                           _.LeftArrow, _.Home, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 1)),
-                                          _.CtrlEnter, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 1)),
+                                          _.Ctrl_Enter, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 1)),
                                           "9ABC"));
 
             // Test case - start with multi-line, cursor at end of first line
-            Test("9ABC\n1234\n5678", Keys("1234", _.ShiftEnter, "5678",
+            Test("9ABC\n1234\n5678", Keys("1234", _.Shift_Enter, "5678",
                                           _.UpArrow, _.LeftArrow, _.End, CheckThat(() => AssertCursorLeftTopIs(4, 0)),
-                                          _.CtrlEnter, CheckThat(() => AssertCursorLeftTopIs(0, 0)),
+                                          _.Ctrl_Enter, CheckThat(() => AssertCursorLeftTopIs(0, 0)),
                                           "9ABC"));
 
             // Test case - start with multi-line, cursor at beginning of first line - temporarily having to press Home twice to
             // work around bug in home handler.
-            Test("9ABC\n1234\n5678", Keys("1234", _.ShiftEnter, "5678",
+            Test("9ABC\n1234\n5678", Keys("1234", _.Shift_Enter, "5678",
                                           _.UpArrow, _.LeftArrow, _.Home, _.Home, CheckThat(() => AssertCursorLeftTopIs(0, 0)),
-                                          _.CtrlEnter, CheckThat(() => AssertCursorLeftTopIs(0, 0)),
+                                          _.Ctrl_Enter, CheckThat(() => AssertCursorLeftTopIs(0, 0)),
                                           "9ABC"));
 
             // Test case - insert multiple blank lines
-            Test("1234\n9ABC\n\n5678", Keys("1234", _.ShiftEnter, "5678",
-                                          _.CtrlEnter, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 1)),
-                                          _.CtrlEnter, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 1)),
+            Test("1234\n9ABC\n\n5678", Keys("1234", _.Shift_Enter, "5678",
+                                          _.Ctrl_Enter, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 1)),
+                                          _.Ctrl_Enter, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 1)),
                                           "9ABC"));
         }
 
-        [Fact]
+        [SkippableFact]
         public void InsertLineBelow()
         {
             TestSetup(KeyMode.Cmd);
@@ -306,51 +303,51 @@ namespace Test
 
             // Test case - start with single line, cursor at end
             Test("1234\n56", Keys("1234",
-                                  _.CtrlShiftEnter, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 1)),
+                                  _.Ctrl_Shift_Enter, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 1)),
                                   "56"));
 
             // Test case - start with single line, cursor in home position
             Test("1234\n56", Keys("1234",
-                                  _.Home, _.CtrlShiftEnter, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 1)),
+                                  _.Home, _.Ctrl_Shift_Enter, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 1)),
                                   "56"));
 
             // Test case - start with single line, cursor in middle
             Test("1234\n56", Keys("1234",
-                                  _.LeftArrow, _.LeftArrow, _.CtrlShiftEnter, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 1)),
+                                  _.LeftArrow, _.LeftArrow, _.Ctrl_Shift_Enter, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 1)),
                                   "56"));
 
             // Test case - start with multi-line, cursor at end of second line (end of input)
-            Test("1234\n5678\n9ABC", Keys("1234", _.ShiftEnter, "5678",
-                                          _.CtrlShiftEnter, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 2)),
+            Test("1234\n5678\n9ABC", Keys("1234", _.Shift_Enter, "5678",
+                                          _.Ctrl_Shift_Enter, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 2)),
                                           "9ABC"));
 
             // Test case - start with multi-line, cursor at beginning of second line
-            Test("1234\n5678\n9ABC", Keys("1234", _.ShiftEnter, "5678",
+            Test("1234\n5678\n9ABC", Keys("1234", _.Shift_Enter, "5678",
                                           _.LeftArrow, _.Home, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 1)),
-                                          _.CtrlShiftEnter, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 2)),
+                                          _.Ctrl_Shift_Enter, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 2)),
                                           "9ABC"));
 
             // Test case - start with multi-line, cursor at end of first line
-            Test("1234\n9ABC\n5678", Keys("1234", _.ShiftEnter, "5678",
+            Test("1234\n9ABC\n5678", Keys("1234", _.Shift_Enter, "5678",
                                           _.UpArrow, _.LeftArrow, _.End, CheckThat(() => AssertCursorLeftTopIs(4, 0)),
-                                          _.CtrlShiftEnter, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 1)),
+                                          _.Ctrl_Shift_Enter, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 1)),
                                           "9ABC"));
 
             // Test case - start with multi-line, cursor at beginning of first line - temporarily having to press Home twice to
             // work around bug in home handler.
-            Test("1234\n9ABC\n5678", Keys("1234", _.ShiftEnter, "5678",
+            Test("1234\n9ABC\n5678", Keys("1234", _.Shift_Enter, "5678",
                                           _.UpArrow, _.LeftArrow, _.Home, _.Home, CheckThat(() => AssertCursorLeftTopIs(0, 0)),
-                                          _.CtrlShiftEnter, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 1)),
+                                          _.Ctrl_Shift_Enter, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 1)),
                                           "9ABC"));
 
             // Test case - insert multiple blank lines
-            Test("1234\n5678\n\n9ABC", Keys("1234", _.ShiftEnter, "5678",
-                                          _.CtrlShiftEnter, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 2)),
-                                          _.CtrlShiftEnter, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 3)),
+            Test("1234\n5678\n\n9ABC", Keys("1234", _.Shift_Enter, "5678",
+                                          _.Ctrl_Shift_Enter, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 2)),
+                                          _.Ctrl_Shift_Enter, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 3)),
                                           "9ABC"));
         }
 
-        [Fact]
+        [SkippableFact]
         public void MultilineHomeBugFixed()
         {
             TestSetup(KeyMode.Cmd);
@@ -359,18 +356,15 @@ namespace Test
             // That puts cursor in column 1 instead of 0. Bug?  This could have something
             // to do with BeginningOfLine testing against i > 1 in multiline edit instead
             // of i > 0.
-            Test("1234\n9ABC", Keys("1234", _.ShiftEnter, "9ABC", _.UpArrow, _.LeftArrow, _.Home, CheckThat(() => AssertCursorLeftTopIs(0, 0))));
+            Test("1234\n9ABC", Keys("1234", _.Shift_Enter, "9ABC", _.UpArrow, _.LeftArrow, _.Home, CheckThat(() => AssertCursorLeftTopIs(0, 0))));
         }
 
-        [Fact]
+        [SkippableFact]
         public void Ignore()
         {
             TestSetup(KeyMode.Emacs);
 
-            var volumeUp   = PSKeyInfo.FromConsoleKeyInfo(new ConsoleKeyInfo('\0', ConsoleKey.VolumeUp, false, false, false));
-            var volumeDown = PSKeyInfo.FromConsoleKeyInfo(new ConsoleKeyInfo('\0', ConsoleKey.VolumeDown, false, false, false));
-            var volumeMute = PSKeyInfo.FromConsoleKeyInfo(new ConsoleKeyInfo('\0', ConsoleKey.VolumeMute, false, false, false));
-            Test("ab", Keys("a", volumeDown, volumeMute, volumeUp, "b"));
+            Test("ab", Keys("a", _.VolumeDown, _.VolumeMute, _.VolumeUp, "b"));
         }
     }
 }

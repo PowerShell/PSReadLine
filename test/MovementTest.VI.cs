@@ -1,14 +1,10 @@
-﻿using Microsoft.PowerShell;
-using Xunit;
+﻿using Xunit;
 
 namespace Test
 {
-    // Disgusting language hack to make it easier to read a sequence of keys.
-    using _ = Keys;
-
     public partial class ReadLine
     {
-        [Fact]
+        [SkippableFact]
         public void ViWordMovement()
         {
             TestSetup(KeyMode.Vi);
@@ -96,7 +92,7 @@ namespace Test
                 ));
 
             Test("012 456 890", Keys(
-                "012", _.Space, "456", _.Space, "890", CheckThat(() => AssertCursorLeftIs(11)),
+                "012", _.Spacebar, "456", _.Spacebar, "890", CheckThat(() => AssertCursorLeftIs(11)),
                 _.Escape, CheckThat(() => AssertCursorLeftIs(10)),
                 "b", CheckThat(() => AssertCursorLeftIs(8)),
                 "b", CheckThat(() => AssertCursorLeftIs(4)),
@@ -115,7 +111,7 @@ namespace Test
                 ));
 
             Test("012 456 890", Keys(
-                "012", _.Space, "456", _.Space, "890", CheckThat(() => AssertCursorLeftIs(11)),
+                "012", _.Spacebar, "456", _.Spacebar, "890", CheckThat(() => AssertCursorLeftIs(11)),
                 _.Escape, CheckThat(() => AssertCursorLeftIs(10)),
                 "0", CheckThat(() => AssertCursorLeftIs(0)),
                 "w", CheckThat(() => AssertCursorLeftIs(4)),
@@ -125,7 +121,7 @@ namespace Test
                 ));
 
             Test("012 456 890", Keys(
-                "012", _.Space, "456", _.Space, "890", CheckThat(() => AssertCursorLeftIs(11)),
+                "012", _.Spacebar, "456", _.Spacebar, "890", CheckThat(() => AssertCursorLeftIs(11)),
                 _.Escape, CheckThat(() => AssertCursorLeftIs(10)),
                 "0", CheckThat(() => AssertCursorLeftIs(0)),
                 "W", CheckThat(() => AssertCursorLeftIs(4)),
@@ -135,7 +131,7 @@ namespace Test
                 ));
 
             Test("012  567  012", Keys(
-                "012", _.Space, _.Space, "567", _.Space, _.Space, "012", CheckThat(() => AssertCursorLeftIs(13)),
+                "012", _.Spacebar, _.Spacebar, "567", _.Spacebar, _.Spacebar, "012", CheckThat(() => AssertCursorLeftIs(13)),
                 _.Escape, CheckThat(() => AssertCursorLeftIs(12)),
                 "b", CheckThat(() => AssertCursorLeftIs(10)),
                 "b", CheckThat(() => AssertCursorLeftIs(5)),
@@ -144,7 +140,7 @@ namespace Test
                 ));
 
             Test("012  567  012", Keys(
-                "012", _.Space, _.Space, "567", _.Space, _.Space, "012", CheckThat(() => AssertCursorLeftIs(13)),
+                "012", _.Spacebar, _.Spacebar, "567", _.Spacebar, _.Spacebar, "012", CheckThat(() => AssertCursorLeftIs(13)),
                 _.Escape, CheckThat(() => AssertCursorLeftIs(12)),
                 "B", CheckThat(() => AssertCursorLeftIs(10)),
                 "B", CheckThat(() => AssertCursorLeftIs(5)),
@@ -153,7 +149,7 @@ namespace Test
                 ));
 
             Test("012  567  012", Keys(
-                "012", _.Space, _.Space, "567", _.Space, _.Space, "012", CheckThat(() => AssertCursorLeftIs(13)),
+                "012", _.Spacebar, _.Spacebar, "567", _.Spacebar, _.Spacebar, "012", CheckThat(() => AssertCursorLeftIs(13)),
                 _.Escape, CheckThat(() => AssertCursorLeftIs(12)),
                 "0", CheckThat(() => AssertCursorLeftIs(0)),
                 "w", CheckThat(() => AssertCursorLeftIs(5)),
@@ -163,7 +159,7 @@ namespace Test
                 ));
 
             Test("012  567  012", Keys(
-                "012", _.Space, _.Space, "567", _.Space, _.Space, "012", CheckThat(() => AssertCursorLeftIs(13)),
+                "012", _.Spacebar, _.Spacebar, "567", _.Spacebar, _.Spacebar, "012", CheckThat(() => AssertCursorLeftIs(13)),
                 _.Escape, CheckThat(() => AssertCursorLeftIs(12)),
                 "0", CheckThat(() => AssertCursorLeftIs(0)),
                 "W", CheckThat(() => AssertCursorLeftIs(5)),
@@ -173,7 +169,7 @@ namespace Test
                 ));
 
             Test(" 123  678", Keys(
-                _.Space, "123", _.Space, _.Space, "678", CheckThat(() => AssertCursorLeftIs(9)),
+                _.Spacebar, "123", _.Spacebar, _.Spacebar, "678", CheckThat(() => AssertCursorLeftIs(9)),
                 _.Escape, CheckThat(() => AssertCursorLeftIs(8)),
                 "b", CheckThat(() => AssertCursorLeftIs(6)),
                 "b", CheckThat(() => AssertCursorLeftIs(1)),
@@ -186,7 +182,7 @@ namespace Test
                 ));
 
             Test(" 123  678", Keys(
-                _.Space, "123", _.Space, _.Space, "678", CheckThat(() => AssertCursorLeftIs(9)),
+                _.Spacebar, "123", _.Spacebar, _.Spacebar, "678", CheckThat(() => AssertCursorLeftIs(9)),
                 _.Escape, CheckThat(() => AssertCursorLeftIs(8)),
                 "B", CheckThat(() => AssertCursorLeftIs(6)),
                 "B", CheckThat(() => AssertCursorLeftIs(1)),
@@ -199,7 +195,7 @@ namespace Test
                 ));
 
             Test(" 123  678  ", Keys(
-                _.Space, "123", _.Space, _.Space, "678", _.Space, _.Space, CheckThat(() => AssertCursorLeftIs(11)),
+                _.Spacebar, "123", _.Spacebar, _.Spacebar, "678", _.Spacebar, _.Spacebar, CheckThat(() => AssertCursorLeftIs(11)),
                 _.Escape, CheckThat(() => AssertCursorLeftIs(10)),
                 "b", CheckThat(() => AssertCursorLeftIs(6)),
                 "b", CheckThat(() => AssertCursorLeftIs(1)),
@@ -214,7 +210,7 @@ namespace Test
                 ));
 
             Test(" 123  678  ", Keys(
-                _.Space, "123", _.Space, _.Space, "678", _.Space, _.Space, CheckThat(() => AssertCursorLeftIs(11)),
+                _.Spacebar, "123", _.Spacebar, _.Spacebar, "678", _.Spacebar, _.Spacebar, CheckThat(() => AssertCursorLeftIs(11)),
                 _.Escape, CheckThat(() => AssertCursorLeftIs(10)),
                 "B", CheckThat(() => AssertCursorLeftIs(6)),
                 "B", CheckThat(() => AssertCursorLeftIs(1)),
@@ -249,7 +245,7 @@ namespace Test
                 ));
 
             Test(" 123  678  ", Keys(
-                _.Space, "123", _.Space, _.Space, "678", _.Space, _.Space, CheckThat(() => AssertCursorLeftIs(11)),
+                _.Spacebar, "123", _.Spacebar, _.Spacebar, "678", _.Spacebar, _.Spacebar, CheckThat(() => AssertCursorLeftIs(11)),
                 _.Escape, CheckThat(() => AssertCursorLeftIs(10)),
                 "0", CheckThat(() => AssertCursorLeftIs(0)),
                 "E", CheckThat(() => AssertCursorLeftIs(3)),
@@ -264,7 +260,7 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViDotWordMovement()
         {
             TestSetup(KeyMode.Vi);
@@ -346,7 +342,7 @@ namespace Test
                 ));
 
             Test(" 123..678..123", Keys(
-                _.Space, "123", _.Period, _.Period, "678", _.Period, _.Period, "123", CheckThat(() => AssertCursorLeftIs(14)),
+                _.Spacebar, "123", _.Period, _.Period, "678", _.Period, _.Period, "123", CheckThat(() => AssertCursorLeftIs(14)),
                 _.Escape, CheckThat(() => AssertCursorLeftIs(13)),
                 "0", CheckThat(() => AssertCursorLeftIs(0)),
                 "e", CheckThat(() => AssertCursorLeftIs(3)),
@@ -358,7 +354,7 @@ namespace Test
                 ));
 
             Test(" 123..678..123", Keys(
-                _.Space, "123", _.Period, _.Period, "678", _.Period, _.Period, "123", CheckThat(() => AssertCursorLeftIs(14)),
+                _.Spacebar, "123", _.Period, _.Period, "678", _.Period, _.Period, "123", CheckThat(() => AssertCursorLeftIs(14)),
                 _.Escape, CheckThat(() => AssertCursorLeftIs(13)),
                 "0", CheckThat(() => AssertCursorLeftIs(0)),
                 "E", CheckThat(() => AssertCursorLeftIs(13)),
@@ -368,7 +364,7 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViCursorMovement()
         {
             TestSetup(KeyMode.Vi);
@@ -391,7 +387,7 @@ namespace Test
                 "ad",
                 CheckThat(() => AssertCursorLeftIs(4)),
                 _.Escape,
-                _.Space,
+                _.Spacebar,
                 CheckThat(() => AssertCursorLeftIs(4)),
                 'l',
                 CheckThat(() => AssertCursorLeftIs(4)),
@@ -404,7 +400,7 @@ namespace Test
                 '$',
                 CheckThat(() => AssertCursorLeftIs(4)),
                 "0i",
-                _.Space,
+                _.Spacebar,
                 CheckThat(() => AssertCursorLeftIs(1)),
                 _.Escape,
                 _.Dollar,
@@ -414,7 +410,7 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViGotoBrace()
         {
             TestSetup(KeyMode.Vi);
@@ -449,7 +445,7 @@ namespace Test
             }
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViCharacterSearch()
         {
             TestSetup(KeyMode.Vi);
@@ -535,7 +531,7 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViColumnMovement()
         {
             TestSetup(KeyMode.Vi);
@@ -562,17 +558,17 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViBOLErrorCase()
         {
             TestSetup(KeyMode.Vi);
 
             Test("h", Keys(
-                _.Escape, 'h', _.Space, "ih"
+                _.Escape, 'h', _.Spacebar, "ih"
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViCharDelete()
         {
             TestSetup(KeyMode.Vi);
@@ -617,7 +613,7 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViDefect456()
         {
             TestSetup(KeyMode.Vi);

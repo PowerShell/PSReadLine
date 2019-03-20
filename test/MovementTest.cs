@@ -3,12 +3,9 @@ using Xunit;
 
 namespace Test
 {
-    // Disgusting language hack to make it easier to read a sequence of keys.
-    using _ = Keys;
-
     public partial class ReadLine
     {
-        [Fact]
+        [SkippableFact]
         public void EndOfLine()
         {
             TestSetup(KeyMode.Cmd);
@@ -34,18 +31,18 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void MultilineCursorMovement()
         {
             TestSetup(KeyMode.Cmd);
 
             var continutationPromptLength = PSConsoleReadLineOptions.DefaultContinuationPrompt.Length;
             Test("", Keys(
-                "4444", _.ShiftEnter,
-                "666666", _.ShiftEnter,
-                "88888888", _.ShiftEnter,
-                "666666", _.ShiftEnter,
-                "4444", _.ShiftEnter,
+                "4444", _.Shift_Enter,
+                "666666", _.Shift_Enter,
+                "88888888", _.Shift_Enter,
+                "666666", _.Shift_Enter,
+                "4444", _.Shift_Enter,
 
                 // Starting at the end of the next to last line (because it's not blank)
                 // Verify that Home first goes to the start of the line, then the start of the input.
@@ -85,11 +82,11 @@ namespace Test
                 _.DownArrow, CheckThat(() => AssertCursorLeftTopIs(0 + continutationPromptLength, 5)),
 
                 _.Escape,
-                _.ShiftEnter,
-                "88888888", _.ShiftEnter,
-                "55555", _.ShiftEnter,
-                "22", _.ShiftEnter,
-                "55555", _.ShiftEnter,
+                _.Shift_Enter,
+                "88888888", _.Shift_Enter,
+                "55555", _.Shift_Enter,
+                "22", _.Shift_Enter,
+                "55555", _.Shift_Enter,
                 "88888888",
                 _.LeftArrow, _.LeftArrow,
                 _.UpArrow, CheckThat(() => AssertCursorLeftTopIs(5 + continutationPromptLength, 4)),
@@ -109,7 +106,7 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void CursorMovement()
         {
             TestSetup(KeyMode.Cmd);
@@ -128,50 +125,52 @@ namespace Test
             // Test with digit arguments
             var input = "0123456789";
             Test(input, Keys(
-                _.Alt9, _.LeftArrow, CheckThat(() => AssertCursorLeftIs(0)),
-                _.Alt9, _.RightArrow, CheckThat(() => AssertCursorLeftIs(0)),
+                _.Alt_9, _.LeftArrow, CheckThat(() => AssertCursorLeftIs(0)),
+                _.Alt_9, _.RightArrow, CheckThat(() => AssertCursorLeftIs(0)),
                 input,
-                _.Alt5, _.LeftArrow, CheckThat(() => AssertCursorLeftIs(5)),
-                _.AltMinus, _.Alt2, _.LeftArrow, CheckThat(() => AssertCursorLeftIs(7)),
-                _.Alt2, _.RightArrow, CheckThat(() => AssertCursorLeftIs(9)),
-                _.AltMinus, _.Alt7, _.RightArrow, CheckThat(() => AssertCursorLeftIs(2))));
+                _.Alt_5, _.LeftArrow, CheckThat(() => AssertCursorLeftIs(5)),
+                _.Alt_Minus, _.Alt_2, _.LeftArrow, CheckThat(() => AssertCursorLeftIs(7)),
+                _.Alt_2, _.RightArrow, CheckThat(() => AssertCursorLeftIs(9)),
+                _.Alt_Minus, _.Alt_7, _.RightArrow, CheckThat(() => AssertCursorLeftIs(2))));
         }
 
-        [Fact]
+        [SkippableFact]
         public void GotoBrace()
         {
+            Skip.IfNot(KeyboardHasCtrlRBracket);
+
             TestSetup(KeyMode.Cmd);
 
             // Test empty input
-            Test("", Keys(_.CtrlRBracket));
+            Test("", Keys(_.Ctrl_RBracket));
 
-            Test("(11)", Keys("(11)", _.LeftArrow, _.CtrlRBracket, CheckThat(() => AssertCursorLeftIs(0))));
-            Test("$a[11]", Keys("$a[11]", _.LeftArrow, _.CtrlRBracket, CheckThat(() => AssertCursorLeftIs(2))));
-            Test("{11}", Keys("{11}", _.LeftArrow, _.CtrlRBracket, CheckThat(() => AssertCursorLeftIs(0))));
-            Test("(11)", Keys("(11)", _.Home, _.CtrlRBracket, CheckThat(() => AssertCursorLeftIs(3))));
-            Test("$a[11]", Keys("$a[11]", _.Home, _.RightArrow, _.RightArrow, _.CtrlRBracket, CheckThat(() => AssertCursorLeftIs(5))));
-            Test("{11}", Keys("{11}", _.Home, _.CtrlRBracket, CheckThat(() => AssertCursorLeftIs(3))));
+            Test("(11)", Keys("(11)", _.LeftArrow, _.Ctrl_RBracket, CheckThat(() => AssertCursorLeftIs(0))));
+            Test("$a[11]", Keys("$a[11]", _.LeftArrow, _.Ctrl_RBracket, CheckThat(() => AssertCursorLeftIs(2))));
+            Test("{11}", Keys("{11}", _.LeftArrow, _.Ctrl_RBracket, CheckThat(() => AssertCursorLeftIs(0))));
+            Test("(11)", Keys("(11)", _.Home, _.Ctrl_RBracket, CheckThat(() => AssertCursorLeftIs(3))));
+            Test("$a[11]", Keys("$a[11]", _.Home, _.RightArrow, _.RightArrow, _.Ctrl_RBracket, CheckThat(() => AssertCursorLeftIs(5))));
+            Test("{11}", Keys("{11}", _.Home, _.Ctrl_RBracket, CheckThat(() => AssertCursorLeftIs(3))));
 
             // Test multiples, make sure we go to the right one.
-            Test("((11))", Keys("((11))", _.LeftArrow, _.CtrlRBracket, CheckThat(() => AssertCursorLeftIs(0))));
-            Test("((11))", Keys("((11))", _.LeftArrow, _.LeftArrow, _.CtrlRBracket, CheckThat(() => AssertCursorLeftIs(1))));
+            Test("((11))", Keys("((11))", _.LeftArrow, _.Ctrl_RBracket, CheckThat(() => AssertCursorLeftIs(0))));
+            Test("((11))", Keys("((11))", _.LeftArrow, _.LeftArrow, _.Ctrl_RBracket, CheckThat(() => AssertCursorLeftIs(1))));
 
             // Make sure we don't match inside a string
             TestMustDing("", Keys(
                 "'()'", _.LeftArrow, _.LeftArrow,
-                _.CtrlRBracket, CheckThat(() => AssertCursorLeftIs(2)),
-                _.CtrlC, InputAcceptedNow));
+                _.Ctrl_RBracket, CheckThat(() => AssertCursorLeftIs(2)),
+                _.Ctrl_c, InputAcceptedNow));
 
             foreach (var c in new[] {'(', ')', '{', '}', '[', ']'})
             {
                 TestMustDing("", Keys(
                     'a', c, _.LeftArrow,
-                    _.CtrlRBracket, CheckThat(() => AssertCursorLeftIs(1)),
-                    _.CtrlC, InputAcceptedNow));
+                    _.Ctrl_RBracket, CheckThat(() => AssertCursorLeftIs(1)),
+                    _.Ctrl_c, InputAcceptedNow));
             }
         }
 
-        [Fact]
+        [SkippableFact]
         public void CharacterSearch()
         {
             TestSetup(KeyMode.Cmd);
@@ -180,22 +179,32 @@ namespace Test
                 "cmd1 | cmd2 | cmd3", _.Home,
                 _.F3, '|', CheckThat(() => AssertCursorLeftIs(5)),
                 _.F3, '|', CheckThat(() => AssertCursorLeftIs(12))));
+        }
+
+        [SkippableFact]
+        public void CharacterSearchEmacs()
+        {
+            Skip.IfNot(KeyboardHasCtrlRBracket);
 
             TestSetup(KeyMode.Emacs);
 
             Test("cmd1 | cmd2 | cmd3", Keys(
                 "cmd1 | cmd2 | cmd3", _.Home,
-                _.CtrlRBracket, '|', CheckThat(() => AssertCursorLeftIs(5)),
-                _.CtrlRBracket, '|', CheckThat(() => AssertCursorLeftIs(12)),
+                _.Ctrl_RBracket, '|', CheckThat(() => AssertCursorLeftIs(5)),
+                _.Ctrl_RBracket, '|', CheckThat(() => AssertCursorLeftIs(12)),
                 _.End,
-                _.AltMinus, _.Alt2, _.CtrlRBracket, '|', CheckThat(() => AssertCursorLeftIs(5)),
+                _.Alt_Minus, _.Alt_2, _.Ctrl_RBracket, '|', CheckThat(() => AssertCursorLeftIs(5)),
                 _.Home,
-                _.Alt2, _.CtrlRBracket, '|', CheckThat(() => AssertCursorLeftIs(12))));
+                _.Alt_2, _.Ctrl_RBracket, '|', CheckThat(() => AssertCursorLeftIs(12))));
 
             TestMustDing("cmd1 | cmd2 | cmd3", Keys(
                 "cmd1 | cmd2 | cmd3",
-                _.CtrlRBracket, 'z'));
+                _.Ctrl_RBracket, 'z'));
+        }
 
+        [SkippableFact]
+        public void CharacterSearchApi()
+        {
             int i = 0;
             TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+z",
                 (key, count) => PSConsoleReadLine.CharacterSearch(null, i++ == 0 ? (object)'|' : "|")));
@@ -203,43 +212,53 @@ namespace Test
             Test("cmd1 | cmd2 | cmd3", Keys(
                 "cmd1 | cmd2 | cmd3",
                 _.Home,
-                _.CtrlZ, CheckThat(() => AssertCursorLeftIs(5)),
-                _.CtrlZ, CheckThat(() => AssertCursorLeftIs(12))));
+                _.Ctrl_z, CheckThat(() => AssertCursorLeftIs(5)),
+                _.Ctrl_z, CheckThat(() => AssertCursorLeftIs(12))));
         }
 
-        [Fact]
+        [SkippableFact]
         public void CharacterSearchBackward()
         {
             TestSetup(KeyMode.Cmd);
 
             Test("cmd1 | cmd2 | cmd3", Keys(
                 "cmd1 | cmd2 | cmd3",
-                _.ShiftF3, '|', CheckThat(() => AssertCursorLeftIs(12)),
-                _.ShiftF3, '|', CheckThat(() => AssertCursorLeftIs(5))));
+                _.Shift_F3, '|', CheckThat(() => AssertCursorLeftIs(12)),
+                _.Shift_F3, '|', CheckThat(() => AssertCursorLeftIs(5))));
+        }
+
+        [SkippableFact]
+        public void CharacterSearchBackwardEmacs()
+        {
+            Skip.IfNot(KeyboardHasCtrlRBracket);
 
             TestSetup(KeyMode.Emacs);
 
             Test("cmd1 | cmd2 | cmd3", Keys(
                 "cmd1 | cmd2 | cmd3",
-                _.CtrlAltRBracket, '|', CheckThat(() => AssertCursorLeftIs(12)),
-                _.CtrlAltRBracket, '|', CheckThat(() => AssertCursorLeftIs(5)),
+                _.Ctrl_Alt_RBracket, '|', CheckThat(() => AssertCursorLeftIs(12)),
+                _.Ctrl_Alt_RBracket, '|', CheckThat(() => AssertCursorLeftIs(5)),
                 _.Home,
-                _.AltMinus, _.Alt2, _.CtrlAltRBracket, '|', CheckThat(() => AssertCursorLeftIs(12)),
+                _.Alt_Minus, _.Alt_2, _.Ctrl_Alt_RBracket, '|', CheckThat(() => AssertCursorLeftIs(12)),
                 _.End,
-                _.Alt2, _.CtrlAltRBracket, '|', CheckThat(() => AssertCursorLeftIs(5))));
+                _.Alt_2, _.Ctrl_Alt_RBracket, '|', CheckThat(() => AssertCursorLeftIs(5))));
 
             TestMustDing("cmd1 | cmd2 | cmd3", Keys(
                 "cmd1 | cmd2 | cmd3",
-                _.CtrlAltRBracket, 'z'));
+                _.Ctrl_Alt_RBracket, 'z'));
+        }
 
+        [SkippableFact]
+        public void CharacterSearchBackwardApi()
+        {
             int i = 0;
             TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+z",
                 (key, count) => PSConsoleReadLine.CharacterSearchBackward(null, i++ == 0 ? (object)'|' : "|")));
 
             Test("cmd1 | cmd2 | cmd3", Keys(
                 "cmd1 | cmd2 | cmd3",
-                _.CtrlZ, CheckThat(() => AssertCursorLeftIs(12)),
-                _.CtrlZ, CheckThat(() => AssertCursorLeftIs(5))));
+                _.Ctrl_z, CheckThat(() => AssertCursorLeftIs(12)),
+                _.Ctrl_z, CheckThat(() => AssertCursorLeftIs(5))));
         }
     }
 }

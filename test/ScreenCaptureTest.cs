@@ -5,29 +5,25 @@ using Xunit;
 
 namespace Test
 {
-    // Disgusting language hack to make it easier to read a sequence of keys.
-    using _ = Keys;
-
     public partial class ReadLine
     {
-
         // Disabled because the test is not portable without some mocking that
         // probably not worth the effort.
-        //[TestMethod]
+        //[Fact]
         private void CaptureScreen()
         {
             TestSetup(KeyMode.Cmd,
                 new KeyHandler("Ctrl+z", PSConsoleReadLine.CaptureScreen));
 
             var line  = new [] {"echo alpha", "echo beta", "echo phi", "echo rho"};
-            Test(line[0], Keys(line[0], _.CtrlZ, _.Enter, _.Enter));
+            Test(line[0], Keys(line[0], _.Ctrl_z, _.Enter, _.Enter));
             AssertScreenCaptureClipboardIs(line[0]);
 
-            var cancelKeys = new[] {_.Escape, _.CtrlC, _.CtrlG};
+            var cancelKeys = new[] {_.Escape, _.Ctrl_c, _.Ctrl_g};
             for (int i = 0; i < cancelKeys.Length; i++)
             {
                 // Start CaptureScreen but cancel
-                Test(line[i + 1], Keys(line[i + 1], _.CtrlZ, cancelKeys[i], _.Enter), resetCursor: false);
+                Test(line[i + 1], Keys(line[i + 1], _.Ctrl_z, cancelKeys[i], _.Enter), resetCursor: false);
                 // Make sure the clipboard doesn't change
                 AssertScreenCaptureClipboardIs(line[0]);
             }
@@ -40,31 +36,31 @@ namespace Test
 
             Test("", Keys(
                 // Basic up/down arrows
-                _.CtrlZ, _.UpArrow, _.Enter, CheckThat(() => AssertScreenCaptureClipboardIs(line[3])),
-                _.CtrlZ, _.UpArrow, _.UpArrow, _.Enter, CheckThat(() => AssertScreenCaptureClipboardIs(line[2])),
-                _.CtrlZ, _.UpArrow, _.UpArrow, _.DownArrow, _.Enter,
+                _.Ctrl_z, _.UpArrow, _.Enter, CheckThat(() => AssertScreenCaptureClipboardIs(line[3])),
+                _.Ctrl_z, _.UpArrow, _.UpArrow, _.Enter, CheckThat(() => AssertScreenCaptureClipboardIs(line[2])),
+                _.Ctrl_z, _.UpArrow, _.UpArrow, _.DownArrow, _.Enter,
                 CheckThat(() => AssertScreenCaptureClipboardIs(line[3])),
 
                 // Select multiple lines
-                _.CtrlZ, _.UpArrow, shiftUpArrow, _.Enter,
+                _.Ctrl_z, _.UpArrow, shiftUpArrow, _.Enter,
                 CheckThat(() => AssertScreenCaptureClipboardIs(line[2], line[3])),
-                _.CtrlZ, Enumerable.Repeat(_.UpArrow, 10), shiftDownArrow, _.Enter,
+                _.Ctrl_z, Enumerable.Repeat(_.UpArrow, 10), shiftDownArrow, _.Enter,
                 CheckThat(() => AssertScreenCaptureClipboardIs(line[0], line[1])),
 
                 // Select multiple lines, then shorten selection
-                _.CtrlZ, _.UpArrow, shiftUpArrow, shiftUpArrow, shiftDownArrow, _.Enter,
+                _.Ctrl_z, _.UpArrow, shiftUpArrow, shiftUpArrow, shiftDownArrow, _.Enter,
                 CheckThat(() => AssertScreenCaptureClipboardIs(line[2], line[3])),
-                _.CtrlZ, Enumerable.Repeat(_.UpArrow, 10), shiftDownArrow, shiftDownArrow, shiftUpArrow, _.Enter,
+                _.Ctrl_z, Enumerable.Repeat(_.UpArrow, 10), shiftDownArrow, shiftDownArrow, shiftUpArrow, _.Enter,
                 CheckThat(() => AssertScreenCaptureClipboardIs(line[0], line[1])),
 
                 // Test trying to arrow down past end of buffer (arrowing past top of buffer covered above)
-                _.CtrlZ, Enumerable.Repeat(_.DownArrow, _console.BufferHeight), _.Escape),
+                _.Ctrl_z, Enumerable.Repeat(_.DownArrow, _console.BufferHeight), _.Escape),
                 resetCursor: false);
 
             // Test that we ding input that doesn't do anything
-            TestMustDing("", Keys(_.CtrlZ, 'c', _.Escape));
-            TestMustDing("", Keys(_.CtrlZ, 'a', _.Escape));
-            TestMustDing("", Keys(_.CtrlZ, 'z', _.Escape));
+            TestMustDing("", Keys(_.Ctrl_z, 'c', _.Escape));
+            TestMustDing("", Keys(_.Ctrl_z, 'a', _.Escape));
+            TestMustDing("", Keys(_.Ctrl_z, 'z', _.Escape));
 
             // To test:
             // * Selected lines are inverted

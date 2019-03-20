@@ -3,12 +3,9 @@ using Xunit;
 
 namespace Test
 {
-    // Disgusting language hack to make it easier to read a sequence of keys.
-    using _ = Keys;
-
     public partial class ReadLine
     {
-        [Fact]
+        [SkippableFact]
         public void ViHistory()
         {
             TestSetup(KeyMode.Vi);
@@ -52,10 +49,10 @@ namespace Test
             Test("003", Keys(_.Escape, "---+"));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViSearchHistory()
         {
-            TestSetup( KeyMode.Vi );
+            TestSetup(KeyMode.Vi);
 
             // Clear history in case the above added some history (but it shouldn't)
             SetHistory();
@@ -72,24 +69,24 @@ namespace Test
             SetHistory("dosomething", "this way", "that way", "anyway", "no way", "yah way");
 
             Test("dosomething", Keys(
-                _.Escape, _.CtrlR, "some", _.Enter, CheckThat(() => AssertLineIs("dosomething")),
-                _.CtrlS, "yah", _.Enter, CheckThat(() => AssertLineIs("yah way")),
-                _.CtrlR, "some", _.Enter, 'h'   // need 'h' here to avoid bogus failure
+                _.Escape, _.Ctrl_r, "some", _.Enter, CheckThat(() => AssertLineIs("dosomething")),
+                _.Ctrl_s, "yah", _.Enter, CheckThat(() => AssertLineIs("yah way")),
+                _.Ctrl_r, "some", _.Enter, 'h'   // need 'h' here to avoid bogus failure
                 ));
 
             SetHistory("dosomething", "this way", "that way", "anyway", "no way", "yah way");
 
             Test("dosomething", Keys(
-                _.CtrlR, "some", _.Enter, CheckThat(() => AssertLineIs("dosomething")),
-                _.CtrlS, "yah", _.Enter, CheckThat(() => AssertLineIs("yah way")),
-                _.CtrlR, "some", _.Enter, _.Escape  // new esc here to avoid bogus failure
+                _.Ctrl_r, "some", _.Enter, CheckThat(() => AssertLineIs("dosomething")),
+                _.Ctrl_s, "yah", _.Enter, CheckThat(() => AssertLineIs("yah way")),
+                _.Ctrl_r, "some", _.Enter, _.Escape  // new esc here to avoid bogus failure
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViHistoryRepeat()
         {
-            TestSetup( KeyMode.Vi );
+            TestSetup(KeyMode.Vi);
             // Clear history in case the above added some history (but it shouldn't)
             SetHistory();
             Test( " ", Keys( ' ', _.UpArrow, _.DownArrow ) );
@@ -110,10 +107,9 @@ namespace Test
                 "N", CheckThat(() => AssertLineIs("no way")),
                 "n"
                 ));
-
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViMovementAfterHistory()
         {
             TestSetup(KeyMode.Vi);
@@ -126,7 +122,7 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViChangeAfterHistory()
         {
             TestSetup(KeyMode.Vi);
@@ -139,7 +135,7 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViAppendAfterHistory()
         {
             TestSetup(KeyMode.Vi);
@@ -157,7 +153,7 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViHistoryCursorPosition()
         {
             TestSetup(KeyMode.Vi);
