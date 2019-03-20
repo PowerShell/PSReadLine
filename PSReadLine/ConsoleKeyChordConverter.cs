@@ -255,12 +255,16 @@ namespace Microsoft.PowerShell
                             keyChar = (char)(keyChar - 'A' + 1);
                             break;
                         case '_':
-                            keyChar = Keys.CtrlUnderbar.KeyChar;
-                            mods |= Keys.CtrlUnderbar.Modifiers;
+                            keyChar = '\x1f';
+                            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
+                                mods |= ConsoleModifiers.Shift;
+                            }
                             break;
                         case '^':
-                            keyChar = Keys.CtrlCaret.KeyChar;
-                            mods |= Keys.CtrlCaret.Modifiers;
+                            keyChar = '\x1e';
+                            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
+                                mods |= ConsoleModifiers.Shift;
+                            }
                             break;
                     }
                 }
@@ -286,7 +290,7 @@ namespace Microsoft.PowerShell
 
             key = 0;
             keyChar = '\0';
-            return false;
+            return Enum.TryParse(input, out key) && !int.TryParse(input, out var asInt);
         }
     }
 }

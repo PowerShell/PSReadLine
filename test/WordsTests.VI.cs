@@ -1,14 +1,10 @@
-﻿using Microsoft.PowerShell;
-using Xunit;
+﻿using Xunit;
 
 namespace Test
 {
-    // Disgusting language hack to make it easier to read a sequence of keys.
-    using _ = Keys;
-
     public partial class ReadLine
     {
-        [Fact]
+        [SkippableFact]
         public void ViChangeWord()
         {
             TestSetup(KeyMode.Vi);

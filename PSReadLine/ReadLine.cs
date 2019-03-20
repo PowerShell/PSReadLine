@@ -67,12 +67,12 @@ namespace Microsoft.PowerShell
         private int _undoEditIndex;
         private int _mark;
         private bool _inputAccepted;
-        private readonly Queue<ConsoleKeyInfo> _queuedKeys;
+        private readonly Queue<PSKeyInfo> _queuedKeys;
         private Stopwatch _lastRenderTime;
         private static readonly Stopwatch _readkeyStopwatch = new Stopwatch();
 
         // Save a fixed # of keys so we can reconstruct a repro after a crash
-        private static readonly HistoryQueue<ConsoleKeyInfo> _lastNKeys = new HistoryQueue<ConsoleKeyInfo>(200);
+        private static readonly HistoryQueue<PSKeyInfo> _lastNKeys = new HistoryQueue<PSKeyInfo>(200);
 
         // Tokens etc.
         private Token[] _tokens;
@@ -96,7 +96,7 @@ namespace Microsoft.PowerShell
                 _charMap.ProcessKey(_console.ReadKey());
                 while (_charMap.KeyAvailable)
                 {
-                    var key = _charMap.ReadKey();
+                    var key = PSKeyInfo.FromConsoleKeyInfo(_charMap.ReadKey());
                     _lastNKeys.Enqueue(key);
                     _queuedKeys.Enqueue(key);
                 }
@@ -136,7 +136,7 @@ namespace Microsoft.PowerShell
                 }
                 while (_charMap.KeyAvailable)
                 {
-                    var key = _charMap.ReadKey();
+                    var key = PSKeyInfo.FromConsoleKeyInfo(_charMap.ReadKey());
                     _lastNKeys.Enqueue(key);
                     _queuedKeys.Enqueue(key);
                 }
@@ -164,7 +164,7 @@ namespace Microsoft.PowerShell
             }
         }
 
-        internal static ConsoleKeyInfo ReadKey()
+        internal static PSKeyInfo ReadKey()
         {
             // Reading a key is handled on a different thread.  During process shutdown,
             // PowerShell will wait in it's ConsoleCtrlHandler until the pipeline has completed.
@@ -284,12 +284,12 @@ namespace Microsoft.PowerShell
             return key;
         }
 
-        private void PrependQueuedKeys(ConsoleKeyInfo key)
+        private void PrependQueuedKeys(PSKeyInfo key)
         {
             if (_queuedKeys.Count > 0)
             {
                 // This should almost never happen so being inefficient is fine.
-                var list = new List<ConsoleKeyInfo>(_queuedKeys);
+                var list = new List<PSKeyInfo>(_queuedKeys);
                 _queuedKeys.Clear();
                 _queuedKeys.Enqueue(key);
                 list.ForEach(k => _queuedKeys.Enqueue(k));
@@ -321,6 +321,21 @@ namespace Microsoft.PowerShell
         {
             var console = _singleton._console;
 
+            if (Console.IsInputRedirected || Console.IsOutputRedirected)
+            {
+                // System.Console doesn't handle redirected input. It matches the behavior on Windows
+                // by throwing an "InvalidOperationException".
+                // Therefore, if either stdin or stdout is redirected, PSReadLine doesn't really work,
+                // so throw and let PowerShell call Console.ReadLine or do whatever else it decides to do.
+                //
+                // Some CI environments redirect stdin/stdout, but that doesn't affect our test runs
+                // because the console is mocked, so we can skip the exception.
+                if (!IsRunningCI(console))
+                {
+                    throw new NotSupportedException();
+                }
+            }
+
             var oldControlCAsInput = false;
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
@@ -328,21 +343,6 @@ namespace Microsoft.PowerShell
             }
             else
             {
-                if (Console.IsInputRedirected || Console.IsOutputRedirected)
-                {
-                    // System.Console doesn't handle redirected input. It matches the behavior on Windows
-                    // by throwing an "InvalidOperationException".
-                    // Therefore, if either stdin or stdout is redirected, PSReadLine doesn't really work,
-                    // so throw and let PowerShell call Console.ReadLine or do whatever else it decides to do.
-                    //
-                    // Some CI environments redirect stdin/stdout, but that doesn't affect our test runs
-                    // because the console is mocked, so we can skip the exception.
-                    if (!IsRunningCI())
-                    {
-                        throw new NotSupportedException();
-                    }
-                }
-
                 try
                 {
                     oldControlCAsInput = Console.TreatControlCAsInput;
@@ -409,7 +409,7 @@ namespace Microsoft.PowerShell
                     for (int i = 0; i < _lastNKeys.Count; i++)
                     {
                         sb.Append(' ');
-                        sb.Append(_lastNKeys[i].ToGestureString());
+                        sb.Append(_lastNKeys[i].KeyStr);
 
                         if (_singleton._dispatchTable.TryGetValue(_lastNKeys[i], out var handler) &&
                             "AcceptLine".Equals(handler.BriefDescription, StringComparison.OrdinalIgnoreCase))
@@ -570,11 +570,11 @@ namespace Microsoft.PowerShell
             CallPossibleExternalApplication<object>(() => { action(); return null; });
         }
 
-        void ProcessOneKey(ConsoleKeyInfo key, Dictionary<ConsoleKeyInfo, KeyHandler> dispatchTable, bool ignoreIfNoAction, object arg)
+        void ProcessOneKey(PSKeyInfo key, Dictionary<PSKeyInfo, KeyHandler> dispatchTable, bool ignoreIfNoAction, object arg)
         {
             // Our dispatch tables are built as much as possible in a portable way, so for example,
             // we avoid depending on scan codes like ConsoleKey.Oem6 and instead look at the
-            // ConsoleKeyInfo.Key. We also want to ignore the shift state as that may differ on
+            // PSKeyInfo.Key. We also want to ignore the shift state as that may differ on
             // different keyboard layouts.
             //
             // That said, we first look up exactly what we get from Console.ReadKey - that will fail
@@ -583,26 +583,31 @@ namespace Microsoft.PowerShell
             {
                 // If we see a control character where Ctrl wasn't used but shift was, treat that like
                 // shift hadn't be pressed.  This cleanly allows Shift+Backspace without adding a key binding.
-                if (key.KeyChar > 0 && char.IsControl(key.KeyChar) && key.Modifiers == ConsoleModifiers.Shift)
+                if (key.Shift && !key.Control && !key.Alt)
                 {
-                    key = new ConsoleKeyInfo(key.KeyChar, key.Key, false, false, false);
-                    dispatchTable.TryGetValue(key, out handler);
+                    var c = key.KeyChar;
+                    if (c != '\0' && char.IsControl(c))
+                    {
+                        key = PSKeyInfo.From(key.KeyChar);
+                        dispatchTable.TryGetValue(key, out handler);
+                    }
                 }
             }
+            var consoleKey = key.AsConsoleKeyInfo();
             if (handler != null)
             {
                 if (handler.ScriptBlock != null)
                 {
-                    CallPossibleExternalApplication(() => handler.Action(key, arg));
+                    CallPossibleExternalApplication(() => handler.Action(consoleKey, arg));
                 }
                 else
                 {
-                    handler.Action(key, arg);
+                    handler.Action(consoleKey, arg);
                 }
             }
             else if (!ignoreIfNoAction)
             {
-                SelfInsert(key, arg);
+                SelfInsert(consoleKey, arg);
             }
         }
 
@@ -617,7 +622,7 @@ namespace Microsoft.PowerShell
             _buffer = new StringBuilder(8 * 1024);
             _statusBuffer = new StringBuilder(256);
             _savedCurrentLine = new HistoryItem();
-            _queuedKeys = new Queue<ConsoleKeyInfo>();
+            _queuedKeys = new Queue<PSKeyInfo>();
 
             string hostName = null;
             // This works mostly by luck - we're not doing anything to guarantee the constructor for our
@@ -841,16 +846,11 @@ namespace Microsoft.PowerShell
                 throw new ArgumentNullException(nameof(key));
             }
 
-            if (_singleton._chordDispatchTable.TryGetValue(key.Value, out var secondKeyDispatchTable))
+            if (_singleton._chordDispatchTable.TryGetValue(PSKeyInfo.FromConsoleKeyInfo(key.Value), out var secondKeyDispatchTable))
             {
                 var secondKey = ReadKey();
                 _singleton.ProcessOneKey(secondKey, secondKeyDispatchTable, ignoreIfNoAction: true, arg: arg);
             }
-        }
-
-        [SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed")]
-        private static void Ignore(ConsoleKeyInfo? key = null, object arg = null)
-        {
         }
 
         /// <summary>
@@ -1060,9 +1060,9 @@ namespace Microsoft.PowerShell
             return newPrompt;
         }
 
-        internal static bool IsRunningCI()
+        internal static bool IsRunningCI(IConsole console)
         {
-            return Environment.GetEnvironmentVariable("PSREADLINE_TESTRUN") != null;
+            return console.GetType().FullName == "Test.TestConsole";
         }
     }
 }

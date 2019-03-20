@@ -24,8 +24,8 @@ namespace Microsoft.PowerShell
         private CommandCompletion _tabCompletions;
         private Runspace _runspace;
 
-        private static readonly Dictionary<CompletionResultType, ConsoleKeyInfo []> KeysEndingCompletion =
-            new Dictionary<CompletionResultType, ConsoleKeyInfo []>
+        private static readonly Dictionary<CompletionResultType, PSKeyInfo []> KeysEndingCompletion =
+            new Dictionary<CompletionResultType, PSKeyInfo []>
         {
             { CompletionResultType.Variable,          new[] { Keys.Period } },
             { CompletionResultType.Namespace,         new[] { Keys.Period } },
@@ -733,12 +733,12 @@ namespace Microsoft.PowerShell
                 : match.CompletionText.IndexOf(userCompletionText, StringComparison.OrdinalIgnoreCase);
         }
 
-        private bool IsDoneWithCompletions(CompletionResult currentCompletion, ConsoleKeyInfo nextKey)
+        private bool IsDoneWithCompletions(CompletionResult currentCompletion, PSKeyInfo nextKey)
         {
-            return nextKey.EqualsNormalized(Keys.Space)
-                || nextKey.EqualsNormalized(Keys.Enter)
+            return nextKey == Keys.Space
+                || nextKey == Keys.Enter
                 || KeysEndingCompletion.TryGetValue(currentCompletion.ResultType, out var doneKeys)
-                   && doneKeys.Contains(nextKey, ConsoleKeyInfoComparer.Instance);
+                   && doneKeys.Contains(nextKey);
         }
 
         private void PossibleCompletionsImpl(CommandCompletion completions, bool menuSelect)
@@ -886,13 +886,13 @@ namespace Microsoft.PowerShell
                 }
 
                 var nextKey = ReadKey();
-                if (nextKey.EqualsNormalized(Keys.RightArrow)) { menu.MoveRight(); }
-                else if (nextKey.EqualsNormalized(Keys.LeftArrow)) { menu.MoveLeft(); }
-                else if (nextKey.EqualsNormalized(Keys.DownArrow)) { menu.MoveDown(); }
-                else if (nextKey.EqualsNormalized(Keys.UpArrow)) { menu.MoveUp(); }
-                else if (nextKey.EqualsNormalized(Keys.PageDown)) { menu.MovePageDown(); }
-                else if (nextKey.EqualsNormalized(Keys.PageUp)) { menu.MovePageUp(); }
-                else if (nextKey.EqualsNormalized(Keys.Tab))
+                if (nextKey == Keys.RightArrow) { menu.MoveRight(); }
+                else if (nextKey == Keys.LeftArrow) { menu.MoveLeft(); }
+                else if (nextKey == Keys.DownArrow) { menu.MoveDown(); }
+                else if (nextKey == Keys.UpArrow) { menu.MoveUp(); }
+                else if (nextKey == Keys.PageDown) { menu.MovePageDown(); }
+                else if (nextKey == Keys.PageUp) { menu.MovePageUp(); }
+                else if (nextKey == Keys.Tab)
                 {
                     // Search for possible unambiguous common prefix.
                     string unAmbiguousText = GetUnambiguousPrefix(menu.MenuItems, out ambiguous);
@@ -915,19 +915,19 @@ namespace Microsoft.PowerShell
                         menu.MoveN(1);
                     }
                 }
-                else if (nextKey.EqualsNormalized(Keys.ShiftTab))
+                else if (nextKey == Keys.ShiftTab)
                 {
                     menu.MoveN(-1);
                 }
-                else if (nextKey.EqualsNormalized(Keys.CtrlG)
-                      || nextKey.EqualsNormalized(Keys.Escape))
+                else if (nextKey == Keys.CtrlG
+                      || nextKey == Keys.Escape)
                 {
                     undo = true;
                     processingKeys = false;
                     _visualSelectionCommandCount = 0;
                     _mark = savedUserMark;
                 }
-                else if (nextKey.EqualsNormalized(Keys.Backspace))
+                else if (nextKey == Keys.Backspace)
                 {
                     // TODO: Shift + Backspace does not fail here?
                     if (menuStack.Count > 1)
@@ -970,7 +970,7 @@ namespace Microsoft.PowerShell
                     {
                         processingKeys = false;
                         ExchangePointAndMark(); // cursor to the end of Completion
-                        if (!nextKey.EqualsNormalized(Keys.Enter))
+                        if (nextKey != Keys.Enter)
                         {
                             if (currentMenuItem.ResultType == CompletionResultType.ProviderContainer)
                             {

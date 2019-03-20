@@ -8,6 +8,7 @@
     <AssemblyName>TestPSReadLine</AssemblyName>
     <TargetFrameworks>net461;netcoreapp2.1</TargetFrameworks>
     <FileAlignment>512</FileAlignment>
+    <ApplicationManifest>Program.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="System.Xml.XDocument" version="4.3.0" />

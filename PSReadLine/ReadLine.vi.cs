@@ -883,18 +883,18 @@ namespace Microsoft.PowerShell
             while (true)
             {
                 var nextKey = ReadKey();
-                if (nextKey.EqualsNormalized(Keys.Enter) || nextKey.EqualsNormalized(Keys.Tab))
+                if (nextKey == Keys.Enter || nextKey == Keys.Tab)
                 {
                     _searchHistoryPrefix = argBuffer.ToString();
                     _searchHistoryBackward = backward;
                     HistorySearch();
                     break;
                 }
-                if (nextKey.EqualsNormalized(Keys.Escape))
+                if (nextKey == Keys.Escape)
                 {
                     break;
                 }
-                if (nextKey.EqualsNormalized(Keys.Backspace))
+                if (nextKey == Keys.Backspace)
                 {
                     if (argBuffer.Length > 0)
                     {
@@ -982,7 +982,7 @@ namespace Microsoft.PowerShell
                 return;
             }
 
-            if (_singleton._chordDispatchTable.TryGetValue(key.Value, out var secondKeyDispatchTable))
+            if (_singleton._chordDispatchTable.TryGetValue(PSKeyInfo.FromConsoleKeyInfo(key.Value), out var secondKeyDispatchTable))
             {
                 var secondKey = ReadKey();
                 if (secondKeyDispatchTable.TryGetValue(secondKey, out var handler))
@@ -1019,9 +1019,9 @@ namespace Microsoft.PowerShell
             }
         }
 
-        private static bool IsNumeric(ConsoleKeyInfo key)
+        private static bool IsNumeric(PSKeyInfo key)
         {
-            return key.KeyChar >= '0' && key.KeyChar <= '9' && key.Modifiers == 0;
+            return key.KeyChar >= '0' && key.KeyChar <= '9' && !key.Control && !key.Alt;
         }
 
         /// <summary>
@@ -1060,7 +1060,7 @@ namespace Microsoft.PowerShell
                 var nextKey = ReadKey();
                 if (_singleton._dispatchTable.TryGetValue(nextKey, out var handler) && handler.Action == DigitArgument)
                 {
-                    if (nextKey.EqualsNormalized(Keys.Minus))
+                    if (nextKey == Keys.Minus)
                     {
                         if (argBuffer[0] == '-')
                         {

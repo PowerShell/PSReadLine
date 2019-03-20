@@ -362,23 +362,32 @@ namespace Microsoft.PowerShell
             bool TooCloseToTop() => (currentY - console.WindowTop) < margin;
             bool TooCloseToBottom() => ((console.WindowTop + console.WindowHeight) - currentY) < margin;
 
+            void UpdateSelection()
+            {
+                // Shift not pressed - unselect current selection
+                ScreenCapture.InvertLines(selectionTop, selectionHeight, console);
+                selectionTop = currentY;
+                selectionHeight = 1;
+                ScreenCapture.InvertLines(selectionTop, selectionHeight, console);
+            }
+
             // Current lines starts out selected
             ScreenCapture.InvertLines(selectionTop, selectionHeight, console);
             bool done = false;
             while (!done)
             {
                 var k = ReadKey();
-                switch (k.Key)
+                if (k == Keys.K || k == Keys.ucK || k == Keys.UpArrow || k == Keys.ShiftUpArrow)
                 {
-                case ConsoleKey.K:
-                case ConsoleKey.UpArrow:
                     if (TooCloseToTop())
+                    {
                         ScrollDisplayUpLine();
+                    }
 
                     if (currentY > 0)
                     {
                         currentY -= 1;
-                        if ((k.Modifiers & ConsoleModifiers.Shift) == ConsoleModifiers.Shift)
+                        if (k.Shift)
                         {
                             if (currentY < selectionTop)
                             {
@@ -393,21 +402,22 @@ namespace Microsoft.PowerShell
                                 ScreenCapture.InvertLines(currentY + 1, 1, console);
                                 selectionHeight -= 1;
                             }
-                            break;
                         }
-                        goto updateSelectionCommon;
+                        else
+                        {
+                            UpdateSelection();
+                        }
                     }
-                    break;
-
-                case ConsoleKey.J:
-                case ConsoleKey.DownArrow:
+                }
+                else if (k == Keys.J || k == Keys.ucJ || k == Keys.DownArrow || k == Keys.ShiftDownArrow)
+                {
                     if (TooCloseToBottom())
                         ScrollDisplayDownLine();
 
                     if (currentY < (console.BufferHeight - 1))
                     {
                         currentY += 1;
-                        if ((k.Modifiers & ConsoleModifiers.Shift) == ConsoleModifiers.Shift)
+                        if (k.Shift)
                         {
                             if (currentY == (selectionTop + selectionHeight))
                             {
@@ -422,42 +432,27 @@ namespace Microsoft.PowerShell
                                 selectionTop = currentY;
                                 selectionHeight -= 1;
                             }
-                            break;
                         }
-                        goto updateSelectionCommon;
+                        else
+                        {
+                            UpdateSelection();
+                        }
                     }
-                    break;
-
-                updateSelectionCommon:
-                    // Shift not pressed - unselect current selection
-                    ScreenCapture.InvertLines(selectionTop, selectionHeight, console);
-                    selectionTop = currentY;
-                    selectionHeight = 1;
-                    ScreenCapture.InvertLines(selectionTop, selectionHeight, console);
-                    break;
-
-                case ConsoleKey.Enter:
+                }
+                else if (k == Keys.Enter)
+                {
                     ScreenCapture.InvertLines(selectionTop, selectionHeight, console);
                     ScreenCapture.DumpScreenToClipboard(selectionTop, selectionHeight, console);
                     ScrollDisplayToCursor();
                     return;
-
-                case ConsoleKey.Escape:
+                }
+                else if (k == Keys.Escape || k == Keys.CtrlC || k == Keys.CtrlG)
+                {
                     done = true;
-                    continue;
-
-                case ConsoleKey.C:
-                case ConsoleKey.G:
-                    if (k.Modifiers == ConsoleModifiers.Control)
-                    {
-                        done = true;
-                        continue;
-                    }
+                }
+                else
+                {
                     Ding();
-                    break;
-                default:
-                    Ding();
-                    break;
                 }
             }
             ScreenCapture.InvertLines(selectionTop, selectionHeight, console);

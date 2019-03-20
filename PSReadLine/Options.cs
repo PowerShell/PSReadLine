@@ -153,19 +153,20 @@ namespace Microsoft.PowerShell
             foreach (var key in keys)
             {
                 var chord = ConsoleKeyChordConverter.Convert(key);
+                var firstKey = PSKeyInfo.FromConsoleKeyInfo(chord[0]);
                 if (chord.Length == 1)
                 {
-                    _dispatchTable[chord[0]] = MakeKeyHandler(handler, briefDescription, longDescription, scriptBlock);
+                    _dispatchTable[firstKey] = MakeKeyHandler(handler, briefDescription, longDescription, scriptBlock);
                 }
                 else
                 {
-                    _dispatchTable[chord[0]] = MakeKeyHandler(Chord, "ChordFirstKey");
-                    if (!_chordDispatchTable.TryGetValue(chord[0], out var secondDispatchTable))
+                    _dispatchTable[firstKey] = MakeKeyHandler(Chord, "ChordFirstKey");
+                    if (!_chordDispatchTable.TryGetValue(firstKey, out var secondDispatchTable))
                     {
-                        secondDispatchTable = new Dictionary<ConsoleKeyInfo, KeyHandler>(ConsoleKeyInfoComparer.Instance);
-                        _chordDispatchTable[chord[0]] = secondDispatchTable;
+                        secondDispatchTable = new Dictionary<PSKeyInfo, KeyHandler>();
+                        _chordDispatchTable[firstKey] = secondDispatchTable;
                     }
-                    secondDispatchTable[chord[1]] = MakeKeyHandler(handler, briefDescription, longDescription, scriptBlock);
+                    secondDispatchTable[PSKeyInfo.FromConsoleKeyInfo(chord[1])] = MakeKeyHandler(handler, briefDescription, longDescription, scriptBlock);
                 }
             }
         }
@@ -175,18 +176,19 @@ namespace Microsoft.PowerShell
             foreach (var key in keys)
             {
                 var chord = ConsoleKeyChordConverter.Convert(key);
+                var firstKey = PSKeyInfo.FromConsoleKeyInfo(chord[0]);
                 if (chord.Length == 1)
                 {
-                    _dispatchTable.Remove(chord[0]);
+                    _dispatchTable.Remove(firstKey);
                 }
                 else
                 {
-                    if (_chordDispatchTable.TryGetValue(chord[0], out var secondDispatchTable))
+                    if (_chordDispatchTable.TryGetValue(firstKey, out var secondDispatchTable))
                     {
-                        secondDispatchTable.Remove(chord[1]);
+                        secondDispatchTable.Remove(PSKeyInfo.FromConsoleKeyInfo(chord[1]));
                         if (secondDispatchTable.Count == 0)
                         {
-                            _dispatchTable.Remove(chord[0]);
+                            _dispatchTable.Remove(firstKey);
                         }
                     }
                 }
@@ -224,7 +226,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void SetKeyHandler(string[] key, ScriptBlock scriptBlock, string briefDescription, string longDescription)
         {
-            Action<ConsoleKeyInfo?, object> handler = (k, arg) =>
+            void HandlerWrapper(ConsoleKeyInfo? k, object arg)
             {
                 try
                 {
@@ -234,7 +236,7 @@ namespace Microsoft.PowerShell
                 {
                     throw new CustomHandlerException(e);
                 }
-            };
+            }
 
             if (string.IsNullOrWhiteSpace(briefDescription))
             {
@@ -244,7 +246,7 @@ namespace Microsoft.PowerShell
             {
                 longDescription = PSReadLineResources.CustomActionDescription;
             }
-            _singleton.SetKeyHandlerInternal(key, handler, briefDescription, longDescription, scriptBlock);
+            _singleton.SetKeyHandlerInternal(key, HandlerWrapper, briefDescription, longDescription, scriptBlock);
         }
 
         /// <summary>
@@ -292,7 +294,7 @@ namespace Microsoft.PowerShell
                 {
                     yield return new PowerShell.KeyHandler
                     {
-                        Key = entry.Key.ToGestureString(),
+                        Key = entry.Key.KeyStr,
                         Function = entry.Value.BriefDescription,
                         Description = entry.Value.LongDescription,
                         Group = GetDisplayGrouping(entry.Value.BriefDescription),
@@ -315,7 +317,7 @@ namespace Microsoft.PowerShell
                     {
                         yield return new PowerShell.KeyHandler
                         {
-                            Key = "<" + entry.Key.ToGestureString() + ">",
+                            Key = "<" + entry.Key.KeyStr + ">",
                             Function = entry.Value.BriefDescription,
                             Description = entry.Value.LongDescription,
                             Group = GetDisplayGrouping(entry.Value.BriefDescription),
@@ -333,7 +335,7 @@ namespace Microsoft.PowerShell
                     {
                         yield return new PowerShell.KeyHandler
                         {
-                            Key = entry.Key.ToGestureString() + "," + secondEntry.Key.ToGestureString(),
+                            Key = entry.Key.KeyStr + "," + secondEntry.Key.KeyStr,
                             Function = secondEntry.Value.BriefDescription,
                             Description = secondEntry.Value.LongDescription,
                             Group = GetDisplayGrouping(secondEntry.Value.BriefDescription),
@@ -358,7 +360,7 @@ namespace Microsoft.PowerShell
                         {
                             yield return new PowerShell.KeyHandler
                             {
-                                Key = "<" + entry.Key.ToGestureString() + "," + secondEntry.Key.ToGestureString() + ">",
+                                Key = "<" + entry.Key.KeyStr + "," + secondEntry.Key.KeyStr + ">",
                                 Function = secondEntry.Value.BriefDescription,
                                 Description = secondEntry.Value.LongDescription,
                                 Group = GetDisplayGrouping(secondEntry.Value.BriefDescription),

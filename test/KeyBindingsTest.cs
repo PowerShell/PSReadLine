@@ -4,51 +4,48 @@ using Xunit;
 
 namespace Test
 {
-    // Disgusting language hack to make it easier to read a sequence of keys.
-    using _ = Keys;
-
     public partial class ReadLine
     {
-        [Fact]
+        [SkippableFact]
         public void WhatIsKey()
         {
             TestSetup(KeyMode.Cmd);
 
             Test("", Keys(
-                _.AltQuestion,
+                _.Alt_Question,
                 CheckThat(() => AssertScreenIs(2, NextLine, "what-is-key:")),
                 'a',
                 CheckThat(() => AssertScreenIs(2, NextLine, "a: SelfInsert - Insert the key typed"))));
 
             Test("", Keys(
-                _.AltQuestion, _.F24,
-                CheckThat(() => AssertScreenIs(2, NextLine, "F24: Key is unbound"))));
+                _.Alt_Question, _.F9,
+                CheckThat(() => AssertScreenIs(2, NextLine, "F9: Key is unbound"))));
 
             Test("", Keys(
-                _.AltQuestion, _.LeftArrow,
+                _.Alt_Question, _.LeftArrow,
                 CheckThat(() => AssertScreenIs(2, NextLine, "LeftArrow: BackwardChar - Move the cursor back one character"))
                 ));
 
             TestSetup(KeyMode.Emacs);
             Test("", Keys(
-                _.AltQuestion, _.CtrlX, _.CtrlU,
+                _.Alt_Question, _.Ctrl_x, _.Ctrl_u,
                 CheckThat(() => AssertScreenIs(2, NextLine, "Ctrl+x,Ctrl+u: Undo - Undo a previous edit"))));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ShowKeyBindings()
         {
             // I'm too lazy to validate the output as there's a lot of output.  So
             // just run it a few times to make sure nothing crashes.
 
             TestSetup(KeyMode.Cmd);
-            Test("", Keys(Enumerable.Repeat(_.CtrlAltQuestion, 3)));
+            Test("", Keys(Enumerable.Repeat(_.Ctrl_Alt_Question, 3)));
 
             TestSetup(KeyMode.Emacs);
-            Test("", Keys(Enumerable.Repeat(_.CtrlAltQuestion, 3)));
+            Test("", Keys(Enumerable.Repeat(_.Ctrl_Alt_Question, 3)));
 
             TestSetup(KeyMode.Vi);
-            Test("", Keys(Enumerable.Repeat(_.CtrlAltQuestion, 3)));
+            Test("", Keys(Enumerable.Repeat(_.Ctrl_Alt_Question, 3)));
         }
     }
 }

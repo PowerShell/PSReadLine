@@ -23,13 +23,17 @@ namespace Microsoft.PowerShell
                 return;
             }
 
+            var keyChar = key.Value.KeyChar;
+            if (keyChar == '\0')
+                return;
+
             if (arg is int count)
             {
                 if (count <= 0)
                     return;
                 if (count > 1)
                 {
-                    var toInsert = new string(key.Value.KeyChar, count);
+                    var toInsert = new string(keyChar, count);
                     if (_singleton._visualSelectionCommandCount > 0)
                     {
                         _singleton.GetRegion(out var start, out var length);
@@ -46,13 +50,12 @@ namespace Microsoft.PowerShell
             if (_singleton._visualSelectionCommandCount > 0)
             {
                 _singleton.GetRegion(out var start, out var length);
-                Replace(start, length, new string(key.Value.KeyChar, 1));
+                Replace(start, length, new string(keyChar, 1));
             }
             else
             {
-                Insert(key.Value.KeyChar);
+                Insert(keyChar);
             }
-
         }
 
         /// <summary>

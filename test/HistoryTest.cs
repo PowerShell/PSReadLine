@@ -5,9 +5,6 @@ using Xunit;
 
 namespace Test
 {
-    // Disgusting language hack to make it easier to read a sequence of keys.
-    using _ = Keys;
-
     public partial class ReadLine
     {
         private void SetHistory(params string[] historyItems)
@@ -19,7 +16,7 @@ namespace Test
             }
         }
 
-        [Fact]
+        [SkippableFact]
         public void History()
         {
             TestSetup(KeyMode.Cmd);
@@ -34,7 +31,7 @@ namespace Test
             Test("dir c*", Keys(_.UpArrow, _.UpArrow, _.DownArrow));
         }
 
-        [Fact]
+        [SkippableFact]
         public void HistoryRecallCurrentLine()
         {
             TestSetup(KeyMode.Cmd);
@@ -43,7 +40,7 @@ namespace Test
             Test("ec", Keys("ec", _.UpArrow, _.UpArrow, _.DownArrow, _.DownArrow));
         }
 
-        [Fact]
+        [SkippableFact]
         public void HistorySearchCurrentLine()
         {
             TestSetup(KeyMode.Cmd,
@@ -54,7 +51,7 @@ namespace Test
             Test("ec", Keys("ec", _.UpArrow, _.UpArrow, _.DownArrow, _.DownArrow));
         }
 
-        [Fact]
+        [SkippableFact]
         public void SearchHistory()
         {
             TestSetup(KeyMode.Cmd,
@@ -119,7 +116,7 @@ namespace Test
                 })));
         }
 
-        [Fact]
+        [SkippableFact]
         public void HistorySearchCursorMovesToEnd()
         {
             TestSetup(KeyMode.Cmd,
@@ -159,49 +156,53 @@ namespace Test
                 })));
         }
 
-        [Fact]
+        [SkippableFact]
         public void BeginningOfHistory()
         {
+            Skip.IfNot(KeyboardHasLessThan);
+
             TestSetup(KeyMode.Emacs);
 
             SetHistory("echo first", "echo second", "echo third");
-            Test("echo first", Keys(_.AltLess));
+            Test("echo first", Keys(_.Alt_Less));
 
             SetHistory("echo first", "echo second", "echo third");
-            Test("echo second", Keys(_.AltLess, _.DownArrow));
+            Test("echo second", Keys(_.Alt_Less, _.DownArrow));
         }
 
-        [Fact]
+        [SkippableFact]
         public void EndOfHistory()
         {
+            Skip.IfNot(KeyboardHasGreaterThan);
+
             TestSetup(KeyMode.Emacs);
 
             SetHistory("echo first", "echo second", "echo third");
-            Test("", Keys(_.UpArrow, _.AltGreater));
+            Test("", Keys(_.UpArrow, _.Alt_Greater));
 
             // Make sure end of history restores the "current" line if
             // there was anything entered before going through history
-            Test("abc", Keys("abc", _.UpArrow, _.AltGreater));
+            Test("abc", Keys("abc", _.UpArrow, _.Alt_Greater));
 
             // Make sure we don't recall the previous "current" line
             // after we accepted it.
-            Test("", Keys(_.AltGreater));
+            Test("", Keys(_.Alt_Greater));
         }
 
-        [Fact]
+        [SkippableFact]
         public void InteractiveHistorySearch()
         {
             TestSetup(KeyMode.Emacs);
 
             SetHistory("echo aaa");
-            Test("echo aaa", Keys(_.CtrlR, 'a'));
+            Test("echo aaa", Keys(_.Ctrl_r, 'a'));
 
             var emphasisColors = Tuple.Create(PSConsoleReadLineOptions.DefaultEmphasisColor, _console.BackgroundColor);
             var statusColors = Tuple.Create(_console.ForegroundColor, _console.BackgroundColor);
 
             // Test entering multiple characters and the line is updated with new matches
             SetHistory("zz1", "echo abc", "zz2", "echo abb", "zz3", "echo aaa", "zz4");
-            Test("echo abc", Keys(_.CtrlR,
+            Test("echo abc", Keys(_.Ctrl_r,
                 'a',
                 CheckThat(() => AssertScreenIs(2,
                     TokenClassification.Command, "echo",
@@ -224,9 +225,9 @@ namespace Test
                     NextLine,
                     statusColors, "bck-i-search: abc_"))));
 
-            // Test repeated Ctrl+R goes back through multiple matches
+            // Test repeated Ctrl+r goes back through multiple matches
             SetHistory("zz1", "echo abc", "zz2", "echo abb", "zz3", "echo aaa", "zz4");
-            Test("echo abc", Keys(_.CtrlR,
+            Test("echo abc", Keys(_.Ctrl_r,
                 'a',
                 CheckThat(() => AssertScreenIs(2,
                     TokenClassification.Command, "echo",
@@ -235,14 +236,14 @@ namespace Test
                     TokenClassification.None, "aa",
                     NextLine,
                     statusColors, "bck-i-search: a_")),
-                _.CtrlR, CheckThat(() => AssertScreenIs(2,
+                _.Ctrl_r, CheckThat(() => AssertScreenIs(2,
                     TokenClassification.Command, "echo",
                     TokenClassification.None, " ",
                     emphasisColors, 'a',
                     TokenClassification.None, "bb",
                     NextLine,
                     statusColors, "bck-i-search: a_")),
-                _.CtrlR, CheckThat(() => AssertScreenIs(2,
+                _.Ctrl_r, CheckThat(() => AssertScreenIs(2,
                     TokenClassification.Command, "echo",
                     TokenClassification.None, " ",
                     emphasisColors, 'a',
@@ -253,7 +254,7 @@ namespace Test
             // Test that the current match doesn't change when typing
             // additional characters, only emphasis should change.
             SetHistory("zz1", "echo abzz", "echo abc", "zz2");
-            Test("echo abc", Keys(_.CtrlR,
+            Test("echo abc", Keys(_.Ctrl_r,
                 'a',
                 CheckThat(() => AssertScreenIs(2,
                     TokenClassification.Command, "echo",
@@ -271,9 +272,9 @@ namespace Test
                     NextLine,
                     statusColors, "bck-i-search: ab_"))));
 
-            // Test that abort restores line state before Ctrl+R
+            // Test that abort restores line state before Ctrl+r
             SetHistory("zz1", "echo abzz", "echo abc", "zz2");
-            Test("echo zed", Keys("echo zed", _.CtrlR,
+            Test("echo zed", Keys("echo zed", _.Ctrl_r,
                 'a',
                 CheckThat(() => AssertScreenIs(2,
                     TokenClassification.Command, "echo",
@@ -282,7 +283,7 @@ namespace Test
                     TokenClassification.None, "bc",
                     NextLine,
                     statusColors, "bck-i-search: a_")),
-                _.CtrlG,
+                _.Ctrl_g,
                 CheckThat(() => AssertScreenIs(2,
                     TokenClassification.Command, "echo",
                     TokenClassification.None, " ",
@@ -292,7 +293,7 @@ namespace Test
             // Test that a random function terminates the search and has an
             // effect on the line found in history
             SetHistory("zz1", "echo abzz", "echo abc", "zz2");
-            Test("echo zed", Keys(_.CtrlR,
+            Test("echo zed", Keys(_.Ctrl_r,
                 'a',
                 CheckThat(() => AssertScreenIs(2,
                     TokenClassification.Command, "echo",
@@ -301,12 +302,12 @@ namespace Test
                     TokenClassification.None, "bc",
                     NextLine,
                     statusColors, "bck-i-search: a_")),
-                _.AltD, "zed"));
+                _.Alt_d, "zed"));
 
             // Test that Escape terminates the search leaving the
             // cursor at the point in the match.
             SetHistory("zz1", "echo abzz", "echo abc", "zz2");
-            Test("echo yabc", Keys(_.CtrlR,
+            Test("echo yabc", Keys(_.Ctrl_r,
                 'a',
                 CheckThat(() => AssertScreenIs(2,
                     TokenClassification.Command, "echo",
@@ -320,7 +321,7 @@ namespace Test
             // Test entering multiple characters, then backspace, make sure we restore
             // the correct line
             SetHistory("zz1", "echo abc", "zz2", "echo abb", "zz3", "echo aaa", "zz4");
-            Test("echo aaa", Keys(_.CtrlR,
+            Test("echo aaa", Keys(_.Ctrl_r,
                 _.Backspace,  // Try backspace on empty search string
                 "ab", CheckThat(() => AssertScreenIs(2,
                     TokenClassification.Command, "echo",
@@ -339,7 +340,7 @@ namespace Test
                     statusColors, "bck-i-search: a_"))));
 
             SetHistory("zz1", "echo abzz", "echo abc", "zz2");
-            Test("", Keys(_.CtrlR,
+            Test("", Keys(_.Ctrl_r,
                 'a',
                 CheckThat(() => AssertScreenIs(2,
                     TokenClassification.Command, "echo",
@@ -348,7 +349,7 @@ namespace Test
                     TokenClassification.None, "bc",
                     NextLine,
                     statusColors, "bck-i-search: a_")),
-                _.CtrlR,
+                _.Ctrl_r,
                 CheckThat(() => AssertScreenIs(2,
                     TokenClassification.Command, "echo",
                     TokenClassification.None, " ",
@@ -356,14 +357,14 @@ namespace Test
                     TokenClassification.None, "bzz",
                     NextLine,
                     statusColors, "bck-i-search: a_")),
-                _.CtrlR,
+                _.Ctrl_r,
                 CheckThat(() => AssertScreenIs(2,
                     TokenClassification.Command, "echo",
                     TokenClassification.None, " ",
                     TokenClassification.None, "abzz",
                     NextLine,
                     statusColors, "failed-bck-i-search: a_")),
-                _.CtrlS,
+                _.Ctrl_s,
                 CheckThat(() => AssertScreenIs(2,
                     TokenClassification.Command, "echo",
                     TokenClassification.None, " ",
@@ -371,11 +372,11 @@ namespace Test
                     TokenClassification.None, "bzz",
                     NextLine,
                     statusColors, "fwd-i-search: a_")),
-                _.CtrlG));
+                _.Ctrl_g));
 
             // Test that searching works after a failed search
             SetHistory("echo aa1", "echo bb1", "echo bb2", "echo aa2");
-            Test("echo aa1", Keys(_.CtrlR, "zz", _.Backspace, _.Backspace, "a1",
+            Test("echo aa1", Keys(_.Ctrl_r, "zz", _.Backspace, _.Backspace, "a1",
                 CheckThat(() => AssertScreenIs(2,
                     TokenClassification.Command, "echo",
                     TokenClassification.None, " a",
@@ -387,7 +388,7 @@ namespace Test
             // Test that searching works after backspace after a successful search
             SetHistory("echo aa1", "echo bb1", "echo bb2", "echo aa2");
             Test("echo aa2", Keys(
-                _.CtrlR,
+                _.Ctrl_r,
                 "aa",
                 CheckThat(() => AssertScreenIs(2,
                     TokenClassification.Command, "echo",
@@ -396,7 +397,7 @@ namespace Test
                     TokenClassification.None, "2",
                     NextLine,
                     statusColors, "bck-i-search: aa_")),
-                _.CtrlR,
+                _.Ctrl_r,
                 CheckThat(() => AssertScreenIs(2,
                     TokenClassification.Command, "echo",
                     TokenClassification.None, " ",
@@ -412,7 +413,7 @@ namespace Test
                     TokenClassification.None, "a2",
                     NextLine,
                     statusColors, "bck-i-search: a_")),
-                'a', _.CtrlR,
+                'a', _.Ctrl_r,
                 CheckThat(() => AssertScreenIs(2,
                     TokenClassification.Command, "echo",
                     TokenClassification.None, " ",
@@ -423,11 +424,11 @@ namespace Test
                 _.Backspace));
 
             // TODO: long search line
-            // TODO: start with Ctrl+S
+            // TODO: start with Ctrl+s
             // TODO: "fast" typing in search where buffered keys after search is accepted
         }
 
-        [Fact]
+        [SkippableFact]
         public void AddToHistoryHandler()
         {
             TestSetup(KeyMode.Cmd);
@@ -437,7 +438,7 @@ namespace Test
             Test("zzzz", Keys(_.UpArrow));
         }
 
-        [Fact]
+        [SkippableFact]
         public void HistoryNoDuplicates()
         {
             TestSetup(KeyMode.Cmd);
@@ -466,7 +467,7 @@ namespace Test
             Test("", Keys(_.UpArrow, _.DownArrow));
         }
 
-        [Fact]
+        [SkippableFact]
         public void HistorySearchNoDuplicates()
         {
             TestSetup(KeyMode.Cmd,
@@ -484,7 +485,7 @@ namespace Test
                 Enumerable.Repeat(_.DownArrow, 2)));
         }
 
-        [Fact]
+        [SkippableFact]
         public void InteractiveHistorySearchNoDuplicates()
         {
             TestSetup(KeyMode.Emacs);
@@ -492,18 +493,18 @@ namespace Test
             PSConsoleReadLine.SetOptions(new SetPSReadLineOption {HistoryNoDuplicates = true});
             SetHistory("0000", "echo aaaa", "1111", "echo bbbb", "2222", "echo bbbb", "3333", "echo cccc", "4444");
             Test("echo aaaa", Keys(
-                _.CtrlR, "echo", _.CtrlR, _.CtrlR));
+                _.Ctrl_r, "echo", _.Ctrl_r, _.Ctrl_r));
 
             SetHistory("0000", "echo aaaa", "1111", "echo bbbb", "2222", "echo bbbb", "3333", "echo cccc", "4444");
             Test("echo cccc", Keys(
-                _.CtrlR, "echo", _.CtrlR, _.CtrlR, _.CtrlS, _.CtrlS));
+                _.Ctrl_r, "echo", _.Ctrl_r, _.Ctrl_r, _.Ctrl_s, _.Ctrl_s));
 
             SetHistory("0000", "echo aaaa", "1111", "echo bbbb", "2222", "echo bbbb", "3333", "echo cccc", "4444");
             Test("echo aaaa", Keys(
-                _.CtrlR, "echo", _.CtrlR, _.CtrlR, _.CtrlH, _.CtrlR, _.CtrlR));
+                _.Ctrl_r, "echo", _.Ctrl_r, _.Ctrl_r, _.Ctrl_h, _.Ctrl_r, _.Ctrl_r));
         }
 
-        [Fact]
+        [SkippableFact]
         public void HistoryCount()
         {
             TestSetup(KeyMode.Cmd);

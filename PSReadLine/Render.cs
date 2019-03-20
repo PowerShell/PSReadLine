@@ -887,7 +887,7 @@ namespace Microsoft.PowerShell
 
             _statusLinePrompt = null;
             Render();
-            return key.IsUnmodifiedChar('y') || key.IsUnmodifiedChar('Y');
+            return key.KeyStr.Equals("y", StringComparison.OrdinalIgnoreCase);
         }
 
         /// <summary>

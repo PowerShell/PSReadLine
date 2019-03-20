@@ -10,7 +10,7 @@ jobs:
     name: macOS
     vmImage: 'macOS-10.13'
 
-#- template: azure-devops-psreadline.yml
-#  parameters:
-#    name: Windows
-#    vmImage: 'vs2017-win2016'
+- template: azure-devops-psreadline.yml
+  parameters:
+    name: Windows
+    vmImage: 'vs2017-win2016'

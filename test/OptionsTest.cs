@@ -6,12 +6,9 @@ using Xunit;
 
 namespace Test
 {
-    // Disgusting language hack to make it easier to read a sequence of keys.
-    using _ = Keys;
-
     public partial class ReadLine
     {
-        [Fact]
+        [SkippableFact]
         public void ContinuationPrompt()
         {
             TestSetup(KeyMode.Cmd);
@@ -25,7 +22,7 @@ namespace Test
                         Tuple.Create(_console.ForegroundColor, _console.BackgroundColor),
                         PSConsoleReadLineOptions.DefaultContinuationPrompt,
                         TokenClassification.None, '}')),
-                _.CtrlC,
+                _.Ctrl_c,
                 InputAcceptedNow
                 ));
 
@@ -33,7 +30,7 @@ namespace Test
             Test("", Keys(
                 "{\n}",
                 CheckThat(() => AssertScreenIs(2, TokenClassification.None, '{', NextLine, '}' )),
-                _.CtrlC,
+                _.Ctrl_c,
                 InputAcceptedNow
                 ));
 
@@ -53,12 +50,12 @@ namespace Test
                         Tuple.Create(ConsoleColor.Magenta, ConsoleColor.DarkYellow),
                         continuationPrompt,
                         TokenClassification.None, '}')),
-                _.CtrlC,
+                _.Ctrl_c,
                 InputAcceptedNow
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void GetKeyHandlers()
         {
             foreach (var keymode in new[] {KeyMode.Cmd, KeyMode.Emacs})
@@ -81,7 +78,7 @@ namespace Test
             }
         }
 
-        [Fact]
+        [SkippableFact]
         [ExcludeFromCodeCoverage]
         public void UselessStuffForBetterCoverage()
         {

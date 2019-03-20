@@ -3,12 +3,9 @@ using Xunit;
 
 namespace Test
 {
-    // Disgusting language hack to make it easier to read a sequence of keys.
-    using _ = Keys;
-
     public partial class ReadLine
     {
-        [Fact]
+        [SkippableFact]
         public void ViPasteAfterDeleteChar()
         {
             TestSetup(KeyMode.Vi);
@@ -46,7 +43,7 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViPasteAfterDelete()
         {
             TestSetup(KeyMode.Vi);
@@ -100,7 +97,7 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViPasteAfterDeleteBraces()
         {
             TestSetup(KeyMode.Vi);
@@ -122,14 +119,14 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViPasteAfterDeleteWord()
         {
             TestSetup(KeyMode.Vi);
 
             Test("abc def", Keys(
                 "abc def", _.Escape,
-                _.CtrlW, CheckThat(() => AssertLineIs("abc f")), CheckThat(() => AssertCursorLeftIs(4)),
+                _.Ctrl_w, CheckThat(() => AssertLineIs("abc f")), CheckThat(() => AssertCursorLeftIs(4)),
                 'p', CheckThat(() => AssertLineIs("abc fde")), CheckThat(() => AssertCursorLeftIs(6)),
                 'P', CheckThat(() => AssertLineIs("abc fddee")), CheckThat(() => AssertCursorLeftIs(7)),
                 "uuu"
@@ -137,7 +134,7 @@ namespace Test
 
             Test("abc def", Keys(
                 "abc def", _.Escape,
-                _.CtrlU, CheckThat(() => AssertLineIs("f")), CheckThat(() => AssertCursorLeftIs(0)),
+                _.Ctrl_u, CheckThat(() => AssertLineIs("f")), CheckThat(() => AssertCursorLeftIs(0)),
                 'p', CheckThat(() => AssertLineIs("fabc de")), CheckThat(() => AssertCursorLeftIs(6)),
                 'P', CheckThat(() => AssertLineIs("fabc dabc dee")), CheckThat(() => AssertCursorLeftIs(11)),
                 "uuu"
@@ -192,7 +189,7 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViPasteAfterDeleteLine()
         {
             TestSetup(KeyMode.Vi);
@@ -207,7 +204,7 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViPasteAfterYankLine()
         {
             TestSetup(KeyMode.Vi);
@@ -221,7 +218,7 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViPasteAfterYankMovement()
         {
             TestSetup(KeyMode.Vi);
@@ -236,9 +233,9 @@ namespace Test
 
             Test("012 456", Keys(
                 "012 456", _.Escape,
-                "by", _.Space, "P", CheckThat(() => AssertLineIs("012 4456")), CheckThat(() => AssertCursorLeftIs(4)),
-                "u2y", _.Space, "P", CheckThat(() => AssertLineIs("012 45456")), CheckThat(() => AssertCursorLeftIs(5)),
-                "ully", _.Space, "p", CheckThat(() => AssertLineIs("012 4566")), CheckThat(() => AssertCursorLeftIs(7)),
+                "by", _.Spacebar, "P", CheckThat(() => AssertLineIs("012 4456")), CheckThat(() => AssertCursorLeftIs(4)),
+                "u2y", _.Spacebar, "P", CheckThat(() => AssertLineIs("012 45456")), CheckThat(() => AssertCursorLeftIs(5)),
+                "ully", _.Spacebar, "p", CheckThat(() => AssertLineIs("012 4566")), CheckThat(() => AssertCursorLeftIs(7)),
                 "u"
                 ));
 
@@ -258,7 +255,7 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViPasteAfterYankWord()
         {
             TestSetup(KeyMode.Vi);
@@ -320,7 +317,7 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViPasteAfterYankBeginningOfLine()
         {
             TestSetup(KeyMode.Vi);
@@ -338,7 +335,7 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViPasteAfterYankFirstNoneBlank()
         {
             TestSetup(KeyMode.Vi);
@@ -356,7 +353,7 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViPasteAfterYankPercent()
         {
             TestSetup(KeyMode.Vi);
@@ -392,7 +389,7 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViPasteAfterYankPreviousGlob()
         {
             TestSetup(KeyMode.Vi);
@@ -416,7 +413,8 @@ namespace Test
                 "u"
                 ));
         }
-        [Fact]
+
+        [SkippableFact]
         public void ViPasteAfterYankNextGlob()
         {
             TestSetup(KeyMode.Vi);
@@ -441,7 +439,7 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViPasteAfterYankEndOfGlob()
         {
             TestSetup(KeyMode.Vi);

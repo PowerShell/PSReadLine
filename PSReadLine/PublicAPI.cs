@@ -11,7 +11,6 @@ using System.Management.Automation.Runspaces;
 using System.Text;
 using Microsoft.PowerShell.PSReadLine;
 
-
 namespace Microsoft.PowerShell
 {
     namespace Internal

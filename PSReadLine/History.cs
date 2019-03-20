@@ -688,8 +688,8 @@ namespace Microsoft.PowerShell
                     UpdateHistoryDuringInteractiveSearch(toMatch.ToString(), +1, ref searchFromPoint);
                 }
                 else if (function == BackwardDeleteChar
-                    || key.EqualsNormalized(Keys.Backspace)
-                    || key.EqualsNormalized(Keys.CtrlH))
+                    || key == Keys.Backspace
+                    || key == Keys.CtrlH)
                 {
                     if (toMatch.Length > 0)
                     {
@@ -733,7 +733,7 @@ namespace Microsoft.PowerShell
                         Ding();
                     }
                 }
-                else if (key.EqualsNormalized(Keys.Escape))
+                else if (key == Keys.Escape)
                 {
                     // End search
                     break;
@@ -744,15 +744,16 @@ namespace Microsoft.PowerShell
                     EndOfHistory();
                     break;
                 }
-                else if (EndInteractiveHistorySearch(key))
-                {
-                    PrependQueuedKeys(key);
-                    break;
-                }
                 else
                 {
-                    toMatch.Append(key.KeyChar);
-                    _statusBuffer.Insert(_statusBuffer.Length - 1, key.KeyChar);
+                    char toAppend = key.KeyChar;
+                    if (char.IsControl(toAppend))
+                    {
+                        PrependQueuedKeys(key);
+                        break;
+                    }
+                    toMatch.Append(toAppend);
+                    _statusBuffer.Insert(_statusBuffer.Length - 1, toAppend);
 
                     var toMatchStr = toMatch.ToString();
                     var startIndex = _buffer.ToString().IndexOf(toMatchStr, Options.HistoryStringComparison);
@@ -770,12 +771,6 @@ namespace Microsoft.PowerShell
                     searchPositions.Push(_currentHistoryIndex);
                 }
             }
-        }
-
-        private static bool EndInteractiveHistorySearch(ConsoleKeyInfo key)
-        {
-            return char.IsControl(key.KeyChar)
-                || (key.Modifiers & (ConsoleModifiers.Alt | ConsoleModifiers.Control)) != 0;
         }
 
         private void InteractiveHistorySearch(int direction)

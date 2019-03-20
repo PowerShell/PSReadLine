@@ -114,7 +114,7 @@ namespace Microsoft.PowerShell
             //
             // The first argument is the key that caused the action to be called
             // (the second key when it's a 2 key chord).  The default is null (it's nullable)
-            // because PowerShell can't handle default(ConsoleKeyInfo) as a default.
+            // because PowerShell can't handle default(PSKeyInfo) as a default.
             // Most actions will ignore this argument.
             //
             // The second argument is an arbitrary object.  It will usually be either a number
@@ -130,22 +130,10 @@ namespace Microsoft.PowerShell
             }
             private string _longDescription;
             public ScriptBlock ScriptBlock;
-        }
 
-        internal class ConsoleKeyInfoComparer : IEqualityComparer<ConsoleKeyInfo>
-        {
-            public static ConsoleKeyInfoComparer Instance { get; } = new ConsoleKeyInfoComparer();
-
-            private ConsoleKeyInfoComparer() { }
-
-            public bool Equals(ConsoleKeyInfo x, ConsoleKeyInfo y)
+            public override string ToString()
             {
-                return x.EqualsNormalized(y);
-            }
-
-            public int GetHashCode(ConsoleKeyInfo obj)
-            {
-                return obj.GetNormalizedHashCode();
+                return BriefDescription;
             }
         }
 
@@ -160,8 +148,8 @@ namespace Microsoft.PowerShell
             };
         }
 
-        private Dictionary<ConsoleKeyInfo, KeyHandler> _dispatchTable;
-        private Dictionary<ConsoleKeyInfo, Dictionary<ConsoleKeyInfo, KeyHandler>> _chordDispatchTable;
+        private Dictionary<PSKeyInfo, KeyHandler> _dispatchTable;
+        private Dictionary<PSKeyInfo, Dictionary<PSKeyInfo, KeyHandler>> _chordDispatchTable;
 
         /// <summary>
         /// Helper to set bindings based on EditMode
@@ -184,7 +172,7 @@ namespace Microsoft.PowerShell
 
         void SetDefaultWindowsBindings()
         {
-            _dispatchTable = new Dictionary<ConsoleKeyInfo, KeyHandler>(ConsoleKeyInfoComparer.Instance)
+            _dispatchTable = new Dictionary<PSKeyInfo, KeyHandler>
             {
                 { Keys.Enter,                  MakeKeyHandler(AcceptLine,                "AcceptLine") },
                 { Keys.ShiftEnter,             MakeKeyHandler(AddLine,                   "AddLine") },
@@ -245,9 +233,6 @@ namespace Microsoft.PowerShell
                 { Keys.PageDown,               MakeKeyHandler(ScrollDisplayDown,         "ScrollDisplayDown") },
                 { Keys.CtrlPageUp,             MakeKeyHandler(ScrollDisplayUpLine,       "ScrollDisplayUpLine") },
                 { Keys.CtrlPageDown,           MakeKeyHandler(ScrollDisplayDownLine,     "ScrollDisplayDownLine") },
-                { Keys.VolumeDown,             MakeKeyHandler(Ignore,                    "Ignore") },
-                { Keys.VolumeUp,               MakeKeyHandler(Ignore,                    "Ignore") },
-                { Keys.VolumeMute,             MakeKeyHandler(Ignore,                    "Ignore") },
             };
 
             // Some bindings are not available on certain platforms
@@ -260,12 +245,12 @@ namespace Microsoft.PowerShell
                 _dispatchTable.Add(Keys.CtrlH,      MakeKeyHandler(BackwardDeleteChar,"BackwardDeleteChar"));
             }
 
-            _chordDispatchTable = new Dictionary<ConsoleKeyInfo, Dictionary<ConsoleKeyInfo, KeyHandler>>(ConsoleKeyInfoComparer.Instance);
+            _chordDispatchTable = new Dictionary<PSKeyInfo, Dictionary<PSKeyInfo, KeyHandler>>();
         }
 
         void SetDefaultEmacsBindings()
         {
-            _dispatchTable = new Dictionary<ConsoleKeyInfo, KeyHandler>(ConsoleKeyInfoComparer.Instance)
+            _dispatchTable = new Dictionary<PSKeyInfo, KeyHandler>
             {
                 { Keys.Backspace,       MakeKeyHandler(BackwardDeleteChar,   "BackwardDeleteChar") },
                 { Keys.Enter,           MakeKeyHandler(AcceptLine,           "AcceptLine") },
@@ -337,9 +322,6 @@ namespace Microsoft.PowerShell
                 { Keys.CtrlAltY,        MakeKeyHandler(YankNthArg,           "YankNthArg") },
                 { Keys.PageUp,          MakeKeyHandler(ScrollDisplayUp,      "ScrollDisplayUp") },
                 { Keys.PageDown,        MakeKeyHandler(ScrollDisplayDown,    "ScrollDisplayDown") },
-                { Keys.VolumeDown,      MakeKeyHandler(Ignore,               "Ignore") },
-                { Keys.VolumeUp,        MakeKeyHandler(Ignore,               "Ignore") },
-                { Keys.VolumeMute,      MakeKeyHandler(Ignore,               "Ignore") },
             };
 
             // Some bindings are not available on certain platforms
@@ -357,10 +339,10 @@ namespace Microsoft.PowerShell
                 _dispatchTable.Add(Keys.AltSpace,     MakeKeyHandler(SetMark,               "SetMark"));
             }
 
-            _chordDispatchTable = new Dictionary<ConsoleKeyInfo, Dictionary<ConsoleKeyInfo, KeyHandler>>(ConsoleKeyInfoComparer.Instance)
+            _chordDispatchTable = new Dictionary<PSKeyInfo, Dictionary<PSKeyInfo, KeyHandler>>
             {
                 // Escape,<key> table (meta key)
-                [Keys.Escape] = new Dictionary<ConsoleKeyInfo, KeyHandler>(ConsoleKeyInfoComparer.Instance)
+                [Keys.Escape] = new Dictionary<PSKeyInfo, KeyHandler>
                 {
                     { Keys.B,         MakeKeyHandler(BackwardWord,     "BackwardWord") },
                     { Keys.D,         MakeKeyHandler(KillWord,         "KillWord")},
@@ -374,7 +356,7 @@ namespace Microsoft.PowerShell
                 },
 
                 // Ctrl+X,<key> table
-                [Keys.CtrlX] = new Dictionary<ConsoleKeyInfo, KeyHandler>(ConsoleKeyInfoComparer.Instance)
+                [Keys.CtrlX] = new Dictionary<PSKeyInfo, KeyHandler>
                 {
                     { Keys.Backspace, MakeKeyHandler(BackwardKillLine,     "BackwardKillLine") },
                     { Keys.CtrlE,     MakeKeyHandler(ViEditVisually,       "ViEditVisually") },
@@ -649,7 +631,7 @@ namespace Microsoft.PowerShell
             var toLookup = ReadKey();
             var buffer = new StringBuilder();
             _singleton._dispatchTable.TryGetValue(toLookup, out var keyHandler);
-            buffer.Append(toLookup.ToGestureString());
+            buffer.Append(toLookup.KeyStr);
             if (keyHandler != null)
             {
                 if (keyHandler.BriefDescription == "ChordFirstKey")
@@ -659,7 +641,7 @@ namespace Microsoft.PowerShell
                         toLookup = ReadKey();
                         secondKeyDispatchTable.TryGetValue(toLookup, out keyHandler);
                         buffer.Append(",");
-                        buffer.Append(toLookup.ToGestureString());
+                        buffer.Append(toLookup.KeyStr);
                     }
                 }
             }
