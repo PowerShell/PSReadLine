@@ -70,7 +70,9 @@ namespace Microsoft.PowerShell
             var newCurrent = beginningOfLine;
 
             while (IsVisibleBlank(newCurrent))
+            {
                 newCurrent++;
+            }
 
             return newCurrent;
         }
