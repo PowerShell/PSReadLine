@@ -8,8 +8,7 @@ namespace Microsoft.PowerShell
         /// Returns the position of the beginning of line
         /// starting from the specified "current" position.
         /// </summary>
-        /// <param name="current"></param>
-        /// <returns></returns>
+        /// <param name="current">The position in the current logical line.</param>
         private static int GetBeginningOfLinePos(int current)
         {
             var newCurrent = current;
@@ -34,6 +33,58 @@ namespace Microsoft.PowerShell
             }
 
             return newCurrent;
+        }
+
+        /// <summary>
+        /// Returns the position of the end of the logical line
+        /// as specified by the "current" position.
+        /// </summary>
+        /// <param name="current"></param>
+        /// <returns></returns>
+        private static int GetEndOfLogicalLinePos(int current)
+        {
+            var newCurrent = current;
+
+            for (var position = newCurrent; position < _singleton._buffer.Length; position++)
+            {
+                if (_singleton._buffer[position] == '\n')
+                {
+                    break;
+                }
+
+                newCurrent = position;
+            }
+
+            return newCurrent;
+        }
+
+        /// <summary>
+        /// Returns the position of the first non whitespace character in
+        /// the current logical line as specified by the "current" position.
+        /// </summary>
+        /// <param name="current">The position in the current logical line.</param>
+        private static int GetFirstNonBlankOfLogicalLinePos(int current)
+        {
+            var beginningOfLine = GetBeginningOfLinePos(current);
+
+            var newCurrent = beginningOfLine;
+
+            while (IsVisibleBlank(newCurrent))
+            {
+                newCurrent++;
+            }
+
+            return newCurrent;
+        }
+
+        private static bool IsVisibleBlank(int newCurrent)
+        {
+            var c = _singleton._buffer[newCurrent];
+
+            // [:blank:] of vim's pattern matching behavior
+            // defines blanks as SPACE and TAB characters.
+
+            return c == ' ' || c == '\t';
         }
     }
 }

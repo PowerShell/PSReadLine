@@ -152,7 +152,18 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void MoveToEndOfLine(ConsoleKeyInfo? key = null, object arg = null)
         {
-            _singleton.MoveCursor(Math.Max(0, _singleton._buffer.Length + ViEndOfLineFactor));
+            if (_singleton.LineIsMultiLine())
+            {
+                var eol = GetEndOfLogicalLinePos(_singleton._current);
+                if (eol != _singleton._current)
+                {
+                    _singleton.MoveCursor(eol);
+                }
+            }
+            else
+            {
+                _singleton.MoveCursor(Math.Max(0, _singleton._buffer.Length + ViEndOfLineFactor));
+            }
         }
 
         /// <summary>
@@ -175,7 +186,8 @@ namespace Microsoft.PowerShell
         public static void GotoColumn(ConsoleKeyInfo? key = null, object arg = null)
         {
             int col = arg as int? ?? -1;
-            if (col < 0 ) {
+            if (col < 0)
+            {
                 Ding();
                 return;
             }
@@ -196,13 +208,10 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void GotoFirstNonBlankOfLine(ConsoleKeyInfo? key = null, object arg = null)
         {
-            for (int i = 0; i < _singleton._buffer.Length; i++)
+            var newCurrent = GetFirstNonBlankOfLogicalLinePos(_singleton._current);
+            if (newCurrent != _singleton._current)
             {
-                if (!Char.IsWhiteSpace(_singleton._buffer[i]))
-                {
-                    _singleton.MoveCursor(i);
-                    return;
-                }
+                _singleton.MoveCursor(newCurrent);
             }
         }
 
