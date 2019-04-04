@@ -233,6 +233,10 @@ namespace Microsoft.PowerShell
                 { Keys.PageDown,               MakeKeyHandler(ScrollDisplayDown,         "ScrollDisplayDown") },
                 { Keys.CtrlPageUp,             MakeKeyHandler(ScrollDisplayUpLine,       "ScrollDisplayUpLine") },
                 { Keys.CtrlPageDown,           MakeKeyHandler(ScrollDisplayDownLine,     "ScrollDisplayDownLine") },
+                // Added for xtermjs-based terminals that send different key combinations.
+                { Keys.AltD,                   MakeKeyHandler(KillWord,                  "KillWord") },
+                { Keys.CtrlAt,                 MakeKeyHandler(MenuComplete,              "MenuComplete") },
+                { Keys.CtrlW,                  MakeKeyHandler(BackwardKillWord,          "BackwardKillWord")},
             };
 
             // Some bindings are not available on certain platforms
