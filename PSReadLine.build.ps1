@@ -32,6 +32,10 @@ Write-Verbose "Building for '$target'" -Verbose
 
 $CLI_VERSION = "2.1.300"
 
+function ConvertTo-CRLF([string] $text) {
+    $text.Replace("`r`n","`n").Replace("`n","`r`n")
+}
+
 <#
 Synopsis: Ensure dotnet is installed
 #>
@@ -325,7 +329,9 @@ task LayoutModule BuildMainModule, BuildMamlHelp, {
 
     foreach ($file in $extraFiles)
     {
-        Copy-Item $file $targetDir
+        # ensure files have \r\n line endings as the signing tool only uses those endings to avoid mixed endings
+        $content = Get-Content -Path $file -Raw
+        Set-Content -Path (Join-Path $targetDir (Split-Path $file -Leaf)) -Value (ConvertTo-CRLF $content) -Force
     }
 
     $binPath = "PSReadLine/bin/$Configuration/$target/publish"
@@ -342,7 +348,7 @@ task LayoutModule BuildMainModule, BuildMamlHelp, {
 
     # Copy module manifest, but fix the version to match what we've specified in the binary module.
     $version = (Get-ChildItem -Path $targetDir/Microsoft.PowerShell.PSReadLine2.dll).VersionInfo.FileVersion
-    $moduleManifestContent = Get-Content -Path 'PSReadLine/PSReadLine.psd1' -Raw
+    $moduleManifestContent = ConvertTo-CRLF (Get-Content -Path 'PSReadLine/PSReadLine.psd1' -Raw)
 
     $getContentArgs = @{
         Raw = $true;
