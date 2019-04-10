@@ -87,7 +87,7 @@ namespace Test
             const string buffer = "\"\n\n\"";
 
             Test(buffer, Keys(
-                _.DQuote, _.Enter, _.Enter, _.DQuote, _.Escape, _.K,
+                _.DQuote, _.Enter, _.Enter, _.DQuote, _.Escape, _.k,
                 CheckThat(() => AssertCursorLeftTopIs(continuationPrefixLength + 0, 1)),
                 _.Underbar, CheckThat(() => AssertCursorLeftTopIs(continuationPrefixLength + 0, 1))
             ));
@@ -103,7 +103,7 @@ namespace Test
             const string buffer = "\"\n\n\"";
 
             Test(buffer, Keys(
-                _.DQuote, _.Enter, _.Enter, _.DQuote, _.Escape, _.K,
+                _.DQuote, _.Enter, _.Enter, _.DQuote, _.Escape, _.k,
                 CheckThat(() => AssertCursorLeftTopIs(continuationPrefixLength + 0, 1)),
                 _.Dollar, CheckThat(() => AssertCursorLeftTopIs(continuationPrefixLength + 0, 1))
             ));
