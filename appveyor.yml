@@ -20,7 +20,7 @@ build_script:
       platyPS\Get-HelpPreview .\bin\Release\PSReadLine\en-US\Microsoft.PowerShell.PSReadLine2.dll-help.xml > .\bin\Release\PSReadLine.txt
 
 test_script:
-  - pwsh: ./build.ps1 -Test
+  - pwsh: ./build.ps1 -Test -Configuration Release
 
 artifacts:
   - path: .\bin\Release\PSReadLine.zip

@@ -134,7 +134,9 @@ task RunTests BuildMainModule, BuildXUnitTests, {
     Push-Location test
     if ([System.Environment]::OSVersion.Platform -eq [System.PlatformID]::Win32NT)
     {
-        Add-Type @'
+        if (-not ("KeyboardLayoutHelper" -as [type]))
+        {
+            Add-Type @'
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -206,6 +208,7 @@ public class KeyboardLayoutHelper
     }
 }
 '@
+        }
 
         # Remember the current keyboard layout, changes are system wide and restoring
         # is the nice thing to do.
