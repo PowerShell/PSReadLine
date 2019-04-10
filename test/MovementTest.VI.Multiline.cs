@@ -58,7 +58,7 @@ namespace Test
             ViJumpMustDing(buffer, keys);
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViMoveToFirstNonBlankOfLogicalLineThenJumpToEndOfLogicalLine()
         {
             TestSetup(KeyMode.Vi);
@@ -77,7 +77,7 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViMoveToFirstNonBlankOfLogicalLine_NoOp_OnEmptyLine()
         {
             TestSetup(KeyMode.Vi);
@@ -93,7 +93,7 @@ namespace Test
             ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViMoveToEndOfLine_NoOp_OnEmptyLine()
         {
             TestSetup(KeyMode.Vi);
