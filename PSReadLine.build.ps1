@@ -20,83 +20,17 @@ param([switch]$Install,
 
 # Final bits to release go here
 $targetDir = "bin/$Configuration/PSReadLine"
-if ($PSVersionTable.PSEdition -eq "Core")
-{
+
+if ($PSVersionTable.PSEdition -eq "Core") {
     $target = "netcoreapp2.1"
-}
-else
-{
+} else {
     $target = "net461"
 }
-Write-Verbose "Building for '$target'" -Verbose
 
-$CLI_VERSION = "2.1.300"
+Write-Verbose "Building for '$target'" -Verbose
 
 function ConvertTo-CRLF([string] $text) {
     $text.Replace("`r`n","`n").Replace("`n","`r`n")
-}
-
-<#
-Synopsis: Ensure dotnet is installed
-#>
-task CheckDotnetInstalled {
-    $script:dotnet = (Get-Command dotnet -ErrorAction Ignore).Path
-    if ($script:dotnet -eq $null)
-    {
-        $searchPaths = "~/.dotnet/dotnet", "~\AppData\Local\Microsoft\dotnet\dotnet.exe"
-        $foundDotnet = $false
-        foreach ($path in $searchPaths)
-        {
-            if (Test-Path $path)
-            {
-                $foundDotnet = $true
-                $script:dotnet = $path
-                break
-            }
-        }
-
-        if (!$foundDotnet)
-        {
-            if ($env:APPVEYOR)
-            {
-                # Install dotnet to the default location, it will be cached via appveyor.yml
-                $installScriptUri = "https://raw.githubusercontent.com/dotnet/cli/release/2.1/scripts/obtain/dotnet-install.ps1" 
-                $installDir = "${env:LOCALAPPDATA}\Microsoft\dotnet"
-                Invoke-WebRequest -Uri $installScriptUri -OutFile "${env:TEMP}/dotnet-install.ps1"
-                & "$env:TEMP/dotnet-install.ps1" -Version $CLI_VERSION -InstallDir $installDir
-                $script:dotnet = Join-Path $installDir "dotnet.exe"
-            }
-            else
-            {
-                throw "Could not find 'dotnet' command.  Install DotNetCore SDK and ensure it is in the path."
-            }
-        }
-    }
-}
-
-<#
-Synopsis: Ensure nuget is installed
-#>
-task CheckNugetInstalled {
-    $script:nugetExe = (Get-Command nuget.exe -ea Ignore).Path
-    if ($null -eq $nugetExe)
-    {
-        $script:nugetExe = "${env:TEMP}/nuget.exe"
-        if (!(Test-Path $nugetExe))
-        {
-            Invoke-WebRequest https://dist.nuget.org/win-x86-commandline/latest/nuget.exe -OutFile $nugetExe
-        }
-    }
-}
-
-<#
-Synopsis: Ensure platyPS is installed
-#>
-task CheckPlatyPSInstalled {
-    if ($null -eq (Get-Module -List platyPS))
-    {
-        Install-Module -Scope CurrentUser -Repository PSGallery -Name platyPS
-    }
 }
 
 $buildMamlParams = @{
@@ -115,8 +49,8 @@ $buildAboutTopicParams = @{
     Inputs = {
          Get-ChildItem docs/about_PSReadLine.help.txt
          "PSReadLine/bin/$Configuration/$target/Microsoft.PowerShell.PSReadLine2.dll"
-         "$PSScriptRoot/GenerateFunctionHelp.ps1"
-         "$PSScriptRoot/CheckHelp.ps1"
+         "$PSScriptRoot/tools/GenerateFunctionHelp.ps1"
+         "$PSScriptRoot/tools/CheckHelp.ps1"
     }
     Outputs = "$targetDir/en-US/about_PSReadLine.help.txt"
 }
@@ -130,7 +64,7 @@ task BuildAboutTopic @buildAboutTopicParams {
 
     $generatedFunctionHelpFile = New-TemporaryFile
     $powershell = [System.Diagnostics.Process]::GetCurrentProcess().MainModule.Filename
-    & $powershell -NoProfile -NonInteractive -File $PSScriptRoot/GenerateFunctionHelp.ps1 $Configuration $generatedFunctionHelpFile.FullName
+    & $powershell -NoProfile -NonInteractive -File $PSScriptRoot/tools/GenerateFunctionHelp.ps1 $Configuration $generatedFunctionHelpFile.FullName
     assert ($LASTEXITCODE -eq 0) "Generating function help failed"
 
     $functionDescriptions = Get-Content -Raw $generatedFunctionHelpFile
@@ -139,7 +73,7 @@ task BuildAboutTopic @buildAboutTopicParams {
     $newAboutTopic = $newAboutTopic -replace "`r`n","`n"
     $newAboutTopic | Out-File -FilePath $targetDir\en-US\about_PSReadLine.help.txt -NoNewline -Encoding ascii
 
-    & $powershell -NoProfile -NonInteractive -File $PSScriptRoot/CheckHelp.ps1 $Configuration
+    & $powershell -NoProfile -NonInteractive -File $PSScriptRoot/tools/CheckHelp.ps1 $Configuration
     assert ($LASTEXITCODE -eq 0) "Checking help and function signatures failed"
 }
 
@@ -161,22 +95,22 @@ $simulatorParams = @{
 <#
 Synopsis: Build main binary module
 #>
-task BuildMainModule @binaryModuleParams CheckDotnetInstalled, {
-    exec { & $script:dotnet publish -f $target -c $Configuration PSReadLine }
+task BuildMainModule @binaryModuleParams {
+    exec { dotnet publish -f $target -c $Configuration PSReadLine }
 }
 
 <#
 Synopsis: Build xUnit tests
 #>
-task BuildXUnitTests @xUnitTestParams CheckDotnetInstalled, {
-    exec { & $script:dotnet publish -f $target -c $configuration test }
+task BuildXUnitTests @xUnitTestParams {
+    exec { dotnet publish -f $target -c $configuration test }
 }
 
 <#
 Synopsis: Build the console simulator.
 #>
-task BuildConsoleSimulator @simulatorParams CheckDotnetInstalled, {
-    exec { & $script:dotnet publish -f $target -c $configuration TestPSReadLine }
+task BuildConsoleSimulator @simulatorParams {
+    exec { dotnet publish -f $target -c $configuration TestPSReadLine }
 }
 
 <#
@@ -294,7 +228,7 @@ public class KeyboardLayoutHelper
                     # We have to use Start-Process so it creates a new window, because the keyboard
                     # layout change won't be picked up by any processes running in the current conhost.
                     $dnArgs = 'test', '--no-build', '-c', $configuration, '-f', $target, '--filter', $filter, '--logger', 'trx'
-                    Start-Process -FilePath $script:dotnet -Wait -RedirectStandardOutput $os -RedirectStandardError $es -ArgumentList $dnArgs
+                    Start-Process -FilePath dotnet -Wait -RedirectStandardOutput $os -RedirectStandardError $es -ArgumentList $dnArgs
                     Get-Content $os,$es
                     Remove-Item $os,$es
                 }
@@ -305,7 +239,7 @@ public class KeyboardLayoutHelper
     }
     else
     {
-        exec { & $script:dotnet test --no-build -c $configuration -f $target --filter "FullyQualifiedName~Test.en_US_Linux" --logger trx }
+        exec { dotnet test --no-build -c $configuration -f $target --filter "FullyQualifiedName~Test.en_US_Linux" --logger trx }
     }
     Pop-Location
 

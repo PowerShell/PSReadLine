@@ -11,20 +11,16 @@ cache:
   - '%HOMEDRIVE%%HOMEPATH%\.nuget\packages -> PSReadLine.build.ps1'
   - '%LocalAppData%\Microsoft\dotnet -> PSReadLine.build.ps1'
 
-before_build:
-  - pwsh: |
-      nuget install platyPS -Version 0.14.0 -source https://www.powershellgallery.com/api/v2 -outputDirectory . -ExcludeVersion
-      nuget install InvokeBuild -Version 5.5.1 -source https://www.powershellgallery.com/api/v2 -outputDirectory . -ExcludeVersion
-      Import-Module .\platyPS
-      Import-Module .\InvokeBuild
+install:
+  - pwsh: ./build.ps1 -Bootstrap
 
 build_script:
   - pwsh: |
-      Invoke-Build -Task ZipRelease -Configuration Release
+      ./build.ps1
       platyPS\Get-HelpPreview .\bin\Release\PSReadLine\en-US\Microsoft.PowerShell.PSReadLine2.dll-help.xml > .\bin\Release\PSReadLine.txt
 
 test_script:
-  - pwsh: Invoke-Build -Task RunTests
+  - pwsh: ./build.ps1 -Test
 
 artifacts:
   - path: .\bin\Release\PSReadLine.zip
