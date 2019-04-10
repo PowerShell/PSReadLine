@@ -16,7 +16,7 @@ install:
 
 build_script:
   - pwsh: |
-      ./build.ps1
+      ./build.ps1 -Configuration Release
       platyPS\Get-HelpPreview .\bin\Release\PSReadLine\en-US\Microsoft.PowerShell.PSReadLine2.dll-help.xml > .\bin\Release\PSReadLine.txt
 
 test_script:
