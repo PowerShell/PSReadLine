@@ -39,8 +39,7 @@ function ConvertTo-CRLF([string] $text) {
 <#
 Synopsis: Ensure dotnet is installed
 #>
-task CheckDotnetInstalled `
-{
+task CheckDotnetInstalled {
     $script:dotnet = (Get-Command dotnet -ErrorAction Ignore).Path
     if ($script:dotnet -eq $null)
     {
@@ -78,8 +77,7 @@ task CheckDotnetInstalled `
 <#
 Synopsis: Ensure nuget is installed
 #>
-task CheckNugetInstalled `
-{
+task CheckNugetInstalled {
     $script:nugetExe = (Get-Command nuget.exe -ea Ignore).Path
     if ($null -eq $nugetExe)
     {
@@ -91,12 +89,10 @@ task CheckNugetInstalled `
     }
 }
 
-
 <#
 Synopsis: Ensure platyPS is installed
 #>
-task CheckPlatyPSInstalled `
-{
+task CheckPlatyPSInstalled {
     if ($null -eq (Get-Module -List platyPS))
     {
         Install-Module -Scope CurrentUser -Repository PSGallery -Name platyPS
@@ -152,11 +148,35 @@ $binaryModuleParams = @{
     Outputs = "PSReadLine/bin/$Configuration/$target/Microsoft.PowerShell.PSReadLine2.dll"
 }
 
+$xUnitTestParams = @{
+    Inputs = { Get-ChildItem test/*.cs, test/*.json, test/PSReadLine.Tests.csproj }
+    Outputs = "test/bin/$Configuration/$target/PSReadLine.Tests.dll"
+}
+
+$simulatorParams = @{
+    Inputs = { Get-ChildItem TestPSReadLine/*.cs, TestPSReadLine/Program.manifest, TestPSReadLine/TestPSReadLine.csproj }
+    Outputs = "TestPSReadLine/bin/$Configuration/$target/TestPSReadLine.dll"
+}
+
 <#
 Synopsis: Build main binary module
 #>
 task BuildMainModule @binaryModuleParams CheckDotnetInstalled, {
     exec { & $script:dotnet publish -f $target -c $Configuration PSReadLine }
+}
+
+<#
+Synopsis: Build xUnit tests
+#>
+task BuildXUnitTests @xUnitTestParams CheckDotnetInstalled, {
+    exec { & $script:dotnet publish -f $target -c $configuration test }
+}
+
+<#
+Synopsis: Build the console simulator.
+#>
+task BuildConsoleSimulator @simulatorParams CheckDotnetInstalled, {
+    exec { & $script:dotnet publish -f $target -c $configuration TestPSReadLine }
 }
 
 <#
@@ -171,39 +191,16 @@ task GenerateCatalog {
     }
 }
 
-$buildTestParams = @{
-    Inputs  = { Get-ChildItem TestPSReadLine/*.cs, TestPSReadLine/TestPSReadLine.csproj }
-    Outputs = "TestPSReadLine/bin/$Configuration/TestPSReadLine.exe"
-}
-
-
 <#
 Synopsis: Run the unit tests
 #>
-task RunTests BuildMainModule, {
+task RunTests BuildMainModule, BuildXUnitTests, {
     $env:PSREADLINE_TESTRUN = 1
-
-    # need to copy implemented assemblies so test code can host powershell otherwise we have to build for a specific runtime
-    if ($PSVersionTable.PSEdition -eq "Core")
-    {
-        $psAssemblies = "System.Management.Automation.dll", "Newtonsoft.Json.dll", "System.Management.dll", "System.DirectoryServices.dll"
-        foreach ($assembly in $psAssemblies)
-        {
-            if (Test-Path "$PSHOME\$assembly")
-            {
-                Copy-Item "$PSHOME\$assembly" "test\bin\$configuration\$target"
-            }
-            else
-            {
-                throw "Could not find '$PSHOME\$assembly'"
-            }
-        }
-    }
 
     Push-Location test
     if ([System.Environment]::OSVersion.Platform -eq [System.PlatformID]::Win32NT)
     {
-        Add-Type -Language CSharpVersion3 @'
+        Add-Type @'
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -284,12 +281,12 @@ public class KeyboardLayoutHelper
         # data for layouts that might not be installed, and tests would fail
         # if we don't set the system wide layout to match the key data we'll use.
         $layouts = [KeyboardLayoutHelper]::GetKeyboardLayouts()
-        Write-Output "Available layouts:", $layouts
+        Write-Host "Available layouts:", $layouts -ForegroundColor Green
         foreach ($layout in $layouts)
         {
             if (Test-Path "KeyInfo-${layout}-windows.json")
             {
-                Write-Output "Testing $layout"
+                Write-Host "Testing $layout" -ForegroundColor Green
                 $null = [KeyboardLayoutHelper]::SetKeyboardLayout($layout)
                 $os,$es = @(New-TemporaryFile; New-TemporaryFile)
                 $filter = "FullyQualifiedName~Test.$($layout -replace '-','_')_Windows"
@@ -297,10 +294,9 @@ public class KeyboardLayoutHelper
                     # We have to use Start-Process so it creates a new window, because the keyboard
                     # layout change won't be picked up by any processes running in the current conhost.
                     $dnArgs = 'test', '--no-build', '-c', $configuration, '-f', $target, '--filter', $filter, '--logger', 'trx'
-                    $p = Start-Process -FilePath $script:dotnet -Wait -PassThru -RedirectStandardOutput $os -RedirectStandardError $es -ArgumentList $dnArgs
+                    Start-Process -FilePath $script:dotnet -Wait -RedirectStandardOutput $os -RedirectStandardError $es -ArgumentList $dnArgs
                     Get-Content $os,$es
                     Remove-Item $os,$es
-                    #$global:LASTEXITCODE = $p.ExitCode
                 }
             }
         }
@@ -386,14 +382,12 @@ task LayoutModule BuildMainModule, BuildMamlHelp, {
     }
 }, BuildAboutTopic
 
-
 <#
 Synopsis: Zip up the binary for release.
 #>
-task ZipRelease CheckDotNetInstalled, LayoutModule, {
+task ZipRelease LayoutModule, {
     Compress-Archive -Force -LiteralPath $targetDir -DestinationPath "bin/$Configuration/PSReadLine.zip"
 }
-
 
 <#
 Synopsis: Install newly built PSReadLine
@@ -490,11 +484,10 @@ task Publish -If ($Configuration -eq 'Release') {
 Synopsis: Remove temporary items.
 #>
 task Clean {
-    git clean -fdx
+    git clean -fdX
 }
 
 <#
 Synopsis: Default build rule - build and create module layout
 #>
 task . LayoutModule, RunTests
-
