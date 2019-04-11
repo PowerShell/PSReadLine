@@ -58,7 +58,7 @@ namespace Test
             ViJumpMustDing(buffer, keys);
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViMoveToFirstNonBlankOfLogicalLineThenJumpToEndOfLogicalLine()
         {
             TestSetup(KeyMode.Vi);
@@ -77,7 +77,7 @@ namespace Test
                 ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViMoveToFirstNonBlankOfLogicalLine_NoOp_OnEmptyLine()
         {
             TestSetup(KeyMode.Vi);
@@ -87,13 +87,13 @@ namespace Test
             const string buffer = "\"\n\n\"";
 
             Test(buffer, Keys(
-                _.DQuote, _.Enter, _.Enter, _.DQuote, _.Escape, _.K,
+                _.DQuote, _.Enter, _.Enter, _.DQuote, _.Escape, _.k,
                 CheckThat(() => AssertCursorLeftTopIs(continuationPrefixLength + 0, 1)),
                 _.Underbar, CheckThat(() => AssertCursorLeftTopIs(continuationPrefixLength + 0, 1))
             ));
         }
 
-        [Fact]
+        [SkippableFact]
         public void ViMoveToEndOfLine_NoOp_OnEmptyLine()
         {
             TestSetup(KeyMode.Vi);
@@ -103,7 +103,7 @@ namespace Test
             const string buffer = "\"\n\n\"";
 
             Test(buffer, Keys(
-                _.DQuote, _.Enter, _.Enter, _.DQuote, _.Escape, _.K,
+                _.DQuote, _.Enter, _.Enter, _.DQuote, _.Escape, _.k,
                 CheckThat(() => AssertCursorLeftTopIs(continuationPrefixLength + 0, 1)),
                 _.Dollar, CheckThat(() => AssertCursorLeftTopIs(continuationPrefixLength + 0, 1))
             ));
