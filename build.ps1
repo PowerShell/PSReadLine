@@ -26,7 +26,7 @@ if($Clean) {
     return
 }
 
-Import-Module "$PSScriptRoot/tools/helper.psm1" -Force
+Import-Module "$PSScriptRoot/tools/helper.psm1"
 
 if ($Bootstrap) {
     Write-Log "Validate and install missing prerequisits for building ..."

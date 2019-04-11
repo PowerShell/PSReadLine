@@ -18,6 +18,8 @@
 param([switch]$Install,
       [string]$Configuration = (property Configuration Release))
 
+Import-Module "$PSScriptRoot/tools/helper.psm1"
+
 # Final bits to release go here
 $targetDir = "bin/$Configuration/PSReadLine"
 
@@ -128,126 +130,7 @@ task GenerateCatalog {
 <#
 Synopsis: Run the unit tests
 #>
-task RunTests BuildMainModule, BuildXUnitTests, {
-    $env:PSREADLINE_TESTRUN = 1
-
-    Push-Location test
-    if ([System.Environment]::OSVersion.Platform -eq [System.PlatformID]::Win32NT)
-    {
-        if (-not ("KeyboardLayoutHelper" -as [type]))
-        {
-            Add-Type @'
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Runtime.InteropServices;
-using System.Threading;
-
-public class KeyboardLayoutHelper
-{
-    [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-    static extern IntPtr LoadKeyboardLayout(string pwszKLID, uint Flags);
-
-    [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-    static extern IntPtr GetKeyboardLayout(uint idThread);
-
-    [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-    static extern int GetKeyboardLayoutList(int nBuff, [Out] IntPtr[] lpList);
-
-    // Used when setting the layout.
-    [DllImport("user32.dll", CharSet = CharSet.Auto)]
-    public static extern bool PostMessage(IntPtr hWnd, int Msg, int wParam, int lParam);
-
-    // Used for getting the layout.
-    [DllImport("user32.dll", SetLastError = true)]
-    static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint processId);
-
-    // Used in both getting and setting the layout
-    [DllImport("user32.dll", SetLastError = true)]
-    static extern IntPtr GetForegroundWindow();
-
-    const int WM_INPUTLANGCHANGEREQUEST = 0x0050;
-
-    private static string GetLayoutNameFromHKL(IntPtr hkl)
-    {
-        var lcid = (int)((uint)hkl & 0xffff);
-        return (new CultureInfo(lcid)).Name;
-    }
-
-    public static IEnumerable<string> GetKeyboardLayouts()
-    {
-        int cnt = GetKeyboardLayoutList(0, null);
-        var list = new IntPtr[cnt];
-        GetKeyboardLayoutList(list.Length, list);
-
-        foreach (var layout in list)
-        {
-            yield return GetLayoutNameFromHKL(layout);
-        }
-    }
-
-    public static string GetCurrentKeyboardLayout()
-    {
-        uint processId;
-        IntPtr layout = GetKeyboardLayout(GetWindowThreadProcessId(GetForegroundWindow(), out processId));
-        return GetLayoutNameFromHKL(layout);
-    }
-
-    public static IntPtr SetKeyboardLayout(string lang)
-    {
-        var layoutId = (new CultureInfo(lang)).KeyboardLayoutId;
-        var layout = LoadKeyboardLayout(layoutId.ToString("x8"), 0x80);
-        // Hacky, but tests are probably running in a console app and the layout change
-        // is ignored, so post the layout change to the foreground window.
-        PostMessage(GetForegroundWindow(), WM_INPUTLANGCHANGEREQUEST, 0, layoutId);
-        // Wait a bit until the layout has been changed.
-        do {
-            Thread.Sleep(100);
-        } while (GetCurrentKeyboardLayout() != lang);
-        return layout;
-    }
-}
-'@
-        }
-
-        # Remember the current keyboard layout, changes are system wide and restoring
-        # is the nice thing to do.
-        $savedLayout = [KeyboardLayoutHelper]::GetCurrentKeyboardLayout()
-
-        # We want to run tests in as many layouts as possible. We have key info
-        # data for layouts that might not be installed, and tests would fail
-        # if we don't set the system wide layout to match the key data we'll use.
-        $layouts = [KeyboardLayoutHelper]::GetKeyboardLayouts()
-        Write-Host "Available layouts:", $layouts -ForegroundColor Green
-        foreach ($layout in $layouts)
-        {
-            if (Test-Path "KeyInfo-${layout}-windows.json")
-            {
-                Write-Host "Testing $layout" -ForegroundColor Green
-                $null = [KeyboardLayoutHelper]::SetKeyboardLayout($layout)
-                $os,$es = @(New-TemporaryFile; New-TemporaryFile)
-                $filter = "FullyQualifiedName~Test.$($layout -replace '-','_')_Windows"
-                exec {
-                    # We have to use Start-Process so it creates a new window, because the keyboard
-                    # layout change won't be picked up by any processes running in the current conhost.
-                    $dnArgs = 'test', '--no-build', '-c', $configuration, '-f', $target, '--filter', $filter, '--logger', 'trx'
-                    Start-Process -FilePath dotnet -Wait -RedirectStandardOutput $os -RedirectStandardError $es -ArgumentList $dnArgs
-                    Get-Content $os,$es
-                    Remove-Item $os,$es
-                }
-            }
-        }
-        # Restore the original keyboard layout
-        $null = [KeyboardLayoutHelper]::SetKeyboardLayout($savedLayout)
-    }
-    else
-    {
-        exec { dotnet test --no-build -c $configuration -f $target --filter "FullyQualifiedName~Test.en_US_Linux" --logger trx }
-    }
-    Pop-Location
-
-    Remove-Item env:PSREADLINE_TESTRUN
-}
+task RunTests BuildMainModule, BuildXUnitTests, { Start-TestRun -Configuration $configuration -Target $target }
 
 <#
 Synopsis: Copy all of the files that belong in the module to one place in the layout for installation
