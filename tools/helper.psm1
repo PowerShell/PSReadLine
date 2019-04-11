@@ -169,9 +169,25 @@ public class KeyboardLayoutHelper
 function Start-TestRun
 {
     param(
+        [string]
         $Configuration,
-        $Target
+
+        [string]
+        $Framework,
+
+        [string]
+        $testResultFile = "xUnitTestResults.xml"
     )
+
+    function RunXunitTestsInNewProcess ([string] $filter)
+    {
+        $stdOutput, $stdError = @(New-TemporaryFile; New-TemporaryFile)
+        $arguments = 'test', '--no-build', '-c', $Configuration, '-f', $Framework, '--filter', $filter, '--logger', "xunit;LogFilePath=$testResultFile"
+
+        Start-Process -FilePath dotnet -Wait -RedirectStandardOutput $stdOutput -RedirectStandardError $stdError -ArgumentList $arguments
+        Get-Content $stdOutput, $stdError
+        Remove-Item $stdOutput, $stdError
+    }
 
     try
     {
@@ -182,9 +198,11 @@ function Start-TestRun
         {
             if ($env:APPVEYOR)
             {
-                # Calling 'GetCurrentKeyboardLayout' and 'SetKeyboardLayout' fails in AppVeyor builder.
-                # So we only run tests targeting en-US keyboard layout by default.
-                dotnet test --no-build -c $Configuration -f $Target --filter "FullyQualifiedName~Test.en_US_Windows" --logger trx
+                # AppVeyor CI builder only has en-US keyboard layout installed.
+                # We have to run tests from a new process because `GetCurrentKeyboardLayout` simply fails when called from
+                # the `pwsh` process started by AppVeyor. Our xUnit tests depends on `GetCurrentKeyboardLayout` to tell if
+                # a test case should run.
+                RunXunitTestsInNewProcess -filter 'FullyQualifiedName~Test.en_US_Windows'
             }
             else
             {
@@ -193,45 +211,82 @@ function Start-TestRun
                     Add-Type $KeyboardLayoutHelperCode
                 }
 
-                # Remember the current keyboard layout, changes are system wide and restoring
-                # is the nice thing to do.
-                $savedLayout = [KeyboardLayoutHelper]::GetCurrentKeyboardLayout()
-
-                # We want to run tests in as many layouts as possible. We have key info
-                # data for layouts that might not be installed, and tests would fail
-                # if we don't set the system wide layout to match the key data we'll use.
-                $layouts = [KeyboardLayoutHelper]::GetKeyboardLayouts()
-                Write-Host "Available layouts:", $layouts -ForegroundColor Green
-                foreach ($layout in $layouts)
+                try
                 {
-                    if (Test-Path "KeyInfo-${layout}-windows.json")
-                    {
-                        Write-Host "Testing $layout" -ForegroundColor Green
-                        $null = [KeyboardLayoutHelper]::SetKeyboardLayout($layout)
-                        $os,$es = @(New-TemporaryFile; New-TemporaryFile)
-                        $filter = "FullyQualifiedName~Test.$($layout -replace '-','_')_Windows"
+                    # Remember the current keyboard layout, changes are system wide and restoring
+                    # is the nice thing to do.
+                    $savedLayout = [KeyboardLayoutHelper]::GetCurrentKeyboardLayout()
 
-                        # We have to use Start-Process so it creates a new window, because the keyboard
-                        # layout change won't be picked up by any processes running in the current conhost.
-                        $dnArgs = 'test', '--no-build', '-c', $Configuration, '-f', $Target, '--filter', $filter, '--logger', 'trx'
-                        Start-Process -FilePath dotnet -Wait -RedirectStandardOutput $os -RedirectStandardError $es -ArgumentList $dnArgs
-                        Get-Content $os,$es
-                        Remove-Item $os,$es
+                    # We want to run tests in as many layouts as possible. We have key info
+                    # data for layouts that might not be installed, and tests would fail
+                    # if we don't set the system wide layout to match the key data we'll use.
+                    $layouts = [KeyboardLayoutHelper]::GetKeyboardLayouts()
+                    Write-Log "Available layouts: $layouts"
+
+                    foreach ($layout in $layouts)
+                    {
+                        if (Test-Path "KeyInfo-${layout}-windows.json")
+                        {
+                            Write-Log "Testing $layout ..."
+                            $null = [KeyboardLayoutHelper]::SetKeyboardLayout($layout)
+
+                            # We have to use Start-Process so it creates a new window, because the keyboard
+                            # layout change won't be picked up by any processes running in the current conhost.
+                            $filter = "FullyQualifiedName~Test.$($layout -replace '-','_')_Windows"
+                            RunXunitTestsInNewProcess -filter $filter
+                        }
                     }
                 }
-
-                # Restore the original keyboard layout
-                $null = [KeyboardLayoutHelper]::SetKeyboardLayout($savedLayout)
+                finally
+                {
+                    # Restore the original keyboard layout
+                    $null = [KeyboardLayoutHelper]::SetKeyboardLayout($savedLayout)
+                }
             }
         }
         else
         {
-            dotnet test --no-build -c $Configuration -f $Target --filter "FullyQualifiedName~Test.en_US_Linux" --logger trx
+            dotnet test --no-build -c $Configuration -f $Framework --filter "FullyQualifiedName~Test.en_US_Linux" --logger "xunit;LogFilePath=$testResultFile"
         }
+
+        # Check to see if there were any failures in xUnit tests, and throw exception to fail the build if so.
+        Test-XUnitTestResults -TestResultsFile $testResultFile
     }
     finally
     {
         Pop-Location
         Remove-Item env:PSREADLINE_TESTRUN
     }
+}
+
+function Test-XUnitTestResults
+{
+    param(
+        [Parameter(Mandatory)]
+        [ValidateNotNullOrEmpty()]
+        [string] $TestResultsFile
+    )
+
+    if(-not (Test-Path $TestResultsFile))
+    {
+        throw "File not found $TestResultsFile"
+    }
+
+    try
+    {
+        $results = [xml] (Get-Content $TestResultsFile)
+    }
+    catch
+    {
+        throw "Cannot convert $TestResultsFile to xml : $($_.message)"
+    }
+
+    $failedTests = $results.assemblies.assembly.collection | Where-Object failed -gt 0
+
+    if(-not $failedTests)
+    {
+        return $true
+    }
+
+    throw "$($failedTests.failed) tests failed"
 }

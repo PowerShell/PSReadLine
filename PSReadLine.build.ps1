@@ -44,7 +44,7 @@ $buildMamlParams = @{
 Synopsis: Generate maml help from markdown
 #>
 task BuildMamlHelp @buildMamlParams {
-    platyPS\New-ExternalHelp docs -Force -OutputPath $targetDir/en-US/Microsoft.PowerShell.PSReadLine2.dll-help.xml
+    platyPS\New-ExternalHelp docs -Force -OutputPath $targetDir/en-US/Microsoft.PowerShell.PSReadLine2.dll-help.xml > $null
 }
 
 $buildAboutTopicParams = @{
@@ -130,7 +130,7 @@ task GenerateCatalog {
 <#
 Synopsis: Run the unit tests
 #>
-task RunTests BuildMainModule, BuildXUnitTests, { Start-TestRun -Configuration $configuration -Target $target }
+task RunTests BuildMainModule, BuildXUnitTests, { Start-TestRun -Configuration $configuration -Framework $target }
 
 <#
 Synopsis: Copy all of the files that belong in the module to one place in the layout for installation
