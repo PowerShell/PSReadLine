@@ -15,21 +15,27 @@
 #
 
 [CmdletBinding()]
-param([switch]$Install,
-      [string]$Configuration = (property Configuration Release))
+param(
+    [switch]$Install,
+
+    [ValidateSet("Debug", "Release")]
+    [string]$Configuration = (property Configuration Release),
+
+    [ValidateSet("net461", "netcoreapp2.1")]
+    [string]$Framework
+)
 
 Import-Module "$PSScriptRoot/tools/helper.psm1"
 
 # Final bits to release go here
 $targetDir = "bin/$Configuration/PSReadLine"
 
-if ($PSVersionTable.PSEdition -eq "Core") {
-    $target = "netcoreapp2.1"
-} else {
-    $target = "net461"
+if (-not $Framework)
+{
+    $Framework = if ($PSVersionTable.PSEdition -eq "Core") { "netcoreapp2.1" } else { "net461" }
 }
 
-Write-Verbose "Building for '$target'" -Verbose
+Write-Verbose "Building for '$Framework'" -Verbose
 
 function ConvertTo-CRLF([string] $text) {
     $text.Replace("`r`n","`n").Replace("`n","`r`n")
@@ -50,7 +56,7 @@ task BuildMamlHelp @buildMamlParams {
 $buildAboutTopicParams = @{
     Inputs = {
          Get-ChildItem docs/about_PSReadLine.help.txt
-         "PSReadLine/bin/$Configuration/$target/Microsoft.PowerShell.PSReadLine2.dll"
+         "PSReadLine/bin/$Configuration/$Framework/Microsoft.PowerShell.PSReadLine2.dll"
          "$PSScriptRoot/tools/GenerateFunctionHelp.ps1"
          "$PSScriptRoot/tools/CheckHelp.ps1"
     }
@@ -81,38 +87,38 @@ task BuildAboutTopic @buildAboutTopicParams {
 
 $binaryModuleParams = @{
     Inputs  = { Get-ChildItem PSReadLine/*.cs, PSReadLine/PSReadLine.csproj, PSReadLine/PSReadLineResources.resx }
-    Outputs = "PSReadLine/bin/$Configuration/$target/Microsoft.PowerShell.PSReadLine2.dll"
+    Outputs = "PSReadLine/bin/$Configuration/$Framework/Microsoft.PowerShell.PSReadLine2.dll"
 }
 
 $xUnitTestParams = @{
     Inputs = { Get-ChildItem test/*.cs, test/*.json, test/PSReadLine.Tests.csproj }
-    Outputs = "test/bin/$Configuration/$target/PSReadLine.Tests.dll"
+    Outputs = "test/bin/$Configuration/$Framework/PSReadLine.Tests.dll"
 }
 
 $simulatorParams = @{
     Inputs = { Get-ChildItem TestPSReadLine/*.cs, TestPSReadLine/Program.manifest, TestPSReadLine/TestPSReadLine.csproj }
-    Outputs = "TestPSReadLine/bin/$Configuration/$target/TestPSReadLine.dll"
+    Outputs = "TestPSReadLine/bin/$Configuration/$Framework/TestPSReadLine.dll"
 }
 
 <#
 Synopsis: Build main binary module
 #>
 task BuildMainModule @binaryModuleParams {
-    exec { dotnet publish -f $target -c $Configuration PSReadLine }
+    exec { dotnet publish -f $Framework -c $Configuration PSReadLine }
 }
 
 <#
 Synopsis: Build xUnit tests
 #>
 task BuildXUnitTests @xUnitTestParams {
-    exec { dotnet publish -f $target -c $configuration test }
+    exec { dotnet publish -f $Framework -c $Configuration test }
 }
 
 <#
 Synopsis: Build the console simulator.
 #>
 task BuildConsoleSimulator @simulatorParams {
-    exec { dotnet publish -f $target -c $configuration TestPSReadLine }
+    exec { dotnet publish -f $Framework -c $Configuration TestPSReadLine }
 }
 
 <#
@@ -130,7 +136,7 @@ task GenerateCatalog {
 <#
 Synopsis: Run the unit tests
 #>
-task RunTests BuildMainModule, BuildXUnitTests, { Start-TestRun -Configuration $configuration -Framework $target }
+task RunTests BuildMainModule, BuildXUnitTests, { Start-TestRun -Configuration $Configuration -Framework $Framework }
 
 <#
 Synopsis: Copy all of the files that belong in the module to one place in the layout for installation
@@ -150,7 +156,7 @@ task LayoutModule BuildMainModule, BuildMamlHelp, {
         Set-Content -Path (Join-Path $targetDir (Split-Path $file -Leaf)) -Value (ConvertTo-CRLF $content) -Force
     }
 
-    $binPath = "PSReadLine/bin/$Configuration/$target/publish"
+    $binPath = "PSReadLine/bin/$Configuration/$Framework/publish"
     Copy-Item $binPath/Microsoft.PowerShell.PSReadLine2.dll $targetDir
 
     if (Test-Path $binPath/System.Runtime.InteropServices.RuntimeInformation.dll)
@@ -159,7 +165,7 @@ task LayoutModule BuildMainModule, BuildMamlHelp, {
     }
     else
     {
-        Write-Warning "Build using $target is not sufficient to be downlevel compatible"
+        Write-Warning "Build using $Framework is not sufficient to be downlevel compatible"
     }
 
     # Copy module manifest, but fix the version to match what we've specified in the binary module.

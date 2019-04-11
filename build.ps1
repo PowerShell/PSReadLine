@@ -10,8 +10,13 @@ param(
     [switch]
     $Test,
 
+    [ValidateSet("Debug", "Release")]
     [string]
-    $Configuration = "Debug"
+    $Configuration = "Debug",
+
+    [ValidateSet("net461", "netcoreapp2.1")]
+    [string]
+    $Framework
 )
 
 # Clean step
@@ -55,4 +60,7 @@ if (-not (Get-Module -Name InvokeBuild -ListAvailable)) {
 
 # Build/Test step
 $buildTask = if ($Test) { "RunTests" } else { "ZipRelease" }
-Invoke-Build -Task $buildTask -Configuration $Configuration
+
+$arguments = @{ Task = $buildTask; Configuration = $Configuration }
+if ($Framework) { $arguments.Add("Framework", $Framework) }
+Invoke-Build @arguments
