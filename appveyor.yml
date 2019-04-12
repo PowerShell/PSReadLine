@@ -8,20 +8,18 @@ environment:
   PSREADLINE_TESTRUN: 1
 
 cache:
-  - '%HOMEDRIVE%%HOMEPATH%\.nuget\packages -> PSReadLine.build.ps1'
-  - '%LocalAppData%\Microsoft\dotnet -> PSReadLine.build.ps1'
+  - '%HOMEDRIVE%%HOMEPATH%\.nuget\packages -> tools\helper.psm1'
 
-before_build:
-  - ps: |
-      nuget install platyPS -Version 0.9.0 -source https://www.powershellgallery.com/api/v2 -outputDirectory . -ExcludeVersion
-      nuget install InvokeBuild -Version 4.1.0 -source https://www.powershellgallery.com/api/v2 -outputDirectory . -ExcludeVersion
-      Import-Module .\platyPS
-      Import-Module .\InvokeBuild
+install:
+  - pwsh: ./build.ps1 -Bootstrap
 
 build_script:
-  - ps: |
-      Invoke-Build -Task ZipRelease -Configuration Release
+  - pwsh: |
+      ./build.ps1 -Configuration Release -Framework net461
       platyPS\Get-HelpPreview .\bin\Release\PSReadLine\en-US\Microsoft.PowerShell.PSReadLine2.dll-help.xml > .\bin\Release\PSReadLine.txt
+
+test_script:
+  - pwsh: ./build.ps1 -Test -Configuration Release -Framework net461
 
 artifacts:
   - path: .\bin\Release\PSReadLine.zip

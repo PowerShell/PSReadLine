@@ -15,92 +15,30 @@
 #
 
 [CmdletBinding()]
-param([switch]$Install,
-      [string]$Configuration = (property Configuration Release))
+param(
+    [switch]$Install,
+
+    [ValidateSet("Debug", "Release")]
+    [string]$Configuration = (property Configuration Release),
+
+    [ValidateSet("net461", "netcoreapp2.1")]
+    [string]$Framework
+)
+
+Import-Module "$PSScriptRoot/tools/helper.psm1"
 
 # Final bits to release go here
 $targetDir = "bin/$Configuration/PSReadLine"
-if ($PSVersionTable.PSEdition -eq "Core")
-{
-    $target = "netcoreapp2.1"
-}
-else
-{
-    $target = "net461"
-}
-Write-Verbose "Building for '$target'" -Verbose
 
-$CLI_VERSION = "2.1.300"
+if (-not $Framework)
+{
+    $Framework = if ($PSVersionTable.PSEdition -eq "Core") { "netcoreapp2.1" } else { "net461" }
+}
+
+Write-Verbose "Building for '$Framework'" -Verbose
 
 function ConvertTo-CRLF([string] $text) {
     $text.Replace("`r`n","`n").Replace("`n","`r`n")
-}
-
-<#
-Synopsis: Ensure dotnet is installed
-#>
-task CheckDotnetInstalled `
-{
-    $script:dotnet = (Get-Command dotnet -ErrorAction Ignore).Path
-    if ($script:dotnet -eq $null)
-    {
-        $searchPaths = "~/.dotnet/dotnet", "~\AppData\Local\Microsoft\dotnet\dotnet.exe"
-        $foundDotnet = $false
-        foreach ($path in $searchPaths)
-        {
-            if (Test-Path $path)
-            {
-                $foundDotnet = $true
-                $script:dotnet = $path
-                break
-            }
-        }
-
-        if (!$foundDotnet)
-        {
-            if ($env:APPVEYOR)
-            {
-                # Install dotnet to the default location, it will be cached via appveyor.yml
-                $installScriptUri = "https://raw.githubusercontent.com/dotnet/cli/release/2.1/scripts/obtain/dotnet-install.ps1" 
-                $installDir = "${env:LOCALAPPDATA}\Microsoft\dotnet"
-                Invoke-WebRequest -Uri $installScriptUri -OutFile "${env:TEMP}/dotnet-install.ps1"
-                & "$env:TEMP/dotnet-install.ps1" -Version $CLI_VERSION -InstallDir $installDir
-                $script:dotnet = Join-Path $installDir "dotnet.exe"
-            }
-            else
-            {
-                throw "Could not find 'dotnet' command.  Install DotNetCore SDK and ensure it is in the path."
-            }
-        }
-    }
-}
-
-<#
-Synopsis: Ensure nuget is installed
-#>
-task CheckNugetInstalled `
-{
-    $script:nugetExe = (Get-Command nuget.exe -ea Ignore).Path
-    if ($null -eq $nugetExe)
-    {
-        $script:nugetExe = "${env:TEMP}/nuget.exe"
-        if (!(Test-Path $nugetExe))
-        {
-            Invoke-WebRequest https://dist.nuget.org/win-x86-commandline/latest/nuget.exe -OutFile $nugetExe
-        }
-    }
-}
-
-
-<#
-Synopsis: Ensure platyPS is installed
-#>
-task CheckPlatyPSInstalled `
-{
-    if ($null -eq (Get-Module -List platyPS))
-    {
-        Install-Module -Scope CurrentUser -Repository PSGallery -Name platyPS
-    }
 }
 
 $buildMamlParams = @{
@@ -118,9 +56,9 @@ task BuildMamlHelp @buildMamlParams {
 $buildAboutTopicParams = @{
     Inputs = {
          Get-ChildItem docs/about_PSReadLine.help.txt
-         "PSReadLine/bin/$Configuration/$target/Microsoft.PowerShell.PSReadLine2.dll"
-         "$PSScriptRoot/GenerateFunctionHelp.ps1"
-         "$PSScriptRoot/CheckHelp.ps1"
+         "PSReadLine/bin/$Configuration/$Framework/Microsoft.PowerShell.PSReadLine2.dll"
+         "$PSScriptRoot/tools/GenerateFunctionHelp.ps1"
+         "$PSScriptRoot/tools/CheckHelp.ps1"
     }
     Outputs = "$targetDir/en-US/about_PSReadLine.help.txt"
 }
@@ -131,10 +69,10 @@ Synopsis: Generate about topic with function help
 task BuildAboutTopic @buildAboutTopicParams {
     # This step loads the dll that was just built, so only do that in another process
     # so the file isn't locked in any way for the rest of the build.
+    $psExePath = Get-PSExePath
 
     $generatedFunctionHelpFile = New-TemporaryFile
-    $powershell = [System.Diagnostics.Process]::GetCurrentProcess().MainModule.Filename
-    & $powershell -NoProfile -NonInteractive -File $PSScriptRoot/GenerateFunctionHelp.ps1 $Configuration $generatedFunctionHelpFile.FullName
+    & $psExePath -NoProfile -NonInteractive -File $PSScriptRoot/tools/GenerateFunctionHelp.ps1 $Configuration $generatedFunctionHelpFile.FullName
     assert ($LASTEXITCODE -eq 0) "Generating function help failed"
 
     $functionDescriptions = Get-Content -Raw $generatedFunctionHelpFile
@@ -143,20 +81,44 @@ task BuildAboutTopic @buildAboutTopicParams {
     $newAboutTopic = $newAboutTopic -replace "`r`n","`n"
     $newAboutTopic | Out-File -FilePath $targetDir\en-US\about_PSReadLine.help.txt -NoNewline -Encoding ascii
 
-    & $powershell -NoProfile -NonInteractive -File $PSScriptRoot/CheckHelp.ps1 $Configuration
+    & $psExePath -NoProfile -NonInteractive -File $PSScriptRoot/tools/CheckHelp.ps1 $Configuration
     assert ($LASTEXITCODE -eq 0) "Checking help and function signatures failed"
 }
 
 $binaryModuleParams = @{
     Inputs  = { Get-ChildItem PSReadLine/*.cs, PSReadLine/PSReadLine.csproj, PSReadLine/PSReadLineResources.resx }
-    Outputs = "PSReadLine/bin/$Configuration/$target/Microsoft.PowerShell.PSReadLine2.dll"
+    Outputs = "PSReadLine/bin/$Configuration/$Framework/Microsoft.PowerShell.PSReadLine2.dll"
+}
+
+$xUnitTestParams = @{
+    Inputs = { Get-ChildItem test/*.cs, test/*.json, test/PSReadLine.Tests.csproj }
+    Outputs = "test/bin/$Configuration/$Framework/PSReadLine.Tests.dll"
+}
+
+$mockPSConsoleParams = @{
+    Inputs = { Get-ChildItem TestPSReadLine/*.cs, TestPSReadLine/Program.manifest, TestPSReadLine/TestPSReadLine.csproj }
+    Outputs = "TestPSReadLine/bin/$Configuration/$Framework/TestPSReadLine.dll"
 }
 
 <#
 Synopsis: Build main binary module
 #>
-task BuildMainModule @binaryModuleParams CheckDotnetInstalled, {
-    exec { & $script:dotnet publish -f $target -c $Configuration PSReadLine }
+task BuildMainModule @binaryModuleParams {
+    exec { dotnet publish -f $Framework -c $Configuration PSReadLine }
+}
+
+<#
+Synopsis: Build xUnit tests
+#>
+task BuildXUnitTests @xUnitTestParams {
+    exec { dotnet publish -f $Framework -c $Configuration test }
+}
+
+<#
+Synopsis: Build the mock powershell console.
+#>
+task BuildMockPSConsole @mockPSConsoleParams {
+    exec { dotnet publish -f $Framework -c $Configuration TestPSReadLine }
 }
 
 <#
@@ -171,150 +133,10 @@ task GenerateCatalog {
     }
 }
 
-$buildTestParams = @{
-    Inputs  = { Get-ChildItem TestPSReadLine/*.cs, TestPSReadLine/TestPSReadLine.csproj }
-    Outputs = "TestPSReadLine/bin/$Configuration/TestPSReadLine.exe"
-}
-
-
 <#
 Synopsis: Run the unit tests
 #>
-task RunTests BuildMainModule, {
-    $env:PSREADLINE_TESTRUN = 1
-
-    # need to copy implemented assemblies so test code can host powershell otherwise we have to build for a specific runtime
-    if ($PSVersionTable.PSEdition -eq "Core")
-    {
-        $psAssemblies = "System.Management.Automation.dll", "Newtonsoft.Json.dll", "System.Management.dll", "System.DirectoryServices.dll"
-        foreach ($assembly in $psAssemblies)
-        {
-            if (Test-Path "$PSHOME\$assembly")
-            {
-                Copy-Item "$PSHOME\$assembly" "test\bin\$configuration\$target"
-            }
-            else
-            {
-                throw "Could not find '$PSHOME\$assembly'"
-            }
-        }
-    }
-
-    Push-Location test
-    if ([System.Environment]::OSVersion.Platform -eq [System.PlatformID]::Win32NT)
-    {
-        Add-Type -Language CSharpVersion3 @'
-using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Runtime.InteropServices;
-using System.Threading;
-
-public class KeyboardLayoutHelper
-{
-    [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-    static extern IntPtr LoadKeyboardLayout(string pwszKLID, uint Flags);
-
-    [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-    static extern IntPtr GetKeyboardLayout(uint idThread);
-
-    [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-    static extern int GetKeyboardLayoutList(int nBuff, [Out] IntPtr[] lpList);
-
-    // Used when setting the layout.
-    [DllImport("user32.dll", CharSet = CharSet.Auto)]
-    public static extern bool PostMessage(IntPtr hWnd, int Msg, int wParam, int lParam);
-
-    // Used for getting the layout.
-    [DllImport("user32.dll", SetLastError = true)]
-    static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint processId);
-
-    // Used in both getting and setting the layout
-    [DllImport("user32.dll", SetLastError = true)]
-    static extern IntPtr GetForegroundWindow();
-
-    const int WM_INPUTLANGCHANGEREQUEST = 0x0050;
-
-    private static string GetLayoutNameFromHKL(IntPtr hkl)
-    {
-        var lcid = (int)((uint)hkl & 0xffff);
-        return (new CultureInfo(lcid)).Name;
-    }
-
-    public static IEnumerable<string> GetKeyboardLayouts()
-    {
-        int cnt = GetKeyboardLayoutList(0, null);
-        var list = new IntPtr[cnt];
-        GetKeyboardLayoutList(list.Length, list);
-
-        foreach (var layout in list)
-        {
-            yield return GetLayoutNameFromHKL(layout);
-        }
-    }
-
-    public static string GetCurrentKeyboardLayout()
-    {
-        uint processId;
-        IntPtr layout = GetKeyboardLayout(GetWindowThreadProcessId(GetForegroundWindow(), out processId));
-        return GetLayoutNameFromHKL(layout);
-    }
-
-    public static IntPtr SetKeyboardLayout(string lang)
-    {
-        var layoutId = (new CultureInfo(lang)).KeyboardLayoutId;
-        var layout = LoadKeyboardLayout(layoutId.ToString("x8"), 0x80);
-        // Hacky, but tests are probably running in a console app and the layout change
-        // is ignored, so post the layout change to the foreground window.
-        PostMessage(GetForegroundWindow(), WM_INPUTLANGCHANGEREQUEST, 0, layoutId);
-        // Wait a bit until the layout has been changed.
-        do {
-            Thread.Sleep(100);
-        } while (GetCurrentKeyboardLayout() != lang);
-        return layout;
-    }
-}
-'@
-
-        # Remember the current keyboard layout, changes are system wide and restoring
-        # is the nice thing to do.
-        $savedLayout = [KeyboardLayoutHelper]::GetCurrentKeyboardLayout()
-
-        # We want to run tests in as many layouts as possible. We have key info
-        # data for layouts that might not be installed, and tests would fail
-        # if we don't set the system wide layout to match the key data we'll use.
-        $layouts = [KeyboardLayoutHelper]::GetKeyboardLayouts()
-        Write-Output "Available layouts:", $layouts
-        foreach ($layout in $layouts)
-        {
-            if (Test-Path "KeyInfo-${layout}-windows.json")
-            {
-                Write-Output "Testing $layout"
-                $null = [KeyboardLayoutHelper]::SetKeyboardLayout($layout)
-                $os,$es = @(New-TemporaryFile; New-TemporaryFile)
-                $filter = "FullyQualifiedName~Test.$($layout -replace '-','_')_Windows"
-                exec {
-                    # We have to use Start-Process so it creates a new window, because the keyboard
-                    # layout change won't be picked up by any processes running in the current conhost.
-                    $dnArgs = 'test', '--no-build', '-c', $configuration, '-f', $target, '--filter', $filter, '--logger', 'trx'
-                    $p = Start-Process -FilePath $script:dotnet -Wait -PassThru -RedirectStandardOutput $os -RedirectStandardError $es -ArgumentList $dnArgs
-                    Get-Content $os,$es
-                    Remove-Item $os,$es
-                    #$global:LASTEXITCODE = $p.ExitCode
-                }
-            }
-        }
-        # Restore the original keyboard layout
-        $null = [KeyboardLayoutHelper]::SetKeyboardLayout($savedLayout)
-    }
-    else
-    {
-        exec { & $script:dotnet test --no-build -c $configuration -f $target --filter "FullyQualifiedName~Test.en_US_Linux" --logger trx }
-    }
-    Pop-Location
-
-    Remove-Item env:PSREADLINE_TESTRUN
-}
+task RunTests BuildMainModule, BuildXUnitTests, { Start-TestRun -Configuration $Configuration -Framework $Framework }
 
 <#
 Synopsis: Copy all of the files that belong in the module to one place in the layout for installation
@@ -334,7 +156,7 @@ task LayoutModule BuildMainModule, BuildMamlHelp, {
         Set-Content -Path (Join-Path $targetDir (Split-Path $file -Leaf)) -Value (ConvertTo-CRLF $content) -Force
     }
 
-    $binPath = "PSReadLine/bin/$Configuration/$target/publish"
+    $binPath = "PSReadLine/bin/$Configuration/$Framework/publish"
     Copy-Item $binPath/Microsoft.PowerShell.PSReadLine2.dll $targetDir
 
     if (Test-Path $binPath/System.Runtime.InteropServices.RuntimeInformation.dll)
@@ -343,7 +165,7 @@ task LayoutModule BuildMainModule, BuildMamlHelp, {
     }
     else
     {
-        Write-Warning "Build using $target is not sufficient to be downlevel compatible"
+        Write-Warning "Build using $Framework is not sufficient to be downlevel compatible"
     }
 
     # Copy module manifest, but fix the version to match what we've specified in the binary module.
@@ -386,14 +208,12 @@ task LayoutModule BuildMainModule, BuildMamlHelp, {
     }
 }, BuildAboutTopic
 
-
 <#
 Synopsis: Zip up the binary for release.
 #>
-task ZipRelease CheckDotNetInstalled, LayoutModule, {
+task ZipRelease LayoutModule, {
     Compress-Archive -Force -LiteralPath $targetDir -DestinationPath "bin/$Configuration/PSReadLine.zip"
 }
-
 
 <#
 Synopsis: Install newly built PSReadLine
@@ -497,4 +317,3 @@ task Clean {
 Synopsis: Default build rule - build and create module layout
 #>
 task . LayoutModule, RunTests
-
