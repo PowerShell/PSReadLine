@@ -16,7 +16,7 @@
     PS > .\build.ps1 -Test
     Run xUnit tests with the default configuration (Debug) and the default target framework (determined by the current session).
 .PARAMETER Clean
-    Clean the local repo.
+    Clean the local repo, but keep untracked files.
 .PARAMETER Bootstrap
     Check and install the build prerequisites.
 .PARAMETER Test

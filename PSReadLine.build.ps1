@@ -310,7 +310,7 @@ task Publish -If ($Configuration -eq 'Release') {
 Synopsis: Remove temporary items.
 #>
 task Clean {
-    git clean -fdX
+    git clean -fdx
 }
 
 <#
