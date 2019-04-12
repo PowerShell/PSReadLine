@@ -2,8 +2,8 @@
   <PropertyGroup>
     <ProjectGuid>{08218B1A-8B85-4722-9E3F-4D6C0BF58AD8}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>TestPSReadLine</RootNamespace>
-    <AssemblyName>TestPSReadLine</AssemblyName>
+    <RootNamespace>MockPSConsole</RootNamespace>
+    <AssemblyName>MockPSConsole</AssemblyName>
     <TargetFrameworks>net461;netcoreapp2.1</TargetFrameworks>
     <FileAlignment>512</FileAlignment>
     <ApplicationManifest>Program.manifest</ApplicationManifest>

@@ -5,7 +5,7 @@ using System.Management.Automation.Runspaces;
 using System.Runtime.InteropServices;
 using Microsoft.PowerShell;
 
-namespace TestPSReadLine
+namespace MockPSConsole
 {
     public enum StandardHandleId : uint
     {

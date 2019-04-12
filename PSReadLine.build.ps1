@@ -96,8 +96,8 @@ $xUnitTestParams = @{
 }
 
 $mockPSConsoleParams = @{
-    Inputs = { Get-ChildItem TestPSReadLine/*.cs, TestPSReadLine/Program.manifest, TestPSReadLine/TestPSReadLine.csproj }
-    Outputs = "TestPSReadLine/bin/$Configuration/$Framework/TestPSReadLine.dll"
+    Inputs = { Get-ChildItem MockPSConsole/*.cs, MockPSConsole/Program.manifest, MockPSConsole/MockPSConsole.csproj }
+    Outputs = "MockPSConsole/bin/$Configuration/$Framework/MockPSConsole.dll"
 }
 
 <#
@@ -118,7 +118,7 @@ task BuildXUnitTests @xUnitTestParams {
 Synopsis: Build the mock powershell console.
 #>
 task BuildMockPSConsole @mockPSConsoleParams {
-    exec { dotnet publish -f $Framework -c $Configuration TestPSReadLine }
+    exec { dotnet publish -f $Framework -c $Configuration MockPSConsole }
 }
 
 <#
