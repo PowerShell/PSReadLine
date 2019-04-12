@@ -5,7 +5,8 @@ $RepoRoot = (Resolve-Path "$PSScriptRoot/..").Path
 $LocalDotnetDirPath = if ($IsWindowsEnv) { "$env:LocalAppData\Microsoft\dotnet" } else { "$env:HOME/.dotnet" }
 
 <#
-Synopsis: Get the path of the currently running powershell executable.
+.SYNOPSIS
+    Get the path of the currently running powershell executable.
 #>
 function Get-PSExePath
 {
@@ -16,7 +17,8 @@ function Get-PSExePath
 }
 
 <#
-Synopsis: Find the dotnet SDK that meets the minimal version requirement.
+.SYNOPSIS
+    Find the dotnet SDK that meets the minimal version requirement.
 #>
 function Find-Dotnet
 {
@@ -43,7 +45,8 @@ function Find-Dotnet
 }
 
 <#
-Synopsis: Check if the dotnet SDK meets the minimal version requirement.
+.SYNOPSIS
+    Check if the dotnet SDK meets the minimal version requirement.
 #>
 function Test-DotnetSDK
 {
@@ -57,7 +60,8 @@ function Test-DotnetSDK
 }
 
 <#
-Synopsis: Install the dotnet SDK if we cannot find an existing one.
+.SYNOPSIS
+    Install the dotnet SDK if we cannot find an existing one.
 #>
 function Install-Dotnet
 {
@@ -98,7 +102,8 @@ function Install-Dotnet
 }
 
 <#
-Synopsis: Write log message for the build.
+.SYNOPSIS
+    Write log message for the build.
 #>
 function Write-Log
 {
@@ -188,7 +193,8 @@ public class KeyboardLayoutHelper
 '@
 
 <#
-Synopsis: Start to run the xUnit tests.
+.SYNOPSIS
+    Start to run the xUnit tests.
 #>
 function Start-TestRun
 {
@@ -197,14 +203,17 @@ function Start-TestRun
         $Configuration,
 
         [string]
-        $Framework,
-
-        [string]
-        $testResultFile = "xUnitTestResults.xml"
+        $Framework
     )
 
-    function RunXunitTestsInNewProcess ([string] $filter)
+    $testResultFolder = 'TestResults'
+
+    function RunXunitTestsInNewProcess ([string] $Layout, [string] $OperatingSystem)
     {
+        $filter = "FullyQualifiedName~Test.{0}_{1}" -f ($Layout -replace '-','_'), $OperatingSystem
+        $testResultFile = "xUnitTestResults.{0}.xml" -f $Layout
+        $testResultFile = Join-Path $testResultFolder $testResultFile
+
         $stdOutput, $stdError = @(New-TemporaryFile; New-TemporaryFile)
         $arguments = 'test', '--no-build', '-c', $Configuration, '-f', $Framework, '--filter', $filter, '--logger', "xunit;LogFilePath=$testResultFile"
 
@@ -226,7 +235,7 @@ function Start-TestRun
                 # We have to run tests from a new process because `GetCurrentKeyboardLayout` simply fails when called from
                 # the `pwsh` process started by AppVeyor. Our xUnit tests depends on `GetCurrentKeyboardLayout` to tell if
                 # a test case should run.
-                RunXunitTestsInNewProcess -filter 'FullyQualifiedName~Test.en_US_Windows'
+                RunXunitTestsInNewProcess -Layout 'en-US' -OperatingSystem 'Windows'
             }
             else
             {
@@ -256,8 +265,7 @@ function Start-TestRun
 
                             # We have to use Start-Process so it creates a new window, because the keyboard
                             # layout change won't be picked up by any processes running in the current conhost.
-                            $filter = "FullyQualifiedName~Test.$($layout -replace '-','_')_Windows"
-                            RunXunitTestsInNewProcess -filter $filter
+                            RunXunitTestsInNewProcess -Layout $layout -OperatingSystem 'Windows'
                         }
                     }
                 }
@@ -270,11 +278,11 @@ function Start-TestRun
         }
         else
         {
-            dotnet test --no-build -c $Configuration -f $Framework --filter "FullyQualifiedName~Test.en_US_Linux" --logger "xunit;LogFilePath=$testResultFile"
+            RunXunitTestsInNewProcess -Layout 'en-US' -OperatingSystem 'Linux'
         }
 
         # Check to see if there were any failures in xUnit tests, and throw exception to fail the build if so.
-        Test-XUnitTestResults -TestResultsFile $testResultFile
+        Get-ChildItem $testResultFolder | Test-XUnitTestResults > $null
     }
     finally
     {
@@ -284,36 +292,39 @@ function Start-TestRun
 }
 
 <#
-Synopsis: Check to see if the xUnit test run was successful.
+.SYNOPSIS
+    Check to see if the xUnit test run was successful.
 #>
 function Test-XUnitTestResults
 {
     param(
-        [Parameter(Mandatory)]
-        [ValidateNotNullOrEmpty()]
+        [Parameter(Mandatory, ValueFromPipeline)]
         [string] $TestResultsFile
     )
 
-    if (-not (Test-Path $TestResultsFile))
+    Process
     {
-        throw "File not found $TestResultsFile"
-    }
+        if (-not (Test-Path $TestResultsFile))
+        {
+            throw "File not found $TestResultsFile"
+        }
 
-    try
-    {
-        $results = [xml] (Get-Content $TestResultsFile)
-    }
-    catch
-    {
-        throw "Cannot convert $TestResultsFile to xml : $($_.message)"
-    }
+        try
+        {
+            $results = [xml] (Get-Content $TestResultsFile)
+        }
+        catch
+        {
+            throw "Cannot convert $TestResultsFile to xml : $($_.message)"
+        }
 
-    $failedTests = $results.assemblies.assembly.collection | Where-Object failed -gt 0
+        $failedTests = $results.assemblies.assembly.collection | Where-Object failed -gt 0
 
-    if (-not $failedTests)
-    {
-        return $true
+        if (-not $failedTests)
+        {
+            return $true
+        }
+
+        throw "$($failedTests.failed) tests failed"
     }
-
-    throw "$($failedTests.failed) tests failed"
 }

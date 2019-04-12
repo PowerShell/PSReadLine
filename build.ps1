@@ -1,5 +1,5 @@
 <#
-.Synopsis
+.SYNOPSIS
     A script that provides simple entry points for bootstrapping, building and testing.
 .DESCRIPTION
     A script to make it easy to bootstrap, build and run tests.

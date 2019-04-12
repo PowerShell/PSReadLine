@@ -9,7 +9,7 @@ PSReadline.zip
 [Oo]bj/
 
 # mstest test results
-xUnitTestResults.xml
+TestResults
 FakesAssemblies/
 
 ## Ignore Visual Studio temporary files, build results, and
