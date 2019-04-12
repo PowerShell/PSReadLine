@@ -8,15 +8,14 @@ param(
 
 $errorActionPreference = "Stop"
 $RepoRoot = (Resolve-Path "$PSScriptRoot/..").Path
-
 $ourAssembly = "$RepoRoot\PSReadLine\bin\$Configuration\Microsoft.PowerShell.PSReadLine2.dll"
 
 $t ='Microsoft.PowerShell.PSConsoleReadLine' -as [type]
 if ($null -ne $t -and $t.Assembly.Location -ne $ourAssembly)
 {
     # Make sure we're runnning in a non-interactive session by relaunching
-    $powershell = [System.AppDomain]::CurrentDomain.FriendlyName
-    & $powershell -NoProfile -NonInteractive -File $PSCommandPath $Configuration $OutFile
+    $psExePath = Get-PSExePath
+    & $psExePath -NoProfile -NonInteractive -File $PSCommandPath $Configuration $OutFile
     exit $LASTEXITCODE
 }
 

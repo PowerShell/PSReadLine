@@ -1,11 +1,23 @@
 
-using namespace System.Runtime.InteropServices
-
-$IsWindowsEnv = [RuntimeInformation]::IsOSPlatform([OSPlatform]::Windows)
 $MinimalSDKVersion = '2.1.300'
+$IsWindowsEnv = [System.Environment]::OSVersion.Platform -eq "Win32NT"
 $RepoRoot = (Resolve-Path "$PSScriptRoot/..").Path
 $LocalDotnetDirPath = if ($IsWindowsEnv) { "$env:LocalAppData\Microsoft\dotnet" } else { "$env:HOME/.dotnet" }
 
+<#
+Synopsis: Get the path of the currently running powershell executable.
+#>
+function Get-PSExePath
+{
+    if (-not $Script:PSExePath) {
+        $Script:PSExePath = [System.Diagnostics.Process]::GetCurrentProcess().MainModule.FileName
+    }
+    return $Script:PSExePath
+}
+
+<#
+Synopsis: Find the dotnet SDK that meets the minimal version requirement.
+#>
 function Find-Dotnet
 {
     $dotnetFile = if ($IsWindowsEnv) { "dotnet.exe" } else { "dotnet" }
@@ -14,7 +26,7 @@ function Find-Dotnet
     # If dotnet is already in the PATH, check to see if that version of dotnet can find the required SDK.
     # This is "typically" the globally installed dotnet.
     $foundDotnetWithRightVersion = $false
-    $dotnetInPath = Get-Command 'dotnet' -ErrorAction SilentlyContinue
+    $dotnetInPath = Get-Command 'dotnet' -ErrorAction Ignore
     if ($dotnetInPath) {
         $foundDotnetWithRightVersion = Test-DotnetSDK $dotnetInPath.Source
     }
@@ -30,6 +42,9 @@ function Find-Dotnet
     }
 }
 
+<#
+Synopsis: Check if the dotnet SDK meets the minimal version requirement.
+#>
 function Test-DotnetSDK
 {
     param($dotnetExePath)
@@ -41,6 +56,9 @@ function Test-DotnetSDK
     return $false
 }
 
+<#
+Synopsis: Install the dotnet SDK if we cannot find an existing one.
+#>
 function Install-Dotnet
 {
     [CmdletBinding()]
@@ -54,7 +72,7 @@ function Install-Dotnet
         return  # Simply return if we find dotnet SDk with the correct version
     } catch { }
 
-    $logMsg = if (Get-Command 'dotnet' -ErrorAction SilentlyContinue) {
+    $logMsg = if (Get-Command 'dotnet' -ErrorAction Ignore) {
         "dotent SDK is not present. Installing dotnet SDK."
     } else {
         "dotnet SDK out of date. Require '$MinimalSDKVersion' but found '$dotnetSDKVersion'. Updating dotnet."
@@ -64,7 +82,7 @@ function Install-Dotnet
     $obtainUrl = "https://raw.githubusercontent.com/dotnet/cli/master/scripts/obtain"
 
     try {
-        Remove-Item $LocalDotnetDirPath -Recurse -Force -ErrorAction SilentlyContinue
+        Remove-Item $LocalDotnetDirPath -Recurse -Force -ErrorAction Ignore
         $installScript = if ($IsWindowsEnv) { "dotnet-install.ps1" } else { "dotnet-install.sh" }
         Invoke-WebRequest -Uri $obtainUrl/$installScript -OutFile $installScript
 
@@ -75,10 +93,13 @@ function Install-Dotnet
         }
     }
     finally {
-        Remove-Item $installScript -Force -ErrorAction SilentlyContinue
+        Remove-Item $installScript -Force -ErrorAction Ignore
     }
 }
 
+<#
+Synopsis: Write log message for the build.
+#>
 function Write-Log
 {
     param(
@@ -166,6 +187,9 @@ public class KeyboardLayoutHelper
 }
 '@
 
+<#
+Synopsis: Start to run the xUnit tests.
+#>
 function Start-TestRun
 {
     param(
@@ -259,6 +283,9 @@ function Start-TestRun
     }
 }
 
+<#
+Synopsis: Check to see if the xUnit test run was successful.
+#>
 function Test-XUnitTestResults
 {
     param(
@@ -267,7 +294,7 @@ function Test-XUnitTestResults
         [string] $TestResultsFile
     )
 
-    if(-not (Test-Path $TestResultsFile))
+    if (-not (Test-Path $TestResultsFile))
     {
         throw "File not found $TestResultsFile"
     }
@@ -283,7 +310,7 @@ function Test-XUnitTestResults
 
     $failedTests = $results.assemblies.assembly.collection | Where-Object failed -gt 0
 
-    if(-not $failedTests)
+    if (-not $failedTests)
     {
         return $true
     }

@@ -3,11 +3,14 @@ param($Configuration = 'Release')
 $RepoRoot = (Resolve-Path "$PSScriptRoot/..").Path
 $ourAssembly = "$RepoRoot\PSReadLine\bin\$Configuration\Microsoft.PowerShell.PSReadLine2.dll"
 
+Import-Module $PSScriptRoot/helper.psm1
+
 $t ='Microsoft.PowerShell.PSConsoleReadLine' -as [type]
 if ($null -ne $t -and $t.Assembly.Location -ne $ourAssembly)
 {
     # Make sure we're runnning in a non-interactive session by relaunching
-    powershell -NoProfile -NonInteractive -File $PSCommandPath $Configuration
+    $psExePath = Get-PSExePath
+    & $psExePath -NoProfile -NonInteractive -File $PSCommandPath $Configuration
     exit $LASTEXITCODE
 }
 
