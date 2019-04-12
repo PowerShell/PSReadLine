@@ -196,7 +196,7 @@ function Start-TestRun
 
         if ($IsWindowsEnv)
         {
-            if ($env:APPVEYOR)
+            if ($env:APPVEYOR -or $env:TF_BUILD)
             {
                 # AppVeyor CI builder only has en-US keyboard layout installed.
                 # We have to run tests from a new process because `GetCurrentKeyboardLayout` simply fails when called from
