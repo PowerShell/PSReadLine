@@ -15,15 +15,24 @@ jobs:
     DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
 
   steps:
-  - script: dotnet restore PSReadLine/PSReadLine.csproj
-  - script: dotnet nuget locals all --list
-  - powershell: |
-      Install-Module InvokeBuild,platyPS -Scope CurrentUser -Force
-      Import-Module InvokeBuild,platyPS
-      Invoke-Build -Task RunTests,ZipRelease -Configuration Release
+  - pwsh: |
+      ./build.ps1 -Bootstrap
+    displayName: Bootstrap
+    condition: succeededOrFailed()
+
+  - pwsh: |
+      ./build.ps1 -Configuration Release -Framework net461
+    displayName: Build
+    condition: succeeded()
+
+  - pwsh: |
+      ./build.ps1 -Test -Configuration Release -Framework net461
+    displayName: xUnit Tests
+    condition: succeeded()
+    continueOnError: true
+
   - task: PublishTestResults@2
     inputs:
-      testResultsFormat: 'VSTest'
-      testResultsFiles: '*.trx'
+      testResultsFormat: 'xUnit'
+      testResultsFiles: '*.xml'
       searchFolder: '$(System.DefaultWorkingDirectory)/test/TestResults'
-
