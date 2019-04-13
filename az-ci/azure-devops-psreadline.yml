@@ -21,15 +21,14 @@ jobs:
     condition: succeededOrFailed()
 
   - pwsh: |
-      ./build.ps1 -Configuration Release -Framework net461
-    displayName: Build
+      $arguments = @{
+        Configuration = 'Release'
+        Framework = if ($IsWindows) {'net461'} else {'netcoreapp2.1'}
+      }
+      ./build.ps1 @arguments
+      ./build.ps1 -Test @arguments
+    displayName: Build and Test
     condition: succeeded()
-
-  - pwsh: |
-      ./build.ps1 -Test -Configuration Release -Framework net461
-    displayName: xUnit Tests
-    condition: succeeded()
-    continueOnError: true
 
   - task: PublishTestResults@2
     inputs:
