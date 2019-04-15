@@ -30,7 +30,4 @@
   <ItemGroup Condition=" '$(IsWindows)' != 'true' ">
     <Compile Remove="AssemblyInfo.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="doc\" />
-  </ItemGroup>
 </Project>
