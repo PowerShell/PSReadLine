@@ -470,9 +470,12 @@ namespace Microsoft.PowerShell
                 {
                     // We're in the middle of a previous logical line, we
                     // need to clear to the end of the line.
-                    lenToClear = bufferWidth - (lenLastLine % bufferWidth);
-                    if (physicalLine == 1)
-                        lenToClear -= _initialX;
+                    if (lenLastLine < bufferWidth)
+                    {
+                        lenToClear = bufferWidth - (lenLastLine % bufferWidth);
+                        if (physicalLine == 1)
+                            lenToClear -= _initialX;
+                    }
                 }
 
                 if (lenToClear > 0)
@@ -486,7 +489,8 @@ namespace Microsoft.PowerShell
 
             while (previousPhysicalLine > physicalLine)
             {
-                _console.Write("\n");
+                _console.SetCursorPosition(0, _initialY + physicalLine);
+
                 physicalLine += 1;
                 var lenToClear = physicalLine == previousPhysicalLine ? lenPrevLastLine : bufferWidth;
                 if (lenToClear > 0)
@@ -507,13 +511,27 @@ namespace Microsoft.PowerShell
             // Reset the colors after we've finished all our rendering.
             _console.Write("\x1b[0m");
 
-            if (_initialY + physicalLine >= _console.BufferHeight)
+            if (_initialY + physicalLine > bufferHeight)
             {
                 // We had to scroll to render everything, update _initialY
-                _initialY = _console.BufferHeight - physicalLine;
+                _initialY = bufferHeight - physicalLine;
             }
 
+            // Calculate the coord to place the cursor for the next input.
             var point = ConvertOffsetToPoint(_current);
+
+            if (point.Y == bufferHeight)
+            {
+                // The cursor top exceeds the buffer height, so we need to
+                // scroll up the buffer by 1 line.
+                _console.Write("\n");
+
+                // Adjust the initial cursor position and the to-be-set cursor position
+                // after scrolling up the buffer.
+                _initialY -= 1;
+                point.Y -= 1;
+            }
+
             _console.SetCursorPosition(point.X, point.Y);
             _console.CursorVisible = true;
 
