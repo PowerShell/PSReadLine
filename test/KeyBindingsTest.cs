@@ -59,8 +59,6 @@ namespace Test
         public void ShiftEscape()
         {
             TestSetup(KeyMode.Cmd);
-
-            System.Threading.Thread.Sleep(10000);
             Test("", Keys("aaa", _.Shift_Escape));
         }
     }
