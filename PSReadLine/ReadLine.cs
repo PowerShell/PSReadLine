@@ -572,6 +572,8 @@ namespace Microsoft.PowerShell
 
         void ProcessOneKey(PSKeyInfo key, Dictionary<PSKeyInfo, KeyHandler> dispatchTable, bool ignoreIfNoAction, object arg)
         {
+            var consoleKey = key.AsConsoleKeyInfo();
+
             // Our dispatch tables are built as much as possible in a portable way, so for example,
             // we avoid depending on scan codes like ConsoleKey.Oem6 and instead look at the
             // PSKeyInfo.Key. We also want to ignore the shift state as that may differ on
@@ -585,15 +587,15 @@ namespace Microsoft.PowerShell
                 // shift hadn't be pressed.  This cleanly allows Shift+Backspace without adding a key binding.
                 if (key.Shift && !key.Control && !key.Alt)
                 {
-                    var c = key.KeyChar;
+                    var c = consoleKey.KeyChar;
                     if (c != '\0' && char.IsControl(c))
                     {
-                        key = PSKeyInfo.From(key.KeyChar);
+                        key = PSKeyInfo.From(consoleKey.Key);
                         dispatchTable.TryGetValue(key, out handler);
                     }
                 }
             }
-            var consoleKey = key.AsConsoleKeyInfo();
+
             if (handler != null)
             {
                 if (handler.ScriptBlock != null)
