@@ -21,11 +21,11 @@
     <None Include="License.txt" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="docs\about_PSReadLine.help.txt" />
-    <None Include="docs\Get-PSReadLineKeyHandler.md" />
-    <None Include="docs\Get-PSReadLineOption.md" />
-    <None Include="docs\Set-PSReadLineKeyHandler.md" />
-    <None Include="docs\Set-PSReadLineOption.md" />
+    <None Include="..\docs\about_PSReadLine.help.txt" Link="docs\about_PSReadLine.help.txt" />
+    <None Include="..\docs\Get-PSReadLineKeyHandler.md" Link="docs\Get-PSReadLineKeyHandler.md" />
+    <None Include="..\docs\Get-PSReadLineOption.md" Link="docs\Get-PSReadLineOption.md" />
+    <None Include="..\docs\Set-PSReadLineKeyHandler.md" Link="docs\Set-PSReadLineKeyHandler.md" />
+    <None Include="..\docs\Set-PSReadLineOption.md" Link="docs\Set-PSReadLineOption.md" />
   </ItemGroup>
   <ItemGroup Condition=" '$(IsWindows)' != 'true' ">
     <Compile Remove="AssemblyInfo.cs" />
