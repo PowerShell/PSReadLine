@@ -206,26 +206,22 @@ namespace Microsoft.PowerShell
                         bool runPipelineForEventProcessing = false;
                         foreach (var sub in eventSubscribers)
                         {
+                            runPipelineForEventProcessing = true;
                             if (sub.SourceIdentifier.Equals(PSEngineEvent.OnIdle, StringComparison.OrdinalIgnoreCase))
                             {
                                 // There is an OnIdle event.  We're idle because we timed out.  Normally
                                 // PowerShell generates this event, but PowerShell assumes the engine is not
                                 // idle because it called PSConsoleHostReadLine which isn't returning.
                                 // So we generate the event instead.
-                                _singleton._engineIntrinsics.Events.GenerateEvent("PowerShell.OnIdle", null, null, null);
-                                runPipelineForEventProcessing = true;
+                                _singleton._engineIntrinsics.Events.GenerateEvent(PSEngineEvent.OnIdle, null, null, null);
+
+                                // Break out so we don't genreate more than one 'OnIdle' event for a timeout.
                                 break;
-                            }
-                            else if (sub.Action != null && sub.SourceObject != null)
-                            {
-                                // If there are any event subscribers that have an action (which might
-                                // write to the console) and have a source object (i.e. aren't engine
-                                // events), run a tiny useless bit of PowerShell so that the events
-                                // can be processed.
-                                runPipelineForEventProcessing = true;
                             }
                         }
 
+                        // If there are any event subscribers, run a tiny useless PowerShell pipeline
+                        // so that the events can be processed.
                         if (runPipelineForEventProcessing)
                         {
                             if (ps == null)
