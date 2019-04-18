@@ -728,6 +728,20 @@
         "Investigate":  false
     },
     {
+        "Key":  "Shift+Backspace",
+        "KeyChar":  "\b",
+        "ConsoleKey":  "Backspace",
+        "Modifiers":  "Shift",
+        "Investigate":  false
+    },
+    {
+        "Key":  "Shift+Escape",
+        "KeyChar":  "\u001b",
+        "ConsoleKey":  "Escape",
+        "Modifiers":  "Shift",
+        "Investigate":  false
+    },
+    {
         "Key":  "Ctrl+y",
         "KeyChar":  "\u0019",
         "ConsoleKey":  "Y",

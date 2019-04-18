@@ -280,6 +280,20 @@
     "Investigate": false
   },
   {
+    "Key": "Shift+Backspace",
+    "KeyChar": "\u007f",
+    "ConsoleKey": "Backspace",
+    "Modifiers": "0",
+    "Investigate": false
+  },
+  {
+    "Key": "Shift+Escape",
+    "KeyChar": "\u001b",
+    "ConsoleKey": "Escape",
+    "Modifiers": "0",
+    "Investigate": false
+  },
+  {
     "Key": "j",
     "KeyChar": "j",
     "ConsoleKey": "J",

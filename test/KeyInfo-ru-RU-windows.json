@@ -742,6 +742,20 @@
         "Investigate":  false
     },
     {
+        "Key":  "Shift+Backspace",
+        "KeyChar":  "\b",
+        "ConsoleKey":  "Backspace",
+        "Modifiers":  "Shift",
+        "Investigate":  false
+    },
+    {
+        "Key":  "Shift+Escape",
+        "KeyChar":  "\u001b",
+        "ConsoleKey":  "Escape",
+        "Modifiers":  "Shift",
+        "Investigate":  false
+    },
+    {
         "Key":  "5",
         "KeyChar":  "5",
         "ConsoleKey":  "D5",
