@@ -206,7 +206,7 @@ namespace Microsoft.PowerShell
                         bool runPipelineForEventProcessing = false;
                         foreach (var sub in eventSubscribers)
                         {
-                            if (sub.SourceIdentifier.Equals("PowerShell.OnIdle", StringComparison.OrdinalIgnoreCase))
+                            if (sub.SourceIdentifier.Equals(PSEngineEvent.OnIdle, StringComparison.OrdinalIgnoreCase))
                             {
                                 // There is an OnIdle event.  We're idle because we timed out.  Normally
                                 // PowerShell generates this event, but PowerShell assumes the engine is not
@@ -216,15 +216,13 @@ namespace Microsoft.PowerShell
                                 runPipelineForEventProcessing = true;
                                 break;
                             }
-
-                            // If there are any event subscribers that have an action (which might
-                            // write to the console) and have a source object (i.e. aren't engine
-                            // events), run a tiny useless bit of PowerShell so that the events
-                            // can be processed.
-                            if (sub.Action != null && sub.SourceObject != null)
+                            else if (sub.Action != null && sub.SourceObject != null)
                             {
+                                // If there are any event subscribers that have an action (which might
+                                // write to the console) and have a source object (i.e. aren't engine
+                                // events), run a tiny useless bit of PowerShell so that the events
+                                // can be processed.
                                 runPipelineForEventProcessing = true;
-                                break;
                             }
                         }
 
