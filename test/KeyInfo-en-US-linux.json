@@ -959,6 +959,20 @@
     "Investigate": false
   },
   {
+    "Key": "Shift+Backspace",
+    "KeyChar": "\u007f",
+    "ConsoleKey": "Backspace",
+    "Modifiers": "0",
+    "Investigate": false
+  },
+  {
+    "Key": "Shift+Escape",
+    "KeyChar": "\u001b",
+    "ConsoleKey": "Escape",
+    "Modifiers": "0",
+    "Investigate": false
+  },
+  {
     "Key": "Alt+F1",
     "KeyChar": "\u0000",
     "ConsoleKey": "F12",

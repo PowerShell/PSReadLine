@@ -47,5 +47,19 @@ namespace Test
             TestSetup(KeyMode.Vi);
             Test("", Keys(Enumerable.Repeat(_.Ctrl_Alt_Question, 3)));
         }
+
+        [SkippableFact]
+        public void ShiftBackspace()
+        {
+            TestSetup(KeyMode.Cmd);
+            Test("aa", Keys("aaa", _.Shift_Backspace));
+        }
+
+        [SkippableFact]
+        public void ShiftEscape()
+        {
+            TestSetup(KeyMode.Cmd);
+            Test("", Keys("aaa", _.Shift_Escape));
+        }
     }
 }

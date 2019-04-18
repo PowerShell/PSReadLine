@@ -1302,6 +1302,18 @@
         "Modifiers":  "Shift"
     },
     {
+        "Key":  "Shift+Backspace",
+        "KeyChar":  "\b",
+        "ConsoleKey":  "Backspace",
+        "Modifiers":  "Shift"
+    },
+    {
+        "Key":  "Shift+Escape",
+        "KeyChar":  "\u001b",
+        "ConsoleKey":  "Escape",
+        "Modifiers":  "Shift"
+    },
+    {
         "Key":  "Spacebar",
         "KeyChar":  " ",
         "ConsoleKey":  "Spacebar",
