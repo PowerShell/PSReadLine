@@ -16,7 +16,7 @@ Bug fixes:
 * Make Get-PSReadLineOption show AnsiEscapeTimeout (#800) (Thanks @jazzdelightsme!)
 * Fix the crash in `ViAppendLine` when cursor is at the end of the input (#797) (Thanks @springcomp!)
 * Fix cursor position during menu complete (#809)
-* Supports `_` and `$` to move to the beginning and end of the logical line in Vi mode (#812) (Thanks @springcomp!)
+* Supports `_` and `$` to move to the beginning and end of the logical line in vi mode (#812) (Thanks @springcomp!)
 * Add `xtermjs` keybindings (#878)
 * Fix the regression to make long lines work properly at the end of screen buffer (#895)
 * Fix 'Shift+Backspace/Escape' to work the same as 'Backspace/Escape' on Windows (#898)
