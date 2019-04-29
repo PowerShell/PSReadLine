@@ -166,7 +166,7 @@ POWERSHELL COMPATIBILITY
 
 FEEDBACK
 
-    https://github.com/lzybkr/PSReadLine
+    https://github.com/PowerShell/PSReadLine
 
 CONTRIBUTING TO PSREADLINE
 

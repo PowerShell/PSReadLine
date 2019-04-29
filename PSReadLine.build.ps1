@@ -300,7 +300,7 @@ task Publish -If ($Configuration -eq 'Release') {
         NuGetApiKey = [PSCredential]::new("user", $nugetApiKey).GetNetworkCredential().Password
         Repository = "PSGallery"
         ReleaseNotes = (Get-Content -Raw $binDir/Changes.txt)
-        ProjectUri = 'https://github.com/lzybkr/PSReadLine'
+        ProjectUri = 'https://github.com/PowerShell/PSReadLine'
     }
 
     Publish-Module @publishParams
