@@ -316,7 +316,7 @@ New features:
 * Get-PSReadLineKeyHandler now returns unbound functions
 * Get-PSReadLineKeyHandler has 2 new parameters: -Bound and -Unbound
 * Set-PSReadLineKeyHandler parameter -LongDescription is now -Description
-  (not breaking because I left an alias)
+  (not breaking because an alias was left)
 * WhatIsKey - display binding for a key
 * ShowKeyBindings - show all bound keys
 * Keyboard selection of text for cut/copy/delete.  New functions:

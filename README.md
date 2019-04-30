@@ -45,7 +45,7 @@ If you are on Windows 10, PSReadLine is already installed. Windows 10 RTM and th
 
 ### Install from GitHub (deprecated)
 
-With the preview release of PowerShellGet for PowerShell V3/V4, I am deprecating downloads from GitHub.
+With the preview release of PowerShellGet for PowerShell V3/V4, downloads from GitHub are deprecated.
 We don't intend to update releases on GitHub, and may remove the release entirely from GitHub at some point.
 
 ### Post Installation
