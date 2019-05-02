@@ -795,7 +795,7 @@ namespace Microsoft.PowerShell.PSReadLine {
         /// <summary>
         ///   Looks up a localized string similar to 
         ///Oops, something went wrong.  Please report this bug with the details below.
-        ///Report on GitHub: https://github.com/lzybkr/PSReadLine/issues/new.
+        ///Report on GitHub: https://github.com/PowerShell/PSReadLine/issues/new.
         /// </summary>
         internal static string OopsAnErrorMessage1 {
             get {

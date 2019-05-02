@@ -1,3 +1,27 @@
+### Version 2.0.0-beta4
+
+Pre-release notes:
+
+Bug fixes:
+
+* Add Shift-Tab Windows ANSI escape (#695) (Thanks @parkovski)
+* Add script block vi mode indicator option (#695) (Thanks @parkovski)
+* Fix initialization for non-US keyboards (#768)
+* Fix unintentional font change in Windows console (#771)
+* Fix tooltips and menu at bottom of buffer (#783)
+* Respect the change to `[console]::BackgroundColor` by saving/restoring the initial foreground/background colors (#785)
+* Remove uses of CSI # S / ScrollConsoleScreenBuffer (#790)
+* Support vi mode `G` and `gg` movements in multi-line buffers (#793) (Thanks @springcomp!)
+* Fix rendering issue when menu complete shifts due to length of completion (#802)
+* Make Get-PSReadLineOption show AnsiEscapeTimeout (#800) (Thanks @jazzdelightsme!)
+* Fix the crash in `ViAppendLine` when cursor is at the end of the input (#797) (Thanks @springcomp!)
+* Fix cursor position during menu complete (#809)
+* Supports `_` and `$` to move to the beginning and end of the logical line in vi mode (#812) (Thanks @springcomp!)
+* Add `xtermjs` keybindings (#878)
+* Fix the regression to make long lines work properly at the end of screen buffer (#895)
+* Fix 'Shift+Backspace/Escape' to work the same as 'Backspace/Escape' on Windows (#898)
+* Make sure to generate the 'OnIdle' event when there are other subscribers (#899)
+
 ### Version 2.0.0-beta3
 
 Pre-release notes:
@@ -292,7 +316,7 @@ New features:
 * Get-PSReadLineKeyHandler now returns unbound functions
 * Get-PSReadLineKeyHandler has 2 new parameters: -Bound and -Unbound
 * Set-PSReadLineKeyHandler parameter -LongDescription is now -Description
-  (not breaking because I left an alias)
+  (not breaking because an alias was left)
 * WhatIsKey - display binding for a key
 * ShowKeyBindings - show all bound keys
 * Keyboard selection of text for cut/copy/delete.  New functions:

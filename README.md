@@ -37,7 +37,7 @@ There are multiple ways to install PSReadLine.
 
 ### Install from PowerShellGallery (preferred)
 
-You will need PowerShellGet.  It is included in Windows 10 and [WMF5](http://go.microsoft.com/fwlink/?LinkId=398175). If you are using PowerShell V3 or V4, you will need to install [PowerShellGet](https://www.microsoft.com/en-us/download/details.aspx?id=49186).
+You will need PowerShellGet.  It is included in Windows 10 and [WMF5](http://go.microsoft.com/fwlink/?LinkId=398175). If you are using PowerShell V3 or V4, you will need to install [PowerShellGet](https://docs.microsoft.com/powershell/gallery/installing-psget).
 
 After installing PowerShellGet, you can simply run `Install-Module PSReadLine`.
 
@@ -45,11 +45,8 @@ If you are on Windows 10, PSReadLine is already installed. Windows 10 RTM and th
 
 ### Install from GitHub (deprecated)
 
-With the preview release of PowerShellGet for PowerShell V3/V4, I am deprecating downloads from GitHub.  I don't intend to update releases on GitHub, and may remove the release entirely from GitHub at some point.
-
-To install the build from GitHub, you can install using [PsGet](http://psget.net) (very easy to install), and run `Install-Module PSReadLine`.  Note that PsGet and PowerShellGet both have a Install-Module command, but they are very different despite having similar names and commands. PowerShellGet is implemented and supported by the PowerShell team at Microsoft, PsGet is a 3rd party tool that was a source of inspiration for PowerShellGet.
-
-If you'd rather not use PsGet, you can just download the file [PSReadLine.zip](https://github.com/lzybkr/PSReadLine/releases/download/Latest/PSReadLine.zip) and extract the contents into your `C:\Users\[User]\Documents\WindowsPowerShell\modules\PSReadLine` folder. (You may have to create these directories if they don't exist.)
+With the preview release of PowerShellGet for PowerShell V3/V4, downloads from GitHub are deprecated.
+We don't intend to update releases on GitHub, and may remove the release entirely from GitHub at some point.
 
 ### Post Installation
 
@@ -57,7 +54,7 @@ Edit your profile to import the module. This step is optional with PowerShell V5
 
 The file `C:\Users\[User]\Documents\WindowsPowerShell\profile.ps1` is used for all hosts (e.g. the ISE and powershell.exe).  If you already have this file, then you should add the following:
 
-```
+```powershell
 if ($host.Name -eq 'ConsoleHost')
 {
     Import-Module PSReadLine
@@ -66,7 +63,7 @@ if ($host.Name -eq 'ConsoleHost')
 
 Alternatively, the file `C:\Users\[User]\Documents\WindowsPowerShell\Microsoft.PowerShell_profile.ps1` is for powershell.exe only.  Using this file, you can simply add:
 
-```
+```powershell
 Import-Module PSReadLine  
 ```
 
@@ -78,15 +75,14 @@ When running one of the suggested commands below, be sure to exit all instances 
 
 If you are using the version of PSReadLine that ships with Windows 10, you need to run: `powershell -noprofile -command "Install-Module PSReadLine -Force -SkipPublisherCheck"`.
 
-If you've installed PSReadLine yourself from the PowerShell Gallery or with `PSGet` (this is less common on Windows 10), you can simply run: `powershell -noprofile -command "Update-Module PSReadLine"`.
+If you've installed PSReadLine yourself from the PowerShell Gallery, you can simply run: `powershell -noprofile -command "Update-Module PSReadLine"`.
 
 If you get an error like:
 
-```
+```powershell
 Remove-Item : Cannot remove item
 C:\Users\{yourName}\Documents\WindowsPowerShell\Modules\PSReadLine\Microsoft.PowerShell.PSReadLine.dll: Access to the path
 'C:\Users\{yourName}\Documents\WindowsPowerShell\Modules\PSReadLine\Microsoft.PowerShell.PSReadLine.dll' is denied.
-At C:\Users\{yourName}\Documents\WindowsPowerShell\Modules\PsGet\PsGet.psm1:1009 char:52
 ```
 
 Then you didn't kill all the processes that loaded PSReadLine.
@@ -106,6 +102,7 @@ Set-PSReadLineOption -EditMode Emacs
 ```
 
 To view the current key bindings:
+
 ```powershell
 Get-PSReadLineKeyHandler
 ```
@@ -157,7 +154,7 @@ In this example, when you type a single quote or double quote, there are two thi
 
 Note that with the handler written this way, it correctly handles Undo - both quotes will be undone with one undo.
 
-The [sample profile file](https://github.com/lzybkr/PSReadLine/blob/master/PSReadLine/SamplePSReadLineProfile.ps1) has a bunch of great examples to check out.  This file is included when PSReadLine is installed.
+The [sample profile file](https://github.com/PowerShell/PSReadLine/blob/master/PSReadLine/SamplePSReadLineProfile.ps1) has a bunch of great examples to check out.  This file is included when PSReadLine is installed.
 
 See the public methods of [Microsoft.PowerShell.PSConsoleReadLine] to see what other built-in functionality you can modify.
 
@@ -193,8 +190,8 @@ After a successful build, the tests are automatically run.
 
 ## Change Log
 
-The change log is available [here](https://github.com/lzybkr/PSReadLine/blob/master/PSReadLine/Changes.txt).
+The change log is available [here](https://github.com/PowerShell/PSReadLine/blob/master/PSReadLine/Changes.txt).
 
 ## License
 
-The license is available [here](https://github.com/lzybkr/PSReadLine/blob/master/PSReadLine/License.txt).
+The license is available [here](https://github.com/PowerShell/PSReadLine/blob/master/PSReadLine/License.txt).
