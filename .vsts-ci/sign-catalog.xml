@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<!-- Config files for Azure DevOps code-signing pipeline. -->
+<SignConfigXML>
+  <job platform="" configuration="" dest="__OUTPATHROOT__\signed" jobname="PSReadLine" approvers="dongbow;slee">
+    <file src="__INPATHROOT__\PSReadLine.cat" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\PSReadLine.cat" />
+  </job>
+</SignConfigXML>

@@ -1,0 +1,126 @@
+name: PSReadLine-ModuleBuild-$(Build.BuildId)
+trigger:
+  branches:
+    include:
+    - master
+    - release*
+
+variables:
+  DOTNET_CLI_TELEMETRY_OPTOUT: 1
+  POWERSHELL_TELEMETRY_OPTOUT: 1
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+
+# Set AzDevOps Agent to clean the machine after the end of the build
+resources:
+- repo: self
+  clean: true
+
+jobs:
+- job: build_windows
+  pool: Package ES Lab A
+
+  steps:
+
+  - checkout: self
+    clean: true
+    persistCredentials: true
+
+  - task: PkgESSetupBuild@10
+    displayName: 'Initialize build'
+    inputs:
+      # Do not create a release share.
+      # Enabling this will cause failures!
+      useDfs: false
+      productName: PSReadLine
+      # Add branch name to build name (only for non-master)
+      branchVersion: true
+      disableWorkspace: true
+      disableBuildTools: true
+      disableNugetPack: true
+
+  - pwsh: |
+      $(Build.SourcesDirectory)\build.ps1 -Bootstrap
+      $(Build.SourcesDirectory)\build.ps1 -Configuration Release -Framework net461
+      # Set target folder paths
+      $vstsCommandString = "vso[task.setvariable variable=PSReadLine]$(Build.SourcesDirectory)\bin\Release\PSReadLine"
+      Write-Host "sending " + $vstsCommandString
+      Write-Host "##$vstsCommandString"
+      $vstsCommandString = "vso[task.setvariable variable=Signed]$(Build.SourcesDirectory)\bin\Release\Signed"
+      Write-Host "sending " + $vstsCommandString
+      Write-Host "##$vstsCommandString"
+    displayName: Bootstrap & Build
+
+  # Sign the module files
+  - task: PkgESCodeSign@10
+    displayName: 'CodeSign - module artifacts'
+    env:
+      SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+    inputs:
+      signConfigXml: '$(Build.SourcesDirectory)\.vsts-ci\sign-module-files.xml'
+      inPathRoot: '$(PSReadLine)'
+      outPathRoot: '$(Signed)'
+      binVersion: Production
+      binVersionOverride: ''
+
+  # Replace the *.psm1, *.ps1, *.psd1, *.dll files with the signed ones
+  - pwsh: |
+      # Show the signed files
+      Get-ChildItem -Path $(Signed)
+      Copy-Item -Path $(Signed)\* -Destination $(PSReadLine) -Force
+    displayName: 'Replace unsigned files with signed ones'
+
+  # Create catalog file from the signed modules files
+  - pwsh: |
+      New-FileCatalog -CatalogFilePath $(PSReadLine)\PSReadLine.cat -Path $(PSReadLine) -CatalogVersion 2.0 | `
+          ForEach-Object -MemberName FullName
+    displayName: 'Create catalog file'
+
+  # Sign the catalog file
+  - task: PkgESCodeSign@10
+    displayName: 'CodeSign - catalog file'
+    env:
+      SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+    inputs:
+      signConfigXml: '$(Build.SourcesDirectory)\.vsts-ci\sign-catalog.xml'
+      inPathRoot: '$(PSReadLine)'
+      outPathRoot: '$(Signed)'
+      binVersion: Production
+      binVersionOverride: ''
+
+  # Copy the signed catalog file over
+  - pwsh: |
+      # Show the signed files
+      Get-ChildItem -Path $(Signed)
+      Copy-Item -Path $(Signed)\PSReadLine.cat -Destination $(PSReadLine) -Force
+    displayName: 'Replace catalog file with the signed one'
+
+  # Verify the signatures
+  - pwsh: |
+      $HasInvalidFiles = $false
+      $WrongCert = @{}
+      Get-ChildItem -Path $(PSReadLine) -Recurse -Include "*.dll","*.ps*1*","*.cat" | `
+          Get-AuthenticodeSignature | ForEach-Object {
+              $_ | Select-Object Path, Status
+              if ($_.Status -ne 'Valid') { $HasInvalidFiles = $true }
+              if ($_.SignerCertificate.Subject -notmatch 'CN=Microsoft Corporation.*') {
+                  $WrongCert.Add($_.Path, $_.SignerCertificate.Subject)
+              }
+          }
+
+      if ($HasInvalidFiles) { throw "Authenticode verification failed. There is one or more invalid files." }
+      if ($WrongCert.Count -gt 0) {
+          $WrongCert
+          throw "Certificate should have the subject starts with 'Microsoft Corporation'"
+      }
+    displayName: 'Verify the signed files'
+
+  - pwsh: |
+      $CatInfo = Test-FileCatalog -Path $(PSReadLine) -CatalogFilePath $(PSReadLine)\PSReadLine.cat -Detailed
+      $CatInfo | Format-List
+      if ($CatInfo.Status -ne "Valid") { throw "Catalog file is invalid." }
+    displayName: 'Verify the catalog file'
+
+  - pwsh: |
+      Get-ChildItem -Path $(PSReadLine)
+      Write-Host "##vso[artifact.upload containerfolder=PSReadLine;artifactname=PSReadLine]$(PSReadLine)"
+    displayName: 'Upload module artifacts'
