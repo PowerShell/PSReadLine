@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<!-- Config files for Azure DevOps code-signing pipeline. -->
+<SignConfigXML>
+  <job platform="" configuration="" dest="__OUTPATHROOT__\signed" jobname="PSReadLine" approvers="vigarg;gstolt">
+    <file src="__INPATHROOT__\PSReadLine.psd1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\PSReadLine.psd1" />
+    <file src="__INPATHROOT__\PSReadLine.psm1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\PSReadLine.psm1" />
+    <file src="__INPATHROOT__\SamplePSReadLineProfile.ps1" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\SamplePSReadLineProfile.ps1" />
+    <file src="__INPATHROOT__\PSReadLine.format.ps1xml" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\PSReadLine.format.ps1xml" />
+
+    <file src="__INPATHROOT__\Microsoft.PowerShell.PSReadLine2.dll" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\Microsoft.PowerShell.PSReadLine2.dll" />
+    <file src="__INPATHROOT__\System.Runtime.InteropServices.RuntimeInformation.dll" signType="AuthenticodeFormer" dest="__OUTPATHROOT__\System.Runtime.InteropServices.RuntimeInformation.dll" />
+  </job>
+</SignConfigXML>
