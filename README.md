@@ -1,10 +1,13 @@
 [![appveyor-build-status][]][appveyor-build-site]
-[![azure-build-status][]][azure-build-site]
 
-[appveyor-build-status]: https://ci.appveyor.com/api/projects/status/github/lzybkr/PSReadLine?branch=master&svg=true
-[appveyor-build-site]: https://ci.appveyor.com/project/lzybkr/PSReadLine?branch=master
+[appveyor-build-status]: https://ci.appveyor.com/api/projects/status/github/PowerShell/PSReadLine?branch=master&svg=true
+[appveyor-build-site]: https://ci.appveyor.com/project/PowerShell/PSReadLine?branch=master
+
+<!--
+[![azure-build-status][]][azure-build-site]
 [azure-build-status]: https://lzybkr.visualstudio.com/AzurePipelines/_apis/build/status/PSReadLine%20Azure%20Pipeline
 [azure-build-site]: https://lzybkr.visualstudio.com/AzurePipelines/_build/latest?definitionId=6
+-->
 
 # PSReadLine
 
