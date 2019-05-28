@@ -227,6 +227,11 @@ function Start-TestRun
         $env:PSREADLINE_TESTRUN = 1
         Push-Location "$RepoRoot/test"
 
+        if (!(Test-Path -Path $testResultFolder))
+        {
+            New-Item -ItemType Directory -Force $testResultFolder
+        }
+
         if ($IsWindowsEnv)
         {
             if ($env:APPVEYOR -or $env:TF_BUILD)
