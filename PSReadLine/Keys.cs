@@ -268,8 +268,8 @@ namespace Microsoft.PowerShell
                     break;
 
                 case '\0':
-                    // This is ugly but familiar.
-                    s = "@";
+                    // This could be a special kind of a modifier key (dead key) on a particular keyboard layout.
+                    s = key.Key.ToString();
                     break;
 
                 case char _ when (c >= 1 && c <= 26):
