@@ -268,8 +268,15 @@ namespace Microsoft.PowerShell
                     break;
 
                 case '\0':
-                    // This could be a special kind of a modifier key (dead key) on a particular keyboard layout.
-                    s = key.Key.ToString();
+                    // On Windows:
+                    //   This could be a special kind of a modifier key (dead key) for a particular keyboard layout.
+                    //   We use the text form of the virtual key in such case, so the resulted PSKeyInfo can be converted back to ConsoleKeyInfo correctly later on,
+                    //   and be properly ignore during rendering.
+                    // On non-Windows:
+                    //   The dead key is not an issue when there is a tty involved.
+                    //   But the virtual key is not captured as accurately as on Windows, e.g. Ctrl+2 results in `key.Key = 0`.
+                    //   So on non-Windows, we use `@` in case `key.KeyChar = '\0'`. This is ugly but familiar.
+                    s = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? key.Key.ToString() : "@";
                     break;
 
                 case char _ when (c >= 1 && c <= 26):
