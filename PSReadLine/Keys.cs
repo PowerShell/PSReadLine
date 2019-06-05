@@ -125,7 +125,7 @@ namespace Microsoft.PowerShell
 
         static readonly ThreadLocal<char[]> toUnicodeBuffer = new ThreadLocal<char[]>(() => new char[2]);
         static readonly ThreadLocal<byte[]> toUnicodeStateBuffer = new ThreadLocal<byte[]>(() => new byte[256]);
-        internal static void TryGetCharFromConsoleKey(ConsoleKeyInfo key, ref char result)
+        internal static void TryGetCharFromConsoleKey(ConsoleKeyInfo key, ref char result, ref bool isDeadKey)
         {
             var modifiers = key.Modifiers;
             var virtualKey = key.Key;
@@ -149,10 +149,19 @@ namespace Microsoft.PowerShell
             }
             int charCount = ToUnicode(virtualKey, scanCode, state, chars, chars.Length, flags);
 
-            // TODO: support diacriticals (charCount == 2)
             if (charCount == 1)
             {
                 result = chars[0];
+            }
+            else if (charCount == -1 || charCount >=2)
+            {
+                // Quoted from https://docs.microsoft.com/en-us/windows/desktop/api/winuser/nf-winuser-tounicode#return-value:
+                //  "Return value  -1 --
+                //     The specified virtual key is a dead-key character (accent or diacritic).
+                //   Return value >=2 --
+                //     Two or more characters were written to the buffer specified by pwszBuff. The most common cause for this is that a dead-key character 
+                //     (accent or diacritic) stored in the keyboard layout could not be combined with the specified virtual key to form a single character."
+                isDeadKey = true;
             }
         }
 
@@ -217,6 +226,7 @@ namespace Microsoft.PowerShell
             }
 
             var c = key.KeyChar;
+            var isDeadKey = false;
             if (char.IsControl(c) )
             {
                 // We have the virtual key code and Windows has a handy api to map that to the non-control
@@ -226,7 +236,7 @@ namespace Microsoft.PowerShell
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
                     var keySansControl = new ConsoleKeyInfo(key.KeyChar, key.Key, isShift, isAlt, control: false);
-                    TryGetCharFromConsoleKey(keySansControl, ref c);
+                    TryGetCharFromConsoleKey(keySansControl, ref c, ref isDeadKey);
                 }
             }
             else if (isAlt && isCtrl)
@@ -268,15 +278,13 @@ namespace Microsoft.PowerShell
                     break;
 
                 case '\0':
-                    // On Windows:
-                    //   This could be a special kind of a modifier key (dead key) for a particular keyboard layout.
-                    //   We use the text form of the virtual key in such case, so the resulted PSKeyInfo can be converted back to ConsoleKeyInfo correctly later on,
-                    //   and be properly ignore during rendering.
-                    // On non-Windows:
-                    //   The dead key is not an issue when there is a tty involved.
-                    //   But the virtual key is not captured as accurately as on Windows, e.g. Ctrl+2 results in `key.Key = 0`.
-                    //   So on non-Windows, we use `@` in case `key.KeyChar = '\0'`. This is ugly but familiar.
-                    s = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? key.Key.ToString() : "@";
+                    // This could be a dead key for a particular keyboard layout in Windows console.
+                    // The dead key is not an issue when there is tty involved, so on non-Windows, `isDeadKey` is always false.
+                    //
+                    // When we believe it's a dead key, we use the text form of the virtual key so the resulted PSKeyInfo can be
+                    // converted back to ConsoleKeyInfo correctly later on, and be properly ignore during rendering.
+                    // Otherwise, we use `@` in case `key.KeyChar = '\0'`. This is ugly but familiar.
+                    s = isDeadKey ? key.Key.ToString() : "@";
                     break;
 
                 case char _ when (c >= 1 && c <= 26):

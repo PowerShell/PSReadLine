@@ -1636,5 +1636,19 @@
         "ConsoleKey":  "Z",
         "Modifiers":  "0",
         "Investigate":  false
+    },
+    {
+        "Key":  "DeadKey_Backtick",
+        "KeyChar":  "\u0000",
+        "ConsoleKey":  "D7",
+        "Modifiers":  "Alt",
+        "Investigate":  false
+    },
+    {
+        "Key":  "DeadKey_Tilde",
+        "KeyChar":  "\u0000",
+        "ConsoleKey":  "D2",
+        "Modifiers":  "Alt",
+        "Investigate":  false
     }
 ]
