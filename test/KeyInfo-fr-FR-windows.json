@@ -1638,17 +1638,10 @@
         "Investigate":  false
     },
     {
-        "Key":  "DeadKey_Backtick",
+        "Key":  "DeadKey_Caret",
         "KeyChar":  "\u0000",
-        "ConsoleKey":  "D7",
-        "Modifiers":  "Alt",
-        "Investigate":  false
-    },
-    {
-        "Key":  "DeadKey_Tilde",
-        "KeyChar":  "\u0000",
-        "ConsoleKey":  "D2",
-        "Modifiers":  "Alt",
+        "ConsoleKey":  "Oem6",
+        "Modifiers":  "0",
         "Investigate":  false
     }
 ]

@@ -11,11 +11,8 @@ namespace Test
             Skip.If(this.Fixture.Lang != "fr-FR", "The dead key test requires Keyboard layout to be set to 'fr-FR'");
             TestSetup(KeyMode.Cmd);
 
-            Test("aa", Keys("aa", _.DeadKey_Backtick));
-            Test("aab", Keys("aa", _.DeadKey_Backtick, 'b'));
-
-            Test("aa", Keys("aa", _.DeadKey_Tilde));
-            Test("aab", Keys("aa", _.DeadKey_Tilde, 'b'));
+            Test("aa", Keys("aa", _.DeadKey_Caret));
+            Test("aab", Keys("aa", _.DeadKey_Caret, 'b'));
         }
     }
 }
