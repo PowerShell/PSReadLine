@@ -1414,17 +1414,5 @@
         "KeyChar":  "z",
         "ConsoleKey":  "Z",
         "Modifiers":  "0"
-    },
-    {
-        "Key":  "DeadKey_Backtick",
-        "KeyChar":  "\u0000",
-        "ConsoleKey":  "Oem3",
-        "Modifiers":  "0"
-    },
-    {
-        "Key":  "DeadKey_Tilde",
-        "KeyChar":  "\u0000",
-        "ConsoleKey":  "Oem3",
-        "Modifiers":  "Shift"
     }
 ]
