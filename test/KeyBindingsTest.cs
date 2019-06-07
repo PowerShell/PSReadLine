@@ -65,6 +65,7 @@ namespace Test
         [SkippableFact]
         public void ControlLBracket()
         {
+            // 'Ctrl+[' should work for key binding.
             Skip.If(this.Fixture.Lang != "en-us", "there is no real eqivalent of 'Ctrl+[' with the French keyboard layout");
             TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+[", PSConsoleReadLine.BackwardDeleteChar));
             Test("aa", Keys("aaa", _.Ctrl_LBracket));
