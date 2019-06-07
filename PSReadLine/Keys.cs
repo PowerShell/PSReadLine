@@ -282,7 +282,7 @@ namespace Microsoft.PowerShell
                     // The dead key is not an issue when there is tty involved, so on non-Windows, `isDeadKey` is always false.
                     //
                     // When we believe it's a dead key, we use the text form of the virtual key so the resulted PSKeyInfo can be
-                    // converted back to ConsoleKeyInfo correctly later on, and be properly ignore during rendering.
+                    // converted back to ConsoleKeyInfo correctly later on, and be properly ignored during rendering.
                     // Otherwise, we use `@` in case `key.KeyChar = '\0'`. This is ugly but familiar.
                     s = isDeadKey ? key.Key.ToString() : "@";
                     break;
