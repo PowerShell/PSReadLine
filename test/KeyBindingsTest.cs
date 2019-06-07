@@ -61,5 +61,12 @@ namespace Test
             TestSetup(KeyMode.Cmd);
             Test("", Keys("aaa", _.Shift_Escape));
         }
+
+        [SkippableFact]
+        public void ControlLBracket()
+        {
+            TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+[", PSConsoleReadLine.BackwardDeleteChar));
+            Test("aa", Keys("aaa", _.Ctrl_LBracket));
+        }
     }
 }

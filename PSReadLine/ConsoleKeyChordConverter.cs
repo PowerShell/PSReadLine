@@ -221,6 +221,9 @@ namespace Microsoft.PowerShell
                 { "UpArrow",    new KeyPair { Key = ConsoleKey.UpArrow} },
             };
 
+        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+        static extern short VkKeyScan(char ch);
+
         static bool MapKeyChar(string input, ref ConsoleModifiers mods, out ConsoleKey key, out char keyChar)
         {
             var isCtrl = (mods & ConsoleModifiers.Control) != 0;
@@ -243,7 +246,20 @@ namespace Microsoft.PowerShell
                 else
                 {
                     key = 0;
+                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                    {
+                        short vkKeyScan = VkKeyScan(keyChar);
+                        if (vkKeyScan != -1)
+                        {
+                            int vkCode = vkKeyScan & 0xff;
+                            if (typeof(ConsoleKey).IsEnumDefined(vkCode))
+                            {
+                                key = (ConsoleKey)vkCode;
+                            }
+                        }
+                    }
                 }
+
                 if (isCtrl)
                 {
                     switch (keyChar)
