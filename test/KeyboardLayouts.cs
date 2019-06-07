@@ -87,7 +87,7 @@ namespace Test
                 }
                 var key = (alt != null)
                     ? Key.Substring(0, Key.Length - 1) + alt
-                  : Key;
+                    : Key;
                 return key.Replace('+', '_');
             }
 

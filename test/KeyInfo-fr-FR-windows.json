@@ -1636,5 +1636,19 @@
         "ConsoleKey":  "Z",
         "Modifiers":  "0",
         "Investigate":  false
+    },
+    {
+        "Key":  "DeadKey_Caret",
+        "KeyChar":  "\u0000",
+        "ConsoleKey":  "Oem6",
+        "Modifiers":  "0",
+        "Investigate":  false
+    },
+    {
+        "Key":  "DeadKey_Caret+A",
+        "KeyChar":  "\u00e2",
+        "ConsoleKey":  "A",
+        "Modifiers":  "0",
+        "Investigate":  false
     }
 ]
