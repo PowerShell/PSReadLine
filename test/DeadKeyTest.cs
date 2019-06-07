@@ -13,6 +13,7 @@ namespace Test
 
             Test("aa", Keys("aa", _.DeadKey_Caret));
             Test("aab", Keys("aa", _.DeadKey_Caret, 'b'));
+            Test("aaâ", Keys("aa", _.DeadKey_Caret_A));
         }
     }
 }
