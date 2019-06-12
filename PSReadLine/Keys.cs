@@ -125,7 +125,7 @@ namespace Microsoft.PowerShell
 
         static readonly ThreadLocal<char[]> toUnicodeBuffer = new ThreadLocal<char[]>(() => new char[2]);
         static readonly ThreadLocal<byte[]> toUnicodeStateBuffer = new ThreadLocal<byte[]>(() => new byte[256]);
-        internal static void TryGetCharFromConsoleKey(ConsoleKeyInfo key, ref char result, ref bool isDeadKey)
+        internal static void TryGetCharFromConsoleKey(ConsoleKeyInfo key, ref char result)
         {
             var modifiers = key.Modifiers;
             var virtualKey = key.Key;
@@ -149,19 +149,15 @@ namespace Microsoft.PowerShell
             }
             int charCount = ToUnicode(virtualKey, scanCode, state, chars, chars.Length, flags);
 
+            // Quoted from https://docs.microsoft.com/en-us/windows/desktop/api/winuser/nf-winuser-tounicode#return-value:
+            //  "Return value  -1 --
+            //     The specified virtual key is a dead-key character (accent or diacritic).
+            //   Return value >=2 --
+            //     Two or more characters were written to the buffer specified by pwszBuff. The most common cause for this is that a dead-key character 
+            //     (accent or diacritic) stored in the keyboard layout could not be combined with the specified virtual key to form a single character."
             if (charCount == 1)
             {
                 result = chars[0];
-            }
-            else if (charCount == -1 || charCount >=2)
-            {
-                // Quoted from https://docs.microsoft.com/en-us/windows/desktop/api/winuser/nf-winuser-tounicode#return-value:
-                //  "Return value  -1 --
-                //     The specified virtual key is a dead-key character (accent or diacritic).
-                //   Return value >=2 --
-                //     Two or more characters were written to the buffer specified by pwszBuff. The most common cause for this is that a dead-key character 
-                //     (accent or diacritic) stored in the keyboard layout could not be combined with the specified virtual key to form a single character."
-                isDeadKey = true;
             }
         }
 
@@ -226,7 +222,6 @@ namespace Microsoft.PowerShell
             }
 
             var c = key.KeyChar;
-            var isDeadKey = false;
             if (char.IsControl(c) )
             {
                 // We have the virtual key code and Windows has a handy api to map that to the non-control
@@ -236,7 +231,7 @@ namespace Microsoft.PowerShell
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
                     var keySansControl = new ConsoleKeyInfo(key.KeyChar, key.Key, isShift, isAlt, control: false);
-                    TryGetCharFromConsoleKey(keySansControl, ref c, ref isDeadKey);
+                    TryGetCharFromConsoleKey(keySansControl, ref c);
                 }
             }
             else if (isAlt && isCtrl)
@@ -279,12 +274,12 @@ namespace Microsoft.PowerShell
 
                 case '\0':
                     // This could be a dead key for a particular keyboard layout in Windows console.
-                    // The dead key is not an issue when there is tty involved, so on non-Windows, `isDeadKey` is always false.
+                    // The dead key is not an issue when there is tty involved, so we don't need to deal with dead keys on non-Windows.
                     //
                     // When we believe it's a dead key, we use the text form of the virtual key so the resulted PSKeyInfo can be
                     // converted back to ConsoleKeyInfo correctly later on, and be properly ignored during rendering.
                     // Otherwise, we use `@` in case `key.KeyChar = '\0'`. This is ugly but familiar.
-                    s = isDeadKey ? key.Key.ToString() : "@";
+                    s = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? key.Key.ToString() : "@";
                     break;
 
                 case char _ when (c >= 1 && c <= 26):
