@@ -155,6 +155,8 @@ namespace Microsoft.PowerShell
             //   Return value >=2 --
             //     Two or more characters were written to the buffer specified by pwszBuff. The most common cause for this is that a dead-key character 
             //     (accent or diacritic) stored in the keyboard layout could not be combined with the specified virtual key to form a single character."
+            //   Return value   0 --
+            //     The specified virtual key has no translation for the current state of the keyboard. Nothing was written to the buffer specified by pwszBuff.
             if (charCount == 1)
             {
                 result = chars[0];
