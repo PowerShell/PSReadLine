@@ -24,9 +24,10 @@ Environment data
     if ($IsLinux -or $IsMacOS) {
         "os: $(uname -a)"
     } else {
-        "os: $((dir $env:SystemRoot\System32\cmd.exe).VersionInfo.FileVersion)"
+        "PS file version: $((dir $pshome\p*[hl].exe).VersionInfo.FileVersion)"
     }
-    "PS file version: $((dir $pshome\p*[hl].exe).VersionInfo.FileVersion)"
+    "BufferWidth: $([console]::BufferWidth)"
+    "BufferHeight: $([console]::BufferHeight)"
 }
 ```
 -->
