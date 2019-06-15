@@ -26,7 +26,7 @@ Environment data
     } else {
         "os: $((dir $env:SystemRoot\System32\cmd.exe).VersionInfo.FileVersion)"
     }
-    "PS file version: $((dir $pshome\p*[hl][.exe]*).VersionInfo.FileVersion)"
+    "PS file version: $($name = if ($PSVersionTable.PSEdition -eq "Core") { "pwsh.dll" } else { "powershell.exe" }; (dir $pshome\$name).VersionInfo.FileVersion)"
     "BufferWidth: $([console]::BufferWidth)"
     "BufferHeight: $([console]::BufferHeight)"
 }
