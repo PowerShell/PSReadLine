@@ -378,13 +378,22 @@ namespace Microsoft.PowerShell
 
                     // promptBufferCells is the number of visible characters in the prompt
                     var promptBufferCells = LengthInBufferCells(promptText);
-                    _console.CursorLeft -= promptBufferCells;
-                    var color = renderData.errorPrompt ? _options._errorColor : defaultColor;
-                    if (renderData.errorPrompt && promptBufferCells != promptText.Length)
-                        promptText = promptText.Substring(promptText.Length - promptBufferCells);
-                    UpdateColorsIfNecessary(color);
-                    _console.Write(promptText);
-                    _console.Write("\x1b[0m");
+
+                    // The 'CursorLeft' could be less than error-prompt-cell-length when
+                    //   1. console buffer was resized, which causes the initial cursor to appear on the next line;
+                    //   2. prompt string gets longer (e.g. by 'cd' into nested folders), which causes the line to be wrapped to the next line;
+                    //   3. the prompt function was changed, which causes the new prompt string is shorter than the error prompt.
+                    // when this happens, we skip changing the color of the prompt.
+                    if (_console.CursorLeft >= promptBufferCells)
+                    {
+                        _console.CursorLeft -= promptBufferCells;
+                        var color = renderData.errorPrompt ? _options._errorColor : defaultColor;
+                        if (renderData.errorPrompt && promptBufferCells != promptText.Length)
+                            promptText = promptText.Substring(promptText.Length - promptBufferCells);
+                        UpdateColorsIfNecessary(color);
+                        _console.Write(promptText);
+                        _console.Write("\x1b[0m");
+                    }
                 }
             }
 
