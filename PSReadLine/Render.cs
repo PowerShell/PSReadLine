@@ -377,16 +377,38 @@ namespace Microsoft.PowerShell
                     // We need to update the prompt
 
                     // promptBufferCells is the number of visible characters in the prompt
-                    var promptBufferCells = LengthInBufferCells(promptText);
+                    int promptBufferCells = LengthInBufferCells(promptText);
+                    bool renderErrorPrompt = false;
 
-                    // The 'CursorLeft' could be less than error-prompt-cell-length when
-                    //   1. console buffer was resized, which causes the initial cursor to appear on the next line;
-                    //   2. prompt string gets longer (e.g. by 'cd' into nested folders), which causes the line to be wrapped to the next line;
-                    //   3. the prompt function was changed, which causes the new prompt string is shorter than the error prompt.
-                    // when this happens, we skip changing the color of the prompt.
                     if (_console.CursorLeft >= promptBufferCells)
                     {
+                        renderErrorPrompt = true;
                         _console.CursorLeft -= promptBufferCells;
+                    }
+                    else
+                    {
+                        // The 'CursorLeft' could be less than error-prompt-cell-length in one of the following 3 cases:
+                        //   1. console buffer was resized, which causes the initial cursor to appear on the next line;
+                        //   2. prompt string gets longer (e.g. by 'cd' into nested folders), which causes the line to be wrapped to the next line;
+                        //   3. the prompt function was changed, which causes the new prompt string is shorter than the error prompt.
+                        // Here, we always assume it's the case 1 or 2, and wrap back to the previous line to change the error prompt color.
+                        // In case of case 3, the rendering would be off, but it's more of a user error because the prompt is changed without
+                        // updating 'PromptText' with 'Set-PSReadLineOption'.
+
+                        int diffs = promptBufferCells - _console.CursorLeft;
+                        int newX = bufferWidth - diffs % bufferWidth;
+                        int newY = _initialY - diffs / bufferWidth - 1;
+
+                        // newY could be less than 0 if 'PromptText' is manually set to be a long string.
+                        if (newY >= 0)
+                        {
+                            renderErrorPrompt = true;
+                            _console.SetCursorPosition(newX, newY);
+                        }
+                    }
+
+                    if (renderErrorPrompt)
+                    {
                         var color = renderData.errorPrompt ? _options._errorColor : defaultColor;
                         if (renderData.errorPrompt && promptBufferCells != promptText.Length)
                             promptText = promptText.Substring(promptText.Length - promptBufferCells);
