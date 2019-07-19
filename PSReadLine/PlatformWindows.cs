@@ -604,4 +604,10 @@ static class PlatformWindows
             SetCursorPosition(x, y);
         }
     }
+
+    internal const uint SPI_GETSCREENREADER = 0x0046;
+
+    [DllImport("user32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    internal static extern bool SystemParametersInfo(uint uiAction, uint uiParam, ref bool pvParam, uint fWinIni);
 }
