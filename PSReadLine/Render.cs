@@ -340,9 +340,90 @@ namespace Microsoft.PowerShell
             return currentLogicalLine + 1;
         }
 
+        /// <summary>
+        /// Flip the color on the prompt if the error state changed.
+        /// </summary>
+        /// <returns>
+        /// A bool value indicating whether we need to flip the color,
+        /// namely whether we moved cursor to the initial position.
+        /// </returns>
+        private bool RenderErrorPrompt(RenderData renderData, string defaultColor)
+        {
+            // Possibly need to flip the color on the prompt if the error state changed.
+
+            var bufferWidth = _console.BufferWidth;
+            var promptText = _options.PromptText;
+
+            if (string.IsNullOrEmpty(promptText) || _initialY < 0)
+            {
+                // No need to flip the prompt color if either the error prompt is not defined 
+                // or the initial cursor point has already been scrolled off the buffer.
+                return false;
+            }
+
+            renderData.errorPrompt = (_parseErrors != null && _parseErrors.Length > 0);
+            if (renderData.errorPrompt == _previousRender.errorPrompt)
+            {
+                // No need to flip the prompt color if the error state didn't changed.
+                return false;
+            }
+
+            // We need to update the prompt
+            _console.SetCursorPosition(_initialX, _initialY);
+
+            // promptBufferCells is the number of visible characters in the prompt
+            int promptBufferCells = LengthInBufferCells(promptText);
+            bool renderErrorPrompt = false;
+
+            if (_console.CursorLeft >= promptBufferCells)
+            {
+                renderErrorPrompt = true;
+                _console.CursorLeft -= promptBufferCells;
+            }
+            else
+            {
+                // The 'CursorLeft' could be less than error-prompt-cell-length in one of the following 3 cases:
+                //   1. console buffer was resized, which causes the initial cursor to appear on the next line;
+                //   2. prompt string gets longer (e.g. by 'cd' into nested folders), which causes the line to be wrapped to the next line;
+                //   3. the prompt function was changed, which causes the new prompt string is shorter than the error prompt.
+                // Here, we always assume it's the case 1 or 2, and wrap back to the previous line to change the error prompt color.
+                // In case of case 3, the rendering would be off, but it's more of a user error because the prompt is changed without
+                // updating 'PromptText' with 'Set-PSReadLineOption'.
+
+                int diffs = promptBufferCells - _console.CursorLeft;
+                int newX = bufferWidth - diffs % bufferWidth;
+                int newY = _initialY - diffs / bufferWidth - 1;
+
+                // newY could be less than 0 if 'PromptText' is manually set to be a long string.
+                if (newY >= 0)
+                {
+                    renderErrorPrompt = true;
+                    _console.SetCursorPosition(newX, newY);
+                }
+            }
+
+            if (renderErrorPrompt)
+            {
+                var color = renderData.errorPrompt ? _options._errorColor : defaultColor;
+                if (renderData.errorPrompt && promptBufferCells != promptText.Length)
+                {
+                    promptText = promptText.Substring(promptText.Length - promptBufferCells);
+                }
+                _console.Write(color);
+                _console.Write(promptText);
+                _console.Write("\x1b[0m");
+            }
+
+            return true;
+        }
+
         private void ReallyRender(RenderData renderData, string defaultColor)
         {
             string activeColor = "";
+            var bufferWidth = _console.BufferWidth;
+            var bufferHeight = _console.BufferHeight;
+            var cursorX = _console.CursorLeft;
+            var cursorY = _console.CursorTop;
 
             void UpdateColorsIfNecessary(string newColor)
             {
@@ -350,72 +431,6 @@ namespace Microsoft.PowerShell
                 {
                     _console.Write(newColor);
                     activeColor = newColor;
-                }
-            }
-
-            // TODO: avoid writing everything.
-
-            var bufferWidth = _console.BufferWidth;
-            var bufferHeight = _console.BufferHeight;
-
-            // In case the buffer was resized
-            RecomputeInitialCoords();
-            renderData.bufferWidth = bufferWidth;
-            renderData.bufferHeight = bufferHeight;
-
-            // Move the cursor to where we started, but make cursor invisible while we're rendering.
-            _console.CursorVisible = false;
-            _console.SetCursorPosition(_initialX, _initialY);
-
-            // Possibly need to flip the color on the prompt if the error state changed.
-            var promptText = _options.PromptText;
-            if (!string.IsNullOrEmpty(promptText))
-            {
-                renderData.errorPrompt = (_parseErrors != null && _parseErrors.Length > 0);
-                if (renderData.errorPrompt != _previousRender.errorPrompt)
-                {
-                    // We need to update the prompt
-
-                    // promptBufferCells is the number of visible characters in the prompt
-                    int promptBufferCells = LengthInBufferCells(promptText);
-                    bool renderErrorPrompt = false;
-
-                    if (_console.CursorLeft >= promptBufferCells)
-                    {
-                        renderErrorPrompt = true;
-                        _console.CursorLeft -= promptBufferCells;
-                    }
-                    else
-                    {
-                        // The 'CursorLeft' could be less than error-prompt-cell-length in one of the following 3 cases:
-                        //   1. console buffer was resized, which causes the initial cursor to appear on the next line;
-                        //   2. prompt string gets longer (e.g. by 'cd' into nested folders), which causes the line to be wrapped to the next line;
-                        //   3. the prompt function was changed, which causes the new prompt string is shorter than the error prompt.
-                        // Here, we always assume it's the case 1 or 2, and wrap back to the previous line to change the error prompt color.
-                        // In case of case 3, the rendering would be off, but it's more of a user error because the prompt is changed without
-                        // updating 'PromptText' with 'Set-PSReadLineOption'.
-
-                        int diffs = promptBufferCells - _console.CursorLeft;
-                        int newX = bufferWidth - diffs % bufferWidth;
-                        int newY = _initialY - diffs / bufferWidth - 1;
-
-                        // newY could be less than 0 if 'PromptText' is manually set to be a long string.
-                        if (newY >= 0)
-                        {
-                            renderErrorPrompt = true;
-                            _console.SetCursorPosition(newX, newY);
-                        }
-                    }
-
-                    if (renderErrorPrompt)
-                    {
-                        var color = renderData.errorPrompt ? _options._errorColor : defaultColor;
-                        if (renderData.errorPrompt && promptBufferCells != promptText.Length)
-                            promptText = promptText.Substring(promptText.Length - promptBufferCells);
-                        UpdateColorsIfNecessary(color);
-                        _console.Write(promptText);
-                        _console.Write("\x1b[0m");
-                    }
                 }
             }
 
@@ -452,6 +467,16 @@ namespace Microsoft.PowerShell
                 return cnt + columns / bufferWidth;
             }
 
+            // In case the buffer was resized
+            RecomputeInitialCoords();
+            renderData.bufferWidth = bufferWidth;
+            renderData.bufferHeight = bufferHeight;
+
+            // Move the cursor to where we started, but make cursor invisible while we're rendering.
+            _console.CursorVisible = false;
+
+            bool cursorMovedToInitialPos = RenderErrorPrompt(renderData, defaultColor);
+
             var previousRenderLines = _previousRender.lines;
             var previousLogicalLine = 0;
             var previousPhysicalLine = 0;
@@ -459,11 +484,117 @@ namespace Microsoft.PowerShell
             var renderLines = renderData.lines;
             var logicalLine = 0;
             var physicalLine = 0;
+            var pseudoPhysicalLineOffset = 0;
             var lenPrevLastLine = 0;
+
+            // TODO: need to move to a separate method.
+            bool hasToWriteAll = true;
+            if (cursorY > _initialY && renderLines.Length > 1)
+            {
+                int minLineLength = previousRenderLines.Length;
+                int linesToCheck = -1;
+
+                if (renderLines.Length < previousRenderLines.Length)
+                {
+                    minLineLength = renderLines.Length;
+                    if (cursorX == Options.ContinuationPrompt.Length && cursorY == 0)
+                    {
+                        linesToCheck = 0 - _initialY;
+                    }
+                }
+
+                // Find the first logical line that was changed, then write starting from that logical line.
+                for (; logicalLine < minLineLength; logicalLine++)
+                {
+                    if (renderLines[logicalLine].line != previousRenderLines[logicalLine].line) { break; }
+
+                    int count = PhysicalLineCount(renderLines[logicalLine].columns, logicalLine == 0, out _);
+                    physicalLine += count;
+
+                    if (physicalLine == linesToCheck && previousRenderLines[logicalLine + 1].columns == Options.ContinuationPrompt.Length)
+                    {
+                        if (ConvertOffsetToPoint(_current).Y == -1)
+                        {
+                            physicalLine -= count;
+                            break;
+                        }
+                    }
+                }
+
+                if (logicalLine > 0)
+                {
+                    // The editing happens in the middle or end of the text.
+                    // In this case, we only need to write starting from the first changed logical line.
+                    hasToWriteAll = false;
+                    previousLogicalLine = logicalLine;
+                    previousPhysicalLine = physicalLine;
+
+                    var newTop = _initialY + physicalLine;
+                    if (newTop == bufferHeight)
+                    {
+                        // This could happen when adding a new line in the end of the very last line.
+                        // In this case, we scroll up by writing out a new line.
+                        _console.SetCursorPosition(left: bufferWidth - 1, top: bufferHeight - 1);
+                        _console.Write("\n");
+                    }
+                    else
+                    {
+                        // It's possible that the changed logical line spans on multiple physical lines
+                        // and the first a few physical lines have already been scrolled off the buffer,
+                        // causing 'newTop' to be less than 0.
+                        if (newTop < 0)
+                        {
+                            // In this case, given the logical line was changed, we would render the whole
+                            // logical line starting from the upper-left-most point of the window.
+
+                            // By doing this, we are essentially adding a few pseudo physical lines (the
+                            // physical lines that have been scrolled off the buffer will be re-rendered),
+                            // so update 'physicalLine'.
+                            pseudoPhysicalLineOffset = 0 - newTop;
+                            physicalLine += pseudoPhysicalLineOffset;
+                            newTop = 0;
+                        }
+
+                        _console.SetCursorPosition(left: 0, top: newTop);
+                    }
+                }
+            }
+
+            if (hasToWriteAll && !cursorMovedToInitialPos)
+            {
+                // The editing happens in the first logical line. We have to write everything in this case.
+                // Move the cursor to the initial position if we haven't done so.
+                if (_initialY < 0)
+                {
+                    // The prompt line can be displayed, so we clear the screen and invoke/print the prompt line.
+                    _console.Write("\x1b[2J");
+                    _console.SetCursorPosition(0, _console.WindowTop);
+
+                    string newPrompt = GetPrompt();
+                    if (!string.IsNullOrEmpty(newPrompt))
+                    {
+                        _console.Write(newPrompt);
+                    }
+
+                    _initialX = _console.CursorLeft;
+                    _initialY = _console.CursorTop;
+                    _previousRender = _initialPrevRender;
+                }
+                else
+                {
+                    _console.SetCursorPosition(_initialX, _initialY);
+                }
+            }
+
+            renderLines = renderData.lines;
+            previousRenderLines = _previousRender.lines;
+
+            int logicalLineStartIndex = logicalLine;
+            int physicalLineStartCount = physicalLine;
 
             for (; logicalLine < renderLines.Length; logicalLine++)
             {
-                if (logicalLine != 0) _console.Write("\n");
+                if (logicalLine != logicalLineStartIndex) _console.Write("\n");
 
                 var lineData = renderLines[logicalLine];
                 _console.Write(lineData.line);
@@ -503,7 +634,7 @@ namespace Microsoft.PowerShell
                     // need to clear to the end of the line.
                     if (lenLastLine < bufferWidth)
                     {
-                        lenToClear = bufferWidth - (lenLastLine % bufferWidth);
+                        lenToClear = bufferWidth - lenLastLine;
                         if (physicalLine == 1)
                             lenToClear -= _initialX;
                     }
@@ -518,12 +649,12 @@ namespace Microsoft.PowerShell
 
             UpdateColorsIfNecessary(defaultColor);
 
-            while (previousPhysicalLine > physicalLine)
+            for (int currentLines = physicalLine; currentLines < previousPhysicalLine;)
             {
-                _console.SetCursorPosition(0, _initialY + physicalLine);
+                _console.SetCursorPosition(0, _initialY + currentLines);
 
-                physicalLine += 1;
-                var lenToClear = physicalLine == previousPhysicalLine ? lenPrevLastLine : bufferWidth;
+                currentLines++;
+                var lenToClear = currentLines == previousPhysicalLine ? lenPrevLastLine : bufferWidth;
                 if (lenToClear > 0)
                 {
                     _console.Write(Spaces(lenToClear));
@@ -533,11 +664,16 @@ namespace Microsoft.PowerShell
             // Fewer lines than our last render? Clear them.
             for (; previousLogicalLine < previousRenderLines.Length; previousLogicalLine++)
             {
-                _console.Write("\n");
+                // No need to write new line if all we need is to clear the extra previous render.
+                if (logicalLineStartIndex < renderLines.Length) { _console.Write("\n"); }
                 _console.Write(Spaces(previousRenderLines[previousLogicalLine].columns));
             }
 
+            // Preserve the current render data.
             _previousRender = renderData;
+
+            // If we counted pseudo physical lines, deduct them before updating '_initialY'.
+            physicalLine -= pseudoPhysicalLineOffset;
 
             // Reset the colors after we've finished all our rendering.
             _console.Write("\x1b[0m");
@@ -546,6 +682,23 @@ namespace Microsoft.PowerShell
             {
                 // We had to scroll to render everything, update _initialY
                 _initialY = bufferHeight - physicalLine;
+            }
+            else if (pseudoPhysicalLineOffset > 0)
+            {
+                // When we rewrote a logical line (or part of a logical line) that had previously been scrolled up-off
+                // the buffer (fully or partially), we need to adjust '_initialY' if the changes to that logical line
+                // don't result in the same number of physical lines to be scrolled up-off the buffer.
+
+                int physicalLinesStartingFromTheRewrittenLogicalLine =
+                    physicalLine - (physicalLineStartCount - pseudoPhysicalLineOffset);
+
+                Debug.Assert(bufferHeight + pseudoPhysicalLineOffset >= physicalLinesStartingFromTheRewrittenLogicalLine, "");
+
+                int offset = physicalLinesStartingFromTheRewrittenLogicalLine > bufferHeight
+                    ? pseudoPhysicalLineOffset - (physicalLinesStartingFromTheRewrittenLogicalLine - bufferHeight)
+                    : pseudoPhysicalLineOffset;
+
+                _initialY += offset;
             }
 
             // Calculate the coord to place the cursor for the next input.
@@ -561,6 +714,24 @@ namespace Microsoft.PowerShell
                 // after scrolling up the buffer.
                 _initialY -= 1;
                 point.Y -= 1;
+            }
+            else if (point.Y == -1)
+            {
+                // This could only happen in two cases:
+                //
+                //   1. when you are adding characters to the first line in the buffer (top = 0) to make the logical line
+                //      wrap to one extra physical line. This would cause the buffer to scroll up and push the line being
+                //      edited up-off the buffer.
+                //   2. when you are deleting characters backwards from the first line in the buffer without changing the
+                //      number of physical lines (either editing the same logical line or causing the current logical line
+                //      to merge in the previous but still span to the current physical line). The cursor is supposed to
+                //      appear in the previous line (which is off the buffer).
+                //
+                // In these case, we move the cursor to the upper-left-most position of the window, where it's closest to
+                // the previous editing position, and update '_current' appropriately.
+
+                _current += (bufferWidth - point.X);
+                point.X = point.Y = 0;
             }
 
             _console.SetCursorPosition(point.X, point.Y);
@@ -720,6 +891,12 @@ namespace Microsoft.PowerShell
             _previousRender.bufferHeight = _console.BufferHeight;
 
             var point = ConvertOffsetToPoint(newCursor);
+            if (point.Y < 0)
+            {
+                Ding();
+                return;
+            }
+
             _console.SetCursorPosition(point.X, point.Y);
             _current = newCursor;
         }
@@ -827,7 +1004,13 @@ namespace Microsoft.PowerShell
                         {
                             x = size;
                         }
-                        y += 1;
+
+                        // If the next character is newline, let the next loop
+                        // iteration increment y and adjust x.
+                        if (!(offset + 1 < _buffer.Length && _buffer[offset + 1] == '\n'))
+                        {
+                            y += 1;
+                        }
                     }
                 }
             }
