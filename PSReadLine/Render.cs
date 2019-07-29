@@ -28,6 +28,13 @@ namespace Microsoft.PowerShell
 
     public partial class PSConsoleReadLine
     {
+        struct RenderedLineInfo
+        {
+            public int LogicalLineIndex;
+            public int PhysicalLineCount;
+            public int PseudoPhysicalLineOffset;
+        }
+
         struct RenderedLineData
         {
             public string line;
@@ -349,7 +356,7 @@ namespace Microsoft.PowerShell
         /// </returns>
         private bool RenderErrorPrompt(RenderData renderData, string defaultColor)
         {
-            // Possibly need to flip the color on the prompt if the error state changed.
+            // We may need to flip the color on the prompt if the error state changed.
 
             var bufferWidth = _console.BufferWidth;
             var promptText = _options.PromptText;
@@ -417,95 +424,104 @@ namespace Microsoft.PowerShell
             return true;
         }
 
-        private void ReallyRender(RenderData renderData, string defaultColor)
+        /// <summary>
+        /// Given the length of a logical line, calculate the number of physical lines it takes to render
+        /// the logical line on the console.
+        /// </summary>
+        private int PhysicalLineCount(int columns, bool isFirstLogicalLine, out int lenLastPhysicalLine)
         {
-            string activeColor = "";
-            var bufferWidth = _console.BufferWidth;
-            var bufferHeight = _console.BufferHeight;
-            var cursorX = _console.CursorLeft;
-            var cursorY = _console.CursorTop;
+            int cnt = 1;
+            int bufferWidth = _console.BufferWidth;
 
-            void UpdateColorsIfNecessary(string newColor)
+            if (isFirstLogicalLine)
             {
-                if (!object.ReferenceEquals(newColor, activeColor))
+                // The first logical line has the user prompt that we don't touch
+                // (except where we turn part to red, but we've finished that
+                // before getting here.)
+                var maxFirstLine = bufferWidth - _initialX;
+                if (columns > maxFirstLine)
                 {
-                    _console.Write(newColor);
-                    activeColor = newColor;
+                    cnt += 1;
+                    columns -= maxFirstLine;
+                }
+                else
+                {
+                    lenLastPhysicalLine = columns;
+                    return 1;
                 }
             }
 
-            int PhysicalLineCount(int columns, bool isFirstLogicalLine, out int lenLastPhysicalLine)
+            lenLastPhysicalLine = columns % bufferWidth;
+            if (lenLastPhysicalLine == 0)
             {
-                int cnt = 1;
-                if (isFirstLogicalLine)
-                {
-                    // The first logical line has the user prompt that we don't touch
-                    // (except where we turn part to red, but we've finished that
-                    // before getting here.)
-                    var maxFirstLine = bufferWidth - _initialX;
-                    if (columns > maxFirstLine)
-                    {
-                        cnt += 1;
-                        columns -= maxFirstLine;
-                    }
-                    else
-                    {
-                        lenLastPhysicalLine = columns;
-                        return 1;
-                    }
-                }
-
-                lenLastPhysicalLine = columns % bufferWidth;
-                if (lenLastPhysicalLine == 0)
-                {
-                    // Handle the last column when the columns is equal to n * bufferWidth
-                    // where n >= 1 integers
-                    lenLastPhysicalLine = bufferWidth;
-                    return cnt - 1 + columns / bufferWidth;
-                }
-
-                return cnt + columns / bufferWidth;
+                // Handle the last column when the columns is equal to n * bufferWidth
+                // where n >= 1 integers
+                lenLastPhysicalLine = bufferWidth;
+                return cnt - 1 + columns / bufferWidth;
             }
 
-            // In case the buffer was resized
-            RecomputeInitialCoords();
-            renderData.bufferWidth = bufferWidth;
-            renderData.bufferHeight = bufferHeight;
+            return cnt + columns / bufferWidth;
+        }
 
-            // Move the cursor to where we started, but make cursor invisible while we're rendering.
-            _console.CursorVisible = false;
+        /// <summary>
+        /// We avoid re-rendering everything while editing if it's possible.
+        /// This method attempts to find the first changed logical line and move the cursor to the right position for the subsequent rendering.
+        /// </summary>
+        private void CalculateWhereAndWhatToRender(bool cursorMovedToInitialPos, ref RenderData renderData, ref RenderedLineInfo current, ref RenderedLineInfo previous)
+        {
+            int bufferWidth = _console.BufferWidth;
+            int bufferHeight = _console.BufferHeight;
+            int cursorX = _console.CursorLeft;
+            int cursorY = _console.CursorTop;
 
-            bool cursorMovedToInitialPos = RenderErrorPrompt(renderData, defaultColor);
+            RenderedLineData[] previousRenderLines = _previousRender.lines;
+            int previousLogicalLine = 0;
+            int previousPhysicalLine = 0;
 
-            var previousRenderLines = _previousRender.lines;
-            var previousLogicalLine = 0;
-            var previousPhysicalLine = 0;
+            RenderedLineData[] renderLines = renderData.lines;
+            int logicalLine = 0;
+            int physicalLine = 0;
+            int pseudoPhysicalLineOffset = 0;
 
-            var renderLines = renderData.lines;
-            var logicalLine = 0;
-            var physicalLine = 0;
-            var pseudoPhysicalLineOffset = 0;
-            var lenPrevLastLine = 0;
-
-            // TODO: need to move to a separate method.
             bool hasToWriteAll = true;
+
             if (cursorY > _initialY && renderLines.Length > 1)
             {
+                // The current 'cursorTop' is below the initial 'cursorTop' and there are multiple logical lines.
+                // This indicates the user is editing in the middle or end of the existing text.
+                // In this case, it's possible that we can skip rendering until reaching the first changed logical line.
+
                 int minLineLength = previousRenderLines.Length;
                 int linesToCheck = -1;
 
                 if (renderLines.Length < previousRenderLines.Length)
                 {
+                    // Handle a special case:
+                    //   - top part of the text has been scrolled up-off the buffer;
+                    //   - the cursor is at the beginning of the first line in buffer;
+                    //   - the first line contains nothing but a new-line character;
+                    //   - the edit operation was backward delete a character.
+                    //
+                    // The editing was essentially removing the current empty line and move the cursor to the end of the previous line.
+                    // In this case, what we want is to start rendering from the previous logical line, where the cursor is supposed
+                    // to be moved to. However, if we only compare to find the first changed logical line, we will miss the right one
+                    // here, because that logical line is the same as before since the next logical line wrapped to it is empty.
+                    //
+                    // If the current logical lines are less than the previous, and the cursor is at the beginning of the first line in buffer,
+                    // then it's possible we are facing this special case and thus would need to do additional checks later.
+
                     minLineLength = renderLines.Length;
                     if (cursorX == Options.ContinuationPrompt.Length && cursorY == 0)
                     {
+                        // Number of physical lines before counting the first line in buffer.
                         linesToCheck = 0 - _initialY;
                     }
                 }
 
-                // Find the first logical line that was changed, then write starting from that logical line.
+                // Find the first logical line that was changed.
                 for (; logicalLine < minLineLength; logicalLine++)
                 {
+                    // Found the first different logical line? Break out the loop.
                     if (renderLines[logicalLine].line != previousRenderLines[logicalLine].line) { break; }
 
                     int count = PhysicalLineCount(renderLines[logicalLine].columns, logicalLine == 0, out _);
@@ -513,6 +529,7 @@ namespace Microsoft.PowerShell
 
                     if (physicalLine == linesToCheck && previousRenderLines[logicalLine + 1].columns == Options.ContinuationPrompt.Length)
                     {
+                        // Additional check for the special case mentioned above: the cursor is supposed to be moved to the previous line.
                         if (ConvertOffsetToPoint(_current).Y == -1)
                         {
                             physicalLine -= count;
@@ -523,8 +540,8 @@ namespace Microsoft.PowerShell
 
                 if (logicalLine > 0)
                 {
-                    // The editing happens in the middle or end of the text.
-                    // In this case, we only need to write starting from the first changed logical line.
+                    // Some logical lines at the top were not affected by the editing.
+                    // We only need to write starting from the first changed logical line.
                     hasToWriteAll = false;
                     previousLogicalLine = logicalLine;
                     previousPhysicalLine = physicalLine;
@@ -539,17 +556,17 @@ namespace Microsoft.PowerShell
                     }
                     else
                     {
-                        // It's possible that the changed logical line spans on multiple physical lines
-                        // and the first a few physical lines have already been scrolled off the buffer,
-                        // causing 'newTop' to be less than 0.
+                        // For the logical line that we will start to re-render from, it's possible that
+                        //   1. the whole logical line had already been scrolled up-off the buffer. This could happen when you backward delete characters
+                        //      on the first line in buffer and cause the current line to be folded to the previous line.
+                        //   2. the logical line spans on multiple physical lines and the top a few physical lines had already been scrolled off the buffer.
+                        //      This could happen when you edit on the top a few physical lines in the buffer, which belong to a longer logical line.
+                        // Either of them will cause 'newTop' to be less than 0.
                         if (newTop < 0)
                         {
-                            // In this case, given the logical line was changed, we would render the whole
-                            // logical line starting from the upper-left-most point of the window.
-
-                            // By doing this, we are essentially adding a few pseudo physical lines (the
-                            // physical lines that have been scrolled off the buffer will be re-rendered),
-                            // so update 'physicalLine'.
+                            // In this case, we will render the whole logical line starting from the upper-left-most point of the window.
+                            // By doing this, we are essentially adding a few pseudo physical lines (the physical lines that belong to the logical line but
+                            // had been scrolled off the buffer would be re-rendered). So, update 'physicalLine'.
                             pseudoPhysicalLineOffset = 0 - newTop;
                             physicalLine += pseudoPhysicalLineOffset;
                             newTop = 0;
@@ -562,11 +579,12 @@ namespace Microsoft.PowerShell
 
             if (hasToWriteAll && !cursorMovedToInitialPos)
             {
-                // The editing happens in the first logical line. We have to write everything in this case.
+                // The editing was in the first logical line. We have to write everything in this case.
                 // Move the cursor to the initial position if we haven't done so.
                 if (_initialY < 0)
                 {
-                    // The prompt line can be displayed, so we clear the screen and invoke/print the prompt line.
+                    // The prompt had been scrolled up-off the buffer. Now we are about to render from the very
+                    // beginning, so we clear the screen and invoke/print the prompt line.
                     _console.Write("\x1b[2J");
                     _console.SetCursorPosition(0, _console.WindowTop);
 
@@ -586,9 +604,55 @@ namespace Microsoft.PowerShell
                 }
             }
 
-            renderLines = renderData.lines;
-            previousRenderLines = _previousRender.lines;
+            current.LogicalLineIndex = logicalLine;
+            current.PhysicalLineCount = physicalLine;
+            current.PseudoPhysicalLineOffset = pseudoPhysicalLineOffset;
 
+            previous.LogicalLineIndex = previousLogicalLine;
+            previous.PhysicalLineCount = previousPhysicalLine;
+            previous.PseudoPhysicalLineOffset = 0;
+        }
+
+        private void ReallyRender(RenderData renderData, string defaultColor)
+        {
+            string activeColor = "";
+            int bufferWidth = _console.BufferWidth;
+            int bufferHeight = _console.BufferHeight;
+
+            void UpdateColorsIfNecessary(string newColor)
+            {
+                if (!object.ReferenceEquals(newColor, activeColor))
+                {
+                    _console.Write(newColor);
+                    activeColor = newColor;
+                }
+            }
+
+            // In case the buffer was resized
+            RecomputeInitialCoords();
+            renderData.bufferWidth = bufferWidth;
+            renderData.bufferHeight = bufferHeight;
+
+            // Move the cursor to where we started, but make cursor invisible while we're rendering.
+            _console.CursorVisible = false;
+
+            // Change the prompt color if the parsing error state changed.
+            bool cursorMovedToInitialPos = RenderErrorPrompt(renderData, defaultColor);
+
+            // Calculate what to render and where to start the rendering.
+            RenderedLineInfo currentLineInfo = default, previousLineInfo = default;
+            CalculateWhereAndWhatToRender(cursorMovedToInitialPos, ref renderData, ref currentLineInfo, ref previousLineInfo);
+
+            RenderedLineData[] previousRenderLines = _previousRender.lines;
+            int previousLogicalLine = previousLineInfo.LogicalLineIndex;
+            int previousPhysicalLine = previousLineInfo.PhysicalLineCount;
+
+            RenderedLineData[] renderLines = renderData.lines;
+            int logicalLine = currentLineInfo.LogicalLineIndex;
+            int physicalLine = currentLineInfo.PhysicalLineCount;
+            int pseudoPhysicalLineOffset = currentLineInfo.PseudoPhysicalLineOffset;
+
+            int lenPrevLastLine = 0;
             int logicalLineStartIndex = logicalLine;
             int physicalLineStartCount = physicalLine;
 
@@ -599,7 +663,7 @@ namespace Microsoft.PowerShell
                 var lineData = renderLines[logicalLine];
                 _console.Write(lineData.line);
 
-                physicalLine += PhysicalLineCount(lineData.columns, logicalLine == 0, out var lenLastLine);
+                physicalLine += PhysicalLineCount(lineData.columns, logicalLine == 0, out int lenLastLine);
 
                 // Find the previous logical line (if any) that would have rendered
                 // the current physical line because we may need to clear it.
@@ -649,6 +713,7 @@ namespace Microsoft.PowerShell
 
             UpdateColorsIfNecessary(defaultColor);
 
+            // The last logical line is shorter than our previous render? Clear them.
             for (int currentLines = physicalLine; currentLines < previousPhysicalLine;)
             {
                 _console.SetCursorPosition(0, _initialY + currentLines);
@@ -661,7 +726,7 @@ namespace Microsoft.PowerShell
                 }
             }
 
-            // Fewer lines than our last render? Clear them.
+            // Fewer logical lines than our previous render? Clear them.
             for (; previousLogicalLine < previousRenderLines.Length; previousLogicalLine++)
             {
                 // No need to write new line if all we need is to clear the extra previous render.
@@ -672,7 +737,8 @@ namespace Microsoft.PowerShell
             // Preserve the current render data.
             _previousRender = renderData;
 
-            // If we counted pseudo physical lines, deduct them before updating '_initialY'.
+            // If we counted pseudo physical lines, deduct them to get the real physical line counts
+            // before updating '_initialY'.
             physicalLine -= pseudoPhysicalLineOffset;
 
             // Reset the colors after we've finished all our rendering.
@@ -689,10 +755,13 @@ namespace Microsoft.PowerShell
                 // the buffer (fully or partially), we need to adjust '_initialY' if the changes to that logical line
                 // don't result in the same number of physical lines to be scrolled up-off the buffer.
 
+                // Calculate the total number of physical lines starting from the logical line we re-wrote.
                 int physicalLinesStartingFromTheRewrittenLogicalLine =
                     physicalLine - (physicalLineStartCount - pseudoPhysicalLineOffset);
 
-                Debug.Assert(bufferHeight + pseudoPhysicalLineOffset >= physicalLinesStartingFromTheRewrittenLogicalLine, "");
+                Debug.Assert(
+                    bufferHeight + pseudoPhysicalLineOffset >= physicalLinesStartingFromTheRewrittenLogicalLine,
+                    "number of physical lines starting from the first changed logical line should be no more than the buffer height plus the pseudo lines we added.");
 
                 int offset = physicalLinesStartingFromTheRewrittenLogicalLine > bufferHeight
                     ? pseudoPhysicalLineOffset - (physicalLinesStartingFromTheRewrittenLogicalLine - bufferHeight)
