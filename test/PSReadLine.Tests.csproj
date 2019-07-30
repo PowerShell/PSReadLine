@@ -12,13 +12,17 @@
     <TestProjectType>UnitTest</TestProjectType>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp2.1'">
+    <RuntimeFrameworkVersion>2.1.12</RuntimeFrameworkVersion>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="System.Xml.XDocument" version="4.3.0" />
     <PackageReference Include="System.Data.DataSetExtensions" version="4.5.0" />
     <PackageReference Include="System.Runtime.InteropServices.RuntimeInformation" version="4.3.0" />
     <PackageReference Include="Microsoft.CSharp" version="4.5.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
-    <PackageReference Include="Microsoft.PowerShell.SDK" Version="6.2.0" Condition="'$(TargetFramework)' == 'netcoreapp2.1'" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.2" />
+    <PackageReference Include="Microsoft.PowerShell.SDK" Version="6.2.2" Condition="'$(TargetFramework)' == 'netcoreapp2.1'" />
     <PackageReference Include="PowerShellStandard.Library" version="5.1.0-*" Condition="'$(TargetFramework)' == 'net461'" />
   </ItemGroup>
 

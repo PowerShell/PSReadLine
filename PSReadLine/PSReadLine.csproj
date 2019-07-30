@@ -9,6 +9,11 @@
     <InformationalVersion>2.0.0-beta4</InformationalVersion>
     <TargetFrameworks>net461;netcoreapp2.1</TargetFrameworks>
   </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp2.1'">
+    <RuntimeFrameworkVersion>2.1.12</RuntimeFrameworkVersion>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="PowerShellStandard.Library" version="5.1.0-*" />
     <PackageReference Include="Microsoft.CSharp" version="4.5.0-*" />

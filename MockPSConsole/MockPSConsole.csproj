@@ -9,12 +9,16 @@
     <ApplicationManifest>Program.manifest</ApplicationManifest>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp2.1'">
+    <RuntimeFrameworkVersion>2.1.12</RuntimeFrameworkVersion>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="System.Xml.XDocument" version="4.3.0" />
     <PackageReference Include="System.Data.DataSetExtensions" version="4.5.0" />
     <PackageReference Include="Microsoft.CSharp" version="4.5.0" />
     <PackageReference Include="PowerShellStandard.Library" version="5.1.0-*" Condition="'$(TargetFramework)' == 'net461'" />
-    <PackageReference Include="Microsoft.PowerShell.SDK" version="6.2.0" Condition="'$(TargetFramework)' == 'netcoreapp2.1'" />
+    <PackageReference Include="Microsoft.PowerShell.SDK" version="6.2.2" Condition="'$(TargetFramework)' == 'netcoreapp2.1'" />
   </ItemGroup>
 
   <ItemGroup>
