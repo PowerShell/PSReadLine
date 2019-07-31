@@ -68,8 +68,8 @@ namespace Microsoft.PowerShell
             _singleton.Complete(forward: false);
         }
 
-        private static bool IsSingleQuote(char c) => c == '\'' || c == (char)8216 || c == (char)8217 || c == (char)8218;
-        private static bool IsDoubleQuote(char c) => c == '"' || c == (char)8220 || c == (char)8221;
+        private static bool IsSingleQuote(char c) => c == '\'' || c == (char)8216 || c == (char)8217 || c == (char)8218 || c == (char)8219;
+        private static bool IsDoubleQuote(char c) => c == '"' || c == (char)8220 || c == (char)8221 || c == (char)8222;
 
         // variable can be "quoted" like ${env:CommonProgramFiles(x86)}
         private static bool IsQuotedVariable(string s) => s.Length > 2 && s[1] == '{' && s[s.Length - 1] == '}';
