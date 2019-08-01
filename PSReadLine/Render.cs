@@ -549,10 +549,17 @@ namespace Microsoft.PowerShell
                     var newTop = _initialY + physicalLine;
                     if (newTop == bufferHeight)
                     {
-                        // This could happen when adding a new line in the end of the very last line.
-                        // In this case, we scroll up by writing out a new line.
-                        _console.SetCursorPosition(left: bufferWidth - 1, top: bufferHeight - 1);
-                        _console.Write("\n");
+                        if (logicalLine < renderLines.Length)
+                        {
+                            // This could happen when adding a new line in the end of the very last line.
+                            // In this case, we scroll up by writing out a new line.
+                            _console.SetCursorPosition(left: bufferWidth - 1, top: bufferHeight - 1);
+                            _console.Write("\n");
+                        }
+
+                        // It might happen that 'logicalLine == renderLines.Length'. This means the current
+                        // logical lines to be rendered are exactly the same the the previous logical lines.
+                        // No need to do anything in this case, as we don't need to render anything.
                     }
                     else
                     {
