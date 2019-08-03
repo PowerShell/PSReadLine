@@ -215,7 +215,7 @@ namespace Microsoft.PowerShell
                     // use the tokens color otherwise use the initial color.
                     var state = tokenStack.Peek();
                     var token = state.Tokens[state.Index];
-                    if (i == token.Extent.EndOffset)
+                    while (i == token.Extent.EndOffset)
                     {
                         if (token == state.Tokens[state.Tokens.Length - 1])
                         {
