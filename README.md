@@ -42,7 +42,11 @@ There are multiple ways to install PSReadLine.
 
 You will need PowerShellGet.  It is included in Windows 10 and [WMF5](http://go.microsoft.com/fwlink/?LinkId=398175). If you are using PowerShell V3 or V4, you will need to install [PowerShellGet](https://docs.microsoft.com/powershell/gallery/installing-psget).
 
-After installing PowerShellGet, you can simply run `Install-Module PSReadLine`.
+After installing PowerShellGet, you can simply run `Install-Module PSReadLine -AllowPrerelease -Force` to get the latest prerelease version.
+
+If you only want to get the latest stable version, run `Install-Module PSReadLine`.
+
+>[!NOTE] Prerelease versions will have newer features and bug fixes, but may also introduce new issues.
 
 If you are on Windows 10, PSReadLine is already installed. Windows 10 RTM and the November update have version 1.1, later builds have version 1.2 (which includes vi mode). See below for how to upgrade.
 
@@ -67,7 +71,7 @@ if ($host.Name -eq 'ConsoleHost')
 Alternatively, the file `C:\Users\[User]\Documents\WindowsPowerShell\Microsoft.PowerShell_profile.ps1` is for powershell.exe only.  Using this file, you can simply add:
 
 ```powershell
-Import-Module PSReadLine  
+Import-Module PSReadLine
 ```
 
 In either case, you can create the appropriate file if you don't already have one.
