@@ -663,7 +663,7 @@ namespace Microsoft.PowerShell
                 return _options._keywordColor;
             }
 
-            if ((token.TokenFlags & (TokenFlags.BinaryOperator | TokenFlags.UnaryOperator | TokenFlags.AssignmentOperator)) != 0)
+            if (token.Kind != TokenKind.Generic && (token.TokenFlags & (TokenFlags.BinaryOperator | TokenFlags.UnaryOperator | TokenFlags.AssignmentOperator)) != 0)
             {
                 return _options._operatorColor;
             }
