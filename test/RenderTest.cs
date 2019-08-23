@@ -37,7 +37,7 @@ namespace Test
             TestSetup(KeyMode.Cmd);
 
             Test("", Keys(
-                "abc -def <#123#> \"hello $name\"",
+                "abc -def <#123#> \"hello $name\" 1 + (1-2)",
                 _.Home,
                 CheckThat(() =>
                     AssertScreenIs(1,
@@ -49,7 +49,14 @@ namespace Test
                         TokenClassification.None, " ",
                         TokenClassification.String, "\"hello ",
                         TokenClassification.Variable, "$name",
-                        TokenClassification.String, "\"")),
+                        TokenClassification.String, "\"",
+                        TokenClassification.None, " ",
+                        TokenClassification.Number, "1",
+                        TokenClassification.None, " + (",
+                        TokenClassification.Number, "1",
+                        TokenClassification.Operator, "-",
+                        TokenClassification.Number, "2",
+                        TokenClassification.None, ")")),
                 _.Ctrl_c,
                 InputAcceptedNow
                 ));
