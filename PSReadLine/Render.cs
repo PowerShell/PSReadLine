@@ -473,8 +473,6 @@ namespace Microsoft.PowerShell
         {
             int bufferWidth = _console.BufferWidth;
             int bufferHeight = _console.BufferHeight;
-            int cursorX = _console.CursorLeft;
-            int cursorY = _console.CursorTop;
 
             RenderedLineData[] previousRenderLines = _previousRender.lines;
             int previousLogicalLine = 0;
@@ -497,25 +495,21 @@ namespace Microsoft.PowerShell
 
                 if (renderLines.Length < previousRenderLines.Length)
                 {
-                    // Handle a special case:
-                    //   - top part of the text has been scrolled up-off the buffer;
-                    //   - the cursor is at the beginning of the first line in buffer;
-                    //   - the first line contains nothing but a new-line character;
-                    //   - the edit operation was backward delete a character.
-                    //
-                    // The editing was essentially removing the current empty line and move the cursor to the end of the previous line.
-                    // In this case, what we want is to start rendering from the previous logical line, where the cursor is supposed
-                    // to be moved to. However, if we only compare to find the first changed logical line, we will miss the right one
-                    // here, because that logical line is the same as before since the next logical line wrapped to it is empty.
-                    //
-                    // If the current logical lines are less than the previous, and the cursor is at the beginning of the first line in buffer,
-                    // then it's possible we are facing this special case and thus would need to do additional checks later.
-
                     minLinesLength = renderLines.Length;
-                    if (_initialY < 0 && cursorX == Options.ContinuationPrompt.Length && cursorY == 0)
+
+                    // When the initial cursor position has been scrolled off the buffer, it's possible the editing deletes some texts and
+                    // potentially causes the final cursor position to be off the buffer as well. In this case, we should start rendering
+                    // from the logical line where the cursor is supposed to be moved to eventually.
+                    // Here we check for this situation, and calculate the physical line count to check later if we are in this situation.
+
+                    if (_initialY < 0)
                     {
-                        // Number of physical lines before counting the first line in buffer.
-                        linesToCheck = 0 - _initialY;
+                        int y = ConvertOffsetToPoint(_current).Y;
+                        if (y < 0)
+                        {
+                            // Number of physical lines from the initial row to the row where the cursor is supposed to be set at.
+                            linesToCheck = y - _initialY + 1;
+                        }
                     }
                 }
 
@@ -528,14 +522,14 @@ namespace Microsoft.PowerShell
                     int count = PhysicalLineCount(renderLines[logicalLine].columns, logicalLine == 0, out _);
                     physicalLine += count;
 
-                    if (physicalLine == linesToCheck && previousRenderLines[logicalLine + 1].columns == Options.ContinuationPrompt.Length)
+                    if (linesToCheck < 0)
                     {
-                        // Additional check for the special case mentioned above: the cursor is supposed to be moved to the previous line.
-                        if (ConvertOffsetToPoint(_current).Y == -1)
-                        {
-                            physicalLine -= count;
-                            break;
-                        }
+                        continue;
+                    }
+                    else if (physicalLine >= linesToCheck)
+                    {
+                        physicalLine -= count;
+                        break;
                     }
                 }
 
