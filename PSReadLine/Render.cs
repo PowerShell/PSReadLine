@@ -28,10 +28,12 @@ namespace Microsoft.PowerShell
 
     public partial class PSConsoleReadLine
     {
-        struct RenderedLineInfo
+        struct LineInfoForRendering
         {
-            public int LogicalLineIndex;
-            public int PhysicalLineCount;
+            public int CurrentLogicalLineIndex;
+            public int CurrentPhysicalLineCount;
+            public int PreviousLogicalLineIndex;
+            public int PreviousPhysicalLineCount;
             public int PseudoPhysicalLineOffset;
         }
 
@@ -467,7 +469,7 @@ namespace Microsoft.PowerShell
         /// We avoid re-rendering everything while editing if it's possible.
         /// This method attempts to find the first changed logical line and move the cursor to the right position for the subsequent rendering.
         /// </summary>
-        private void CalculateWhereAndWhatToRender(bool cursorMovedToInitialPos, ref RenderData renderData, ref RenderedLineInfo current, ref RenderedLineInfo previous)
+        private void CalculateWhereAndWhatToRender(bool cursorMovedToInitialPos, RenderData renderData, out LineInfoForRendering lineInfoForRendering)
         {
             int bufferWidth = _console.BufferWidth;
             int bufferHeight = _console.BufferHeight;
@@ -485,13 +487,12 @@ namespace Microsoft.PowerShell
 
             bool hasToWriteAll = true;
 
-            if (cursorY > _initialY && renderLines.Length > 1)
+            if (renderLines.Length > 1)
             {
-                // The current 'cursorTop' is below the initial 'cursorTop' and there are multiple logical lines.
-                // This indicates the user is editing in the middle or end of the existing text.
-                // In this case, it's possible that we can skip rendering until reaching the first changed logical line.
+                // There are multiple logical lines, so it's possible the first N logical lines are not affected by the user's editing,
+                // in which case, we can skip rendering until reaching the first changed logical line.
 
-                int minLineLength = previousRenderLines.Length;
+                int minLinesLength = previousRenderLines.Length;
                 int linesToCheck = -1;
 
                 if (renderLines.Length < previousRenderLines.Length)
@@ -510,8 +511,8 @@ namespace Microsoft.PowerShell
                     // If the current logical lines are less than the previous, and the cursor is at the beginning of the first line in buffer,
                     // then it's possible we are facing this special case and thus would need to do additional checks later.
 
-                    minLineLength = renderLines.Length;
-                    if (cursorX == Options.ContinuationPrompt.Length && cursorY == 0)
+                    minLinesLength = renderLines.Length;
+                    if (_initialY < 0 && cursorX == Options.ContinuationPrompt.Length && cursorY == 0)
                     {
                         // Number of physical lines before counting the first line in buffer.
                         linesToCheck = 0 - _initialY;
@@ -519,7 +520,7 @@ namespace Microsoft.PowerShell
                 }
 
                 // Find the first logical line that was changed.
-                for (; logicalLine < minLineLength; logicalLine++)
+                for (; logicalLine < minLinesLength; logicalLine++)
                 {
                     // Found the first different logical line? Break out the loop.
                     if (renderLines[logicalLine].line != previousRenderLines[logicalLine].line) { break; }
@@ -611,13 +612,12 @@ namespace Microsoft.PowerShell
                 }
             }
 
-            current.LogicalLineIndex = logicalLine;
-            current.PhysicalLineCount = physicalLine;
-            current.PseudoPhysicalLineOffset = pseudoPhysicalLineOffset;
-
-            previous.LogicalLineIndex = previousLogicalLine;
-            previous.PhysicalLineCount = previousPhysicalLine;
-            previous.PseudoPhysicalLineOffset = 0;
+            lineInfoForRendering = default;
+            lineInfoForRendering.CurrentLogicalLineIndex = logicalLine;
+            lineInfoForRendering.CurrentPhysicalLineCount = physicalLine;
+            lineInfoForRendering.PreviousLogicalLineIndex = previousLogicalLine;
+            lineInfoForRendering.PreviousPhysicalLineCount = previousPhysicalLine;
+            lineInfoForRendering.PseudoPhysicalLineOffset = pseudoPhysicalLineOffset;
         }
 
         private void ReallyRender(RenderData renderData, string defaultColor)
@@ -640,24 +640,24 @@ namespace Microsoft.PowerShell
             renderData.bufferWidth = bufferWidth;
             renderData.bufferHeight = bufferHeight;
 
-            // Move the cursor to where we started, but make cursor invisible while we're rendering.
+            // Make cursor invisible while we're rendering.
             _console.CursorVisible = false;
 
             // Change the prompt color if the parsing error state changed.
             bool cursorMovedToInitialPos = RenderErrorPrompt(renderData, defaultColor);
 
             // Calculate what to render and where to start the rendering.
-            RenderedLineInfo currentLineInfo = default, previousLineInfo = default;
-            CalculateWhereAndWhatToRender(cursorMovedToInitialPos, ref renderData, ref currentLineInfo, ref previousLineInfo);
+            LineInfoForRendering lineInfoForRendering;
+            CalculateWhereAndWhatToRender(cursorMovedToInitialPos, renderData, out lineInfoForRendering);
 
             RenderedLineData[] previousRenderLines = _previousRender.lines;
-            int previousLogicalLine = previousLineInfo.LogicalLineIndex;
-            int previousPhysicalLine = previousLineInfo.PhysicalLineCount;
+            int previousLogicalLine = lineInfoForRendering.PreviousLogicalLineIndex;
+            int previousPhysicalLine = lineInfoForRendering.PreviousPhysicalLineCount;
 
             RenderedLineData[] renderLines = renderData.lines;
-            int logicalLine = currentLineInfo.LogicalLineIndex;
-            int physicalLine = currentLineInfo.PhysicalLineCount;
-            int pseudoPhysicalLineOffset = currentLineInfo.PseudoPhysicalLineOffset;
+            int logicalLine = lineInfoForRendering.CurrentLogicalLineIndex;
+            int physicalLine = lineInfoForRendering.CurrentPhysicalLineCount;
+            int pseudoPhysicalLineOffset = lineInfoForRendering.PseudoPhysicalLineOffset;
 
             int lenPrevLastLine = 0;
             int logicalLineStartIndex = logicalLine;
