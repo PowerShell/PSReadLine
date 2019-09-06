@@ -106,7 +106,7 @@ namespace Microsoft.PowerShell
             {
                 if (IsQuotedVariable(s))
                 {
-                    return '$' + s.Substring(2, s.Length - 3);
+                    return s[0] + s.Substring(2, s.Length - 3);
                 }
                 return s;
             }
@@ -731,7 +731,7 @@ namespace Microsoft.PowerShell
 
         private int FindUserCompletionTextPosition(CompletionResult match, string userCompletionText)
         {
-            return match.ResultType == CompletionResultType.Variable && match.CompletionText[1] == '{'
+            return match.ResultType == CompletionResultType.Variable && userCompletionText.Length > 1 && match.CompletionText[1] == '{'
                 ? match.CompletionText.IndexOf(userCompletionText.Substring(1), StringComparison.OrdinalIgnoreCase) - 1
                 : match.CompletionText.IndexOf(userCompletionText, StringComparison.OrdinalIgnoreCase);
         }
