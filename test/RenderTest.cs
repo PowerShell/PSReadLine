@@ -61,6 +61,39 @@ namespace Test
                 InputAcceptedNow
                 ));
 
+            // This tests for priority to highlight a command regardless of token kind and nested tokens potential to bleed the parent token color to the next token
+            Test("", Keys(
+                ". -abc def;. abc$name -def",
+                _.Home,
+                CheckThat(() =>
+                    AssertScreenIs(1,
+                        TokenClassification.None, ". ",
+                        TokenClassification.Command, "-abc",
+                        TokenClassification.None, " def;. ",
+                        TokenClassification.Command, "abc",
+                        TokenClassification.Variable, "$name",
+                        TokenClassification.None, " ",
+                        TokenClassification.Parameter, "-def")),
+                _.Ctrl_c,
+                InputAcceptedNow
+                ));
+
+            // Additional test for priority to highlight a command regardless of token kind and nested tokens potential to bleed the parent token color to the next token
+            Test("", Keys(
+                ". ++ abc$name -def",
+                _.Home,
+                CheckThat(() =>
+                    AssertScreenIs(1,
+                        TokenClassification.None, ". ",
+                        TokenClassification.Command, "++",
+                        TokenClassification.None, " abc",
+                        TokenClassification.Variable, "$name",
+                        TokenClassification.None, " ",
+                        TokenClassification.Parameter, "-def")),
+                _.Ctrl_c,
+                InputAcceptedNow
+                ));
+
             Test("", Keys(
                 "\"$([int];\"_$(1+2)\")\"",
                 CheckThat(() =>

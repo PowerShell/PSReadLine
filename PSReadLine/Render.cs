@@ -215,7 +215,7 @@ namespace Microsoft.PowerShell
                     // use the tokens color otherwise use the initial color.
                     var state = tokenStack.Peek();
                     var token = state.Tokens[state.Index];
-                    if (i == token.Extent.EndOffset)
+                    while (i == token.Extent.EndOffset)
                     {
                         if (token == state.Tokens[state.Tokens.Length - 1])
                         {
@@ -630,6 +630,11 @@ namespace Microsoft.PowerShell
 
         private string GetTokenColor(Token token)
         {
+            if ((token.TokenFlags & TokenFlags.CommandName) != 0)
+            {
+                return _options._commandColor;
+            }
+
             switch (token.Kind)
             {
             case TokenKind.Comment:
@@ -651,11 +656,6 @@ namespace Microsoft.PowerShell
 
             case TokenKind.Number:
                 return _options._numberColor;
-            }
-
-            if ((token.TokenFlags & TokenFlags.CommandName) != 0)
-            {
-                return _options._commandColor;
             }
 
             if ((token.TokenFlags & TokenFlags.Keyword) != 0)
