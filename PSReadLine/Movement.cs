@@ -80,6 +80,18 @@ namespace Microsoft.PowerShell
         {
             const int endOfLine = int.MaxValue;
 
+            // Actually not moving the line.
+            if (numericArg == 0)
+            {
+                return;
+            }
+
+            // Moving the line down when it's actually at the end of the last line.
+            if (numericArg > 0 && _current == _buffer.Length)
+            {
+                return;
+            }
+
             _moveToLineCommandCount += 1;
             var point = ConvertOffsetToPoint(_current);
             if (_moveToLineCommandCount == 1)
@@ -90,25 +102,53 @@ namespace Microsoft.PowerShell
                         : point.X;
             }
 
-            var topLine = _initialY;
-
-            var newY = point.Y + numericArg;
-            point.Y = Math.Max(newY, topLine);
-            if (_moveToLineDesiredColumn != endOfLine)
+            int newCurrent;
+            if (_moveToLineDesiredColumn == endOfLine)
             {
-                point.X = _moveToLineDesiredColumn;
-            }
+                newCurrent = _current;
 
-            var newCurrent = ConvertLineAndColumnToOffset(point);
-            if (newCurrent != -1)
-            {
-                if (_moveToLineDesiredColumn == endOfLine)
+                if (numericArg > 0)
                 {
-                    while (newCurrent < _buffer.Length && _buffer[newCurrent] != '\n')
+                    // Moving to a subsequent line.
+                    for (int i = 0; i < numericArg; i++)
                     {
-                        newCurrent += 1;
+                        for (newCurrent++; newCurrent < _buffer.Length && _buffer[newCurrent] != '\n'; newCurrent++) ;
+
+                        if (newCurrent == _buffer.Length)
+                        {
+                            break;
+                        }
                     }
                 }
+                else
+                {
+                    // Moving to a previous line.
+                    int lastEndOfLineIndex = _current;
+                    for (int i = 0; i < -numericArg; i++)
+                    {
+                        for (newCurrent--; newCurrent >= 0 && _buffer[newCurrent] != '\n'; newCurrent--) ;
+
+                        if (newCurrent < 0)
+                        {
+                            newCurrent = lastEndOfLineIndex;
+                            break;
+                        }
+
+                        lastEndOfLineIndex = newCurrent;
+                    }
+                }
+            }
+            else
+            {
+                int newY = point.Y + numericArg;
+                point.Y = Math.Max(newY, _initialY);
+                point.X = _moveToLineDesiredColumn;
+
+                newCurrent = ConvertLineAndColumnToOffset(point);
+            }
+
+            if (newCurrent != -1)
+            {
                 MoveCursor(newCurrent);
             }
         }
