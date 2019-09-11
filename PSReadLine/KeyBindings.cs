@@ -341,7 +341,7 @@ namespace Microsoft.PowerShell
                 // API 'Console.SetWindowPosition', which throws 'PlatformNotSupportedException' on unix platforms.
                 _dispatchTable.Add(Keys.PageUp,       MakeKeyHandler(ScrollDisplayUp,       "ScrollDisplayUp"));
                 _dispatchTable.Add(Keys.PageDown,     MakeKeyHandler(ScrollDisplayDown,     "ScrollDisplayDown"));
-                _dispatchTable.Add(Keys.CtrlPageUp,   MakeKeyHandler(ScrollDisplayUpLine, "ScrollDisplayUpLine"));
+                _dispatchTable.Add(Keys.CtrlPageUp,   MakeKeyHandler(ScrollDisplayUpLine,   "ScrollDisplayUpLine"));
                 _dispatchTable.Add(Keys.CtrlPageDown, MakeKeyHandler(ScrollDisplayDownLine, "ScrollDisplayDownLine"));
             }
             else
