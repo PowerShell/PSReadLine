@@ -236,6 +236,10 @@ namespace Microsoft.PowerShell
             };
 
             // Some bindings are not available on certain platforms
+            // For example, PageUp/PageDown and CtrlPageUp/CtrlPageDown bindings are supported on Windows only because
+            //  1. On Linux, 'Console.SetWindowPosition' throws 'PlatformNotSupportedException'.
+            //  2. On macOS, 'PageUp' and 'PageDown' get intercepted by the terminal and move the terminal window up or down for one page.
+            //     'Ctrl+PageUp' and 'Ctrl+PageDown' are also intercepted by the terminal and do the same as 'PageUp' and 'PageDown'.
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 _dispatchTable.Add(Keys.PageUp,       MakeKeyHandler(ScrollDisplayUp,       "ScrollDisplayUp"));
@@ -327,6 +331,10 @@ namespace Microsoft.PowerShell
             };
 
             // Some bindings are not available on certain platforms
+            // For example, PageUp/PageDown and CtrlPageUp/CtrlPageDown bindings are supported on Windows only because
+            //  1. On Linux, 'Console.SetWindowPosition' throws 'PlatformNotSupportedException'.
+            //  2. On macOS, 'PageUp' and 'PageDown' get intercepted by the terminal and move the terminal window up or down for one page.
+            //     'Ctrl+PageUp' and 'Ctrl+PageDown' are also intercepted by the terminal and do the same as 'PageUp' and 'PageDown'.
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 _dispatchTable.Add(Keys.CtrlH,        MakeKeyHandler(BackwardDeleteChar,    "BackwardDeleteChar"));
