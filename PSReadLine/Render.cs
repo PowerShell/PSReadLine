@@ -360,8 +360,8 @@ namespace Microsoft.PowerShell
         {
             // We may need to flip the color on the prompt if the error state changed.
 
-            var bufferWidth = _console.BufferWidth;
-            var promptText = _options.PromptText;
+            int bufferWidth = _console.BufferWidth;
+            string promptText = _options.PromptText;
 
             if (string.IsNullOrEmpty(promptText) || _initialY < 0)
             {
@@ -373,7 +373,7 @@ namespace Microsoft.PowerShell
             renderData.errorPrompt = (_parseErrors != null && _parseErrors.Length > 0);
             if (renderData.errorPrompt == _previousRender.errorPrompt)
             {
-                // No need to flip the prompt color if the error state didn't changed.
+                // No need to flip the prompt color if the error state didn't change.
                 return false;
             }
 
@@ -413,7 +413,7 @@ namespace Microsoft.PowerShell
 
             if (renderErrorPrompt)
             {
-                var color = renderData.errorPrompt ? _options._errorColor : defaultColor;
+                string color = renderData.errorPrompt ? _options._errorColor : defaultColor;
                 if (renderData.errorPrompt && promptBufferCells != promptText.Length)
                 {
                     promptText = promptText.Substring(promptText.Length - promptBufferCells);
