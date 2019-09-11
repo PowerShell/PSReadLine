@@ -229,10 +229,6 @@ namespace Microsoft.PowerShell
                 { Keys.ShiftF3,                MakeKeyHandler(CharacterSearchBackward,   "CharacterSearchBackward") },
                 { Keys.F8,                     MakeKeyHandler(HistorySearchBackward,     "HistorySearchBackward") },
                 { Keys.ShiftF8,                MakeKeyHandler(HistorySearchForward,      "HistorySearchForward") },
-                { Keys.PageUp,                 MakeKeyHandler(ScrollDisplayUp,           "ScrollDisplayUp") },
-                { Keys.PageDown,               MakeKeyHandler(ScrollDisplayDown,         "ScrollDisplayDown") },
-                { Keys.CtrlPageUp,             MakeKeyHandler(ScrollDisplayUpLine,       "ScrollDisplayUpLine") },
-                { Keys.CtrlPageDown,           MakeKeyHandler(ScrollDisplayDownLine,     "ScrollDisplayDownLine") },
                 // Added for xtermjs-based terminals that send different key combinations.
                 { Keys.AltD,                   MakeKeyHandler(KillWord,                  "KillWord") },
                 { Keys.CtrlAt,                 MakeKeyHandler(MenuComplete,              "MenuComplete") },
@@ -247,6 +243,13 @@ namespace Microsoft.PowerShell
                 _dispatchTable.Add(Keys.CtrlDelete, MakeKeyHandler(KillWord,          "KillWord"));
                 _dispatchTable.Add(Keys.CtrlEnd,    MakeKeyHandler(ForwardDeleteLine, "ForwardDeleteLine"));
                 _dispatchTable.Add(Keys.CtrlH,      MakeKeyHandler(BackwardDeleteChar,"BackwardDeleteChar"));
+
+                // PageUp/PageDown and CtrlPageUp/CtrlPageDown bindings are supported on Windows only because they depend on the
+                // API 'Console.SetWindowPosition', which throws 'PlatformNotSupportedException' on unix platforms.
+                _dispatchTable.Add(Keys.PageUp,       MakeKeyHandler(ScrollDisplayUp,       "ScrollDisplayUp"));
+                _dispatchTable.Add(Keys.PageDown,     MakeKeyHandler(ScrollDisplayDown,     "ScrollDisplayDown"));
+                _dispatchTable.Add(Keys.CtrlPageUp,   MakeKeyHandler(ScrollDisplayUpLine,   "ScrollDisplayUpLine"));
+                _dispatchTable.Add(Keys.CtrlPageDown, MakeKeyHandler(ScrollDisplayDownLine, "ScrollDisplayDownLine"));
             }
 
             _chordDispatchTable = new Dictionary<PSKeyInfo, Dictionary<PSKeyInfo, KeyHandler>>();
@@ -324,8 +327,6 @@ namespace Microsoft.PowerShell
                 { Keys.AltPeriod,       MakeKeyHandler(YankLastArg,          "YankLastArg") },
                 { Keys.AltUnderbar,     MakeKeyHandler(YankLastArg,          "YankLastArg") },
                 { Keys.CtrlAltY,        MakeKeyHandler(YankNthArg,           "YankNthArg") },
-                { Keys.PageUp,          MakeKeyHandler(ScrollDisplayUp,      "ScrollDisplayUp") },
-                { Keys.PageDown,        MakeKeyHandler(ScrollDisplayDown,    "ScrollDisplayDown") },
             };
 
             // Some bindings are not available on certain platforms
@@ -335,8 +336,13 @@ namespace Microsoft.PowerShell
                 _dispatchTable.Add(Keys.CtrlSpace,    MakeKeyHandler(MenuComplete,          "MenuComplete"));
                 _dispatchTable.Add(Keys.CtrlEnd,      MakeKeyHandler(ScrollDisplayToCursor, "ScrollDisplayToCursor"));
                 _dispatchTable.Add(Keys.CtrlHome,     MakeKeyHandler(ScrollDisplayTop,      "ScrollDisplayTop"));
-                _dispatchTable.Add(Keys.CtrlPageDown, MakeKeyHandler(ScrollDisplayDownLine, "ScrollDisplayDownLine"));
+
+                // PageUp/PageDown and CtrlPageUp/CtrlPageDown bindings are supported on Windows only because they depend on the
+                // API 'Console.SetWindowPosition', which throws 'PlatformNotSupportedException' on unix platforms.
+                _dispatchTable.Add(Keys.PageUp,       MakeKeyHandler(ScrollDisplayUp,       "ScrollDisplayUp"));
+                _dispatchTable.Add(Keys.PageDown,     MakeKeyHandler(ScrollDisplayDown,     "ScrollDisplayDown"));
                 _dispatchTable.Add(Keys.CtrlPageUp,   MakeKeyHandler(ScrollDisplayUpLine,   "ScrollDisplayUpLine"));
+                _dispatchTable.Add(Keys.CtrlPageDown, MakeKeyHandler(ScrollDisplayDownLine, "ScrollDisplayDownLine"));
             }
             else
             {
