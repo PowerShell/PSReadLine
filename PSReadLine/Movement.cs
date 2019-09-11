@@ -76,18 +76,18 @@ namespace Microsoft.PowerShell
             }
         }
 
-        private void MoveToLine(int numericArg)
+        private void MoveToLine(int lineOffset)
         {
             const int endOfLine = int.MaxValue;
 
             // Actually not moving the line.
-            if (numericArg == 0)
+            if (lineOffset == 0)
             {
                 return;
             }
 
             // Moving the line down when it's actually at the end of the last line.
-            if (numericArg > 0 && _current == _buffer.Length)
+            if (lineOffset > 0 && _current == _buffer.Length)
             {
                 return;
             }
@@ -107,10 +107,10 @@ namespace Microsoft.PowerShell
             {
                 newCurrent = _current;
 
-                if (numericArg > 0)
+                if (lineOffset > 0)
                 {
-                    // Moving to a subsequent line.
-                    for (int i = 0; i < numericArg; i++)
+                    // Moving to the end of a subsequent logical line.
+                    for (int i = 0; i < lineOffset; i++)
                     {
                         for (newCurrent++; newCurrent < _buffer.Length && _buffer[newCurrent] != '\n'; newCurrent++) ;
 
@@ -122,9 +122,9 @@ namespace Microsoft.PowerShell
                 }
                 else
                 {
-                    // Moving to a previous line.
+                    // Moving to the end of a previous logical line.
                     int lastEndOfLineIndex = _current;
-                    for (int i = 0; i < -numericArg; i++)
+                    for (int i = 0; i < -lineOffset; i++)
                     {
                         for (newCurrent--; newCurrent >= 0 && _buffer[newCurrent] != '\n'; newCurrent--) ;
 
@@ -140,7 +140,7 @@ namespace Microsoft.PowerShell
             }
             else
             {
-                int newY = point.Y + numericArg;
+                int newY = point.Y + lineOffset;
                 point.Y = Math.Max(newY, _initialY);
                 point.X = _moveToLineDesiredColumn;
 
