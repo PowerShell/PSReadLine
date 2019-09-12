@@ -230,7 +230,7 @@ namespace Microsoft.PowerShell
                 { Keys.F8,                     MakeKeyHandler(HistorySearchBackward,     "HistorySearchBackward") },
                 { Keys.ShiftF8,                MakeKeyHandler(HistorySearchForward,      "HistorySearchForward") },
                 // Added for xtermjs-based terminals that send different key combinations.
-                { Keys.AltShiftD,                   MakeKeyHandler(KillWord,                  "KillWord") },
+                { Keys.AltShiftD,              MakeKeyHandler(KillWord,                  "KillWord") },
                 { Keys.CtrlAt,                 MakeKeyHandler(MenuComplete,              "MenuComplete") },
                 { Keys.CtrlW,                  MakeKeyHandler(BackwardKillWord,          "BackwardKillWord")},
             };
