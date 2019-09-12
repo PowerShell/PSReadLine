@@ -32,6 +32,78 @@ namespace Test
         }
 
         [SkippableFact]
+        public void MultilineCursorMovement_WithWrappedLines()
+        {
+            TestSetup(KeyMode.Cmd);
+
+            int continutationPromptLength = PSConsoleReadLineOptions.DefaultContinuationPrompt.Length;
+            string line_0 = "4444";
+            string line_1 = "33";
+            string line_2 = "666666";
+            string line_3 = "777";
+
+            int wrappedLength_1 = 9;
+            int wrappedLength_2 = 2;
+            string wrappedLine_1 = new string('8', _console.BufferWidth - continutationPromptLength + wrappedLength_1); // Take 2 physical lines
+            string wrappedLine_2 = new string('6', _console.BufferWidth - continutationPromptLength + wrappedLength_2); // Take 2 physical lines
+
+            Test("", Keys(
+                "",     _.Shift_Enter,        // physical line 0
+                line_0, _.Shift_Enter,        // physical line 1
+                line_1, _.Shift_Enter,        // physical line 2
+                line_2, _.Shift_Enter,        // physical line 3
+                wrappedLine_1, _.Shift_Enter, // physical line 4,5
+                wrappedLine_2, _.Shift_Enter, // physical line 6,7
+                line_3,                       // physical line 8
+
+                // Starting at the end of the last line.
+                // Verify that UpArrow goes to the end of the previous logical line.
+                CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength + line_3.Length, 8)),
+                _.DownArrow, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength + line_3.Length, 8)),
+                _.DownArrow, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength + line_3.Length, 8)),
+                // Press Up/Down/Up
+                _.UpArrow,   CheckThat(() => AssertCursorLeftTopIs(wrappedLength_2, 7)),
+                _.DownArrow, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength + line_3.Length, 8)),
+                _.UpArrow,   CheckThat(() => AssertCursorLeftTopIs(wrappedLength_2, 7)),
+                // Press Up/Down/Up
+                _.UpArrow,   CheckThat(() => AssertCursorLeftTopIs(wrappedLength_1, 5)),
+                _.DownArrow, CheckThat(() => AssertCursorLeftTopIs(wrappedLength_2, 7)),
+                _.UpArrow,   CheckThat(() => AssertCursorLeftTopIs(wrappedLength_1, 5)),
+                // Press Up/Down/Up
+                _.UpArrow,   CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength + line_2.Length, 3)),
+                _.DownArrow, CheckThat(() => AssertCursorLeftTopIs(wrappedLength_1, 5)),
+                _.UpArrow,   CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength + line_2.Length, 3)),
+                // Press Up/Up
+                _.UpArrow,   CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength + line_1.Length, 2)),
+                _.UpArrow,   CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength + line_0.Length, 1)),
+
+                // Move to left for 1 character, so the cursor now is not at the end of line.
+                // Verify that DownArrow/UpArrow goes to the previous logical line at the same column.
+                _.LeftArrow, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength + line_0.Length - 1, 1)),
+                // Press Down all the way to the end
+                _.DownArrow, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength + line_1.Length, 2)),
+                _.DownArrow, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength + line_0.Length - 1, 3)),
+                _.DownArrow, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength + line_0.Length - 1, 4)),
+                _.DownArrow, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength + line_0.Length - 1, 5)),
+                _.DownArrow, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength + line_0.Length - 1, 6)),
+                _.DownArrow, CheckThat(() => AssertCursorLeftTopIs(wrappedLength_2, 7)),
+                _.DownArrow, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength + line_3.Length, 8)),
+                _.DownArrow, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength + line_3.Length, 8)),
+                // Press Up all the way to the physical line 1
+                _.UpArrow, CheckThat(() => AssertCursorLeftTopIs(wrappedLength_2, 7)),
+                _.UpArrow, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength + line_0.Length - 1, 6)),
+                _.UpArrow, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength + line_0.Length - 1, 5)),
+                _.UpArrow, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength + line_0.Length - 1, 4)),
+                _.UpArrow, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength + line_0.Length - 1, 3)),
+                _.UpArrow, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength + line_1.Length, 2)),
+                _.UpArrow, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength + line_0.Length - 1, 1)),
+
+                // Clear the input, we were just testing movement
+                _.Escape
+                ));
+        }
+
+        [SkippableFact]
         public void MultilineCursorMovement()
         {
             TestSetup(KeyMode.Cmd);

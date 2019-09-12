@@ -76,39 +76,88 @@ namespace Microsoft.PowerShell
             }
         }
 
-        private void MoveToLine(int numericArg)
+        private void MoveToLine(int lineOffset)
         {
+            // Behavior description:
+            //  - If the cursor is at the end of a logical line, then 'UpArrow' (or 'DownArrow') moves the cursor up (or down)
+            //    'lineOffset' numbers of logical lines, and the cursor is always put at the end of the new logical line.
+            //  - If the cursor is NOT at the end of a logical line, then 'UpArrow' (or 'DownArrow') moves the cursor up (or down)
+            //    'lineOffset' numbers of physical lines, and the cursor is always placed at the same column as is now, or at the
+            //    end of line if that physical line is shorter than the targeted column.
+
             const int endOfLine = int.MaxValue;
 
+            Point? point = null;
             _moveToLineCommandCount += 1;
-            var point = ConvertOffsetToPoint(_current);
+
             if (_moveToLineCommandCount == 1)
             {
+                point = ConvertOffsetToPoint(_current);
                 _moveToLineDesiredColumn =
                     (_current == _buffer.Length || _buffer[_current] == '\n')
                         ? endOfLine
-                        : point.X;
+                        : point.Value.X;
             }
 
-            var topLine = _initialY;
-
-            var newY = point.Y + numericArg;
-            point.Y = Math.Max(newY, topLine);
-            if (_moveToLineDesiredColumn != endOfLine)
+            // Nothing needs to be done when:
+            //  - actually not moving the line, or
+            //  - moving the line down when it's at the end of the last line.
+            if (lineOffset == 0 || (lineOffset > 0 && _current == _buffer.Length))
             {
-                point.X = _moveToLineDesiredColumn;
+                return;
             }
 
-            var newCurrent = ConvertLineAndColumnToOffset(point);
-            if (newCurrent != -1)
+            int newCurrent;
+            if (_moveToLineDesiredColumn == endOfLine)
             {
-                if (_moveToLineDesiredColumn == endOfLine)
+                newCurrent = _current;
+
+                if (lineOffset > 0)
                 {
-                    while (newCurrent < _buffer.Length && _buffer[newCurrent] != '\n')
+                    // Moving to the end of a subsequent logical line.
+                    for (int i = 0; i < lineOffset; i++)
                     {
-                        newCurrent += 1;
+                        for (newCurrent++; newCurrent < _buffer.Length && _buffer[newCurrent] != '\n'; newCurrent++) ;
+
+                        if (newCurrent == _buffer.Length)
+                        {
+                            break;
+                        }
                     }
                 }
+                else
+                {
+                    // Moving to the end of a previous logical line.
+                    int lastEndOfLineIndex = _current;
+                    for (int i = 0; i < -lineOffset; i++)
+                    {
+                        for (newCurrent--; newCurrent >= 0 && _buffer[newCurrent] != '\n'; newCurrent--) ;
+
+                        if (newCurrent < 0)
+                        {
+                            newCurrent = lastEndOfLineIndex;
+                            break;
+                        }
+
+                        lastEndOfLineIndex = newCurrent;
+                    }
+                }
+            }
+            else
+            {
+                point = point ?? ConvertOffsetToPoint(_current);
+                int newY = point.Value.Y + lineOffset;
+
+                Point newPoint = new Point() {
+                    X = _moveToLineDesiredColumn,
+                    Y = Math.Max(newY, _initialY)
+                };
+
+                newCurrent = ConvertLineAndColumnToOffset(newPoint);
+            }
+
+            if (newCurrent != -1)
+            {
                 MoveCursor(newCurrent);
             }
         }
