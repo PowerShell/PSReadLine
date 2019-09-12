@@ -532,6 +532,7 @@ namespace Microsoft.PowerShell
         public static PSKeyInfo AltY                = Alt('y');
         public static PSKeyInfo AltZ                = Alt('z');
         public static PSKeyInfo AltShiftB           = Alt('B');
+        public static PSKeyInfo AltShiftD           = Alt('D');
         public static PSKeyInfo AltShiftF           = Alt('F');
         public static PSKeyInfo AltSpace            = Alt(ConsoleKey.Spacebar);  // !Windows, system menu.
         public static PSKeyInfo AltPeriod           = Alt('.');  // !Linux, CLR bug
