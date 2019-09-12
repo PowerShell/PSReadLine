@@ -47,7 +47,7 @@ If you only want to get the latest stable version, run `Install-Module PSReadLin
 >[!NOTE] Prerelease versions will have newer features and bug fixes, but may also introduce new issues.
 
 If you are using Windows PowerShell on Windows 10 or using PowerShell 6+, PSReadLine is already installed.
-Windows PowerShell on the latest Windows 10 has version 1.2 of PSReadLine.
+Windows PowerShell on the latest Windows 10 has version `2.0.0-beta2` of PSReadLine.
 PowerShell 6+ versions have the newer prerelease versions of PSReadLine.
 
 ### Install from GitHub (deprecated)
