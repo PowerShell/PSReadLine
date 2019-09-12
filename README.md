@@ -11,7 +11,7 @@
 
 # PSReadLine
 
-This module replaces the command line editing experience in PowerShell.exe for versions 3 and up.
+This module replaces the command line editing experience of PowerShell for versions 3 and up.
 It provides:
 
 * Syntax coloring
@@ -28,11 +28,11 @@ It provides:
 * Automatic saving of history, including sharing history across live sessions
 * "Menu" completion (somewhat like Intellisense, select completion with arrows) via Ctrl+Space
 
-The "out of box" experience is meant to be very familiar to PowerShell.exe users - there should be no need to learn any new key strokes.
+The "out of box" experience is meant to be very familiar to PowerShell users - there should be no need to learn any new key strokes.
 
-Keith Hill wrote a great introduction to PSReadLine [here](http://rkeithhill.wordpress.com/2013/10/18/psreadline-a-better-line-editing-experience-for-the-powershell-console/)
+Keith Hill wrote a great introduction to PSReadLine [here](http://rkeithhill.wordpress.com/2013/10/18/psreadline-a-better-line-editing-experience-for-the-powershell-console/).
 
-Ed Wilson (Scripting Guy) wrote a series on PSReadLine, starting [here](http://blogs.technet.com/b/heyscriptingguy/archive/2014/06/16/the-search-for-a-better-powershell-console-experience.aspx)
+Ed Wilson (Scripting Guy) wrote a series on PSReadLine, starting [here](http://blogs.technet.com/b/heyscriptingguy/archive/2014/06/16/the-search-for-a-better-powershell-console-experience.aspx).
 
 ## Installation
 
@@ -40,15 +40,15 @@ There are multiple ways to install PSReadLine.
 
 ### Install from PowerShellGallery (preferred)
 
-You will need PowerShellGet.  It is included in Windows 10 and [WMF5](http://go.microsoft.com/fwlink/?LinkId=398175). If you are using PowerShell V3 or V4, you will need to install [PowerShellGet](https://docs.microsoft.com/powershell/gallery/installing-psget).
-
+You will need [PowerShellGet](https://docs.microsoft.com/en-us/powershell/gallery/installing-psget).
 After installing PowerShellGet, you can simply run `Install-Module PSReadLine -AllowPrerelease -Force` to get the latest prerelease version.
-
 If you only want to get the latest stable version, run `Install-Module PSReadLine`.
 
 >[!NOTE] Prerelease versions will have newer features and bug fixes, but may also introduce new issues.
 
-If you are on Windows 10, PSReadLine is already installed. Windows 10 RTM and the November update have version 1.1, later builds have version 1.2 (which includes vi mode). See below for how to upgrade.
+If you are using Windows PowerShell on Windows 10 or using PowerShell 6+, PSReadLine is already installed.
+Windows PowerShell on the latest Windows 10 has version 1.2 of PSReadLine.
+PowerShell 6+ versions have the newer prerelease versions of PSReadLine.
 
 ### Install from GitHub (deprecated)
 
@@ -57,9 +57,12 @@ We don't intend to update releases on GitHub, and may remove the release entirel
 
 ### Post Installation
 
-Edit your profile to import the module. This step is optional with PowerShell V5 and greater. There are two common profile files commonly used and the instructions are slightly different for each.
+If you are using Windows PowerShell V5 or V5.1 versions, or using PowerShell 6+ versions, you are good to go and can skip this section.
 
-The file `C:\Users\[User]\Documents\WindowsPowerShell\profile.ps1` is used for all hosts (e.g. the ISE and powershell.exe).  If you already have this file, then you should add the following:
+Otherwise, you need to edit your profile to import the module.
+There are two profile files commonly used and the instructions are slightly different for each.
+The file `C:\Users\[User]\Documents\WindowsPowerShell\profile.ps1` is used for all hosts (e.g. the `ISE` and `powershell.exe`).
+If you already have this file, then you should add the following:
 
 ```powershell
 if ($host.Name -eq 'ConsoleHost')
@@ -68,7 +71,7 @@ if ($host.Name -eq 'ConsoleHost')
 }
 ```
 
-Alternatively, the file `C:\Users\[User]\Documents\WindowsPowerShell\Microsoft.PowerShell_profile.ps1` is for powershell.exe only.  Using this file, you can simply add:
+Alternatively, the file `C:\Users\[User]\Documents\WindowsPowerShell\Microsoft.PowerShell_profile.ps1` is for `powershell.exe` only.  Using this file, you can simply add:
 
 ```powershell
 Import-Module PSReadLine
@@ -78,11 +81,19 @@ In either case, you can create the appropriate file if you don't already have on
 
 ## Upgrading
 
-When running one of the suggested commands below, be sure to exit all instances of powershell.exe, then run the suggested command from cmd.exe, powershell_ise.exe, or via the Win+R shortcut to make sure PSReadLine isn't loaded.
+When running one of the suggested commands below, be sure to exit all instances of `powershell.exe`, `pwsh.exe` or `pwsh`, 
+then run the suggested command from `cmd.exe`, `powershell_ise.exe`, or via the `Win+R` shortcut to make sure PSReadLine isn't loaded.
 
-If you are using the version of PSReadLine that ships with Windows 10, you need to run: `powershell -noprofile -command "Install-Module PSReadLine -Force -SkipPublisherCheck"`.
+If you are using the version of PSReadLine that ships with Windows PowerShell,
+you need to run: `powershell -noprofile -command "Install-Module PSReadLine -Force -SkipPublisherCheck -AllowPrerelease"`.
 
-If you've installed PSReadLine yourself from the PowerShell Gallery, you can simply run: `powershell -noprofile -command "Update-Module PSReadLine"`.
+If you are using the version of PSReadLine that ships with PowerShell 6+ versions,
+you need to run: `<path-to-pwsh-executable> -noprofile -command "Install-Module PSReadLine -Force -SkipPublisherCheck -AllowPrerelease"`.
+
+If you've installed PSReadLine yourself from the PowerShell Gallery,
+you can simply run: `powershell -noprofile -command "Update-Module PSReadLine -AllowPrerelease"` or
+`<path-to-pwsh-executable> -noprofile -command "Update-Module PSReadLine -AllowPrerelease`,
+depending on the version of PowerShell you are using.
 
 If you get an error like:
 
