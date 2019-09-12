@@ -82,7 +82,8 @@ namespace Microsoft.PowerShell
             //  - If the cursor is at the end of a logical line, then 'UpArrow' (or 'DownArrow') moves the cursor up (or down)
             //    'lineOffset' numbers of logical lines, and the cursor is always put at the end of the new logical line.
             //  - If the cursor is NOT at the end of a logical line, then 'UpArrow' (or 'DownArrow') moves the cursor up (or down)
-            //    'lineOffset' numbers of physical lines, and the cursor is always placed at the same column as is now.
+            //    'lineOffset' numbers of physical lines, and the cursor is always placed at the same column as is now, or at the
+            //    end of line if that physical line is shorter than the targeted column.
 
             const int endOfLine = int.MaxValue;
 
