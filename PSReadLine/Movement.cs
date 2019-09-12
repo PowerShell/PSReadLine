@@ -80,26 +80,24 @@ namespace Microsoft.PowerShell
         {
             const int endOfLine = int.MaxValue;
 
-            // Actually not moving the line.
-            if (lineOffset == 0)
-            {
-                return;
-            }
-
-            // Moving the line down when it's actually at the end of the last line.
-            if (lineOffset > 0 && _current == _buffer.Length)
-            {
-                return;
-            }
-
+            Point? point = null;
             _moveToLineCommandCount += 1;
-            var point = ConvertOffsetToPoint(_current);
+
             if (_moveToLineCommandCount == 1)
             {
+                point = ConvertOffsetToPoint(_current);
                 _moveToLineDesiredColumn =
                     (_current == _buffer.Length || _buffer[_current] == '\n')
                         ? endOfLine
-                        : point.X;
+                        : point.Value.X;
+            }
+
+            // Nothing needs to be done when:
+            //  - actually not moving the line, or
+            //  - moving the line down when it's at the end of the last line.
+            if (lineOffset == 0 || (lineOffset > 0 && _current == _buffer.Length))
+            {
+                return;
             }
 
             int newCurrent;
@@ -140,11 +138,15 @@ namespace Microsoft.PowerShell
             }
             else
             {
-                int newY = point.Y + lineOffset;
-                point.Y = Math.Max(newY, _initialY);
-                point.X = _moveToLineDesiredColumn;
+                point = point ?? ConvertOffsetToPoint(_current);
+                int newY = point.Value.Y + lineOffset;
 
-                newCurrent = ConvertLineAndColumnToOffset(point);
+                Point newPoint = new Point() {
+                    X = _moveToLineDesiredColumn,
+                    Y = Math.Max(newY, _initialY)
+                };
+
+                newCurrent = ConvertLineAndColumnToOffset(newPoint);
             }
 
             if (newCurrent != -1)
