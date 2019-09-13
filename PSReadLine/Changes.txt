@@ -1,3 +1,22 @@
+### Version 2.0.0-beta5
+
+Pre-release notes:
+
+Bug fixes:
+
+* Handle the dead key on Windows properly (#933, #945)
+* Fix duplicate menu at end of buffer (#937) (Thanks @parkovski)
+* Get Buffer Info as part of the Environment data in bug reporting (#942)
+* Add API to detect if the screen reader is active (#947)
+* Fix `ArgumentOutOfRangeException` thrown when changing color of the error prompt (#967)
+* Fix the 'ArgumentOutOfRangeException' caused by top of the text being scrolled up-off the buffer (#979)
+* Add the missing single curly quote and double curly quote to `IsSingleQuote` and `IsDoubleQuote` checks (#985) (Thanks @msftrncs)
+* Fix the color of operator token in the `ArgumentMode` in syntax highlighting (#1003) (Thanks @msftrncs)
+* Prioritize highlight of command names, prevent bleed from aligned nested tokens in syntax highlighting (#989) (Thanks @msftrncs)
+* Prevent 'ArgumentOutOfRangeException' when showing the tab completion menu (#984) (Thanks @msftrncs)
+* Make `PageUp/PageDown` and `CtrlPageUp/CtrlPageDown` windows only (#1032)
+* Fix `UpArrow` when the cursor is at the end of a wrapped line in a multiple-line text (#1028)
+
 ### Version 2.0.0-beta4
 
 Pre-release notes:
