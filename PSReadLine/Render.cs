@@ -238,10 +238,28 @@ namespace Microsoft.PowerShell
                             else
                             {
                                 state = tokenStack.Peek();
+                                if (state.Index == state.Tokens.Length - 1)
+                                {
+                                    // It's possible that a 'StringExpandableToken' is the last available token, for example:
+                                    //   'begin $a\abc def', 'process $a\abc | blah' and 'end $a\abc; hello'
+                                    // due to the special handling of the keywords 'begin', 'process' and 'end', all the above 3 script input
+                                    // generates 2 tokens only by parser -- A KeywordToken, and a StringExpandableToken '$a\abc'. Text after
+                                    // '$a\abc' is not tokenized at all.
+                                    //
+                                    // In this case, we assign the StringExpandableToken to 'token' variable again, so we can get in this loop
+                                    // again and pop the next token group from the stack.
+                                    color = state.Color;
+                                    token = state.Tokens[state.Index];
+                                    continue;
+                                }
                             }
                         }
 
-                        if (!afterLastToken)
+                        if (afterLastToken)
+                        {
+                            break;
+                        }
+                        else
                         {
                             color = state.Color;
                             token = state.Tokens[++state.Index];
