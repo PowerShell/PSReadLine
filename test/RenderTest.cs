@@ -94,6 +94,14 @@ namespace Test
                 InputAcceptedNow
                 ));
 
+            // test that rendering doesn't cause an exception in a potential missing "EOS" token case.
+            // this case could be a moving target, if the PowerShell parser is changed such as to eliminate the case.
+            Test("", Keys(
+                "process $abc\\name | out-null",
+                _.Ctrl_c,
+                InputAcceptedNow
+                ));
+
             Test("", Keys(
                 "\"$([int];\"_$(1+2)\")\"",
                 CheckThat(() =>
