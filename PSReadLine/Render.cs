@@ -226,7 +226,7 @@ namespace Microsoft.PowerShell
                     var token = state.Tokens[state.Index];
                     while (i == token.Extent.EndOffset)
                     {
-                        if (token == state.Tokens[state.Tokens.Length - 1])
+                        if (state.Index == state.Tokens.Length - 1)
                         {
                             tokenStack.Pop();
                             if (tokenStack.Count == 0)
@@ -234,18 +234,24 @@ namespace Microsoft.PowerShell
                                 afterLastToken = true;
                                 token = null;
                                 color = defaultColor;
+                                break;
                             }
                             else
                             {
                                 state = tokenStack.Peek();
+
+                                // It's possible that a 'StringExpandableToken' is the last available token, for example:
+                                //   'begin $a\abc def', 'process $a\abc | blah' and 'end $a\abc; hello'
+                                // due to the special handling of the keywords 'begin', 'process' and 'end', all the above 3 script inputs
+                                // generate only 2 tokens by the parser -- A KeywordToken, and a StringExpandableToken '$a\abc'. Text after
+                                // '$a\abc' is not tokenized at all.
+                                // We repeat the test to see if we fall into this case ('token' is the final one in the stack).
+                                continue;
                             }
                         }
 
-                        if (!afterLastToken)
-                        {
-                            color = state.Color;
-                            token = state.Tokens[++state.Index];
-                        }
+                        color = state.Color;
+                        token = state.Tokens[++state.Index];
                     }
 
                     if (!afterLastToken && i == token.Extent.StartOffset)
