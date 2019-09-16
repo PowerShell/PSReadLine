@@ -226,7 +226,7 @@ namespace Microsoft.PowerShell
                     var token = state.Tokens[state.Index];
                     while (i == token.Extent.EndOffset)
                     {
-                        if (token == state.Tokens[state.Tokens.Length - 1])
+                        if (state.Index == state.Tokens.Length - 1)
                         {
                             tokenStack.Pop();
                             if (tokenStack.Count == 0)
@@ -234,18 +234,19 @@ namespace Microsoft.PowerShell
                                 afterLastToken = true;
                                 token = null;
                                 color = defaultColor;
+                                break;
                             }
                             else
                             {
                                 state = tokenStack.Peek();
+                                // Repeat the test to see if this is the final token
+                                // in the stack incase of missing "EOS" token.
+                                continue;
                             }
                         }
 
-                        if (!afterLastToken)
-                        {
-                            color = state.Color;
-                            token = state.Tokens[++state.Index];
-                        }
+                        color = state.Color;
+                        token = state.Tokens[++state.Index];
                     }
 
                     if (!afterLastToken && i == token.Extent.StartOffset)
