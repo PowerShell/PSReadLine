@@ -242,8 +242,8 @@ namespace Microsoft.PowerShell
 
                                 // It's possible that a 'StringExpandableToken' is the last available token, for example:
                                 //   'begin $a\abc def', 'process $a\abc | blah' and 'end $a\abc; hello'
-                                // due to the special handling of the keywords 'begin', 'process' and 'end', all the above 3 script input
-                                // generates 2 tokens only by parser -- A KeywordToken, and a StringExpandableToken '$a\abc'. Text after
+                                // due to the special handling of the keywords 'begin', 'process' and 'end', all the above 3 script inputs
+                                // generate only 2 tokens by the parser -- A KeywordToken, and a StringExpandableToken '$a\abc'. Text after
                                 // '$a\abc' is not tokenized at all.
                                 // We repeat the test to see if we fall into this case ('token' is the final one in the stack).
                                 continue;
