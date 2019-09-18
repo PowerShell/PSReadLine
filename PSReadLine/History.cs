@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using Microsoft.PowerShell.PSReadLine;
 
@@ -51,6 +52,7 @@ namespace Microsoft.PowerShell
             public bool FromHistoryFile { get; internal set; }
 
             internal bool _saved;
+            internal bool _sensitive;
             internal List<EditItem> _edits;
             internal int _undoEditIndex;
         }
@@ -76,6 +78,10 @@ namespace Microsoft.PowerShell
         private const string _failedForwardISearchPrompt = "failed-fwd-i-search: ";
         private const string _failedBackwardISearchPrompt = "failed-bck-i-search: ";
 
+        private static Regex s_sensitivePattern = new Regex(
+            "password|asplaintext|token|key|secret",
+            RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
         private string MaybeAddToHistory(
             string result,
             List<EditItem> edits,
@@ -89,11 +95,11 @@ namespace Microsoft.PowerShell
                 if (string.IsNullOrWhiteSpace(line)) return false;
 
                 // If the user says don't add it, then don't.
-                if (Options.AddToHistoryHandler != null && !Options.AddToHistoryHandler(result)) return false;
+                if (Options.AddToHistoryHandler != null && !Options.AddToHistoryHandler(line)) return false;
 
                 // Under "no dupes" (which is on by default), immediately drop dupes of the previous line.
                 if (Options.HistoryNoDuplicates && _history.Count > 0)
-                    return !string.Equals(_history[_history.Count - 1].CommandLine, result, StringComparison.Ordinal);
+                    return !string.Equals(_history[_history.Count - 1].CommandLine, line, StringComparison.Ordinal);
 
                 return true;
             }
@@ -110,13 +116,14 @@ namespace Microsoft.PowerShell
                     FromOtherSession = fromDifferentSession,
                     FromHistoryFile = fromInitialRead,
                 };
+
                 if (!fromHistoryFile)
                 {
+                    _previousHistoryItem._sensitive = s_sensitivePattern.IsMatch(result);
                     _previousHistoryItem.StartTime = DateTime.UtcNow;
                 }
 
                 _history.Enqueue(_previousHistoryItem);
-
 
                 _currentHistoryIndex = _history.Count;
 
@@ -168,7 +175,6 @@ namespace Microsoft.PowerShell
         {
             WriteHistoryRange(0, _history.Count - 1, File.CreateText);
         }
-
 
         private int historyErrorReportedCount;
         private void ReportHistoryFileError(Exception e)
@@ -241,8 +247,13 @@ namespace Microsoft.PowerShell
                     {
                         for (var i = start; i <= end; i++)
                         {
-                            _history[i]._saved = true;
-                            var line = _history[i].CommandLine.Replace("\n", "`\n");
+                            HistoryItem item = _history[i];
+                            item._saved = true;
+
+                            // Actually, don't save sensitive history items to file.
+                            if (item._sensitive) { continue; }
+
+                            var line = item.CommandLine.Replace("\n", "`\n");
                             file.WriteLine(line);
                         }
                     }
