@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using Microsoft.PowerShell;
 using Xunit;
@@ -29,6 +30,77 @@ namespace Test
 
             Test("dir c*", Keys(_.UpArrow, _.UpArrow));
             Test("dir c*", Keys(_.UpArrow, _.UpArrow, _.DownArrow));
+        }
+
+        [SkippableFact]
+        public void SensitiveHistory()
+        {
+            TestSetup(KeyMode.Cmd);
+
+            // No history
+            SetHistory();
+            Test("", Keys(_.UpArrow, _.DownArrow));
+
+            var options = PSConsoleReadLine.GetOptions();
+            var oldHistoryFilePath = options.HistorySavePath;
+            var oldHistorySaveStyle = options.HistorySaveStyle;
+
+            var newHistoryFilePath = Path.GetTempFileName();
+            var newHistorySaveStyle = HistorySaveStyle.SaveIncrementally;
+
+            string[] expectedHistoryItems = new[] {
+                "gcm c*",
+                "ConvertTo-SecureString -AsPlainText -String abc -Force",
+                "dir p*",
+                "Publish-Module -NuGetApiKey abc",
+                "ps c*",
+                "mycommand -password abc",
+                "echo foo",
+                "cmd1 /token abc",
+                "echo bar",
+                "cmd2 --key abc",
+                "echo zoo",
+                "pki secret",
+                "gcm p*"
+            };
+
+            string[] expectedSavedItems = new[] {
+                "gcm c*",
+                "dir p*",
+                "ps c*",
+                "echo foo",
+                "echo bar",
+                "echo zoo",
+                "gcm p*"
+            };
+
+            try
+            {
+                options.HistorySavePath = newHistoryFilePath;
+                options.HistorySaveStyle = newHistorySaveStyle;
+                SetHistory(expectedHistoryItems);
+
+                // Sensitive input history should be kept in the internal history queue.
+                var historyItems = PSConsoleReadLine.GetHistoryItems();
+                Assert.Equal(expectedHistoryItems.Length, historyItems.Length);
+                for (int i = 0; i < expectedHistoryItems.Length; i++)
+                {
+                    Assert.Equal(expectedHistoryItems[i], historyItems[i].CommandLine);
+                }
+
+                // Sensitive input history should NOT be saved to the history file.
+                string[] text = File.ReadAllLines(newHistoryFilePath);
+                Assert.Equal(expectedSavedItems.Length, text.Length);
+                for (int i = 0; i < text.Length; i++)
+                {
+                    Assert.Equal(expectedSavedItems[i], text[i]);
+                }
+            }
+            finally
+            {
+                options.HistorySavePath = oldHistoryFilePath;
+                options.HistorySaveStyle = oldHistorySaveStyle;
+            }
         }
 
         [SkippableFact]

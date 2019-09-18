@@ -78,6 +78,7 @@ namespace Microsoft.PowerShell
         private const string _failedForwardISearchPrompt = "failed-fwd-i-search: ";
         private const string _failedBackwardISearchPrompt = "failed-bck-i-search: ";
 
+        // Pattern used to check for sensitive inputs.
         private static Regex s_sensitivePattern = new Regex(
             "password|asplaintext|token|key|secret",
             RegexOptions.Compiled | RegexOptions.IgnoreCase);
@@ -250,7 +251,7 @@ namespace Microsoft.PowerShell
                             HistoryItem item = _history[i];
                             item._saved = true;
 
-                            // Actually, don't save sensitive history items to file.
+                            // Actually, skip writing sensitive items to file.
                             if (item._sensitive) { continue; }
 
                             var line = item.CommandLine.Replace("\n", "`\n");
