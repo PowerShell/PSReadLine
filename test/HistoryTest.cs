@@ -45,6 +45,10 @@ namespace Test
             var oldHistoryFilePath = options.HistorySavePath;
             var oldHistorySaveStyle = options.HistorySaveStyle;
 
+            // By default, we scrub sensitive history with the default sensitive content detection code.
+            Assert.True(options.ScrubSensitiveHistory);
+            Assert.Null(options.DetectSensitiveInputHandler);
+
             var newHistoryFilePath = Path.GetTempFileName();
             var newHistorySaveStyle = HistorySaveStyle.SaveIncrementally;
 
@@ -100,6 +104,96 @@ namespace Test
             {
                 options.HistorySavePath = oldHistoryFilePath;
                 options.HistorySaveStyle = oldHistorySaveStyle;
+                File.Delete(newHistoryFilePath);
+            }
+        }
+
+        [SkippableFact]
+        public void SensitiveHistoryOptionalBehavior()
+        {
+            TestSetup(KeyMode.Cmd);
+
+            // No history
+            SetHistory();
+            Test("", Keys(_.UpArrow, _.DownArrow));
+
+            var options = PSConsoleReadLine.GetOptions();
+            var oldHistoryFilePath = options.HistorySavePath;
+            var oldHistorySaveStyle = options.HistorySaveStyle;
+
+            // By default, we scrub sensitive history with the default sensitive content detection code.
+            Assert.True(options.ScrubSensitiveHistory);
+            Assert.Null(options.DetectSensitiveInputHandler);
+
+            var newHistoryFilePath = Path.GetTempFileName();
+            var newHistorySaveStyle = HistorySaveStyle.SaveIncrementally;
+            Func<string, bool> newDetectSensitiveInputHandler = s => s.Contains("gal");
+
+            string[] expectedHistoryItems = new[] {
+                "gcm c*",
+                "gal dir",
+                "ConvertTo-SecureString -AsPlainText -String abc -Force",
+            };
+
+            string[] expectedSavedItems = new[] {
+                "gcm c*",
+                "ConvertTo-SecureString -AsPlainText -String abc -Force"
+            };
+
+            try
+            {
+                options.HistorySavePath = newHistoryFilePath;
+                options.HistorySaveStyle = newHistorySaveStyle;
+                options.ScrubSensitiveHistory = false;
+
+                SetHistory(expectedHistoryItems);
+
+                // All commands should be kept in the internal history queue.
+                var historyItems = PSConsoleReadLine.GetHistoryItems();
+                Assert.Equal(expectedHistoryItems.Length, historyItems.Length);
+                for (int i = 0; i < expectedHistoryItems.Length; i++)
+                {
+                    Assert.Equal(expectedHistoryItems[i], historyItems[i].CommandLine);
+                }
+
+                // All commands are saved to the history file when 'ScrubSensitiveHistory' is set to 'false'.
+                string[] text = File.ReadAllLines(newHistoryFilePath);
+                Assert.Equal(expectedHistoryItems.Length, text.Length);
+                for (int i = 0; i < text.Length; i++)
+                {
+                    Assert.Equal(expectedHistoryItems[i], text[i]);
+                }
+
+                options.ScrubSensitiveHistory = true;
+                options.DetectSensitiveInputHandler = newDetectSensitiveInputHandler;
+
+                // Clear the history file.
+                File.WriteAllText(newHistoryFilePath, string.Empty);
+                SetHistory(expectedHistoryItems);
+
+                // All commands should be kept in the internal history queue.
+                historyItems = PSConsoleReadLine.GetHistoryItems();
+                Assert.Equal(expectedHistoryItems.Length, historyItems.Length);
+                for (int i = 0; i < expectedHistoryItems.Length; i++)
+                {
+                    Assert.Equal(expectedHistoryItems[i], historyItems[i].CommandLine);
+                }
+
+                // Command considered to be sensitive by 'DetectSensitiveInputHandler' should NOT be saved to the history file.
+                text = File.ReadAllLines(newHistoryFilePath);
+                Assert.Equal(expectedSavedItems.Length, text.Length);
+                for (int i = 0; i < text.Length; i++)
+                {
+                    Assert.Equal(expectedSavedItems[i], text[i]);
+                }
+            }
+            finally
+            {
+                options.HistorySavePath = oldHistoryFilePath;
+                options.HistorySaveStyle = oldHistorySaveStyle;
+                options.ScrubSensitiveHistory = true;
+                options.DetectSensitiveInputHandler = null;
+                File.Delete(newHistoryFilePath);
             }
         }
 
