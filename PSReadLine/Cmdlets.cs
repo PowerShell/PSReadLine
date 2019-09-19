@@ -136,7 +136,9 @@ namespace Microsoft.PowerShell
             ContinuationPromptColor = Console.ForegroundColor;
             ExtraPromptLineCount = DefaultExtraPromptLineCount;
             AddToHistoryHandler = null;
+            DetectSensitiveInputHandler = null;
             HistoryNoDuplicates = DefaultHistoryNoDuplicates;
+            ScrubSensitiveHistory = DefaultScrubSensitiveHistory;
             MaximumHistoryCount = DefaultMaximumHistoryCount;
             MaximumKillRingCount = DefaultMaximumKillRingCount;
             HistorySearchCursorMovesToEnd = DefaultHistorySearchCursorMovesToEnd;
@@ -243,6 +245,12 @@ namespace Microsoft.PowerShell
         public Func<string, bool> AddToHistoryHandler { get; set; }
 
         /// <summary>
+        /// This handler is called to detect if a command line contains
+        /// sensitive information, such as password, key or token.
+        /// </summary>
+        public Func<string, bool> DetectSensitiveInputHandler { get; set; }
+
+        /// <summary>
         /// This handler is called from ValidateAndAcceptLine.
         /// If an exception is thrown, validation fails and the error is reported.
         /// </summary>
@@ -267,6 +275,9 @@ namespace Microsoft.PowerShell
         /// </summary>
         public bool HistoryNoDuplicates { get; set; }
         public const bool DefaultHistoryNoDuplicates = true;
+
+        public bool ScrubSensitiveHistory { get; set; }
+        public const bool DefaultScrubSensitiveHistory = true;
 
         public int MaximumHistoryCount { get; set; }
         public int MaximumKillRingCount { get; set; }
@@ -513,6 +524,14 @@ namespace Microsoft.PowerShell
         internal SwitchParameter? _historyNoDuplicates;
 
         [Parameter]
+        public SwitchParameter ScrubSensitiveHistory
+        {
+            get => _scrubSensitiveHistory.GetValueOrDefault();
+            set => _scrubSensitiveHistory = value;
+        }
+        internal SwitchParameter? _scrubSensitiveHistory;
+
+        [Parameter]
         [AllowNull]
         public Func<string, bool> AddToHistoryHandler
         {
@@ -525,6 +544,20 @@ namespace Microsoft.PowerShell
         }
         private Func<string, bool> _addToHistoryHandler;
         internal bool _addToHistoryHandlerSpecified;
+
+        [Parameter]
+        [AllowNull]
+        public Func<string, bool> DetectSensitiveInputHandler
+        {
+            get => _detectSensitiveInputHandler;
+            set
+            {
+                _detectSensitiveInputHandler = value;
+                _detectSensitiveInputHandlerSpecified = true;
+            }
+        }
+        private Func<string, bool> _detectSensitiveInputHandler;
+        internal bool _detectSensitiveInputHandlerSpecified;
 
         [Parameter]
         [AllowNull]

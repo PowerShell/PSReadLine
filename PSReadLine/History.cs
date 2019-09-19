@@ -120,7 +120,13 @@ namespace Microsoft.PowerShell
 
                 if (!fromHistoryFile)
                 {
-                    _previousHistoryItem._sensitive = s_sensitivePattern.IsMatch(result);
+                    if (Options.ScrubSensitiveHistory)
+                    {
+                        _previousHistoryItem._sensitive = Options.DetectSensitiveInputHandler != null
+                            ? Options.DetectSensitiveInputHandler(result)
+                            : s_sensitivePattern.IsMatch(result);
+                    }
+
                     _previousHistoryItem.StartTime = DateTime.UtcNow;
                 }
 

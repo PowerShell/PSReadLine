@@ -28,6 +28,10 @@ namespace Microsoft.PowerShell
             {
                 Options.HistoryNoDuplicates = options.HistoryNoDuplicates;
             }
+            if (options._scrubSensitiveHistory.HasValue)
+            {
+                Options.ScrubSensitiveHistory = options.ScrubSensitiveHistory;
+            }
             if (options._historySearchCursorMovesToEnd.HasValue)
             {
                 Options.HistorySearchCursorMovesToEnd = options.HistorySearchCursorMovesToEnd;
@@ -35,6 +39,10 @@ namespace Microsoft.PowerShell
             if (options._addToHistoryHandlerSpecified)
             {
                 Options.AddToHistoryHandler = options.AddToHistoryHandler;
+            }
+            if (options._detectSensitiveInputHandlerSpecified)
+            {
+                Options.DetectSensitiveInputHandler = options.DetectSensitiveInputHandler;
             }
             if (options._commandValidationHandlerSpecified)
             {
