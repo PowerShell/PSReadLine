@@ -17,11 +17,13 @@ Set-PSReadLineOption
  [-HistorySavePath <String>]
  [-HistorySaveStyle <HistorySaveStyle>]
  [-HistoryNoDuplicates]
+ [-ScrubSensitiveHistory]
  [-HistorySearchCaseSensitive]
  [-PromptText <string>]
  [-ExtraPromptLineCount <Int32>]
  [-Colors <Hashtable>]
  [-AddToHistoryHandler <Func[String, Boolean]>]
+ [-DetectSensitiveInputHandler <Func[String, Boolean]>]
  [-CommandValidationHandler <Action[CommandAst]>]
  [-ContinuationPrompt <String>]
  [-HistorySearchCursorMovesToEnd]
@@ -190,12 +192,54 @@ Accept pipeline input: false
 Accept wildcard characters: False
 ```
 
+### -ScrubSensitiveHistory
+
+History command lines that potentially contain sensitive information, such as passwords, keys or tokens,
+are not saved to history file by default, but they are available to be recalled during the same session.
+
+This option controls the history saving behavior for such command lines - if this option is set to `$false`,
+all history command lines will be saved to the history file.
+
+
+```yaml
+Type: switch
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value:
+Accept pipeline input: false
+Accept wildcard characters: False
+```
+
 ### -AddToHistoryHandler
 
 Specifies a ScriptBlock that can be used to control which commands get added to PSReadLine history.
 
 The ScriptBlock is passed the command line.
 If the ScriptBlock returns `$true`, the command line is added to history, otherwise it is not.
+
+```yaml
+Type: Func[String, Boolean]
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value:
+Accept pipeline input: false
+Accept wildcard characters: False
+```
+
+### -DetectSensitiveInputHandler
+
+Specifies a ScriptBlock that can be used to detect which commands contain sensitive information.
+This handler is used only when `ScrubSensitiveHistory` is enabled.
+A default handler will be used to detect sensitive information when this option is not set.
+
+The ScriptBlock is passed the command line.
+If the ScriptBlock returns `$true`, the command line is considered to have sensitive content, otherwise it is not.
 
 ```yaml
 Type: Func[String, Boolean]
