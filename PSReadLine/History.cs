@@ -105,28 +105,6 @@ namespace Microsoft.PowerShell
                     return AddToHistoryOption.SkipAdding;
                 }
 
-                bool useDefaultHandler = false;
-                if (Options.AddToHistoryHandler != null)
-                {
-                    useDefaultHandler =
-                        Options.AddToHistoryHandler == PSConsoleReadLineOptions.DefaultAddToHistoryHandler;
-
-                    // User defined handler should take higher precedence.
-                    if (!useDefaultHandler)
-                    {
-                        object value = Options.AddToHistoryHandler(line);
-                        if (value is bool boolValue)
-                        {
-                            return boolValue ? AddToHistoryOption.MemoryAndFile : AddToHistoryOption.SkipAdding;
-                        }
-
-                        if (value is AddToHistoryOption enumValue)
-                        {
-                            return enumValue;
-                        }
-                    }
-                }
-
                 // Under "no dupes" (which is on by default), immediately drop dupes of the previous line.
                 if (Options.HistoryNoDuplicates && _history.Count > 0 &&
                     string.Equals(_history[_history.Count - 1].CommandLine, line, StringComparison.Ordinal))
@@ -134,11 +112,24 @@ namespace Microsoft.PowerShell
                     return AddToHistoryOption.SkipAdding;
                 }
 
-                // The default handler should take lower precedence.
-                if (useDefaultHandler)
+                if (Options.AddToHistoryHandler != null)
                 {
-                    // Avoid boxing if it's the default handler.
-                    return GetDefaultAddToHistoryOption(line);
+                    if (Options.AddToHistoryHandler == PSConsoleReadLineOptions.DefaultAddToHistoryHandler)
+                    {
+                        // Avoid boxing if it's the default handler.
+                        return GetDefaultAddToHistoryOption(line);
+                    }
+
+                    object value = Options.AddToHistoryHandler(line);
+                    if (value is AddToHistoryOption enumValue)
+                    {
+                        return enumValue;
+                    }
+
+                    if (value is bool boolValue && !boolValue)
+                    {
+                        return AddToHistoryOption.SkipAdding;
+                    }
                 }
 
                 // Add to both history queue and file by default.
