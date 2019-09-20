@@ -79,9 +79,16 @@ namespace Microsoft.PowerShell
         private const string _failedBackwardISearchPrompt = "failed-bck-i-search: ";
 
         // Pattern used to check for sensitive inputs.
-        private static Regex s_sensitivePattern = new Regex(
+        private static readonly Regex s_sensitivePattern = new Regex(
             "password|asplaintext|token|key|secret",
             RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+        internal static AddToHistoryOption GetDefaultAddToHistoryOption(string line)
+        {
+            return s_sensitivePattern.IsMatch(line)
+                ? AddToHistoryOption.MemoryOnly
+                : AddToHistoryOption.MemoryAndFile;
+        }
 
         private string MaybeAddToHistory(
             string result,
@@ -90,22 +97,56 @@ namespace Microsoft.PowerShell
             bool fromDifferentSession = false,
             bool fromInitialRead = false)
         {
-            bool AddToHistory(string line)
+            AddToHistoryOption GetAddToHistoryOption(string line)
             {
                 // Whitespace only is useless, never add.
-                if (string.IsNullOrWhiteSpace(line)) return false;
+                if (string.IsNullOrWhiteSpace(line))
+                {
+                    return AddToHistoryOption.SkipAdding;
+                }
 
-                // If the user says don't add it, then don't.
-                if (Options.AddToHistoryHandler != null && !Options.AddToHistoryHandler(line)) return false;
+                bool useDefaultHandler = false;
+                if (Options.AddToHistoryHandler != null)
+                {
+                    useDefaultHandler =
+                        Options.AddToHistoryHandler == PSConsoleReadLineOptions.DefaultAddToHistoryHandler;
+
+                    // User defined handler should take higher precedence.
+                    if (!useDefaultHandler)
+                    {
+                        object value = Options.AddToHistoryHandler(line);
+                        if (value is bool boolValue)
+                        {
+                            return boolValue ? AddToHistoryOption.MemoryAndFile : AddToHistoryOption.SkipAdding;
+                        }
+
+                        if (value is AddToHistoryOption enumValue)
+                        {
+                            return enumValue;
+                        }
+                    }
+                }
 
                 // Under "no dupes" (which is on by default), immediately drop dupes of the previous line.
-                if (Options.HistoryNoDuplicates && _history.Count > 0)
-                    return !string.Equals(_history[_history.Count - 1].CommandLine, line, StringComparison.Ordinal);
+                if (Options.HistoryNoDuplicates && _history.Count > 0 &&
+                    string.Equals(_history[_history.Count - 1].CommandLine, line, StringComparison.Ordinal))
+                {
+                    return AddToHistoryOption.SkipAdding;
+                }
 
-                return true;
+                // The default handler should take lower precedence.
+                if (useDefaultHandler)
+                {
+                    // Avoid boxing if it's the default handler.
+                    return GetDefaultAddToHistoryOption(line);
+                }
+
+                // Add to both history queue and file by default.
+                return AddToHistoryOption.MemoryAndFile;
             }
 
-            if (AddToHistory(result))
+            var addToHistoryOption = GetAddToHistoryOption(result);
+            if (addToHistoryOption != AddToHistoryOption.SkipAdding)
             {
                 var fromHistoryFile = fromDifferentSession || fromInitialRead;
                 _previousHistoryItem = new HistoryItem
@@ -120,13 +161,8 @@ namespace Microsoft.PowerShell
 
                 if (!fromHistoryFile)
                 {
-                    if (Options.ScrubSensitiveHistory)
-                    {
-                        _previousHistoryItem._sensitive = Options.DetectSensitiveInputHandler != null
-                            ? Options.DetectSensitiveInputHandler(result)
-                            : s_sensitivePattern.IsMatch(result);
-                    }
-
+                    // 'MemoryOnly' indicates sensitive content in the command line
+                    _previousHistoryItem._sensitive = addToHistoryOption == AddToHistoryOption.MemoryOnly;
                     _previousHistoryItem.StartTime = DateTime.UtcNow;
                 }
 
