@@ -84,13 +84,6 @@ namespace Microsoft.PowerShell
             "password|asplaintext|token|key|secret",
             RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
-        internal static AddToHistoryOption GetDefaultAddToHistoryOption(string line)
-        {
-            return s_sensitivePattern.IsMatch(line)
-                ? AddToHistoryOption.MemoryOnly
-                : AddToHistoryOption.MemoryAndFile;
-        }
-
         private AddToHistoryOption GetAddToHistoryOption(string line)
         {
             // Whitespace only is useless, never add.
@@ -380,6 +373,13 @@ namespace Microsoft.PowerShell
                     MaybeAddToHistory(line, editItems, 1, fromDifferentSession, fromInitialRead);
                 }
             }
+        }
+
+        public static AddToHistoryOption GetDefaultAddToHistoryOption(string line)
+        {
+            return s_sensitivePattern.IsMatch(line)
+                ? AddToHistoryOption.MemoryOnly
+                : AddToHistoryOption.MemoryAndFile;
         }
 
         /// <summary>
