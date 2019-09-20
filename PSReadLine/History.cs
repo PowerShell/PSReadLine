@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Management.Automation;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -90,6 +91,46 @@ namespace Microsoft.PowerShell
                 : AddToHistoryOption.MemoryAndFile;
         }
 
+        private AddToHistoryOption GetAddToHistoryOption(string line)
+        {
+            // Whitespace only is useless, never add.
+            if (string.IsNullOrWhiteSpace(line))
+            {
+                return AddToHistoryOption.SkipAdding;
+            }
+
+            // Under "no dupes" (which is on by default), immediately drop dupes of the previous line.
+            if (Options.HistoryNoDuplicates && _history.Count > 0 &&
+                string.Equals(_history[_history.Count - 1].CommandLine, line, StringComparison.Ordinal))
+            {
+                return AddToHistoryOption.SkipAdding;
+            }
+
+            if (Options.AddToHistoryHandler != null)
+            {
+                if (Options.AddToHistoryHandler == PSConsoleReadLineOptions.DefaultAddToHistoryHandler)
+                {
+                    // Avoid boxing if it's the default handler.
+                    return GetDefaultAddToHistoryOption(line);
+                }
+
+                object value = Options.AddToHistoryHandler(line);
+
+                if (LanguagePrimitives.TryConvertTo(value, out AddToHistoryOption enumValue))
+                {
+                    return enumValue;
+                }
+
+                if (value is bool boolValue && !boolValue)
+                {
+                    return AddToHistoryOption.SkipAdding;
+                }
+            }
+
+            // Add to both history queue and file by default.
+            return AddToHistoryOption.MemoryAndFile;
+        }
+
         private string MaybeAddToHistory(
             string result,
             List<EditItem> edits,
@@ -97,45 +138,6 @@ namespace Microsoft.PowerShell
             bool fromDifferentSession = false,
             bool fromInitialRead = false)
         {
-            AddToHistoryOption GetAddToHistoryOption(string line)
-            {
-                // Whitespace only is useless, never add.
-                if (string.IsNullOrWhiteSpace(line))
-                {
-                    return AddToHistoryOption.SkipAdding;
-                }
-
-                // Under "no dupes" (which is on by default), immediately drop dupes of the previous line.
-                if (Options.HistoryNoDuplicates && _history.Count > 0 &&
-                    string.Equals(_history[_history.Count - 1].CommandLine, line, StringComparison.Ordinal))
-                {
-                    return AddToHistoryOption.SkipAdding;
-                }
-
-                if (Options.AddToHistoryHandler != null)
-                {
-                    if (Options.AddToHistoryHandler == PSConsoleReadLineOptions.DefaultAddToHistoryHandler)
-                    {
-                        // Avoid boxing if it's the default handler.
-                        return GetDefaultAddToHistoryOption(line);
-                    }
-
-                    object value = Options.AddToHistoryHandler(line);
-                    if (value is AddToHistoryOption enumValue)
-                    {
-                        return enumValue;
-                    }
-
-                    if (value is bool boolValue && !boolValue)
-                    {
-                        return AddToHistoryOption.SkipAdding;
-                    }
-                }
-
-                // Add to both history queue and file by default.
-                return AddToHistoryOption.MemoryAndFile;
-            }
-
             var addToHistoryOption = GetAddToHistoryOption(result);
             if (addToHistoryOption != AddToHistoryOption.SkipAdding)
             {
