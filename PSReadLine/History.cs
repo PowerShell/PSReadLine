@@ -27,16 +27,19 @@ namespace Microsoft.PowerShell
 
         internal static uint ComputeHash(string input)
         {
-            uint hash = FNV32_OFFSETBASIS;
+            char ch;
+            uint hash = FNV32_OFFSETBASIS, lowByte, highByte;
+
             for (int i = 0; i < input.Length; i++)
             {
-                char c = input[i];
-                uint lowByte = (uint)(c & 0x00FF);
+                ch = input[i];
+                lowByte = (uint)(ch & 0x00FF);
                 hash = (hash ^ lowByte) * FNV32_PRIME;
 
-                uint highByte = (uint)(c >> 8);
+                highByte = (uint)(ch >> 8);
                 hash = (hash ^ highByte) * FNV32_PRIME;
             }
+
             return hash;
         }
     }
