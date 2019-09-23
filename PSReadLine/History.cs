@@ -16,61 +16,27 @@ using Microsoft.PowerShell.PSReadLine;
 namespace Microsoft.PowerShell
 {
     /// <summary>
-    /// A simple implementation of CRC32.
-    /// See "CRC-32 algorithm" in https://en.wikipedia.org/wiki/Cyclic_redundancy_check.
+    /// FNV-1a hashing algorithm: http://www.isthe.com/chongo/tech/comp/fnv/#FNV-1a
     /// </summary>
-    internal class CRC32Hash
+    internal class FNV1a32Hash
     {
-        // CRC-32C polynomial representations
-        private const uint polynomial = 0x1EDC6F41;
-        private static uint[] table;
+        // FNV-1a algorithm parameters: http://www.isthe.com/chongo/tech/comp/fnv/#FNV-param
+        private const uint FNV32_PRIME = 16777619;
+        private const uint FNV32_OFFSETBASIS = 2166136261;
 
-        static CRC32Hash()
+        internal static uint ComputeHash(byte[] buffer)
         {
-            uint temp = 0;
-            table = new uint[256];
-
-            for (int i = 0; i < table.Length; i++)
+            uint hash = FNV32_OFFSETBASIS;
+            for (int i = 0; i < buffer.Length; i++)
             {
-                temp = (uint)i;
-                for (int j = 0; j < 8; j++)
-                {
-                    if ((temp & 1) == 1)
-                    {
-                        temp = (temp >> 1) ^ polynomial;
-                    }
-                    else
-                    {
-                        temp >>= 1;
-                    }
-                }
-
-                table[i] = temp;
+                hash = (hash ^ buffer[i]) * FNV32_PRIME;
             }
+            return hash;
         }
 
-        private static uint Compute(byte[] buffer)
+        internal static uint ComputeHash(string input)
         {
-            uint crc = 0xFFFFFFFF;
-            for (int i = 0; i < buffer.Length; ++i)
-            {
-                var index = (byte)(crc ^ buffer[i] & 0xff);
-                crc = (crc >> 8) ^ table[index];
-            }
-
-            return ~crc;
-        }
-
-        internal static byte[] ComputeHash(byte[] buffer)
-        {
-            uint crcResult = Compute(buffer);
-            return BitConverter.GetBytes(crcResult);
-        }
-
-        internal static string ComputeHash(string input)
-        {
-            byte[] hashBytes = ComputeHash(Encoding.UTF8.GetBytes(input));
-            return BitConverter.ToString(hashBytes).Replace("-", string.Empty);
+            return ComputeHash(Encoding.UTF8.GetBytes(input));
         }
     }
 
@@ -241,7 +207,7 @@ namespace Microsoft.PowerShell
         {
             // Return a reasonably unique name - it's not too important as there will rarely
             // be any contention.
-            return "PSReadLineHistoryFile_" + CRC32Hash.ComputeHash(_options.HistorySavePath);
+            return "PSReadLineHistoryFile_" + FNV1a32Hash.ComputeHash(_options.HistorySavePath);
         }
 
         private void IncrementalHistoryWrite()
