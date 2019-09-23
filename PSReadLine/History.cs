@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Management.Automation;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -24,19 +25,19 @@ namespace Microsoft.PowerShell
         private const uint FNV32_PRIME = 16777619;
         private const uint FNV32_OFFSETBASIS = 2166136261;
 
-        internal static uint ComputeHash(byte[] buffer)
-        {
-            uint hash = FNV32_OFFSETBASIS;
-            for (int i = 0; i < buffer.Length; i++)
-            {
-                hash = (hash ^ buffer[i]) * FNV32_PRIME;
-            }
-            return hash;
-        }
-
         internal static uint ComputeHash(string input)
         {
-            return ComputeHash(Encoding.UTF8.GetBytes(input));
+            uint hash = FNV32_OFFSETBASIS;
+            for (int i = 0; i < input.Length; i++)
+            {
+                char c = input[i];
+                uint lowByte = (uint)(c & 0x00FF);
+                hash = (hash ^ lowByte) * FNV32_PRIME;
+
+                uint highByte = (uint)(c >> 8);
+                hash = (hash ^ highByte) * FNV32_PRIME;
+            }
+            return hash;
         }
     }
 
@@ -207,7 +208,12 @@ namespace Microsoft.PowerShell
         {
             // Return a reasonably unique name - it's not too important as there will rarely
             // be any contention.
-            return "PSReadLineHistoryFile_" + FNV1a32Hash.ComputeHash(_options.HistorySavePath);
+            uint hashFromPath = FNV1a32Hash.ComputeHash(
+                RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                    ? _options.HistorySavePath.ToLower()
+                    : _options.HistorySavePath);
+
+            return "PSReadLineHistoryFile_" + hashFromPath.ToString();
         }
 
         private void IncrementalHistoryWrite()

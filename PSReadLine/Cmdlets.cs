@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
-using System.IO;
 using System.Management.Automation;
 using System.Management.Automation.Language;
 using System.Reflection;
@@ -648,9 +647,7 @@ namespace Microsoft.PowerShell
             get => _historySavePath;
             set
             {
-                // Normalize the path
-                var altPathChar = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? '/' : '\\';
-                _historySavePath = value?.Replace(altPathChar, Path.DirectorySeparatorChar);
+                _historySavePath = GetUnresolvedProviderPathFromPSPath(value);
             }
         }
         private string _historySavePath;
