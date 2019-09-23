@@ -7,7 +7,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Management.Automation;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using Microsoft.PowerShell.PSReadLine;
 
@@ -51,6 +53,7 @@ namespace Microsoft.PowerShell
             public bool FromHistoryFile { get; internal set; }
 
             internal bool _saved;
+            internal bool _sensitive;
             internal List<EditItem> _edits;
             internal int _undoEditIndex;
         }
@@ -76,6 +79,51 @@ namespace Microsoft.PowerShell
         private const string _failedForwardISearchPrompt = "failed-fwd-i-search: ";
         private const string _failedBackwardISearchPrompt = "failed-bck-i-search: ";
 
+        // Pattern used to check for sensitive inputs.
+        private static readonly Regex s_sensitivePattern = new Regex(
+            "password|asplaintext|token|key|secret",
+            RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+        private AddToHistoryOption GetAddToHistoryOption(string line)
+        {
+            // Whitespace only is useless, never add.
+            if (string.IsNullOrWhiteSpace(line))
+            {
+                return AddToHistoryOption.SkipAdding;
+            }
+
+            // Under "no dupes" (which is on by default), immediately drop dupes of the previous line.
+            if (Options.HistoryNoDuplicates && _history.Count > 0 &&
+                string.Equals(_history[_history.Count - 1].CommandLine, line, StringComparison.Ordinal))
+            {
+                return AddToHistoryOption.SkipAdding;
+            }
+
+            if (Options.AddToHistoryHandler != null)
+            {
+                if (Options.AddToHistoryHandler == PSConsoleReadLineOptions.DefaultAddToHistoryHandler)
+                {
+                    // Avoid boxing if it's the default handler.
+                    return GetDefaultAddToHistoryOption(line);
+                }
+
+                object value = Options.AddToHistoryHandler(line);
+
+                if (LanguagePrimitives.TryConvertTo(value, out AddToHistoryOption enumValue))
+                {
+                    return enumValue;
+                }
+
+                if (value is bool boolValue && !boolValue)
+                {
+                    return AddToHistoryOption.SkipAdding;
+                }
+            }
+
+            // Add to both history queue and file by default.
+            return AddToHistoryOption.MemoryAndFile;
+        }
+
         private string MaybeAddToHistory(
             string result,
             List<EditItem> edits,
@@ -83,22 +131,8 @@ namespace Microsoft.PowerShell
             bool fromDifferentSession = false,
             bool fromInitialRead = false)
         {
-            bool AddToHistory(string line)
-            {
-                // Whitespace only is useless, never add.
-                if (string.IsNullOrWhiteSpace(line)) return false;
-
-                // If the user says don't add it, then don't.
-                if (Options.AddToHistoryHandler != null && !Options.AddToHistoryHandler(result)) return false;
-
-                // Under "no dupes" (which is on by default), immediately drop dupes of the previous line.
-                if (Options.HistoryNoDuplicates && _history.Count > 0)
-                    return !string.Equals(_history[_history.Count - 1].CommandLine, result, StringComparison.Ordinal);
-
-                return true;
-            }
-
-            if (AddToHistory(result))
+            var addToHistoryOption = GetAddToHistoryOption(result);
+            if (addToHistoryOption != AddToHistoryOption.SkipAdding)
             {
                 var fromHistoryFile = fromDifferentSession || fromInitialRead;
                 _previousHistoryItem = new HistoryItem
@@ -110,13 +144,15 @@ namespace Microsoft.PowerShell
                     FromOtherSession = fromDifferentSession,
                     FromHistoryFile = fromInitialRead,
                 };
+
                 if (!fromHistoryFile)
                 {
+                    // 'MemoryOnly' indicates sensitive content in the command line
+                    _previousHistoryItem._sensitive = addToHistoryOption == AddToHistoryOption.MemoryOnly;
                     _previousHistoryItem.StartTime = DateTime.UtcNow;
                 }
 
                 _history.Enqueue(_previousHistoryItem);
-
 
                 _currentHistoryIndex = _history.Count;
 
@@ -168,7 +204,6 @@ namespace Microsoft.PowerShell
         {
             WriteHistoryRange(0, _history.Count - 1, File.CreateText);
         }
-
 
         private int historyErrorReportedCount;
         private void ReportHistoryFileError(Exception e)
@@ -241,8 +276,13 @@ namespace Microsoft.PowerShell
                     {
                         for (var i = start; i <= end; i++)
                         {
-                            _history[i]._saved = true;
-                            var line = _history[i].CommandLine.Replace("\n", "`\n");
+                            HistoryItem item = _history[i];
+                            item._saved = true;
+
+                            // Actually, skip writing sensitive items to file.
+                            if (item._sensitive) { continue; }
+
+                            var line = item.CommandLine.Replace("\n", "`\n");
                             file.WriteLine(line);
                         }
                     }
@@ -333,6 +373,13 @@ namespace Microsoft.PowerShell
                     MaybeAddToHistory(line, editItems, 1, fromDifferentSession, fromInitialRead);
                 }
             }
+        }
+
+        public static AddToHistoryOption GetDefaultAddToHistoryOption(string line)
+        {
+            return s_sensitivePattern.IsMatch(line)
+                ? AddToHistoryOption.MemoryOnly
+                : AddToHistoryOption.MemoryAndFile;
         }
 
         /// <summary>

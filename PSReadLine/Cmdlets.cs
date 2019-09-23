@@ -57,6 +57,13 @@ namespace Microsoft.PowerShell
         SaveNothing
     }
 
+    public enum AddToHistoryOption
+    {
+        SkipAdding,
+        MemoryOnly,
+        MemoryAndFile
+    }
+
     public class PSConsoleReadLineOptions
     {
         public const ConsoleColor DefaultCommentColor   = ConsoleColor.DarkGreen;
@@ -135,7 +142,7 @@ namespace Microsoft.PowerShell
             ContinuationPrompt = DefaultContinuationPrompt;
             ContinuationPromptColor = Console.ForegroundColor;
             ExtraPromptLineCount = DefaultExtraPromptLineCount;
-            AddToHistoryHandler = null;
+            AddToHistoryHandler = DefaultAddToHistoryHandler;
             HistoryNoDuplicates = DefaultHistoryNoDuplicates;
             MaximumHistoryCount = DefaultMaximumHistoryCount;
             MaximumKillRingCount = DefaultMaximumKillRingCount;
@@ -237,10 +244,12 @@ namespace Microsoft.PowerShell
 
         /// <summary>
         /// This handler is called before adding a command line to history.
-        /// The return value indicates if the command line should be added
-        /// to history or not.
+        /// The return value indicates if the command line should be skipped,
+        /// or added to memory only, or added to both memory and history file.
         /// </summary>
-        public Func<string, bool> AddToHistoryHandler { get; set; }
+        public Func<string, object> AddToHistoryHandler { get; set; }
+        public static readonly Func<string, object> DefaultAddToHistoryHandler =
+            s => PSConsoleReadLine.GetDefaultAddToHistoryOption(s);
 
         /// <summary>
         /// This handler is called from ValidateAndAcceptLine.
@@ -514,7 +523,7 @@ namespace Microsoft.PowerShell
 
         [Parameter]
         [AllowNull]
-        public Func<string, bool> AddToHistoryHandler
+        public Func<string, object> AddToHistoryHandler
         {
             get => _addToHistoryHandler;
             set
@@ -523,7 +532,7 @@ namespace Microsoft.PowerShell
                 _addToHistoryHandlerSpecified = true;
             }
         }
-        private Func<string, bool> _addToHistoryHandler;
+        private Func<string, object> _addToHistoryHandler;
         internal bool _addToHistoryHandlerSpecified;
 
         [Parameter]

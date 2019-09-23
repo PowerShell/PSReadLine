@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using Microsoft.PowerShell;
 using Xunit;
@@ -29,6 +30,224 @@ namespace Test
 
             Test("dir c*", Keys(_.UpArrow, _.UpArrow));
             Test("dir c*", Keys(_.UpArrow, _.UpArrow, _.DownArrow));
+        }
+
+        [SkippableFact]
+        public void SensitiveHistoryDefaultBehavior()
+        {
+            TestSetup(KeyMode.Cmd);
+
+            // No history
+            SetHistory();
+            Test("", Keys(_.UpArrow, _.DownArrow));
+
+            var options = PSConsoleReadLine.GetOptions();
+            var oldHistoryFilePath = options.HistorySavePath;
+            var oldHistorySaveStyle = options.HistorySaveStyle;
+
+            // AddToHistoryHandler should be set to the default handler.
+            Assert.Same(PSConsoleReadLineOptions.DefaultAddToHistoryHandler, options.AddToHistoryHandler);
+
+            var newHistoryFilePath = Path.GetTempFileName();
+            var newHistorySaveStyle = HistorySaveStyle.SaveIncrementally;
+
+            string[] expectedHistoryItems = new[] {
+                "gcm c*",
+                "ConvertTo-SecureString -AsPlainText -String abc -Force",
+                "dir p*",
+                "Publish-Module -NuGetApiKey abc",
+                "ps c*",
+                "mycommand -password abc",
+                "echo foo",
+                "cmd1 /token abc",
+                "echo bar",
+                "cmd2 --key abc",
+                "echo zoo",
+                "pki secret",
+                "gcm p*"
+            };
+
+            string[] expectedSavedItems = new[] {
+                "gcm c*",
+                "dir p*",
+                "ps c*",
+                "echo foo",
+                "echo bar",
+                "echo zoo",
+                "gcm p*"
+            };
+
+            try
+            {
+                options.HistorySavePath = newHistoryFilePath;
+                options.HistorySaveStyle = newHistorySaveStyle;
+                SetHistory(expectedHistoryItems);
+
+                // Sensitive input history should be kept in the internal history queue.
+                var historyItems = PSConsoleReadLine.GetHistoryItems();
+                Assert.Equal(expectedHistoryItems.Length, historyItems.Length);
+                for (int i = 0; i < expectedHistoryItems.Length; i++)
+                {
+                    Assert.Equal(expectedHistoryItems[i], historyItems[i].CommandLine);
+                }
+
+                // Sensitive input history should NOT be saved to the history file.
+                string[] text = File.ReadAllLines(newHistoryFilePath);
+                Assert.Equal(expectedSavedItems.Length, text.Length);
+                for (int i = 0; i < text.Length; i++)
+                {
+                    Assert.Equal(expectedSavedItems[i], text[i]);
+                }
+            }
+            finally
+            {
+                options.HistorySavePath = oldHistoryFilePath;
+                options.HistorySaveStyle = oldHistorySaveStyle;
+                File.Delete(newHistoryFilePath);
+            }
+        }
+
+        [SkippableFact]
+        public void SensitiveHistoryOptionalBehavior()
+        {
+            TestSetup(KeyMode.Cmd);
+
+            // No history
+            SetHistory();
+            Test("", Keys(_.UpArrow, _.DownArrow));
+
+            var options = PSConsoleReadLine.GetOptions();
+            var oldHistoryFilePath = options.HistorySavePath;
+            var oldHistorySaveStyle = options.HistorySaveStyle;
+
+            // AddToHistoryHandler should be set to the default handler.
+            Assert.Same(PSConsoleReadLineOptions.DefaultAddToHistoryHandler, options.AddToHistoryHandler);
+
+            var newHistoryFilePath = Path.GetTempFileName();
+            var newHistorySaveStyle = HistorySaveStyle.SaveIncrementally;
+            Func<string, object> newAddToHistoryHandler_ReturnBool = s => s.Contains("gal");
+            Func<string, object> newAddToHistoryHandler_ReturnEnum =
+                s => s.Contains("gal")
+                    ? AddToHistoryOption.MemoryOnly
+                    : s.Contains("gmo")
+                        ? AddToHistoryOption.SkipAdding
+                        : AddToHistoryOption.MemoryAndFile;
+            Func<string, object> newAddToHistoryHandler_ReturnOther = s => "string value";
+
+            string[] commandInputs = new[] {
+                "gmo p*",
+                "gcm c*",
+                "gal dir",
+                "ConvertTo-SecureString -AsPlainText -String abc -Force"
+            };
+
+            string[] expectedQueuedItems = new[] {
+                "gcm c*",
+                "gal dir",
+                "ConvertTo-SecureString -AsPlainText -String abc -Force"
+            };
+
+            string[] expectedSavedItems = new[] {
+                "gcm c*",
+                "ConvertTo-SecureString -AsPlainText -String abc -Force"
+            };
+
+            try
+            {
+                options.HistorySavePath = newHistoryFilePath;
+                options.HistorySaveStyle = newHistorySaveStyle;
+
+                /* 
+                 * Set null to the handler means we don't do the check.
+                 */
+                options.AddToHistoryHandler = null;
+                SetHistory(commandInputs);
+
+                // All commands should be kept in the internal history queue.
+                var historyItems = PSConsoleReadLine.GetHistoryItems();
+                Assert.Equal(commandInputs.Length, historyItems.Length);
+                for (int i = 0; i < commandInputs.Length; i++)
+                {
+                    Assert.Equal(commandInputs[i], historyItems[i].CommandLine);
+                }
+
+                // All commands are saved to the history file when 'ScrubSensitiveHistory' is set to 'false'.
+                string[] text = File.ReadAllLines(newHistoryFilePath);
+                Assert.Equal(commandInputs.Length, text.Length);
+                for (int i = 0; i < text.Length; i++)
+                {
+                    Assert.Equal(commandInputs[i], text[i]);
+                }
+
+                /* 
+                 * Use a handler that return boolean value.
+                 *   true: Add to memory and file
+                 *   false: Skip adding to history
+                 */
+                options.AddToHistoryHandler = newAddToHistoryHandler_ReturnBool;
+                // Clear the history file.
+                File.WriteAllText(newHistoryFilePath, string.Empty);
+                SetHistory(commandInputs);
+
+                historyItems = PSConsoleReadLine.GetHistoryItems();
+                Assert.Single(historyItems);
+                Assert.Equal("gal dir", historyItems[0].CommandLine);
+
+                text = File.ReadAllLines(newHistoryFilePath);
+                Assert.Single(text);
+                Assert.Equal("gal dir", text[0]);
+
+                /*
+                 * Use a handler that return the expected enum type.
+                 */
+                options.AddToHistoryHandler = newAddToHistoryHandler_ReturnEnum;
+                File.WriteAllText(newHistoryFilePath, string.Empty);
+                SetHistory(commandInputs);
+
+                historyItems = PSConsoleReadLine.GetHistoryItems();
+                Assert.Equal(expectedQueuedItems.Length, historyItems.Length);
+                for (int i = 0; i < expectedQueuedItems.Length; i++)
+                {
+                    Assert.Equal(expectedQueuedItems[i], historyItems[i].CommandLine);
+                }
+
+                text = File.ReadAllLines(newHistoryFilePath);
+                Assert.Equal(expectedSavedItems.Length, text.Length);
+                for (int i = 0; i < text.Length; i++)
+                {
+                    Assert.Equal(expectedSavedItems[i], text[i]);
+                }
+
+                /*
+                 * Use a handler that return unexpected value.
+                 *   - same behavior as setting the handler to null.
+                 */
+                options.AddToHistoryHandler = newAddToHistoryHandler_ReturnOther;
+                File.WriteAllText(newHistoryFilePath, string.Empty);
+                SetHistory(commandInputs);
+
+                historyItems = PSConsoleReadLine.GetHistoryItems();
+                Assert.Equal(commandInputs.Length, historyItems.Length);
+                for (int i = 0; i < commandInputs.Length; i++)
+                {
+                    Assert.Equal(commandInputs[i], historyItems[i].CommandLine);
+                }
+
+                // All commands are saved to the history file when 'ScrubSensitiveHistory' is set to 'false'.
+                text = File.ReadAllLines(newHistoryFilePath);
+                Assert.Equal(commandInputs.Length, text.Length);
+                for (int i = 0; i < text.Length; i++)
+                {
+                    Assert.Equal(commandInputs[i], text[i]);
+                }
+            }
+            finally
+            {
+                options.HistorySavePath = oldHistoryFilePath;
+                options.HistorySaveStyle = oldHistorySaveStyle;
+                options.AddToHistoryHandler = PSConsoleReadLineOptions.DefaultAddToHistoryHandler;
+                File.Delete(newHistoryFilePath);
+            }
         }
 
         [SkippableFact]

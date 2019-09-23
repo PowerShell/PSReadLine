@@ -21,7 +21,7 @@ Set-PSReadLineOption
  [-PromptText <string>]
  [-ExtraPromptLineCount <Int32>]
  [-Colors <Hashtable>]
- [-AddToHistoryHandler <Func[String, Boolean]>]
+ [-AddToHistoryHandler <Func[String, Object]>]
  [-CommandValidationHandler <Action[CommandAst]>]
  [-ContinuationPrompt <String>]
  [-HistorySearchCursorMovesToEnd]
@@ -192,13 +192,34 @@ Accept wildcard characters: False
 
 ### -AddToHistoryHandler
 
-Specifies a ScriptBlock that can be used to control which commands get added to PSReadLine history.
+Specifies a ScriptBlock that can be used to control which commands get added to PSReadLine history,
+and whether they should be saved to the history file.
 
-The ScriptBlock is passed the command line.
-If the ScriptBlock returns `$true`, the command line is added to history, otherwise it is not.
+The ScriptBlock is passed the command line, and it is expected to return either a Boolean value,
+or an enum value of the type `[Microsoft.PowerShell.AddToHistoryOption]`.
+The enum type `AddToHistoryOption` has 3 members: `SkipAdding`, `MemoryOnly`, and `MemoryAndFile`.
+
+If the ScriptBlock returns `$true`, it's equivalent to `AddToHistoryOption.MemoryAndFile`.
+The command line is added to the in-memory history queue and saved to the history file.
+If the ScriptBlock returns `$false`, it's equivalent to `AddToHistoryOption.SkipAdding`,
+and the command line is not added to history at all.
+
+If the ScriptBlock returns `AddToHistoryOption.MemoryOnly`, then the command line is added to the in-memory history queue,
+but will not be saved to the history file.
+This usually indicates the command line has sensitive content that should not be written to disk.
+
+PSReadLine provides a default handler to this option:
+    `[Microsoft.PowerShell.PSConsoleReadLine]::GetDefaultAddToHistoryOption(string line)`
+The default handler attempts to detect sensitive information in a command line by matching with a simple regex pattern:
+    `"password|asplaintext|token|key|secret"`
+When successfully matched, the command line is considered to contain sensitive content, and `MemoryOnly` is returned.
+Otherwise, `MemoryAndFile` is returned.
+
+To turn off the default handler, just set this option to `$null`.
+
 
 ```yaml
-Type: Func[String, Boolean]
+Type: Func[String, Object]
 Parameter Sets: (All)
 Aliases:
 
