@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Management.Automation;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -15,6 +16,34 @@ using Microsoft.PowerShell.PSReadLine;
 
 namespace Microsoft.PowerShell
 {
+    /// <summary>
+    /// FNV-1a hashing algorithm: http://www.isthe.com/chongo/tech/comp/fnv/#FNV-1a
+    /// </summary>
+    internal class FNV1a32Hash
+    {
+        // FNV-1a algorithm parameters: http://www.isthe.com/chongo/tech/comp/fnv/#FNV-param
+        private const uint FNV32_PRIME = 16777619;
+        private const uint FNV32_OFFSETBASIS = 2166136261;
+
+        internal static uint ComputeHash(string input)
+        {
+            char ch;
+            uint hash = FNV32_OFFSETBASIS, lowByte, highByte;
+
+            for (int i = 0; i < input.Length; i++)
+            {
+                ch = input[i];
+                lowByte = (uint)(ch & 0x00FF);
+                hash = (hash ^ lowByte) * FNV32_PRIME;
+
+                highByte = (uint)(ch >> 8);
+                hash = (hash ^ highByte) * FNV32_PRIME;
+            }
+
+            return hash;
+        }
+    }
+
     public partial class PSConsoleReadLine
     {
         /// <summary>
@@ -182,7 +211,12 @@ namespace Microsoft.PowerShell
         {
             // Return a reasonably unique name - it's not too important as there will rarely
             // be any contention.
-            return "PSReadLineHistoryFile_" + _options.HistorySavePath.GetHashCode();
+            uint hashFromPath = FNV1a32Hash.ComputeHash(
+                RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                    ? _options.HistorySavePath.ToLower()
+                    : _options.HistorySavePath);
+
+            return "PSReadLineHistoryFile_" + hashFromPath.ToString();
         }
 
         private void IncrementalHistoryWrite()
