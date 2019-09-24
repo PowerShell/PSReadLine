@@ -137,15 +137,27 @@ namespace Microsoft.PowerShell
                 }
 
                 object value = Options.AddToHistoryHandler(line);
+                if (value is PSObject psObj)
+                {
+                    value = psObj.BaseObject;
+                }
 
-                if (LanguagePrimitives.TryConvertTo(value, out AddToHistoryOption enumValue))
+                if (value is bool boolValue)
+                {
+                    return boolValue ? AddToHistoryOption.MemoryAndFile : AddToHistoryOption.SkipAdding;
+                }
+
+                if (value is AddToHistoryOption enumValue)
                 {
                     return enumValue;
                 }
 
-                if (value is bool boolValue && !boolValue)
+                // 'TryConvertTo' incurs exception handling when the value cannot be converted to the target type.
+                // It's expensive, especially when we need to process lots of history items from file during the
+                // initialization. So do the conversion as the last resort.
+                if (LanguagePrimitives.TryConvertTo(value, out enumValue))
                 {
-                    return AddToHistoryOption.SkipAdding;
+                    return enumValue;
                 }
             }
 

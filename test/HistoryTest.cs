@@ -157,7 +157,7 @@ namespace Test
                 options.HistorySavePath = newHistoryFilePath;
                 options.HistorySaveStyle = newHistorySaveStyle;
 
-                /* 
+                /*
                  * Set null to the handler means we don't do the check.
                  */
                 options.AddToHistoryHandler = null;
@@ -179,7 +179,7 @@ namespace Test
                     Assert.Equal(commandInputs[i], text[i]);
                 }
 
-                /* 
+                /*
                  * Use a handler that return boolean value.
                  *   true: Add to memory and file
                  *   false: Skip adding to history
