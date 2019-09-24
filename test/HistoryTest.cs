@@ -158,9 +158,9 @@ namespace Test
                 options.HistorySavePath = newHistoryFilePath;
                 options.HistorySaveStyle = newHistorySaveStyle;
 
-                /*
-                 * Set null to the handler means we don't do the check.
-                 */
+                //
+                // Set null to the handler means we don't do the check.
+                //
                 options.AddToHistoryHandler = null;
                 SetHistory(commandInputs);
 
@@ -180,11 +180,11 @@ namespace Test
                     Assert.Equal(commandInputs[i], text[i]);
                 }
 
-                /*
-                 * Use a handler that return boolean value.
-                 *   true: Add to memory and file
-                 *   false: Skip adding to history
-                 */
+                //
+                // Use a handler that return boolean value.
+                //   true: Add to memory and file
+                //   false: Skip adding to history
+                //
                 options.AddToHistoryHandler = newAddToHistoryHandler_ReturnBool;
                 // Clear the history file.
                 File.WriteAllText(newHistoryFilePath, string.Empty);
@@ -198,9 +198,9 @@ namespace Test
                 Assert.Single(text);
                 Assert.Equal("gal dir", text[0]);
 
-                /*
-                 * Use a handler that return the expected enum type.
-                 */
+                //
+                // Use a handler that return the expected enum type.
+                //
                 options.AddToHistoryHandler = newAddToHistoryHandler_ReturnEnum;
                 File.WriteAllText(newHistoryFilePath, string.Empty);
                 SetHistory(commandInputs);
@@ -219,10 +219,10 @@ namespace Test
                     Assert.Equal(expectedSavedItems[i], text[i]);
                 }
 
-                /*
-                 * Use a handler that return unexpected value.
-                 *   - same behavior as setting the handler to null.
-                 */
+                //
+                // Use a handler that return unexpected value.
+                //   - same behavior as setting the handler to null.
+                //
                 options.AddToHistoryHandler = newAddToHistoryHandler_ReturnOther;
                 File.WriteAllText(newHistoryFilePath, string.Empty);
                 SetHistory(commandInputs);
@@ -277,7 +277,7 @@ namespace Test
                 ScriptBlock.Create(@"
                     param([string]$line)
                     if ($line.Contains('gal')) {
-                        [Microsoft.PowerShell.AddToHistoryOption]::MemoryOnly
+                        [psobject]::AsPSObject([Microsoft.PowerShell.AddToHistoryOption]::MemoryOnly)
                     } elseif ($line.Contains('gmo')) {
                         'SkipAdding'
                     } else {
@@ -311,9 +311,9 @@ namespace Test
                 options.HistorySavePath = newHistoryFilePath;
                 options.HistorySaveStyle = newHistorySaveStyle;
 
-                /*
-                 * Set null to the handler means we don't do the check.
-                 */
+                //
+                // Set null to the handler means we don't do the check.
+                //
                 options.AddToHistoryHandler = null;
                 SetHistory(commandInputs);
 
@@ -333,11 +333,11 @@ namespace Test
                     Assert.Equal(commandInputs[i], text[i]);
                 }
 
-                /*
-                 * Use a handler that return boolean value.
-                 *   true: Add to memory and file
-                 *   false: Skip adding to history
-                 */
+                //
+                // Use a handler that return boolean value.
+                //   true: Add to memory and file
+                //   false: Skip adding to history
+                //
                 options.AddToHistoryHandler = newAddToHistoryHandler_ReturnBool;
                 // Clear the history file.
                 File.WriteAllText(newHistoryFilePath, string.Empty);
@@ -351,9 +351,9 @@ namespace Test
                 Assert.Single(text);
                 Assert.Equal("gal dir", text[0]);
 
-                /*
-                 * Use a handler that return the expected enum type.
-                 */
+                //
+                // Use a handler that return the expected enum type.
+                //
                 options.AddToHistoryHandler = newAddToHistoryHandler_ReturnEnum;
                 File.WriteAllText(newHistoryFilePath, string.Empty);
                 SetHistory(commandInputs);
@@ -372,10 +372,10 @@ namespace Test
                     Assert.Equal(expectedSavedItems[i], text[i]);
                 }
 
-                /*
-                 * Use a handler that return unexpected value.
-                 *   - same behavior as setting the handler to null.
-                 */
+                //
+                // Use a handler that return unexpected value.
+                //   - same behavior as setting the handler to null.
+                //
                 options.AddToHistoryHandler = newAddToHistoryHandler_ReturnOther;
                 File.WriteAllText(newHistoryFilePath, string.Empty);
                 SetHistory(commandInputs);
