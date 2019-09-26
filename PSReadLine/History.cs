@@ -152,6 +152,11 @@ namespace Microsoft.PowerShell
                     return enumValue;
                 }
 
+                if (value is string strValue && Enum.TryParse(strValue, out enumValue))
+                {
+                    return enumValue;
+                }
+
                 // 'TryConvertTo' incurs exception handling when the value cannot be converted to the target type.
                 // It's expensive, especially when we need to process lots of history items from file during the
                 // initialization. So do the conversion as the last resort.
