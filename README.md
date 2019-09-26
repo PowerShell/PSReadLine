@@ -1,6 +1,6 @@
 [![appveyor-build-status][]][appveyor-build-site]
 
-[appveyor-build-status]: https://ci.appveyor.com/api/projects/status/github/PowerShell/PSReadLine?branch=master&svg=true
+[appveyor-build-status]: https://ci.appveyor.com/api/projects/status/9mygtkr9fkov47xv/branch/master?svg=true
 [appveyor-build-site]: https://ci.appveyor.com/project/PowerShell/PSReadLine?branch=master
 
 <!--
