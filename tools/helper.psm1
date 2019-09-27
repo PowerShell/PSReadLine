@@ -227,6 +227,7 @@ function Start-TestRun
         $env:PSREADLINE_TESTRUN = 1
         Push-Location "$RepoRoot/test"
 
+        $xUnitTestExecuted = $true
         if ($IsWindowsEnv)
         {
             if ($env:APPVEYOR -or $env:TF_BUILD)
@@ -246,6 +247,8 @@ function Start-TestRun
 
                 try
                 {
+                    $xUnitTestExecuted = $false
+
                     # Remember the current keyboard layout, changes are system wide and restoring
                     # is the nice thing to do.
                     $savedLayout = [KeyboardLayoutHelper]::GetCurrentKeyboardLayout()
@@ -266,6 +269,11 @@ function Start-TestRun
                             # We have to use Start-Process so it creates a new window, because the keyboard
                             # layout change won't be picked up by any processes running in the current conhost.
                             RunXunitTestsInNewProcess -Layout $layout -OperatingSystem 'Windows'
+                            $xUnitTestExecuted = $true
+                        }
+                        else
+                        {
+                            Write-Log "Testing not supported for the keyboard layout '$layout'."
                         }
                     }
                 }
@@ -281,8 +289,11 @@ function Start-TestRun
             RunXunitTestsInNewProcess -Layout 'en-US' -OperatingSystem 'Linux'
         }
 
-        # Check to see if there were any failures in xUnit tests, and throw exception to fail the build if so.
-        Get-ChildItem $testResultFolder | Test-XUnitTestResults > $null
+        if ($xUnitTestExecuted)
+        {
+            # Check to see if there were any failures in xUnit tests, and throw exception to fail the build if so.
+            Get-ChildItem $testResultFolder | Test-XUnitTestResults > $null
+        }
     }
     finally
     {
