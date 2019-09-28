@@ -500,6 +500,7 @@ namespace Microsoft.PowerShell
                     // from a previous menu.
                     if (cells < bufferWidth)
                     {
+                        // 'BlankRestOfLine' erases rest of the current line, but the cursor is not moved.
                         console.BlankRestOfLine();
                     }
 
@@ -515,6 +516,14 @@ namespace Microsoft.PowerShell
                 {
                     if (Rows < previousMenu.Rows + previousMenu.ToolTipLines)
                     {
+                        // Rest of the current line was erased, but the cursor was not moved to the next line.
+                        if (console.CursorLeft != 0)
+                        {
+                            // There are lines from the previous rendering that need to be cleared,
+                            // so we are sure there is no need to scroll.
+                            MoveCursorDown(1);
+                        }
+
                         Singleton.WriteBlankLines(previousMenu.Rows + previousMenu.ToolTipLines - Rows);
                     }
                 }

@@ -147,6 +147,33 @@ namespace Test
         }
 
         [SkippableFact]
+        public void MenuCompletions()
+        {
+            TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+Spacebar", PSConsoleReadLine.MenuComplete));
+
+            _console.Clear();
+            Test("Get-Many4", Keys(
+                "Get-Many", _.Ctrl_Spacebar,
+                CheckThat(() => AssertScreenIs(4,
+                    TokenClassification.Command, "Get-Many",
+                    TokenClassification.Selection, "0", NextLine,
+                    TokenClassification.Selection, "Get-Many0   ",
+                    TokenClassification.None,
+                    "Get-Many3   Get-Many6   Get-Many9   Get-Many12", NextLine,
+                    "Get-Many1   Get-Many4   Get-Many7   Get-Many10  Get-Many13", NextLine,
+                    "Get-Many2   Get-Many5   Get-Many8   Get-Many11  Get-Many14")),
+                "4",
+                CheckThat(() => AssertScreenIs(4,
+                    TokenClassification.Command, "Get-Many4", NextLine,
+                    TokenClassification.Selection, "Get-Many4  ", NextLine,
+                    "                                                          ", NextLine,
+                    "                                                          ", NextLine)),
+                _.Enter,
+                _.Enter
+                ));
+        }
+
+        [SkippableFact]
         public void ShowTooltips()
         {
             TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+Spacebar", PSConsoleReadLine.PossibleCompletions));
