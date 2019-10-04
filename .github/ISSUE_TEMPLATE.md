@@ -4,15 +4,16 @@ Before submitting your bug report, please check for duplicates, and +1 the dupli
 There are a few common issues that are commonly reported.
 
 If there is an exception copying to/from the clipboard, it's probably the same as https://github.com/PowerShell/PSReadLine/issues/265
-
 If there is an exception shortly after resizing the console, it's probably the same as https://github.com/PowerShell/PSReadLine/issues/292
 -->
 
 Environment data
 ----------------
 
-<!-- The following script will generate the environment data that helps triage and investigate the issue.
-     Please run the script in the PowerShell session where you ran into the issue and provide the output here.
+<!--
+
+The following script will generate the environment data that helps triage and investigate the issue.
+Please run the script in the PowerShell session where you ran into the issue and provide the output here.
 
 & {
     $hostName = $Host.Name
