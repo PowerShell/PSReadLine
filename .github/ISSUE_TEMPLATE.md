@@ -17,7 +17,7 @@ Please run the script in the PowerShell session where you ran into the issue and
 
 & {
     $hostName = $Host.Name
-    if ($hostName -eq "ConsoleHost" -and (Get-Command Get-CimInstance)) {
+    if ($hostName -eq "ConsoleHost" -and (Get-Command Get-CimInstance -ErrorAction SilentlyContinue)) {
         $id = $PID
         $inWindowsTerminal = $false
         while ($true) {
