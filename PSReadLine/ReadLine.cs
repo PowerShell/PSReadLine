@@ -52,7 +52,7 @@ namespace Microsoft.PowerShell
         private Thread _readKeyThread;
         private AutoResetEvent _readKeyWaitHandle;
         private AutoResetEvent _keyReadWaitHandle;
-        private AutoResetEvent _forceEventWaitHandle;
+        private AutoResetEvent _forceEventWaitHandle = new AutoResetEvent(false);
         private CancellationToken _cancelReadCancellationToken;
         internal ManualResetEvent _closingWaitHandle;
         private WaitHandle[] _threadProcWaitHandles;
@@ -802,7 +802,6 @@ namespace Microsoft.PowerShell
 
             _singleton._readKeyWaitHandle = new AutoResetEvent(false);
             _singleton._keyReadWaitHandle = new AutoResetEvent(false);
-            _singleton._forceEventWaitHandle = new AutoResetEvent(false);
             _singleton._closingWaitHandle = new ManualResetEvent(false);
             _singleton._requestKeyWaitHandles = new WaitHandle[] {_singleton._keyReadWaitHandle, _singleton._closingWaitHandle, _defaultCancellationToken.WaitHandle, _singleton._forceEventWaitHandle};
             _singleton._threadProcWaitHandles = new WaitHandle[] {_singleton._readKeyWaitHandle, _singleton._closingWaitHandle};
