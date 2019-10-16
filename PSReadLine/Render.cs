@@ -371,7 +371,7 @@ namespace Microsoft.PowerShell
 
             if (string.IsNullOrEmpty(promptText) || _initialY < 0)
             {
-                // No need to flip the prompt color if either the error prompt is not defined 
+                // No need to flip the prompt color if either the error prompt is not defined
                 // or the initial cursor point has already been scrolled off the buffer.
                 return false;
             }
@@ -873,6 +873,25 @@ namespace Microsoft.PowerShell
                   // (c >= 0x20000 && c <= 0x2fffd) ||
                   // (c >= 0x30000 && c <= 0x3fffd)
             return 1 + (isWide ? 1 : 0);
+        }
+
+        private static string SubstringByCells(string text, int countOfCells)
+        {
+            int length = 0;
+            int index = 0;
+
+            foreach (char c in text)
+            {
+                if (length >= countOfCells)
+                {
+                    return text.Substring(0, index);
+                }
+
+                length += LengthInBufferCells(c);
+                index++;
+            }
+
+            return string.Empty;
         }
 
         private string GetTokenColor(Token token)

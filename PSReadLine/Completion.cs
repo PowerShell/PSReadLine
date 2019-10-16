@@ -805,7 +805,7 @@ namespace Microsoft.PowerShell
             }
             else if (spacesNeeded < 0)
             {
-                item = item.Substring(0, columnWidth - 3) + "...";
+                item = SubstringByCells(item, columnWidth - 3) + "...";
             }
 
             return item;
