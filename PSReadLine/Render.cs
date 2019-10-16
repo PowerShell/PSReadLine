@@ -51,7 +51,6 @@ namespace Microsoft.PowerShell
             public RenderedLineData[] lines;
         }
 
-        private const char ELLIPSIS = '\u2026';
         private const int COMMON_WIDEST_CONSOLE_WIDTH = 160;
         private readonly List<StringBuilder> _consoleBufferLines = new List<StringBuilder>(1) {new StringBuilder(COMMON_WIDEST_CONSOLE_WIDTH)};
         private static readonly string[] _spaces = new string[80];

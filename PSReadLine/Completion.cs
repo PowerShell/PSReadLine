@@ -805,7 +805,7 @@ namespace Microsoft.PowerShell
             }
             else if (spacesNeeded < 0)
             {
-                item = SubstringByCells(item, columnWidth - 2) + ELLIPSIS + ' ';
+                item = SubstringByCells(item, columnWidth - 3) + "...";
             }
 
             return item;
