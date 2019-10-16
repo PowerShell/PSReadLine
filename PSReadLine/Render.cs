@@ -880,7 +880,6 @@ namespace Microsoft.PowerShell
         {
             int length = 0;
             int index = 0;
-            string substring = string.Empty;
 
             foreach (char c in text)
             {
@@ -893,7 +892,7 @@ namespace Microsoft.PowerShell
                 index++;
             }
 
-            return substring;
+            return string.Empty;
         }
 
         private string GetTokenColor(Token token)
