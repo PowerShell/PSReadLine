@@ -321,7 +321,7 @@ namespace Microsoft.PowerShell
         /// If the prompt function is pure, this value can be inferred, e.g.
         /// the default prompt will use "> " for this value.
         /// </summary>
-        public string PromptText { get; set; }
+        public string[] PromptText { get; set; }
 
         public object DefaultTokenColor
         {
@@ -663,7 +663,7 @@ namespace Microsoft.PowerShell
 
         [Parameter]
         [ValidateNotNull]
-        public string PromptText { get; set; }
+        public string[] PromptText { get; set; }
 
         [Parameter]
         public ViModeStyle ViModeIndicator

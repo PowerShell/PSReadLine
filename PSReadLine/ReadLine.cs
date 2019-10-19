@@ -761,7 +761,7 @@ namespace Microsoft.PowerShell
 
                         if (i >= 0)
                         {
-                            _options.PromptText = evaluatedPrompt.Substring(i);
+                            _options.PromptText = new [] { evaluatedPrompt.Substring(i) };
                         }
                     }
                 }

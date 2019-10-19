@@ -364,17 +364,17 @@ namespace Microsoft.PowerShell
         /// </returns>
         private bool RenderErrorPrompt(RenderData renderData, string defaultColor)
         {
-            // We may need to flip the color on the prompt if the error state changed.
-
-            int bufferWidth = _console.BufferWidth;
-            string promptText = _options.PromptText;
-
-            if (string.IsNullOrEmpty(promptText) || _initialY < 0)
+            if (_initialY < 0
+                || _options.PromptText == null
+                || _options.PromptText.Length == 0
+                || String.IsNullOrEmpty(_options.PromptText[0]))
             {
                 // No need to flip the prompt color if either the error prompt is not defined
                 // or the initial cursor point has already been scrolled off the buffer.
                 return false;
             }
+
+            // We may need to flip the color on the prompt if the error state changed.
 
             renderData.errorPrompt = (_parseErrors != null && _parseErrors.Length > 0);
             if (renderData.errorPrompt == _previousRender.errorPrompt)
@@ -386,9 +386,15 @@ namespace Microsoft.PowerShell
             // We need to update the prompt
             _console.SetCursorPosition(_initialX, _initialY);
 
+            string promptText =
+                (renderData.errorPrompt && _options.PromptText.Length == 2)
+                    ? _options.PromptText[1]
+                    : _options.PromptText[0];
+
             // promptBufferCells is the number of visible characters in the prompt
             int promptBufferCells = LengthInBufferCells(promptText);
             bool renderErrorPrompt = false;
+            int bufferWidth = _console.BufferWidth;
 
             if (_console.CursorLeft >= promptBufferCells)
             {
@@ -419,12 +425,15 @@ namespace Microsoft.PowerShell
 
             if (renderErrorPrompt)
             {
-                string color = renderData.errorPrompt ? _options._errorColor : defaultColor;
-                if (renderData.errorPrompt && promptBufferCells != promptText.Length)
+                if (!promptText.Contains('\x1b'))
                 {
-                    promptText = promptText.Substring(promptText.Length - promptBufferCells);
+                    string color = renderData.errorPrompt ? _options._errorColor : defaultColor;
+                    if (renderData.errorPrompt && promptBufferCells != promptText.Length)
+                    {
+                        promptText = promptText.Substring(promptText.Length - promptBufferCells);
+                    }
+                    _console.Write(color);
                 }
-                _console.Write(color);
                 _console.Write(promptText);
                 _console.Write("\x1b[0m");
             }

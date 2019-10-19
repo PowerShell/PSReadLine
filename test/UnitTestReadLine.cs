@@ -354,7 +354,7 @@ namespace Test
             var options = new SetPSReadLineOption {ExtraPromptLineCount = 0};
             if (string.IsNullOrEmpty(prompt))
             {
-                options.PromptText = "";
+                options.PromptText = new [] {""};
                 PSConsoleReadLine.SetOptions(options);
                 return;
             }
@@ -365,7 +365,7 @@ namespace Test
                 if (!char.IsWhiteSpace(prompt[i])) break;
             }
 
-            options.PromptText = prompt.Substring(i);
+            options.PromptText = new [] { prompt.Substring(i) };
 
             var lineCount = 1 + prompt.Count(c => c == '\n');
             if (lineCount > 1)
@@ -474,7 +474,7 @@ namespace Test
                 MaximumKillRingCount              = PSConsoleReadLineOptions.DefaultMaximumKillRingCount,
                 ShowToolTips                      = PSConsoleReadLineOptions.DefaultShowToolTips,
                 WordDelimiters                    = PSConsoleReadLineOptions.DefaultWordDelimiters,
-                PromptText                        = "",
+                PromptText                        = new [] {""},
                 Colors = new Hashtable {
                     { "ContinuationPrompt",       MakeCombinedColor(_console.ForegroundColor, _console.BackgroundColor) },
                     { "Emphasis",                 MakeCombinedColor(PSConsoleReadLineOptions.DefaultEmphasisColor, _console.BackgroundColor) },
