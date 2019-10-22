@@ -10,6 +10,10 @@
     <TargetFrameworks>net461;netcoreapp2.1</TargetFrameworks>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(UnitTests)' == 'yes'">
+    <DefineConstants>UNIT_TESTS</DefineConstants>
+  </PropertyGroup>
+
   <PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp2.1'">
     <RuntimeFrameworkVersion>2.1.12</RuntimeFrameworkVersion>
   </PropertyGroup>
@@ -18,6 +22,17 @@
     <PackageReference Include="PowerShellStandard.Library" version="5.1.0-*" />
     <PackageReference Include="Microsoft.CSharp" version="4.5.0-*" />
   </ItemGroup>
+
+  <ItemGroup Condition="'$(UnitTests)' == 'yes'">
+    <PackageReference Include="xunit" Version="2.4.1" />
+    <PackageReference Include="Xunit.SkippableFact" Version="1.3.12" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="XunitXml.TestLogger" Version="2.1.26" />
+  </ItemGroup>
+
   <ItemGroup>
     <None Include="PSReadLine.psd1" />
     <None Include="PSReadLine.psm1" />
