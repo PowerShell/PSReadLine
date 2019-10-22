@@ -292,6 +292,12 @@ namespace Test
                                           _.Ctrl_Enter, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 1)),
                                           _.Ctrl_Enter, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 1)),
                                           "9ABC"));
+
+            // Test case - create leading blank line, cursor to stay on same line
+            Test("\n\n1234", Keys("1234",
+                _.Ctrl_Enter, CheckThat(() => AssertCursorLeftTopIs(0,0)),
+                _.DownArrow, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 1)),
+                _.Ctrl_Enter, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 1))));
         }
 
         [SkippableFact]
