@@ -76,6 +76,54 @@ namespace Microsoft.PowerShell
             }
         }
 
+        /// <summary>
+        /// Moves the cursor one character to the right on a single logical line.
+        /// </summary>
+        private static void ViForwardChar(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            if (TryGetArgAsInt(arg, out var numericArg, 1))
+            {
+                ViOffsetCursorPosition(+ numericArg);
+            }
+        }
+
+        /// <summary>
+        /// Move the cursor one character to the left on a single logical line.
+        /// </summary>
+        private static void ViBackwardChar(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            if (TryGetArgAsInt(arg, out var numericArg, 1))
+            {
+                ViOffsetCursorPosition(- numericArg);
+            }
+        }
+
+        /// <summary>
+        /// Moves the cursor to the left or right a certain number of characters.
+        /// If the count is negative, moves the cursor in the left direction.
+        /// </summary>
+        private static void ViOffsetCursorPosition(int count)
+        {
+            if (count < 0)
+            {
+                var start = GetBeginningOfLinePos(_singleton._current);
+                var newCurrent = Math.Max(start, _singleton._current + count);
+                if (_singleton._current != newCurrent)
+                {
+                    _singleton.MoveCursor(newCurrent);
+                }
+            }
+            else
+            {
+                var end = GetEndOfLogicalLinePos(_singleton._current);
+                var newCurrent = Math.Min(end, _singleton._current + count);
+                if (_singleton._current != newCurrent)
+                {
+                    _singleton.MoveCursor(newCurrent);
+                }
+            }
+        }
+
         private void MoveToLine(int lineOffset)
         {
             // Behavior description:

@@ -123,8 +123,7 @@ namespace Test
             TestSetup(KeyMode.Vi);
 
             Test("\"\n\n\"", Keys(
-                _.DQuote, _.Enter, _.Escape, CheckThat(() => AssertCursorTopIs(0)),
-                'j', CheckThat(() => AssertCursorTopIs(1)),
+                _.DQuote, _.Enter, _.Escape, CheckThat(() => AssertCursorTopIs(1)),
                 'o', CheckThat(() => AssertCursorTopIs(2)),
                 _.DQuote
                 ));
