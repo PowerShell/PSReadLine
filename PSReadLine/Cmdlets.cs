@@ -483,6 +483,10 @@ namespace Microsoft.PowerShell
             {
                 setter(this, value);
             }
+            else
+            {
+                throw new ArgumentException(string.Format(CultureInfo.CurrentUICulture, PSReadLineResources.InvalidColorProperty, property));
+            }
         }
     }
 
@@ -964,7 +968,7 @@ namespace Microsoft.PowerShell
                     break;
             }
 
-            throw new ArgumentException("o");
+            throw new ArgumentException(string.Format(CultureInfo.CurrentUICulture, PSReadLineResources.InvalidColorValue, o.ToString()));
         }
 
         public static string AsEscapeSequence(ConsoleColor fg, ConsoleColor bg)
