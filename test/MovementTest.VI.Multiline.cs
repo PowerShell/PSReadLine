@@ -6,6 +6,46 @@ namespace Test
     public partial class ReadLine
     {
         [SkippableFact]
+        public void ViMoveToLine_DesiredColumn()
+        {
+            TestSetup(KeyMode.Vi);
+
+            const string buffer = "\"\n12345\n1234\n123\n12\n1\n\"";
+
+            var continuationPrefixLength = PSConsoleReadLineOptions.DefaultContinuationPrompt.Length;
+
+            Test(buffer, Keys(
+                _.DQuote, _.Enter,
+                "12345", _.Enter,
+                "1234", _.Enter,
+                "123", _.Enter,
+                "12", _.Enter,
+                "1", _.Enter,
+                _.DQuote,
+                _.Escape,
+
+                // move to second line at column 4
+                "ggj3l", CheckThat(() => AssertCursorLeftIs(continuationPrefixLength + 3)),
+                // moving down on shorter lines will position the cursor at the end of each logical line
+                _.j, CheckThat(() => AssertCursorLeftIs(continuationPrefixLength + 3)),
+                _.j, CheckThat(() => AssertCursorLeftIs(continuationPrefixLength + 2)),
+                // moving back up will position the cursor at the end of shorter lines or at the desired column number
+                _.k, CheckThat(() => AssertCursorLeftIs(continuationPrefixLength + 3)),
+                _.k, CheckThat(() => AssertCursorLeftIs(continuationPrefixLength + 3)),
+
+                // move at end of line (column 5)
+                _.Dollar, CheckThat(() => AssertCursorLeftIs(continuationPrefixLength + 4)),
+                // moving down on shorter lines will position the cursor at the end of each logical line
+                _.j, CheckThat(() => AssertCursorLeftIs(continuationPrefixLength + 3)),
+                _.j, CheckThat(() => AssertCursorLeftIs(continuationPrefixLength + 2)),
+                // moving back up will position the cursor at the end of each logical line
+                _.k, CheckThat(() => AssertCursorLeftIs(continuationPrefixLength + 3)),
+                _.k, CheckThat(() => AssertCursorLeftIs(continuationPrefixLength + 4))
+            ));
+        }
+
+
+        [SkippableFact]
         public void ViBackwardChar()
         {
             TestSetup(KeyMode.Vi);

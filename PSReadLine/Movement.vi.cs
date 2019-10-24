@@ -148,7 +148,7 @@ namespace Microsoft.PowerShell
         private static int ViEndOfLineFactor => InViCommandMode() ? -1 : 0;
 
         /// <summary>
-        /// Move the cursor to the end of the input.
+        /// Move the cursor to the end of the current logical line.
         /// </summary>
         public static void MoveToEndOfLine(ConsoleKeyInfo? key = null, object arg = null)
         {
@@ -159,6 +159,8 @@ namespace Microsoft.PowerShell
                 {
                     _singleton.MoveCursor(eol);
                 }
+                _singleton._moveToEndOfLineCommandCount++;
+                _singleton._moveToLineDesiredColumn = int.MaxValue;
             }
             else
             {

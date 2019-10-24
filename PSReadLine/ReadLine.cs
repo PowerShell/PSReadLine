@@ -473,7 +473,8 @@ namespace Microsoft.PowerShell
                 var recallHistoryCommandCount = _recallHistoryCommandCount;
                 var yankLastArgCommandCount = _yankLastArgCommandCount;
                 var visualSelectionCommandCount = _visualSelectionCommandCount;
-                var movingAtEndOfLineCount = _moveToLineCommandCount;
+                var moveToLineCommandCount = _moveToLineCommandCount;
+                var moveToEndOfLineCommandCount = _moveToEndOfLineCommandCount;
 
                 var key = ReadKey();
                 ProcessOneKey(key, _dispatchTable, ignoreIfNoAction: false, arg: null);
@@ -534,9 +535,21 @@ namespace Microsoft.PowerShell
                     _visualSelectionCommandCount = 0;
                     Render();  // Clears the visual selection
                 }
-                if (movingAtEndOfLineCount == _moveToLineCommandCount)
+                if (moveToLineCommandCount == _moveToLineCommandCount)
                 {
                     _moveToLineCommandCount = 0;
+
+                    if (moveToEndOfLineCommandCount == _moveToEndOfLineCommandCount)
+                    {
+                        if (InViCommandMode())
+                        {
+                            // the previous command was neither a "move to end of line" command
+                            // nor a "move to line" command. In that case, the desired column
+                            // number will be computed from the current position on the logical line.
+
+                            _moveToLineDesiredColumn = -1;
+                        }
+                    }
                 }
             }
         }
