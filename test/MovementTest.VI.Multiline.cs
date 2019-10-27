@@ -49,6 +49,7 @@ namespace Test
                 "10l", CheckThat(() => AssertCursorLeftIs(continuationPrefixLength + 4))
             ));
         }
+
         [SkippableFact]
         public void ViMoveToFirstLogicalLineThenJumpToLastLogicalLine()
         {
