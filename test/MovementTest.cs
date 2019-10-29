@@ -173,6 +173,12 @@ namespace Test
                 _.DownArrow, CheckThat(() => AssertCursorLeftTopIs(5 + continutationPromptLength, 4)),
                 _.DownArrow, CheckThat(() => AssertCursorLeftTopIs(6 + continutationPromptLength, 5)),
 
+                // Using the input previously entered, check for correct cursor movements when first line is blank
+                _.Home, _.Home, CheckThat(() => AssertCursorLeftTopIs(0, 0)),
+                _.DownArrow, CheckThat(() => AssertCursorLeftTopIs(8 + continutationPromptLength, 1)),
+                _.Home, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 1)),
+                _.Home, CheckThat(() => AssertCursorLeftTopIs(0,0)),
+
                 // Clear the input, we were just testing movement
                 _.Escape
                 ));
