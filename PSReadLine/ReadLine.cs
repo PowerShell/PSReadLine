@@ -52,7 +52,7 @@ namespace Microsoft.PowerShell
         private Thread _readKeyThread;
         private AutoResetEvent _readKeyWaitHandle;
         private AutoResetEvent _keyReadWaitHandle;
-        private AutoResetEvent _forceEventWaitHandle = new AutoResetEvent(false);
+        private AutoResetEvent _forceEventWaitHandle;
         private CancellationToken _cancelReadCancellationToken;
         internal ManualResetEvent _closingWaitHandle;
         private WaitHandle[] _threadProcWaitHandles;
@@ -619,6 +619,10 @@ namespace Microsoft.PowerShell
             _statusBuffer = new StringBuilder(256);
             _savedCurrentLine = new HistoryItem();
             _queuedKeys = new Queue<PSKeyInfo>();
+
+            // Initialize this event handler early because it could be used by PowerShell
+            // Editor Services before 'DelayedOneTimeInitialize' runs.
+            _forceEventWaitHandle = new AutoResetEvent(false);
 
             string hostName = null;
             // This works mostly by luck - we're not doing anything to guarantee the constructor for our
