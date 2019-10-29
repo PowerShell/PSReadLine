@@ -6,6 +6,51 @@ namespace Test
     public partial class ReadLine
     {
         [SkippableFact]
+        public void ViBackwardChar()
+        {
+            TestSetup(KeyMode.Vi);
+
+            const string buffer = "\"\nline2\nline3\n\"";
+
+            var continuationPrefixLength = PSConsoleReadLineOptions.DefaultContinuationPrompt.Length;
+
+            Test(buffer, Keys(
+                _.DQuote, _.Enter,
+                "line2", _.Enter,
+                "line3", _.Enter,
+                _.DQuote,
+                _.Escape,
+                _.k, CheckThat(() => AssertCursorLeftIs(continuationPrefixLength + 0)),
+                // move left
+                _.h, CheckThat(() => AssertCursorLeftIs(continuationPrefixLength + 0)),
+                _.l, CheckThat(() => AssertCursorLeftIs(continuationPrefixLength + 1)),
+                "2h", CheckThat(() => AssertCursorLeftIs(continuationPrefixLength + 0))
+            ));
+        }
+
+        [SkippableFact]
+        public void ViForwardChar()
+        {
+            TestSetup(KeyMode.Vi);
+
+            const string buffer = "\"\nline2\nline3\n\"";
+
+            var continuationPrefixLength = PSConsoleReadLineOptions.DefaultContinuationPrompt.Length;
+
+            Test(buffer, Keys(
+                _.DQuote, _.Enter,
+                "line2", _.Enter,
+                "line3", _.Enter,
+                _.DQuote,
+                _.Escape,
+                _.k, _.k, CheckThat(() => AssertCursorLeftIs(continuationPrefixLength + 0)),
+                // move right
+                _.l, CheckThat(() => AssertCursorLeftIs(continuationPrefixLength + 1)),
+                "10l", CheckThat(() => AssertCursorLeftIs(continuationPrefixLength + 4))
+            ));
+        }
+
+        [SkippableFact]
         public void ViMoveToFirstLogicalLineThenJumpToLastLogicalLine()
         {
             TestSetup(KeyMode.Vi);

@@ -461,7 +461,7 @@ namespace Microsoft.PowerShell
             }
             _singleton._dispatchTable = _viCmdKeyMap;
             _singleton._chordDispatchTable = _viCmdChordTable;
-            BackwardChar();
+            ViBackwardChar();
             _singleton.ViIndicateCommandMode();
         }
 
