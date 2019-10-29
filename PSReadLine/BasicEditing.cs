@@ -473,25 +473,7 @@ namespace Microsoft.PowerShell
         public static void InsertLineAbove(ConsoleKeyInfo? key = null, object arg = null)
         {
             // Move the current position to the beginning of the current line and only the current line.
-            if (_singleton.LineIsMultiLine())
-            {
-                int i = Math.Max(0, _singleton._current - 1);
-                for (; i > 0; i--)
-                {
-                    if (_singleton._buffer[i] == '\n')
-                    {
-                        i += 1;
-                        break;
-                    }
-                }
-
-                _singleton._current = i;
-            }
-            else
-            {
-                _singleton._current = 0;
-            }
-
+            _singleton._current = GetBeginningOfLinePos(_singleton._current);
             Insert('\n');
             PreviousLine();
         }
