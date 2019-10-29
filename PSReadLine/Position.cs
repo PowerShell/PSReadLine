@@ -15,10 +15,10 @@ namespace Microsoft.PowerShell
 
             if (_singleton.LineIsMultiLine())
             {
-                int i = Math.Max(0, current - 1);
-                for (; i > 0; i--)
+                int i = Math.Max(0, current);
+                while (i > 0)
                 {
-                    if (_singleton._buffer[i] == '\n')
+                    if (_singleton._buffer[--i] == '\n')
                     {
                         i += 1;
                         break;
