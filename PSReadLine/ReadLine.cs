@@ -620,6 +620,10 @@ namespace Microsoft.PowerShell
             _savedCurrentLine = new HistoryItem();
             _queuedKeys = new Queue<PSKeyInfo>();
 
+            // Initialize this event handler early because it could be used by PowerShell
+            // Editor Services before 'DelayedOneTimeInitialize' runs.
+            _forceEventWaitHandle = new AutoResetEvent(false);
+
             string hostName = null;
             // This works mostly by luck - we're not doing anything to guarantee the constructor for our
             // singleton is called on a thread with a runspace, but it is happening by coincidence.
@@ -802,7 +806,6 @@ namespace Microsoft.PowerShell
 
             _singleton._readKeyWaitHandle = new AutoResetEvent(false);
             _singleton._keyReadWaitHandle = new AutoResetEvent(false);
-            _singleton._forceEventWaitHandle = new AutoResetEvent(false);
             _singleton._closingWaitHandle = new ManualResetEvent(false);
             _singleton._requestKeyWaitHandles = new WaitHandle[] {_singleton._keyReadWaitHandle, _singleton._closingWaitHandle, _defaultCancellationToken.WaitHandle, _singleton._forceEventWaitHandle};
             _singleton._threadProcWaitHandles = new WaitHandle[] {_singleton._readKeyWaitHandle, _singleton._closingWaitHandle};
