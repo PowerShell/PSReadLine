@@ -92,7 +92,7 @@ you need to run: `<path-to-pwsh-executable> -noprofile -command "Install-Module 
 
 If you've installed PSReadLine yourself from the PowerShell Gallery,
 you can simply run: `powershell -noprofile -command "Update-Module PSReadLine -AllowPrerelease"` or
-`<path-to-pwsh-executable> -noprofile -command "Update-Module PSReadLine -AllowPrerelease`,
+`<path-to-pwsh-executable> -noprofile -command "Update-Module PSReadLine -AllowPrerelease"`,
 depending on the version of PowerShell you are using.
 
 If you get an error like:
