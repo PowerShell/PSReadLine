@@ -3,7 +3,8 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.PowerShell.PSReadLine</RootNamespace>
-    <AssemblyName>Microsoft.PowerShell.PSReadLine2</AssemblyName>
+    <AssemblyName Condition="'$(UnitTests)' != 'yes'">Microsoft.PowerShell.PSReadLine2</AssemblyName>
+    <AssemblyName Condition="'$(UnitTests)' == 'yes'">Microsoft.PowerShell.PSReadLine2.UnitTests</AssemblyName>
     <AssemblyVersion>2.0.0.0</AssemblyVersion>
     <FileVersion>2.0.0</FileVersion>
     <InformationalVersion>2.0.0-beta5</InformationalVersion>
