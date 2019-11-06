@@ -90,11 +90,6 @@ $binaryModuleParams = @{
     Outputs = "PSReadLine/bin/$Configuration/$Framework/Microsoft.PowerShell.PSReadLine2.dll"
 }
 
-$xUnitTestOnlyModuleParams = @{
-    Inputs  = { Get-ChildItem PSReadLine/*.cs, PSReadLine/PSReadLine.csproj, PSReadLine/PSReadLineResources.resx }
-    Outputs = "PSReadLine/bin/$Configuration/$Framework/Microsoft.PowerShell.PSReadLine2.UnitTests.dll"
-}
-
 $xUnitTestParams = @{
     Inputs = { Get-ChildItem test/*.cs, test/*.json, test/PSReadLine.Tests.csproj }
     Outputs = "test/bin/$Configuration/$Framework/PSReadLine.Tests.dll"
@@ -120,13 +115,6 @@ task BuildXUnitTests @xUnitTestParams {
 }
 
 <#
-Synopsis: Build "test-only" PSReadLine module
-#>
-task BuildXUnitTestModule @xUnitTestOnlyModuleParams {
-    exec { dotnet build -f $Framework -c $Configuration PSReadLine /p:UnitTests=yes }
-}
-
-<#
 Synopsis: Build the mock powershell console.
 #>
 task BuildMockPSConsole @mockPSConsoleParams {
@@ -148,8 +136,8 @@ task GenerateCatalog {
 <#
 Synopsis: Run the unit tests
 #>
-task RunTests BuildMainModule, BuildxUnitTestModule, BuildXUnitTests, {
-    dotnet test .\PSReadLine\PSReadLine.csproj /p:UnitTests=yes
+task RunTests BuildMainModule, BuildXUnitTests, {
+    dotnet test .\PSReadLine\PSReadLine.csproj --configuration $Configuration --framework $Framework --output .\bin\$configuration\test-only\$Framework /p:UnitTests=yes
     Start-TestRun -Configuration $Configuration -Framework $Framework
 }
 
