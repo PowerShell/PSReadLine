@@ -484,13 +484,11 @@ namespace Test
                 _.DQuote, _.Enter,
                 "Hello", _.Enter,
                 "World!", _.Enter,
-                _.Escape,
-                // currently, <ESC> moves back to the end of the previous line
-                // thus, the cursor is in position for the following command
+                _.DQuote, _.Escape,
+                _.k,
                 "yy",
                 _.j, // move to last line
-                'P',
-                _.G, _.a, _.DQuote // close the multi-line buffer
+                'P'
                 ));
         }
     }
