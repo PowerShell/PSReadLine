@@ -992,7 +992,25 @@ namespace Microsoft.PowerShell
                 return;
             }
 
-            _console.SetCursorPosition(point.X, point.Y);
+            if (point.Y == _console.BufferHeight)
+            {
+                // The cursor top exceeds the buffer height, so adjust the initial cursor
+                // position and the to-be-set cursor position for scrolling up the buffer.
+                _initialY -= 1;
+                point.Y -= 1;
+
+                // Insure the cursor is on the last line of the buffer prior
+                // to issuing a newline to scroll the buffer.
+                _console.SetCursorPosition(point.X, point.Y);
+
+                // Scroll up the buffer by 1 line.
+                _console.Write("\n");
+            }
+            else
+            {
+                _console.SetCursorPosition(point.X, point.Y);
+            }
+
             _current = newCursor;
         }
 
