@@ -37,12 +37,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="..\PSReadLine\CharMap.cs">
-      <Link>CharMap.cs</Link>
-    </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\PSReadLine\PSReadLine.csproj">
       <Project>{615788cb-1b9a-4b34-97b3-4608686e59ca}</Project>
       <Name>PSReadLine</Name>

@@ -32,7 +32,4 @@
     <None Include="..\docs\Set-PSReadLineKeyHandler.md" Link="docs\Set-PSReadLineKeyHandler.md" />
     <None Include="..\docs\Set-PSReadLineOption.md" Link="docs\Set-PSReadLineOption.md" />
   </ItemGroup>
-  <ItemGroup Condition=" '$(IsWindows)' != 'true' ">
-    <Compile Remove="AssemblyInfo.cs" />
-  </ItemGroup>
 </Project>
