@@ -221,9 +221,9 @@ namespace Microsoft.PowerShell
                 return;
             }
 
-            _singleton._clipboard = _singleton._buffer.ToString(_singleton._current, _singleton._buffer.Length - _singleton._current);
+            _clipboard.Record(_singleton._buffer, _singleton._current, _singleton._buffer.Length - _singleton._current);
             _singleton.SaveEditItem(EditItemDelete.Create(
-                _singleton._clipboard,
+                _clipboard,
                 _singleton._current,
                 DeleteToEnd,
                 arg
@@ -258,7 +258,7 @@ namespace Microsoft.PowerShell
         {
             _singleton.SaveToClipboard(_singleton._current, endPoint - _singleton._current);
             _singleton.SaveEditItem(EditItemDelete.Create(
-                _singleton._clipboard,
+                _clipboard,
                 _singleton._current,
                 instigator,
                 arg
@@ -277,7 +277,7 @@ namespace Microsoft.PowerShell
 
             _singleton.SaveToClipboard(endPoint, deleteLength);
             _singleton.SaveEditItem(EditItemDelete.Create(
-                _singleton._clipboard,
+                _clipboard,
                 endPoint,
                 instigator,
                 arg
@@ -302,7 +302,7 @@ namespace Microsoft.PowerShell
 
             _singleton.SaveToClipboard(_singleton._current, length);
             _singleton.SaveEditItem(EditItemDelete.Create(
-                _singleton._clipboard,
+                _clipboard,
                 _singleton._current,
                 ViDeleteGlob,
                 arg
@@ -334,7 +334,7 @@ namespace Microsoft.PowerShell
             }
             _singleton.SaveToClipboard(_singleton._current, 1 + endPoint - _singleton._current);
             _singleton.SaveEditItem(EditItemDelete.Create(
-                _singleton._clipboard,
+                _clipboard,
                 _singleton._current,
                 DeleteEndOfWord,
                 arg
@@ -361,7 +361,7 @@ namespace Microsoft.PowerShell
 
             _singleton.SaveToClipboard(_singleton._current, 1 + endPoint - _singleton._current);
             _singleton.SaveEditItem(EditItemDelete.Create(
-                _singleton._clipboard,
+                _clipboard,
                 _singleton._current,
                 ViDeleteEndOfGlob,
                 arg
@@ -706,7 +706,7 @@ namespace Microsoft.PowerShell
                 }
 
                 _singleton.SaveToClipboard(i, _singleton._current - i);
-                _singleton.SaveEditItem(EditItemDelete.Create(_singleton._clipboard, i, DeleteLineToFirstChar));
+                _singleton.SaveEditItem(EditItemDelete.Create(_clipboard, i, DeleteLineToFirstChar));
 
                 _singleton._buffer.Remove(i, _singleton._current - i);
                 _singleton._current = i;
@@ -723,8 +723,8 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void DeleteLine(ConsoleKeyInfo? key = null, object arg = null)
         {
-            _singleton._clipboard = _singleton._buffer.ToString();
-            _singleton.SaveEditItem(EditItemDelete.Create(_singleton._clipboard, 0));
+            _clipboard.Record(_singleton._buffer);
+            _singleton.SaveEditItem(EditItemDelete.Create(_clipboard, 0));
             _singleton._current = 0;
             _singleton._buffer.Remove(0, _singleton._buffer.Length);
             _singleton.Render();
@@ -746,9 +746,9 @@ namespace Microsoft.PowerShell
                 Ding();
                 return;
             }
-            _singleton._clipboard = _singleton._buffer.ToString(deletePoint, _singleton._current - deletePoint);
+            _clipboard.Record(_singleton._buffer, deletePoint, _singleton._current - deletePoint);
             _singleton.SaveEditItem(EditItemDelete.Create(
-                _singleton._clipboard,
+                _clipboard,
                 deletePoint,
                 BackwardDeleteWord,
                 arg
@@ -779,9 +779,9 @@ namespace Microsoft.PowerShell
                 Ding();
                 return;
             }
-            _singleton._clipboard = _singleton._buffer.ToString(deletePoint, _singleton._current - deletePoint);
+            _clipboard.Record(_singleton._buffer, deletePoint, _singleton._current - deletePoint);
             _singleton.SaveEditItem(EditItemDelete.Create(
-                _singleton._clipboard,
+                _clipboard,
                 deletePoint,
                 BackwardDeleteWord,
                 arg
@@ -823,7 +823,7 @@ namespace Microsoft.PowerShell
             int length = last - first + 1;
 
             _singleton.SaveToClipboard(first, length);
-            _singleton.SaveEditItem(EditItemDelete.Create(_singleton._clipboard, first, action));
+            _singleton.SaveEditItem(EditItemDelete.Create(_clipboard, first, action));
             _singleton._current = first;
             _singleton._buffer.Remove(first, length);
             _singleton.Render();

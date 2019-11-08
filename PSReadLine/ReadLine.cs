@@ -37,7 +37,10 @@ namespace Microsoft.PowerShell
 
         private const int EventProcessingRequested = 3;
 
-        private static readonly PSConsoleReadLine _singleton = new PSConsoleReadLine();
+        // *must* be initialized in the static ctor
+        // because the static member _clipboard depends upon it
+        // for its own initialization
+        private static readonly PSConsoleReadLine _singleton;
 
         private static readonly CancellationToken _defaultCancellationToken = new CancellationTokenSource().Token;
 
@@ -605,6 +608,12 @@ namespace Microsoft.PowerShell
             {
                 SelfInsert(consoleKey, arg);
             }
+        }
+
+        static PSConsoleReadLine()
+        {
+            _singleton = new PSConsoleReadLine();
+            _clipboard = new ViRegister(_singleton);
         }
 
         private PSConsoleReadLine()

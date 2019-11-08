@@ -1,4 +1,4 @@
-﻿using Microsoft.PowerShell;
+using Microsoft.PowerShell;
 using Xunit;
 
 namespace Test
@@ -209,12 +209,14 @@ namespace Test
         {
             TestSetup(KeyMode.Vi);
 
+            var continuationPrefixLength = PSConsoleReadLineOptions.DefaultContinuationPrompt.Length;
+
             Test("012 456", Keys(
                 "012 456", _.Escape,
-                "byyP", CheckThat(() => AssertLineIs("012 012 456456")), CheckThat(() => AssertCursorLeftIs(10)),
+                "byyP", CheckThat(() => AssertLineIs("012 456\n012 456")), CheckThat(() => AssertCursorLeftIs(0)),
                 "u", CheckThat(() => AssertLineIs("012 456")), CheckThat(() => AssertCursorLeftIs(4)),
-                "p", CheckThat(() => AssertLineIs("012 4012 45656")), CheckThat(() => AssertCursorLeftIs(11)),
-                "u", CheckThat(() => AssertLineIs("012 456")), CheckThat(() => AssertCursorLeftIs(5))
+                "p", CheckThat(() => AssertLineIs("012 456\n012 456")), CheckThat(() => AssertCursorLeftIs(continuationPrefixLength + 0)),
+                "u", CheckThat(() => AssertLineIs("012 456")), CheckThat(() => AssertCursorLeftIs(4))
                 ));
         }
 
@@ -455,6 +457,38 @@ namespace Test
                 "0yEP", CheckThat(() => AssertLineIs("012++567012++567 +abc")),
                 "u02yEP", CheckThat(() => AssertLineIs("012++567 +abc012++567 +abc")),
                 "u"
+                ));
+        }
+
+        [SkippableFact]
+        public void ViYankAndPasteLogicalLines()
+        {
+            TestSetup(KeyMode.Vi);
+
+            Test("\"\nline1\nline2\nline1\nline2\n\"", Keys(
+                _.DQuote, _.Enter,
+                "line1", _.Enter,
+                "line2", _.Enter,
+                _.DQuote, _.Escape,
+                _.k, _.k,
+                "2yy", 'P'
+                ));
+        }
+
+        [SkippableFact]
+        public void ViYankAndPasteLogicalLines_LastLine()
+        {
+            TestSetup(KeyMode.Vi);
+
+            Test("\"\nHello\nWorld!\nWorld!\n\"", Keys(
+                _.DQuote, _.Enter,
+                "Hello", _.Enter,
+                "World!", _.Enter,
+                _.DQuote, _.Escape,
+                _.k,
+                "yy",
+                _.j, // move to last line
+                'P'
                 ));
         }
     }

@@ -148,16 +148,18 @@ namespace Microsoft.PowerShell
         {
             // The string inserted tells us the length to delete on undo.
             // The contents of the string are only needed for redo.
-            private string _insertedString;
-            private int _insertStartPosition;
+            private readonly string _insertedString;
+            private readonly int _insertStartPosition;
+
+            protected EditItemInsertString(string str, int position)
+            {
+                _insertedString = str;
+                _insertStartPosition = position;
+            }
 
             public static EditItem Create(string str, int position)
             {
-                return new EditItemInsertString
-                {
-                    _insertedString = str,
-                    _insertStartPosition = position
-                };
+                return new EditItemInsertString(str, position);
             }
 
             public override void Undo()
@@ -172,6 +174,32 @@ namespace Microsoft.PowerShell
             {
                 _singleton._buffer.Insert(_insertStartPosition, _insertedString);
                 _singleton._current += _insertedString.Length;
+            }
+        }
+
+        [DebuggerDisplay("Insert '{_insertedString}' ({_insertStartPosition}, Anchor: {_insertAnchor})")]
+        class EditItemInsertLines : EditItemInsertString
+        {
+            // in linewise pastes, the _insertAnchor represents the position
+            // of the cursor at the time paste was invoked. This is recorded
+            // so as to be restored when undoing the paste.
+            private readonly int _insertAnchor;
+
+            private EditItemInsertLines(string str, int position, int anchor)
+                :base(str, position)
+            {
+                _insertAnchor = anchor;
+            }
+
+            public static EditItem Create(string str, int position, int anchor)
+            {
+                return new EditItemInsertLines(str, position, anchor);
+            }
+
+            public override void Undo()
+            {
+                base.Undo();
+                _singleton._current = _insertAnchor;
             }
         }
 
