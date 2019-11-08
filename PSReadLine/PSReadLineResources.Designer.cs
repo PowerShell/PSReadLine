@@ -19,7 +19,7 @@ namespace Microsoft.PowerShell.PSReadLine {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class PSReadLineResources {
@@ -640,11 +640,20 @@ namespace Microsoft.PowerShell.PSReadLine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Parameter must be a ConsoleColor, ANSI escape sequence, or RGB value with optional leading &apos;#&apos;..
+        ///   Looks up a localized string similar to &apos;{0}&apos; is not a valid color property.
         /// </summary>
-        internal static string InvalidColorParameter {
+        internal static string InvalidColorProperty {
             get {
-                return ResourceManager.GetString("InvalidColorParameter", resourceCulture);
+                return ResourceManager.GetString("InvalidColorProperty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; is not a valid color value.  It must be a ConsoleColor, ANSI escape sequence, or RGB value with optional leading &apos;#&apos;..
+        /// </summary>
+        internal static string InvalidColorValue {
+            get {
+                return ResourceManager.GetString("InvalidColorValue", resourceCulture);
             }
         }
         
@@ -817,6 +826,7 @@ namespace Microsoft.PowerShell.PSReadLine {
         ///```
         ///{5}
         ///```
+        ///.
         /// </summary>
         internal static string OopsAnErrorMessage2 {
             get {

@@ -79,6 +79,34 @@ namespace Test
         }
 
         [SkippableFact]
+        public void SetInvalidColorOptions()
+        {
+            bool throws = false;
+            try
+            {
+                PSConsoleReadLine.SetOptions(new SetPSReadLineOption{
+                    Colors = new Hashtable {
+                        { "InvalidProperty", ConsoleColor.Magenta }
+                    },
+                });
+            }
+            catch (ArgumentException) { throws = true; }
+            Assert.True(throws, "Invalid color property should throw");
+
+            throws = false;
+            try
+            {
+                PSConsoleReadLine.SetOptions(new SetPSReadLineOption{
+                    Colors = new Hashtable {
+                        { "Default", "apple" }
+                    },
+                });
+            }
+            catch (ArgumentException) { throws = true; }
+            Assert.True(throws, "Invalid color value should throw");
+        }
+
+        [SkippableFact]
         [ExcludeFromCodeCoverage]
         public void UselessStuffForBetterCoverage()
         {
