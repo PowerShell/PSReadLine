@@ -10,8 +10,8 @@
 
 namespace Microsoft.PowerShell.PSReadLine {
     using System;
-
-
+    
+    
     /// <summary>
     ///   A strongly-typed resource class, for looking up localized strings, etc.
     /// </summary>
@@ -23,15 +23,15 @@ namespace Microsoft.PowerShell.PSReadLine {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class PSReadLineResources {
-
+        
         private static global::System.Resources.ResourceManager resourceMan;
-
+        
         private static global::System.Globalization.CultureInfo resourceCulture;
-
+        
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
         internal PSReadLineResources() {
         }
-
+        
         /// <summary>
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
@@ -45,7 +45,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return resourceMan;
             }
         }
-
+        
         /// <summary>
         ///   Overrides the current thread's CurrentUICulture property for all
         ///   resource lookups using this strongly typed resource class.
@@ -59,7 +59,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 resourceCulture = value;
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Abort the current operation, e.g. incremental history search.
         /// </summary>
@@ -68,7 +68,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("AbortDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Accept the current line and recall the next line from history after the current line finishes executing.
         /// </summary>
@@ -77,7 +77,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("AcceptAndGetNextDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Accept the input or move to the next line if input is missing a closing token..
         /// </summary>
@@ -86,7 +86,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("AcceptLineDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Move the cursor to the next line without attempting to execute the input.
         /// </summary>
@@ -95,7 +95,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("AddLineDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Move the cursor back one character.
         /// </summary>
@@ -104,7 +104,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("BackwardCharDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Delete the character before the cursor.
         /// </summary>
@@ -113,7 +113,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("BackwardDeleteCharDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Delete text from the cursor to the start of the line.
         /// </summary>
@@ -122,7 +122,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("BackwardDeleteLineDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Delete the previous word in the line..
         /// </summary>
@@ -131,7 +131,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("BackwardDeleteWordDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Move the text from the cursor to the beginning of the line to the kill ring.
         /// </summary>
@@ -140,7 +140,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("BackwardKillLineDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Move the text from the start of the current or previous word to the cursor to the kill ring.
         /// </summary>
@@ -149,7 +149,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("BackwardKillWordDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Replaces the character in front of the cursor..
         /// </summary>
@@ -158,7 +158,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("BackwardReplaceCharDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Move the cursor to the beginning of the current or previous word.
         /// </summary>
@@ -167,7 +167,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("BackwardWordDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Basic editing functions.
         /// </summary>
@@ -176,7 +176,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("BasicGrouping", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Move to the first item in the history.
         /// </summary>
@@ -185,7 +185,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("BeginningOfHistoryDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Move the cursor to the beginning of the line.
         /// </summary>
@@ -194,7 +194,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("BeginningOfLineDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Abort editing the current line and re-evaluate the prompt.
         /// </summary>
@@ -203,7 +203,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("CancelLineDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Unable to translate &apos;{0}&apos; to virtual key code: {1}..
         /// </summary>
@@ -212,7 +212,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("CantTranslateKey", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Allows you to select multiple lines from the console using Shift+UpArrow/DownArrow and copy the selected lines to clipboard by pressing Enter..
         /// </summary>
@@ -221,7 +221,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("CaptureScreenDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Read a character and move the cursor to the previous occurence of that character.
         /// </summary>
@@ -230,7 +230,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("CharacterSearchBackwardDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Read a character and move the cursor to the next occurence of that character.
         /// </summary>
@@ -239,7 +239,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("CharacterSearchDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Chord can have at most two keys..
         /// </summary>
@@ -248,7 +248,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ChordWithTooManyKeys", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Remove all items from the command line history (not PowerShell history).
         /// </summary>
@@ -257,7 +257,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ClearHistoryDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Remove all items from the kill ring.
         /// </summary>
@@ -266,7 +266,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ClearKillRingDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Clear the screen and redraw the current line at the top of the screen.
         /// </summary>
@@ -275,7 +275,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ClearScreenDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Command &apos;{0}&apos; cannot be found..
         /// </summary>
@@ -284,7 +284,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("CommandNotFoundError", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Complete the input if there is a single completion, otherwise complete the input with common prefix for all completions.  Show possible completions if pressed a second time..
         /// </summary>
@@ -293,7 +293,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("CompleteDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Completion functions.
         /// </summary>
@@ -302,7 +302,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("CompletionGrouping", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Copy selected region to the system clipboard.  If no region is selected, copy the whole line.
         /// </summary>
@@ -311,7 +311,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("CopyDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Either copy selected text to the clipboard, or if no text is selected, cancel editing the line with CancelLine..
         /// </summary>
@@ -320,7 +320,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("CopyOrCancelLineDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Cursor movement functions.
         /// </summary>
@@ -329,7 +329,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("CursorMovementGrouping", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to User defined action.
         /// </summary>
@@ -338,7 +338,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("CustomActionDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to User defined functions.
         /// </summary>
@@ -347,7 +347,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("CustomGrouping", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Delete selected region placing deleted text in the system clipboard.
         /// </summary>
@@ -356,7 +356,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("CutDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Delete the character under the cursor.
         /// </summary>
@@ -365,7 +365,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("DeleteCharDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Delete the character under the cursor, or if the line is empty, exit the process..
         /// </summary>
@@ -374,7 +374,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("DeleteCharOrExitDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Delete to the end of the current word, as delimited by white space and common delimiters..
         /// </summary>
@@ -383,7 +383,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("DeleteEndOfWordDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Deletes the current line..
         /// </summary>
@@ -392,7 +392,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("DeleteLineDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Deletes all of the line except for leading whitespace..
         /// </summary>
@@ -401,7 +401,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("DeleteLineToFirstCharDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Deletes from the cursor to the end of the line..
         /// </summary>
@@ -410,7 +410,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("DeleteToEndDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Deletes from the cursor to the end of the current word..
         /// </summary>
@@ -419,7 +419,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("DeleteToEndOfWordDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Deletes the current word..
         /// </summary>
@@ -428,7 +428,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("DeleteWordDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Start or accumulate a numeric argument to other functions.
         /// </summary>
@@ -437,7 +437,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("DigitArgumentDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Display all {0} possibilities? (y or n) _.
         /// </summary>
@@ -446,7 +446,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("DisplayAllPossibilities", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to String is not used in the UI.
         /// </summary>
@@ -455,7 +455,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("EmacsCtrlXDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to String is not used in the UI.
         /// </summary>
@@ -464,7 +464,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("EmacsMetaDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Move to the last item (the current input) in the history.
         /// </summary>
@@ -473,7 +473,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("EndOfHistoryDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Move the cursor to the end of the line.
         /// </summary>
@@ -482,7 +482,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("EndOfLineDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Mark the location of the cursor and move the cursor to the position of the previous mark.
         /// </summary>
@@ -491,7 +491,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ExchangePointAndMarkDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Move the cursor forward one character.
         /// </summary>
@@ -500,7 +500,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ForwardCharDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Delete text from the cursor to the end of the line.
         /// </summary>
@@ -509,7 +509,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ForwardDeleteLineDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Search history forward interactively.
         /// </summary>
@@ -518,7 +518,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ForwardSearchHistoryDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Move the cursor forward to the end of the current word, or if between words, to the end of the next word. .
         /// </summary>
@@ -527,7 +527,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ForwardWordDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Go to matching brace.
         /// </summary>
@@ -536,7 +536,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("GotoBraceDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Moves the cursor to the prescribed column..
         /// </summary>
@@ -545,7 +545,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("GotoColumnDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Positions the cursor at the first non-blank character..
         /// </summary>
@@ -554,7 +554,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("GotoFirstNonBlankOfLineDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to This error will not be reported again in this session. Consider using a different path with:
         ///    Set-PSReadLineOption -HistorySavePath &lt;Path&gt;
@@ -566,7 +566,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("HistoryFileErrorFinalMessage", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Error reading or writing history file &apos;{0}&apos;: {1}.
         /// </summary>
@@ -575,7 +575,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("HistoryFileErrorMessage", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to History functions.
         /// </summary>
@@ -584,7 +584,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("HistoryGrouping", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Search for the previous item in the history that starts with the current input - like PreviousHistory if the input is empty.
         /// </summary>
@@ -593,7 +593,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("HistorySearchBackwardDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Search for the next item in the history that starts with the current input - like NextHistory if the input is empty.
         /// </summary>
@@ -602,7 +602,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("HistorySearchForwardDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to String is not used in the UI.
         /// </summary>
@@ -611,7 +611,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("IgnoreDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Delete the current character and insert the next character..
         /// </summary>
@@ -620,7 +620,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("InsertCharacterDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Inserts a new empty line above the current line without attempting to execute the input.
         /// </summary>
@@ -629,7 +629,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("InsertLineAboveDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Inserts a new empty line below the current line without attempting to execute the input.
         /// </summary>
@@ -638,7 +638,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("InsertLineBelowDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos; is not a valid color property.
         /// </summary>
@@ -647,7 +647,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("InvalidColorProperty", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos; is not a valid color value.  It must be a ConsoleColor, ANSI escape sequence, or RGB value with optional leading &apos;#&apos;..
         /// </summary>
@@ -656,7 +656,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("InvalidColorValue", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Duplicate or invalid modifier token &apos;{0}&apos; for key &apos;{1}&apos;..
         /// </summary>
@@ -665,7 +665,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("InvalidModifier", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Invalid sequence &apos;{0}&apos;..
         /// </summary>
@@ -674,7 +674,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("InvalidSequence", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Inverts the case of the current character and advances the cursor..
         /// </summary>
@@ -683,7 +683,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("InvertCaseDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Erases the current prompt and calls the prompt function to redisplay the prompt.
         /// </summary>
@@ -692,7 +692,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("InvokePromptDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Key is unbound.
         /// </summary>
@@ -701,7 +701,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("KeyIsUnbound", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Move the text from the cursor to the end of the input to the kill ring.
         /// </summary>
@@ -710,7 +710,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("KillLineDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Kill the text between the cursor and the mark.
         /// </summary>
@@ -719,7 +719,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("KillRegionDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Move the text from the cursor to the end of the current or next word to the kill ring.
         /// </summary>
@@ -728,7 +728,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("KillWordDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Complete the input if there is a single completion, otherwise complete the input by selecting from a menu of possible completions..
         /// </summary>
@@ -737,7 +737,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("MenuCompleteDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Miscellaneous functions.
         /// </summary>
@@ -746,7 +746,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("MiscellaneousGrouping", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Move to the end of the line..
         /// </summary>
@@ -755,7 +755,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("MoveToEndOfLineDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Replace the input with the next item in the history.
         /// </summary>
@@ -764,7 +764,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("NextHistoryDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Move the cursor to the next line if the input has multiple lines..
         /// </summary>
@@ -773,7 +773,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("NextLineDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Move the cursor forward to the start of the next word.
         /// </summary>
@@ -782,7 +782,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("NextWordDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Moves the cursor forward to the end of the next word..
         /// </summary>
@@ -791,7 +791,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("NextWordEndDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to The -ViMode parameter was used, but the current EditMode is not Vi..
         /// </summary>
@@ -800,9 +800,9 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("NotInViMode", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        ///   Looks up a localized string similar to
+        ///   Looks up a localized string similar to 
         ///Oops, something went wrong.  Please report this bug with the details below.
         ///Report on GitHub: https://github.com/PowerShell/PSReadLine/issues/new.
         /// </summary>
@@ -811,7 +811,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("OopsAnErrorMessage1", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to ### Environment
         ///PSReadLine: {0}
@@ -833,7 +833,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("OopsAnErrorMessage2", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to An exception occurred in custom key handler, see $error for more information: {0}.
         /// </summary>
@@ -842,7 +842,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("OopsCustomHandlerException", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Write the contents of the local clipboard after the cursor..
         /// </summary>
@@ -851,7 +851,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("PasteAfterDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Write the contents of the local clipboard before the cursor..
         /// </summary>
@@ -860,7 +860,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("PasteBeforeDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Paste text from the system clipboard.
         /// </summary>
@@ -869,7 +869,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("PasteDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Display the possible completions without changing the input.
         /// </summary>
@@ -878,7 +878,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("PossibleCompletionsDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Inserts the entered character at the beginning and accepts the line..
         /// </summary>
@@ -887,7 +887,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("PrependAndAcceptDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Replace the input with the previous item in the history.
         /// </summary>
@@ -896,7 +896,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("PreviousHistoryDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Move the cursor to the previous line if the input has multiple lines..
         /// </summary>
@@ -905,7 +905,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("PreviousLineDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Redo an undo.
         /// </summary>
@@ -914,7 +914,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("RedoDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Repeat the last recorded character search in the opposite direction..
         /// </summary>
@@ -923,7 +923,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("RepeatLastCharSearchBackwardsDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Repeat the last recorded character search..
         /// </summary>
@@ -932,7 +932,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("RepeatLastCharSearchDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Repeats the last modification command..
         /// </summary>
@@ -941,7 +941,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("RepeatLastCommandDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Repeats the last search..
         /// </summary>
@@ -950,7 +950,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("RepeatLastSearchDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Repeat the last search, but in the opposite direction..
         /// </summary>
@@ -959,7 +959,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("RepeatSearchBackwardDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Repeat the last search..
         /// </summary>
@@ -968,7 +968,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("RepeatSearchDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Replace the current character with the next set of characters typed..
         /// </summary>
@@ -977,7 +977,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ReplaceCharDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Replace the current character with only one character..
         /// </summary>
@@ -986,7 +986,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ReplaceCharInPlaceDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to length is not valid.
         /// </summary>
@@ -995,7 +995,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ReplacementLengthInvalid", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Search history backwards interactively.
         /// </summary>
@@ -1004,7 +1004,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ReverseSearchHistoryDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Equivalent to undo all edits (clears the line except lines imported from history).
         /// </summary>
@@ -1013,7 +1013,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("RevertLineDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Scroll the display down one screen.
         /// </summary>
@@ -1022,7 +1022,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ScrollDisplayDownDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Scroll the display down one line.
         /// </summary>
@@ -1031,7 +1031,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ScrollDisplayDownLineDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Scroll the display to the cursor.
         /// </summary>
@@ -1040,7 +1040,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ScrollDisplayToCursorDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Scroll the display to the top.
         /// </summary>
@@ -1049,7 +1049,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ScrollDisplayTopDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Scroll the display up one screen.
         /// </summary>
@@ -1058,7 +1058,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ScrollDisplayUpDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Scroll the display up one line.
         /// </summary>
@@ -1067,7 +1067,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ScrollDisplayUpLineDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Searches backward for the prescribed character..
         /// </summary>
@@ -1076,7 +1076,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("SearchBackwardCharDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Move to the previous occurrence of the specified character..
         /// </summary>
@@ -1085,7 +1085,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("SearchCharBackwardDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Move to the previous occurrence of the specified character and then forward one character..
         /// </summary>
@@ -1094,7 +1094,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("SearchCharBackwardWithBackoffDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Move to the next occurrence of the specified character..
         /// </summary>
@@ -1103,7 +1103,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("SearchCharDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Move to he next occurrence of the specified character and then back one character..
         /// </summary>
@@ -1112,7 +1112,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("SearchCharWithBackoffDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Searches for the prescribed character in the prescribed direction..
         /// </summary>
@@ -1121,7 +1121,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("SearchDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Prompts for a search string and initiates a search upon AcceptLine..
         /// </summary>
@@ -1130,7 +1130,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("SearchForwardDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Search functions.
         /// </summary>
@@ -1139,7 +1139,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("SearchGrouping", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Select the entire line. Moves the cursor to the end of the line.
         /// </summary>
@@ -1148,7 +1148,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("SelectAllDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Adjust the current selection to include the previous character.
         /// </summary>
@@ -1157,7 +1157,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("SelectBackwardCharDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Adjust the current selection to include from the cursor to the end of the line.
         /// </summary>
@@ -1166,7 +1166,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("SelectBackwardsLineDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Adjust the current selection to include the previous word.
         /// </summary>
@@ -1175,7 +1175,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("SelectBackwardWordDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Adjust the current selection to include the next character.
         /// </summary>
@@ -1184,7 +1184,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("SelectForwardCharDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Adjust the current selection to include the next word using ForwardWord.
         /// </summary>
@@ -1193,7 +1193,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("SelectForwardWordDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Selection functions.
         /// </summary>
@@ -1202,7 +1202,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("SelectionGrouping", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Adjust the current selection to include from the cursor to the start of the line.
         /// </summary>
@@ -1211,7 +1211,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("SelectLineDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Adjust the current selection to include the next word.
         /// </summary>
@@ -1220,7 +1220,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("SelectNextWordDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Adjust the current selection to include the previous word using ShellBackwardWord.
         /// </summary>
@@ -1229,7 +1229,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("SelectShellBackwardWordDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Adjust the current selection to include the next word using ShellForwardWord.
         /// </summary>
@@ -1238,7 +1238,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("SelectShellForwardWordDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Adjust the current selection to include the next word using ShellNextWord.
         /// </summary>
@@ -1247,7 +1247,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("SelectShellNextWordDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Insert the key typed.
         /// </summary>
@@ -1256,7 +1256,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("SelfInsertDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Mark the location of the cursor.
         /// </summary>
@@ -1265,7 +1265,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("SetMarkDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Move the text from the cursor to the start of the current or previous token to the kill ring.
         /// </summary>
@@ -1274,7 +1274,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ShellBackwardKillWordDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Move the cursor to the beginning of the current or previous token or start of the line.
         /// </summary>
@@ -1283,7 +1283,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ShellBackwardWordDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Move the cursor to the beginning of the next token or end of line.
         /// </summary>
@@ -1292,7 +1292,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ShellForwardWordDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Move the text from the cursor to the end of the current or next token to the kill ring.
         /// </summary>
@@ -1301,7 +1301,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ShellKillWordDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Move the cursor to the end of the current token.
         /// </summary>
@@ -1310,7 +1310,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ShellNextWordDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Show all key bindings.
         /// </summary>
@@ -1319,7 +1319,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ShowKeyBindingsDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to &apos;start&apos; cannot be less than zero or greater than the length of the buffer.
         /// </summary>
@@ -1328,7 +1328,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("StartOutOfRange", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Swap the current character with the character before it..
         /// </summary>
@@ -1337,7 +1337,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("SwapCharactersDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Complete the input using the next completion.
         /// </summary>
@@ -1346,7 +1346,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("TabCompleteNextDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Complete the input using the previous completion.
         /// </summary>
@@ -1355,7 +1355,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("TabCompletePreviousDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Undoes all commands for this line..
         /// </summary>
@@ -1364,7 +1364,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("UndoAllDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Undo a previous edit.
         /// </summary>
@@ -1373,7 +1373,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("UndoDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Move the text from the cursor to the start of the current or previous whitespace delimited word to the kill ring.
         /// </summary>
@@ -1382,7 +1382,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("UnixWordRuboutDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Unrecognized key &apos;{0}&apos;. Please use a character literal or a well-known key name from the System.ConsoleKey enumeration..
         /// </summary>
@@ -1391,7 +1391,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("UnrecognizedKey", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Accept the input or move to the next line if input is missing a closing token.
         ///If there are other parse errors, unresolved commands, or incorrect parameters, show the error and continue editing..
@@ -1401,7 +1401,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ValidateAndAcceptLineDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Accept the line and switch to Vi&apos;s insert mode..
         /// </summary>
@@ -1410,7 +1410,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ViAcceptLineDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to If the line is empty, exit, otherwise accept the line as input..
         /// </summary>
@@ -1419,7 +1419,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ViAcceptLineOrExitDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Switches to insert mode after positioning the cursor past the end of the line..
         /// </summary>
@@ -1428,7 +1428,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ViAppendAtEndDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Appends a new multi-line edit mode line to the current line..
         /// </summary>
@@ -1437,7 +1437,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ViAppendLineDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Delete backward to the beginning of the previous word, as delimited by white space..
         /// </summary>
@@ -1446,7 +1446,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ViBackwardDeleteGlobDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Move the cursor to the beginning of the previous word, as delimited by white space..
         /// </summary>
@@ -1455,7 +1455,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ViBackwardGlobDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Delete backward to the beginning of the previous word, as delimited by white space, and enter insert mode..
         /// </summary>
@@ -1464,7 +1464,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ViBackwardReplaceGlobDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Replaces the line left of the cursor and all of the way to the beginning..
         /// </summary>
@@ -1473,7 +1473,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ViBackwardReplaceLineDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Replaces the line left of the cursor and all but one character to the beginning of the line..
         /// </summary>
@@ -1482,7 +1482,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ViBackwardReplaceLineToFirstCharDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Replace the previous word..
         /// </summary>
@@ -1491,7 +1491,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ViBackwardReplaceWordDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Delete backward to the beginning of the previous word, as delimited by white space and common delimiters, and enter insert mode..
         /// </summary>
@@ -1500,7 +1500,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ViBackwardWordDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Switch to VI&apos;s command mode..
         /// </summary>
@@ -1509,7 +1509,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ViCommandModeDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Deletes all characters between the cursor and the matching brace..
         /// </summary>
@@ -1518,7 +1518,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ViDeleteBraceDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Delete to the end of this word, as delimited by white space..
         /// </summary>
@@ -1527,7 +1527,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ViDeleteEndOfGlobDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Delete the current word, as delimited by white space..
         /// </summary>
@@ -1536,7 +1536,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ViDeleteGlobDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Deletes until given character..
         /// </summary>
@@ -1545,7 +1545,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ViDeleteToBeforeCharBackwardDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Deletes until given character..
         /// </summary>
@@ -1554,7 +1554,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ViDeleteToBeforeCharDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Deletes backwards until given character..
         /// </summary>
@@ -1563,7 +1563,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ViDeleteToCharBackwardDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Deletes until given character..
         /// </summary>
@@ -1572,7 +1572,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ViDeleteToCharDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Handles the processing of a number argument after the first key of a chord..
         /// </summary>
@@ -1581,7 +1581,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ViDigitArgumentInChordDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Invokes the console compatible editor specified by $env:VISUAL or $env:$EDITOR on the current command line..
         /// </summary>
@@ -1590,7 +1590,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ViEditVisuallyDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Move the cursor to the end this word, as delimited by white space..
         /// </summary>
@@ -1599,7 +1599,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ViEndOfGlobDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Moves to the end of the previous word, using only white space as a word delimiter..
         /// </summary>
@@ -1608,7 +1608,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ViEndOfPreviousGlobDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Exit the shell..
         /// </summary>
@@ -1617,7 +1617,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ViExitDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Move the cursor to the matching brace..
         /// </summary>
@@ -1626,7 +1626,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ViGotoBraceDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Moves the cursor to the beginning of the line and switches to insert mode..
         /// </summary>
@@ -1635,7 +1635,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ViInsertAtBeginingDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Moves the cursor to the end of the line and switches to insert mode..
         /// </summary>
@@ -1644,7 +1644,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ViInsertAtEndDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Inserts a new multi-line edit mode line in front of the current line..
         /// </summary>
@@ -1653,7 +1653,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ViInsertLineDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Switches to insert mode..
         /// </summary>
@@ -1662,7 +1662,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ViInsertModeDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Switch to insert mode, appending at the current line position..
         /// </summary>
@@ -1671,7 +1671,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ViInsertWithAppendDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Deletes the current character and switches to insert mode..
         /// </summary>
@@ -1680,7 +1680,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ViInsertWithDeleteDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Joins the current multi-line edit mode line with the next..
         /// </summary>
@@ -1689,7 +1689,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ViJoinLinesDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Move the cursor to the beginning of the next word, as delimited by white space..
         /// </summary>
@@ -1698,7 +1698,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ViNextGlobDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Move the cursor to the beginning of the next word, as delimited by white space and common delimiters..
         /// </summary>
@@ -1707,7 +1707,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ViNextWordDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Replace all characters between the current brace character and it&apos;s matching partner..
         /// </summary>
@@ -1716,7 +1716,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ViReplaceBraceDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Delete to the end of the word, as delimited by white space, and enter insert mode..
         /// </summary>
@@ -1725,7 +1725,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ViReplaceEndOfGlobDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Delete to the end of the word, as delimited by white space and common delimiters, and enter insert mode..
         /// </summary>
@@ -1734,7 +1734,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ViReplaceEndOfWordDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Delete to the beginning of the next word, as delimited by white space, and enter insert mode..
         /// </summary>
@@ -1743,7 +1743,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ViReplaceGlobDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Repace the current line with the next set of characters typed..
         /// </summary>
@@ -1752,7 +1752,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ViReplaceLineDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Replaces until given character..
         /// </summary>
@@ -1761,7 +1761,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ViReplaceToBeforeCharBackwardDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Replaces until given character..
         /// </summary>
@@ -1770,7 +1770,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ViReplaceToBeforeCharDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Replaces until given character..
         /// </summary>
@@ -1779,7 +1779,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ViReplaceToCharBackwardDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Deletes until given character..
         /// </summary>
@@ -1788,7 +1788,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ViReplaceToCharDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Replace the characters from the cursor position to the end of the line..
         /// </summary>
@@ -1797,7 +1797,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ViReplaceToEndDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Replace the current character until an escape is entered or the line is accepted..
         /// </summary>
@@ -1806,7 +1806,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ViReplaceUntilEscDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Replace the current word..
         /// </summary>
@@ -1815,7 +1815,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ViReplaceWordDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Starts a new search backward in the history..
         /// </summary>
@@ -1824,7 +1824,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ViSearchHistoryBackwardDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Invokes TabCompleteNext after doing some vi-specific clean up..
         /// </summary>
@@ -1833,7 +1833,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ViTabCompleteNextDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Invokes TabCompletePrevious after doing some vi-specific clean up..
         /// </summary>
@@ -1842,7 +1842,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ViTabCompletePreviousDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Transposes the current character with the next character in the line..
         /// </summary>
@@ -1851,7 +1851,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ViTransposeCharsDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Place the characters before the cursor into the local clipboard..
         /// </summary>
@@ -1860,7 +1860,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ViYankBeginningOfLineDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Place the characters from the cursor to the end of the next white space delimited word into the local clipboard..
         /// </summary>
@@ -1869,7 +1869,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ViYankEndOfGlobDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Place the characters from the cursor to the end of the next word, as delimited by white space and common delimiters, into the local clipboard..
         /// </summary>
@@ -1878,7 +1878,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ViYankEndOfWordDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Place the character to the left of the cursor into the local clipboard..
         /// </summary>
@@ -1887,7 +1887,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ViYankLeftDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Place all characters in the current line into the local clipboard..
         /// </summary>
@@ -1896,7 +1896,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ViYankLineDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Place all characters from the cursor to the end of the word, as delimited by white space, into the local clipboard..
         /// </summary>
@@ -1905,7 +1905,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ViYankNextGlobDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Place all characters from the cursor to the end of the word, as delimited by white space and common delimiters, into the local clipboard..
         /// </summary>
@@ -1914,7 +1914,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ViYankNextWordDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Place all characters between the matching brace and the cursor into the local clipboard..
         /// </summary>
@@ -1923,7 +1923,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ViYankPercentDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Place all characters from before the cursor to the beginning of the previous word, as delimited by white space, into the local clipboard..
         /// </summary>
@@ -1932,7 +1932,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ViYankPreviousGlobDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Place all characters from before the cursor to the beginning of the previous word, as delimited by white space and common delimiters, into the local clipboard..
         /// </summary>
@@ -1941,7 +1941,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ViYankPreviousWordDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Place the character at the cursor into the local clipboard..
         /// </summary>
@@ -1950,7 +1950,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ViYankRightDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Place all characters at and after the cursor into the local clipboard..
         /// </summary>
@@ -1959,7 +1959,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ViYankToEndOfLineDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Place all characters before the cursor and to the 1st non-white space character into the local clipboard..
         /// </summary>
@@ -1968,7 +1968,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ViYankToFirstCharDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Show the key binding for the next chord entered.
         /// </summary>
@@ -1977,7 +1977,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("WhatIsKeyDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Copy the text from the current kill ring position to the input.
         /// </summary>
@@ -1986,7 +1986,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("YankDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Copy the text of the last argument to the input.
         /// </summary>
@@ -1995,7 +1995,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("YankLastArgDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Copy the text of the first argument to the input.
         /// </summary>
@@ -2004,7 +2004,7 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("YankNthArgDescription", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Replace the previously yanked text with the text from the next kill ring position.
         /// </summary>
