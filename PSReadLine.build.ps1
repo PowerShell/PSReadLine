@@ -136,10 +136,7 @@ task GenerateCatalog {
 <#
 Synopsis: Run the unit tests
 #>
-task RunTests BuildMainModule, BuildXUnitTests, {
-    dotnet test .\PSReadLine\PSReadLine.csproj --configuration $Configuration --framework $Framework --output .\bin\$configuration\test-only\$Framework /p:UnitTests=yes
-    Start-TestRun -Configuration $Configuration -Framework $Framework
-}
+task RunTests BuildMainModule, BuildXUnitTests, { Start-TestRun -Configuration $Configuration -Framework $Framework }
 
 <#
 Synopsis: Copy all of the files that belong in the module to one place in the layout for installation

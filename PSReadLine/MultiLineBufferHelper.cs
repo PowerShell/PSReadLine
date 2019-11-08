@@ -22,7 +22,7 @@ namespace Microsoft.PowerShell
         /// <param name="buffer" />
         /// <param name="lineOffset">
         /// The 0-based number of the logical line for the current cursor position.
-        /// This argument comes from a call to the <see cref="GetLogicalLineNumnber" />
+        /// This argument comes from a call to the <see cref="PSConsoleReadLine.GetLogicalLineNumber()" />
         /// method and is thus guaranteed to represent a valid line number.
         /// </param>
         /// <param name="lineCount">

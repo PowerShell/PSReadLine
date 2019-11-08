@@ -1,6 +1,4 @@
-﻿#if UNIT_TESTS
-
-using System.Text;
+﻿using System.Text;
 using Microsoft.PowerShell;
 using Xunit;
 
@@ -136,5 +134,3 @@ namespace Test
         }
     }
 }
-
-#endif // UNIT_TESTS
