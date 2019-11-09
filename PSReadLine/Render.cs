@@ -61,6 +61,7 @@ namespace Microsoft.PowerShell
         };
         private int _initialX;
         private int _initialY;
+        private bool _waitingToRender;
 
         private ConsoleColor _initialForeground;
         private ConsoleColor _initialBackground;
@@ -112,6 +113,7 @@ namespace Microsoft.PowerShell
                 _tokens = null;
                 _ast = null;
                 _parseErrors = null;
+                _waitingToRender = true;
                 return;
             }
 
@@ -816,6 +818,7 @@ namespace Microsoft.PowerShell
             // TODO: set WindowTop if necessary
 
             _lastRenderTime.Restart();
+            _waitingToRender = false;
         }
 
         private static string Spaces(int cnt)
@@ -980,37 +983,44 @@ namespace Microsoft.PowerShell
 
         private void MoveCursor(int newCursor)
         {
-            // In case the buffer was resized
-            RecomputeInitialCoords();
-            _previousRender.bufferWidth = _console.BufferWidth;
-            _previousRender.bufferHeight = _console.BufferHeight;
-
-            var point = ConvertOffsetToPoint(newCursor);
-            if (point.Y < 0)
+            // Only update screen cursor if the buffer is fully rendered.
+            if (!_waitingToRender)
             {
-                Ding();
-                return;
+                // In case the buffer was resized
+                RecomputeInitialCoords();
+                _previousRender.bufferWidth = _console.BufferWidth;
+                _previousRender.bufferHeight = _console.BufferHeight;
+
+                var point = ConvertOffsetToPoint(newCursor);
+                if (point.Y < 0)
+                {
+                    Ding();
+                    return;
+                }
+
+                if (point.Y == _console.BufferHeight)
+                {
+                    // The cursor top exceeds the buffer height, so adjust the initial cursor
+                    // position and the to-be-set cursor position for scrolling up the buffer.
+                    _initialY -= 1;
+                    point.Y -= 1;
+
+                    // Insure the cursor is on the last line of the buffer prior
+                    // to issuing a newline to scroll the buffer.
+                    _console.SetCursorPosition(point.X, point.Y);
+
+                    // Scroll up the buffer by 1 line.
+                    _console.Write("\n");
+                }
+                else
+                {
+                    _console.SetCursorPosition(point.X, point.Y);
+                }
             }
 
-            if (point.Y == _console.BufferHeight)
-            {
-                // The cursor top exceeds the buffer height, so adjust the initial cursor
-                // position and the to-be-set cursor position for scrolling up the buffer.
-                _initialY -= 1;
-                point.Y -= 1;
-
-                // Insure the cursor is on the last line of the buffer prior
-                // to issuing a newline to scroll the buffer.
-                _console.SetCursorPosition(point.X, point.Y);
-
-                // Scroll up the buffer by 1 line.
-                _console.Write("\n");
-            }
-            else
-            {
-                _console.SetCursorPosition(point.X, point.Y);
-            }
-
+            // While waiting to render, and a keybinding has occured that is moving the cursor,
+            // converting offset to point could potentially result in an invalid screen position,
+            // but the insertion point should reflect the move.
             _current = newCursor;
         }
 
