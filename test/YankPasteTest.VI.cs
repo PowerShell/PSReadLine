@@ -324,16 +324,17 @@ namespace Test
         {
             TestSetup(KeyMode.Vi);
 
-            Test("012", Keys(
-                "012", _.Escape,
-                "y0P", CheckThat(() => AssertLineIs("01012")), CheckThat(() => AssertCursorLeftIs(3)),
-                "u"
-                ));
+            var continuationPrefixLength = PSConsoleReadLineOptions.DefaultContinuationPrompt.Length;
 
-            Test(" 123  ", Keys(
-                " 123  ", _.Escape,
-                "y0P", CheckThat(() => AssertLineIs(" 123  123  ")), CheckThat(() => AssertCursorLeftIs(9)),
-                "u"
+            Test("\"\nHello\n World!\n\"", Keys(
+                _.DQuote, _.Enter,
+                "Hello", _.Enter,
+                " World!", _.Enter,
+                _.DQuote, _.Escape,
+                _.k, "5l", // move the cursor to the 'd' character of "World!"
+                "y0", CheckThat(() => AssertCursorLeftIs(continuationPrefixLength + 0)),
+                "P", CheckThat(() => AssertLineIs("\"\nHello\n Worl World!\n\"")), CheckThat(() => AssertCursorLeftIs(continuationPrefixLength + 4)),
+                "u", CheckThat(() => AssertCursorLeftIs(continuationPrefixLength + 0))
                 ));
         }
 

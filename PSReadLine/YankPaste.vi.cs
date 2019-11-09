@@ -247,10 +247,13 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void ViYankBeginningOfLine(ConsoleKeyInfo? key = null, object arg = null)
         {
-            int length = _singleton._current;
+            var start = GetBeginningOfLinePos(_singleton._current);
+            var length = _singleton._current - start; 
             if (length > 0)
             {
-                _singleton.SaveToClipboard(0, length);
+                _clipboard.Record(_singleton._buffer, start, length);
+                _singleton._current = start;
+                _singleton.Render();
             }
         }
 
