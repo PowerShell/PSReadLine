@@ -326,6 +326,12 @@ namespace Test
 
             var continuationPrefixLength = PSConsoleReadLineOptions.DefaultContinuationPrompt.Length;
 
+            Test("012", Keys(
+                "012", _.Escape,
+                "y0P", CheckThat(() => AssertLineIs("01012")), CheckThat(() => AssertCursorLeftIs(1)),
+                "u"
+                ));
+
             Test("\"\nHello\n World!\n\"", Keys(
                 _.DQuote, _.Enter,
                 "Hello", _.Enter,
