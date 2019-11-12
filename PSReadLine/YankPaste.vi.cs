@@ -137,9 +137,13 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void ViYankToEndOfLine(ConsoleKeyInfo? key = null, object arg = null)
         {
-            int start = _singleton._current;
-            int length = _singleton._buffer.Length - _singleton._current;
-            _singleton.SaveToClipboard(start, length);
+            var start = _singleton._current;
+            var end = GetEndOfLogicalLinePos(_singleton._current);
+            var length = end - start + 1;
+            if (length > 0)
+            {
+                _clipboard.Record(_singleton._buffer, start, length);
+            }
         }
 
         /// <summary>

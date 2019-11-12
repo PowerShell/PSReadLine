@@ -338,6 +338,24 @@ namespace Test
         }
 
         [SkippableFact]
+        public void ViPasteAfterYankEndOfLine()
+        {
+            TestSetup(KeyMode.Vi);
+
+            var continuationPrefixLength = PSConsoleReadLineOptions.DefaultContinuationPrompt.Length;
+
+            Test("\"\nHello\nWorld!\n\"", Keys(
+                _.DQuote, _.Enter,
+                "Hello", _.Enter,
+                "World!", _.Enter, 
+                _.DQuote, _.Escape,
+                _.k, _.l, // move to the 'o' character of 'World!'
+                "y$P", CheckThat(() => AssertLineIs("\"\nHello\nWorld!orld!\n\"")), CheckThat(() => AssertCursorLeftIs(continuationPrefixLength + 5)),
+                "u"
+                ));
+        }
+
+        [SkippableFact]
         public void ViPasteAfterYankFirstNoneBlank()
         {
             TestSetup(KeyMode.Vi);
