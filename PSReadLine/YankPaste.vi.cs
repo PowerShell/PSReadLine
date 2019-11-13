@@ -252,8 +252,7 @@ namespace Microsoft.PowerShell
             if (length > 0)
             {
                 _clipboard.Record(_singleton._buffer, start, length);
-                _singleton._current = start;
-                _singleton.Render();
+                _singleton.MoveCursor(start);
             }
         }
 
