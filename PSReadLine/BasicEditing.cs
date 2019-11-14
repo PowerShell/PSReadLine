@@ -272,8 +272,8 @@ namespace Microsoft.PowerShell
                 ClearStatusMessage(render: true);
             }
 
-            var point = ConvertOffsetToPoint(_current);
-            _console.SetCursorPosition(point.X, point.Y);
+            // Let public API set cursor to end of line incase end of line is end of buffer
+            SetCursorPosition(_current);
             _console.Write("\n");
             _inputAccepted = true;
             return true;
