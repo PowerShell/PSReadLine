@@ -17,6 +17,8 @@ Bug fixes:
 * `MoveCursor` should not call `SetCursorPosition` when there is a pending rendering (#1141) (Thanks @msftrncs)
 * Fix `y$` to yank to the end of the logical line instead of to the end of the whole buffer (#1168) (Thanks @springcomp)
 * Make `y0` yank up to the start of the logical line in `VI` mode (#1167) (Thanks @springcomp)
+* Fix `NullReferenceException` in `OnBreak` (#1179) (Thanks @lzybkr)
+* Set cursor via the public API `SetCursorPosition` in `AcceptLineImpl` for better buffer check (#1182) (Thanks @msftrncs)
 
 ### Version 2.0.0-beta5
 
