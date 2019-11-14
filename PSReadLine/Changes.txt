@@ -1,3 +1,23 @@
+### Version 2.0.0-beta6
+
+Pre-release notes:
+
+Bug fixes:
+
+* Fix `GenerateRender` to not throw `IndexOutOfRangeException` and `NullReferenceException` (#1049)
+* Filter sensitive history items and avoid writing them to the history file (#1058, #1061, #1068)
+* Clear the previous menu rendering correctly (#1073)
+* Fix correct way to get substring based on buffercells when encountering `CJK` chars (#1100)
+* Correct cursor jumping from line 2 to line 1 due to line 1 being empty (#1108) (Thanks @msftrncs)
+* In VI mode, moving left or right should stick cursor on logical line (#1120) (Thanks @springcomp)
+* Fix for a `NullReferenceException` thrown when `PSES` calls `ForcePSEventHandling` (#1097)
+* Return error if color property or value is invalid with `Set-PSReadLineOption -Colors` (#1124)
+* Handle cursor being moved off the end of buffer in `MoveCursor` (#1146) (Thanks @msftrncs)
+* Supporting line-wise yanks, including paste and undo (#811) (Thanks @springcomp)
+* `MoveCursor` should not call `SetCursorPosition` when there is a pending rendering (#1141) (Thanks @msftrncs)
+* Fix `y$` to yank to the end of the logical line instead of to the end of the whole buffer (#1168) (Thanks @springcomp)
+* Make `y0` yank up to the start of the logical line in `VI` mode (#1167) (Thanks @springcomp)
+
 ### Version 2.0.0-beta5
 
 Pre-release notes:
