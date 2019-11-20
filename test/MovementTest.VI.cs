@@ -365,6 +365,16 @@ namespace Test
         }
 
         [SkippableFact]
+        public void ViGlobMovement_EmptyBuffer_Defect1195()
+        {
+            TestSetup(KeyMode.Vi);
+
+            TestMustDing("", Keys(
+                _.Escape, "W" 
+            ));
+        }
+
+        [SkippableFact]
         public void ViCursorMovement()
         {
             TestSetup(KeyMode.Vi);
