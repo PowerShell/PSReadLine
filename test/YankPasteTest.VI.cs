@@ -189,6 +189,16 @@ namespace Test
                 ));
         }
 
+        [SkippableFact()]
+        public void ViDeleteLine_EmptyBuffer_Defect1197()
+        {
+            TestSetup(KeyMode.Vi);
+
+            Test("", Keys(
+                _.Escape, "dd", CheckThat(() => AssertLineIs(""))
+            ));
+        }
+
         [SkippableFact]
         public void ViPasteAfterDeleteLine()
         {
