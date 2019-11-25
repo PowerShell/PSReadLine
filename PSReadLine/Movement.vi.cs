@@ -94,7 +94,15 @@ namespace Microsoft.PowerShell
                 i = _singleton.ViFindNextGlob(i);
             }
 
-            _singleton.MoveCursor(Math.Min(i, _singleton._buffer.Length - 1));
+            int newPosition = Math.Min(i, Math.Max(0, _singleton._buffer.Length - 1));
+            if (newPosition != _singleton._current)
+            {
+                _singleton.MoveCursor(newPosition);
+            }
+            else
+            {
+                Ding();
+            }
         }
 
         /// <summary>
