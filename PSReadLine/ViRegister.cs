@@ -60,7 +60,10 @@ namespace Microsoft.PowerShell
             /// <param name="count"></param>
             public void Record(StringBuilder buffer, int offset, int count)
             {
-                System.Diagnostics.Debug.Assert(offset >= 0 && offset < buffer.Length);
+                System.Diagnostics.Debug.Assert(
+                    offset >= 0 &&
+                    (buffer.Length == 0 || offset < buffer.Length)
+                );
                 System.Diagnostics.Debug.Assert(offset + count <= buffer.Length);
 
                 HasLinewiseText = false;
