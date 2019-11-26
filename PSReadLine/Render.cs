@@ -430,10 +430,6 @@ namespace Microsoft.PowerShell
                 if (!promptText.Contains('\x1b'))
                 {
                     string color = renderData.errorPrompt ? _options._errorColor : defaultColor;
-                    if (renderData.errorPrompt && promptBufferCells != promptText.Length)
-                    {
-                        promptText = promptText.Substring(promptText.Length - promptBufferCells);
-                    }
                     _console.Write(color);
                 }
                 _console.Write(promptText);
