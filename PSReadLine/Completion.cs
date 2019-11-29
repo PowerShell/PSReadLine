@@ -697,7 +697,7 @@ namespace Microsoft.PowerShell
         private Menu CreateCompletionMenu(Collection<CompletionResult> matches)
         {
             var bufferWidth = _console.BufferWidth;
-            var colWidth = Math.Min(matches.Max(c => c.ListItemText.Length) + 2, bufferWidth);
+            var colWidth = Math.Min(matches.Max(c => LengthInBufferCells(c.ListItemText)) + 2, bufferWidth);
             var columns = Math.Max(1, bufferWidth / colWidth);
 
             return new Menu
