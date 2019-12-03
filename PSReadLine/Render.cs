@@ -1035,7 +1035,7 @@ namespace Microsoft.PowerShell
             int y = _initialY;
 
             int bufferWidth = _console.BufferWidth;
-            var continuationPromptLength = Options.ContinuationPrompt.Length;
+            var continuationPromptLength = LengthInBufferCells(Options.ContinuationPrompt);
 
             for (int i = 0; i < offset; i++)
             {
@@ -1052,19 +1052,12 @@ namespace Microsoft.PowerShell
                     // Wrap?  No prompt when wrapping
                     if (x >= bufferWidth)
                     {
-                        int offsize = x - bufferWidth;
-                        if (offsize % size == 0)
-                        {
-                            x -= bufferWidth;
-                        }
-                        else
-                        {
-                            x = size;
-                        }
+                        // If character didn't fit on current line, it will move entirely to the next line.
+                        x = ((x == bufferWidth) ? 0 : size);
 
-                        // If the next character is newline, let the next loop
-                        // iteration increment y and adjust x.
-                        if (!(i + 1 < offset && _buffer[i + 1] == '\n'))
+                        // If cursor is at column 0 and the next character is newline, let the next loop
+                        // iteration increment y.
+                        if (x != 0 || !(i + 1 < offset && _buffer[i + 1] == '\n'))
                         {
                             y += 1;
                         }
@@ -1072,14 +1065,13 @@ namespace Microsoft.PowerShell
                 }
             }
 
-            //if the next character has bigger size than the remain space on this line,
-            //the cursor goes to next line where the next character is.
-            if (_buffer.Length > offset)
+            // If next character actually exists, and isn't newline, check if wider than the space left on the current line.
+            if (_buffer.Length > offset && _buffer[offset] != '\n')
             {
                 int size = LengthInBufferCells(_buffer[offset]);
-                // next one is Wrapped to next line
-                if (x + size > bufferWidth && (x + size - bufferWidth) % size != 0)
+                if (x + size > bufferWidth)
                 {
+                    // Character was wider than remaining space, so character, and cursor, appear on next line.
                     x = 0;
                     y++;
                 }
@@ -1095,7 +1087,7 @@ namespace Microsoft.PowerShell
             int y = _initialY;
 
             int bufferWidth = _console.BufferWidth;
-            var continuationPromptLength = Options.ContinuationPrompt.Length;
+            var continuationPromptLength = LengthInBufferCells(Options.ContinuationPrompt);
             for (offset = 0; offset < _buffer.Length; offset++)
             {
                 // If we are on the correct line, return when we find
@@ -1123,19 +1115,12 @@ namespace Microsoft.PowerShell
                     // Wrap?  No prompt when wrapping
                     if (x >= bufferWidth)
                     {
-                        int offsize = x - bufferWidth;
-                        if (offsize % size == 0)
-                        {
-                            x -= bufferWidth;
-                        }
-                        else
-                        {
-                            x = size;
-                        }
+                        // If character didn't fit on current line, it will move entirely to the next line.
+                        x = ((x == bufferWidth) ? 0 : size);
 
-                        // If the next character is newline, let the next loop
-                        // iteration increment y and adjust x.
-                        if (!(offset + 1 < _buffer.Length && _buffer[offset + 1] == '\n'))
+                        // If cursor is at column 0 and the next character is newline, let the next loop
+                        // iteration increment y.
+                        if (x != 0 || !(offset + 1 < _buffer.Length && _buffer[offset + 1] == '\n'))
                         {
                             y += 1;
                         }
