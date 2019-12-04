@@ -50,6 +50,10 @@ If you are using Windows PowerShell on Windows 10 or using PowerShell 6+, PSRead
 Windows PowerShell on the latest Windows 10 has version `2.0.0-beta2` of PSReadLine.
 PowerShell 6+ versions have the newer prerelease versions of PSReadLine.
 
+>[!NOTE] It appears the Windows 10 included 1.0.0.x version of PowerShellGet doesn't have the `-AllowPrerelease` option so you'll likely get a failure if you don't upgrade that module first.
+
+First install the latest PowerShellGet in an elevated Powershell window using `Install-Module PowerShellGet -Force` and then close all your Powershell windows and open a new elevated Powershell to successfully upgrade PSReadLine using the command above.
+
 ### Install from GitHub (deprecated)
 
 With the preview release of PowerShellGet for PowerShell V3/V4, downloads from GitHub are deprecated.
