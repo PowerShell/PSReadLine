@@ -428,21 +428,6 @@ namespace Microsoft.PowerShell
             return s;
         }
 
-        private static string ShortenLongCompletions(string s, int maxLength)
-        {
-            if (s.Length <= maxLength) return s;
-            // position of split point where ... inserted
-            int splitPos = 10;
-			// TODO: will crash for console width < splitPos + 3
-
-            // TODO: is it needed ?
-            // insert '.'
-            //if (s.Length - maxLength <= 2)
-            //    return s.Substring(0, maxLength - splitPos - 1) + '.' + s.Substring(s.Length - splitPos, splitPos);
-            // insert '...'
-            return s.Substring(0, maxLength - splitPos - 3) + "..." + s.Substring(s.Length - splitPos, splitPos);
-        }
-
         private class Menu
         {
             internal PSConsoleReadLine Singleton;
@@ -697,7 +682,7 @@ namespace Microsoft.PowerShell
         private Menu CreateCompletionMenu(Collection<CompletionResult> matches)
         {
             var bufferWidth = _console.BufferWidth;
-            var colWidth = Math.Min(matches.Max(c => c.ListItemText.Length) + 2, bufferWidth);
+            var colWidth = Math.Min(matches.Max(c => LengthInBufferCells(c.ListItemText)) + 2, bufferWidth);
             var columns = Math.Max(1, bufferWidth / colWidth);
 
             return new Menu
