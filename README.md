@@ -40,8 +40,17 @@ There are multiple ways to install PSReadLine.
 
 ### Install from PowerShellGallery (preferred)
 
-You will need [PowerShellGet](https://docs.microsoft.com/en-us/powershell/gallery/installing-psget).
-After installing PowerShellGet, you can simply run `Install-Module PSReadLine -AllowPrerelease -Force` to get the latest prerelease version.
+You will need the 1.6.0 or a higher version of [PowerShellGet](https://docs.microsoft.com/powershell/scripting/gallery/installing-psget) to install the latest prerelease version of PSReadLine.
+
+Windows PowerShell 5.1 ships an older version of PowerShellGet which doesn't support installing prerelease modules,
+so Windows PowerShell users need to install the latest PowerShellGet (if not yet) by running the following commands from an elevated Windows PowerShell session:
+
+```powershell
+Install-Module -Name PowerShellGet -Force
+Exit
+```
+
+After installing PowerShellGet, you can simply run `Install-Module PSReadLine -AllowPrerelease -Force` to get the latest prerelease version of PSReadLine.
 If you only want to get the latest stable version, run `Install-Module PSReadLine`.
 
 >[!NOTE] Prerelease versions will have newer features and bug fixes, but may also introduce new issues.
@@ -49,10 +58,6 @@ If you only want to get the latest stable version, run `Install-Module PSReadLin
 If you are using Windows PowerShell on Windows 10 or using PowerShell 6+, PSReadLine is already installed.
 Windows PowerShell on the latest Windows 10 has version `2.0.0-beta2` of PSReadLine.
 PowerShell 6+ versions have the newer prerelease versions of PSReadLine.
-
->[!NOTE] It appears the Windows 10 included 1.0.0.x version of PowerShellGet doesn't have the `-AllowPrerelease` option so you'll likely get a failure if you don't upgrade that module first.
-
-First install the latest PowerShellGet in an elevated Powershell window using `Install-Module PowerShellGet -Force` and then close all your Powershell windows and open a new elevated Powershell to successfully upgrade PSReadLine using the command above.
 
 ### Install from GitHub (deprecated)
 
