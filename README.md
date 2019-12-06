@@ -40,8 +40,17 @@ There are multiple ways to install PSReadLine.
 
 ### Install from PowerShellGallery (preferred)
 
-You will need [PowerShellGet](https://docs.microsoft.com/en-us/powershell/gallery/installing-psget).
-After installing PowerShellGet, you can simply run `Install-Module PSReadLine -AllowPrerelease -Force` to get the latest prerelease version.
+You will need the 1.6.0 or a higher version of [PowerShellGet](https://docs.microsoft.com/powershell/scripting/gallery/installing-psget) to install the latest prerelease version of PSReadLine.
+
+Windows PowerShell 5.1 ships an older version of PowerShellGet which doesn't support installing prerelease modules,
+so Windows PowerShell users need to install the latest PowerShellGet (if not yet) by running the following commands from an elevated Windows PowerShell session:
+
+```powershell
+Install-Module -Name PowerShellGet -Force
+Exit
+```
+
+After installing PowerShellGet, you can simply run `Install-Module PSReadLine -AllowPrerelease -Force` to get the latest prerelease version of PSReadLine.
 If you only want to get the latest stable version, run `Install-Module PSReadLine`.
 
 >[!NOTE] Prerelease versions will have newer features and bug fixes, but may also introduce new issues.
