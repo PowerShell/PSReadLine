@@ -36,6 +36,41 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
+        /// Returns the position of the beginning of line
+        /// for the 0-based specified line number.
+        /// </summary>
+        private static int GetBeginningOfNthLinePos(int lineIndex)
+        {
+            System.Diagnostics.Debug.Assert(lineIndex >= 0 || lineIndex < _singleton.GetLogicalLineCount());
+
+            var nth = 0;
+            var index = 0;
+            var result = 0;
+
+            for (; index < _singleton._buffer.Length; index++)
+            {
+                if (nth == lineIndex)
+                {
+                    result = index;
+                    break;
+                }
+
+                if (_singleton._buffer[index] == '\n')
+                {
+                    nth++;
+                }
+            }
+
+            if (nth == lineIndex)
+            {
+                result = index;
+            }
+
+
+            return result;
+        }
+
+        /// <summary>
         /// Returns the position of the end of the logical line
         /// as specified by the "current" position.
         /// </summary>

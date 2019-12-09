@@ -10,6 +10,7 @@ namespace Microsoft.PowerShell
 {
     public partial class PSConsoleReadLine
     {
+        private int _moveToEndOfLineCommandCount;
         private int _moveToLineCommandCount;
         private int _moveToLineDesiredColumn;
 
@@ -125,6 +126,18 @@ namespace Microsoft.PowerShell
         }
 
         private void MoveToLine(int lineOffset)
+        {
+            if (InViCommandMode())
+            {
+                ViMoveToLine(lineOffset);
+            }
+            else
+            {
+                MoveToLineImpl(lineOffset);
+            }
+        }
+
+        private void MoveToLineImpl(int lineOffset)
         {
             // Behavior description:
             //  - If the cursor is at the end of a logical line, then 'UpArrow' (or 'DownArrow') moves the cursor up (or down)
