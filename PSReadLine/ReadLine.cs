@@ -539,16 +539,13 @@ namespace Microsoft.PowerShell
                 {
                     _moveToLineCommandCount = 0;
 
-                    if (moveToEndOfLineCommandCount == _moveToEndOfLineCommandCount)
+                    if (InViCommandMode() && moveToEndOfLineCommandCount == _moveToEndOfLineCommandCount)
                     {
-                        if (InViCommandMode())
-                        {
-                            // the previous command was neither a "move to end of line" command
-                            // nor a "move to line" command. In that case, the desired column
-                            // number will be computed from the current position on the logical line.
+                        // the previous command was neither a "move to end of line" command
+                        // nor a "move to line" command. In that case, the desired column
+                        // number will be computed from the current position on the logical line.
 
-                            _moveToLineDesiredColumn = -1;
-                        }
+                        _moveToLineDesiredColumn = -1;
                     }
                 }
             }
