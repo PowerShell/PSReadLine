@@ -158,7 +158,7 @@ namespace Microsoft.PowerShell
             var text = ParseInput();
 
             string color = defaultColor;
-            string activeColor = "";
+            string activeColor = string.Empty;
             bool afterLastToken = false;
             int currentLogicalLine = 0;
             bool inSelectedRegion = false;
@@ -301,6 +301,13 @@ namespace Microsoft.PowerShell
                     {
                         _consoleBufferLines.Add(new StringBuilder(COMMON_WIDEST_CONSOLE_WIDTH));
                     }
+
+                    // Reset the color for continuation prompt so the color sequence will always be explicitly
+                    // specified for continuation prompt in the generated render strings.
+                    // This is necessary because we will likely not rewrite all texts during rendering, and thus
+                    // we cannot assume the continuation prompt can continue to use the active color setting from
+                    // the previous rendering string.
+                    activeColor = string.Empty;
 
                     UpdateColorsIfNecessary(Options._continuationPromptColor);
                     foreach (char c in Options.ContinuationPrompt)
