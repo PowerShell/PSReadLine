@@ -1,3 +1,19 @@
+### Version 2.0.0-rc.1
+
+Pre-release notes:
+
+Bug fixes:
+
+* Fix an assertion in debug build that crashes PSReadLine (#1199) (Thanks @springcomp)
+* Fix an `IndexOutOfRangeException` in VI mode (#1200) (Thanks @springcomp)
+* Improve handling of color in prompts (#1180) (Thanks @lzybkr)
+* Fix an 'ArgumentOutOfRangeException' when error prompt contains CJK (#1206)
+* Add instructions for updating `PowerShellGet` for Windows PowerShell users (#1222) (Thanks @espoelstra)
+* Correct cursor positioning (#1221) (Thanks @msftrncs)
+* Utilize LengthInBufferCells when creating Completions Menu (#1214) (Thanks @msftrncs)
+* Ensure the desired column number is used while moving up or down in VI mode (#1122) (Thanks @springcomp)
+* Make the continuation prompt's color sequence always explicitly specified (#1238)
+
 ### Version 2.0.0-beta6
 
 Pre-release notes:
