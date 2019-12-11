@@ -136,7 +136,7 @@ For example, if my prompt function looked like:
 
 Then set:
 
-    Set-PSReadLineOption -PromptText "# ", "!"
+    Set-PSReadLineOption -PromptText "# ", "! "
 
 This would change the "#" in your prompt to "!" when a parse error is detected. This is especially useful with
 virtual terminal escape sequences to use colors in your prompt.
