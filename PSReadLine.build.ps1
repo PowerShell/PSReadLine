@@ -195,7 +195,7 @@ task LayoutModule BuildMainModule, BuildMamlHelp, {
         $prerelease = $matches[2]
 
         # Put the prerelease tag in private data
-        $moduleManifestContent = [regex]::Replace($moduleManifestContent, "}", "PrivateData = @{ PSData = @{ Prerelease = '$prerelease' } }$([System.Environment]::Newline)}")
+        $moduleManifestContent = [regex]::Replace($moduleManifestContent, "}", "PrivateData = @{ PSData = @{ Prerelease = '$prerelease'; ProjectUri = 'https://github.com/PowerShell/PSReadLine' } }$([System.Environment]::Newline)}")
     }
 
     $moduleManifestContent = [regex]::Replace($moduleManifestContent, "ModuleVersion = '.*'", "ModuleVersion = '$version'")
