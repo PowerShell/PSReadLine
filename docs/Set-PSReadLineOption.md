@@ -18,7 +18,7 @@ Set-PSReadLineOption
  [-HistorySaveStyle <HistorySaveStyle>]
  [-HistoryNoDuplicates]
  [-HistorySearchCaseSensitive]
- [-PromptText <string>]
+ [-PromptText <String[]>]
  [-ExtraPromptLineCount <Int32>]
  [-Colors <Hashtable>]
  [-AddToHistoryHandler <Func[String, Object]>]
@@ -32,7 +32,7 @@ Set-PSReadLineOption
  [-DingDuration <Int32>]
  [-BellStyle <BellStyle>]
  [-CompletionQueryItems <Int32>]
- [-WordDelimiters <string>]
+ [-WordDelimiters <String>]
  [-AnsiEscapeTimeout <int>]
  [-ViModeIndicator <ViModeStyle>]
  [-ViModeChangeHandler <ScriptBlock>]
@@ -85,10 +85,10 @@ This example emits a cursor change VT escape in response to a vi mode change:
 PS C:\> function OnViModeChange {
     if ($args[0] -eq 'Command') {
         # Set the cursor to a blinking block.
-        Write-Host -NoNewLine "`e[1 q"
+        Write-Host -NoNewLine "$([char]0x1b)[1 q"
     } else {
         # Set the cursor to a blinking line.
-        Write-Host -NoNewLine "`e[5 q"
+        Write-Host -NoNewLine "$([char]0x1b)[5 q"
     }
 }
 PS C:\> Set-PSReadLineOption -ViModeIndicator Script -ViModeChangeHandler OnViModeChange
@@ -136,11 +136,14 @@ For example, if my prompt function looked like:
 
 Then set:
 
-    Set-PSReadLineOption -PromptText "# "
+    Set-PSReadLineOption -PromptText "# ", "!"
+
+This would change the "#" in your prompt to "!" when a parse error is detected. This is especially useful with
+virtual terminal escape sequences to use colors in your prompt.
 
 
 ```yaml
-Type: String
+Type: String[]
 Parameter Sets: (All)
 Aliases:
 
