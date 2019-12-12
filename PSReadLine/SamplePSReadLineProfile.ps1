@@ -79,7 +79,7 @@ Set-PSReadLineKeyHandler -Key F7 `
 
 # This is an example of a macro that you might use to execute a command.
 # This will add the command to history.
-Set-PSReadLineKeyHandler -Key Ctrl+B `
+Set-PSReadLineKeyHandler -Key Ctrl+b `
                          -BriefDescription BuildCurrentDirectory `
                          -LongDescription "Build the current directory" `
                          -ScriptBlock {
@@ -90,27 +90,27 @@ Set-PSReadLineKeyHandler -Key Ctrl+B `
 
 # In Emacs mode - Tab acts like in bash, but the Windows style completion
 # is still useful sometimes, so bind some keys so we can do both
-Set-PSReadLineKeyHandler -Key Ctrl+Q -Function TabCompleteNext
-Set-PSReadLineKeyHandler -Key Ctrl+Shift+Q -Function TabCompletePrevious
+Set-PSReadLineKeyHandler -Key Ctrl+q -Function TabCompleteNext
+Set-PSReadLineKeyHandler -Key Ctrl+Q -Function TabCompletePrevious
 
 # Clipboard interaction is bound by default in Windows mode, but not Emacs mode.
-Set-PSReadLineKeyHandler -Key Shift+Ctrl+C -Function Copy
-Set-PSReadLineKeyHandler -Key Ctrl+V -Function Paste
+Set-PSReadLineKeyHandler -Key Ctrl+C -Function Copy
+Set-PSReadLineKeyHandler -Key Ctrl+v -Function Paste
 
 # CaptureScreen is good for blog posts or email showing a transaction
 # of what you did when asking for help or demonstrating a technique.
-Set-PSReadLineKeyHandler -Chord 'Ctrl+D,Ctrl+C' -Function CaptureScreen
+Set-PSReadLineKeyHandler -Chord 'Ctrl+d,Ctrl+c' -Function CaptureScreen
 
 # The built-in word movement uses character delimiters, but token based word
 # movement is also very useful - these are the bindings you'd use if you
 # prefer the token based movements bound to the normal emacs word movement
 # key bindings.
-Set-PSReadLineKeyHandler -Key Alt+D -Function ShellKillWord
+Set-PSReadLineKeyHandler -Key Alt+d -Function ShellKillWord
 Set-PSReadLineKeyHandler -Key Alt+Backspace -Function ShellBackwardKillWord
-Set-PSReadLineKeyHandler -Key Alt+B -Function ShellBackwardWord
-Set-PSReadLineKeyHandler -Key Alt+F -Function ShellForwardWord
-Set-PSReadLineKeyHandler -Key Shift+Alt+B -Function SelectShellBackwardWord
-Set-PSReadLineKeyHandler -Key Shift+Alt+F -Function SelectShellForwardWord
+Set-PSReadLineKeyHandler -Key Alt+b -Function ShellBackwardWord
+Set-PSReadLineKeyHandler -Key Alt+f -Function ShellForwardWord
+Set-PSReadLineKeyHandler -Key Alt+B -Function SelectShellBackwardWord
+Set-PSReadLineKeyHandler -Key Alt+F -Function SelectShellForwardWord
 
 #region Smart Insert/Delete
 
@@ -310,7 +310,7 @@ Set-PSReadLineKeyHandler -Key Alt+w `
 }
 
 # Insert text from the clipboard as a here string
-Set-PSReadLineKeyHandler -Key Ctrl+Shift+v `
+Set-PSReadLineKeyHandler -Key Ctrl+V `
                          -BriefDescription PasteAsHereString `
                          -LongDescription "Paste the clipboard text as a here string" `
                          -ScriptBlock {
@@ -509,7 +509,7 @@ Set-PSReadLineKeyHandler -Key F1 `
 #
 $global:PSReadLineMarks = @{}
 
-Set-PSReadLineKeyHandler -Key Ctrl+Shift+j `
+Set-PSReadLineKeyHandler -Key Ctrl+J `
                          -BriefDescription MarkDirectory `
                          -LongDescription "Mark the current directory" `
                          -ScriptBlock {
