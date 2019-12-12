@@ -127,7 +127,7 @@ static class PlatformWindows
         var handle = _outputHandle.Value.DangerousGetHandle();
         var fontInfo = new CONSOLE_FONT_INFO_EX { cbSize = Marshal.SizeOf(typeof(CONSOLE_FONT_INFO_EX)) };
         bool result = GetCurrentConsoleFontEx(handle, false, ref fontInfo);
-        // From https://docs.microsoft.com/en-us/windows/desktop/api/wingdi/ns-wingdi-tagtextmetrica
+        // From https://docs.microsoft.com/windows/win32/api/wingdi/ns-wingdi-textmetrica
         // tmPitchAndFamily - A monospace bitmap font has all of these low-order bits clear;
         return result && (fontInfo.FontFamily & FontFamily.LOWORDER_BITS) == 0;
     }

@@ -44,14 +44,14 @@ This command binds the up arrow key to the function HistorySearchBackward which 
 ### --------------  Example 2  --------------
 
 ```
-PS C:\> Set-PSReadLineKeyHandler -Chord Shift+Ctrl+B -ScriptBlock {
+PS C:\> Set-PSReadLineKeyHandler -Chord Ctrl+B -ScriptBlock {
 >>    [Microsoft.PowerShell.PSConsoleReadLine]::RevertLine()
 >>    [Microsoft.PowerShell.PSConsoleReadLine]::Insert('msbuild')
 >>    [Microsoft.PowerShell.PSConsoleReadLine]::AcceptLine()
 }
 ```
 
-This example binds the key Ctrl+Shift+B to a script block that clears the line, inserts build, then accepts the line.
+This example binds the key Ctrl+Shift+b to a script block that clears the line, inserts build, then accepts the line.
 This example shows how a single key can be used to execute a command.
 
 ## PARAMETERS
