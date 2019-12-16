@@ -15,5 +15,5 @@ AliasesToExport = @()
 FunctionsToExport = 'PSConsoleHostReadLine'
 CmdletsToExport = 'Get-PSReadLineKeyHandler','Set-PSReadLineKeyHandler','Remove-PSReadLineKeyHandler',
                   'Get-PSReadLineOption','Set-PSReadLineOption'
-HelpInfoURI = 'https://go.microsoft.com/fwlink/?LinkId=528806'
+HelpInfoURI = 'https://go.microsoft.com/fwlink/?LinkId=2113630'
 }
