@@ -76,7 +76,6 @@ namespace Microsoft.PowerShell
 
             public static void SearchBackward(char keyChar, object arg, bool backoff)
             {
-                Set(keyChar, isBackward: true, isBackoff: backoff);
                 int qty = arg as int? ?? 1;
 
                 for (int i = _singleton._current - 1; i >= 0; i--)
