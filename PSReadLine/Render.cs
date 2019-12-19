@@ -817,8 +817,8 @@ namespace Microsoft.PowerShell
                 //      to merge in the previous but still span to the current physical line). The cursor is supposed to
                 //      appear in the previous line (which is off the buffer).
                 //   3. Both 'bck-i-search' and 'fwd-i-search' may find a history command with multi-line text, and the
-                //      matching part in the text, where the cursor is supposed to be moved to, will be scroll up-off the
-                //      buffer after rendering.
+                //      matching string in the text, where the cursor is supposed to be moved to, will be scrolled up-off
+                //      the buffer after rendering.
                 //
                 // In these case, we move the cursor to the left-most position of the first line, where it's closest to
                 // the real position it should be in the ideal world.
