@@ -508,6 +508,35 @@ namespace Test
                 "dd"
                 ));
 
+            Test("", Keys(
+                "0101010",
+                CheckThat(() => AssertCursorLeftIs(7)),
+                _.Escape,
+                _.Uphat,
+                "f1",
+                CheckThat(() => AssertCursorLeftIs(1)),
+                ";",
+                CheckThat(() => AssertCursorLeftIs(3)),
+                ";",
+                CheckThat(() => AssertCursorLeftIs(5)),
+                ",",
+                CheckThat(() => AssertCursorLeftIs(3)),
+                ",",
+                CheckThat(() => AssertCursorLeftIs(1)),
+                _.Dollar,
+                "F1",
+                CheckThat(() => AssertCursorLeftIs(5)),
+                ";",
+                CheckThat(() => AssertCursorLeftIs(3)),
+                ";",
+                CheckThat(() => AssertCursorLeftIs(1)),
+                ",",
+                CheckThat(() => AssertCursorLeftIs(3)),
+                ",",
+                CheckThat(() => AssertCursorLeftIs(5)),
+                "dd"
+            ));
+
             TestMustDing("01234", Keys(
                 "01234",
                 CheckThat(() => AssertCursorLeftIs(5)),
