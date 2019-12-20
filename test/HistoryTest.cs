@@ -411,6 +411,8 @@ namespace Test
 
             SetHistory("echo foo", "echo bar");
             Test("ec", Keys("ec", _.UpArrow, _.UpArrow, _.DownArrow, _.DownArrow));
+            Test("get", Keys("ec", _.UpArrow, _.DownArrow, _.Escape, "get", _.UpArrow, _.DownArrow));
+            Test("", Keys("ec", _.UpArrow, _.DownArrow, _.Escape, "get", _.UpArrow, _.DownArrow, _.Escape));
         }
 
         [SkippableFact]
@@ -422,6 +424,8 @@ namespace Test
 
             SetHistory("echo foo", "echo bar");
             Test("ec", Keys("ec", _.UpArrow, _.UpArrow, _.DownArrow, _.DownArrow));
+            Test("echo ", Keys("ec", _.UpArrow, _.DownArrow, _.Escape, "echo ", _.UpArrow, _.DownArrow));
+            Test("", Keys("ec", _.UpArrow, _.DownArrow, _.Escape, "echo ", _.UpArrow, _.DownArrow, _.Escape));
         }
 
         [SkippableFact]
