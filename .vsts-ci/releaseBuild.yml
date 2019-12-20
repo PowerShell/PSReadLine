@@ -19,6 +19,9 @@ jobs:
 - job: build_windows
   pool: Package ES Lab A
 
+  # APIScan can take a long time
+  timeoutInMinutes: 200
+
   steps:
 
   - checkout: self
