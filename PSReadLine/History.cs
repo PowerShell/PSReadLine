@@ -113,6 +113,13 @@ namespace Microsoft.PowerShell
             "password|asplaintext|token|key|secret",
             RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
+        private void ClearSavedCurrentLine()
+        {
+            _savedCurrentLine.CommandLine = null;
+            _savedCurrentLine._edits = null;
+            _savedCurrentLine._undoEditIndex = 0;
+        }
+
         private AddToHistoryOption GetAddToHistoryOption(string line)
         {
             // Whitespace only is useless, never add.
@@ -217,9 +224,7 @@ namespace Microsoft.PowerShell
             // to recall the saved line.
             if (_getNextHistoryIndex == 0)
             {
-                _savedCurrentLine.CommandLine = null;
-                _savedCurrentLine._edits = null;
-                _savedCurrentLine._undoEditIndex = 0;
+                ClearSavedCurrentLine();
             }
             return result;
         }
@@ -633,7 +638,7 @@ namespace Microsoft.PowerShell
                     continue;
                 }
 
-                var line = newHistoryIndex == _history.Count ? _savedCurrentLine.CommandLine : _history[newHistoryIndex].CommandLine;
+                var line = _history[newHistoryIndex].CommandLine;
                 if (line.StartsWith(_searchHistoryPrefix, Options.HistoryStringComparison))
                 {
                     if (Options.HistoryNoDuplicates)
