@@ -54,8 +54,8 @@ steps:
 - task: securedevelopmentteam.vss-secure-development-tools.build-task-uploadtotsa.TSAUpload@1
   displayName: 'TSA upload to Codebase: PSThreadJob_201912 Stamp: Azure'
   inputs:
-    tsaStamp: $(TsaStamp)
-    codeBaseName: $(CodeBaseName)
+    tsaStamp: Azure
+    codeBaseName: PSReadLine_201912
     tsaVersion: TsaV2
     uploadFortifySCA: false
     uploadFxCop: false
