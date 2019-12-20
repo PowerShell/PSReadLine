@@ -52,7 +52,7 @@ steps:
   continueOnError: true
 
 - task: securedevelopmentteam.vss-secure-development-tools.build-task-uploadtotsa.TSAUpload@1
-  displayName: 'TSA upload to Codebase: PSThreadJob_201912 Stamp: Azure'
+  displayName: 'TSA upload to Codebase: PSReadLine_201912 Stamp: Azure'
   inputs:
     tsaStamp: Azure
     codeBaseName: PSReadLine_201912
@@ -63,7 +63,7 @@ steps:
     uploadPREfast: false
     uploadRoslyn: false
     uploadTSLint: false
-    uploadAPIScan: false
+    uploadAPIScan: true
 
 - task: securedevelopmentteam.vss-secure-development-tools.build-task-report.SdtReport@1
   displayName: 'Create Security Analysis Report'
