@@ -256,6 +256,12 @@ namespace Test
             TestSetup(KeyMode.Vi);
 
             Test("", Keys(
+                "a", _.Escape, CheckThat(() => AssertLineIs("a")),
+                "s", CheckThat(() => AssertLineIs("")),
+                "bc", CheckThat(() => AssertLineIs("bc"))
+                ));
+
+            Test("", Keys(
                 "0123456789", _.Escape, CheckThat(() => AssertCursorLeftIs(9)),
                 "x", CheckThat(() => AssertLineIs("012345678")), CheckThat(() => AssertCursorLeftIs(8)),
                 "X", CheckThat(() => AssertLineIs("01234568")), CheckThat(() => AssertCursorLeftIs(7)),
