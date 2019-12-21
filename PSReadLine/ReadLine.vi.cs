@@ -592,7 +592,7 @@ namespace Microsoft.PowerShell
             var isEOL = _singleton._current == _singleton._buffer.Length + ViEndOfLineFactor;
 
             DeleteChar(key, arg);
-            if(isEOL)
+            if(isEOL && _singleton._buffer.Length > 0)
             {
                 _singleton._current++;
             }
