@@ -805,23 +805,29 @@ namespace Microsoft.PowerShell
                 _initialY -= 1;
                 point.Y -= 1;
             }
-            else if (point.Y == -1)
+            else if (point.Y < 0)
             {
-                // This could only happen in two cases:
+                // This could happen in at least 3 cases:
                 //
                 //   1. when you are adding characters to the first line in the buffer (top = 0) to make the logical line
                 //      wrap to one extra physical line. This would cause the buffer to scroll up and push the line being
                 //      edited up-off the buffer.
-                //   2. when you are deleting characters backwards from the first line in the buffer without changing the
+                //   2. when you are deleting characters (Backspace) from the first line in the buffer without changing the
                 //      number of physical lines (either editing the same logical line or causing the current logical line
                 //      to merge in the previous but still span to the current physical line). The cursor is supposed to
                 //      appear in the previous line (which is off the buffer).
+                //   3. Both 'bck-i-search' and 'fwd-i-search' may find a history command with multi-line text, and the
+                //      matching string in the text, where the cursor is supposed to be moved to, will be scrolled up-off
+                //      the buffer after rendering.
                 //
-                // In these case, we move the cursor to the upper-left-most position of the window, where it's closest to
-                // the previous editing position, and update '_current' appropriately.
+                // In these case, we move the cursor to the left-most position of the first line, where it's closest to
+                // the real position it should be in the ideal world.
 
-                _current += (bufferWidth - point.X);
+                // First update '_current' to the index of the first character that appears on the line 0,
+                // then we call 'ConvertOffsetToPoint' again to get the right cursor position to use.
                 point.X = point.Y = 0;
+                _current = ConvertLineAndColumnToOffset(point);
+                point = ConvertOffsetToPoint(_current);
             }
 
             _console.SetCursorPosition(point.X, point.Y);

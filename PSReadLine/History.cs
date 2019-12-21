@@ -657,6 +657,9 @@ namespace Microsoft.PowerShell
 
             if (newHistoryIndex >= 0 && newHistoryIndex <= _history.Count)
             {
+                // Set '_current' back to where it was when starting the first search, because
+                // it might be changed during the rendering of the last matching history command.
+                _current = _emphasisLength;
                 _currentHistoryIndex = newHistoryIndex;
                 var moveCursor = InViCommandMode()
                     ? HistoryMoveCursor.ToBeginning
