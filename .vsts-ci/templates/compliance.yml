@@ -17,7 +17,7 @@ steps:
   displayName: 'Run BinSkim '
   inputs:
     InputType: Basic
-    AnalyzeTarget: '$(Build.SourcesDirectory)\PSThreadJob\bin\${{ parameters.configuration }}\${{ parameters.framework }}\*.dll'
+    AnalyzeTarget: '$(Build.SourcesDirectory)\bin\${{ parameters.configuration }}\PSReadLine\*.dll'
     AnalyzeSymPath: 'SRV*'
     AnalyzeVerbose: true
     AnalyzeHashes: true
