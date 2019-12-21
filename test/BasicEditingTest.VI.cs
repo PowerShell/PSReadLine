@@ -255,11 +255,10 @@ namespace Test
         {
             TestSetup(KeyMode.Vi);
 
-            Test("", Keys(
+            Test("bc", Keys(
                 "a", _.Escape, CheckThat(() => AssertLineIs("a")),
                 "s", CheckThat(() => AssertLineIs("")),
-                "bc", CheckThat(() => AssertLineIs("bc"))
-                ));
+                "bc"));
 
             Test("", Keys(
                 "0123456789", _.Escape, CheckThat(() => AssertCursorLeftIs(9)),
