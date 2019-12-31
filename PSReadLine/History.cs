@@ -95,6 +95,7 @@ namespace Microsoft.PowerShell
         private int _getNextHistoryIndex;
         private int _searchHistoryCommandCount;
         private int _recallHistoryCommandCount;
+        private int _allHistoryCommandCount;
         private string _searchHistoryPrefix;
         // When cycling through history, the current line (not yet added to history)
         // is saved here so it can be restored.
@@ -510,6 +511,7 @@ namespace Microsoft.PowerShell
             // to check if we need to load history from another sessions now.
             MaybeReadHistoryFile();
 
+            _allHistoryCommandCount += 1;
             if (_savedCurrentLine.CommandLine == null)
             {
                 _savedCurrentLine.CommandLine = _buffer.ToString();
@@ -687,6 +689,12 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void EndOfHistory(ConsoleKeyInfo? key = null, object arg = null)
         {
+            _singleton.SaveCurrentLine();
+            GoToEndOfHistory();
+        }
+
+        private static void GoToEndOfHistory()
+        {
             _singleton._currentHistoryIndex = _singleton._history.Count;
             _singleton.UpdateFromHistory(HistoryMoveCursor.ToEnd);
         }
@@ -844,7 +852,7 @@ namespace Microsoft.PowerShell
                 else if (function == Abort)
                 {
                     // Abort search
-                    EndOfHistory();
+                    GoToEndOfHistory();
                     break;
                 }
                 else

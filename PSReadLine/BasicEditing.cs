@@ -74,12 +74,6 @@ namespace Microsoft.PowerShell
                 _singleton._edits[_singleton._undoEditIndex - 1].Undo();
                 _singleton._undoEditIndex--;
             }
-
-            // It's possible we just finished a history search, which saved the line when the search was triggered
-            // so that another search with the reversed order can go back to the same line.
-            // Now that we are reverting the real current line, the saved current line should be cleared since we
-            // will no longer go back to it.
-            _singleton.ClearSavedCurrentLine();
             _singleton.Render();
         }
 

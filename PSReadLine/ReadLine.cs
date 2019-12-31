@@ -474,6 +474,7 @@ namespace Microsoft.PowerShell
                 var tabCommandCount = _tabCommandCount;
                 var searchHistoryCommandCount = _searchHistoryCommandCount;
                 var recallHistoryCommandCount = _recallHistoryCommandCount;
+                var allHistoryCommandCount = _allHistoryCommandCount;
                 var yankLastArgCommandCount = _yankLastArgCommandCount;
                 var visualSelectionCommandCount = _visualSelectionCommandCount;
                 var moveToLineCommandCount = _moveToLineCommandCount;
@@ -515,18 +516,22 @@ namespace Microsoft.PowerShell
                         _emphasisStart = -1;
                         _emphasisLength = 0;
                         Render();
-                        _currentHistoryIndex = _history.Count;
                     }
                     _searchHistoryCommandCount = 0;
                     _searchHistoryPrefix = null;
                 }
                 if (recallHistoryCommandCount == _recallHistoryCommandCount)
                 {
-                    if (_recallHistoryCommandCount > 0)
+                    _recallHistoryCommandCount = 0;
+                }
+                if (allHistoryCommandCount == _allHistoryCommandCount)
+                {
+                    if (_allHistoryCommandCount > 0)
                     {
+                        ClearSavedCurrentLine();
                         _currentHistoryIndex = _history.Count;
                     }
-                    _recallHistoryCommandCount = 0;
+                    _allHistoryCommandCount = 0;
                 }
                 if (searchHistoryCommandCount == _searchHistoryCommandCount &&
                     recallHistoryCommandCount == _recallHistoryCommandCount)

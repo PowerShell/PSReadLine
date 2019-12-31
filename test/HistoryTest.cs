@@ -429,6 +429,37 @@ namespace Test
         }
 
         [SkippableFact]
+        public void HistorySavedCurrentLine()
+        {
+            TestSetup(KeyMode.Cmd,
+                      new KeyHandler("F3", PSConsoleReadLine.BeginningOfHistory),
+                      new KeyHandler("Shift+F3", PSConsoleReadLine.EndOfHistory));
+
+            SetHistory("echo foo", "echo bar");
+            Test("echo bar", Keys("ec", _.UpArrow));
+            Test("echo foo", Keys("ec", _.UpArrow, _.F3));
+            Test("echo bar", Keys("ec", _.UpArrow, _.F3, _.DownArrow));
+            Test("ec", Keys("ec", _.UpArrow, _.F3, _.Shift_F3));
+            Test("ec", Keys("ec", _.UpArrow, _.F3, _.DownArrow, _.DownArrow));
+
+            Test("echo foo", Keys("e", _.UpArrow, _.UpArrow));
+            Test("e", Keys("e", _.UpArrow, _.UpArrow, _.Shift_F3));
+
+            Test("echo bar", Keys("ech", _.F8));
+            Test("echo foo", Keys("ech", _.F8, _.F3));
+            Test("echo bar", Keys("ech", _.F8, _.F3, _.DownArrow));
+            Test("ech", Keys("ech", _.F8, _.F3, _.DownArrow, _.DownArrow));
+            Test("ech", Keys("ech", _.F8, _.F8, _.Shift_F3));
+
+            SetHistory("echo foo", "echo f");
+            Test("echo f", Keys("ec", _.UpArrow));
+            Test("echo foo", Keys("ec", _.UpArrow, _.F8));
+            Test("echo f", Keys("ec", _.UpArrow, _.F8, _.Shift_F8));
+            Test("ec", Keys("ec", _.UpArrow, _.F8, _.DownArrow, _.DownArrow));
+            Test("ec", Keys("ec", _.UpArrow, _.F8, _.Shift_F8, _.Shift_F3));
+        }
+
+        [SkippableFact]
         public void SearchHistory()
         {
             TestSetup(KeyMode.Cmd,
