@@ -410,9 +410,34 @@ namespace Test
             TestSetup(KeyMode.Cmd);
 
             SetHistory("echo foo", "echo bar");
-            Test("ec", Keys("ec", _.UpArrow, _.UpArrow, _.DownArrow, _.DownArrow));
-            Test("get", Keys("ec", _.UpArrow, _.DownArrow, _.Escape, "get", _.UpArrow, _.DownArrow));
-            Test("", Keys("ec", _.UpArrow, _.DownArrow, _.Escape, "get", _.UpArrow, _.DownArrow, _.Escape));
+            Test("ec", Keys(
+                "ec",
+                _.UpArrow, CheckThat(() => AssertLineIs("echo bar")),
+                _.UpArrow, CheckThat(() => AssertLineIs("echo foo")),
+                _.DownArrow, CheckThat(() => AssertLineIs("echo bar")),
+                _.DownArrow));
+
+            SetHistory("echo foo", "echo bar");
+            Test("get", Keys(
+                "ec", _.UpArrow,
+                _.DownArrow, CheckThat(() => AssertLineIs("ec")),
+                _.Escape, "get", _.UpArrow, _.DownArrow));
+
+            SetHistory("echo foo", "echo bar");
+            Test("ge", Keys(
+                "ec", _.UpArrow,
+                _.DownArrow, CheckThat(() => AssertLineIs("ec")),
+                _.Backspace, _.Backspace, "ge", CheckThat(() => AssertLineIs("ge")),
+                _.UpArrow, _.DownArrow));
+
+            SetHistory("echo foo", "echo bar");
+            Test("", Keys(
+                "ec", _.UpArrow,
+                _.DownArrow, CheckThat(() => AssertLineIs("ec")),
+                "h", CheckThat(() => AssertLineIs("ech")),
+                _.UpArrow, CheckThat(() => AssertLineIs("echo bar")),
+                _.DownArrow, CheckThat(() => AssertLineIs("ech")),
+                _.Escape));
         }
 
         [SkippableFact]
@@ -423,40 +448,106 @@ namespace Test
                       new KeyHandler("DownArrow", PSConsoleReadLine.HistorySearchForward));
 
             SetHistory("echo foo", "echo bar");
-            Test("ec", Keys("ec", _.UpArrow, _.UpArrow, _.DownArrow, _.DownArrow));
-            Test("echo ", Keys("ec", _.UpArrow, _.DownArrow, _.Escape, "echo ", _.UpArrow, _.DownArrow));
-            Test("", Keys("ec", _.UpArrow, _.DownArrow, _.Escape, "echo ", _.UpArrow, _.DownArrow, _.Escape));
+            Test("ec", Keys(
+                "ec",
+                _.UpArrow, CheckThat(() => AssertLineIs("echo bar")),
+                _.UpArrow, CheckThat(() => AssertLineIs("echo foo")),
+                _.DownArrow, CheckThat(() => AssertLineIs("echo bar")),
+                _.DownArrow));
+
+            SetHistory("echo foo", "echo bar");
+            Test("echo ", Keys(
+                "ec", _.UpArrow,
+                _.DownArrow, CheckThat(() => AssertLineIs("ec")),
+                _.Escape, "echo ",
+                _.UpArrow, CheckThat(() => AssertLineIs("echo bar")),
+                _.DownArrow));
+
+            SetHistory("echo foo", "echo bar");
+            Test("echo", Keys(
+                "ec", _.UpArrow, _.DownArrow,
+                "ho", CheckThat(() => AssertLineIs("echo")),
+                _.UpArrow, _.DownArrow));
+
+            SetHistory("echo foo", "echo bar");
+            Test("e", Keys(
+                "ec", _.UpArrow, _.DownArrow,
+                _.Backspace, CheckThat(() => AssertLineIs("e")),
+                _.UpArrow, _.DownArrow));
+
+            SetHistory("echo foo", "echo bar");
+            Test("", Keys(
+                "ec", _.UpArrow, _.DownArrow, "ho f",
+                _.UpArrow, CheckThat(() => AssertLineIs("echo foo")),
+                _.DownArrow, CheckThat(() => AssertLineIs("echo f")),
+                _.Escape));
         }
 
         [SkippableFact]
         public void HistorySavedCurrentLine()
         {
+            // while (!System.Diagnostics.Debugger.IsAttached)
+            // {
+            //     System.Threading.Thread.Sleep(100);
+            // }
+            // System.Diagnostics.Debugger.Break();
+
             TestSetup(KeyMode.Cmd,
                       new KeyHandler("F3", PSConsoleReadLine.BeginningOfHistory),
                       new KeyHandler("Shift+F3", PSConsoleReadLine.EndOfHistory));
 
             SetHistory("echo foo", "echo bar");
-            Test("echo bar", Keys("ec", _.UpArrow));
-            Test("echo foo", Keys("ec", _.UpArrow, _.F3));
-            Test("echo bar", Keys("ec", _.UpArrow, _.F3, _.DownArrow));
-            Test("ec", Keys("ec", _.UpArrow, _.F3, _.Shift_F3));
-            Test("ec", Keys("ec", _.UpArrow, _.F3, _.DownArrow, _.DownArrow));
+            Test("ec", Keys(
+                "ec",
+                _.UpArrow, CheckThat(() => AssertLineIs("echo bar")),
+                _.F3, CheckThat(() => AssertLineIs("echo foo")),
+                _.DownArrow, CheckThat(() => AssertLineIs("echo bar")),
+                _.DownArrow));
 
-            Test("echo foo", Keys("e", _.UpArrow, _.UpArrow));
-            Test("e", Keys("e", _.UpArrow, _.UpArrow, _.Shift_F3));
+            SetHistory("echo foo", "get zoo", "echo bar");
+            Test("ec", Keys(
+                "ec",
+                _.UpArrow, CheckThat(() => AssertLineIs("echo bar")),
+                _.F3, CheckThat(() => AssertLineIs("echo foo")),
+                _.Shift_F3));
 
-            Test("echo bar", Keys("ech", _.F8));
-            Test("echo foo", Keys("ech", _.F8, _.F3));
-            Test("echo bar", Keys("ech", _.F8, _.F3, _.DownArrow));
-            Test("ech", Keys("ech", _.F8, _.F3, _.DownArrow, _.DownArrow));
-            Test("ech", Keys("ech", _.F8, _.F8, _.Shift_F3));
+            SetHistory("echo foo", "get zoo", "echo bar");
+            Test("e", Keys(
+                "e",
+                _.UpArrow, CheckThat(() => AssertLineIs("echo bar")),
+                _.UpArrow, CheckThat(() => AssertLineIs("get zoo")),
+                _.Shift_F3));
 
-            SetHistory("echo foo", "echo f");
-            Test("echo f", Keys("ec", _.UpArrow));
-            Test("echo foo", Keys("ec", _.UpArrow, _.F8));
-            Test("echo f", Keys("ec", _.UpArrow, _.F8, _.Shift_F8));
-            Test("ec", Keys("ec", _.UpArrow, _.F8, _.DownArrow, _.DownArrow));
-            Test("ec", Keys("ec", _.UpArrow, _.F8, _.Shift_F8, _.Shift_F3));
+            SetHistory("echo foo", "get zoo", "echo bar");
+            Test("ech", Keys(
+                "ech",
+                _.F8, CheckThat(() => AssertLineIs("echo bar")),
+                _.F3, CheckThat(() => AssertLineIs("echo foo")),
+                _.DownArrow, CheckThat(() => AssertLineIs("get zoo")),
+                _.DownArrow, CheckThat(() => AssertLineIs("echo bar")),
+                _.DownArrow));
+
+            SetHistory("echo foo", "get zoo", "echo bar");
+            Test("ech", Keys(
+                "ech",
+                _.F8, CheckThat(() => AssertLineIs("echo bar")),
+                _.F8, CheckThat(() => AssertLineIs("echo foo")),
+                _.Shift_F3));
+
+            SetHistory("echo foo", "get bar", "echo f");
+            Test("ec", Keys(
+                "ec",
+                _.UpArrow, CheckThat(() => AssertLineIs("echo f")),
+                _.F8, CheckThat(() => AssertLineIs("echo foo")),
+                _.Shift_F8, CheckThat(() => AssertLineIs("echo f")),
+                _.DownArrow));
+
+            SetHistory("echo foo", "get bar", "echo f");
+            Test("ec", Keys(
+                "ec", _.UpArrow, _.F8,
+                _.DownArrow, CheckThat(() => AssertLineIs("get bar")),
+                _.DownArrow, CheckThat(() => AssertLineIs("echo f")),
+                _.Shift_F3));
         }
 
         [SkippableFact]
