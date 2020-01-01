@@ -475,7 +475,7 @@ namespace Microsoft.PowerShell
             if (_currentHistoryIndex == _history.Count)
             {
                 line = _savedCurrentLine.CommandLine;
-                _edits = _savedCurrentLine._edits;
+                _edits = new List<EditItem>(_savedCurrentLine._edits);
                 _undoEditIndex = _savedCurrentLine._undoEditIndex;
             }
             else
