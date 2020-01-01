@@ -895,9 +895,6 @@ namespace Microsoft.PowerShell
             Render(); // Render prompt
             InteractiveHistorySearchLoop(direction);
 
-            _hashedHistory = null;
-            _currentHistoryIndex = _history.Count;
-
             _emphasisStart = -1;
             _emphasisLength = 0;
 

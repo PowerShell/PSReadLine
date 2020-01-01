@@ -409,6 +409,7 @@ namespace Test
         {
             TestSetup(KeyMode.Cmd);
 
+            // Recall history backward and forward.
             SetHistory("echo foo", "echo bar");
             Test("ec", Keys(
                 "ec",
@@ -417,12 +418,15 @@ namespace Test
                 _.DownArrow, CheckThat(() => AssertLineIs("echo bar")),
                 _.DownArrow));
 
+            // Verify that the saved current line gets reset when the line gets edited.
+            // Recall history, then edit the line, and recall again.
             SetHistory("echo foo", "echo bar");
             Test("get", Keys(
                 "ec", _.UpArrow,
                 _.DownArrow, CheckThat(() => AssertLineIs("ec")),
                 _.Escape, "get", _.UpArrow, _.DownArrow));
 
+            // Recall history, then edit the line, and recall again.
             SetHistory("echo foo", "echo bar");
             Test("ge", Keys(
                 "ec", _.UpArrow,
@@ -430,6 +434,7 @@ namespace Test
                 _.Backspace, _.Backspace, "ge", CheckThat(() => AssertLineIs("ge")),
                 _.UpArrow, _.DownArrow));
 
+            // Recall history, then edit the line, and recall again.
             SetHistory("echo foo", "echo bar");
             Test("", Keys(
                 "ec", _.UpArrow,
@@ -447,6 +452,7 @@ namespace Test
                       new KeyHandler("UpArrow", PSConsoleReadLine.HistorySearchBackward),
                       new KeyHandler("DownArrow", PSConsoleReadLine.HistorySearchForward));
 
+            // Search history backward and forward.
             SetHistory("echo foo", "echo bar");
             Test("ec", Keys(
                 "ec",
@@ -455,6 +461,8 @@ namespace Test
                 _.DownArrow, CheckThat(() => AssertLineIs("echo bar")),
                 _.DownArrow));
 
+            // Verify that the saved current line gets reset when the line gets edited.
+            // Search history, then edit the line, and search again.
             SetHistory("echo foo", "echo bar");
             Test("echo ", Keys(
                 "ec", _.UpArrow,
@@ -463,18 +471,21 @@ namespace Test
                 _.UpArrow, CheckThat(() => AssertLineIs("echo bar")),
                 _.DownArrow));
 
+            // Search history, then edit the line, and search again.
             SetHistory("echo foo", "echo bar");
             Test("echo", Keys(
                 "ec", _.UpArrow, _.DownArrow,
                 "ho", CheckThat(() => AssertLineIs("echo")),
                 _.UpArrow, _.DownArrow));
 
+            // Search history, then edit the line, and search again.
             SetHistory("echo foo", "echo bar");
             Test("e", Keys(
                 "ec", _.UpArrow, _.DownArrow,
                 _.Backspace, CheckThat(() => AssertLineIs("e")),
                 _.UpArrow, _.DownArrow));
 
+            // Search history, then edit the line, and search again.
             SetHistory("echo foo", "echo bar");
             Test("", Keys(
                 "ec", _.UpArrow, _.DownArrow, "ho f",
@@ -486,15 +497,12 @@ namespace Test
         [SkippableFact]
         public void HistorySavedCurrentLine()
         {
-            // while (!System.Diagnostics.Debugger.IsAttached)
-            // {
-            //     System.Threading.Thread.Sleep(100);
-            // }
-            // System.Diagnostics.Debugger.Break();
-
             TestSetup(KeyMode.Cmd,
                       new KeyHandler("F3", PSConsoleReadLine.BeginningOfHistory),
                       new KeyHandler("Shift+F3", PSConsoleReadLine.EndOfHistory));
+
+            // Mix different history commands to verify that the saved current line and
+            // the history index stay the same while in a series of history commands.
 
             SetHistory("echo foo", "echo bar");
             Test("ec", Keys(
@@ -548,6 +556,17 @@ namespace Test
                 _.DownArrow, CheckThat(() => AssertLineIs("get bar")),
                 _.DownArrow, CheckThat(() => AssertLineIs("echo f")),
                 _.Shift_F3));
+
+            SetHistory("echo kv", "get bar", "echo f");
+            Test("e", Keys(
+                "e",
+                _.UpArrow, CheckThat(() => AssertLineIs("echo f")),
+                _.Ctrl_r, "v", _.Escape,
+                CheckThat(() => AssertLineIs("echo kv")),
+                _.Ctrl_s, "f", _.Escape,
+                CheckThat(() => AssertLineIs("echo f")),
+                _.UpArrow, CheckThat(() => AssertLineIs("get bar")),
+                _.DownArrow, _.DownArrow));
         }
 
         [SkippableFact]

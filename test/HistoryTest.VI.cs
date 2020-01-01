@@ -110,6 +110,38 @@ namespace Test
         }
 
         [SkippableFact]
+        public void ViHistoryCommandMix()
+        {
+            TestSetup(KeyMode.Vi);
+
+            // Clear history in case the above added some history (but it shouldn't)
+            SetHistory();
+            Test( " ", Keys( ' ', _.UpArrow, _.DownArrow ) );
+
+            // Mix history search, repeat, and recall.
+            // Mix different history commands to verify that the saved current line and
+            // the history index stay the same while in a series of history commands.
+
+            SetHistory("bar1", "bar2", "bar3", "bar4", "bar5");
+            Test("first", Keys(
+                "first", _.Escape, _.Slash, "bar", _.Enter,
+                CheckThat(() => AssertLineIs("bar5")),
+                _.DownArrow, CheckThat(() => AssertLineIs("first")),
+                _.Slash, "bar", _.Enter,
+                CheckThat(() => AssertLineIs("bar5")),
+                "nn", CheckThat(() => AssertLineIs("bar3")),
+                "N", CheckThat(() => AssertLineIs("bar4")),
+                "N", CheckThat(() => AssertLineIs("bar5")),
+                "nnn", CheckThat(() => AssertLineIs("bar2")),
+                _.UpArrow, CheckThat(() => AssertLineIs("bar1")),
+                _.DownArrow, CheckThat(() => AssertLineIs("bar2")),
+                _.DownArrow, CheckThat(() => AssertLineIs("bar3")),
+                _.DownArrow, CheckThat(() => AssertLineIs("bar4")),
+                _.DownArrow, CheckThat(() => AssertLineIs("bar5")),
+                _.DownArrow));
+        }
+
+        [SkippableFact]
         public void ViMovementAfterHistory()
         {
             TestSetup(KeyMode.Vi);

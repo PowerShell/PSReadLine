@@ -529,14 +529,10 @@ namespace Microsoft.PowerShell
                     if (_allHistoryCommandCount > 0)
                     {
                         ClearSavedCurrentLine();
+                        _hashedHistory = null;
                         _currentHistoryIndex = _history.Count;
                     }
                     _allHistoryCommandCount = 0;
-                }
-                if (searchHistoryCommandCount == _searchHistoryCommandCount &&
-                    recallHistoryCommandCount == _recallHistoryCommandCount)
-                {
-                    _hashedHistory = null;
                 }
                 if (visualSelectionCommandCount == _visualSelectionCommandCount && _visualSelectionCommandCount > 0)
                 {
@@ -722,6 +718,7 @@ namespace Microsoft.PowerShell
             _yankLastArgCommandCount = 0;
             _tabCommandCount = 0;
             _recallHistoryCommandCount = 0;
+            _allHistoryCommandCount = 0;
             _visualSelectionCommandCount = 0;
             _hashedHistory = null;
 
