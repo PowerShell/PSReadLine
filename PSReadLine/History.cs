@@ -95,7 +95,7 @@ namespace Microsoft.PowerShell
         private int _getNextHistoryIndex;
         private int _searchHistoryCommandCount;
         private int _recallHistoryCommandCount;
-        private int _allHistoryCommandCount;
+        private int _anyHistoryCommandCount;
         private string _searchHistoryPrefix;
         // When cycling through history, the current line (not yet added to history)
         // is saved here so it can be restored.
@@ -511,7 +511,7 @@ namespace Microsoft.PowerShell
             // to check if we need to load history from another sessions now.
             MaybeReadHistoryFile();
 
-            _allHistoryCommandCount += 1;
+            _anyHistoryCommandCount += 1;
             if (_savedCurrentLine.CommandLine == null)
             {
                 _savedCurrentLine.CommandLine = _buffer.ToString();

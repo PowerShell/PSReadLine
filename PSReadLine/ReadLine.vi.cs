@@ -859,7 +859,7 @@ namespace Microsoft.PowerShell
                 return;
             }
 
-            _singleton._allHistoryCommandCount++;
+            _singleton._anyHistoryCommandCount++;
             _singleton.HistorySearch();
         }
 
