@@ -8,6 +8,9 @@ PSReadline.zip
 [Bb]in/
 [Oo]bj/
 
+# VSCode directories that are not at the repository root
+/**/.vscode/
+
 # mstest test results
 TestResults
 FakesAssemblies/
