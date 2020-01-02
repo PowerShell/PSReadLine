@@ -95,6 +95,7 @@ namespace Microsoft.PowerShell
         private int _getNextHistoryIndex;
         private int _searchHistoryCommandCount;
         private int _recallHistoryCommandCount;
+        private int _anyHistoryCommandCount;
         private string _searchHistoryPrefix;
         // When cycling through history, the current line (not yet added to history)
         // is saved here so it can be restored.
@@ -112,6 +113,13 @@ namespace Microsoft.PowerShell
         private static readonly Regex s_sensitivePattern = new Regex(
             "password|asplaintext|token|key|secret",
             RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+        private void ClearSavedCurrentLine()
+        {
+            _savedCurrentLine.CommandLine = null;
+            _savedCurrentLine._edits = null;
+            _savedCurrentLine._undoEditIndex = 0;
+        }
 
         private AddToHistoryOption GetAddToHistoryOption(string line)
         {
@@ -217,9 +225,7 @@ namespace Microsoft.PowerShell
             // to recall the saved line.
             if (_getNextHistoryIndex == 0)
             {
-                _savedCurrentLine.CommandLine = null;
-                _savedCurrentLine._edits = null;
-                _savedCurrentLine._undoEditIndex = 0;
+                ClearSavedCurrentLine();
             }
             return result;
         }
@@ -469,7 +475,7 @@ namespace Microsoft.PowerShell
             if (_currentHistoryIndex == _history.Count)
             {
                 line = _savedCurrentLine.CommandLine;
-                _edits = _savedCurrentLine._edits;
+                _edits = new List<EditItem>(_savedCurrentLine._edits);
                 _undoEditIndex = _savedCurrentLine._undoEditIndex;
             }
             else
@@ -505,6 +511,7 @@ namespace Microsoft.PowerShell
             // to check if we need to load history from another sessions now.
             MaybeReadHistoryFile();
 
+            _anyHistoryCommandCount += 1;
             if (_savedCurrentLine.CommandLine == null)
             {
                 _savedCurrentLine.CommandLine = _buffer.ToString();
@@ -633,7 +640,7 @@ namespace Microsoft.PowerShell
                     continue;
                 }
 
-                var line = newHistoryIndex == _history.Count ? _savedCurrentLine.CommandLine : _history[newHistoryIndex].CommandLine;
+                var line = _history[newHistoryIndex].CommandLine;
                 if (line.StartsWith(_searchHistoryPrefix, Options.HistoryStringComparison))
                 {
                     if (Options.HistoryNoDuplicates)
@@ -684,6 +691,12 @@ namespace Microsoft.PowerShell
         /// Move to the last item (the current input) in the history.
         /// </summary>
         public static void EndOfHistory(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            _singleton.SaveCurrentLine();
+            GoToEndOfHistory();
+        }
+
+        private static void GoToEndOfHistory()
         {
             _singleton._currentHistoryIndex = _singleton._history.Count;
             _singleton.UpdateFromHistory(HistoryMoveCursor.ToEnd);
@@ -842,7 +855,7 @@ namespace Microsoft.PowerShell
                 else if (function == Abort)
                 {
                     // Abort search
-                    EndOfHistory();
+                    GoToEndOfHistory();
                     break;
                 }
                 else
@@ -884,9 +897,6 @@ namespace Microsoft.PowerShell
 
             Render(); // Render prompt
             InteractiveHistorySearchLoop(direction);
-
-            _hashedHistory = null;
-            _currentHistoryIndex = _history.Count;
 
             _emphasisStart = -1;
             _emphasisLength = 0;

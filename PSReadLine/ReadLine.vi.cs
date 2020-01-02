@@ -834,6 +834,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void ViSearchHistoryBackward(ConsoleKeyInfo? key = null, object arg = null)
         {
+            _singleton.SaveCurrentLine();
             _singleton.StartSearch(backward: true);
         }
 
@@ -842,6 +843,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void SearchForward(ConsoleKeyInfo? key = null, object arg = null)
         {
+            _singleton.SaveCurrentLine();
             _singleton.StartSearch(backward: false);
         }
 
@@ -856,6 +858,7 @@ namespace Microsoft.PowerShell
                 return;
             }
 
+            _singleton._anyHistoryCommandCount++;
             _singleton.HistorySearch();
         }
 
