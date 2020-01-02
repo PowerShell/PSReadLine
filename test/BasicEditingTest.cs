@@ -159,6 +159,18 @@ namespace Test
         }
 
         [SkippableFact]
+        public void DeleteCharAfterDigitArgument()
+        {
+            TestSetup(KeyMode.Cmd);
+
+            Test("abc", Keys(
+                "ab", _.LeftArrow, _.Alt_2, _.Delete, _.Delete,
+                CheckThat(() => AssertLineIs("a")),
+                CheckThat(() => AssertCursorLeftIs(1)),
+                "bc"));
+        }
+
+        [SkippableFact]
         public void DeleteCharOrExit()
         {
             TestSetup(KeyMode.Emacs);

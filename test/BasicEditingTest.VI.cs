@@ -256,7 +256,9 @@ namespace Test
             TestSetup(KeyMode.Vi);
 
             Test("bc", Keys(
-                "a", _.Escape, CheckThat(() => AssertLineIs("a")),
+                "a", _.Escape,
+                CheckThat(() => AssertLineIs("a")),
+                CheckThat(() => AssertCursorLeftIs(0)),
                 "s", CheckThat(() => AssertLineIs("")),
                 "bc"));
 
@@ -885,6 +887,18 @@ namespace Test
                 _.Escape, "hCig", _.Tab, CheckThat(() => AssertLineIs("ambiguous")),
                 _.Escape, "Csness"
                 ));
+        }
+
+        [SkippableFact]
+        public void ViInsertModeMoveCursor()
+        {
+            TestSetup(KeyMode.Vi);
+
+            Test("abc", Keys(
+                "ab", CheckThat(() => AssertCursorLeftIs(2)),
+                _.LeftArrow, CheckThat(() => AssertCursorLeftIs(1)),
+                _.RightArrow, CheckThat(() => AssertCursorLeftIs(2)),
+                "c"));
         }
     }
 }
