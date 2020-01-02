@@ -183,7 +183,7 @@ Note that with the handler written this way, it correctly handles Undo - both qu
 
 The [sample profile file](https://github.com/PowerShell/PSReadLine/blob/master/PSReadLine/SamplePSReadLineProfile.ps1) has a bunch of great examples to check out.  This file is included when `PSReadLine` is installed.
 
-See the public methods of [Microsoft.PowerShell.PSConsoleReadLine] to see what other built-in functionality you can modify.
+See the public methods of `[Microsoft.PowerShell.PSConsoleReadLine]` to see what other built-in functionality you can modify.
 
 If you want to change the command line in some unimplmented way in your custom key binding, you can use the methods:
 
@@ -199,7 +199,7 @@ If you want to change the command line in some unimplmented way in your custom k
 ### Prerequisites
 
 To build `PSReadLine` on Windows, Linux, or macOS, you must have [.NET Core SDK 2.1.400 or newer](https://www.microsoft.com/net/download) installed.
-The build script also depends on [InvokeBuild](https://www.powershellgallery.com/packages/InvokeBuild) which can be installed using:
+The build script also depends on [`InvokeBuild`](https://www.powershellgallery.com/packages/InvokeBuild) which can be installed using:
 
 ```powershell
   install-module invokebuild -scope currentuser
