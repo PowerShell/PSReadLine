@@ -164,7 +164,10 @@ namespace Test
             TestSetup(KeyMode.Cmd);
 
             Test("abc", Keys(
-                "ab", _.LeftArrow, _.Alt_2, _.Delete, _.Delete,
+                "ab", _.LeftArrow, _.Alt_2, _.Delete,
+                CheckThat(() => AssertLineIs("a")),
+                CheckThat(() => AssertCursorLeftIs(1)),
+                _.Delete, // 'Delete' again does nothing, but doesn't crash
                 CheckThat(() => AssertLineIs("a")),
                 CheckThat(() => AssertCursorLeftIs(1)),
                 "bc"));

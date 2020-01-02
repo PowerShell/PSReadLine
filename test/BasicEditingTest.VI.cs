@@ -898,6 +898,7 @@ namespace Test
                 "ab", CheckThat(() => AssertCursorLeftIs(2)),
                 _.LeftArrow, CheckThat(() => AssertCursorLeftIs(1)),
                 _.RightArrow, CheckThat(() => AssertCursorLeftIs(2)),
+                _.RightArrow, // 'RightArrow' again does nothing, but doesn't crash
                 "c"));
         }
     }
