@@ -589,14 +589,8 @@ namespace Microsoft.PowerShell
         {
             _singleton._groupUndoHelper.StartGroup(ViInsertWithDelete, arg);
 
-            var isEOL = _singleton._current == _singleton._buffer.Length + ViEndOfLineFactor;
-
-            DeleteChar(key, arg);
-            if(isEOL && _singleton._buffer.Length > 0)
-            {
-                _singleton._current++;
-            }
             ViInsertMode(key, arg);
+            DeleteChar(key, arg);
         }
 
         /// <summary>

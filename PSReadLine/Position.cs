@@ -80,7 +80,7 @@ namespace Microsoft.PowerShell
         {
             var newCurrent = current;
 
-            for (var position = newCurrent; position < _singleton._buffer.Length; position++)
+            for (var position = current; position < _singleton._buffer.Length; position++)
             {
                 if (_singleton._buffer[position] == '\n')
                 {
