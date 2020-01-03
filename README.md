@@ -30,34 +30,34 @@ It provides:
 
 The "out of box" experience is meant to be very familiar to PowerShell users - there should be no need to learn any new key strokes.
 
-Keith Hill wrote a great introduction to PSReadLine [here](http://rkeithhill.wordpress.com/2013/10/18/psreadline-a-better-line-editing-experience-for-the-powershell-console/).
+Keith Hill wrote a great introduction to `PSReadLine` [here](http://rkeithhill.wordpress.com/2013/10/18/psreadline-a-better-line-editing-experience-for-the-powershell-console/).
 
-Ed Wilson (Scripting Guy) wrote a series on PSReadLine, starting [here](http://blogs.technet.com/b/heyscriptingguy/archive/2014/06/16/the-search-for-a-better-powershell-console-experience.aspx).
+Ed Wilson (Scripting Guy) wrote a series on `PSReadLine`, starting [here](http://blogs.technet.com/b/heyscriptingguy/archive/2014/06/16/the-search-for-a-better-powershell-console-experience.aspx).
 
 ## Installation
 
-There are multiple ways to install PSReadLine.
+There are multiple ways to install `PSReadLine`.
 
 ### Install from PowerShellGallery (preferred)
 
-You will need the 1.6.0 or a higher version of [PowerShellGet](https://docs.microsoft.com/powershell/scripting/gallery/installing-psget) to install the latest prerelease version of PSReadLine.
+You will need the `1.6.0` or a higher version of [`PowerShellGet`](https://docs.microsoft.com/powershell/scripting/gallery/installing-psget) to install the latest prerelease version of `PSReadLine`.
 
-Windows PowerShell 5.1 ships an older version of PowerShellGet which doesn't support installing prerelease modules,
-so Windows PowerShell users need to install the latest PowerShellGet (if not yet) by running the following commands from an elevated Windows PowerShell session:
+Windows PowerShell 5.1 ships an older version of `PowerShellGet` which doesn't support installing prerelease modules,
+so Windows PowerShell users need to install the latest `PowerShellGet` (if not yet) by running the following commands from an elevated Windows PowerShell session:
 
 ```powershell
 Install-Module -Name PowerShellGet -Force
 Exit
 ```
 
-After installing PowerShellGet, you can simply run `Install-Module PSReadLine -AllowPrerelease -Force` to get the latest prerelease version of PSReadLine.
+After installing `PowerShellGet`, you can simply run `Install-Module PSReadLine -AllowPrerelease -Force` to get the latest prerelease version of `PSReadLine`.
 If you only want to get the latest stable version, run `Install-Module PSReadLine`.
 
 >[!NOTE] Prerelease versions will have newer features and bug fixes, but may also introduce new issues.
 
-If you are using Windows PowerShell on Windows 10 or using PowerShell 6+, PSReadLine is already installed.
-Windows PowerShell on the latest Windows 10 has version `2.0.0-beta2` of PSReadLine.
-PowerShell 6+ versions have the newer prerelease versions of PSReadLine.
+If you are using Windows PowerShell on Windows 10 or using PowerShell 6+, `PSReadLine` is already installed.
+Windows PowerShell on the latest Windows 10 has version `2.0.0-beta2` of `PSReadLine`.
+PowerShell 6+ versions have the newer prerelease versions of `PSReadLine`.
 
 ### Install from GitHub (deprecated)
 
@@ -91,15 +91,15 @@ In either case, you can create the appropriate file if you don't already have on
 ## Upgrading
 
 When running one of the suggested commands below, be sure to exit all instances of `powershell.exe`, `pwsh.exe` or `pwsh`, 
-then run the suggested command from `cmd.exe`, `powershell_ise.exe`, or via the `Win+R` shortcut to make sure PSReadLine isn't loaded.
+then run the suggested command from `cmd.exe`, `powershell_ise.exe`, or via the `Win+R` shortcut to make sure `PSReadLine` isn't loaded.
 
-If you are using the version of PSReadLine that ships with Windows PowerShell,
+If you are using the version of `PSReadLine` that ships with Windows PowerShell,
 you need to run: `powershell -noprofile -command "Install-Module PSReadLine -Force -SkipPublisherCheck -AllowPrerelease"`.
 
-If you are using the version of PSReadLine that ships with PowerShell 6+ versions,
+If you are using the version of `PSReadLine` that ships with PowerShell 6+ versions,
 you need to run: `<path-to-pwsh-executable> -noprofile -command "Install-Module PSReadLine -Force -SkipPublisherCheck -AllowPrerelease"`.
 
-If you've installed PSReadLine yourself from the PowerShell Gallery,
+If you've installed `PSReadLine` yourself from the PowerShell Gallery,
 you can simply run: `powershell -noprofile -command "Update-Module PSReadLine -AllowPrerelease"` or
 `<path-to-pwsh-executable> -noprofile -command "Update-Module PSReadLine -AllowPrerelease"`,
 depending on the version of PowerShell you are using.
@@ -112,7 +112,7 @@ C:\Users\{yourName}\Documents\WindowsPowerShell\Modules\PSReadLine\Microsoft.Pow
 'C:\Users\{yourName}\Documents\WindowsPowerShell\Modules\PSReadLine\Microsoft.PowerShell.PSReadLine.dll' is denied.
 ```
 
-Then you didn't kill all the processes that loaded PSReadLine.
+Then you didn't kill all the processes that loaded `PSReadLine`.
 
 ## Usage
 
@@ -134,9 +134,9 @@ To view the current key bindings:
 Get-PSReadLineKeyHandler
 ```
 
-There are many configuration options, see the options to Set-PSReadLineOption.  PSReadLine has help for it's cmdlets as well as an about_PSReadLine topic - see those topics for more detailed help.
+There are many configuration options, see the options to `Set-PSReadLineOption`.  `PSReadLine` has help for it's cmdlets as well as an `about_PSReadLine` topic - see those topics for more detailed help.
 
-To set your own custom keybindings, use the cmdlet Set-PSReadLineKeyHandler.  For example, for a better history experience, try:
+To set your own custom keybindings, use the cmdlet `Set-PSReadLineKeyHandler`. For example, for a better history experience, try:
 
 ```powershell
 Set-PSReadLineKeyHandler -Key UpArrow -Function HistorySearchBackward
@@ -181,9 +181,9 @@ In this example, when you type a single quote or double quote, there are two thi
 
 Note that with the handler written this way, it correctly handles Undo - both quotes will be undone with one undo.
 
-The [sample profile file](https://github.com/PowerShell/PSReadLine/blob/master/PSReadLine/SamplePSReadLineProfile.ps1) has a bunch of great examples to check out.  This file is included when PSReadLine is installed.
+The [sample profile file](https://github.com/PowerShell/PSReadLine/blob/master/PSReadLine/SamplePSReadLineProfile.ps1) has a bunch of great examples to check out.  This file is included when `PSReadLine` is installed.
 
-See the public methods of [Microsoft.PowerShell.PSConsoleReadLine] to see what other built-in functionality you can modify.
+See the public methods of `[Microsoft.PowerShell.PSConsoleReadLine]` to see what other built-in functionality you can modify.
 
 If you want to change the command line in some unimplmented way in your custom key binding, you can use the methods:
 
@@ -198,8 +198,8 @@ If you want to change the command line in some unimplmented way in your custom k
 
 ### Prerequisites
 
-To build PSReadLine on Windows, Linux, or macOS, you must have [.NET Core SDK 2.1.400 or newer](https://www.microsoft.com/net/download) installed.
-The build script also depends on [InvokeBuild](https://www.powershellgallery.com/packages/InvokeBuild) which can be installed using:
+To build `PSReadLine` on Windows, Linux, or macOS, you must have [.NET Core SDK 2.1.400 or newer](https://www.microsoft.com/net/download) installed.
+The build script also depends on [`InvokeBuild`](https://www.powershellgallery.com/packages/InvokeBuild) which can be installed using:
 
 ```powershell
   install-module invokebuild -scope currentuser
