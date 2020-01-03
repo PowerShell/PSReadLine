@@ -19,6 +19,9 @@ jobs:
 - job: build_windows
   pool: Package ES Lab A
 
+  # APIScan can take a long time
+  timeoutInMinutes: 200
+
   steps:
 
   - checkout: self
@@ -41,6 +44,14 @@ jobs:
   - pwsh: |
       $(Build.SourcesDirectory)\build.ps1 -Bootstrap
       $(Build.SourcesDirectory)\build.ps1 -Configuration Release -Framework net461
+      # Get module version
+      $psd1Data = Import-PowerShellDataFile -Path $(Build.SourcesDirectory)\bin\Release\PSReadLine\PSReadLine.psd1
+      $moduleVersion = $psd1Data.ModuleVersion
+      $prerelease = $psd1Data.PrivateData.PSData.Prerelease
+      if ($prerelease) { $moduleVersion = "$moduleVersion-$prerelease" }
+      $vstsCommandString = "vso[task.setvariable variable=ModuleVersion]$moduleVersion"
+      Write-Host "sending " + $vstsCommandString
+      Write-Host "##$vstsCommandString"
       # Set target folder paths
       $vstsCommandString = "vso[task.setvariable variable=PSReadLine]$(Build.SourcesDirectory)\bin\Release\PSReadLine"
       Write-Host "sending " + $vstsCommandString
@@ -124,3 +135,8 @@ jobs:
       Get-ChildItem -Path $(PSReadLine)
       Write-Host "##vso[artifact.upload containerfolder=PSReadLine;artifactname=PSReadLine]$(PSReadLine)"
     displayName: 'Upload module artifacts'
+
+  - template: templates/compliance.yml
+    parameters:
+      configuration: Release
+      framework: net461
