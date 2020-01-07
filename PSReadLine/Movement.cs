@@ -114,9 +114,11 @@ namespace Microsoft.PowerShell
                     _singleton.MoveCursor(newCurrent);
                 }
             }
-            else
+            else if (_singleton._current < _singleton._buffer.Length)
             {
-                var end = GetEndOfLogicalLinePos(_singleton._current);
+                // when in the VI command mode, 'end' is the position of the last character;
+                // when in the VI insert mode, 'end' is 1 char beyond the last character.
+                var end = GetEndOfLogicalLinePos(_singleton._current) + 1 + ViEndOfLineFactor;
                 var newCurrent = Math.Min(end, _singleton._current + count);
                 if (_singleton._current != newCurrent)
                 {

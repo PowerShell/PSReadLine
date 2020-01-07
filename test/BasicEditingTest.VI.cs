@@ -255,6 +255,13 @@ namespace Test
         {
             TestSetup(KeyMode.Vi);
 
+            Test("bc", Keys(
+                "a", _.Escape,
+                CheckThat(() => AssertLineIs("a")),
+                CheckThat(() => AssertCursorLeftIs(0)),
+                "s", CheckThat(() => AssertLineIs("")),
+                "bc"));
+
             Test("", Keys(
                 "0123456789", _.Escape, CheckThat(() => AssertCursorLeftIs(9)),
                 "x", CheckThat(() => AssertLineIs("012345678")), CheckThat(() => AssertCursorLeftIs(8)),
@@ -880,6 +887,19 @@ namespace Test
                 _.Escape, "hCig", _.Tab, CheckThat(() => AssertLineIs("ambiguous")),
                 _.Escape, "Csness"
                 ));
+        }
+
+        [SkippableFact]
+        public void ViInsertModeMoveCursor()
+        {
+            TestSetup(KeyMode.Vi);
+
+            Test("abc", Keys(
+                "ab", CheckThat(() => AssertCursorLeftIs(2)),
+                _.LeftArrow, CheckThat(() => AssertCursorLeftIs(1)),
+                _.RightArrow, CheckThat(() => AssertCursorLeftIs(2)),
+                _.RightArrow, // 'RightArrow' again does nothing, but doesn't crash
+                "c"));
         }
     }
 }

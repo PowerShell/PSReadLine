@@ -213,8 +213,8 @@ namespace Microsoft.PowerShell
         private static void ReplaceChar(ConsoleKeyInfo? key, object arg)
         {
             _singleton._groupUndoHelper.StartGroup(ReplaceChar, arg);
-            DeleteChar(key, arg);
             ViInsertMode(key, arg);
+            DeleteChar(key, arg);
         }
 
         /// <summary>

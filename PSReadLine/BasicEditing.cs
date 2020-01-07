@@ -164,8 +164,6 @@ namespace Microsoft.PowerShell
 
         private void DeleteCharImpl(int qty, bool orExit)
         {
-            qty = Math.Min(qty, _singleton._buffer.Length + 1 + ViEndOfLineFactor - _singleton._current);
-
             if (_visualSelectionCommandCount > 0)
             {
                 GetRegion(out var start, out var length);
@@ -177,6 +175,8 @@ namespace Microsoft.PowerShell
             {
                 if (_current < _buffer.Length)
                 {
+                    qty = Math.Min(qty, _singleton._buffer.Length - _singleton._current);
+
                     SaveEditItem(EditItemDelete.Create(_buffer.ToString(_current, qty), _current, DeleteChar, qty));
                     SaveToClipboard(_current, qty);
                     _buffer.Remove(_current, qty);
