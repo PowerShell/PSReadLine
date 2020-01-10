@@ -187,7 +187,7 @@ Set-PSReadLineKeyHandler -Key '"',"'" `
         }
     }
 
-    if ($null -eq $token) {
+    if ($null -eq $token -or $token.Kind -eq [TokenKind]::RParen -or $token.Kind -eq [TokenKind]::RCurly) {
         if ($line[0..$cursor].Where{$_ -eq $quote}.Count % 2 -eq 1) {
             # Odd number of quotes before the cursor, insert a single quote
             [Microsoft.PowerShell.PSConsoleReadLine]::Insert($quote)
