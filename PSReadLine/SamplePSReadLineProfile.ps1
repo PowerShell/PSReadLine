@@ -202,13 +202,14 @@ Set-PSReadLineKeyHandler -Key '"',"'" `
     }
 
     if ($token.Extent.StartOffset -eq $cursor) {
-        if ($token.Kind -eq [TokenKind]::Generic -or $token.Kind -eq [TokenKind]::Identifier) {
+        if ($token.Kind -eq [TokenKind]::Generic -or $token.Kind -eq [TokenKind]::Identifier -or 
+            $token.Kind -eq [TokenKind]::Variable -or $token.TokenFlags.hasFlag([TokenFlags]::Keyword)) {
             $end = $token.Extent.EndOffset
             $len = $end - $cursor
             [Microsoft.PowerShell.PSConsoleReadLine]::Replace($cursor, $len, $quote + $line.SubString($cursor, $len) + $quote)
             [Microsoft.PowerShell.PSConsoleReadLine]::SetCursorPosition($end + 2)
+            return
         }
-        return
     }
 
     # We failed to be smart, so just insert a single quote
