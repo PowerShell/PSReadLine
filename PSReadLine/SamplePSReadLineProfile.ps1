@@ -207,8 +207,8 @@ Set-PSReadLineKeyHandler -Key '"',"'" `
             $len = $end - $cursor
             [Microsoft.PowerShell.PSConsoleReadLine]::Replace($cursor, $len, $quote + $line.SubString($cursor, $len) + $quote)
             [Microsoft.PowerShell.PSConsoleReadLine]::SetCursorPosition($end + 2)
-            return
         }
+        return
     }
 
     # We failed to be smart, so just insert a single quote
