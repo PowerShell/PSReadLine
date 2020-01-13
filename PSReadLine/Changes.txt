@@ -1,3 +1,22 @@
+### Version 2.0.0-rc2
+
+Pre-release notes:
+
+Bug fixes:
+
+* Add `ProjectUri` in module manifest (#1245)
+* Fix docs to note the `-PromptText` parameter of `Set-PSReadLineOption` is now of the `String[]` type (#1244) (Thanks @heaths)
+* Update key bindings in sample and docs now that the `Shift` key is inferred (#1248)
+* Update `HelpInfoURI` of the `PSReadLine` module to point to latest help content (#1251)
+* Fix `RepeatLastCharSearch` and `RepeatLastCharSearchBackwards` to not flip their functionalities (#1253) (Thanks @mikebattista)
+* Fix the exception when searching history with `ctrl+r` or `ctrl+s` (#1256)
+* Preserve and clear the saved current line properly to make the history operations work as expected (#1259)
+* Update release build with compliance tasks (#1260)
+* Update README.md to put `PSReadLine` and `PowerShellGet` in backtick quotes (#1280)
+* Fix a few VI edit mode issues (#1262)
+* Fix and enhance `SmartInsertQuote` to work better with closing braces, keywords and variables (#1288, #1289) (Thanks @theaquamarine)
+* Allow `InsertPairedBraces` to wrap selected text (#1293) (Thanks @theaquamarine)
+
 ### Version 2.0.0-rc1
 
 Pre-release notes:
