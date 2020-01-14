@@ -63,6 +63,22 @@ Accept pipeline input: false
 Accept wildcard characters: False
 ```
 
+### -Chord
+
+Return only functions bound to specific keys or sequences.
+
+```yaml
+Type: String[]
+Parameter Sets: (All)
+Aliases: Key
+
+Required: False
+Position: Named
+Default value:
+Accept pipeline input: false
+Accept wildcard characters: False
+```
+
 ## INPUTS
 
 ### None

@@ -825,6 +825,10 @@ namespace Microsoft.PowerShell
         }
         private SwitchParameter? _unbound;
 
+        [Parameter]
+        [Alias("Key")]
+        public string[] Chord { get; set; }
+
         [ExcludeFromCodeCoverage]
         protected override void EndProcessing()
         {
@@ -845,7 +849,7 @@ namespace Microsoft.PowerShell
                 bound = false;
                 unbound = _unbound.Value.IsPresent;
             }
-            var groups = PSConsoleReadLine.GetKeyHandlers(bound, unbound).GroupBy(k => k.Group).OrderBy(g => g.Key);
+            var groups = PSConsoleReadLine.GetKeyHandlers(bound, unbound, Chord).GroupBy(k => k.Group).OrderBy(g => g.Key);
             foreach (var bindings in groups)
             {
                 WriteObject(bindings.OrderBy(k => k.Function), true);

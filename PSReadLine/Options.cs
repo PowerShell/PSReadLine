@@ -271,21 +271,38 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static IEnumerable<PowerShell.KeyHandler> GetKeyHandlers()
         {
-            return GetKeyHandlers(includeBound: true, includeUnbound: false);
+            return GetKeyHandlers(includeBound: true, includeUnbound: false, Chord: null);
+        }
+
+        /// <summary>
+        /// Return bound/unbound key handlers without filtering.
+        /// </summary>
+        /// <returns></returns>
+        public static IEnumerable<PowerShell.KeyHandler> GetKeyHandlers(bool includeBound, bool includeUnbound)
+        {
+            return GetKeyHandlers(includeBound: includeBound, includeUnbound: includeUnbound, Chord: null);
         }
 
         /// <summary>
         /// Helper function for the Get-PSReadLineKeyHandler cmdlet.
         /// </summary>
         /// <returns></returns>
-        public static IEnumerable<PowerShell.KeyHandler> GetKeyHandlers(bool includeBound, bool includeUnbound)
+        public static IEnumerable<PowerShell.KeyHandler> GetKeyHandlers(bool includeBound, bool includeUnbound, string[] Chord)
         {
             var boundFunctions = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            var searchChords = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            if (Chord != null) { foreach (var Key in Chord) { searchChords.Add(Key); }; }
 
             foreach (var entry in _singleton._dispatchTable)
             {
                 if (entry.Value.BriefDescription == "Ignore"
                     || entry.Value.BriefDescription == "ChordFirstKey")
+                {
+                    continue;
+                }
+                if (Chord != null && !searchChords.Contains(entry.Key.ToString()))
                 {
                     continue;
                 }
@@ -309,6 +326,10 @@ namespace Microsoft.PowerShell
                 {
                     if (entry.Value.BriefDescription == "Ignore"
                         || entry.Value.BriefDescription == "ChordFirstKey")
+                    {
+                        continue;
+                    }
+                    if (Chord != null && !searchChords.Contains(entry.Key.ToString()))
                     {
                         continue;
                     }
