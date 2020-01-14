@@ -23,6 +23,11 @@ namespace Test
                 Assert.False(string.IsNullOrWhiteSpace(handler.Function));
                 Assert.False(string.IsNullOrWhiteSpace(handler.Description));
             }
+
+            foreach (var handler in PSConsoleReadLine.GetKeyHandlers(includeBound: true, includeUnbound: false, Chord: new string[] { "home" }))
+            {
+                Assert.Contains("Home", handler.Key);
+            }
         }
     }
 }
