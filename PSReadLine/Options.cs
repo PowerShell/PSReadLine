@@ -351,6 +351,10 @@ namespace Microsoft.PowerShell
             {
                 foreach( var secondEntry in entry.Value )
                 {
+                    if (Chord != null && !searchChords.Contains(entry.Key.ToString()) && !searchChords.Contains(secondEntry.Key.ToString()))
+                    {
+                        continue;
+                    }
                     boundFunctions.Add( secondEntry.Value.BriefDescription );
                     if (includeBound)
                     {
@@ -373,6 +377,10 @@ namespace Microsoft.PowerShell
                     foreach (var secondEntry in entry.Value)
                     {
                         if (secondEntry.Value.BriefDescription == "Ignore")
+                        {
+                            continue;
+                        }
+                        if (Chord != null && !searchChords.Contains(entry.Key.ToString()) && !searchChords.Contains(secondEntry.Key.ToString()))
                         {
                             continue;
                         }
