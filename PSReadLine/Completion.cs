@@ -372,9 +372,15 @@ namespace Microsoft.PowerShell
         {
             var replacementText = completionResult.CompletionText;
             int cursorAdjustment = 0;
+            CompletionResultType[] selfContainedCompletionResultTypes = {CompletionResultType.Command,
+                CompletionResultType.Keyword, CompletionResultType.ParameterName, CompletionResultType.ProviderItem};
+
             if (completionResult.ResultType == CompletionResultType.ProviderContainer)
             {
                 replacementText = GetReplacementTextForDirectory(replacementText, ref cursorAdjustment);
+            } else if (selfContainedCompletionResultTypes.Contains(completionResult.ResultType))
+            {
+                replacementText += " ";
             }
             Replace(completions.ReplacementIndex, completions.ReplacementLength, replacementText);
             if (cursorAdjustment != 0)
