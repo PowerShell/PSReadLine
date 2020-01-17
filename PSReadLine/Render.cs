@@ -91,6 +91,28 @@ namespace Microsoft.PowerShell
             return text;
         }
 
+        private string GetSuggestion(string text)
+        {
+            if (!_showSuggestion || LineIsMultiLine())
+            {
+                _suggestionText = null;
+            }
+            else
+            {
+                bool reuseSuggestionBuffer =
+                    _suggestionText != null &&
+                    _suggestionText.Length >= text.Length &&
+                    _suggestionText.StartsWith(text, StringComparison.OrdinalIgnoreCase);
+
+                if (!reuseSuggestionBuffer)
+                {
+                    _suggestionText = Pseudo.DummySuggestion.GetCommandLineSuggestion(text);
+                }
+            }
+
+            return _suggestionText == null ? null : _suggestionText.Substring(text.Length);
+        }
+
         private void ClearStatusMessage(bool render)
         {
             _statusBuffer.Clear();
@@ -156,6 +178,7 @@ namespace Microsoft.PowerShell
         private int GenerateRender(string defaultColor)
         {
             var text = ParseInput();
+            var suggestion = GetSuggestion(text);
 
             string color = defaultColor;
             string activeColor = string.Empty;
