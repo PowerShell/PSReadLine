@@ -5,12 +5,32 @@ namespace Pseudo
 {
     internal class DummySuggestion
     {
-        private static readonly Dictionary<string, string> s_suggestions = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        private static readonly List<string> s_suggestions;
+
+        static DummySuggestion()
+        {
+            s_suggestions = new List<string>()
+            {
+                "git branch -r",
+                "git checkout -b",
+                "git checkout master",
+                "git fetch --all -p",
+                "git status",
+                "git diff",
+                "git diff --cached",
+                "git add -u",
+                "git add -A"
+            };
+        }
+
         internal static string GetCommandLineSuggestion(string text)
         {
-            if (s_suggestions.TryGetValue(text, out string suggestion))
+            foreach (string candidate in s_suggestions)
             {
-                return suggestion;
+                if (candidate.StartsWith(text, StringComparison.OrdinalIgnoreCase))
+                {
+                    return candidate;
+                }
             }
 
             return null;

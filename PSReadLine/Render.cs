@@ -320,7 +320,7 @@ namespace Microsoft.PowerShell
                     }
 
                     currentLogicalLine += 1;
-                    if (currentLogicalLine > _consoleBufferLines.Count - 1)
+                    if (currentLogicalLine == _consoleBufferLines.Count)
                     {
                         _consoleBufferLines.Add(new StringBuilder(COMMON_WIDEST_CONSOLE_WIDTH));
                     }
@@ -333,10 +333,7 @@ namespace Microsoft.PowerShell
                     activeColor = string.Empty;
 
                     UpdateColorsIfNecessary(Options._continuationPromptColor);
-                    foreach (char c in Options.ContinuationPrompt)
-                    {
-                        _consoleBufferLines[currentLogicalLine].Append(c);
-                    }
+                    _consoleBufferLines[currentLogicalLine].Append(Options.ContinuationPrompt);
 
                     if (inSelectedRegion)
                     {
@@ -363,6 +360,39 @@ namespace Microsoft.PowerShell
             if (inSelectedRegion)
             {
                 _consoleBufferLines[currentLogicalLine].Append("\x1b[0m");
+            }
+
+            if (suggestion != null)
+            {
+                // TODO: write suggestion out in dark black by default, but it needs to be configurable.
+                color = "\x1b[90m";
+                UpdateColorsIfNecessary(color);
+
+                foreach (char charToRender in suggestion)
+                {
+                    if (charToRender == '\n')
+                    {
+                        currentLogicalLine += 1;
+                        if (currentLogicalLine == _consoleBufferLines.Count)
+                        {
+                            _consoleBufferLines.Add(new StringBuilder(COMMON_WIDEST_CONSOLE_WIDTH));
+                        }
+
+                        _consoleBufferLines[currentLogicalLine].Append(Options.ContinuationPrompt);
+                    }
+                    else
+                    {
+                        if (char.IsControl(charToRender))
+                        {
+                            _consoleBufferLines[currentLogicalLine].Append('^');
+                            _consoleBufferLines[currentLogicalLine].Append((char)('@' + charToRender));
+                        }
+                        else
+                        {
+                            _consoleBufferLines[currentLogicalLine].Append(charToRender);
+                        }
+                    }
+                }
             }
 
             if (_statusLinePrompt != null)
