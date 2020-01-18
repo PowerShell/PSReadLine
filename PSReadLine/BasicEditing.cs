@@ -37,27 +37,18 @@ namespace Microsoft.PowerShell
                 count = 1;
             }
 
-            try
+            if (_singleton._visualSelectionCommandCount > 0)
             {
-                _singleton._showSuggestion = true;
-
-                if (_singleton._visualSelectionCommandCount > 0)
-                {
-                    _singleton.GetRegion(out var start, out var length);
-                    Replace(start, length, new string(keyChar, count));
-                }
-                else if (count > 1)
-                {
-                    Insert(new string(keyChar, count));
-                }
-                else
-                {
-                    Insert(keyChar);
-                }
+                _singleton.GetRegion(out var start, out var length);
+                Replace(start, length, new string(keyChar, count));
             }
-            finally
+            else if (count > 1)
             {
-                _singleton._showSuggestion = false;
+                Insert(new string(keyChar, count));
+            }
+            else
+            {
+                Insert(keyChar);
             }
         }
 

@@ -63,8 +63,6 @@ namespace Microsoft.PowerShell
 
         private readonly StringBuilder _buffer;
         private readonly StringBuilder _statusBuffer;
-        private string _suggestionText;
-        private bool _showSuggestion;
         private bool _statusIsErrorMessage;
         private string _statusLinePrompt;
         private List<EditItem> _edits;

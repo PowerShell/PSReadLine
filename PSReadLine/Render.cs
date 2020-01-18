@@ -69,6 +69,10 @@ namespace Microsoft.PowerShell
         private int _emphasisStart;
         private int _emphasisLength;
 
+        private string _suggestionText;
+        private uint _lastRenderedTextHash;
+        private bool _showSuggestion = true;
+
         private class SavedTokenState
         {
             internal Token[] Tokens { get; set; }
@@ -93,24 +97,26 @@ namespace Microsoft.PowerShell
 
         private string GetSuggestion(string text)
         {
-            if (!_showSuggestion || LineIsMultiLine())
+            if (!_showSuggestion || LineIsMultiLine() || string.IsNullOrWhiteSpace(text))
             {
-                _suggestionText = null;
+                return null;
             }
-            else
-            {
-                bool reuseSuggestionBuffer =
-                    _suggestionText != null &&
-                    _suggestionText.Length >= text.Length &&
-                    _suggestionText.StartsWith(text, StringComparison.OrdinalIgnoreCase);
 
-                if (!reuseSuggestionBuffer)
+            try
+            {
+                uint textHash = _lastRenderedTextHash;
+                _lastRenderedTextHash = FNV1a32Hash.ComputeHash(text);
+                if (textHash != _lastRenderedTextHash)
                 {
                     _suggestionText = Pseudo.DummySuggestion.GetCommandLineSuggestion(text);
                 }
             }
+            catch
+            {
+                _suggestionText = null;
+            }
 
-            return _suggestionText == null ? null : _suggestionText.Substring(text.Length);
+            return _suggestionText?.Substring(text.Length);
         }
 
         private void ClearStatusMessage(bool render)
@@ -362,6 +368,7 @@ namespace Microsoft.PowerShell
                 _consoleBufferLines[currentLogicalLine].Append("\x1b[0m");
             }
 
+            inSelectedRegion = false;
             if (suggestion != null)
             {
                 // TODO: write suggestion out in dark black by default, but it needs to be configurable.

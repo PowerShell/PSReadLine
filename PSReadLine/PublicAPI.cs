@@ -235,5 +235,13 @@ namespace Microsoft.PowerShell
             numericArg = 0;
             return false;
         }
+
+        public static void AcceptSuggestion()
+        {
+            if (_singleton._suggestionText != null)
+            {
+
+            }
+        }
     }
 }
