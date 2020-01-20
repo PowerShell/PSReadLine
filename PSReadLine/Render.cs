@@ -110,7 +110,7 @@ namespace Microsoft.PowerShell
                 _lastRenderedTextHash = FNV1a32Hash.ComputeHash(text);
                 if (textHash != _lastRenderedTextHash)
                 {
-                    _suggestionText = Pseudo.DummySuggestion.GetCommandLineSuggestion(text);
+                    _suggestionText = DummySuggestion.GetCommandLineSuggestion(text);
                 }
             }
             catch

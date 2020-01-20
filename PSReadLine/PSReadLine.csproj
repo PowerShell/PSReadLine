@@ -9,6 +9,7 @@
     <InformationalVersion>2.0.1</InformationalVersion>
     <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
     <TargetFrameworks>net461;netcoreapp2.1</TargetFrameworks>
+    <LangVersion>8.0</LangVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp2.1'">

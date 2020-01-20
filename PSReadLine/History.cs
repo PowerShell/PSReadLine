@@ -502,6 +502,8 @@ namespace Microsoft.PowerShell
                     }
                     break;
             }
+
+            using var _ = ChangeSuggestionMode(showSuggestion: false);
             Render();
         }
 

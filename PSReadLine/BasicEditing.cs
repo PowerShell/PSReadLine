@@ -208,6 +208,8 @@ namespace Microsoft.PowerShell
 
         private bool AcceptLineImpl(bool validate)
         {
+            using var _ = ChangeSuggestionMode(showSuggestion: false);
+
             ParseInput();
             if (_parseErrors.Any(e => e.IncompleteInput))
             {
@@ -268,6 +270,12 @@ namespace Microsoft.PowerShell
 
             // Let public API set cursor to end of line incase end of line is end of buffer
             SetCursorPosition(_current);
+            if (_suggestionText != null)
+            {
+                _suggestionText = null;
+                _console.BlankRestOfLine();
+            }
+
             _console.Write("\n");
             _inputAccepted = true;
             return true;
