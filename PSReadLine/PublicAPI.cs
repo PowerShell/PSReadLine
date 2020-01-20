@@ -246,5 +246,22 @@ namespace Microsoft.PowerShell
                 Replace(0, _singleton._buffer.Length, _singleton._suggestionText);
             }
         }
+
+        /// <summary>
+        /// Accept the current or the next suggestion text word.
+        /// </summary>
+        public static void AcceptNextSuggestionWord(int numericArg)
+        {
+            if (_singleton._suggestionText != null)
+            {
+                int index = _singleton._buffer.Length;
+                while (numericArg-- > 0 && index < _singleton._suggestionText.Length)
+                {
+                    index = _singleton.FindForwardSuggestionWordPoint(index, _singleton.Options.WordDelimiters);
+                }
+
+                Replace(0, _singleton._buffer.Length, _singleton._suggestionText.Substring(0, index));
+            }
+        }
     }
 }

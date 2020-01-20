@@ -318,6 +318,12 @@ namespace Microsoft.PowerShell
                 return;
             }
 
+            if (_singleton._current == _singleton._buffer.Length && numericArg > 0)
+            {
+                AcceptNextSuggestionWord(numericArg);
+                return;
+            }
+
             if (numericArg < 0)
             {
                 BackwardWord(key, -numericArg);
