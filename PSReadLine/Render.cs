@@ -374,7 +374,8 @@ namespace Microsoft.PowerShell
             if (suggestion != null)
             {
                 // TODO: write suggestion out in dark black by default, but it needs to be configurable.
-                color = "\x1b[90m";
+                // Find the most suitable color using https://stackoverflow.com/a/33206814
+                color = "\x1b[38;5;238m";
                 UpdateColorsIfNecessary(color);
 
                 foreach (char charToRender in suggestion)

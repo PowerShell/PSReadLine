@@ -21,7 +21,8 @@ namespace Microsoft.PowerShell
                 "git diff",
                 "git diff --cached",
                 "git add -u",
-                "git add -A"
+                "git add -A",
+                "start",
             };
         }
 
@@ -29,7 +30,7 @@ namespace Microsoft.PowerShell
         {
             foreach (string candidate in s_suggestions)
             {
-                if (candidate.StartsWith(text, StringComparison.OrdinalIgnoreCase))
+                if (candidate.Length > text.Length && candidate.StartsWith(text, StringComparison.OrdinalIgnoreCase))
                 {
                     return candidate;
                 }
