@@ -236,11 +236,14 @@ namespace Microsoft.PowerShell
             return false;
         }
 
+        /// <summary>
+        /// Accept the suggestion text if there is one.
+        /// </summary>
         public static void AcceptSuggestion()
         {
             if (_singleton._suggestionText != null)
             {
-
+                Replace(0, _singleton._buffer.Length, _singleton._suggestionText);
             }
         }
     }

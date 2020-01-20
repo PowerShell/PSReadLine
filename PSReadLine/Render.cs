@@ -99,6 +99,8 @@ namespace Microsoft.PowerShell
         {
             if (!_showSuggestion || LineIsMultiLine() || string.IsNullOrWhiteSpace(text))
             {
+                _suggestionText = null;
+                _lastRenderedTextHash = 0;
                 return null;
             }
 
