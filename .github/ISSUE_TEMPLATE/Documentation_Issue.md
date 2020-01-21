@@ -1,5 +1,5 @@
 ---
-name: "Documentation Issue :memo:"
+name: "Documentation Issue :books:"
 about: Report issues in our documentation
 title: ''
 labels: Issue-Docs
