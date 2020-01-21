@@ -20,7 +20,7 @@ The maintainer may close your issue without further explanation or engagement if
 
 -->
 
-# Environment
+## Environment
 
 ```none
 [run the script below and paste the output here]
@@ -65,18 +65,18 @@ Please run the script in the PowerShell session where you ran into the issue and
 
 -->
 
-# Exception report
+## Exception report
 
 <!-- Copy and paste the keys and the exception stack trace printed by PSReadLine, if there is any -->
 
-# Steps to reproduce
+## Steps to reproduce
 
 <!-- A description of how to trigger this bug. -->
 
-# Expected behavior
+## Expected behavior
 
 <!-- A description of what you're expecting, possibly containing screenshots or reference material. -->
 
-# Actual behavior
+## Actual behavior
 
 <!-- What's actually happening? -->

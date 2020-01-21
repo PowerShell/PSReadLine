@@ -16,14 +16,14 @@ The maintainer may close your issue without further explanation or engagement if
 
 -->
 
-# Description of the new feature/enhancement
+## Description of the new feature/enhancement
 
 <!--
 A clear and concise description of what the problem is that the new feature would solve.
 Describe why and how a user would use this new functionality (if applicable).
 -->
 
-# Proposed technical implementation details (optional)
+## Proposed technical implementation details (optional)
 
 <!--
 A clear and concise description of what you want to happen.
