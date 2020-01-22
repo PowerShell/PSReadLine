@@ -1,6 +1,6 @@
 ---
-name: "Bug report :bug:"
-about: Report errors or unexpected behaviors
+name: "Bug report 🐛"
+about: Report errors or unexpected behaviors 🤔
 title: ''
 labels: ''
 assignees: ''
