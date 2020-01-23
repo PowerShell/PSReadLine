@@ -844,7 +844,7 @@ namespace Microsoft.PowerShell
                 };
             }
 
-            _singleton._readKeyThread = new Thread(_singleton.ReadKeyThreadProc) {IsBackground = true};
+            _singleton._readKeyThread = new Thread(_singleton.ReadKeyThreadProc) {IsBackground = true, Name = "PSReadLine ReadKey Thread"};
             _singleton._readKeyThread.Start();
         }
 
