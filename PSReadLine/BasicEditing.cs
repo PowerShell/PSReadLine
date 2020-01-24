@@ -79,6 +79,8 @@ namespace Microsoft.PowerShell
         {
             _singleton.ClearStatusMessage(false);
             _singleton._current = _singleton._buffer.Length;
+
+            using var _ = _singleton.ChangeSuggestionMode(showSuggestion: false);
             _singleton.ForceRender();
 
             _singleton._console.Write("\x1b[91m^C\x1b[0m");

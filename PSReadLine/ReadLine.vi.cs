@@ -522,6 +522,9 @@ namespace Microsoft.PowerShell
 
         private void ViIndicateCommandMode()
         {
+            // Show suggestion in 'InsertMode' but not 'CommandMode'.
+            _showSuggestion = false;
+
             if (_options.ViModeIndicator == ViModeStyle.Cursor)
             {
                 _console.CursorSize = _normalCursorSize < 50 ? 100 : 25;
@@ -541,6 +544,9 @@ namespace Microsoft.PowerShell
 
         private void ViIndicateInsertMode()
         {
+            // Show suggestion in 'InsertMode' but not 'CommandMode'.
+            _showSuggestion = true;
+
             if (_options.ViModeIndicator == ViModeStyle.Cursor)
             {
                 _console.CursorSize = _normalCursorSize;

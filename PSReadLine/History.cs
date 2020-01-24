@@ -679,6 +679,20 @@ namespace Microsoft.PowerShell
             }
         }
 
+        private string GetHistorySuggestion(string text)
+        {
+            for (int index = _history.Count - 1; index > 0; index --)
+            {
+                var line = _history[index].CommandLine;
+                if (line.Length > text.Length && !LineIsMultiLine(line) && line.StartsWith(text, Options.HistoryStringComparison))
+                {
+                    return line;
+                }
+            }
+
+            return null;
+        }
+
         /// <summary>
         /// Move to the first item in the history.
         /// </summary>

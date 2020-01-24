@@ -110,7 +110,7 @@ namespace Microsoft.PowerShell
                 _lastRenderedTextHash = FNV1a32Hash.ComputeHash(text);
                 if (textHash != _lastRenderedTextHash)
                 {
-                    _suggestionText = DummySuggestion.GetCommandLineSuggestion(text);
+                    _suggestionText = GetHistorySuggestion(text);
                 }
             }
             catch
@@ -1252,6 +1252,16 @@ namespace Microsoft.PowerShell
             for (int i = 0; i < _buffer.Length; i++)
             {
                 if (_buffer[i] == '\n')
+                    return true;
+            }
+            return false;
+        }
+
+        private bool LineIsMultiLine(string text)
+        {
+            for (int i = 0; i < text.Length; i++)
+            {
+                if (text[i] == '\n')
                     return true;
             }
             return false;

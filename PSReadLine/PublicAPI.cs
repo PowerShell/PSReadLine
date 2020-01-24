@@ -243,6 +243,7 @@ namespace Microsoft.PowerShell
         {
             if (_singleton._suggestionText != null)
             {
+                using var _ = _singleton.ChangeSuggestionMode(showSuggestion: false);
                 Replace(0, _singleton._buffer.Length, _singleton._suggestionText);
             }
         }
