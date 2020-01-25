@@ -809,7 +809,7 @@ namespace Microsoft.PowerShell
     [OutputType(typeof(KeyHandler))]
     public class GetKeyHandlerCommand : PSCmdlet
     {
-        [Parameter]
+        [Parameter(ParameterSetName = "FullListing")]
         public SwitchParameter Bound
         {
             get => _bound.GetValueOrDefault();
@@ -817,7 +817,7 @@ namespace Microsoft.PowerShell
         }
         private SwitchParameter? _bound;
 
-        [Parameter]
+        [Parameter(ParameterSetName = "FullListing")]
         public SwitchParameter Unbound
         {
             get => _unbound.GetValueOrDefault();
@@ -825,7 +825,8 @@ namespace Microsoft.PowerShell
         }
         private SwitchParameter? _unbound;
 
-        [Parameter]
+        [Parameter(ParameterSetName = "SpecificBindings", Position = 0, Mandatory = true)]
+        [ValidateNotNullOrEmpty]
         [Alias("Key")]
         public string[] Chord { get; set; }
 
