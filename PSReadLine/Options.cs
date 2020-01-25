@@ -291,22 +291,48 @@ namespace Microsoft.PowerShell
         {
             var boundFunctions = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-            var searchChords = new HashSet<PSKeyInfo>();
-
-            if (Chord != null) foreach (var Key in Chord)
+            if (Chord != null)
+            {
+                foreach (var Key in Chord)
                 {
                     var consoleKeyChord = ConsoleKeyChordConverter.Convert(Key);
-                    searchChords.Add(PSKeyInfo.FromConsoleKeyInfo(consoleKeyChord[0])); 
+                    var firstKey = PSKeyInfo.FromConsoleKeyInfo(consoleKeyChord[0]);
+                    if (_singleton._dispatchTable.TryGetValue(firstKey, out var entry))
+                    {
+                        if (consoleKeyChord.Length == 1)
+                        {
+                            yield return new PowerShell.KeyHandler
+                            {
+                                Key = firstKey.KeyStr,
+                                Function = entry.BriefDescription,
+                                Description = entry.LongDescription,
+                                Group = GetDisplayGrouping(entry.BriefDescription),
+                            };
+                        }
+                        else
+                        {
+                            var secondKey = PSKeyInfo.FromConsoleKeyInfo(consoleKeyChord[1]);
+                            if (_singleton._chordDispatchTable.TryGetValue(firstKey, out var secondDispatchTable) &&
+                                secondDispatchTable.TryGetValue(secondKey, out entry))
+                            {
+                                yield return new PowerShell.KeyHandler
+                                {
+                                    Key = firstKey.KeyStr + "," + secondKey.KeyStr,
+                                    Function = entry.BriefDescription,
+                                    Description = entry.LongDescription,
+                                    Group = GetDisplayGrouping(entry.BriefDescription),
+                                };
+                            }
+                        }
+                    }
                 }
+                yield break;
+            }
 
             foreach (var entry in _singleton._dispatchTable)
             {
                 if (entry.Value.BriefDescription == "Ignore"
                     || entry.Value.BriefDescription == "ChordFirstKey")
-                {
-                    continue;
-                }
-                if (Chord != null && !searchChords.Contains(entry.Key))
                 {
                     continue;
                 }
@@ -333,10 +359,6 @@ namespace Microsoft.PowerShell
                     {
                         continue;
                     }
-                    if (Chord != null && !searchChords.Contains(entry.Key))
-                    {
-                        continue;
-                    }
                     boundFunctions.Add(entry.Value.BriefDescription);
                     if (includeBound)
                     {
@@ -355,10 +377,6 @@ namespace Microsoft.PowerShell
             {
                 foreach( var secondEntry in entry.Value )
                 {
-                    if (Chord != null && !searchChords.Contains(entry.Key) && !searchChords.Contains(secondEntry.Key))
-                    {
-                        continue;
-                    }
                     boundFunctions.Add( secondEntry.Value.BriefDescription );
                     if (includeBound)
                     {
@@ -381,10 +399,6 @@ namespace Microsoft.PowerShell
                     foreach (var secondEntry in entry.Value)
                     {
                         if (secondEntry.Value.BriefDescription == "Ignore")
-                        {
-                            continue;
-                        }
-                        if (Chord != null && !searchChords.Contains(entry.Key) && !searchChords.Contains(secondEntry.Key))
                         {
                             continue;
                         }
