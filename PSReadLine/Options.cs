@@ -291,9 +291,13 @@ namespace Microsoft.PowerShell
         {
             var boundFunctions = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-            var searchChords = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var searchChords = new HashSet<PSKeyInfo>();
 
-            if (Chord != null) { foreach (var Key in Chord) { searchChords.Add(Key); }; }
+            if (Chord != null) foreach (var Key in Chord)
+                {
+                    var consoleKeyChord = ConsoleKeyChordConverter.Convert(Key);
+                    searchChords.Add(PSKeyInfo.FromConsoleKeyInfo(consoleKeyChord[0])); 
+                }
 
             foreach (var entry in _singleton._dispatchTable)
             {
@@ -302,7 +306,7 @@ namespace Microsoft.PowerShell
                 {
                     continue;
                 }
-                if (Chord != null && !searchChords.Contains(entry.Key.ToString()))
+                if (Chord != null && !searchChords.Contains(entry.Key))
                 {
                     continue;
                 }
@@ -329,7 +333,7 @@ namespace Microsoft.PowerShell
                     {
                         continue;
                     }
-                    if (Chord != null && !searchChords.Contains(entry.Key.ToString()))
+                    if (Chord != null && !searchChords.Contains(entry.Key))
                     {
                         continue;
                     }
@@ -351,7 +355,7 @@ namespace Microsoft.PowerShell
             {
                 foreach( var secondEntry in entry.Value )
                 {
-                    if (Chord != null && !searchChords.Contains(entry.Key.ToString()) && !searchChords.Contains(secondEntry.Key.ToString()))
+                    if (Chord != null && !searchChords.Contains(entry.Key) && !searchChords.Contains(secondEntry.Key))
                     {
                         continue;
                     }
@@ -380,7 +384,7 @@ namespace Microsoft.PowerShell
                         {
                             continue;
                         }
-                        if (Chord != null && !searchChords.Contains(entry.Key.ToString()) && !searchChords.Contains(secondEntry.Key.ToString()))
+                        if (Chord != null && !searchChords.Contains(entry.Key) && !searchChords.Contains(secondEntry.Key))
                         {
                             continue;
                         }
