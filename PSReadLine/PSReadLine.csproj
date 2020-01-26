@@ -19,8 +19,12 @@
     <PackageReference Include="Microsoft.CSharp" version="4.5.0-*" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="PSReadLine.psd1" />
-    <None Include="PSReadLine.psm1" />
+    <None Include="PSReadLine.psd1">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="PSReadLine.psm1">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="SamplePSReadLineProfile.ps1" />
     <None Include="Changes.txt" />
     <None Include="License.txt" />
@@ -31,5 +35,10 @@
     <None Include="..\docs\Get-PSReadLineOption.md" Link="docs\Get-PSReadLineOption.md" />
     <None Include="..\docs\Set-PSReadLineKeyHandler.md" Link="docs\Set-PSReadLineKeyHandler.md" />
     <None Include="..\docs\Set-PSReadLineOption.md" Link="docs\Set-PSReadLineOption.md" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="PSReadLine.format.ps1xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 </Project>
