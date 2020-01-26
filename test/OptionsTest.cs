@@ -85,7 +85,12 @@ namespace Test
             TestSetup(KeyMode.Emacs);
             foreach (var handler in PSConsoleReadLine.GetKeyHandlers(includeBound: true, includeUnbound: false, Chord: new string[] { "ctrl+x" }))
             {
-                Assert.Contains("Ctrl+x", handler.Key);
+                Assert.Equal("Ctrl+x", handler.Key);
+            }
+
+            foreach (var handler in PSConsoleReadLine.GetKeyHandlers(includeBound: true, includeUnbound: false, Chord: new string[] { "ctrl+x,ctrl+e" }))
+            {
+                Assert.Equal("Ctrl+x,Ctrl+e", handler.Key);
             }
         }
 
