@@ -130,6 +130,13 @@ namespace Microsoft.PowerShell
                 {
                     if (!InWord(_suggestionText, i, wordDelimiters))
                     {
+                        if (_suggestionText[i] == ' ')
+                        {
+                            // If the end of this suggestion word is a space, then we consider the word
+                            // is complete and include the space in the accepted suggestion word.
+                            i++;
+                        }
+
                         break;
                     }
                 }

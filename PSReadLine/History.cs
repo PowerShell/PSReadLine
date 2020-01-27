@@ -185,6 +185,7 @@ namespace Microsoft.PowerShell
             bool fromDifferentSession = false,
             bool fromInitialRead = false)
         {
+            result = result.TrimEnd();
             var addToHistoryOption = GetAddToHistoryOption(result);
             if (addToHistoryOption != AddToHistoryOption.SkipAdding)
             {
