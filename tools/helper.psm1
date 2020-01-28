@@ -1,5 +1,5 @@
 
-$MinimalSDKVersion = '2.1.801'
+$MinimalSDKVersion = '2.1.802'
 $IsWindowsEnv = [System.Environment]::OSVersion.Platform -eq "Win32NT"
 $RepoRoot = (Resolve-Path "$PSScriptRoot/..").Path
 $LocalDotnetDirPath = if ($IsWindowsEnv) { "$env:LocalAppData\Microsoft\dotnet" } else { "$env:HOME/.dotnet" }
@@ -68,7 +68,7 @@ function Install-Dotnet
     [CmdletBinding()]
     param(
         [string]$Channel = 'release',
-        [string]$Version = '2.1.801'
+        [string]$Version = '2.1.802'
     )
 
     try {
