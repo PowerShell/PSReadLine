@@ -198,7 +198,7 @@ If you want to change the command line in some unimplmented way in your custom k
 
 ### Prerequisites
 
-To build `PSReadLine` on Windows, Linux, or macOS, you must have [.NET Core SDK 2.1.400 or newer](https://www.microsoft.com/net/download) installed.
+To build `PSReadLine` on Windows, Linux, or macOS, you must have [.NET Core SDK 2.1.802 or newer](https://www.microsoft.com/net/download) installed.
 The build script also depends on [`InvokeBuild`](https://www.powershellgallery.com/packages/InvokeBuild) which can be installed using:
 
 ```powershell
