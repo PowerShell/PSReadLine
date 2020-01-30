@@ -169,24 +169,10 @@ task LayoutModule BuildMainModule, BuildMamlHelp, {
     }
 
     # Copy module manifest, but fix the version to match what we've specified in the binary module.
-    $version = (Get-ChildItem -Path $targetDir/Microsoft.PowerShell.PSReadLine2.dll).VersionInfo.FileVersion
     $moduleManifestContent = ConvertTo-CRLF (Get-Content -Path 'PSReadLine/PSReadLine.psd1' -Raw)
-
-    $getContentArgs = @{
-        Raw = $true;
-        Path = "./bin/$Configuration/PSReadLine/Microsoft.PowerShell.PSReadLine2.dll"
-    }
-    if ($PSVersionTable.PSEdition -eq 'Core')
-    {
-        $getContentArgs += @{AsByteStream = $true}
-    }
-    else
-    {
-        $getContentArgs += @{Encoding = "Byte"}
-    }
-    $b = Get-Content @getContentArgs
-    $a = [System.Reflection.Assembly]::Load($b)
-    $semVer = ($a.GetCustomAttributes([System.Reflection.AssemblyInformationalVersionAttribute], $false)).InformationalVersion
+    $versionInfo = (Get-ChildItem -Path $targetDir/Microsoft.PowerShell.PSReadLine2.dll).VersionInfo
+    $version = $versionInfo.FileVersion
+    $semVer = $versionInfo.ProductVersion
 
     if ($semVer -match "(.*)-(.*)")
     {
