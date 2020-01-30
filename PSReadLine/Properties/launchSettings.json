@@ -1,12 +1,14 @@
 {
   "profiles": {
-    "PSReadLine": {
+    "PSReadLine-net461": {
       "commandName": "Executable",
-      "executablePath": "C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe",
-      "commandLineArgs": "-noprofile -noexit -command \"Import-Module .\\PSReadLine.psd1\"",
-      "environmentVariables": {
-        "PSModulePath": "$(TargetDir)"
-      }
+      "executablePath": "powershell",
+      "commandLineArgs": "-NoProfile -NonInteractive -NoExit -Command Import-Module .\\PSReadLine.psd1"
+    },
+    "PSReadLine-netcore": {
+      "commandName": "Executable",
+      "executablePath": "pwsh",
+      "commandLineArgs": "-NoProfile -NonInteractive -NoExit -Command Import-Module .\\PSReadLine.psd1"
     }
   }
 }
