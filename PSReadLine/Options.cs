@@ -293,11 +293,11 @@ namespace Microsoft.PowerShell
 
             if (Chord != null)
             {
-                foreach (var Key in Chord)
+                foreach (string Key in Chord)
                 {
-                    var consoleKeyChord = ConsoleKeyChordConverter.Convert(Key);
-                    var firstKey = PSKeyInfo.FromConsoleKeyInfo(consoleKeyChord[0]);
-                    if (_singleton._dispatchTable.TryGetValue(firstKey, out var entry))
+                    ConsoleKeyInfo[] consoleKeyChord = ConsoleKeyChordConverter.Convert(Key);
+                    PSKeyInfo firstKey = PSKeyInfo.FromConsoleKeyInfo(consoleKeyChord[0]);
+                    if (_singleton._dispatchTable.TryGetValue(firstKey, out KeyHandler entry))
                     {
                         if (consoleKeyChord.Length == 1)
                         {
@@ -311,7 +311,7 @@ namespace Microsoft.PowerShell
                         }
                         else
                         {
-                            var secondKey = PSKeyInfo.FromConsoleKeyInfo(consoleKeyChord[1]);
+                            PSKeyInfo secondKey = PSKeyInfo.FromConsoleKeyInfo(consoleKeyChord[1]);
                             if (_singleton._chordDispatchTable.TryGetValue(firstKey, out var secondDispatchTable) &&
                                 secondDispatchTable.TryGetValue(secondKey, out entry))
                             {
@@ -329,7 +329,7 @@ namespace Microsoft.PowerShell
                 yield break;
             }
 
-            foreach (var entry in _singleton._dispatchTable)
+            foreach (KeyValuePair<PSKeyInfo, KeyHandler> entry in _singleton._dispatchTable)
             {
                 if (entry.Value.BriefDescription == "Ignore"
                     || entry.Value.BriefDescription == "ChordFirstKey")
