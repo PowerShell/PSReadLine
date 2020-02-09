@@ -8,7 +8,7 @@ jobs:
 - template: azure-devops-psreadline.yml
   parameters:
     name: macOS
-    vmImage: 'macOS-10.13'
+    vmImage: 'macOS-10.14'
 
 - template: azure-devops-psreadline.yml
   parameters:
