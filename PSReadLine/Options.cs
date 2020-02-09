@@ -414,6 +414,7 @@ namespace Microsoft.PowerShell
             {
                 ConsoleKeyInfo[] consoleKeyChord = ConsoleKeyChordConverter.Convert(Key);
                 PSKeyInfo firstKey = PSKeyInfo.FromConsoleKeyInfo(consoleKeyChord[0]);
+
                 if (_singleton._dispatchTable.TryGetValue(firstKey, out KeyHandler entry))
                 {
                     if (consoleKeyChord.Length == 1)
@@ -439,6 +440,41 @@ namespace Microsoft.PowerShell
                                 Description = entry.LongDescription,
                                 Group = GetDisplayGrouping(entry.BriefDescription),
                             };
+                        }
+                    }
+                }
+
+                // If in Vi mode, also check Vi's command mode list.
+                if (PSConsoleReadLine.GetOptions().EditMode == EditMode.Vi)
+                {
+                    if (_viCmdKeyMap.TryGetValue(firstKey, out entry))
+                    {
+                        if (consoleKeyChord.Length == 1)
+                        {
+                            if (entry.BriefDescription == "Ignore") continue;
+                            yield return new PowerShell.KeyHandler
+                            {
+                                Key = '<' + firstKey.KeyStr + '>',
+                                Function = entry.BriefDescription,
+                                Description = entry.LongDescription,
+                                Group = GetDisplayGrouping(entry.BriefDescription),
+                            };
+                        }
+                        else
+                        {
+                            PSKeyInfo secondKey = PSKeyInfo.FromConsoleKeyInfo(consoleKeyChord[1]);
+                            if (_viCmdChordTable.TryGetValue(firstKey, out var secondDispatchTable) &&
+                                secondDispatchTable.TryGetValue(secondKey, out entry))
+                            {
+                                if (entry.BriefDescription == "Ignore") continue;
+                                yield return new PowerShell.KeyHandler
+                                {
+                                    Key = '<' + firstKey.KeyStr + "," + secondKey.KeyStr + '>',
+                                    Function = entry.BriefDescription,
+                                    Description = entry.LongDescription,
+                                    Group = GetDisplayGrouping(entry.BriefDescription),
+                                };
+                            }
                         }
                     }
                 }
