@@ -76,19 +76,19 @@ namespace Test
                     Assert.False(string.IsNullOrWhiteSpace(handler.Description));
                 }
 
-                foreach (var handler in PSConsoleReadLine.GetKeyHandlers(includeBound: true, includeUnbound: false, Chord: new string[] { "home"}))
+                foreach (var handler in PSConsoleReadLine.GetKeyHandlers(Chord: new string[] { "home"}))
                 {
                     Assert.Equal("Home", handler.Key);
                 }
             }
 
             TestSetup(KeyMode.Emacs);
-            foreach (var handler in PSConsoleReadLine.GetKeyHandlers(includeBound: true, includeUnbound: false, Chord: new string[] { "ctrl+x" }))
+            foreach (var handler in PSConsoleReadLine.GetKeyHandlers(Chord: new string[] { "ctrl+x" }))
             {
                 Assert.Equal("Ctrl+x", handler.Key);
             }
 
-            foreach (var handler in PSConsoleReadLine.GetKeyHandlers(includeBound: true, includeUnbound: false, Chord: new string[] { "ctrl+x,ctrl+e" }))
+            foreach (var handler in PSConsoleReadLine.GetKeyHandlers(Chord: new string[] { "ctrl+x,ctrl+e" }))
             {
                 Assert.Equal("Ctrl+x,Ctrl+e", handler.Key);
             }

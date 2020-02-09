@@ -271,65 +271,18 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static IEnumerable<PowerShell.KeyHandler> GetKeyHandlers()
         {
-            return GetKeyHandlers(includeBound: true, includeUnbound: false, Chord: null);
-        }
-
-        /// <summary>
-        /// Return bound/unbound key handlers without filtering.
-        /// </summary>
-        /// <returns></returns>
-        public static IEnumerable<PowerShell.KeyHandler> GetKeyHandlers(bool includeBound, bool includeUnbound)
-        {
-            return GetKeyHandlers(includeBound: includeBound, includeUnbound: includeUnbound, Chord: null);
+            return GetKeyHandlers(includeBound: true, includeUnbound: false);
         }
 
         /// <summary>
         /// Helper function for the Get-PSReadLineKeyHandler cmdlet.
         /// </summary>
         /// <returns></returns>
-        public static IEnumerable<PowerShell.KeyHandler> GetKeyHandlers(bool includeBound, bool includeUnbound, string[] Chord)
+        public static IEnumerable<PowerShell.KeyHandler> GetKeyHandlers(bool includeBound, bool includeUnbound)
         {
             var boundFunctions = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-            if (Chord != null)
-            {
-                foreach (string Key in Chord)
-                {
-                    ConsoleKeyInfo[] consoleKeyChord = ConsoleKeyChordConverter.Convert(Key);
-                    PSKeyInfo firstKey = PSKeyInfo.FromConsoleKeyInfo(consoleKeyChord[0]);
-                    if (_singleton._dispatchTable.TryGetValue(firstKey, out KeyHandler entry))
-                    {
-                        if (consoleKeyChord.Length == 1)
-                        {
-                            yield return new PowerShell.KeyHandler
-                            {
-                                Key = firstKey.KeyStr,
-                                Function = entry.BriefDescription,
-                                Description = entry.LongDescription,
-                                Group = GetDisplayGrouping(entry.BriefDescription),
-                            };
-                        }
-                        else
-                        {
-                            PSKeyInfo secondKey = PSKeyInfo.FromConsoleKeyInfo(consoleKeyChord[1]);
-                            if (_singleton._chordDispatchTable.TryGetValue(firstKey, out var secondDispatchTable) &&
-                                secondDispatchTable.TryGetValue(secondKey, out entry))
-                            {
-                                yield return new PowerShell.KeyHandler
-                                {
-                                    Key = firstKey.KeyStr + "," + secondKey.KeyStr,
-                                    Function = entry.BriefDescription,
-                                    Description = entry.LongDescription,
-                                    Group = GetDisplayGrouping(entry.BriefDescription),
-                                };
-                            }
-                        }
-                    }
-                }
-                yield break;
-            }
-
-            foreach (KeyValuePair<PSKeyInfo, KeyHandler> entry in _singleton._dispatchTable)
+            foreach (var entry in _singleton._dispatchTable)
             {
                 if (entry.Value.BriefDescription == "Ignore"
                     || entry.Value.BriefDescription == "ChordFirstKey")
@@ -445,6 +398,53 @@ namespace Microsoft.PowerShell
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// Return key handlers bound to specified chords.
+        /// </summary>
+        /// <returns></returns>
+        public static IEnumerable<PowerShell.KeyHandler> GetKeyHandlers(string[] Chord)
+        {
+            var boundFunctions = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            if (Chord == null) yield break;
+
+            foreach (string Key in Chord)
+            {
+                ConsoleKeyInfo[] consoleKeyChord = ConsoleKeyChordConverter.Convert(Key);
+                PSKeyInfo firstKey = PSKeyInfo.FromConsoleKeyInfo(consoleKeyChord[0]);
+                if (_singleton._dispatchTable.TryGetValue(firstKey, out KeyHandler entry))
+                {
+                    if (consoleKeyChord.Length == 1)
+                    {
+                        yield return new PowerShell.KeyHandler
+                        {
+                            Key = firstKey.KeyStr,
+                            Function = entry.BriefDescription,
+                            Description = entry.LongDescription,
+                            Group = GetDisplayGrouping(entry.BriefDescription),
+                        };
+                    }
+                    else
+                    {
+                        PSKeyInfo secondKey = PSKeyInfo.FromConsoleKeyInfo(consoleKeyChord[1]);
+                        if (_singleton._chordDispatchTable.TryGetValue(firstKey, out var secondDispatchTable) &&
+                            secondDispatchTable.TryGetValue(secondKey, out entry))
+                        {
+                            yield return new PowerShell.KeyHandler
+                            {
+                                Key = firstKey.KeyStr + "," + secondKey.KeyStr,
+                                Function = entry.BriefDescription,
+                                Description = entry.LongDescription,
+                                Group = GetDisplayGrouping(entry.BriefDescription),
+                            };
+                        }
+                    }
+                }
+            }
+            yield break;
+            
         }
     }
 }

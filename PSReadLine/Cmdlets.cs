@@ -851,7 +851,18 @@ namespace Microsoft.PowerShell
                 bound = false;
                 unbound = _unbound.Value.IsPresent;
             }
-            var groups = PSConsoleReadLine.GetKeyHandlers(bound, unbound, Chord).GroupBy(k => k.Group).OrderBy(g => g.Key);
+
+            IEnumerable<PowerShell.KeyHandler> handlers;
+            if (ParameterSetName.Equals("FullListing", StringComparison.OrdinalIgnoreCase))
+            {
+                 handlers = PSConsoleReadLine.GetKeyHandlers(bound, unbound);
+            }
+            else
+            {
+                 handlers = PSConsoleReadLine.GetKeyHandlers(Chord);
+            }
+            var groups = handlers.GroupBy(k => k.Group).OrderBy(g => g.Key);
+
             foreach (var bindings in groups)
             {
                 WriteObject(bindings.OrderBy(k => k.Function), true);
