@@ -1,3 +1,12 @@
+### Version 2.0.0
+
+Bug fixes:
+
+* Name the `ReadKey` thread for debug purpose (#1313)
+* Compliance: Update the .NET Core version and PowerShell SDK package (#1320)
+* Build: Enable F5 debugging of PSReadLine in Visual Studio (#1319) (Thanks @theaquamarine)
+* Build: Simply the way to get semantic version information in build (#1324)
+
 ### Version 2.0.0-rc2
 
 Pre-release notes:
