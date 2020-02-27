@@ -90,8 +90,13 @@ In either case, you can create the appropriate file if you don't already have on
 
 ## Upgrading
 
-When running one of the suggested commands below, be sure to exit all instances of `powershell.exe`, `pwsh.exe` or `pwsh`, 
-then run the suggested command from `cmd.exe`, `powershell_ise.exe`, or via the `Win+R` shortcut to make sure `PSReadLine` isn't loaded.
+When running one of the suggested commands below, be sure to exit all instances of `powershell.exe`, `pwsh.exe` or `pwsh`,
+including those opened in `VSCode` terminals.
+
+Then, to make sure `PSReadLine` isn't loaded:
+- _if you are on Windows_, run the suggested command below from `cmd.exe`, `powershell_ise.exe`, or via the `Win+R` shortcut;
+- _if you are on Linux/macOS_, run the suggested command below from the default terminal (like `bash` or `zsh`).
+
 
 If you are using the version of `PSReadLine` that ships with Windows PowerShell,
 you need to run: `powershell -noprofile -command "Install-Module PSReadLine -Force -SkipPublisherCheck -AllowPrerelease"`.
@@ -106,10 +111,16 @@ depending on the version of PowerShell you are using.
 
 If you get an error like:
 
-```powershell
+```none
 Remove-Item : Cannot remove item
 C:\Users\{yourName}\Documents\WindowsPowerShell\Modules\PSReadLine\Microsoft.PowerShell.PSReadLine.dll: Access to the path
 'C:\Users\{yourName}\Documents\WindowsPowerShell\Modules\PSReadLine\Microsoft.PowerShell.PSReadLine.dll' is denied.
+```
+
+or a warning like:
+
+```none
+WARNING: The version '2.0.0' of module 'PSReadLine' is currently in use. Retry the operation after closing the applications.
 ```
 
 Then you didn't kill all the processes that loaded `PSReadLine`.
