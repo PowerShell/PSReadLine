@@ -100,6 +100,7 @@ Then, to make sure `PSReadLine` isn't loaded:
 
 If you are using the version of `PSReadLine` that ships with Windows PowerShell,
 you need to run: `powershell -noprofile -command "Install-Module PSReadLine -Force -SkipPublisherCheck -AllowPrerelease"`.
+Note: you will need to make sure [PowershellGet is updated](https://github.com/PowerShell/PSReadLine#install-from-powershellgallery-preferred) before running this command.
 
 If you are using the version of `PSReadLine` that ships with PowerShell 6+ versions,
 you need to run: `<path-to-pwsh-executable> -noprofile -command "Install-Module PSReadLine -Force -SkipPublisherCheck -AllowPrerelease"`.
