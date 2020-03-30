@@ -443,8 +443,8 @@ namespace Microsoft.PowerShell
             if (fg == VTColorUtils.UnknownColor || bg == VTColorUtils.UnknownColor)
             {
                 // TODO: light vs. dark
-                fg = ConsoleColor.Black;
-                bg = ConsoleColor.Gray;
+                fg = ConsoleColor.Gray;
+                bg = ConsoleColor.Black;
             }
 
             SelectionColor = VTColorUtils.AsEscapeSequence(bg, fg);
