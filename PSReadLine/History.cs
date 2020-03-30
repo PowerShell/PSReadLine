@@ -34,10 +34,10 @@ namespace Microsoft.PowerShell
             {
                 ch = input[i];
                 lowByte = (uint)(ch & 0x00FF);
-                hash = (hash ^ lowByte) * FNV32_PRIME;
+                hash = unchecked((hash ^ lowByte) * FNV32_PRIME);
 
                 highByte = (uint)(ch >> 8);
-                hash = (hash ^ highByte) * FNV32_PRIME;
+                hash = unchecked((hash ^ highByte) * FNV32_PRIME);
             }
 
             return hash;
