@@ -1,3 +1,11 @@
+### Version 2.0.1
+
+Bug fixes:
+
+* Correct the default foreground and background colors so the appropriate default value is set for `SelectionColor` (#1435)
+* Add the `-Chord` parameter to `Get-PSReadLineKeyHandler` to allow searching for specific key bindings (#1298) (Thanks @theaquamarine)
+* Update docs to reflect the new `-Chord` parameter to `Get-PSReadLineKeyHandler` (#1438)
+
 ### Version 2.0.0
 
 Bug fixes:
