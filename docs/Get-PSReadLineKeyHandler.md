@@ -14,7 +14,7 @@ Gets the key bindings for the PSReadLine module.
 ```
 Get-PSReadLineKeyHandler [-Bound] [-Unbound]
 
-Get-PSReadLineKeyHandler [-Chord] <string[]>
+Get-PSReadLineKeyHandler [-Chord] <String[]>
 ```
 
 ## DESCRIPTION
