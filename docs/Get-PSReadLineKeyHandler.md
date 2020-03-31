@@ -37,7 +37,7 @@ Include functions that are bound.
 
 ```yaml
 Type: switch
-Parameter Sets: (All)
+Parameter Sets: Set 1
 Aliases:
 
 Required: False
@@ -53,12 +53,28 @@ Include functions that are unbound.
 
 ```yaml
 Type: switch
-Parameter Sets: (All)
+Parameter Sets: Set 1
 Aliases:
 
 Required: False
 Position: Named
 Default value: True
+Accept pipeline input: false
+Accept wildcard characters: False
+```
+
+### -Chord
+
+Return only functions bound to specific keys or sequences.
+
+```yaml
+Type: String[]
+Parameter Sets: Set 2
+Aliases: Key
+
+Required: True
+Position: 0
+Default value:
 Accept pipeline input: false
 Accept wildcard characters: False
 ```

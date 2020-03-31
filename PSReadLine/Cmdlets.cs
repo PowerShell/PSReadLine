@@ -805,11 +805,12 @@ namespace Microsoft.PowerShell
         }
     }
 
-    [Cmdlet("Get", "PSReadLineKeyHandler", HelpUri = "https://go.microsoft.com/fwlink/?LinkId=528807")]
+    [Cmdlet("Get", "PSReadLineKeyHandler", DefaultParameterSetName = "FullListing", 
+        HelpUri = "https://go.microsoft.com/fwlink/?LinkId=528807")]
     [OutputType(typeof(KeyHandler))]
     public class GetKeyHandlerCommand : PSCmdlet
     {
-        [Parameter]
+        [Parameter(ParameterSetName = "FullListing")]
         public SwitchParameter Bound
         {
             get => _bound.GetValueOrDefault();
@@ -817,13 +818,18 @@ namespace Microsoft.PowerShell
         }
         private SwitchParameter? _bound;
 
-        [Parameter]
+        [Parameter(ParameterSetName = "FullListing")]
         public SwitchParameter Unbound
         {
             get => _unbound.GetValueOrDefault();
             set => _unbound = value;
         }
         private SwitchParameter? _unbound;
+
+        [Parameter(ParameterSetName = "SpecificBindings", Position = 0, Mandatory = true)]
+        [ValidateNotNullOrEmpty]
+        [Alias("Key")]
+        public string[] Chord { get; set; }
 
         [ExcludeFromCodeCoverage]
         protected override void EndProcessing()
@@ -845,7 +851,18 @@ namespace Microsoft.PowerShell
                 bound = false;
                 unbound = _unbound.Value.IsPresent;
             }
-            var groups = PSConsoleReadLine.GetKeyHandlers(bound, unbound).GroupBy(k => k.Group).OrderBy(g => g.Key);
+
+            IEnumerable<PowerShell.KeyHandler> handlers;
+            if (ParameterSetName.Equals("FullListing", StringComparison.OrdinalIgnoreCase))
+            {
+                 handlers = PSConsoleReadLine.GetKeyHandlers(bound, unbound);
+            }
+            else
+            {
+                 handlers = PSConsoleReadLine.GetKeyHandlers(Chord);
+            }
+            var groups = handlers.GroupBy(k => k.Group).OrderBy(g => g.Key);
+
             foreach (var bindings in groups)
             {
                 WriteObject(bindings.OrderBy(k => k.Function), true);
