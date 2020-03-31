@@ -13,19 +13,23 @@ Gets the key bindings for the PSReadLine module.
 
 ```
 Get-PSReadLineKeyHandler [-Bound] [-Unbound]
+
+Get-PSReadLineKeyHandler [-Chord] <String[]>
 ```
 
 ## DESCRIPTION
 
 Gets the key bindings for the PSReadLine module.
 
-If neither -Bound nor -Unbound is specified, returns all bound keys functions.
+If no parameter is specified, returns all bound keys functions.
 
-If -Bound is specified and -Unbound is not specified, only bound keys are returned.
+If '-Bound' is specified and '-Unbound' is not specified, only bound keys are returned.
 
-If -Unbound is specified and -Bound is not specified, only unbound keys are returned.
+If '-Unbound' is specified and '-Bound' is not specified, only unbound keys are returned.
 
-If both -Bound and -Unbound are specified, returns all bound keys and unbound functions.
+If both '-Bound' and '-Unbound' are specified, returns all bound keys and unbound functions.
+
+If '-Chord' is specified, returns the specific bound keys.
 
 ## EXAMPLES
 
@@ -58,7 +62,7 @@ Aliases:
 
 Required: False
 Position: Named
-Default value: True
+Default value: False
 Accept pipeline input: false
 Accept wildcard characters: False
 ```
