@@ -240,7 +240,7 @@ The change log is available [here](https://github.com/PowerShell/PSReadLine/blob
 
 PSReadLine is licensed under the [2-Clause BSD License][].
 
-[2-Clause BSD License]: https://github.com/PowerShell/PSReadLine/blob/master/PSReadLine/License.txt
+[2-Clause BSD License]: https://github.com/PowerShell/PSReadLine/blob/master/License.txt
 
 ## Code of Conduct
 
