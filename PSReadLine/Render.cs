@@ -373,9 +373,7 @@ namespace Microsoft.PowerShell
             inSelectedRegion = false;
             if (suggestion != null)
             {
-                // TODO: write suggestion out in dark black by default, but it needs to be configurable.
-                // Find the most suitable color using https://stackoverflow.com/a/33206814
-                color = "\x1b[38;5;238m";
+                color = _options._predictionColor;
                 UpdateColorsIfNecessary(color);
 
                 foreach (char charToRender in suggestion)

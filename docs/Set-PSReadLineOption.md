@@ -389,6 +389,8 @@ The valid keys include:
 
 -- Member: The member name token color.
 
+-- Prediction: The color for the suggestion text that comes from the prediction API.
+
 ```yaml
 Type: Hashtable
 Parameter Sets: (All)

@@ -78,6 +78,10 @@ namespace Microsoft.PowerShell
         public const ConsoleColor DefaultEmphasisColor  = ConsoleColor.Cyan;
         public const ConsoleColor DefaultErrorColor     = ConsoleColor.Red;
 
+        // Use dark black by default for the suggestion text.
+        // Find the most suitable color using https://stackoverflow.com/a/33206814
+        public const string DefaultPredictionColor = "\x1b[38;5;238m";
+
         public static EditMode DefaultEditMode = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
             ? EditMode.Windows
             : EditMode.Emacs;
@@ -407,6 +411,12 @@ namespace Microsoft.PowerShell
             set => _selectionColor = VTColorUtils.AsEscapeSequence(value);
         }
 
+        public object PredictionColor
+        {
+            get => _predictionColor;
+            set => _predictionColor = VTColorUtils.AsEscapeSequence(value);
+        }
+
         internal string _defaultTokenColor;
         internal string _commentColor;
         internal string _keywordColor;
@@ -421,6 +431,7 @@ namespace Microsoft.PowerShell
         internal string _emphasisColor;
         internal string _errorColor;
         internal string _selectionColor;
+        internal string _predictionColor;
 
         internal void ResetColors()
         {
@@ -438,6 +449,7 @@ namespace Microsoft.PowerShell
             MemberColor       = DefaultNumberColor;
             EmphasisColor     = DefaultEmphasisColor;
             ErrorColor        = DefaultErrorColor;
+            PredictionColor   = DefaultPredictionColor;
 
             var bg = Console.BackgroundColor;
             if (fg == VTColorUtils.UnknownColor || bg == VTColorUtils.UnknownColor)
@@ -473,7 +485,8 @@ namespace Microsoft.PowerShell
                         {"Type", (o, v) => o.TypeColor = v},
                         {"Number", (o, v) => o.NumberColor = v},
                         {"Member", (o, v) => o.MemberColor = v},
-                        {"Selection", (o, v) => o.SelectionColor = v },
+                        {"Selection", (o, v) => o.SelectionColor = v},
+                        {"Prediction", (o, v) => o.PredictionColor = v},
                     };
 
                 Interlocked.CompareExchange(ref ColorSetters, setters, null);

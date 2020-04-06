@@ -203,6 +203,10 @@ $d = [Microsoft.PowerShell.KeyHandler]::GetGroupingDescription($_.Group)
                 <ScriptBlock>[Microsoft.PowerShell.VTColorUtils]::FormatColor($_.ParameterColor)</ScriptBlock>
               </ListItem>
               <ListItem>
+                <Label>PredictionColor</Label>
+                <ScriptBlock>[Microsoft.PowerShell.VTColorUtils]::FormatColor($_.PredictionColor)</ScriptBlock>
+              </ListItem>
+              <ListItem>
                 <Label>SelectionColor</Label>
                 <ScriptBlock>[Microsoft.PowerShell.VTColorUtils]::FormatColor($_.SelectionColor)</ScriptBlock>
               </ListItem>
