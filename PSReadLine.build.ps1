@@ -143,8 +143,8 @@ Synopsis: Copy all of the files that belong in the module to one place in the la
 #>
 task LayoutModule BuildMainModule, BuildMamlHelp, {
     $extraFiles =
+        'License.txt',
         'PSReadLine/Changes.txt',
-        'PSReadLine/License.txt',
         'PSReadLine/SamplePSReadLineProfile.ps1',
         'PSReadLine/PSReadLine.format.ps1xml',
         'PSReadLine/PSReadLine.psm1'
