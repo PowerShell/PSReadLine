@@ -214,7 +214,7 @@ Please see the [Contribution Guide][] for how to develop and contribute.
 To build `PSReadLine` on Windows, Linux, or macOS,
 you must have the following installed:
 
-* .NET Core SDK 2.1.802 or [the newer version](https://www.microsoft.com/net/download)
+* .NET Core SDK 2.1.802 or [a newer version](https://www.microsoft.com/net/download)
 * The PowerShell modules `InvokeBuild` and `platyPS`
 
 The build script `build.ps1` can be used to bootstrap, build and test the project.
