@@ -39,7 +39,7 @@ Once you sign a CLA, all your existing and future pull requests will have the st
 * If you can't find your issue already,
   [open a new issue](https://github.com/PowerShell/PSReadLine/issues/new/choose),
   making sure to follow the directions as best you can.
-* If the issue is marked as [`Up-for-Grabs`][up-for-grabs],
+* If the issue is marked as [Up-for-Grabs][up-for-grabs],
   the PSReadLine Maintainers are looking for help with the issue.
 
 ## Contributing to Documentation
@@ -63,10 +63,15 @@ Additional references:
 * GitHub's guide on [Contributing to Open Source](https://guides.github.com/activities/contributing-to-open-source/#pull-request)
 * GitHub's guide on [Understanding the GitHub Flow](https://guides.github.com/introduction/flow/)
 
-### Building and testing
+### Bootstrap, Build and Test
 
 To build `PSReadLine` on Windows, Linux, or macOS,
-you must have [.NET Core SDK 2.1.802 or newer](https://www.microsoft.com/net/download) installed.
+you must have the following installed:
+
+* .NET Core SDK 2.1.802 or [the newer version](https://www.microsoft.com/net/download)
+* The PowerShell modules `InvokeBuild` and `platyPS`
+
+The build script `build.ps1` can be used to bootstrap, build and test the project.
 
 * Bootstrap: `./build.ps1 -Bootstrap`
 * Build:
@@ -113,6 +118,7 @@ After build, the produced artifacts can be found at `<your-local-repo-root>/bin/
   See [this][closing-via-message] for more details.
 
 
+[up-for-grabs]: https://github.com/PowerShell/PSReadLine/issues?q=is%3Aopen+is%3Aissue+label%3AUp-for-Grabs
 [good-git-resources]: https://help.github.com/articles/good-resources-for-learning-git-and-github/
 [git-basics]: https://github.com/PowerShell/PowerShell/blob/master/docs/git/basics.md
 [cla]: https://cla.microsoft.com/
