@@ -25,7 +25,6 @@
     <None Include="PSReadLine.format.ps1xml" CopyToOutputDirectory="PreserveNewest" />
     <None Include="SamplePSReadLineProfile.ps1" />
     <None Include="Changes.txt" />
-    <None Include="../License.txt" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\docs\about_PSReadLine.help.txt" Link="docs\about_PSReadLine.help.txt" />
