@@ -139,6 +139,7 @@ jobs:
       } finally {
         Unregister-PSRepository -Name $RepoName -ErrorAction SilentlyContinue
       }
+      Get-ChildItem -Path $(NuGetPackage)
     displayName: 'Create the NuGet package'
 
   - pwsh: |
