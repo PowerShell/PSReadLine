@@ -205,31 +205,42 @@ If you want to change the command line in some unimplmented way in your custom k
     [Microsoft.PowerShell.PSConsoleReadLine]::SetCursorPosition
 ```
 
-## Building
+## Developing and Contributing
 
-### Prerequisites
+Please see the [Contribution Guide][] for how to develop and contribute.
 
-To build `PSReadLine` on Windows, Linux, or macOS, you must have [.NET Core SDK 2.1.802 or newer](https://www.microsoft.com/net/download) installed.
-The build script also depends on [`InvokeBuild`](https://www.powershellgallery.com/packages/InvokeBuild) which can be installed using:
+### Building
 
-```powershell
-  install-module invokebuild -scope currentuser
-```
+To build `PSReadLine` on Windows, Linux, or macOS,
+you must have [.NET Core SDK 2.1.802 or newer](https://www.microsoft.com/net/download) installed.
 
-### Building and running tests
+* Bootstrap: `./build.ps1 -Bootstrap`
+* Build:
+    * Targeting .NET 4.6.1 (Windows only): `./build.ps1 -Configuration Debug -Framework net461`
+    * Targeting .NET Core: `./build.ps1 -Configuration Debug -Framework netcoreapp2.1`
+* Test:
+    * Targeting .NET 4.6.1 (Windows only): `./build.ps1 -Test -Configuration Debug -Framework net461`
+    * Targeting .NET Core: `./build.ps1 -Test -Configuration Debug -Framework netcoreapp2.1`
 
-You can create a new build and run tests by simply running within PowerShell:
+After build, the produced artifacts can be found at `<your-local-repo-root>/bin/Debug`.
 
-```powershell
-  invoke-build
-```
-
-After a successful build, the tests are automatically run.
+[Contribution Guide]: https://github.com/PowerShell/PSReadLine/blob/master/.github/CONTRIBUTING.md
 
 ## Change Log
 
 The change log is available [here](https://github.com/PowerShell/PSReadLine/blob/master/PSReadLine/Changes.txt).
 
-## License
+## Licensing
 
-The license is available [here](https://github.com/PowerShell/PSReadLine/blob/master/PSReadLine/License.txt).
+PSReadLine is licensed under the [2-Clause BSD License][].
+
+[2-Clause BSD License]: https://github.com/PowerShell/PSReadLine/blob/master/PSReadLine/License.txt
+
+## Code of Conduct
+
+This project has adopted the [Microsoft Open Source Code of Conduct][conduct-code].
+For more information see the [Code of Conduct FAQ][conduct-FAQ] or contact [opencode@microsoft.com][conduct-email] with any additional questions or comments.
+
+[conduct-code]: https://opensource.microsoft.com/codeofconduct/
+[conduct-FAQ]: https://opensource.microsoft.com/codeofconduct/faq/
+[conduct-email]: mailto:opencode@microsoft.com
