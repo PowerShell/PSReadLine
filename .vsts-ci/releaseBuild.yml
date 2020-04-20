@@ -42,6 +42,10 @@ jobs:
       disableNugetPack: true
 
   - pwsh: |
+      function Send-VstsCommand ($vstsCommandString) {
+        Write-Host ("sending: " + $vstsCommandString)
+        Write-Host "##$vstsCommandString"
+      }
       $(Build.SourcesDirectory)\build.ps1 -Bootstrap
       $(Build.SourcesDirectory)\build.ps1 -Configuration Release -Framework net461
       # Get module version
@@ -49,16 +53,12 @@ jobs:
       $moduleVersion = $psd1Data.ModuleVersion
       $prerelease = $psd1Data.PrivateData.PSData.Prerelease
       if ($prerelease) { $moduleVersion = "$moduleVersion-$prerelease" }
-      $vstsCommandString = "vso[task.setvariable variable=ModuleVersion]$moduleVersion"
-      Write-Host "sending " + $vstsCommandString
-      Write-Host "##$vstsCommandString"
+      Send-VstsCommand "vso[task.setvariable variable=ModuleVersion]$moduleVersion"
       # Set target folder paths
-      $vstsCommandString = "vso[task.setvariable variable=PSReadLine]$(Build.SourcesDirectory)\bin\Release\PSReadLine"
-      Write-Host "sending " + $vstsCommandString
-      Write-Host "##$vstsCommandString"
-      $vstsCommandString = "vso[task.setvariable variable=Signed]$(Build.SourcesDirectory)\bin\Release\Signed"
-      Write-Host "sending " + $vstsCommandString
-      Write-Host "##$vstsCommandString"
+      New-Item -Path $(Build.SourcesDirectory)\bin\Release\NuGetPackage -ItemType Directory > $null
+      Send-VstsCommand "vso[task.setvariable variable=NuGetPackage]$(Build.SourcesDirectory)\bin\Release\NuGetPackage"
+      Send-VstsCommand "vso[task.setvariable variable=PSReadLine]$(Build.SourcesDirectory)\bin\Release\PSReadLine"
+      Send-VstsCommand "vso[task.setvariable variable=Signed]$(Build.SourcesDirectory)\bin\Release\Signed"
     displayName: Bootstrap & Build
 
   # Sign the module files
@@ -132,9 +132,21 @@ jobs:
     displayName: 'Verify the catalog file'
 
   - pwsh: |
-      Get-ChildItem -Path $(PSReadLine)
+      try {
+        $RepoName = "PSRLLocal"
+        Register-PSRepository -Name $RepoName -SourceLocation $(NuGetPackage) -PublishLocation $(NuGetPackage) -InstallationPolicy Trusted
+        Publish-Module -Repository $RepoName -Path $(PSReadLine)
+      } finally {
+        Unregister-PSRepository -Name $RepoName -ErrorAction SilentlyContinue
+      }
+      Get-ChildItem -Path $(NuGetPackage)
+    displayName: 'Create the NuGet package'
+
+  - pwsh: |
+      Get-ChildItem -Path $(PSReadLine), $(NuGetPackage)
       Write-Host "##vso[artifact.upload containerfolder=PSReadLine;artifactname=PSReadLine]$(PSReadLine)"
-    displayName: 'Upload module artifacts'
+      Write-Host "##vso[artifact.upload containerfolder=NuGetPackage;artifactname=NuGetPackage]$(NuGetPackage)"
+    displayName: 'Upload artifacts'
 
   - template: templates/compliance.yml
     parameters:
