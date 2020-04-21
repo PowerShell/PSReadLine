@@ -397,14 +397,16 @@ Report on GitHub: https://github.com/PowerShell/PSReadLine/issues/new?template=B
 PSReadLine: {0}
 PowerShell: {1}
 OS: {2}
-Last {3} Keys
+BufferWidth: {3}
+BufferHeight: {4}
+Last {5} Keys
 ```
-{4}
+{6}
 ```
 
 ### Exception
 ```
-{5}
+{7}
 ```
 </value>
   </data>

@@ -46,11 +46,9 @@ Please run the script in the PowerShell session where you ran into the issue and
     }
 
     "`nPS version: $($PSVersionTable.PSVersion)"
-    $v = (Get-Module PSReadline).Version
-    $m = Get-Content "$(Split-Path -Parent (Get-Module PSReadLine).Path)\PSReadLine.psd1" | Select-String "Prerelease = '(.*)'"
-    if ($m) {
-        $v = "$v-" + $m.Matches[0].Groups[1].Value
-    }
+    $m = Get-Module PSReadline
+    $v = $m.Version; $pre = $m.PrivateData.PSData.Prerelease
+    if ($pre) { $v = "$v-$pre" }
     "PSReadline version: $v"
     if ($IsLinux -or $IsMacOS) {
         "os: $(uname -a)"

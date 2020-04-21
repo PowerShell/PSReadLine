@@ -419,9 +419,11 @@ namespace Microsoft.PowerShell
                     var psVersion = PSObject.AsPSObject(engineIntrinsics.Host.Version).ToString();
                     var ourVersion = typeof(PSConsoleReadLine).Assembly.GetCustomAttributes<AssemblyInformationalVersionAttribute>().First().InformationalVersion;
                     var osInfo = RuntimeInformation.OSDescription;
+                    var bufferWidth = console.BufferWidth;
+                    var bufferHeight = console.BufferHeight;
 
                     console.WriteLine(string.Format(CultureInfo.CurrentUICulture, PSReadLineResources.OopsAnErrorMessage2,
-                        ourVersion, psVersion, osInfo,
+                        ourVersion, psVersion, osInfo, bufferWidth, bufferHeight,
                         _lastNKeys.Count, sb, e));
                     var lineBeforeCrash = _singleton._buffer.ToString();
                     _singleton.Initialize(runspace, _singleton._engineIntrinsics);
