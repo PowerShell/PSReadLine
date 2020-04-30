@@ -185,13 +185,14 @@ namespace Microsoft.PowerShell
             bool fromDifferentSession = false,
             bool fromInitialRead = false)
         {
-            var addToHistoryOption = GetAddToHistoryOption(result);
+            var cmdLine = result.TrimEnd();
+            var addToHistoryOption = GetAddToHistoryOption(cmdLine);
             if (addToHistoryOption != AddToHistoryOption.SkipAdding)
             {
                 var fromHistoryFile = fromDifferentSession || fromInitialRead;
                 _previousHistoryItem = new HistoryItem
                 {
-                    CommandLine = result,
+                    CommandLine = cmdLine,
                     _edits = edits,
                     _undoEditIndex = undoEditIndex,
                     _saved = fromHistoryFile,
@@ -502,6 +503,8 @@ namespace Microsoft.PowerShell
                     }
                     break;
             }
+
+            using var _ = PredictionOff();
             Render();
         }
 
@@ -675,6 +678,20 @@ namespace Microsoft.PowerShell
                         : HistoryMoveCursor.DontMove;
                 UpdateFromHistory(moveCursor);
             }
+        }
+
+        private string GetHistorySuggestion(string text)
+        {
+            for (int index = _history.Count - 1; index >= 0; index --)
+            {
+                var line = _history[index].CommandLine;
+                if (line.Length > text.Length && !LineIsMultiLine(line) && line.StartsWith(text, Options.HistoryStringComparison))
+                {
+                    return line;
+                }
+            }
+
+            return null;
         }
 
         /// <summary>
@@ -889,6 +906,7 @@ namespace Microsoft.PowerShell
 
         private void InteractiveHistorySearch(int direction)
         {
+            using var _ = PredictionOff();
             SaveCurrentLine();
 
             // Add a status line that will contain the search prompt and string

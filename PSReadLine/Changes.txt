@@ -1,3 +1,26 @@
+### Version 2.1.0-beta1
+
+Pre-release notes:
+
+#### Prototype to support the fish-like auto-suggestion in PSReadLine
+
+Currently:
+
+- The only suggestion source is the PSReadLine history file.
+  The ultimate goal is to call into a prediction API in PowerShell engine that is powered by a prediction plugin.
+- By default, the suggestion text is rendered with the `dark black` color `\x1b[38;5;238m`, which works OK with a black background.
+  You can change it by running `Set-PSReadLineOption -Colors @{ Prediction = '<your-choice-of-color>' }`.
+- VI mode - now the suggestion is disabled when switching to the command mode, and enabled when switching to insert mode.
+- Very limited efforts have been spent on the VI/Emacs experience, so it could be pretty raw for them, and feedback is very welcome.
+
+When using this PSReadLine, please add the following key binding to your profile:
+
+    Set-PSReadLineKeyHandler -Key "Ctrl+f" -Function ForwardWord
+
+- Pressing `RightArrow` at the end of current typing will accept the suggestion text
+- Pressing `Ctrl+f` at the end of current typing will accept a word from the suggestion text
+- Pressing `Ctrl+z` will get you back to where you were before accepting all or part of the suggestion
+
 ### Version 2.0.1
 
 Bug fixes:

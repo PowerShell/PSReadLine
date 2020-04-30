@@ -156,6 +156,7 @@ namespace Microsoft.PowerShell
         private int GenerateRender(string defaultColor)
         {
             var text = ParseInput();
+            var suggestion = GetSuggestion(text);
 
             string color = defaultColor;
             string activeColor = string.Empty;
@@ -297,7 +298,7 @@ namespace Microsoft.PowerShell
                     }
 
                     currentLogicalLine += 1;
-                    if (currentLogicalLine > _consoleBufferLines.Count - 1)
+                    if (currentLogicalLine == _consoleBufferLines.Count)
                     {
                         _consoleBufferLines.Add(new StringBuilder(COMMON_WIDEST_CONSOLE_WIDTH));
                     }
@@ -310,10 +311,7 @@ namespace Microsoft.PowerShell
                     activeColor = string.Empty;
 
                     UpdateColorsIfNecessary(Options._continuationPromptColor);
-                    foreach (char c in Options.ContinuationPrompt)
-                    {
-                        _consoleBufferLines[currentLogicalLine].Append(c);
-                    }
+                    _consoleBufferLines[currentLogicalLine].Append(Options.ContinuationPrompt);
 
                     if (inSelectedRegion)
                     {
@@ -321,25 +319,51 @@ namespace Microsoft.PowerShell
                         _consoleBufferLines[currentLogicalLine].Append(Options.SelectionColor);
                     }
                 }
+                else if (char.IsControl(charToRender))
+                {
+                    MaybeEmphasize(i, color);
+                    _consoleBufferLines[currentLogicalLine].Append('^');
+                    _consoleBufferLines[currentLogicalLine].Append((char)('@' + charToRender));
+                }
                 else
                 {
-                    if (char.IsControl(charToRender))
-                    {
-                        MaybeEmphasize(i, color);
-                        _consoleBufferLines[currentLogicalLine].Append('^');
-                        _consoleBufferLines[currentLogicalLine].Append((char)('@' + charToRender));
-                    }
-                    else
-                    {
-                        MaybeEmphasize(i, color);
-                        _consoleBufferLines[currentLogicalLine].Append(charToRender);
-                    }
+                    MaybeEmphasize(i, color);
+                    _consoleBufferLines[currentLogicalLine].Append(charToRender);
                 }
             }
 
             if (inSelectedRegion)
             {
                 _consoleBufferLines[currentLogicalLine].Append("\x1b[0m");
+            }
+
+            inSelectedRegion = false;
+            if (suggestion != null)
+            {
+                color = _options._predictionColor;
+                UpdateColorsIfNecessary(color);
+
+                foreach (char charToRender in suggestion)
+                {
+                    if (charToRender == '\n')
+                    {
+                        currentLogicalLine += 1;
+                        if (currentLogicalLine == _consoleBufferLines.Count)
+                        {
+                            _consoleBufferLines.Add(new StringBuilder(COMMON_WIDEST_CONSOLE_WIDTH));
+                        }
+                        _consoleBufferLines[currentLogicalLine].Append(Options.ContinuationPrompt);
+                    }
+                    else if (char.IsControl(charToRender))
+                    {
+                        _consoleBufferLines[currentLogicalLine].Append('^');
+                        _consoleBufferLines[currentLogicalLine].Append((char)('@' + charToRender));
+                    }
+                    else
+                    {
+                        _consoleBufferLines[currentLogicalLine].Append(charToRender);
+                    }
+                }
             }
 
             if (_statusLinePrompt != null)
@@ -1189,6 +1213,16 @@ namespace Microsoft.PowerShell
             for (int i = 0; i < _buffer.Length; i++)
             {
                 if (_buffer[i] == '\n')
+                    return true;
+            }
+            return false;
+        }
+
+        private bool LineIsMultiLine(string text)
+        {
+            for (int i = 0; i < text.Length; i++)
+            {
+                if (text[i] == '\n')
                     return true;
             }
             return false;

@@ -31,26 +31,20 @@ namespace Microsoft.PowerShell
             {
                 if (count <= 0)
                     return;
-                if (count > 1)
-                {
-                    var toInsert = new string(keyChar, count);
-                    if (_singleton._visualSelectionCommandCount > 0)
-                    {
-                        _singleton.GetRegion(out var start, out var length);
-                        Replace(start, length, toInsert);
-                    }
-                    else
-                    {
-                        Insert(toInsert);
-                    }
-                    return;
-                }
+            }
+            else
+            {
+                count = 1;
             }
 
             if (_singleton._visualSelectionCommandCount > 0)
             {
                 _singleton.GetRegion(out var start, out var length);
-                Replace(start, length, new string(keyChar, 1));
+                Replace(start, length, new string(keyChar, count));
+            }
+            else if (count > 1)
+            {
+                Insert(new string(keyChar, count));
             }
             else
             {
@@ -85,6 +79,8 @@ namespace Microsoft.PowerShell
         {
             _singleton.ClearStatusMessage(false);
             _singleton._current = _singleton._buffer.Length;
+
+            using var _ = _singleton.PredictionOff();
             _singleton.ForceRender();
 
             _singleton._console.Write("\x1b[91m^C\x1b[0m");
@@ -214,6 +210,8 @@ namespace Microsoft.PowerShell
 
         private bool AcceptLineImpl(bool validate)
         {
+            using var _ = PredictionOff();
+
             ParseInput();
             if (_parseErrors.Any(e => e.IncompleteInput))
             {
@@ -274,6 +272,12 @@ namespace Microsoft.PowerShell
 
             // Let public API set cursor to end of line incase end of line is end of buffer
             SetCursorPosition(_current);
+            if (_suggestionText != null)
+            {
+                _suggestionText = null;
+                _console.BlankRestOfLine();
+            }
+
             _console.Write("\n");
             _inputAccepted = true;
             return true;

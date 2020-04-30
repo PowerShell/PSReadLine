@@ -94,6 +94,57 @@ namespace Microsoft.PowerShell
             return !char.IsWhiteSpace(c) && wordDelimiters.IndexOf(c) < 0;
         }
 
+        private bool InWord(string text, int index, string wordDelimiters)
+        {
+            char c = text[index];
+            return !char.IsWhiteSpace(c) && wordDelimiters.IndexOf(c) < 0;
+        }
+
+        private int FindForwardSuggestionWordPoint(int currentIndex, string wordDelimiters)
+        {
+            System.Diagnostics.Debug.Assert(
+                _suggestionText != null && _suggestionText.Length > _buffer.Length,
+                "Caller needs to make srue the suggestion text exist.");
+
+            if (currentIndex >= _suggestionText.Length)
+            {
+                return _suggestionText.Length;
+            }
+
+            int i = currentIndex;
+            if (!InWord(_suggestionText, i, wordDelimiters))
+            {
+                // Scan to end of current non-word region
+                while (++i < _suggestionText.Length)
+                {
+                    if (InWord(_suggestionText, i, wordDelimiters))
+                    {
+                        break;
+                    }
+                }
+            }
+
+            if (i < _suggestionText.Length)
+            {
+                while (++i < _suggestionText.Length)
+                {
+                    if (!InWord(_suggestionText, i, wordDelimiters))
+                    {
+                        if (_suggestionText[i] == ' ')
+                        {
+                            // If the end of this suggestion word is a space, then we consider the word
+                            // is complete and include the space in the accepted suggestion word.
+                            i++;
+                        }
+
+                        break;
+                    }
+                }
+            }
+
+            return i;
+        }
+
         /// <summary>
         /// Find the end of the current/next word as defined by wordDelimiters and whitespace.
         /// </summary>

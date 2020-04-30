@@ -135,6 +135,10 @@ namespace Microsoft.PowerShell
             {
                 Options.PromptText = options.PromptText;
             }
+            if (options._predictionStyle.HasValue)
+            {
+                Options.PredictionStyle = options.PredictionStyle;
+            }
             if (options.Colors != null)
             {
                 IDictionaryEnumerator e = options.Colors.GetEnumerator();

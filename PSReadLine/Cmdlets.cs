@@ -63,6 +63,12 @@ namespace Microsoft.PowerShell
         MemoryAndFile
     }
 
+    public enum PredictionStyle
+    {
+        None,
+        Concise,
+    }
+
     public class PSConsoleReadLineOptions
     {
         public const ConsoleColor DefaultCommentColor   = ConsoleColor.DarkGreen;
@@ -77,6 +83,10 @@ namespace Microsoft.PowerShell
         public const ConsoleColor DefaultMemberColor    = ConsoleColor.Gray;
         public const ConsoleColor DefaultEmphasisColor  = ConsoleColor.Cyan;
         public const ConsoleColor DefaultErrorColor     = ConsoleColor.Red;
+
+        // Use dark black by default for the suggestion text.
+        // Find the most suitable color using https://stackoverflow.com/a/33206814
+        public const string DefaultPredictionColor = "\x1b[38;5;238m";
 
         public static EditMode DefaultEditMode = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
             ? EditMode.Windows
@@ -128,6 +138,8 @@ namespace Microsoft.PowerShell
 
         public const HistorySaveStyle DefaultHistorySaveStyle = HistorySaveStyle.SaveIncrementally;
 
+        public const PredictionStyle DefaultPredictionStyle = PredictionStyle.Concise;
+
         /// <summary>
         /// How long in milliseconds should we wait before concluding
         /// the input is not an escape sequence?
@@ -155,6 +167,7 @@ namespace Microsoft.PowerShell
             HistorySearchCaseSensitive = DefaultHistorySearchCaseSensitive;
             HistorySaveStyle = DefaultHistorySaveStyle;
             AnsiEscapeTimeout = DefaultAnsiEscapeTimeout;
+            PredictionStyle = DefaultPredictionStyle;
 
             var historyFileName = hostName + "_history.txt";
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -310,6 +323,11 @@ namespace Microsoft.PowerShell
         public HistorySaveStyle HistorySaveStyle { get; set; }
 
         /// <summary>
+        /// How the predictive suggestion is rendered.
+        /// </summary>
+        public PredictionStyle PredictionStyle { get; set; }
+
+        /// <summary>
         /// How long in milliseconds should we wait before concluding
         /// the input is not an escape sequence?
         /// </summary>
@@ -407,6 +425,12 @@ namespace Microsoft.PowerShell
             set => _selectionColor = VTColorUtils.AsEscapeSequence(value);
         }
 
+        public object PredictionColor
+        {
+            get => _predictionColor;
+            set => _predictionColor = VTColorUtils.AsEscapeSequence(value);
+        }
+
         internal string _defaultTokenColor;
         internal string _commentColor;
         internal string _keywordColor;
@@ -421,6 +445,7 @@ namespace Microsoft.PowerShell
         internal string _emphasisColor;
         internal string _errorColor;
         internal string _selectionColor;
+        internal string _predictionColor;
 
         internal void ResetColors()
         {
@@ -438,6 +463,7 @@ namespace Microsoft.PowerShell
             MemberColor       = DefaultNumberColor;
             EmphasisColor     = DefaultEmphasisColor;
             ErrorColor        = DefaultErrorColor;
+            PredictionColor   = DefaultPredictionColor;
 
             var bg = Console.BackgroundColor;
             if (fg == VTColorUtils.UnknownColor || bg == VTColorUtils.UnknownColor)
@@ -473,7 +499,8 @@ namespace Microsoft.PowerShell
                         {"Type", (o, v) => o.TypeColor = v},
                         {"Number", (o, v) => o.NumberColor = v},
                         {"Member", (o, v) => o.MemberColor = v},
-                        {"Selection", (o, v) => o.SelectionColor = v },
+                        {"Selection", (o, v) => o.SelectionColor = v},
+                        {"Prediction", (o, v) => o.PredictionColor = v},
                     };
 
                 Interlocked.CompareExchange(ref ColorSetters, setters, null);
@@ -679,6 +706,14 @@ namespace Microsoft.PowerShell
 
         [Parameter]
         public ScriptBlock ViModeChangeHandler { get; set; }
+
+        [Parameter]
+        public PredictionStyle PredictionStyle
+        {
+            get => _predictionStyle.GetValueOrDefault();
+            set => _predictionStyle = value;
+        }
+        internal PredictionStyle? _predictionStyle;
 
         [Parameter]
         public Hashtable Colors { get; set; }
