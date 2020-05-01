@@ -185,14 +185,13 @@ namespace Microsoft.PowerShell
             bool fromDifferentSession = false,
             bool fromInitialRead = false)
         {
-            var cmdLine = result.TrimEnd();
-            var addToHistoryOption = GetAddToHistoryOption(cmdLine);
+            var addToHistoryOption = GetAddToHistoryOption(result);
             if (addToHistoryOption != AddToHistoryOption.SkipAdding)
             {
                 var fromHistoryFile = fromDifferentSession || fromInitialRead;
                 _previousHistoryItem = new HistoryItem
                 {
-                    CommandLine = cmdLine,
+                    CommandLine = result,
                     _edits = edits,
                     _undoEditIndex = undoEditIndex,
                     _saved = fromHistoryFile,
@@ -684,8 +683,9 @@ namespace Microsoft.PowerShell
         {
             for (int index = _history.Count - 1; index >= 0; index --)
             {
-                var line = _history[index].CommandLine;
-                if (line.Length > text.Length && !LineIsMultiLine(line) && line.StartsWith(text, Options.HistoryStringComparison))
+                var line = _history[index].CommandLine.TrimEnd();
+                if (line.Length > text.Length && !LineIsMultiLine(line) &&
+                    line.StartsWith(text, Options.HistoryStringComparison))
                 {
                     return line;
                 }

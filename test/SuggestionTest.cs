@@ -106,5 +106,36 @@ namespace Test
                         TokenClassification.Command, "ech"))
             ));
         }
+
+        [SkippableFact]
+        public void HistoryEditsCanUndoProperly()
+        {
+            TestSetup(KeyMode.Cmd,
+                      new KeyHandler("Ctrl+f", PSConsoleReadLine.ForwardWord));
+            SetHistory("git checkout -b branch origin/bbbb");
+
+            // Accept partial suggestion.
+            Test("git checkout ", Keys(
+                "git ch", CheckThat(() => AssertScreenIs(1,
+                    TokenClassification.Command, "git",
+                    TokenClassification.None, " ch",
+                    TokenClassification.Prediction, "eckout -b branch origin/bbbb")),
+                _.Ctrl_f, CheckThat(() => AssertScreenIs(1,
+                    TokenClassification.Command, "git",
+                    TokenClassification.None, " checkout ",
+                    TokenClassification.Prediction, "-b branch origin/bbbb")),
+                _.Enter, CheckThat(() => AssertScreenIs(1,
+                    TokenClassification.Command, "git",
+                    TokenClassification.None, " checkout "))
+            ));
+
+            // Get the last command line from history, and revert the line.
+            // 'RevertLine' will undo all edits of the history command.
+            Test("", Keys(
+                _.UpArrow, CheckThat(() => AssertScreenIs(1,
+                    TokenClassification.Command, "git",
+                    TokenClassification.None, " checkout ")),
+                _.Escape));
+        }
     }
 }
