@@ -91,12 +91,11 @@ namespace Microsoft.PowerShell
         private bool InWord(int index, string wordDelimiters)
         {
             char c = _buffer[index];
-            return !char.IsWhiteSpace(c) && wordDelimiters.IndexOf(c) < 0;
+            return InWord(c, wordDelimiters);
         }
 
-        private bool InWord(string text, int index, string wordDelimiters)
+        private bool InWord(char c, string wordDelimiters)
         {
-            char c = text[index];
             return !char.IsWhiteSpace(c) && wordDelimiters.IndexOf(c) < 0;
         }
 
@@ -112,12 +111,12 @@ namespace Microsoft.PowerShell
             }
 
             int i = currentIndex;
-            if (!InWord(_suggestionText, i, wordDelimiters))
+            if (!InWord(_suggestionText[i], wordDelimiters))
             {
                 // Scan to end of current non-word region
                 while (++i < _suggestionText.Length)
                 {
-                    if (InWord(_suggestionText, i, wordDelimiters))
+                    if (InWord(_suggestionText[i], wordDelimiters))
                     {
                         break;
                     }
@@ -128,7 +127,7 @@ namespace Microsoft.PowerShell
             {
                 while (++i < _suggestionText.Length)
                 {
-                    if (!InWord(_suggestionText, i, wordDelimiters))
+                    if (!InWord(_suggestionText[i], wordDelimiters))
                     {
                         if (_suggestionText[i] == ' ')
                         {
