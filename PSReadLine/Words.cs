@@ -104,7 +104,7 @@ namespace Microsoft.PowerShell
         {
             System.Diagnostics.Debug.Assert(
                 _suggestionText != null && _suggestionText.Length > _buffer.Length,
-                "Caller needs to make srue the suggestion text exist.");
+                "Caller needs to make sure the suggestion text exist.");
 
             if (currentIndex >= _suggestionText.Length)
             {

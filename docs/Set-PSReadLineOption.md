@@ -615,15 +615,15 @@ Accept pipeline input: false
 Accept wildcard characters: false
 ```
 
-### -PredictionStyle
+### -PredictionSource
 
-Specifies how PSReadLine should render the predictive suggestions.
+Specifies the source for PSReadLine to get predictive suggestions.
 
 Valid values are:
 
--- None: disable the predictive suggestion feature
+-- None: disable the predictive suggestion feature.
 
--- Concise: render the predictive suggestion in a concise view
+-- History: get predictive suggestions from history only.
 
 ```yaml
 Type: PredictionStyle
@@ -632,7 +632,27 @@ Aliases:
 
 Required: False
 Position: Named
-Default value: Concise
+Default value: None
+Accept pipeline input: false
+Accept wildcard characters: false
+```
+
+### -PredictionViewStyle
+
+Specifies how PSReadLine should render the predictive suggestions.
+
+Valid values are:
+
+-- Default: Render the suggestion in an inline manner.
+
+```yaml
+Type: PredictionStyle
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value: Default
 Accept pipeline input: false
 Accept wildcard characters: false
 ```

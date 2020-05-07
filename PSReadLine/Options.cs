@@ -135,9 +135,13 @@ namespace Microsoft.PowerShell
             {
                 Options.PromptText = options.PromptText;
             }
-            if (options._predictionStyle.HasValue)
+            if (options._predictionSource.HasValue)
             {
-                Options.PredictionStyle = options.PredictionStyle;
+                Options.PredictionSource = options.PredictionSource;
+            }
+            if (options._predictionViewStyle.HasValue)
+            {
+                Options.PredictionViewStyle = options.PredictionViewStyle;
             }
             if (options.Colors != null)
             {

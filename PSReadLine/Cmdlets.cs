@@ -63,10 +63,15 @@ namespace Microsoft.PowerShell
         MemoryAndFile
     }
 
-    public enum PredictionStyle
+    public enum PredictionSource
     {
         None,
-        Concise,
+        History,
+    }
+
+    public enum PredictionViewStyle
+    {
+        Default,
     }
 
     public class PSConsoleReadLineOptions
@@ -138,7 +143,12 @@ namespace Microsoft.PowerShell
 
         public const HistorySaveStyle DefaultHistorySaveStyle = HistorySaveStyle.SaveIncrementally;
 
-        public const PredictionStyle DefaultPredictionStyle = PredictionStyle.Concise;
+        /// <summary>
+        /// The predictive suggestion feature is disabled by default.
+        /// </summary>
+        public const PredictionSource DefaultPredictionSource = PredictionSource.None;
+
+        public const PredictionViewStyle DefaultPredictionViewStyle = PredictionViewStyle.Default;
 
         /// <summary>
         /// How long in milliseconds should we wait before concluding
@@ -167,7 +177,8 @@ namespace Microsoft.PowerShell
             HistorySearchCaseSensitive = DefaultHistorySearchCaseSensitive;
             HistorySaveStyle = DefaultHistorySaveStyle;
             AnsiEscapeTimeout = DefaultAnsiEscapeTimeout;
-            PredictionStyle = DefaultPredictionStyle;
+            PredictionSource = DefaultPredictionSource;
+            PredictionViewStyle = DefaultPredictionViewStyle;
 
             var historyFileName = hostName + "_history.txt";
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -323,9 +334,14 @@ namespace Microsoft.PowerShell
         public HistorySaveStyle HistorySaveStyle { get; set; }
 
         /// <summary>
+        /// Sets the source to get predictive suggestions.
+        /// </summary>
+        public PredictionSource PredictionSource { get; set; }
+
+        /// <summary>
         /// How the predictive suggestion is rendered.
         /// </summary>
-        public PredictionStyle PredictionStyle { get; set; }
+        public PredictionViewStyle PredictionViewStyle { get; set; }
 
         /// <summary>
         /// How long in milliseconds should we wait before concluding
@@ -708,12 +724,20 @@ namespace Microsoft.PowerShell
         public ScriptBlock ViModeChangeHandler { get; set; }
 
         [Parameter]
-        public PredictionStyle PredictionStyle
+        public PredictionSource PredictionSource
         {
-            get => _predictionStyle.GetValueOrDefault();
-            set => _predictionStyle = value;
+            get => _predictionSource.GetValueOrDefault();
+            set => _predictionSource = value;
         }
-        internal PredictionStyle? _predictionStyle;
+        internal PredictionSource? _predictionSource;
+
+        [Parameter]
+        public PredictionViewStyle PredictionViewStyle
+        {
+            get => _predictionViewStyle.GetValueOrDefault();
+            set => _predictionViewStyle = value;
+        }
+        internal PredictionViewStyle? _predictionViewStyle;
 
         [Parameter]
         public Hashtable Colors { get; set; }

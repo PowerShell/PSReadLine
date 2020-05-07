@@ -679,13 +679,18 @@ namespace Microsoft.PowerShell
             }
         }
 
+        /// <summary>
+        /// Currently we only select single-line history that is prefixed with the user input,
+        /// but it can be improved to not strictly use the user input as a prefix, but a hint
+        /// to extract a partial pipeline or statement from a single-line or multiple-line
+        /// history entry.
+        /// </summary>
         private string GetHistorySuggestion(string text)
         {
             for (int index = _history.Count - 1; index >= 0; index --)
             {
                 var line = _history[index].CommandLine.TrimEnd();
-                if (line.Length > text.Length && !LineIsMultiLine(line) &&
-                    line.StartsWith(text, Options.HistoryStringComparison))
+                if (line.Length > text.Length && !LineIsMultiLine(line) && line.StartsWith(text, Options.HistoryStringComparison))
                 {
                     return line;
                 }

@@ -741,6 +741,12 @@ If there are other parse errors, unresolved commands, or incorrect parameters, s
   <data name="InsertLineBelowDescription" xml:space="preserve">
     <value>Inserts a new empty line below the current line without attempting to execute the input</value>
   </data>
+  <data name="AcceptSuggestionDescription" xml:space="preserve">
+    <value>Accept the current inline or selected suggestion</value>
+  </data>
+  <data name="AcceptNextSuggestionWordDescription" xml:space="preserve">
+    <value>Accept the next word of the inline or selected suggestion</value>
+  </data>
   <data name="HistoryFileErrorMessage" xml:space="preserve">
     <value>Error reading or writing history file '{0}': {1}</value>
   </data>

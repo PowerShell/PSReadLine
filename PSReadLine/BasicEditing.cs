@@ -274,7 +274,7 @@ namespace Microsoft.PowerShell
             SetCursorPosition(_current);
             if (_suggestionText != null)
             {
-                _suggestionText = null;
+                ResetSuggestion();
                 _console.BlankRestOfLine();
             }
 

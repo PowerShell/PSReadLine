@@ -478,7 +478,7 @@ namespace Test
                 ShowToolTips                      = PSConsoleReadLineOptions.DefaultShowToolTips,
                 WordDelimiters                    = PSConsoleReadLineOptions.DefaultWordDelimiters,
                 PromptText                        = new [] {""},
-                PredictionStyle                   = PredictionStyle.Concise,
+                PredictionSource                  = PredictionSource.History,
                 Colors = new Hashtable {
                     { "ContinuationPrompt",       MakeCombinedColor(_console.ForegroundColor, _console.BackgroundColor) },
                     { "Emphasis",                 MakeCombinedColor(PSConsoleReadLineOptions.DefaultEmphasisColor, _console.BackgroundColor) },

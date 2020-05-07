@@ -24,13 +24,13 @@ namespace Test
             // Different matches as more input coming
             SetHistory("echo -bar", "eca -zoo");
             Test("ech", Keys(
-                'e', CheckThat(() => AssertScreenIs(1, 
+                'e', CheckThat(() => AssertScreenIs(1,
                         TokenClassification.Command, 'e',
                         TokenClassification.Prediction, "ca -zoo")),
-                'c', CheckThat(() => AssertScreenIs(1, 
+                'c', CheckThat(() => AssertScreenIs(1,
                         TokenClassification.Command, "ec",
                         TokenClassification.Prediction, "a -zoo")),
-                'h', CheckThat(() => AssertScreenIs(1, 
+                'h', CheckThat(() => AssertScreenIs(1,
                         TokenClassification.Command, "ech",
                         TokenClassification.Prediction, "o -bar")),
                 // Once accepted, the suggestion text should be blanked out.
@@ -41,29 +41,145 @@ namespace Test
             // Accept all or partial suggestion text with 'ForwardChar' and 'ForwardWord'
             SetHistory("echo -bar", "eca -zoo");
             Test("eca ", Keys(
-                'e', CheckThat(() => AssertScreenIs(1, 
+                'e', CheckThat(() => AssertScreenIs(1,
                         TokenClassification.Command, 'e',
                         TokenClassification.Prediction, "ca -zoo")),
-                _.RightArrow, CheckThat(() => AssertScreenIs(1, 
+                _.RightArrow, CheckThat(() => AssertScreenIs(1,
                         TokenClassification.Command, "eca",
                         TokenClassification.None, ' ',
                         TokenClassification.Parameter, "-zoo")),
-                _.Ctrl_z, CheckThat(() => AssertScreenIs(1, 
+                _.Ctrl_z, CheckThat(() => AssertScreenIs(1,
                         TokenClassification.Command, 'e',
                         TokenClassification.Prediction, "ca -zoo")),
-                _.Ctrl_f, CheckThat(() => AssertScreenIs(1, 
+                _.Ctrl_f, CheckThat(() => AssertScreenIs(1,
                         TokenClassification.Command, "eca",
                         TokenClassification.None, ' ',
                         TokenClassification.Prediction, "-zoo")),
                 CheckThat(() => AssertCursorLeftIs(4)),
-                _.Ctrl_f, CheckThat(() => AssertScreenIs(1, 
+                _.Ctrl_f, CheckThat(() => AssertScreenIs(1,
                         TokenClassification.Command, "eca",
                         TokenClassification.None, ' ',
                         TokenClassification.Parameter, "-zoo")),
-                _.Ctrl_z, CheckThat(() => AssertScreenIs(1, 
+                _.Ctrl_z, CheckThat(() => AssertScreenIs(1,
                         TokenClassification.Command, "eca",
                         TokenClassification.None, ' ',
                         TokenClassification.Prediction, "-zoo"))
+            ));
+        }
+
+        [SkippableFact]
+        public void CustomKeyBindingsToAcceptSuggestion()
+        {
+            TestSetup(KeyMode.Cmd,
+                      new KeyHandler("Alt+g", PSConsoleReadLine.AcceptSuggestion),
+                      new KeyHandler("Alt+f", PSConsoleReadLine.AcceptNextSuggestionWord));
+
+            SetHistory("echo -bar", "eca -zoo");
+            Test("eca ", Keys(
+                "ec", CheckThat(() => AssertScreenIs(1,
+                        TokenClassification.Command, "ec",
+                        TokenClassification.Prediction, "a -zoo")),
+                CheckThat(() => AssertCursorLeftIs(2)),
+                _.Alt_g, CheckThat(() => AssertScreenIs(1,
+                        TokenClassification.Command, "eca",
+                        TokenClassification.None, ' ',
+                        TokenClassification.Parameter, "-zoo")),
+                CheckThat(() => AssertCursorLeftIs(8)),
+                _.Ctrl_z, CheckThat(() => AssertScreenIs(1,
+                        TokenClassification.Command, "ec",
+                        TokenClassification.Prediction, "a -zoo")),
+                CheckThat(() => AssertCursorLeftIs(2)),
+                _.Alt_f, CheckThat(() => AssertScreenIs(1,
+                        TokenClassification.Command, "eca",
+                        TokenClassification.None, ' ',
+                        TokenClassification.Prediction, "-zoo")),
+                CheckThat(() => AssertCursorLeftIs(4)),
+                _.Alt_f, CheckThat(() => AssertScreenIs(1,
+                        TokenClassification.Command, "eca",
+                        TokenClassification.None, ' ',
+                        TokenClassification.Parameter, "-zoo")),
+                CheckThat(() => AssertCursorLeftIs(8)),
+                _.Ctrl_z, CheckThat(() => AssertScreenIs(1,
+                        TokenClassification.Command, "eca",
+                        TokenClassification.None, ' ',
+                        TokenClassification.Prediction, "-zoo")),
+                CheckThat(() => AssertCursorLeftIs(4)),
+
+                // Revert back to 'ec'.
+                _.Ctrl_z, CheckThat(() => AssertCursorLeftIs(2)),
+                // Move cursor to column 0.
+                _.LeftArrow, _.LeftArrow,
+                CheckThat(() => AssertCursorLeftIs(0)),
+                _.Alt_g, CheckThat(() => AssertScreenIs(1,
+                        TokenClassification.Command, "eca",
+                        TokenClassification.None, ' ',
+                        TokenClassification.Parameter, "-zoo")),
+                CheckThat(() => AssertCursorLeftIs(8)),
+                _.Ctrl_z, CheckThat(() => AssertScreenIs(1,
+                        TokenClassification.Command, "ec",
+                        TokenClassification.Prediction, "a -zoo")),
+                CheckThat(() => AssertCursorLeftIs(2)),
+                // Move cursor to column 0 again.
+                _.LeftArrow, _.LeftArrow,
+                CheckThat(() => AssertCursorLeftIs(0)),
+                _.Alt_f, CheckThat(() => AssertScreenIs(1,
+                        TokenClassification.Command, "eca",
+                        TokenClassification.None, ' ',
+                        TokenClassification.Prediction, "-zoo")),
+                CheckThat(() => AssertCursorLeftIs(4))
+            ));
+        }
+
+        [SkippableFact]
+        public void AcceptSuggestionWithSelection()
+        {
+            TestSetup(KeyMode.Cmd,
+                      new KeyHandler("Ctrl+f", PSConsoleReadLine.ForwardWord));
+
+            SetHistory("git diff --cached", "git diff");
+            Test("git diff", Keys(
+                "git", CheckThat(() => AssertScreenIs(1,
+                        TokenClassification.Command, "git",
+                        TokenClassification.Prediction, " diff")),
+                _.RightArrow, CheckThat(() => AssertScreenIs(1,
+                        TokenClassification.Command, "git",
+                        TokenClassification.None, " diff")),
+                _.Ctrl_z, CheckThat(() => AssertCursorLeftIs(3)),
+                _.Ctrl_f, CheckThat(() => AssertScreenIs(1,
+                        TokenClassification.Command, "git",
+                        TokenClassification.None, " diff",
+                        TokenClassification.Prediction, " --cached")),
+
+                // Perform visual selection and then accept suggestion.
+                _.Ctrl_z, CheckThat(() => AssertScreenIs(1,
+                        TokenClassification.Command, "git",
+                        TokenClassification.Prediction, " diff")),
+                _.LeftArrow, _.Shift_RightArrow,
+                CheckThat(() =>
+                {
+                    PSConsoleReadLine.GetSelectionState(out var start, out var length);
+                    Assert.Equal(2, start);
+                    Assert.Equal(1, length);
+                }),
+                _.RightArrow, CheckThat(() => AssertScreenIs(1,
+                        TokenClassification.Command, "git",
+                        TokenClassification.None, " diff")),
+
+                // Perform visual selection and then accept next suggestion word.
+                _.Ctrl_z, CheckThat(() => AssertScreenIs(1,
+                        TokenClassification.Command, "git",
+                        TokenClassification.Prediction, " diff")),
+                _.LeftArrow, _.Shift_RightArrow,
+                CheckThat(() =>
+                {
+                    PSConsoleReadLine.GetSelectionState(out var start, out var length);
+                    Assert.Equal(2, start);
+                    Assert.Equal(1, length);
+                }),
+                _.Ctrl_f, CheckThat(() => AssertScreenIs(1,
+                        TokenClassification.Command, "git",
+                        TokenClassification.None, " diff",
+                        TokenClassification.Prediction, " --cached"))
             ));
         }
 
@@ -72,7 +188,7 @@ namespace Test
         {
             TestSetup(KeyMode.Cmd);
             SetHistory("echo -bar", "eca -zoo");
-            PSConsoleReadLine.SetOptions(new SetPSReadLineOption {PredictionStyle = PredictionStyle.None});
+            PSConsoleReadLine.SetOptions(new SetPSReadLineOption {PredictionSource = PredictionSource.None});
 
             Test("ech", Keys(
                 'e', CheckThat(() => AssertScreenIs(1, TokenClassification.Command, 'e')),
