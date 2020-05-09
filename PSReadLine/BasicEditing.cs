@@ -31,20 +31,26 @@ namespace Microsoft.PowerShell
             {
                 if (count <= 0)
                     return;
-            }
-            else
-            {
-                count = 1;
+                if (count > 1)
+                {
+                    var toInsert = new string(keyChar, count);
+                    if (_singleton._visualSelectionCommandCount > 0)
+                    {
+                        _singleton.GetRegion(out var start, out var length);
+                        Replace(start, length, toInsert);
+                    }
+                    else
+                    {
+                        Insert(toInsert);
+                    }
+                    return;
+                }
             }
 
             if (_singleton._visualSelectionCommandCount > 0)
             {
                 _singleton.GetRegion(out var start, out var length);
-                Replace(start, length, new string(keyChar, count));
-            }
-            else if (count > 1)
-            {
-                Insert(new string(keyChar, count));
+                Replace(start, length, new string(keyChar, 1));
             }
             else
             {
