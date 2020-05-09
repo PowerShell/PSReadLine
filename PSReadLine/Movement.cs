@@ -63,7 +63,7 @@ namespace Microsoft.PowerShell
             {
                 if (_singleton._current == _singleton._buffer.Length && numericArg > 0)
                 {
-                    AcceptSuggestion();
+                    AcceptSuggestion(key, arg);
                 }
                 else
                 {

@@ -789,4 +789,7 @@ Or not saving history with:
   <data name="InvalidColorProperty" xml:space="preserve">
     <value>'{0}' is not a valid color property</value>
   </data>
+  <data name="PredictiveSuggestionNotSupported" xml:space="preserve">
+    <value>The predictive suggestion feature cannot be enabled because the console output doesn't support virtual terminal processing or it's redirected.</value>
+  </data>
 </root>

@@ -69,11 +69,6 @@ namespace Microsoft.PowerShell
         History,
     }
 
-    public enum PredictionViewStyle
-    {
-        Default,
-    }
-
     public class PSConsoleReadLineOptions
     {
         public const ConsoleColor DefaultCommentColor   = ConsoleColor.DarkGreen;
@@ -148,8 +143,6 @@ namespace Microsoft.PowerShell
         /// </summary>
         public const PredictionSource DefaultPredictionSource = PredictionSource.None;
 
-        public const PredictionViewStyle DefaultPredictionViewStyle = PredictionViewStyle.Default;
-
         /// <summary>
         /// How long in milliseconds should we wait before concluding
         /// the input is not an escape sequence?
@@ -178,7 +171,6 @@ namespace Microsoft.PowerShell
             HistorySaveStyle = DefaultHistorySaveStyle;
             AnsiEscapeTimeout = DefaultAnsiEscapeTimeout;
             PredictionSource = DefaultPredictionSource;
-            PredictionViewStyle = DefaultPredictionViewStyle;
 
             var historyFileName = hostName + "_history.txt";
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -337,11 +329,6 @@ namespace Microsoft.PowerShell
         /// Sets the source to get predictive suggestions.
         /// </summary>
         public PredictionSource PredictionSource { get; set; }
-
-        /// <summary>
-        /// How the predictive suggestion is rendered.
-        /// </summary>
-        public PredictionViewStyle PredictionViewStyle { get; set; }
 
         /// <summary>
         /// How long in milliseconds should we wait before concluding
@@ -730,14 +717,6 @@ namespace Microsoft.PowerShell
             set => _predictionSource = value;
         }
         internal PredictionSource? _predictionSource;
-
-        [Parameter]
-        public PredictionViewStyle PredictionViewStyle
-        {
-            get => _predictionViewStyle.GetValueOrDefault();
-            set => _predictionViewStyle = value;
-        }
-        internal PredictionViewStyle? _predictionViewStyle;
 
         [Parameter]
         public Hashtable Colors { get; set; }

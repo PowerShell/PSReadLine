@@ -5,7 +5,7 @@ namespace Microsoft.PowerShell
     public partial class PSConsoleReadLine
     {
         private string _suggestionText;
-        private string _userInputText;
+        private string _lastUserInput;
         private bool _showSuggestion = true;
 
         private bool IsPredictionOn => _options.PredictionSource != PredictionSource.None && _showSuggestion;
@@ -27,7 +27,7 @@ namespace Microsoft.PowerShell
         private void ResetSuggestion()
         {
             _suggestionText = null;
-            _userInputText = null;
+            _lastUserInput = null;
         }
 
         private string GetSuggestion(string text)
@@ -41,9 +41,9 @@ namespace Microsoft.PowerShell
             try
             {
                 if (_suggestionText == null || _suggestionText.Length <= text.Length ||
-                    text.Length < _userInputText.Length || !_suggestionText.StartsWith(text, _options.HistoryStringComparison))
+                    text.Length < _lastUserInput.Length || !_suggestionText.StartsWith(text, _options.HistoryStringComparison))
                 {
-                    _userInputText = text;
+                    _lastUserInput = text;
                     _suggestionText = GetHistorySuggestion(text);
                 }
             }
@@ -59,19 +59,6 @@ namespace Microsoft.PowerShell
         /// Accept the suggestion text if there is one.
         /// </summary>
         public static void AcceptSuggestion(ConsoleKeyInfo? key = null, object arg = null)
-        {
-            if (!TryGetArgAsInt(arg, out var numericArg, 1))
-            {
-                return;
-            }
-
-            if (numericArg > 0)
-            {
-                AcceptSuggestion();
-            }
-        }
-
-        private static void AcceptSuggestion()
         {
             if (_singleton._suggestionText != null)
             {

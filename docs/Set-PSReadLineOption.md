@@ -36,7 +36,7 @@ Set-PSReadLineOption
  [-AnsiEscapeTimeout <int>]
  [-ViModeIndicator <ViModeStyle>]
  [-ViModeChangeHandler <ScriptBlock>]
- [-PredictionStyle <PredictionStyle>]
+ [-PredictionSource <PredictionSource>]
 ```
 
 ## DESCRIPTION
@@ -626,33 +626,13 @@ Valid values are:
 -- History: get predictive suggestions from history only.
 
 ```yaml
-Type: PredictionStyle
+Type: PredictionSource
 Parameter Sets: (All)
 Aliases:
 
 Required: False
 Position: Named
 Default value: None
-Accept pipeline input: false
-Accept wildcard characters: false
-```
-
-### -PredictionViewStyle
-
-Specifies how PSReadLine should render the predictive suggestions.
-
-Valid values are:
-
--- Default: Render the suggestion in an inline manner.
-
-```yaml
-Type: PredictionStyle
-Parameter Sets: (All)
-Aliases:
-
-Required: False
-Position: Named
-Default value: Default
 Accept pipeline input: false
 Accept wildcard characters: false
 ```

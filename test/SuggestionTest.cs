@@ -19,7 +19,8 @@ namespace Test
                 'a', CheckThat(() => AssertScreenIs(1, TokenClassification.Command, 'a')),
                 _.Ctrl_f, CheckThat(() => AssertScreenIs(1, TokenClassification.Command, 'a')),
                 _.RightArrow, CheckThat(() => AssertScreenIs(1, TokenClassification.Command, 'a')),
-                CheckThat(() => AssertCursorLeftIs(1))));
+                CheckThat(() => AssertCursorLeftIs(1))
+            ));
 
             // Different matches as more input coming
             SetHistory("echo -bar", "eca -zoo");
@@ -127,6 +128,41 @@ namespace Test
                         TokenClassification.None, ' ',
                         TokenClassification.Prediction, "-zoo")),
                 CheckThat(() => AssertCursorLeftIs(4))
+            ));
+        }
+
+        [SkippableFact]
+        public void AcceptNextSuggestionWordCanAcceptMoreThanOneWords()
+        {
+            TestSetup(KeyMode.Cmd,
+                      new KeyHandler("Ctrl+f", PSConsoleReadLine.ForwardWord),
+                      new KeyHandler("Alt+f", PSConsoleReadLine.AcceptNextSuggestionWord));
+
+            SetHistory("abc def ghi jkl");
+            Test("abc def ghi jkl", Keys(
+                'a', CheckThat(() => AssertScreenIs(1,
+                        TokenClassification.Command, 'a',
+                        TokenClassification.Prediction, "bc def ghi jkl")),
+                _.Alt_3, _.Ctrl_f,
+                CheckThat(() => AssertScreenIs(1,
+                        TokenClassification.Command, "abc",
+                        TokenClassification.None, " def ghi ",
+                        TokenClassification.Prediction, "jkl")),
+                _.Ctrl_z, CheckThat(() => AssertScreenIs(1,
+                        TokenClassification.Command, 'a',
+                        TokenClassification.Prediction, "bc def ghi jkl")),
+                _.Alt_3, _.Alt_f,
+                CheckThat(() => AssertScreenIs(1,
+                        TokenClassification.Command, "abc",
+                        TokenClassification.None, " def ghi ",
+                        TokenClassification.Prediction, "jkl")),
+                _.Ctrl_z, CheckThat(() => AssertScreenIs(1,
+                        TokenClassification.Command, 'a',
+                        TokenClassification.Prediction, "bc def ghi jkl")),
+                _.Alt_8, _.Alt_f,
+                CheckThat(() => AssertScreenIs(1,
+                        TokenClassification.Command, "abc",
+                        TokenClassification.None, " def ghi jkl"))
             ));
         }
 

@@ -1200,16 +1200,6 @@ namespace Microsoft.PowerShell
             return false;
         }
 
-        private bool LineIsMultiLine(string text)
-        {
-            for (int i = 0; i < text.Length; i++)
-            {
-                if (text[i] == '\n')
-                    return true;
-            }
-            return false;
-        }
-
         private int GetStatusLineCount()
         {
             if (_statusLinePrompt == null)

@@ -690,9 +690,13 @@ namespace Microsoft.PowerShell
             for (int index = _history.Count - 1; index >= 0; index --)
             {
                 var line = _history[index].CommandLine.TrimEnd();
-                if (line.Length > text.Length && !LineIsMultiLine(line) && line.StartsWith(text, Options.HistoryStringComparison))
+                if (line.Length > text.Length)
                 {
-                    return line;
+                    bool isMultiLine = line.Contains('\n');
+                    if (!isMultiLine && line.StartsWith(text, Options.HistoryStringComparison))
+                    {
+                        return line;
+                    }
                 }
             }
 

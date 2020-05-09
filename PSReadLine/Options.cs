@@ -137,11 +137,11 @@ namespace Microsoft.PowerShell
             }
             if (options._predictionSource.HasValue)
             {
+                if (_console is PlatformWindows.LegacyWin32Console && options.PredictionSource != PredictionSource.None)
+                {
+                    throw new ArgumentException(PSReadLineResources.PredictiveSuggestionNotSupported);
+                }
                 Options.PredictionSource = options.PredictionSource;
-            }
-            if (options._predictionViewStyle.HasValue)
-            {
-                Options.PredictionViewStyle = options.PredictionViewStyle;
             }
             if (options.Colors != null)
             {
