@@ -156,6 +156,7 @@ namespace Microsoft.PowerShell
         private int GenerateRender(string defaultColor)
         {
             var text = ParseInput();
+            var suggestion = GetSuggestion(text);
 
             string color = defaultColor;
             string activeColor = string.Empty;
@@ -172,13 +173,52 @@ namespace Microsoft.PowerShell
                 }
             }
 
-            void MaybeEmphasize(int i, string currColor)
+            void RenderOneChar(char charToRender, bool toEmphasize)
             {
-                if (i >= _emphasisStart && i < (_emphasisStart + _emphasisLength))
+                if (charToRender == '\n')
                 {
-                    currColor = _options._emphasisColor;
+                    if (inSelectedRegion)
+                    {
+                        // Turn off inverse before end of line, turn on after continuation prompt
+                        _consoleBufferLines[currentLogicalLine].Append("\x1b[0m");
+                    }
+
+                    currentLogicalLine += 1;
+                    if (currentLogicalLine == _consoleBufferLines.Count)
+                    {
+                        _consoleBufferLines.Add(new StringBuilder(COMMON_WIDEST_CONSOLE_WIDTH));
+                    }
+
+                    // Reset the color for continuation prompt so the color sequence will always be explicitly
+                    // specified for continuation prompt in the generated render strings.
+                    // This is necessary because we will likely not rewrite all texts during rendering, and thus
+                    // we cannot assume the continuation prompt can continue to use the active color setting from
+                    // the previous rendering string.
+                    activeColor = string.Empty;
+
+                    UpdateColorsIfNecessary(Options._continuationPromptColor);
+                    _consoleBufferLines[currentLogicalLine].Append(Options.ContinuationPrompt);
+
+                    if (inSelectedRegion)
+                    {
+                        // Turn off inverse before end of line, turn on after continuation prompt
+                        _consoleBufferLines[currentLogicalLine].Append(Options.SelectionColor);
+                    }
+
+                    return;
                 }
-                UpdateColorsIfNecessary(currColor);
+
+                UpdateColorsIfNecessary(toEmphasize ? _options._emphasisColor : color);
+
+                if (char.IsControl(charToRender))
+                {
+                    _consoleBufferLines[currentLogicalLine].Append('^');
+                    _consoleBufferLines[currentLogicalLine].Append((char)('@' + charToRender));
+                }
+                else
+                {
+                    _consoleBufferLines[currentLogicalLine].Append(charToRender);
+                }
             }
 
             foreach (var buf in _consoleBufferLines)
@@ -288,58 +328,24 @@ namespace Microsoft.PowerShell
                 }
 
                 var charToRender = text[i];
-                if (charToRender == '\n')
-                {
-                    if (inSelectedRegion)
-                    {
-                        // Turn off inverse before end of line, turn on after continuation prompt
-                        _consoleBufferLines[currentLogicalLine].Append("\x1b[0m");
-                    }
+                var toEmphasize = i >= _emphasisStart && i < (_emphasisStart + _emphasisLength);
 
-                    currentLogicalLine += 1;
-                    if (currentLogicalLine > _consoleBufferLines.Count - 1)
-                    {
-                        _consoleBufferLines.Add(new StringBuilder(COMMON_WIDEST_CONSOLE_WIDTH));
-                    }
-
-                    // Reset the color for continuation prompt so the color sequence will always be explicitly
-                    // specified for continuation prompt in the generated render strings.
-                    // This is necessary because we will likely not rewrite all texts during rendering, and thus
-                    // we cannot assume the continuation prompt can continue to use the active color setting from
-                    // the previous rendering string.
-                    activeColor = string.Empty;
-
-                    UpdateColorsIfNecessary(Options._continuationPromptColor);
-                    foreach (char c in Options.ContinuationPrompt)
-                    {
-                        _consoleBufferLines[currentLogicalLine].Append(c);
-                    }
-
-                    if (inSelectedRegion)
-                    {
-                        // Turn off inverse before end of line, turn on after continuation prompt
-                        _consoleBufferLines[currentLogicalLine].Append(Options.SelectionColor);
-                    }
-                }
-                else
-                {
-                    if (char.IsControl(charToRender))
-                    {
-                        MaybeEmphasize(i, color);
-                        _consoleBufferLines[currentLogicalLine].Append('^');
-                        _consoleBufferLines[currentLogicalLine].Append((char)('@' + charToRender));
-                    }
-                    else
-                    {
-                        MaybeEmphasize(i, color);
-                        _consoleBufferLines[currentLogicalLine].Append(charToRender);
-                    }
-                }
+                RenderOneChar(charToRender, toEmphasize);
             }
 
             if (inSelectedRegion)
             {
                 _consoleBufferLines[currentLogicalLine].Append("\x1b[0m");
+                inSelectedRegion = false;
+            }
+
+            if (suggestion != null)
+            {
+                color = _options._predictionColor;
+                foreach (char charToRender in suggestion)
+                {
+                    RenderOneChar(charToRender, toEmphasize: false);
+                }
             }
 
             if (_statusLinePrompt != null)

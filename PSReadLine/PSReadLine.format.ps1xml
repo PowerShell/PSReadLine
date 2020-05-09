@@ -159,6 +159,9 @@ $d = [Microsoft.PowerShell.KeyHandler]::GetGroupingDescription($_.Group)
                 <PropertyName>AnsiEscapeTimeout</PropertyName>
               </ListItem>
               <ListItem>
+                <PropertyName>PredictionSource</PropertyName>
+              </ListItem>
+              <ListItem>
                 <Label>CommandColor</Label>
                 <ScriptBlock>[Microsoft.PowerShell.VTColorUtils]::FormatColor($_.CommandColor)</ScriptBlock>
               </ListItem>
@@ -201,6 +204,10 @@ $d = [Microsoft.PowerShell.KeyHandler]::GetGroupingDescription($_.Group)
               <ListItem>
                 <Label>ParameterColor</Label>
                 <ScriptBlock>[Microsoft.PowerShell.VTColorUtils]::FormatColor($_.ParameterColor)</ScriptBlock>
+              </ListItem>
+              <ListItem>
+                <Label>PredictionColor</Label>
+                <ScriptBlock>[Microsoft.PowerShell.VTColorUtils]::FormatColor($_.PredictionColor)</ScriptBlock>
               </ListItem>
               <ListItem>
                 <Label>SelectionColor</Label>

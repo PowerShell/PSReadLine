@@ -50,6 +50,7 @@ namespace Test
         Number,
         Member,
         Selection,
+        Prediction,
     }
 
     public abstract partial class ReadLine
@@ -101,6 +102,7 @@ namespace Test
         /*Number*/    ConsoleColor.DarkBlue,
         /*Member*/    ConsoleColor.DarkMagenta,
         /*Selection*/ ConsoleColor.Black,
+        /*Prediction*/ConsoleColor.DarkGreen,
         };
 
         internal static readonly ConsoleColor[] BackgroundColors = new[]
@@ -116,7 +118,8 @@ namespace Test
         /*Type*/      ConsoleColor.Black,
         /*Number*/    ConsoleColor.Gray,
         /*Member*/    ConsoleColor.Yellow,
-        /*Selection*/ ConsoleColor.Gray
+        /*Selection*/ ConsoleColor.Gray,
+        /*Prediction*/ConsoleColor.Cyan,
         };
 
         class KeyHandler
@@ -475,6 +478,7 @@ namespace Test
                 ShowToolTips                      = PSConsoleReadLineOptions.DefaultShowToolTips,
                 WordDelimiters                    = PSConsoleReadLineOptions.DefaultWordDelimiters,
                 PromptText                        = new [] {""},
+                PredictionSource                  = PredictionSource.History,
                 Colors = new Hashtable {
                     { "ContinuationPrompt",       MakeCombinedColor(_console.ForegroundColor, _console.BackgroundColor) },
                     { "Emphasis",                 MakeCombinedColor(PSConsoleReadLineOptions.DefaultEmphasisColor, _console.BackgroundColor) },
@@ -505,7 +509,7 @@ namespace Test
             var tokenTypes = new[]
             {
                 "Default", "Comment", "Keyword", "String", "Operator", "Variable",
-                "Command", "Parameter", "Type", "Number", "Member", "Selection"
+                "Command", "Parameter", "Type", "Number", "Member", "Selection", "Prediction"
             };
             var colors = new Hashtable();
             for (var i = 0; i < tokenTypes.Length; i++)

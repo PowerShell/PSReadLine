@@ -549,6 +549,8 @@ namespace Microsoft.PowerShell
             case nameof(ViExit):
             case nameof(ViInsertMode):
             case nameof(WhatIsKey):
+            case nameof(AcceptSuggestion):
+            case nameof(AcceptNextSuggestionWord):
                 return KeyHandlerGroup.Miscellaneous;
 
             case nameof(CharacterSearch):

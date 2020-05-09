@@ -502,6 +502,8 @@ namespace Microsoft.PowerShell
                     }
                     break;
             }
+
+            using var _ = PredictionOff();
             Render();
         }
 
@@ -675,6 +677,30 @@ namespace Microsoft.PowerShell
                         : HistoryMoveCursor.DontMove;
                 UpdateFromHistory(moveCursor);
             }
+        }
+
+        /// <summary>
+        /// Currently we only select single-line history that is prefixed with the user input,
+        /// but it can be improved to not strictly use the user input as a prefix, but a hint
+        /// to extract a partial pipeline or statement from a single-line or multiple-line
+        /// history entry.
+        /// </summary>
+        private string GetHistorySuggestion(string text)
+        {
+            for (int index = _history.Count - 1; index >= 0; index --)
+            {
+                var line = _history[index].CommandLine.TrimEnd();
+                if (line.Length > text.Length)
+                {
+                    bool isMultiLine = line.Contains('\n');
+                    if (!isMultiLine && line.StartsWith(text, Options.HistoryStringComparison))
+                    {
+                        return line;
+                    }
+                }
+            }
+
+            return null;
         }
 
         /// <summary>
@@ -889,6 +915,7 @@ namespace Microsoft.PowerShell
 
         private void InteractiveHistorySearch(int direction)
         {
+            using var _ = PredictionOff();
             SaveCurrentLine();
 
             // Add a status line that will contain the search prompt and string

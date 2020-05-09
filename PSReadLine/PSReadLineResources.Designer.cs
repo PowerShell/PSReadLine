@@ -638,7 +638,34 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("InsertLineBelowDescription", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to Accept the current inline or selected suggestion.
+        /// </summary>
+        internal static string AcceptSuggestionDescription {
+            get {
+                return ResourceManager.GetString("AcceptSuggestionDescription", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Accept the next word of the inline or selected suggestion.
+        /// </summary>
+        internal static string AcceptNextSuggestionWordDescription {
+            get {
+                return ResourceManager.GetString("AcceptNextSuggestionWordDescription", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to The predictive suggestion feature cannot be enabled because the console output doesn't support virtual terminal processing or it's redirected.
+        /// </summary>
+        internal static string PredictiveSuggestionNotSupported {
+            get {
+                return ResourceManager.GetString("PredictiveSuggestionNotSupported", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos; is not a valid color property.
         /// </summary>

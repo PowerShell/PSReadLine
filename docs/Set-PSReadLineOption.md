@@ -36,6 +36,7 @@ Set-PSReadLineOption
  [-AnsiEscapeTimeout <int>]
  [-ViModeIndicator <ViModeStyle>]
  [-ViModeChangeHandler <ScriptBlock>]
+ [-PredictionSource <PredictionSource>]
 ```
 
 ## DESCRIPTION
@@ -389,6 +390,8 @@ The valid keys include:
 
 -- Member: The member name token color.
 
+-- Prediction: The color for the suggestion text that comes from the prediction API.
+
 ```yaml
 Type: Hashtable
 Parameter Sets: (All)
@@ -608,6 +611,28 @@ Aliases:
 Required: False
 Position: Named
 Default value:
+Accept pipeline input: false
+Accept wildcard characters: false
+```
+
+### -PredictionSource
+
+Specifies the source for PSReadLine to get predictive suggestions.
+
+Valid values are:
+
+-- None: disable the predictive suggestion feature.
+
+-- History: get predictive suggestions from history only.
+
+```yaml
+Type: PredictionSource
+Parameter Sets: (All)
+Aliases:
+
+Required: False
+Position: Named
+Default value: None
 Accept pipeline input: false
 Accept wildcard characters: false
 ```

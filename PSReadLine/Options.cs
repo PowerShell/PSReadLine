@@ -135,6 +135,14 @@ namespace Microsoft.PowerShell
             {
                 Options.PromptText = options.PromptText;
             }
+            if (options._predictionSource.HasValue)
+            {
+                if (_console is PlatformWindows.LegacyWin32Console && options.PredictionSource != PredictionSource.None)
+                {
+                    throw new ArgumentException(PSReadLineResources.PredictiveSuggestionNotSupported);
+                }
+                Options.PredictionSource = options.PredictionSource;
+            }
             if (options.Colors != null)
             {
                 IDictionaryEnumerator e = options.Colors.GetEnumerator();

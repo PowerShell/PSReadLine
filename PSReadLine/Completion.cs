@@ -217,6 +217,9 @@ namespace Microsoft.PowerShell
                 ViInsertWithAppend();
             }
 
+            // Do not show suggestion text during tab completion.
+            using var _ = PredictionOff();
+
             var completions = GetCompletions();
             if (completions == null || completions.CompletionMatches.Count == 0)
                 return;

@@ -1,3 +1,9 @@
+### Version 2.1.0-beta1
+
+Pre-release notes:
+
+* Experimental support for fish-like suggestions in PSReadLine.
+
 ### Version 2.0.1
 
 Bug fixes:

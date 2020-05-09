@@ -61,7 +61,14 @@ namespace Microsoft.PowerShell
         {
             if (TryGetArgAsInt(arg, out var numericArg, 1))
             {
-                SetCursorPosition(_singleton._current + numericArg);
+                if (_singleton._current == _singleton._buffer.Length && numericArg > 0)
+                {
+                    AcceptSuggestion(key, arg);
+                }
+                else
+                {
+                    SetCursorPosition(_singleton._current + numericArg);
+                }
             }
         }
 
@@ -308,6 +315,12 @@ namespace Microsoft.PowerShell
         {
             if (!TryGetArgAsInt(arg, out var numericArg, 1))
             {
+                return;
+            }
+
+            if (_singleton._current == _singleton._buffer.Length && numericArg > 0)
+            {
+                AcceptNextSuggestionWord(numericArg);
                 return;
             }
 

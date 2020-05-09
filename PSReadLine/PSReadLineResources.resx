@@ -741,6 +741,12 @@ If there are other parse errors, unresolved commands, or incorrect parameters, s
   <data name="InsertLineBelowDescription" xml:space="preserve">
     <value>Inserts a new empty line below the current line without attempting to execute the input</value>
   </data>
+  <data name="AcceptSuggestionDescription" xml:space="preserve">
+    <value>Accept the current inline or selected suggestion</value>
+  </data>
+  <data name="AcceptNextSuggestionWordDescription" xml:space="preserve">
+    <value>Accept the next word of the inline or selected suggestion</value>
+  </data>
   <data name="HistoryFileErrorMessage" xml:space="preserve">
     <value>Error reading or writing history file '{0}': {1}</value>
   </data>
@@ -782,5 +788,8 @@ Or not saving history with:
   </data>
   <data name="InvalidColorProperty" xml:space="preserve">
     <value>'{0}' is not a valid color property</value>
+  </data>
+  <data name="PredictiveSuggestionNotSupported" xml:space="preserve">
+    <value>The predictive suggestion feature cannot be enabled because the console output doesn't support virtual terminal processing or it's redirected.</value>
   </data>
 </root>
