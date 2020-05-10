@@ -33,16 +33,8 @@ Please run the script in the PowerShell session where you ran into the issue and
 
 & {
     $hostName = $Host.Name
-    if ($hostName -eq "ConsoleHost" -and (Get-Command Get-CimInstance -ErrorAction SilentlyContinue)) {
-        $id = $PID
-        $inWindowsTerminal = $false
-        while ($true) {
-            $p = Get-CimInstance -ClassName Win32_Process -Filter "ProcessId Like $id"
-            if (!$p -or !$p.Name) { break }
-            if ($p.Name -eq "WindowsTerminal.exe") { $inWindowsTerminal = $true; break }
-            $id = $p.ParentProcessId
-        }
-        if ($inWindowsTerminal) { $hostName += " (Windows Terminal)" }
+    if (Test-Path env:\WT_SESSION) {
+        $hostName += " (Windows Terminal)"
     }
 
     "`nPS version: $($PSVersionTable.PSVersion)"
