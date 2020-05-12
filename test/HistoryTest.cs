@@ -62,7 +62,7 @@ namespace Test
                 "echo foo",
                 "cmd1 /token abc",
                 "echo bar",
-                "cmd2 --key abc",
+                "cmd2 --apikey abc",
                 "echo zoo",
                 "pki secret",
                 "gcm p*"

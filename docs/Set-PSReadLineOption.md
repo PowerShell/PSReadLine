@@ -215,7 +215,7 @@ This usually indicates the command line has sensitive content that should not be
 PSReadLine provides a default handler to this option:
     `[Microsoft.PowerShell.PSConsoleReadLine]::GetDefaultAddToHistoryOption(string line)`
 The default handler attempts to detect sensitive information in a command line by matching with a simple regex pattern:
-    `"password|asplaintext|token|key|secret"`
+    `"password|asplaintext|token|apikey|secret"`
 When successfully matched, the command line is considered to contain sensitive content, and `MemoryOnly` is returned.
 Otherwise, `MemoryAndFile` is returned.
 
