@@ -111,7 +111,7 @@ namespace Microsoft.PowerShell
 
         // Pattern used to check for sensitive inputs.
         private static readonly Regex s_sensitivePattern = new Regex(
-            "password|asplaintext|token|key|secret",
+            "password|asplaintext|token|apikey|secret",
             RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
         private void ClearSavedCurrentLine()
