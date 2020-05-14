@@ -230,7 +230,7 @@ namespace Microsoft.PowerShell
                             if (ps == null)
                             {
                                 ps = System.Management.Automation.PowerShell.Create(RunspaceMode.CurrentRunspace);
-                                ps.AddScript("0");
+                                ps.AddScript("0", useLocalScope: true);
                             }
 
                             // To detect output during possible event processing, see if the cursor moved
