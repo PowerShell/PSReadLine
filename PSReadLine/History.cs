@@ -85,6 +85,7 @@ namespace Microsoft.PowerShell
             internal bool _sensitive;
             internal List<EditItem> _edits;
             internal int _undoEditIndex;
+            internal int _editGroupStart;
         }
 
         // History state
@@ -119,6 +120,7 @@ namespace Microsoft.PowerShell
             _savedCurrentLine.CommandLine = null;
             _savedCurrentLine._edits = null;
             _savedCurrentLine._undoEditIndex = 0;
+            _savedCurrentLine._editGroupStart = -1;
         }
 
         private AddToHistoryOption GetAddToHistoryOption(string line)
@@ -194,6 +196,7 @@ namespace Microsoft.PowerShell
                     CommandLine = result,
                     _edits = edits,
                     _undoEditIndex = undoEditIndex,
+                    _editGroupStart = -1,
                     _saved = fromHistoryFile,
                     FromOtherSession = fromDifferentSession,
                     FromHistoryFile = fromInitialRead,
@@ -477,12 +480,14 @@ namespace Microsoft.PowerShell
                 line = _savedCurrentLine.CommandLine;
                 _edits = new List<EditItem>(_savedCurrentLine._edits);
                 _undoEditIndex = _savedCurrentLine._undoEditIndex;
+                _editGroupStart = _savedCurrentLine._editGroupStart;
             }
             else
             {
                 line = _history[_currentHistoryIndex].CommandLine;
                 _edits = new List<EditItem>(_history[_currentHistoryIndex]._edits);
                 _undoEditIndex = _history[_currentHistoryIndex]._undoEditIndex;
+                _editGroupStart = _history[_currentHistoryIndex]._editGroupStart;
             }
             _buffer.Clear();
             _buffer.Append(line);
@@ -519,6 +524,7 @@ namespace Microsoft.PowerShell
                 _savedCurrentLine.CommandLine = _buffer.ToString();
                 _savedCurrentLine._edits = _edits;
                 _savedCurrentLine._undoEditIndex = _undoEditIndex;
+                _savedCurrentLine._editGroupStart = _editGroupStart;
             }
         }
 
