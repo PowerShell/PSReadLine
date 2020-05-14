@@ -91,7 +91,14 @@ namespace Microsoft.PowerShell
         {
             if (TryGetArgAsInt(arg, out var numericArg, 1))
             {
-                ViOffsetCursorPosition(+ numericArg);
+                if (InViInsertMode() && _singleton._current == _singleton._buffer.Length && numericArg > 0)
+                {
+                    AcceptSuggestion(key, arg);
+                }
+                else
+                {
+                    ViOffsetCursorPosition(+ numericArg);
+                }
             }
         }
 
