@@ -653,7 +653,7 @@ namespace Microsoft.PowerShell
             {
                 try
                 {
-                    var results = ps.AddScript("$Host").Invoke<PSHost>();
+                    var results = ps.AddScript("$Host", useLocalScope: true).Invoke<PSHost>();
                     PSHost host = results.Count == 1 ? results[0] : null;
                     hostName = host?.Name;
                 }
