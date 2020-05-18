@@ -289,5 +289,40 @@ namespace Test
                     TokenClassification.None, " checkout ")),
                 _.Escape));
         }
+
+        [SkippableFact]
+        public void AcceptSuggestionInVIMode()
+        {
+            TestSetup(KeyMode.Vi);
+
+            SetHistory("echo -bar", "eca -zoo");
+            Test("ech", Keys(
+                'e', CheckThat(() => AssertScreenIs(1,
+                        TokenClassification.Command, 'e',
+                        TokenClassification.Prediction, "ca -zoo")),
+                'c', CheckThat(() => AssertScreenIs(1,
+                        TokenClassification.Command, "ec",
+                        TokenClassification.Prediction, "a -zoo")),
+                'h', CheckThat(() => AssertScreenIs(1,
+                        TokenClassification.Command, "ech",
+                        TokenClassification.Prediction, "o -bar")),
+                CheckThat(() => AssertCursorLeftIs(3)),
+                _.RightArrow, CheckThat(() => AssertScreenIs(1,
+                        TokenClassification.Command, "echo",
+                        TokenClassification.None, ' ',
+                        TokenClassification.Parameter, "-bar")),
+                CheckThat(() => AssertCursorLeftIs(9)),
+                _.Ctrl_z, CheckThat(() => AssertScreenIs(1,
+                        TokenClassification.Command, "ech",
+                        TokenClassification.Prediction, "o -bar")),
+                CheckThat(() => AssertCursorLeftIs(3)),
+
+                _.RightArrow, _.Escape,
+                CheckThat(() => AssertCursorLeftIs(8)),
+                _.Ctrl_z, CheckThat(() => AssertScreenIs(1,
+                        TokenClassification.Command, "ech")),
+                CheckThat(() => AssertCursorLeftIs(2))
+            ));
+        }
     }
 }
