@@ -46,7 +46,7 @@ jobs:
         Write-Host ("sending: " + $vstsCommandString)
         Write-Host "##$vstsCommandString"
       }
-      Write-Host "PS Versoin: $($($PSVersionTable.PSVersion))"
+      Write-Host "PS Version: $($($PSVersionTable.PSVersion))"
       $(Build.SourcesDirectory)\build.ps1 -Bootstrap
       $(Build.SourcesDirectory)\build.ps1 -Configuration Release -Framework net461 -CheckHelpContent
       # Get module version

@@ -28,7 +28,7 @@ function ReportError
 }
 
 if ($PSEdition -ne "Core") {
-    Write-Warning "Skip checking help content on Windows PowerShell because 'Update-Hlep -Module PSReadLine' doesn't work properly on Windows PowerShell."
+    Write-Warning "Skip checking help content on Windows PowerShell because 'Update-Help -Module PSReadLine' doesn't work properly on Windows PowerShell."
     return
 }
 

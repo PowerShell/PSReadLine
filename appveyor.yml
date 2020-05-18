@@ -12,7 +12,7 @@ cache:
 
 install:
   - pwsh: |
-      Write-Host "PS Versoin: $($($PSVersionTable.PSVersion))"
+      Write-Host "PS Version: $($($PSVersionTable.PSVersion))"
       ./build.ps1 -Bootstrap
 
 build_script:

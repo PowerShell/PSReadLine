@@ -97,14 +97,12 @@ task RunTests BuildMainModule, BuildXUnitTests, { Start-TestRun -Configuration $
 <#
 Synopsis: Check if the help content is in sync.
 #>
-task CheckHelpContent {
-    if ($CheckHelpContent) {
-        # This step loads the dll that was just built, so only do that in another process
-        # so the file isn't locked in any way for the rest of the build.
-        $psExePath = Get-PSExePath
-        & $psExePath -NoProfile -NonInteractive -File $PSScriptRoot/tools/CheckHelp.ps1 $Configuration
-        assert ($LASTEXITCODE -eq 0) "Checking help and function signatures failed"
-    }
+task CheckHelpContent -If $CheckHelpContent {
+    # This step loads the dll that was just built, so only do that in another process
+    # so the file isn't locked in any way for the rest of the build.
+    $psExePath = Get-PSExePath
+    & $psExePath -NoProfile -NonInteractive -File $PSScriptRoot/tools/CheckHelp.ps1 $Configuration
+    assert ($LASTEXITCODE -eq 0) "Checking help and function signatures failed"
 }
 
 <#
