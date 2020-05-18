@@ -18,10 +18,10 @@ namespace Microsoft.PowerShell
             if (removeCount > 0)
             {
                 _edits.RemoveRange(_undoEditIndex, removeCount);
-                if (_editGroupStart >= 0)
+                if (_edits.Count < _editGroupStart)
                 {
-                    // Adjust the edit group start if we are started a group.
-                    _editGroupStart -= removeCount;
+                    // Reset the group start index if any edits before setting the start mark were undone.
+                    _editGroupStart = -1;
                 }
             }
         }
@@ -54,10 +54,27 @@ namespace Microsoft.PowerShell
 
         private void EndEditGroup(Action<ConsoleKeyInfo?, object> instigator = null, object instigatorArg = null)
         {
+            // Remove the undone edits when closing an edit group, so the generated group
+            // doesn't contain those edits that were already undone.
+            RemoveEditsAfterUndo();
+
+            // If any edits before the start mark were done, the start mark will be reset
+            // and no need to generate the edit group.
+            if (_editGroupStart < 0)
+            {
+                return;
+            }
+
             var groupEditCount = _edits.Count - _editGroupStart;
-            var groupedEditItems = _edits.GetRange(_editGroupStart, groupEditCount);
-            _edits.RemoveRange(_editGroupStart, groupEditCount);
-            SaveEditItem(GroupedEdit.Create(groupedEditItems, instigator, instigatorArg));
+
+            // It's possible that just enough edits were undone and now 'groupEditCount' is 0.
+            // We don't generate the edit group in that case.
+            if (groupEditCount > 0)
+            {
+                var groupedEditItems = _edits.GetRange(_editGroupStart, groupEditCount);
+                _edits.RemoveRange(_editGroupStart, groupEditCount);
+                SaveEditItem(GroupedEdit.Create(groupedEditItems, instigator, instigatorArg));
+            }
             _editGroupStart = -1;
         }
 
