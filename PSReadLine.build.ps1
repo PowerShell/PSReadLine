@@ -16,13 +16,13 @@
 
 [CmdletBinding()]
 param(
-    [switch]$Install,
-
     [ValidateSet("Debug", "Release")]
     [string]$Configuration = (property Configuration Release),
 
     [ValidateSet("net461", "netcoreapp2.1")]
-    [string]$Framework
+    [string]$Framework,
+
+    [switch]$CheckHelpContent
 )
 
 Import-Module "$PSScriptRoot/tools/helper.psm1"
@@ -39,50 +39,6 @@ Write-Verbose "Building for '$Framework'" -Verbose
 
 function ConvertTo-CRLF([string] $text) {
     $text.Replace("`r`n","`n").Replace("`n","`r`n")
-}
-
-$buildMamlParams = @{
-    Inputs  = { Get-ChildItem docs/*.md }
-    Outputs = "$targetDir/en-US/Microsoft.PowerShell.PSReadLine2.dll-help.xml"
-}
-
-<#
-Synopsis: Generate maml help from markdown
-#>
-task BuildMamlHelp @buildMamlParams {
-    platyPS\New-ExternalHelp docs -Force -OutputPath $targetDir/en-US/Microsoft.PowerShell.PSReadLine2.dll-help.xml
-}
-
-$buildAboutTopicParams = @{
-    Inputs = {
-         Get-ChildItem docs/about_PSReadLine.help.txt
-         "PSReadLine/bin/$Configuration/$Framework/Microsoft.PowerShell.PSReadLine2.dll"
-         "$PSScriptRoot/tools/GenerateFunctionHelp.ps1"
-         "$PSScriptRoot/tools/CheckHelp.ps1"
-    }
-    Outputs = "$targetDir/en-US/about_PSReadLine.help.txt"
-}
-
-<#
-Synopsis: Generate about topic with function help
-#>
-task BuildAboutTopic @buildAboutTopicParams {
-    # This step loads the dll that was just built, so only do that in another process
-    # so the file isn't locked in any way for the rest of the build.
-    $psExePath = Get-PSExePath
-
-    $generatedFunctionHelpFile = New-TemporaryFile
-    & $psExePath -NoProfile -NonInteractive -File $PSScriptRoot/tools/GenerateFunctionHelp.ps1 $Configuration $generatedFunctionHelpFile.FullName
-    assert ($LASTEXITCODE -eq 0) "Generating function help failed"
-
-    $functionDescriptions = Get-Content -Raw $generatedFunctionHelpFile
-    $aboutTopic = Get-Content -Raw $PSScriptRoot/docs/about_PSReadLine.help.txt
-    $newAboutTopic = $aboutTopic -replace '{{FUNCTION_DESCRIPTIONS}}', $functionDescriptions
-    $newAboutTopic = $newAboutTopic -replace "`r`n","`n"
-    $newAboutTopic | Out-File -FilePath $targetDir\en-US\about_PSReadLine.help.txt -NoNewline -Encoding ascii
-
-    & $psExePath -NoProfile -NonInteractive -File $PSScriptRoot/tools/CheckHelp.ps1 $Configuration
-    assert ($LASTEXITCODE -eq 0) "Checking help and function signatures failed"
 }
 
 $binaryModuleParams = @{
@@ -139,9 +95,26 @@ Synopsis: Run the unit tests
 task RunTests BuildMainModule, BuildXUnitTests, { Start-TestRun -Configuration $Configuration -Framework $Framework }
 
 <#
+Synopsis: Check if the help content is in sync.
+#>
+task CheckHelpContent {
+    if ($CheckHelpContent) {
+        # This step loads the dll that was just built, so only do that in another process
+        # so the file isn't locked in any way for the rest of the build.
+        $psExePath = Get-PSExePath
+        & $psExePath -NoProfile -NonInteractive -File $PSScriptRoot/tools/CheckHelp.ps1 $Configuration
+        assert ($LASTEXITCODE -eq 0) "Checking help and function signatures failed"
+    }
+}
+
+<#
 Synopsis: Copy all of the files that belong in the module to one place in the layout for installation
 #>
-task LayoutModule BuildMainModule, BuildMamlHelp, {
+task LayoutModule BuildMainModule, {
+    if (-not (Test-Path $targetDir -PathType Container)) {
+        New-Item $targetDir -ItemType Directory -Force > $null
+    }
+
     $extraFiles =
         'License.txt',
         'PSReadLine/Changes.txt',
@@ -192,7 +165,7 @@ task LayoutModule BuildMainModule, BuildMamlHelp, {
     {
         $file.IsReadOnly = $false
     }
-}, BuildAboutTopic
+}, CheckHelpContent
 
 <#
 Synopsis: Zip up the binary for release.

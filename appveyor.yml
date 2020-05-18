@@ -11,16 +11,16 @@ cache:
   - '%HOMEDRIVE%%HOMEPATH%\.nuget\packages -> tools\helper.psm1'
 
 install:
-  - pwsh: ./build.ps1 -Bootstrap
+  - pwsh: |
+      Write-Host "PS Versoin: $($($PSVersionTable.PSVersion))"
+      ./build.ps1 -Bootstrap
 
 build_script:
   - pwsh: |
       ./build.ps1 -Configuration Release -Framework net461
-      platyPS\Get-HelpPreview .\bin\Release\PSReadLine\en-US\Microsoft.PowerShell.PSReadLine2.dll-help.xml > .\bin\Release\PSReadLine.txt
 
 test_script:
   - pwsh: ./build.ps1 -Test -Configuration Release -Framework net461
 
 artifacts:
   - path: .\bin\Release\PSReadLine.zip
-  - path: .\bin\Release\PSReadLine.txt

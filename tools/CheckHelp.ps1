@@ -1,12 +1,10 @@
 param($Configuration = 'Release')
 
 $RepoRoot = (Resolve-Path "$PSScriptRoot/..").Path
-$ourAssembly = "$RepoRoot\PSReadLine\bin\$Configuration\Microsoft.PowerShell.PSReadLine2.dll"
-
 Import-Module $PSScriptRoot/helper.psm1
 
 $t ='Microsoft.PowerShell.PSConsoleReadLine' -as [type]
-if ($null -ne $t -and $t.Assembly.Location -ne $ourAssembly)
+if ($null -ne $t)
 {
     # Make sure we're runnning in a non-interactive session by relaunching
     $psExePath = Get-PSExePath
@@ -29,7 +27,32 @@ function ReportError
     $host.UI.WriteErrorLine($msg)
 }
 
-$about_topic = Get-Content -Raw "$RepoRoot\bin\$Configuration\PSReadLine\en-US\about_PSReadLine.help.txt"
+if ($PSEdition -ne "Core") {
+    Write-Warning "Skip checking help content on Windows PowerShell because 'Update-Hlep -Module PSReadLine' doesn't work properly on Windows PowerShell."
+    return
+}
+
+$psDataFolder = if ($IsWindows) {
+    Join-Path ([System.Environment]::GetFolderPath([System.Environment+SpecialFolder]::Personal)) "PowerShell"
+} else {
+    [System.Management.Automation.Platform]::SelectProductNameForDirectory("data")
+}
+$helpDirectory = Join-Path $psDataFolder "Help"
+$psReadLineHelpDirectory = Join-Path $helpDirectory "PSReadLine"
+if (Test-Path $psReadLineHelpDirectory -PathType Container) {
+    Remove-Item $psReadLineHelpDirectory -Recurse -Force
+}
+
+try {
+    $savedProgressPreference = $ProgressPreference
+    $ProgressPreference = "SilentlyContinue"
+    Update-Help -Module PSReadLine -UICulture en-US -Force
+} finally {
+    $ProgressPreference = $savedProgressPreference
+}
+
+$psReadLineAboutHelpFile = Get-ChildItem $psReadLineHelpDirectory -Include "about_PSReadLine.help.txt" -Recurse | ForEach-Object FullName
+$about_topic = Get-Content $psReadLineAboutHelpFile -Raw
 
 $methods = [Microsoft.PowerShell.PSConsoleReadLine].GetMethods('public,static') |
     Where-Object {
@@ -89,7 +112,6 @@ Get-PSReadLineKeyHandler -Bound -Unbound |
     ForEach-Object {
         ReportError "Function missing description: $($_.Function)"
     }
-
 
 $env:PSModulePath = $save_PSModulePath
 exit $errorCount
