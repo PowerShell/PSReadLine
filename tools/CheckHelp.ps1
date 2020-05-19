@@ -234,9 +234,10 @@ foreach ($binding in $viKeyBindings)
     }
 }
 
+# Use CRLF explicitly because the 'about_PSReadLine.help.txt' pulled down by 'Update-Help' uses CRLF end-of-line sequence.
 $eol = "`r`n"
 $indent = "-   "
-$misMatchFound = $false
+$mismatchFound = $false
 
 $allFunctions.Values |
     Group-Object -Property Group |
@@ -284,8 +285,8 @@ $allFunctions.Values |
             $pattern = "*${eol}{0}${eol}*${eol}{1}${eol}${eol}*" -f $_.Function, $bindings
             if ($about_topic -notlike $pattern)
             {
-                if (!$misMatchFound) {
-                    $misMatchFound = $true
+                if (!$mismatchFound) {
+                    $mismatchFound = $true
                     $host.UI.WriteErrorLine("`nMismatch found in 'about_PSReadLine.help.txt' for the following key bindings:")
                 }
                 ReportError -msg $pattern.Substring(1, $pattern.Length - 2)
