@@ -342,7 +342,29 @@ namespace Microsoft.PowerShell
         /// If the prompt function is pure, this value can be inferred, e.g.
         /// the default prompt will use "> " for this value.
         /// </summary>
-        public string[] PromptText { get; set; }
+        public string[] PromptText
+        {
+            get => _promptText;
+            set
+            {
+                _promptText = value;
+                if (_promptText == null || _promptText.Length == 0)
+                    return;
+
+                // For texts with VT sequences, reset all attributes if not already.
+                // We only handle the first 2 elements because that's all will potentially be used.
+                int minLength = _promptText.Length == 1 ? 1 : 2;
+                for (int i = 0; i < minLength; i ++)
+                {
+                    var text = _promptText[i];
+                    if (text.Contains('\x1b') && !text.EndsWith("\x1b[0m", StringComparison.Ordinal))
+                    {
+                        _promptText[i] = string.Concat(text, "\x1b[0m");
+                    }
+                }
+            }
+        }
+        private string[] _promptText;
 
         public object DefaultTokenColor
         {

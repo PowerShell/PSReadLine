@@ -444,9 +444,13 @@ namespace Microsoft.PowerShell
                 {
                     string color = renderData.errorPrompt ? _options._errorColor : defaultColor;
                     _console.Write(color);
+                    _console.Write(promptText);
+                    _console.Write("\x1b[0m");
                 }
-                _console.Write(promptText);
-                _console.Write("\x1b[0m");
+                else
+                {
+                    _console.Write(promptText);
+                }
             }
 
             return true;

@@ -132,6 +132,45 @@ namespace Test
         }
 
         [SkippableFact]
+        public void SetPromptTextOption()
+        {
+            // For prompt texts with VT sequences, reset all attributes if not already.
+            string[] promptTexts_1 = new[] { "\x1b[91m> " };
+            string[] promptTexts_2 = new[] { "\x1b[91m> ", "\x1b[92m> ", "\x1b[93m> " };
+            string[] promptTexts_3 = new[] { "> " };
+            string[] promptTexts_4 = new[] { "> ", "] " };
+            string[] promptTexts_5 = new[] { "\x1b[93m> \x1b[0m" };
+
+            PSConsoleReadLine.SetOptions(new SetPSReadLineOption {
+                PromptText = promptTexts_1,
+            });
+            Assert.Equal("\x1b[91m> \x1b[0m", promptTexts_1[0]);
+
+            PSConsoleReadLine.SetOptions(new SetPSReadLineOption {
+                PromptText = promptTexts_2,
+            });
+            Assert.Equal("\x1b[91m> \x1b[0m", promptTexts_2[0]);
+            Assert.Equal("\x1b[92m> \x1b[0m", promptTexts_2[1]);
+            Assert.Equal("\x1b[93m> ", promptTexts_2[2]);
+
+            PSConsoleReadLine.SetOptions(new SetPSReadLineOption {
+                PromptText = promptTexts_3,
+            });
+            Assert.Equal("> ", promptTexts_3[0]);
+
+            PSConsoleReadLine.SetOptions(new SetPSReadLineOption {
+                PromptText = promptTexts_4,
+            });
+            Assert.Equal("> ", promptTexts_4[0]);
+            Assert.Equal("] ", promptTexts_4[1]);
+
+            PSConsoleReadLine.SetOptions(new SetPSReadLineOption {
+                PromptText = promptTexts_5,
+            });
+            Assert.Equal("\x1b[93m> \x1b[0m", promptTexts_5[0]);
+        }
+
+        [SkippableFact]
         [ExcludeFromCodeCoverage]
         public void UselessStuffForBetterCoverage()
         {
