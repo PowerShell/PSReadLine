@@ -87,7 +87,7 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Moves the cursor one character to the right on a single logical line.
         /// </summary>
-        private static void ViForwardChar(ConsoleKeyInfo? key = null, object arg = null)
+        public static void ViForwardChar(ConsoleKeyInfo? key = null, object arg = null)
         {
             if (TryGetArgAsInt(arg, out var numericArg, 1))
             {
@@ -105,7 +105,7 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Move the cursor one character to the left on a single logical line.
         /// </summary>
-        private static void ViBackwardChar(ConsoleKeyInfo? key = null, object arg = null)
+        public static void ViBackwardChar(ConsoleKeyInfo? key = null, object arg = null)
         {
             if (TryGetArgAsInt(arg, out var numericArg, 1))
             {
