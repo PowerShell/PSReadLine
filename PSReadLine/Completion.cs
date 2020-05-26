@@ -245,10 +245,11 @@ namespace Microsoft.PowerShell
             if (!String.IsNullOrEmpty(commandName) && isFullHelp)
             {
                 System.Management.Automation.PowerShell ps = System.Management.Automation.PowerShell.Create(RunspaceMode.CurrentRunspace);
+
                 var fullHelp = ps.AddScript($"(Get-Help -Name {commandName} -Full | Out-String)").Invoke<string>().FirstOrDefault();
                 if (!String.Equals(fullHelp, String.Empty, StringComparison.CurrentCultureIgnoreCase))
                 {
-                    WriteToAlternateScreenBuffer(fullHelp);
+                    WriteToAlternateScreenBuffer(fullHelp, String.IsNullOrEmpty(parameterName) ? null : parameterName);
                 }
             }
             else if (!String.IsNullOrEmpty(commandName) && !String.IsNullOrEmpty(parameterName))
@@ -301,7 +302,7 @@ namespace Microsoft.PowerShell
             dynHelp.RestoreCursor();
         }
 
-        private void WriteToAlternateScreenBuffer(string helpContent)
+        private void WriteToAlternateScreenBuffer(string helpContent, string parameterName)
         {
             char c = (char) 0x1b;
             string startAltBuffer = $"{c}[?1049h";
@@ -314,6 +315,22 @@ namespace Microsoft.PowerShell
             int startLine = 0;
             int bufferHeight = Math.Min(Console.WindowHeight,Console.BufferHeight);
             bool moved = true;
+
+            if (!String.IsNullOrEmpty(parameterName))
+            {
+                string upper = parameterName[0].ToString().ToUpperInvariant();
+                string lower = parameterName[0].ToString().ToLowerInvariant();
+                string remainingString = parameterName.Substring(1);
+                string pattern = $"-[{upper}|{lower}]{remainingString} [<|\\[]";
+
+                for(int i = 0; i < contentAsArray.Length; i++)
+                {
+                    if (System.Text.RegularExpressions.Regex.IsMatch(contentAsArray[i], pattern))
+                    {
+                        startLine = i;
+                    }
+                }
+            }
 
             string pagerMessage = String.Concat(
                     reverseColorStart,
@@ -335,8 +352,8 @@ namespace Microsoft.PowerShell
             {
                 if (moved) {
                     Console.Clear();
-                    int endLine = startLine + bufferHeight - GetMultilineOffset(contentAsArray, startLine);
-                    string content = String.Join(Environment.NewLine, contentAsArray.Skip(startLine).Take(endLine));
+                    int offset = GetMultilineOffset(contentAsArray, startLine);
+                    string content = String.Join(Environment.NewLine, contentAsArray.Skip(startLine).Take(bufferHeight - offset));
                     Console.WriteLine(content);
                     Console.Write(pagerMessage);
                 }
