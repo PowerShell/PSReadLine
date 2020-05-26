@@ -591,6 +591,12 @@ If there are other parse errors, unresolved commands, or incorrect parameters, s
   <data name="ViBackwardWordDescription" xml:space="preserve">
     <value>Delete backward to the beginning of the previous word, as delimited by white space and common delimiters, and enter insert mode.</value>
   </data>
+  <data name="ViBackwardCharDescription" xml:space="preserve">
+    <value>Move the cursor back one character in the Vi edit mode.</value>
+  </data>
+  <data name="ViForwardCharDescription" xml:space="preserve">
+    <value>Move the cursor forward one character in the Vi edit mode.</value>
+  </data>
   <data name="PasteAfterDescription" xml:space="preserve">
     <value>Write the contents of the local clipboard after the cursor.</value>
   </data>

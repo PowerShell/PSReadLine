@@ -502,7 +502,9 @@ namespace Microsoft.PowerShell
             case nameof(ShellBackwardWord):
             case nameof(ShellForwardWord):
             case nameof(ShellNextWord):
+            case nameof(ViBackwardChar):
             case nameof(ViBackwardWord):
+            case nameof(ViForwardChar):
             case nameof(ViEndOfGlob):
             case nameof(ViEndOfPreviousGlob):
             case nameof(ViGotoBrace):
