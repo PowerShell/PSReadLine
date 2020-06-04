@@ -1,3 +1,11 @@
+### Version 2.0.2
+
+Bug fixes:
+
+* Add the template parameter to the bug report link (#1441) (Thanks @anthonyvdotbe)
+* Update the release build to create the NuGet package for publish (#1480)
+* Run script in local scope to make PSReadLine works in PSES in `ConstrainedLanguageMode` (#1527)
+
 ### Version 2.0.1
 
 Bug fixes:
