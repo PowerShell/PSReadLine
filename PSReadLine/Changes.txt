@@ -1,8 +1,35 @@
+### Version 2.1.0-beta2
+
+Pre-release notes:
+
+Bug fixes:
+
+* Fix the environment data script and print buffer info in case of exception (#1482)
+* Add the parameter `-PredictionSource` to `Set-PSReadLineOption`, with the options `None` and `History` (#1496)
+* Make the predictive suggestion feature disabled by default (`PredictionSource` set to `None`). It can be enabled by `Set-PSReadLineOption -PredictionSource History` (#1496)
+* Make the functions `AcceptSuggestion` and `AcceptNextSuggestionWord` bindable (#1496)
+* Fix the `ArgumentOutOfRangeException` caused by trimming the command line before saving to history (#1496)
+* Refactor `SelfInsert` to avoid duplicate logic (#1510)
+* Relax the sensitive words we filter by changing `key` to `apikey` to reduce false positives (#1517)
+* Make edit group more stable in VI mode (#1526)
+* Make `ViForwardChar` able to accept suggestions (#1528)
+* Update build as we move help content to the `PowerShell-Docs` repository (#1537)
+* Reset all VT attributes for `PromptText` if it contains VT sequences (#1544)
+* Expose `ViBackwardChar` and `ViForwardChar` as bindable functions (#1547)
+
 ### Version 2.1.0-beta1
 
 Pre-release notes:
 
 * Experimental support for fish-like suggestions in PSReadLine.
+
+### Version 2.0.2
+
+Bug fixes:
+
+* Add the template parameter to the bug report link (#1441) (Thanks @anthonyvdotbe)
+* Update the release build to create the NuGet package for publish (#1480)
+* Run script in local scope to make PSReadLine works in PSES in `ConstrainedLanguageMode` (#1527)
 
 ### Version 2.0.1
 
