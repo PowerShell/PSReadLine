@@ -581,10 +581,8 @@ Set-PSReadLineOption -CommandValidationHandler {
     }
 }
 
-# It is built-in to 'ForwardChar' to accept the whole suggestion text when the cursor is
-# already at the end of the current editing line.
-# This is a custom binding to make 'RightArrow' behave like 'ForwardChar' but accept the
-# next word of the suggestion text when the cursor is at the end of the editing line.
+# `ForwardChar` accepts the entire suggestion text when the cursor is at the end of the line.
+# This custom binding makes `RightArrow` behave similarly - accepting the next word instead of the entire suggestion text.
 Set-PSReadLineKeyHandler -Key RightArrow `
                          -BriefDescription ForwardCharAndAcceptNextSuggestionWord `
                          -LongDescription "Move cursor one character to the right in the current editing line and accept the next word in suggestion when it's at the end of current editing line" `
