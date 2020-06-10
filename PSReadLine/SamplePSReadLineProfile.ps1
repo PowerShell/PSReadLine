@@ -562,6 +562,7 @@ Set-PSReadLineKeyHandler -Key Alt+j `
     [Microsoft.PowerShell.PSConsoleReadLine]::InvokePrompt()
 }
 
+# Auto correct 'git cmt' to 'git commit'
 Set-PSReadLineOption -CommandValidationHandler {
     param([CommandAst]$CommandAst)
 
@@ -577,5 +578,26 @@ Set-PSReadLineOption -CommandValidationHandler {
                 }
             }
         }
+    }
+}
+
+# It is built-in to 'ForwardChar' to accept the whole suggestion text when the cursor is
+# already at the end of the current editing line.
+# This is a custom binding to make 'RightArrow' behave like 'ForwardChar' but accept the
+# next word of the suggestion text when the cursor is at the end of the editing line.
+Set-PSReadLineKeyHandler -Key RightArrow `
+                         -BriefDescription ForwardCharAndAcceptNextSuggestionWord `
+                         -LongDescription "Move cursor one character to the right in the current editing line and accept the next word in suggestion when it's at the end of current editing line" `
+                         -ScriptBlock {
+    param($key, $arg)
+
+    $line = $null
+    $cursor = $null
+    [Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$line, [ref]$cursor)
+
+    if ($cursor -lt $line.Length) {
+        [Microsoft.PowerShell.PSConsoleReadLine]::ForwardChar($key, $arg)
+    } else {
+        [Microsoft.PowerShell.PSConsoleReadLine]::AcceptNextSuggestionWord($key, $arg)
     }
 }
