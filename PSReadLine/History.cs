@@ -257,12 +257,12 @@ namespace Microsoft.PowerShell
                 i -= 1;
             }
 
-            WriteHistoryRange(i + 1, _history.Count - 1, File.AppendText);
+            WriteHistoryRange(i + 1, _history.Count - 1, overwritten: false);
         }
 
         private void SaveHistoryAtExit()
         {
-            WriteHistoryRange(0, _history.Count - 1, File.CreateText);
+            WriteHistoryRange(0, _history.Count - 1, overwritten: true);
         }
 
         private int historyErrorReportedCount;
@@ -321,18 +321,18 @@ namespace Microsoft.PowerShell
             return true;
         }
 
-        private void WriteHistoryRange(int start, int end, Func<string, StreamWriter> fileOpener)
+        private void WriteHistoryRange(int start, int end, bool overwritten)
         {
             WithHistoryFileMutexDo(100, () =>
             {
-                if (!MaybeReadHistoryFile())
-                    return;
-
                 bool retry = true;
+                // Get the new content since the last sync.
+                List<string> historyLines = overwritten ? null : ReadHistoryFileIncrementally();
+
                 retry_after_creating_directory:
                 try
                 {
-                    using (var file = fileOpener(Options.HistorySavePath))
+                    using (var file = overwritten ? File.CreateText(Options.HistorySavePath) : File.AppendText(Options.HistorySavePath))
                     {
                         for (var i = start; i <= end; i++)
                         {
@@ -359,7 +359,47 @@ namespace Microsoft.PowerShell
                         goto retry_after_creating_directory;
                     }
                 }
+                finally
+                {
+                    if (historyLines != null)
+                    {
+                        // Update the history queue with the new content from the file after we are done
+                        // writing the specified range to the file.
+                        // This update will change the history queue. We do it at this point to make sure
+                        // the range of history items from 'start' to 'end' don't get changed before the
+                        // writing to the file.
+                        UpdateHistoryFromFile(historyLines, fromDifferentSession: true, fromInitialRead: false);
+                    }
+                }
             });
+        }
+
+        /// <summary>
+        /// Helper method to read the incremental part of the history file.
+        /// Note: the call to this method should be guarded by the mutex that protects the history file.
+        /// </summary>
+        private List<string> ReadHistoryFileIncrementally()
+        {
+            var fileInfo = new FileInfo(Options.HistorySavePath);
+            if (fileInfo.Exists && fileInfo.Length != _historyFileLastSavedSize)
+            {
+                var historyLines = new List<string>();
+                using (var fs = new FileStream(Options.HistorySavePath, FileMode.Open))
+                using (var sr = new StreamReader(fs))
+                {
+                    fs.Seek(_historyFileLastSavedSize, SeekOrigin.Begin);
+
+                    while (!sr.EndOfStream)
+                    {
+                        historyLines.Add(sr.ReadLine());
+                    }
+                }
+
+                _historyFileLastSavedSize = fileInfo.Length;
+                return historyLines.Count > 0 ? historyLines : null;
+            }
+
+            return null;
         }
 
         private bool MaybeReadHistoryFile()
@@ -368,23 +408,10 @@ namespace Microsoft.PowerShell
             {
                 return WithHistoryFileMutexDo(1000, () =>
                 {
-                    var fileInfo = new FileInfo(Options.HistorySavePath);
-                    if (fileInfo.Exists && fileInfo.Length != _historyFileLastSavedSize)
+                    List<string> historyLines = ReadHistoryFileIncrementally();
+                    if (historyLines != null)
                     {
-                        var historyLines = new List<string>();
-                        using (var fs = new FileStream(Options.HistorySavePath, FileMode.Open))
-                        using (var sr = new StreamReader(fs))
-                        {
-                            fs.Seek(_historyFileLastSavedSize, SeekOrigin.Begin);
-
-                            while (!sr.EndOfStream)
-                            {
-                                historyLines.Add(sr.ReadLine());
-                            }
-                        }
                         UpdateHistoryFromFile(historyLines, fromDifferentSession: true, fromInitialRead: false);
-
-                        _historyFileLastSavedSize = fileInfo.Length;
                     }
                 });
             }

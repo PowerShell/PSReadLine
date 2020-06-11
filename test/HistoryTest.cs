@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using System.Management.Automation;
+using System.Reflection;
 using Microsoft.PowerShell;
 using Xunit;
 
@@ -31,6 +32,60 @@ namespace Test
 
             Test("dir c*", Keys(_.UpArrow, _.UpArrow));
             Test("dir c*", Keys(_.UpArrow, _.UpArrow, _.DownArrow));
+        }
+
+        [SkippableFact]
+        public void ParallelHistorySaving()
+        {
+            TestSetup(KeyMode.Cmd);
+
+            string historySavingFile = Path.GetTempFileName();
+            var options = new SetPSReadLineOption {
+                HistorySaveStyle = HistorySaveStyle.SaveIncrementally,
+                MaximumHistoryCount = 3,
+            };
+
+            typeof(SetPSReadLineOption)
+                .GetField("_historySavePath", BindingFlags.Instance | BindingFlags.NonPublic)
+                .SetValue(options, historySavingFile);
+
+            PSConsoleReadLine.SetOptions(options);
+
+            // Set the initial history items.
+            string[] initialHistoryItems = new[] { "gcm help", "dir ~" };
+            SetHistory(initialHistoryItems);
+
+            // The initial history items should be saved to file.
+            string[] text = File.ReadAllLines(historySavingFile);
+            Assert.Equal(initialHistoryItems.Length, text.Length);
+            for (int i = 0; i < text.Length; i++)
+            {
+                Assert.Equal(initialHistoryItems[i], text[i]);
+            }
+
+            // Add another line to the file to mimic the new history saving from a different session.
+            using (var file = File.AppendText(historySavingFile))
+            {
+                file.WriteLine("cd Downloads");
+            }
+
+            PSConsoleReadLine.AddToHistory("cd Documents");
+
+            string[] expectedSavedLines = new[] { "gcm help", "dir ~", "cd Downloads", "cd Documents" };
+            text = File.ReadAllLines(historySavingFile);
+            Assert.Equal(expectedSavedLines.Length, text.Length);
+            for (int i = 0; i < text.Length; i++)
+            {
+                Assert.Equal(expectedSavedLines[i], text[i]);
+            }
+
+            string[] expectedHistoryItems = new[] { "dir ~", "cd Documents", "cd Downloads" };
+            var historyItems = PSConsoleReadLine.GetHistoryItems();
+            Assert.Equal(expectedHistoryItems.Length, historyItems.Length);
+            for (int i = 0; i < historyItems.Length; i++)
+            {
+                Assert.Equal(expectedHistoryItems[i], historyItems[i].CommandLine);
+            }
         }
 
         [SkippableFact]
