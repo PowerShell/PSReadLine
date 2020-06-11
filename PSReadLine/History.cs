@@ -329,45 +329,47 @@ namespace Microsoft.PowerShell
                 // Get the new content since the last sync.
                 List<string> historyLines = overwritten ? null : ReadHistoryFileIncrementally();
 
-                retry_after_creating_directory:
                 try
                 {
-                    using (var file = overwritten ? File.CreateText(Options.HistorySavePath) : File.AppendText(Options.HistorySavePath))
+                    retry_after_creating_directory:
+                    try
                     {
-                        for (var i = start; i <= end; i++)
+                        using (var file = overwritten ? File.CreateText(Options.HistorySavePath) : File.AppendText(Options.HistorySavePath))
                         {
-                            HistoryItem item = _history[i];
-                            item._saved = true;
+                            for (var i = start; i <= end; i++)
+                            {
+                                HistoryItem item = _history[i];
+                                item._saved = true;
 
-                            // Actually, skip writing sensitive items to file.
-                            if (item._sensitive) { continue; }
+                                // Actually, skip writing sensitive items to file.
+                                if (item._sensitive) { continue; }
 
-                            var line = item.CommandLine.Replace("\n", "`\n");
-                            file.WriteLine(line);
+                                var line = item.CommandLine.Replace("\n", "`\n");
+                                file.WriteLine(line);
+                            }
                         }
+                        var fileInfo = new FileInfo(Options.HistorySavePath);
+                        _historyFileLastSavedSize = fileInfo.Length;
                     }
-                    var fileInfo = new FileInfo(Options.HistorySavePath);
-                    _historyFileLastSavedSize = fileInfo.Length;
-                }
-                catch (DirectoryNotFoundException)
-                {
-                    // Try making the directory, but just once
-                    if (retry)
+                    catch (DirectoryNotFoundException)
                     {
-                        retry = false;
-                        Directory.CreateDirectory(Path.GetDirectoryName(Options.HistorySavePath));
-                        goto retry_after_creating_directory;
+                        // Try making the directory, but just once
+                        if (retry)
+                        {
+                            retry = false;
+                            Directory.CreateDirectory(Path.GetDirectoryName(Options.HistorySavePath));
+                            goto retry_after_creating_directory;
+                        }
                     }
                 }
                 finally
                 {
                     if (historyLines != null)
                     {
-                        // Update the history queue with the new content from the file after we are done
-                        // writing the specified range to the file.
-                        // This update will change the history queue. We do it at this point to make sure
-                        // the range of history items from 'start' to 'end' don't get changed before the
-                        // writing to the file.
+                        // Populate new history from other sessions to the history queue after we are done
+                        // with writing the specified range to the file.
+                        // We do it at this point to make sure the range of history items from 'start' to
+                        // 'end' do not get changed before the writing to the file.
                         UpdateHistoryFromFile(historyLines, fromDifferentSession: true, fromInitialRead: false);
                     }
                 }
