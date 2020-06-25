@@ -44,6 +44,8 @@ namespace Microsoft.PowerShell
 
         private static readonly CancellationToken _defaultCancellationToken = new CancellationTokenSource().Token;
 
+        private static Action _handleIdleOverride;
+
         private bool _delayedOneTimeInitCompleted;
 
         private IPSConsoleReadLineMockableMethods _mockableMethods;
@@ -201,6 +203,12 @@ namespace Microsoft.PowerShell
                     handleId = WaitHandle.WaitAny(_singleton._requestKeyWaitHandles, 300);
                     if (handleId != WaitHandle.WaitTimeout && handleId != EventProcessingRequested)
                         break;
+
+                    if (_handleIdleOverride != null)
+                    {
+                        _handleIdleOverride();
+                        continue;
+                    }
 
                     // If we timed out, check for event subscribers (which is just
                     // a hint that there might be an event waiting to be processed.)
