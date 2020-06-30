@@ -122,7 +122,7 @@ namespace Microsoft.PowerShell
 
         private void ForceRender()
         {
-            var defaultColor = VTColorUtils.MapColorToEscapeSequence(_console.ForegroundColor, isBackground: false);
+            var defaultColor = "\x1b[39;49m";
 
             // Geneate a sequence of logical lines with escape sequences for coloring.
             int logicalLineCount = GenerateRender(defaultColor);
