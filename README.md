@@ -30,7 +30,7 @@ It provides:
 
 The "out of box" experience is meant to be very familiar to PowerShell users - there should be no need to learn any new key strokes.
 
-Keith Hill wrote a great introduction to `PSReadLine` [here](http://rkeithhill.wordpress.com/2013/10/18/psreadline-a-better-line-editing-experience-for-the-powershell-console/).
+Keith Hill wrote a great introduction to `PSReadLine` [here](https://rkeithhill.wordpress.com/2013/10/18/psreadline-a-better-line-editing-experience-for-the-powershell-console/).
 
 Ed Wilson (Scripting Guy) wrote a series on `PSReadLine`, starting [here](http://blogs.technet.com/b/heyscriptingguy/archive/2014/06/16/the-search-for-a-better-powershell-console-experience.aspx).
 
