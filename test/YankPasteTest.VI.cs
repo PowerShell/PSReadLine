@@ -379,13 +379,13 @@ namespace Test
 
             Test("012", Keys(
                 "012", _.Escape,
-                "y", _.Uphat, "P", CheckThat(() => AssertLineIs("01012")), CheckThat(() => AssertCursorLeftIs(3)),
+                "y", _.Uphat, "P", CheckThat(() => AssertLineIs("01012")), CheckThat(() => AssertCursorLeftIs(1)),
                 "u"
                 ));
 
             Test(" 123  ", Keys(
                 " 123  ", _.Escape,
-                "y", _.Uphat, "P", CheckThat(() => AssertLineIs(" 123 123  ")), CheckThat(() => AssertCursorLeftIs(8)),
+                "y", _.Uphat, "P", CheckThat(() => AssertLineIs(" 123 123  ")), CheckThat(() => AssertCursorLeftIs(4)),
                 "u"
                 ));
         }

@@ -265,20 +265,12 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void ViYankToFirstChar(ConsoleKeyInfo? key = null, object arg = null)
         {
-            int start = 0;
-            while (_singleton.IsWhiteSpace(start))
-            {
-                start++;
-            }
-            if (start == _singleton._current)
-            {
-                return;
-            }
-
-            int length = _singleton._current - start;
+            var start = GetFirstNonBlankOfLogicalLinePos(_singleton._current);
+            var length = _singleton._current - start;
             if (length > 0)
             {
-                _singleton.SaveToClipboard(start, length);
+                _clipboard.Record(_singleton._buffer, start, length);
+                _singleton.MoveCursor(start);
             }
         }
 
