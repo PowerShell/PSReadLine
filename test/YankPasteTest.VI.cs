@@ -1,4 +1,4 @@
-﻿using Microsoft.PowerShell;
+using Microsoft.PowerShell;
 using Xunit;
 
 namespace Test
@@ -547,6 +547,23 @@ namespace Test
                 _.DQuote, _.Escape,
                 _.k, _.k,
                 "2dd", 'P', 'p', CheckThat(() => AssertCursorLeftTopIs(continuationPrefixLength + 0, 2))
+                ));
+        }
+
+        [SkippableFact]
+        public void ViDeleteAndPasteLogicalLines_Underbar()
+        {
+            TestSetup(KeyMode.Vi);
+
+            var continuationPrefixLength = PSConsoleReadLineOptions.DefaultContinuationPrompt.Length;
+
+            Test("\"\nline1\nline1\nline2\nline2\n\"", Keys(
+                _.DQuote, _.Enter,
+                "line1", _.Enter,
+                "line2", _.Enter,
+                _.DQuote, _.Escape,
+                _.k, _.k,
+                "2d", _.Underbar, 'P', 'p', CheckThat(() => AssertCursorLeftTopIs(continuationPrefixLength + 0, 2))
                 ));
         }
 
