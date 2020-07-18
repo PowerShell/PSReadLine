@@ -94,6 +94,16 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
+        /// Returns the position of the end of the logical line
+        /// for the 0-based specified line number.
+        /// </summary>
+        private static int GetEndOfNthLogicalLinePos(int lineIndex)
+        {
+            return GetEndOfLogicalLinePos(
+                GetBeginningOfNthLinePos(lineIndex));
+        }
+
+        /// <summary>
         /// Returns the position of the first non whitespace character in
         /// the current logical line as specified by the "current" position.
         /// </summary>

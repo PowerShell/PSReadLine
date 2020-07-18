@@ -220,16 +220,43 @@ namespace Microsoft.PowerShell
                 return;
             }
 
-            _clipboard.Record(_singleton._buffer, _singleton._current, _singleton._buffer.Length - _singleton._current);
-            _singleton.SaveEditItem(EditItemDelete.Create(
-                _clipboard,
-                _singleton._current,
-                DeleteToEnd,
-                arg
-                ));
-            _singleton._buffer.Remove(_singleton._current, _singleton._buffer.Length - _singleton._current);
-            _singleton._current = Math.Max(0, _singleton._buffer.Length - 1);
-            _singleton.Render();
+            var lineCount = _singleton.GetLogicalLineCount();
+            var lineIndex = _singleton.GetLogicalLineNumber() - 1;
+
+            if (TryGetArgAsInt(arg, out var requestedLineCount, 1))
+            {
+                var targetLineIndex = lineIndex + requestedLineCount - 1;
+                if (targetLineIndex >= lineCount)
+                {
+                    targetLineIndex = lineCount - 1;
+                }
+
+                var startPosition = _singleton._current;
+                var endPosition = GetEndOfNthLogicalLinePos(targetLineIndex);
+
+                var length = endPosition - startPosition + 1;
+                if (length > 0)
+                {
+                    _clipboard.Record(_singleton._buffer, startPosition, length);
+                    _singleton.SaveEditItem(EditItemDelete.Create(
+                        _clipboard,
+                        _singleton._current,
+                        DeleteToEnd,
+                        arg));
+
+                    _singleton._buffer.Remove(_singleton._current, length);
+
+                    // the cursor will go back one character, unless at the beginning of the line
+                    var endOfLineCursorPos = GetEndOfLogicalLinePos(_singleton._current) - 1;
+                    var beginningOfLinePos = GetBeginningOfLinePos(_singleton._current);
+
+                    _singleton._current = Math.Max(
+                        beginningOfLinePos,
+                        Math.Min(_singleton._current, endOfLineCursorPos));
+
+                    _singleton.Render();
+                }
+            }
         }
 
         /// <summary>
