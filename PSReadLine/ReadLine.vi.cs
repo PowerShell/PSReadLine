@@ -817,6 +817,17 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
+        /// Deletes the current and next n logical lines.
+        /// </summary>
+        private static void DeleteNextLines(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            if (TryGetArgAsInt(arg, out int requestedLineCount, 1))
+            {
+                DeleteLine(key, requestedLineCount + 1);
+            }
+        }
+
+        /// <summary>
         /// Deletes the previous word.
         /// </summary>
         public static void BackwardDeleteWord(ConsoleKeyInfo? key = null, object arg = null)

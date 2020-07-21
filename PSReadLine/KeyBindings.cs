@@ -402,6 +402,7 @@ namespace Microsoft.PowerShell
             case nameof(DeleteEndOfWord):
             case nameof(DeleteLine):
             case nameof(DeleteLineToFirstChar):
+            case nameof(DeleteNextLines):
             case nameof(DeleteToEnd):
             case nameof(DeleteWord):
             case nameof(ForwardDeleteLine):
