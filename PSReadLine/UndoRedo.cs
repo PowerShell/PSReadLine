@@ -237,13 +237,11 @@ namespace Microsoft.PowerShell
 
             public static EditItem Create(string str, int position, Action<ConsoleKeyInfo?, object> instigator = null, object instigatorArg = null)
             {
-                return new EditItemDelete
-                (
+                return new EditItemDelete(
                     str,
                     position,
                     instigator,
-                    instigatorArg
-                );
+                    instigatorArg);
             }
 
             public override void Undo()
@@ -262,6 +260,9 @@ namespace Microsoft.PowerShell
         [DebuggerDisplay("DeleteLines '{_deletedString}' ({_deleteStartPosition}, Anchor: {_deleteAnchor})")]
         class EditItemDeleteLines : EditItemDelete
         {
+            // in linewise deletes, the _deleteAnchor represents the position
+            // of the cursor at the time delete was invoked. This is recorded
+            // so as to be restored when undoing the delete.
             private readonly int _deleteAnchor;
 
             private EditItemDeleteLines(string str, int position, int anchor, Action<ConsoleKeyInfo?, object> instigator, object instigatorArg)

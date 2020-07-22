@@ -732,14 +732,12 @@ namespace Microsoft.PowerShell
                 var deletePosition = DeleteLineImpl(lineIndex, requestedLineCount);
 
                 // goto the first character of the first remaining logical line
-
                 var newCurrent = deletePosition + 1;
 
                 if (lineIndex + requestedLineCount >= lineCount)
                 {
                     // if the delete operation has removed all the remaining lines
                     // goto the first character of the previous logical line 
-
                     newCurrent = GetBeginningOfLinePos(deletePosition);
                 }
 
@@ -766,19 +764,20 @@ namespace Microsoft.PowerShell
         {
             var range = _singleton._buffer.GetRange(lineIndex, lineCount);
 
-            _clipboard.LinewiseRecord(_singleton._buffer.ToString(range.Offset, range.Count));
-
             var deleteText = _singleton._buffer.ToString(range.Offset, range.Count);
+
+            _clipboard.LinewiseRecord(deleteText);
+
             var deletePosition = range.Offset;
             var anchor = _singleton._current;
 
             _singleton._buffer.Remove(range.Offset, range.Count);
 
-            _singleton.SaveEditItem(EditItemDeleteLines.Create(
-                deleteText,
-                deletePosition,
-                anchor
-            ));
+            _singleton.SaveEditItem(
+                EditItemDeleteLines.Create(
+                    deleteText,
+                    deletePosition,
+                    anchor));
 
             return deletePosition;
         }

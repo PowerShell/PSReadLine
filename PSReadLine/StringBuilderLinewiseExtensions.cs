@@ -5,8 +5,13 @@ namespace Microsoft.PowerShell
 {
     public class Range
     {
-        public int Offset { get; set; }
-        public int Count { get; set; }
+        public Range(int offset, int count)
+        {
+            Offset = offset;
+            Count = count;
+        }
+        public int Offset { get; }
+        public int Count { get; }
     }
 
     public static class StringBuilderLinewiseExtensions
@@ -33,7 +38,6 @@ namespace Microsoft.PowerShell
             var startPositionIdentified = false;
 
             var endPosition = length - 1;
-            var endPositionIdentified = false;
 
             var currentLine = 0;
 
@@ -47,27 +51,26 @@ namespace Microsoft.PowerShell
             {
                 if (buffer[position] == '\n')
                 {
-                    if (currentLine + 1 == lineIndex && !startPositionIdentified)
+                    currentLine++;
+
+                    if (!startPositionIdentified && currentLine == lineIndex)
                     {
                         startPosition = position;
                         startPositionIdentified = true;
                     }
 
-                    currentLine++;
-
-                    if (currentLine == lineIndex + lineCount && !endPositionIdentified)
+                    if (currentLine == lineIndex + lineCount)
                     {
                         endPosition = position - 1;
-                        endPositionIdentified = true;
+                        break;
                     }
                 }
             }
 
-            return new Range
-            {
-                Offset = startPosition,
-                Count = endPosition - startPosition + 1,
-            };
+            return new Range(
+                startPosition,
+                endPosition - startPosition + 1
+                );
         }
     }
 }
