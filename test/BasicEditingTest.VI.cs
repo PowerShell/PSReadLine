@@ -470,6 +470,27 @@ namespace Test
         }
 
         [SkippableFact]
+        public void ViDeleteToEndOfBuffer()
+        {
+            TestSetup(KeyMode.Vi);
+
+            Test("\"-\"", Keys(
+                _.DQuote, "-", _.Enter,
+                "one", _.Enter,
+                "two", _.Enter,
+                "three", _.Enter,
+                _.DQuote, _.Escape,
+                "kkkl", // go to the 'ne' portion of "one"
+                // delete to the end of the next line
+                "dG",
+                CheckThat(() => AssertCursorLeftIs(0)),
+                // terminate the buffer
+                _.A, _.DQuote
+                ));
+        }
+
+
+        [SkippableFact]
         public void ViGlobDelete()
         {
             TestSetup(KeyMode.Vi);

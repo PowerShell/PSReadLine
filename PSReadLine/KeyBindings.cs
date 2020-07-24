@@ -398,6 +398,7 @@ namespace Microsoft.PowerShell
             case nameof(Cut):
             case nameof(DeleteChar):
             case nameof(DeleteCharOrExit):
+            case nameof(DeleteEndOfBuffer):
             case nameof(DeleteEndOfWord):
             case nameof(DeleteLine):
             case nameof(DeleteLineToFirstChar):

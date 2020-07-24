@@ -798,4 +798,7 @@ Or not saving history with:
   <data name="PredictiveSuggestionNotSupported" xml:space="preserve">
     <value>The predictive suggestion feature cannot be enabled because the console output doesn't support virtual terminal processing or it's redirected.</value>
   </data>
+  <data name="DeleteEndOfBufferDescription" xml:space="preserve">
+    <value>Delete the current logical line and up to the end of the multiline buffer</value>
+  </data>
 </root>
