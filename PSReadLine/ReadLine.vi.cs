@@ -828,6 +828,28 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
+        /// Deletes from the previous n logical lines to the current logical line included.
+        /// </summary>
+        private static void DeletePreviousLines(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            if (TryGetArgAsInt(arg, out int requestedLineCount, 1))
+            {
+                var currentLineIndex = _singleton.GetLogicalLineNumber() - 1;
+                var startLineIndex = Math.Max(0, currentLineIndex - requestedLineCount);
+
+                DeleteLineImpl(startLineIndex, currentLineIndex - startLineIndex + 1);
+
+                // go the beginning of the line at index 'startLineIndex'
+                // or at the beginning of the last line
+                startLineIndex = Math.Min(startLineIndex, _singleton.GetLogicalLineCount() - 1);
+                var newCurrent = GetBeginningOfNthLinePos(startLineIndex);
+
+                _singleton._current = newCurrent;
+                _singleton.Render();
+            }
+        }
+
+        /// <summary>
         /// Deletes the previous word.
         /// </summary>
         public static void BackwardDeleteWord(ConsoleKeyInfo? key = null, object arg = null)

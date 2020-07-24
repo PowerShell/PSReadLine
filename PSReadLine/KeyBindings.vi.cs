@@ -230,6 +230,7 @@ namespace Microsoft.PowerShell
                 { Keys.ucE,             MakeKeyHandler( ViDeleteEndOfGlob,            "ViDeleteEndOfGlob") },
                 { Keys.H,               MakeKeyHandler( BackwardDeleteChar,           "BackwardDeleteChar") },
                 { Keys.J,               MakeKeyHandler( DeleteNextLines,              "DeleteNextLines") },
+                { Keys.K,               MakeKeyHandler( DeletePreviousLines,          "DeletePreviousLines") },
                 { Keys.L,               MakeKeyHandler( DeleteChar,                   "DeleteChar") },
                 { Keys.Space,           MakeKeyHandler( DeleteChar,                   "DeleteChar") },
                 { Keys._0,              MakeKeyHandler( BackwardDeleteLine,           "BackwardDeleteLine") },

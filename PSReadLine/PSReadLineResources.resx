@@ -805,6 +805,9 @@ Or not saving history with:
   <data name="DeleteEndOfBufferDescription" xml:space="preserve">
     <value>Delete the current logical line and up to the end of the multiline buffer</value>
   </data>
+  <data name="DeletePreviousLinesDescription" xml:space="preserve">
+    <value>Deletes from the previous n logical lines in a multiline buffer to the current logical line included.</value>
+  </data>
   <data name="DeleteNextLinesDescription" xml:space="preserve">
     <value>Deletes the current and next n logical lines in a multiline buffer</value>
   </data>

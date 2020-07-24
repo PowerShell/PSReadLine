@@ -490,6 +490,46 @@ namespace Test
         }
 
         [SkippableFact]
+        public void ViDeletePreviousLines()
+        {
+            TestSetup(KeyMode.Vi);
+
+            int continuationPrefixLength = PSConsoleReadLineOptions.DefaultContinuationPrompt.Length;
+
+            Test("\"\n\"", Keys(
+                 _.DQuote, _.Enter,
+                 "one", _.Enter,
+                 "two", _.Enter,
+                 "three", _.Enter,
+                 _.DQuote, _.Escape,
+                 "kl", // go to the 'hree' portion of "three"
+                 "2dk", CheckThat(() => AssertCursorLeftIs(continuationPrefixLength + 0))
+                ));
+        }
+
+        [SkippableFact]
+        public void ViDeletePreviousLines_LastLine()
+        {
+            TestSetup(KeyMode.Vi);
+
+            int continuationPrefixLength = PSConsoleReadLineOptions.DefaultContinuationPrompt.Length;
+
+            Test("\"\none\ntwo\n\"", Keys(
+                 _.DQuote, _.Enter,
+                 "one", _.Enter,
+                 "two", _.Enter,
+                 "three", _.Enter,
+                 _.DQuote, _.Escape,
+                 "dk",
+                 CheckThat(() => AssertCursorLeftIs(continuationPrefixLength + 0)),
+                 CheckThat(() => AssertCursorTopIs(2)),
+                 CheckThat(() => AssertLineIs("\"\none\ntwo")),
+                 // finish the buffer to close the multiline string
+                 _.A, _.Enter, _.DQuote, _.Escape
+                ));
+        }
+
+        [SkippableFact]
         public void ViDeleteToEnd()
         {
             TestSetup(KeyMode.Vi);
