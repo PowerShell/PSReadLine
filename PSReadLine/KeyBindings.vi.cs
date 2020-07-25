@@ -226,6 +226,7 @@ namespace Microsoft.PowerShell
                 { Keys.W,               MakeKeyHandler( DeleteWord,                   "DeleteWord") },
                 { Keys.ucW,             MakeKeyHandler( ViDeleteGlob,                 "ViDeleteGlob") },
                 { Keys.E,               MakeKeyHandler( DeleteEndOfWord,              "DeleteEndOfWord") },
+                { Keys.ucG,             MakeKeyHandler( DeleteEndOfBuffer,            "DeleteEndOfBuffer") },
                 { Keys.ucE,             MakeKeyHandler( ViDeleteEndOfGlob,            "ViDeleteEndOfGlob") },
                 { Keys.H,               MakeKeyHandler( BackwardDeleteChar,           "BackwardDeleteChar") },
                 { Keys.L,               MakeKeyHandler( DeleteChar,                   "DeleteChar") },

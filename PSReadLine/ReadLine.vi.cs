@@ -783,6 +783,24 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
+        /// Deletes from the current logical line to the end of the buffer.
+        /// </summary>
+        public static void DeleteEndOfBuffer(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            var lineIndex = _singleton.GetLogicalLineNumber() - 1;
+            var lineCount = _singleton.GetLogicalLineCount() - lineIndex;
+
+            DeleteLineImpl(lineIndex, lineCount);
+
+            // move the cursor to the beginning of the previous line
+            var previousLineIndex = Math.Max(0, lineIndex - 1);
+            var newPosition = GetBeginningOfNthLinePos(previousLineIndex);
+
+            _singleton._current = newPosition;
+            _singleton.Render();
+        }
+
+        /// <summary>
         /// Deletes the previous word.
         /// </summary>
         public static void BackwardDeleteWord(ConsoleKeyInfo? key = null, object arg = null)
