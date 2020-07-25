@@ -219,6 +219,7 @@ namespace Microsoft.PowerShell
             _viChordDTable = new Dictionary<PSKeyInfo, KeyHandler>
             {
                 { Keys.D,               MakeKeyHandler( DeleteLine,                   "DeleteLine") },
+                { Keys.Underbar,        MakeKeyHandler( DeleteLine,                   "DeleteLine") },
                 { Keys.Dollar,          MakeKeyHandler( DeleteToEnd,                  "DeleteToEnd") },
                 { Keys.B,               MakeKeyHandler( BackwardDeleteWord,           "BackwardDeleteWord") },
                 { Keys.ucB,             MakeKeyHandler( ViBackwardDeleteGlob,         "ViBackwardDeleteGlob") },

@@ -342,6 +342,12 @@ namespace Test
                 "u"
                 ));
 
+            Test(" 123  ", Keys(
+                " 123  ", _.Escape,
+                "y0P", CheckThat(() => AssertLineIs(" 123  123  ")), CheckThat(() => AssertCursorLeftIs(4)),
+                "u"
+                ));
+
             Test("\"\nHello\n World!\n\"", Keys(
                 _.DQuote, _.Enter,
                 "Hello", _.Enter,
@@ -524,6 +530,54 @@ namespace Test
                 "yy",
                 _.j, // move to last line
                 'P'
+                ));
+        }
+
+        [SkippableFact]
+        public void ViDeleteAndPasteLogicalLines()
+        {
+            TestSetup(KeyMode.Vi);
+
+            var continuationPrefixLength = PSConsoleReadLineOptions.DefaultContinuationPrompt.Length;
+
+            Test("\"\nline1\nline1\nline2\nline2\n\"", Keys(
+                _.DQuote, _.Enter,
+                "line1", _.Enter,
+                "line2", _.Enter,
+                _.DQuote, _.Escape,
+                _.k, _.k,
+                "2dd", 'P', 'p', CheckThat(() => AssertCursorLeftTopIs(continuationPrefixLength + 0, 2))
+                ));
+        }
+
+        [SkippableFact]
+        public void ViDeleteAndPasteLogicalLines_Underbar()
+        {
+            TestSetup(KeyMode.Vi);
+
+            var continuationPrefixLength = PSConsoleReadLineOptions.DefaultContinuationPrompt.Length;
+
+            Test("\"\nline1\nline1\nline2\nline2\n\"", Keys(
+                _.DQuote, _.Enter,
+                "line1", _.Enter,
+                "line2", _.Enter,
+                _.DQuote, _.Escape,
+                _.k, _.k,
+                "2d", _.Underbar, 'P', 'p', CheckThat(() => AssertCursorLeftTopIs(continuationPrefixLength + 0, 2))
+                ));
+        }
+
+        [SkippableFact]
+        public void ViDeleteAndPasteLogicalLines_EmptyBuffer()
+        {
+            TestSetup(KeyMode.Vi);
+
+            Test("\"\nline1\"\n", Keys(
+                _.DQuote, _.Enter,
+                "line1", _.DQuote, 
+                _.Escape,
+                _.k, 
+                "2dd", 'P', CheckThat(() => AssertCursorLeftTopIs(0, 0))
                 ));
         }
     }
