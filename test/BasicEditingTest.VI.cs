@@ -489,7 +489,6 @@ namespace Test
                 ));
         }
 
-
         [SkippableFact]
         public void ViGlobDelete()
         {
