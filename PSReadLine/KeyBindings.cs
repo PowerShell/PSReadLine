@@ -400,6 +400,7 @@ namespace Microsoft.PowerShell
             case nameof(DeleteCharOrExit):
             case nameof(DeleteEndOfBuffer):
             case nameof(DeleteEndOfWord):
+            case nameof(DeleteRelativeLines):
             case nameof(DeleteLine):
             case nameof(DeleteLineToFirstChar):
             case nameof(DeleteNextLines):

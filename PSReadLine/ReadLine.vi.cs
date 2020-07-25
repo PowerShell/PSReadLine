@@ -850,6 +850,28 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
+        /// Delete from the current logical line to the n-th requested logical line in a multiline buffer
+        /// </summary>
+        private static void DeleteRelativeLines(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            if (TryGetArgAsInt(arg, out var requestedLineNumber, 1))
+            {
+                var currentLineIndex = _singleton.GetLogicalLineNumber() - 1;
+                var requestedLineIndex = Math.Max(requestedLineNumber, _singleton.GetStatusLineCount()) - 1;
+
+                var requestedLineCount = requestedLineIndex - currentLineIndex;
+                if (requestedLineCount < 0)
+                {
+                    DeletePreviousLines(null, -requestedLineCount);
+                }
+                else
+                {
+                    DeleteNextLines(null, requestedLineCount);
+                }
+            }
+        }
+
+        /// <summary>
         /// Deletes the previous word.
         /// </summary>
         public static void BackwardDeleteWord(ConsoleKeyInfo? key = null, object arg = null)
@@ -1106,39 +1128,54 @@ namespace Microsoft.PowerShell
 
             if (_singleton._chordDispatchTable.TryGetValue(PSKeyInfo.FromConsoleKeyInfo(key.Value), out var secondKeyDispatchTable))
             {
-                var secondKey = ReadKey();
-                if (secondKeyDispatchTable.TryGetValue(secondKey, out var handler))
+                ViChordHandler(secondKeyDispatchTable, arg);
+            }
+        }
+
+        private static void ViChordHandler(Dictionary<PSKeyInfo, KeyHandler> secondKeyDispatchTable, object arg = null)
+        {
+            var secondKey = ReadKey();
+            if (secondKeyDispatchTable.TryGetValue(secondKey, out var handler))
+            {
+                _singleton.ProcessOneKey(secondKey, secondKeyDispatchTable, ignoreIfNoAction: true, arg: arg);
+            }
+            else if (!IsNumeric(secondKey))
+            {
+                _singleton.ProcessOneKey(secondKey, secondKeyDispatchTable, ignoreIfNoAction: true, arg: arg);
+            }
+            else
+            {
+                var argBuffer = _singleton._statusBuffer;
+                argBuffer.Clear();
+                _singleton._statusLinePrompt = "digit-argument: ";
+                while (IsNumeric(secondKey))
                 {
-                    _singleton.ProcessOneKey(secondKey, secondKeyDispatchTable, ignoreIfNoAction: true, arg: arg);
+                    argBuffer.Append(secondKey.KeyChar);
+                    _singleton.Render();
+                    secondKey = ReadKey();
                 }
-                else if (!IsNumeric(secondKey))
+                int numericArg = int.Parse(argBuffer.ToString());
+                if (secondKeyDispatchTable.TryGetValue(secondKey, out handler))
                 {
-                    _singleton.ProcessOneKey(secondKey, secondKeyDispatchTable, ignoreIfNoAction: true, arg: arg);
+                    _singleton.ProcessOneKey(secondKey, secondKeyDispatchTable, ignoreIfNoAction: true, arg: numericArg);
                 }
                 else
                 {
-                    var argBuffer = _singleton._statusBuffer;
-                    argBuffer.Clear();
-                    _singleton._statusLinePrompt = "digit-argument: ";
-                    while (IsNumeric(secondKey))
-                    {
-                        argBuffer.Append(secondKey.KeyChar);
-                        _singleton.Render();
-                        secondKey = ReadKey();
-                    }
-                    int numericArg = int.Parse(argBuffer.ToString());
-                    if (secondKeyDispatchTable.TryGetValue(secondKey, out handler))
-                    {
-                        _singleton.ProcessOneKey(secondKey, secondKeyDispatchTable, ignoreIfNoAction: true, arg: numericArg);
-                    }
-                    else
-                    {
-                        Ding();
-                    }
-                    argBuffer.Clear();
-                    _singleton.ClearStatusMessage(render: true);
+                    Ding();
                 }
+                argBuffer.Clear();
+                _singleton.ClearStatusMessage(render: true);
             }
+        }
+
+        private static void ViDGChord(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            if (!key.HasValue)
+            {
+                throw new ArgumentNullException(nameof(key));
+            }
+
+            ViChordHandler(_viChordDGTable, arg);
         }
 
         private static bool IsNumeric(PSKeyInfo key)

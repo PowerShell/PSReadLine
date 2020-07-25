@@ -811,4 +811,7 @@ Or not saving history with:
   <data name="DeleteNextLinesDescription" xml:space="preserve">
     <value>Deletes the current and next n logical lines in a multiline buffer</value>
   </data>
+  <data name="DeleteRelativeLinesDescription" xml:space="preserve">
+    <value>Delete from the current logical line to the n-th requested logical line in a multiline buffer</value>
+  </data>
 </root>
