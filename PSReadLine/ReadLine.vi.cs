@@ -785,7 +785,7 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Deletes from the current logical line to the end of the buffer.
         /// </summary>
-        private static void DeleteEndOfBuffer(ConsoleKeyInfo? key = null, object arg = null)
+        public static void DeleteEndOfBuffer(ConsoleKeyInfo? key = null, object arg = null)
         {
             var lineIndex = _singleton.GetLogicalLineNumber() - 1;
             var lineCount = _singleton.GetLogicalLineCount() - lineIndex;
