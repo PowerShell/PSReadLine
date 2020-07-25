@@ -793,7 +793,6 @@ namespace Microsoft.PowerShell
             DeleteLineImpl(lineIndex, lineCount);
 
             // move the cursor to the beginning of the previous line
-
             var previousLineIndex = Math.Max(0, lineIndex - 1);
             var newPosition = GetBeginningOfNthLinePos(previousLineIndex);
 
