@@ -66,7 +66,7 @@ namespace Microsoft.PowerShell
         /// <param name="lineCount">The number of lines to record to the unnamed register</param>
         private void SaveLinesToClipboard(int lineIndex, int lineCount)
         {
-            var range = MultiLineBufferHelper.GetRange(_buffer, lineIndex, lineCount);
+            var range = _buffer.GetRange(lineIndex, lineCount);
             _clipboard.LinewiseRecord(_buffer.ToString(range.Offset, range.Count));
         }
 
