@@ -389,8 +389,11 @@
   </data>
   <data name="OopsAnErrorMessage1" xml:space="preserve">
     <value>
-Oops, something went wrong.  Please report this bug with the details below.
-Report on GitHub: https://github.com/PowerShell/PSReadLine/issues/new?template=Bug_Report.md</value>
+Oops, something went wrong.
+Please report this bug with ALL the details below, including both the 'Environment' and 'Exception' sections.
+Please report on GitHub: https://github.com/PowerShell/PSReadLine/issues/new?template=Bug_Report.md
+Thank you!
+</value>
   </data>
   <data name="OopsAnErrorMessage2" xml:space="preserve">
     <value>### Environment
@@ -399,6 +402,7 @@ PowerShell: {1}
 OS: {2}
 BufferWidth: {3}
 BufferHeight: {4}
+
 Last {5} Keys
 ```
 {6}

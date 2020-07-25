@@ -803,8 +803,10 @@ namespace Microsoft.PowerShell.PSReadLine {
         
         /// <summary>
         ///   Looks up a localized string similar to 
-        ///Oops, something went wrong.  Please report this bug with the details below.
-        ///Report on GitHub: https://github.com/PowerShell/PSReadLine/issues/new.
+        ///Oops, something went wrong.
+        ///Please report this bug with ALL the details below, including both the 'Environment' and 'Exception' sections.
+        ///Please report on GitHub: https://github.com/PowerShell/PSReadLine/issues/new?template=Bug_Report.md
+        ///Thank you!
         /// </summary>
         internal static string OopsAnErrorMessage1 {
             get {
@@ -813,20 +815,23 @@ namespace Microsoft.PowerShell.PSReadLine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ### Environment
+        ///   Looks up a localized string similar to
+        ///### Environment
         ///PSReadLine: {0}
         ///PowerShell: {1}
         ///OS: {2}
-        ///Last {3} Keys
+        ///BufferWidth: {3}
+        ///BufferHeight: {4}
+
+        ///Last {5} Keys
         ///```
-        ///{4}
+        ///{6}
         ///```
-        ///
+
         ///### Exception
         ///```
-        ///{5}
+        ///{7}
         ///```
-        ///.
         /// </summary>
         internal static string OopsAnErrorMessage2 {
             get {
