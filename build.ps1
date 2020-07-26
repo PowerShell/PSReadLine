@@ -26,7 +26,7 @@
 .PARAMETER Framework
     The target framework for the build.
     When not specified, the target framework is determined by the current PowerShell session:
-    - If the current session is PowerShell Core, then use 'netcoreapp2.1' as the default target framework.
+    - If the current session is PowerShell Core, then use 'netcoreapp3.1' as the default target framework.
     - If the current session is Windows PowerShell, then use 'net461' as the default target framework.
 #>
 [CmdletBinding()]
@@ -39,7 +39,7 @@ param(
     [ValidateSet("Debug", "Release")]
     [string] $Configuration = "Debug",
 
-    [ValidateSet("net461", "netcoreapp2.1")]
+    [ValidateSet("net461", "netcoreapp3.1")]
     [string] $Framework
 )
 
