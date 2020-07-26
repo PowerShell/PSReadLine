@@ -48,11 +48,13 @@ namespace Test
         {
             TestSetup(KeyMode.Vi);
 
+            var continuationPrefixLength = PSConsoleReadLineOptions.DefaultContinuationPrompt.Length;
+
             Test("abcd", Keys(
                 "abcd", _.Escape,
                 "dd", CheckThat(() => AssertLineIs("")), CheckThat(() => AssertCursorLeftIs(0)),
-                'p', CheckThat(() => AssertLineIs("abcd")), CheckThat(() => AssertCursorLeftIs(3)),
-                'P', CheckThat(() => AssertLineIs("abcabcdd")), CheckThat(() => AssertCursorLeftIs(6)),
+                'p', CheckThat(() => AssertLineIs("\nabcd")), CheckThat(() => AssertCursorLeftIs(continuationPrefixLength + 0)),
+                'P', CheckThat(() => AssertLineIs("\nabcd\nabcd")), CheckThat(() => AssertCursorLeftIs(continuationPrefixLength + 0)),
                 "uuu"
                 ));
 
@@ -204,12 +206,14 @@ namespace Test
         {
             TestSetup(KeyMode.Vi);
 
+            var continuationPrefixLength = PSConsoleReadLineOptions.DefaultContinuationPrompt.Length;
+
             Test("abc def", Keys(
                 "abc def", _.Escape,
                 "dd", CheckThat(() => AssertLineIs("")), CheckThat(() => AssertCursorLeftIs(0)),
-                'p', CheckThat(() => AssertLineIs("abc def")), CheckThat(() => AssertCursorLeftIs(6)),
+                'p', CheckThat(() => AssertLineIs("\nabc def")), CheckThat(() => AssertCursorLeftIs(continuationPrefixLength + 0)),
                 "dd", CheckThat(() => AssertLineIs("")), CheckThat(() => AssertCursorLeftIs(0)),
-                'P', CheckThat(() => AssertLineIs("abc def")), CheckThat(() => AssertCursorLeftIs(6)),
+                'P', CheckThat(() => AssertLineIs("abc def\n")), CheckThat(() => AssertCursorLeftIs(0)),
                 "uuuu"
                 ));
         }
