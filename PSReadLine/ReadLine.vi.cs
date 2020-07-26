@@ -753,19 +753,20 @@ namespace Microsoft.PowerShell
         {
             var range = _singleton._buffer.GetRange(lineIndex, lineCount);
 
-            _clipboard.LinewiseRecord(_singleton._buffer.ToString(range.Offset, range.Count));
-
             var deleteText = _singleton._buffer.ToString(range.Offset, range.Count);
+
+            _clipboard.LinewiseRecord(deleteText);
+
             var deletePosition = range.Offset;
             var anchor = _singleton._current;
 
             _singleton._buffer.Remove(range.Offset, range.Count);
 
-            _singleton.SaveEditItem(EditItemDeleteLines.Create(
-                deleteText,
-                deletePosition,
-                anchor
-            ));
+            _singleton.SaveEditItem(
+                EditItemDeleteLines.Create(
+                    deleteText,
+                    deletePosition,
+                    anchor));
 
             return deletePosition;
         }

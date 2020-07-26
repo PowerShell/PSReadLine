@@ -48,11 +48,13 @@ namespace Test
         {
             TestSetup(KeyMode.Vi);
 
+            var continuationPrefixLength = PSConsoleReadLineOptions.DefaultContinuationPrompt.Length;
+
             Test("abcd", Keys(
                 "abcd", _.Escape,
                 "dd", CheckThat(() => AssertLineIs("")), CheckThat(() => AssertCursorLeftIs(0)),
-                'p', CheckThat(() => AssertLineIs("\nabcd")), CheckThat(() => AssertCursorLeftIs(3)),
-                'P', CheckThat(() => AssertLineIs("\nabcd\nabcd")), CheckThat(() => AssertCursorLeftIs(3)),
+                'p', CheckThat(() => AssertLineIs("\nabcd")), CheckThat(() => AssertCursorLeftIs(continuationPrefixLength + 0)),
+                'P', CheckThat(() => AssertLineIs("\nabcd\nabcd")), CheckThat(() => AssertCursorLeftIs(continuationPrefixLength + 0)),
                 "uuu"
                 ));
 
