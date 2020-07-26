@@ -21,7 +21,7 @@ param(
     [ValidateSet("Debug", "Release")]
     [string]$Configuration = (property Configuration Release),
 
-    [ValidateSet("net461", "netcoreapp2.1")]
+    [ValidateSet("net461", "netcoreapp3.1")]
     [string]$Framework
 )
 
@@ -32,7 +32,7 @@ $targetDir = "bin/$Configuration/PSReadLine"
 
 if (-not $Framework)
 {
-    $Framework = if ($PSVersionTable.PSEdition -eq "Core") { "netcoreapp2.1" } else { "net461" }
+    $Framework = if ($PSVersionTable.PSEdition -eq "Core") { "netcoreapp3.1" } else { "net461" }
 }
 
 Write-Verbose "Building for '$Framework'" -Verbose
