@@ -1,3 +1,12 @@
+### Version 2.0.4
+
+Bug fixes:
+
+* Revert the update to the module 'HelpInfoURI'
+* Fix the env-data script and write buffer info in case of exception (#1482)
+* Improve the bug reporting message (#1698)
+* Update build to use .NET 3.1 for compliance (#1702)
+
 ### Version 2.0.3
 
 Bug fixes:
