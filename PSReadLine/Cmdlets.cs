@@ -15,6 +15,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.PowerShell.PSReadLine;
+using AllowNull = System.Management.Automation.AllowNullAttribute;
 
 namespace Microsoft.PowerShell
 {
@@ -577,7 +578,7 @@ namespace Microsoft.PowerShell
         internal SwitchParameter? _historyNoDuplicates;
 
         [Parameter]
-        [AllowNull]
+        [@AllowNull]
         public Func<string, object> AddToHistoryHandler
         {
             get => _addToHistoryHandler;
@@ -591,7 +592,7 @@ namespace Microsoft.PowerShell
         internal bool _addToHistoryHandlerSpecified;
 
         [Parameter]
-        [AllowNull]
+        [@AllowNull]
         public Action<CommandAst> CommandValidationHandler
         {
             get => _commandValidationHandler;
