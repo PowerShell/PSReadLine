@@ -490,6 +490,26 @@ namespace Test
         }
 
         [SkippableFact]
+        public void ViDeleteToEnd()
+        {
+            TestSetup(KeyMode.Vi);
+
+            int continuationPrefixLength = PSConsoleReadLineOptions.DefaultContinuationPrompt.Length;
+
+            Test("\"\no\nthree\n\"", Keys(
+                _.DQuote, _.Enter,
+                "one", _.Enter,
+                "two", _.Enter,
+                "three", _.Enter,
+                _.DQuote, _.Escape,
+                "kkkl", // go to the 'ne' portion of "one"
+                // delete to the end of the next line
+                "2d$",
+                CheckThat(() => AssertCursorLeftIs(continuationPrefixLength + 0))
+                ));
+        }
+
+        [SkippableFact]
         public void ViGlobDelete()
         {
             TestSetup(KeyMode.Vi);
