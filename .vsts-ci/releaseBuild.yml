@@ -61,6 +61,11 @@ jobs:
       Send-VstsCommand "vso[task.setvariable variable=Signed]$(Build.SourcesDirectory)\bin\Release\Signed"
     displayName: Bootstrap & Build
 
+  - template: templates/compliance.yml
+    parameters:
+      configuration: Release
+      framework: net461
+
   # Sign the module files
   - task: PkgESCodeSign@10
     displayName: 'CodeSign - module artifacts'
@@ -147,8 +152,3 @@ jobs:
       Write-Host "##vso[artifact.upload containerfolder=PSReadLine;artifactname=PSReadLine]$(PSReadLine)"
       Write-Host "##vso[artifact.upload containerfolder=NuGetPackage;artifactname=NuGetPackage]$(NuGetPackage)"
     displayName: 'Upload artifacts'
-
-  - template: templates/compliance.yml
-    parameters:
-      configuration: Release
-      framework: net461
