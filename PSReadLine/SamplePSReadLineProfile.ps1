@@ -201,6 +201,7 @@ Set-PSReadLineKeyHandler -Key '"',"'" `
         return
     }
 
+    # If cursor is at the start of a token, enclose it in quotes.
     if ($token.Extent.StartOffset -eq $cursor) {
         if ($token.Kind -eq [TokenKind]::Generic -or $token.Kind -eq [TokenKind]::Identifier -or 
             $token.Kind -eq [TokenKind]::Variable -or $token.TokenFlags.hasFlag([TokenFlags]::Keyword)) {
