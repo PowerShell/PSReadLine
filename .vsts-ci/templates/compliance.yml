@@ -76,7 +76,9 @@ steps:
     PoliCheckBreakOn: Severity2Above
 
 - task: ms.vss-governance-buildtask.governance-build-task-component-detection.ComponentGovernanceComponentDetection@0
-  displayName: 'Component Detection'
+  displayName: 'Component Governance Detection'
   inputs:
     sourceScanPath: '$(Build.SourcesDirectory)'
     snapshotForceEnabled: true
+    scanType: 'Register'
+    failOnAlert: true
