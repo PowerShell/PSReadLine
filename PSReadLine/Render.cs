@@ -952,6 +952,9 @@ namespace Microsoft.PowerShell
 
             case TokenKind.Number:
                 return _options._numberColor;
+
+            case TokenKind.Label:
+                return _options._loopLabelColor;
             }
 
             if ((token.TokenFlags & TokenFlags.Keyword) != 0)
@@ -964,6 +967,11 @@ namespace Microsoft.PowerShell
                 return _options._operatorColor;
             }
 
+            if ((token.TokenFlags & TokenFlags.AttributeName) != 0)
+            {
+                return _options._attributeColor;
+            }
+
             if ((token.TokenFlags & TokenFlags.TypeName) != 0)
             {
                 return _options._typeColor;
@@ -972,6 +980,11 @@ namespace Microsoft.PowerShell
             if ((token.TokenFlags & TokenFlags.MemberName) != 0)
             {
                 return _options._memberColor;
+            }
+
+            if ((token.Kind == TokenKind.Identifier | token.Kind == TokenKind.Generic) && token.TokenFlags == TokenFlags.None)
+            {
+                return _options._commandArgumentColor;
             }
 
             return _options._defaultTokenColor;

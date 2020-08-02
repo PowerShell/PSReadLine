@@ -72,18 +72,21 @@ namespace Microsoft.PowerShell
 
     public class PSConsoleReadLineOptions
     {
-        public const ConsoleColor DefaultCommentColor   = ConsoleColor.DarkGreen;
-        public const ConsoleColor DefaultKeywordColor   = ConsoleColor.Green;
-        public const ConsoleColor DefaultStringColor    = ConsoleColor.DarkCyan;
-        public const ConsoleColor DefaultOperatorColor  = ConsoleColor.DarkGray;
-        public const ConsoleColor DefaultVariableColor  = ConsoleColor.Green;
-        public const ConsoleColor DefaultCommandColor   = ConsoleColor.Yellow;
-        public const ConsoleColor DefaultParameterColor = ConsoleColor.DarkGray;
-        public const ConsoleColor DefaultTypeColor      = ConsoleColor.Gray;
-        public const ConsoleColor DefaultNumberColor    = ConsoleColor.White;
-        public const ConsoleColor DefaultMemberColor    = ConsoleColor.Gray;
-        public const ConsoleColor DefaultEmphasisColor  = ConsoleColor.Cyan;
-        public const ConsoleColor DefaultErrorColor     = ConsoleColor.Red;
+        public const ConsoleColor DefaultCommentColor         = ConsoleColor.DarkGreen;
+        public const ConsoleColor DefaultKeywordColor         = ConsoleColor.Green;
+        public const ConsoleColor DefaultStringColor          = ConsoleColor.DarkCyan;
+        public const ConsoleColor DefaultOperatorColor        = ConsoleColor.DarkGray;
+        public const ConsoleColor DefaultVariableColor        = ConsoleColor.Green;
+        public const ConsoleColor DefaultCommandColor         = ConsoleColor.Yellow;
+        public const ConsoleColor DefaultParameterColor       = ConsoleColor.DarkGray;
+        public const ConsoleColor DefaultTypeColor            = ConsoleColor.Gray;
+        public const ConsoleColor DefaultNumberColor          = ConsoleColor.White;
+        public const ConsoleColor DefaultMemberColor          = ConsoleColor.Gray;
+        public const ConsoleColor DefaultEmphasisColor        = ConsoleColor.Cyan;
+        public const ConsoleColor DefaultErrorColor           = ConsoleColor.Red;
+        public const ConsoleColor DefaultAttributeColor       = ConsoleColor.Cyan;
+        public const ConsoleColor DefaultCommandArgumentColor = ConsoleColor.Gray;
+        public const ConsoleColor DefaultLoopLabelColor       = ConsoleColor.DarkGray;
 
         // Use dark black by default for the suggestion text.
         // Find the most suitable color using https://stackoverflow.com/a/33206814
@@ -457,6 +460,24 @@ namespace Microsoft.PowerShell
             set => _predictionColor = VTColorUtils.AsEscapeSequence(value);
         }
 
+        public object AttributeColor
+        {
+            get => _attributeColor;
+            set => _attributeColor = VTColorUtils.AsEscapeSequence(value);
+        }
+
+        public object CommandArgumentColor
+        {
+            get => _commandArgumentColor;
+            set => _commandArgumentColor = VTColorUtils.AsEscapeSequence(value);
+        }
+
+        public object LoopLabelColor
+        {
+            get => _loopLabelColor;
+            set => _loopLabelColor = VTColorUtils.AsEscapeSequence(value);
+        }
+
         internal string _defaultTokenColor;
         internal string _commentColor;
         internal string _keywordColor;
@@ -472,24 +493,30 @@ namespace Microsoft.PowerShell
         internal string _errorColor;
         internal string _selectionColor;
         internal string _predictionColor;
+        internal string _attributeColor;
+        internal string _commandArgumentColor;
+        internal string _loopLabelColor;
 
         internal void ResetColors()
         {
             var fg = Console.ForegroundColor;
-            DefaultTokenColor = fg;
-            CommentColor      = DefaultCommentColor;
-            KeywordColor      = DefaultKeywordColor;
-            StringColor       = DefaultStringColor;
-            OperatorColor     = DefaultOperatorColor;
-            VariableColor     = DefaultVariableColor;
-            CommandColor      = DefaultCommandColor;
-            ParameterColor    = DefaultParameterColor;
-            TypeColor         = DefaultTypeColor;
-            NumberColor       = DefaultNumberColor;
-            MemberColor       = DefaultNumberColor;
-            EmphasisColor     = DefaultEmphasisColor;
-            ErrorColor        = DefaultErrorColor;
-            PredictionColor   = DefaultPredictionColor;
+            DefaultTokenColor    = fg;
+            CommentColor         = DefaultCommentColor;
+            KeywordColor         = DefaultKeywordColor;
+            StringColor          = DefaultStringColor;
+            OperatorColor        = DefaultOperatorColor;
+            VariableColor        = DefaultVariableColor;
+            CommandColor         = DefaultCommandColor;
+            ParameterColor       = DefaultParameterColor;
+            TypeColor            = DefaultTypeColor;
+            NumberColor          = DefaultNumberColor;
+            MemberColor          = DefaultNumberColor;
+            EmphasisColor        = DefaultEmphasisColor;
+            ErrorColor           = DefaultErrorColor;
+            PredictionColor      = DefaultPredictionColor;
+            AttributeColor       = DefaultAttributeColor;
+            CommandArgumentColor = DefaultCommandArgumentColor;
+            LoopLabelColor       = DefaultLoopLabelColor;
 
             var bg = Console.BackgroundColor;
             if (fg == VTColorUtils.UnknownColor || bg == VTColorUtils.UnknownColor)
@@ -527,6 +554,9 @@ namespace Microsoft.PowerShell
                         {"Member", (o, v) => o.MemberColor = v},
                         {"Selection", (o, v) => o.SelectionColor = v},
                         {"Prediction", (o, v) => o.PredictionColor = v},
+                        {"Attribute", (o, v) => o.AttributeColor = v},
+                        {"CommandArgument", (o, v) => o.CommandArgumentColor = v},
+                        {"LoopLabel", (o, v) => o.LoopLabelColor = v},
                     };
 
                 Interlocked.CompareExchange(ref ColorSetters, setters, null);
