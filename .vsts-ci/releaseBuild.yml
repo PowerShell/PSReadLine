@@ -20,7 +20,7 @@ jobs:
   pool: Package ES Lab A
 
   # APIScan can take a long time
-  timeoutInMinutes: 200
+  timeoutInMinutes: 240
 
   steps:
 
@@ -61,10 +61,13 @@ jobs:
       Send-VstsCommand "vso[task.setvariable variable=Signed]$(Build.SourcesDirectory)\bin\Release\Signed"
     displayName: Bootstrap & Build
 
-  - template: templates/compliance.yml
-    parameters:
-      configuration: Release
-      framework: net461
+  - task: ms.vss-governance-buildtask.governance-build-task-component-detection.ComponentGovernanceComponentDetection@0
+    displayName: 'Component Governance Detection'
+    inputs:
+      sourceScanPath: '$(Build.SourcesDirectory)'
+      snapshotForceEnabled: true
+      scanType: 'Register'
+      failOnAlert: true
 
   # Sign the module files
   - task: PkgESCodeSign@10
@@ -152,3 +155,8 @@ jobs:
       Write-Host "##vso[artifact.upload containerfolder=PSReadLine;artifactname=PSReadLine]$(PSReadLine)"
       Write-Host "##vso[artifact.upload containerfolder=NuGetPackage;artifactname=NuGetPackage]$(NuGetPackage)"
     displayName: 'Upload artifacts'
+
+  - template: templates/compliance.yml
+    parameters:
+      configuration: Release
+      framework: net461
