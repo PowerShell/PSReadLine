@@ -17,8 +17,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="PowerShellStandard.Library" version="5.1.0-*" />
-    <PackageReference Include="Microsoft.CSharp" version="4.5.0-*" />
+    <PackageReference Include="PowerShellStandard.Library" version="5.1.0" />
+    <PackageReference Include="Microsoft.CSharp" version="4.5.0" />
   </ItemGroup>
   <ItemGroup>
     <None Include="PSReadLine.psd1" CopyToOutputDirectory="PreserveNewest" />

@@ -23,7 +23,7 @@
     <PackageReference Include="Microsoft.CSharp" version="4.5.0" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="Microsoft.PowerShell.SDK" Version="7.0.3" Condition="'$(TargetFramework)' == 'netcoreapp3.1'" />
-    <PackageReference Include="PowerShellStandard.Library" version="5.1.0-*" Condition="'$(TargetFramework)' == 'net461'" />
+    <PackageReference Include="PowerShellStandard.Library" version="5.1.0" Condition="'$(TargetFramework)' == 'net461'" />
   </ItemGroup>
 
   <ItemGroup>

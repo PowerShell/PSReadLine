@@ -74,11 +74,3 @@ steps:
     CredScan: true
     PoliCheck: true
     PoliCheckBreakOn: Severity2Above
-
-- task: ms.vss-governance-buildtask.governance-build-task-component-detection.ComponentGovernanceComponentDetection@0
-  displayName: 'Component Governance Detection'
-  inputs:
-    sourceScanPath: '$(Build.SourcesDirectory)'
-    snapshotForceEnabled: true
-    scanType: 'Register'
-    failOnAlert: true
