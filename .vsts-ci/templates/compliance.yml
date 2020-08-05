@@ -40,7 +40,7 @@ steps:
 - task: securedevelopmentteam.vss-secure-development-tools.build-task-apiscan.APIScan@2
   displayName: 'Run APIScan'
   inputs:
-    softwareFolder: '$(Build.SourcesDirectory)'
+    softwareFolder: '$(Build.SourcesDirectory)\bin\${{ parameters.configuration }}\PSReadLine'
     softwareName: PSReadLine
     softwareVersionNum: '$(ModuleVersion)'
     isLargeApp: false
