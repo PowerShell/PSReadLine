@@ -830,7 +830,7 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Deletes from the previous n logical lines to the current logical line included.
         /// </summary>
-        private static void DeletePreviousLines(ConsoleKeyInfo? key = null, object arg = null)
+        public static void DeletePreviousLines(ConsoleKeyInfo? key = null, object arg = null)
         {
             if (TryGetArgAsInt(arg, out int requestedLineCount, 1))
             {
