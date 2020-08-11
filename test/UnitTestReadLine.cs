@@ -51,6 +51,9 @@ namespace Test
         Member,
         Selection,
         Prediction,
+        Attribute,
+        CommandArgument,
+        LoopLabel,
     }
 
     public abstract partial class ReadLine
@@ -90,36 +93,42 @@ namespace Test
         // so the tests aren't sensitive to tweaks to the default colors.
         internal static readonly ConsoleColor[] Colors = new []
         {
-        /*None*/      ConsoleColor.DarkRed,
-        /*Comment*/   ConsoleColor.Blue,
-        /*Keyword*/   ConsoleColor.Cyan,
-        /*String*/    ConsoleColor.Gray,
-        /*Operator*/  ConsoleColor.Green,
-        /*Variable*/  ConsoleColor.Magenta,
-        /*Command*/   ConsoleColor.Red,
-        /*Parameter*/ ConsoleColor.White,
-        /*Type*/      ConsoleColor.Yellow,
-        /*Number*/    ConsoleColor.DarkBlue,
-        /*Member*/    ConsoleColor.DarkMagenta,
-        /*Selection*/ ConsoleColor.Black,
-        /*Prediction*/ConsoleColor.DarkGreen,
+        /*None*/           ConsoleColor.DarkRed,
+        /*Comment*/        ConsoleColor.Blue,
+        /*Keyword*/        ConsoleColor.Cyan,
+        /*String*/         ConsoleColor.Gray,
+        /*Operator*/       ConsoleColor.Green,
+        /*Variable*/       ConsoleColor.Magenta,
+        /*Command*/        ConsoleColor.Red,
+        /*Parameter*/      ConsoleColor.White,
+        /*Type*/           ConsoleColor.Yellow,
+        /*Number*/         ConsoleColor.DarkBlue,
+        /*Member*/         ConsoleColor.DarkMagenta,
+        /*Selection*/      ConsoleColor.Black,
+        /*Prediction*/     ConsoleColor.DarkGreen,
+        /*Attribute*/      ConsoleColor.DarkCyan,
+        /*CommandArgument*/ConsoleColor.DarkYellow,
+        /*LoopLabel*/      ConsoleColor.DarkGray,
         };
 
         internal static readonly ConsoleColor[] BackgroundColors = new[]
         {
-        /*None*/      ConsoleColor.DarkGray,
-        /*Comment*/   ConsoleColor.DarkBlue,
-        /*Keyword*/   ConsoleColor.DarkCyan,
-        /*String*/    ConsoleColor.DarkGray,
-        /*Operator*/  ConsoleColor.DarkGreen,
-        /*Variable*/  ConsoleColor.DarkMagenta,
-        /*Command*/   ConsoleColor.DarkRed,
-        /*Parameter*/ ConsoleColor.DarkYellow,
-        /*Type*/      ConsoleColor.Black,
-        /*Number*/    ConsoleColor.Gray,
-        /*Member*/    ConsoleColor.Yellow,
-        /*Selection*/ ConsoleColor.Gray,
-        /*Prediction*/ConsoleColor.Cyan,
+        /*None*/           ConsoleColor.DarkGray,
+        /*Comment*/        ConsoleColor.DarkBlue,
+        /*Keyword*/        ConsoleColor.DarkCyan,
+        /*String*/         ConsoleColor.DarkGray,
+        /*Operator*/       ConsoleColor.DarkGreen,
+        /*Variable*/       ConsoleColor.DarkMagenta,
+        /*Command*/        ConsoleColor.DarkRed,
+        /*Parameter*/      ConsoleColor.DarkYellow,
+        /*Type*/           ConsoleColor.Black,
+        /*Number*/         ConsoleColor.Gray,
+        /*Member*/         ConsoleColor.Yellow,
+        /*Selection*/      ConsoleColor.Gray,
+        /*Prediction*/     ConsoleColor.Cyan,
+        /*Attribute*/      ConsoleColor.White,
+        /*CommandArgument*/ConsoleColor.Red,
+        /*LoopLabel*/      ConsoleColor.Magenta,
         };
 
         class KeyHandler
@@ -509,7 +518,8 @@ namespace Test
             var tokenTypes = new[]
             {
                 "Default", "Comment", "Keyword", "String", "Operator", "Variable",
-                "Command", "Parameter", "Type", "Number", "Member", "Selection", "Prediction"
+                "Command", "Parameter", "Type", "Number", "Member", "Selection",
+                "Prediction","Attribute","CommandArgument","LoopLabel"
             };
             var colors = new Hashtable();
             for (var i = 0; i < tokenTypes.Length; i++)

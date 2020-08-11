@@ -146,7 +146,11 @@ namespace Test
                 _.Alt_3, _.Ctrl_f,
                 CheckThat(() => AssertScreenIs(1,
                         TokenClassification.Command, "abc",
-                        TokenClassification.None, " def ghi ",
+                        TokenClassification.None, " ",
+                        TokenClassification.CommandArgument, "def",
+                        TokenClassification.None, " ",
+                        TokenClassification.CommandArgument, "ghi",
+                        TokenClassification.None, " ",
                         TokenClassification.Prediction, "jkl")),
                 _.Ctrl_z, CheckThat(() => AssertScreenIs(1,
                         TokenClassification.Command, 'a',
@@ -154,7 +158,11 @@ namespace Test
                 _.Alt_3, _.Alt_f,
                 CheckThat(() => AssertScreenIs(1,
                         TokenClassification.Command, "abc",
-                        TokenClassification.None, " def ghi ",
+                        TokenClassification.None, " ",
+                        TokenClassification.CommandArgument, "def",
+                        TokenClassification.None, " ",
+                        TokenClassification.CommandArgument, "ghi",
+                        TokenClassification.None, " ",
                         TokenClassification.Prediction, "jkl")),
                 _.Ctrl_z, CheckThat(() => AssertScreenIs(1,
                         TokenClassification.Command, 'a',
@@ -162,7 +170,12 @@ namespace Test
                 _.Alt_8, _.Alt_f,
                 CheckThat(() => AssertScreenIs(1,
                         TokenClassification.Command, "abc",
-                        TokenClassification.None, " def ghi jkl"))
+                        TokenClassification.None, " ",
+                        TokenClassification.CommandArgument, "def",
+                        TokenClassification.None, " ",
+                        TokenClassification.CommandArgument, "ghi",
+                        TokenClassification.None, " ",
+                        TokenClassification.CommandArgument, "jkl"))
             ));
         }
 
@@ -179,11 +192,13 @@ namespace Test
                         TokenClassification.Prediction, " diff")),
                 _.RightArrow, CheckThat(() => AssertScreenIs(1,
                         TokenClassification.Command, "git",
-                        TokenClassification.None, " diff")),
+                        TokenClassification.None, " ",
+                        TokenClassification.CommandArgument, "diff")),
                 _.Ctrl_z, CheckThat(() => AssertCursorLeftIs(3)),
                 _.Ctrl_f, CheckThat(() => AssertScreenIs(1,
                         TokenClassification.Command, "git",
-                        TokenClassification.None, " diff",
+                        TokenClassification.None, " ",
+                        TokenClassification.CommandArgument, "diff",
                         TokenClassification.Prediction, " --cached")),
 
                 // Perform visual selection and then accept suggestion.
@@ -199,7 +214,8 @@ namespace Test
                 }),
                 _.RightArrow, CheckThat(() => AssertScreenIs(1,
                         TokenClassification.Command, "git",
-                        TokenClassification.None, " diff")),
+                        TokenClassification.None, " ",
+                        TokenClassification.CommandArgument, "diff")),
 
                 // Perform visual selection and then accept next suggestion word.
                 _.Ctrl_z, CheckThat(() => AssertScreenIs(1,
@@ -214,7 +230,8 @@ namespace Test
                 }),
                 _.Ctrl_f, CheckThat(() => AssertScreenIs(1,
                         TokenClassification.Command, "git",
-                        TokenClassification.None, " diff",
+                        TokenClassification.None, " ",
+                        TokenClassification.CommandArgument, "diff",
                         TokenClassification.Prediction, " --cached"))
             ));
         }
@@ -270,15 +287,20 @@ namespace Test
             Test("git checkout ", Keys(
                 "git ch", CheckThat(() => AssertScreenIs(1,
                     TokenClassification.Command, "git",
-                    TokenClassification.None, " ch",
+                    TokenClassification.None, " ",
+                    TokenClassification.CommandArgument, "ch",
                     TokenClassification.Prediction, "eckout -b branch origin/bbbb")),
                 _.Ctrl_f, CheckThat(() => AssertScreenIs(1,
                     TokenClassification.Command, "git",
-                    TokenClassification.None, " checkout ",
+                    TokenClassification.None, " ",
+                    TokenClassification.CommandArgument, "checkout",
+                    TokenClassification.None, " ",
                     TokenClassification.Prediction, "-b branch origin/bbbb")),
                 _.Enter, CheckThat(() => AssertScreenIs(1,
                     TokenClassification.Command, "git",
-                    TokenClassification.None, " checkout "))
+                    TokenClassification.None, " ",
+                    TokenClassification.CommandArgument, "checkout",
+                    TokenClassification.None, " "))
             ));
 
             // Get the last command line from history, and revert the line.
@@ -286,7 +308,9 @@ namespace Test
             Test("", Keys(
                 _.UpArrow, CheckThat(() => AssertScreenIs(1,
                     TokenClassification.Command, "git",
-                    TokenClassification.None, " checkout ")),
+                    TokenClassification.None, " ",
+                    TokenClassification.CommandArgument, "checkout",
+                    TokenClassification.None, " ")),
                 _.Escape));
         }
 

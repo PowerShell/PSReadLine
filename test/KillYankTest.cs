@@ -392,6 +392,7 @@ namespace Test
                 CheckThat(() => AssertScreenIs(1,
                     TokenClassification.Command, "echo",
                     TokenClassification.None, " ",
+                    TokenClassification.CommandArgument,
                     Selected("foo "), "bar")),
                 _.Delete));
         }
@@ -406,7 +407,9 @@ namespace Test
                 CheckThat(() => AssertScreenIs(1,
                     TokenClassification.Command, Selected("foo"),
                     TokenClassification.None, Selected(" "),
-                    TokenClassification.None, "echo bar")),
+                    TokenClassification.CommandArgument,"echo",
+                    TokenClassification.None," ",
+                    TokenClassification.CommandArgument, "bar")),
                 _.Delete));
         }
 
@@ -419,7 +422,10 @@ namespace Test
                 "foo echo bar", _.Home, _.Alt_F,
                 CheckThat(() => AssertScreenIs(1,
                     TokenClassification.Command, Selected("foo"),
-                    TokenClassification.None, " echo bar")),
+                    TokenClassification.None, " ",
+                    TokenClassification.CommandArgument, "echo",
+                    TokenClassification.None, " ",
+                    TokenClassification.CommandArgument, "bar")),
                 _.Delete));
         }
 
@@ -432,7 +438,10 @@ namespace Test
                 "a\\b\\c echo bar", _.Home, _.Ctrl_z,
                 CheckThat(() => AssertScreenIs(1,
                     TokenClassification.Command, Selected("a\\b\\c"),
-                    TokenClassification.None, " echo bar")),
+                    TokenClassification.None, " ",
+                    TokenClassification.CommandArgument, "echo",
+                    TokenClassification.None, " ",
+                    TokenClassification.CommandArgument, "bar")),
                 _.Delete));
         }
 
@@ -445,7 +454,9 @@ namespace Test
                 "a\\b\\c echo bar", _.Home, _.Ctrl_z,
                 CheckThat(() => AssertScreenIs(1,
                     TokenClassification.Command, Selected("a\\b\\c "),
-                    TokenClassification.None, "echo bar")),
+                    TokenClassification.CommandArgument, "echo",
+                    TokenClassification.None, " ",
+                    TokenClassification.CommandArgument, "bar")),
                 _.Delete));
         }
 
@@ -458,7 +469,9 @@ namespace Test
                 "echo bar 'a b c'", _.Ctrl_z,
                 CheckThat(() => AssertScreenIs(1,
                     TokenClassification.Command, "echo",
-                    TokenClassification.None, " bar ",
+                    TokenClassification.None, " ",
+                    TokenClassification.CommandArgument, "bar",
+                    TokenClassification.None, " ",
                     TokenClassification.String, Selected("'a b c'"))),
                 _.Delete));
         }

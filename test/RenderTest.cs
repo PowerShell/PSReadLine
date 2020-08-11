@@ -69,7 +69,9 @@ namespace Test
                     AssertScreenIs(1,
                         TokenClassification.None, ". ",
                         TokenClassification.Command, "-abc",
-                        TokenClassification.None, " def;. ",
+                        TokenClassification.None, " ",
+                        TokenClassification.CommandArgument, "def",
+                        TokenClassification.None, ";. ",
                         TokenClassification.Command, "abc",
                         TokenClassification.Variable, "$name",
                         TokenClassification.None, " ",
@@ -86,7 +88,8 @@ namespace Test
                     AssertScreenIs(1,
                         TokenClassification.None, ". ",
                         TokenClassification.Command, "++",
-                        TokenClassification.None, " abc",
+                        TokenClassification.None, " ",
+                        TokenClassification.CommandArgument, "abc",
                         TokenClassification.Variable, "$name",
                         TokenClassification.None, " ",
                         TokenClassification.Parameter, "-def")),
@@ -103,7 +106,8 @@ namespace Test
                         TokenClassification.Keyword, "process",
                         TokenClassification.None, " ",
                         TokenClassification.Variable, "$abc",
-                        TokenClassification.None, "\\name | def")),
+                        TokenClassification.CommandArgument, "\\name",
+                        TokenClassification.None, " | def")),
                 _.Ctrl_c,
                 InputAcceptedNow
                 ));
@@ -113,7 +117,9 @@ namespace Test
                 CheckThat(() =>
                     AssertScreenIs(1,
                         TokenClassification.Keyword, "process",
-                        TokenClassification.None, " out put")),
+                        TokenClassification.None, " ",
+                        TokenClassification.CommandArgument, "out",
+                        TokenClassification.None, " put")),
                 _.Ctrl_c,
                 InputAcceptedNow
                 ));
