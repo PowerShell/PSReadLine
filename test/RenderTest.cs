@@ -61,6 +61,34 @@ namespace Test
                 InputAcceptedNow
                 ));
 
+            Test("", Keys(
+                "[AllowNull()]$R=ls C:\\;:Label while($true){break Label}",
+                _.Home,
+                CheckThat(() =>
+                    AssertScreenIs(1,
+                        TokenClassification.None, "[",
+                        TokenClassification.Attribute, "AllowNull",
+                        TokenClassification.None, "()]",
+                        TokenClassification.Variable, "$R",
+                        TokenClassification.Operator, "=",
+                        TokenClassification.Command, "ls",
+                        TokenClassification.None, " ",
+                        TokenClassification.CommandArgument, "C:\\",
+                        TokenClassification.None, ";",
+                        TokenClassification.LoopLabel, ":Label",
+                        TokenClassification.None, " ",
+                        TokenClassification.Keyword, "while",
+                        TokenClassification.None, "(",
+                        TokenClassification.Variable, "$true",
+                        TokenClassification.None, "){",
+                        TokenClassification.Keyword, "break",
+                        TokenClassification.None, " ",
+                        TokenClassification.Member, "Label",
+                        TokenClassification.None, "}")),
+                _.Ctrl_c,
+                InputAcceptedNow
+                ));
+
             // This tests for priority to highlight a command regardless of token kind and nested tokens potential to bleed the parent token color to the next token
             Test("", Keys(
                 ". -abc def;. abc$name -def",
