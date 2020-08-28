@@ -626,6 +626,11 @@ namespace Microsoft.PowerShell
                 numericArg = -numericArg;
             }
 
+            if (UpdateListSelection(numericArg, calledFromPreviousHistory: true))
+            {
+                return;
+            }
+
             _singleton.SaveCurrentLine();
             _singleton.HistoryRecall(numericArg);
         }
@@ -636,6 +641,10 @@ namespace Microsoft.PowerShell
         public static void NextHistory(ConsoleKeyInfo? key = null, object arg = null)
         {
             TryGetArgAsInt(arg, out var numericArg, +1);
+            if (UpdateListSelection(numericArg))
+            {
+                return;
+            }
 
             _singleton.SaveCurrentLine();
             _singleton.HistoryRecall(numericArg);
@@ -712,30 +721,6 @@ namespace Microsoft.PowerShell
                         : HistoryMoveCursor.DontMove;
                 UpdateFromHistory(moveCursor);
             }
-        }
-
-        /// <summary>
-        /// Currently we only select single-line history that is prefixed with the user input,
-        /// but it can be improved to not strictly use the user input as a prefix, but a hint
-        /// to extract a partial pipeline or statement from a single-line or multiple-line
-        /// history entry.
-        /// </summary>
-        private string GetHistorySuggestion(string text)
-        {
-            for (int index = _history.Count - 1; index >= 0; index --)
-            {
-                var line = _history[index].CommandLine.TrimEnd();
-                if (line.Length > text.Length)
-                {
-                    bool isMultiLine = line.Contains('\n');
-                    if (!isMultiLine && line.StartsWith(text, Options.HistoryStringComparison))
-                    {
-                        return line;
-                    }
-                }
-            }
-
-            return null;
         }
 
         /// <summary>

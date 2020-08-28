@@ -551,6 +551,7 @@ namespace Microsoft.PowerShell
         {
             // Show suggestion in 'InsertMode' but not 'CommandMode'.
             _showSuggestion = false;
+            _activePredictionView.Clear(cursorAtEol: false);
 
             if (_options.ViModeIndicator == ViModeStyle.Cursor)
             {

@@ -272,11 +272,7 @@ namespace Microsoft.PowerShell
 
             // Let public API set cursor to end of line incase end of line is end of buffer
             SetCursorPosition(_current);
-            if (_suggestionText != null)
-            {
-                ResetSuggestion();
-                _console.BlankRestOfLine();
-            }
+            _activePredictionView.Clear(cursorAtEol: true);
 
             _console.Write("\n");
             _inputAccepted = true;

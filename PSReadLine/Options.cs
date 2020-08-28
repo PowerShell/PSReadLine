@@ -143,6 +143,11 @@ namespace Microsoft.PowerShell
                 }
                 Options.PredictionSource = options.PredictionSource;
             }
+            if (options._predictionViewStyle.HasValue)
+            {
+                Options.PredictionViewStyle = options.PredictionViewStyle;
+                SetPredictionView(options.PredictionViewStyle);
+            }
             if (options.Colors != null)
             {
                 IDictionaryEnumerator e = options.Colors.GetEnumerator();

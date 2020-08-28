@@ -98,6 +98,7 @@ namespace Microsoft.PowerShell
             _statusIsErrorMessage = false;
             if (render)
             {
+                using var _ = PausePrediction();
                 Render();
             }
         }
@@ -155,7 +156,7 @@ namespace Microsoft.PowerShell
         private int GenerateRender(string defaultColor)
         {
             var text = ParseInput();
-            var suggestion = GetSuggestion(text);
+            PerformPrediction(text);
 
             string color = defaultColor;
             string activeColor = string.Empty;
@@ -338,17 +339,8 @@ namespace Microsoft.PowerShell
                 inSelectedRegion = false;
             }
 
-            if (suggestion != null)
-            {
-                color = _options._inlinePredictionColor;
-                foreach (char charToRender in suggestion)
-                {
-                    RenderOneChar(charToRender, toEmphasize: false);
-                }
-
-                // Reset the inline prediction color, so that the color setting doesn't leak.
-                UpdateColorsIfNecessary(VTColorUtils.AnsiReset);
-            }
+            _activePredictionView.RenderSuggestion(_consoleBufferLines, ref currentLogicalLine);
+            activeColor = string.Empty;
 
             if (_statusLinePrompt != null)
             {
@@ -860,82 +852,6 @@ namespace Microsoft.PowerShell
 
             _lastRenderTime.Restart();
             _waitingToRender = false;
-        }
-
-        private static string Spaces(int cnt)
-        {
-            return cnt < _spaces.Length
-                ? (_spaces[cnt] ?? (_spaces[cnt] = new string(' ', cnt)))
-                : new string(' ', cnt);
-        }
-
-        private static int LengthInBufferCells(string str)
-        {
-            var sum = 0;
-            var len = str.Length;
-            for (var i = 0; i < len; i++)
-            {
-                var c = str[i];
-                if (c == 0x1b && (i+1) < len && str[i+1] == '[')
-                {
-                    // Simple escape sequence skipping
-                    i += 2;
-                    while (i < len && str[i] != 'm')
-                        i++;
-
-                    continue;
-                }
-                sum += LengthInBufferCells(c);
-            }
-            return sum;
-        }
-
-        private static int LengthInBufferCells(char c)
-        {
-            if (c < 256)
-            {
-                // We render ^C for Ctrl+C, so return 2 for control characters
-                return Char.IsControl(c) ? 2 : 1;
-            }
-
-            // The following is based on http://www.cl.cam.ac.uk/~mgk25/c/wcwidth.c
-            // which is derived from http://www.unicode.org/Public/UCD/latest/ucd/EastAsianWidth.txt
-
-            bool isWide = c >= 0x1100 &&
-                (c <= 0x115f || /* Hangul Jamo init. consonants */
-                 c == 0x2329 || c == 0x232a ||
-                 (c >= 0x2e80 && c <= 0xa4cf &&
-                  c != 0x303f) || /* CJK ... Yi */
-                 (c >= 0xac00 && c <= 0xd7a3) || /* Hangul Syllables */
-                 (c >= 0xf900 && c <= 0xfaff) || /* CJK Compatibility Ideographs */
-                 (c >= 0xfe10 && c <= 0xfe19) || /* Vertical forms */
-                 (c >= 0xfe30 && c <= 0xfe6f) || /* CJK Compatibility Forms */
-                 (c >= 0xff00 && c <= 0xff60) || /* Fullwidth Forms */
-                 (c >= 0xffe0 && c <= 0xffe6));
-                  // We can ignore these ranges because .Net strings use surrogate pairs
-                  // for this range and we do not handle surrogage pairs.
-                  // (c >= 0x20000 && c <= 0x2fffd) ||
-                  // (c >= 0x30000 && c <= 0x3fffd)
-            return 1 + (isWide ? 1 : 0);
-        }
-
-        private static string SubstringByCells(string text, int countOfCells)
-        {
-            int length = 0;
-            int index = 0;
-
-            foreach (char c in text)
-            {
-                if (length >= countOfCells)
-                {
-                    return text.Substring(0, index);
-                }
-
-                length += LengthInBufferCells(c);
-                index++;
-            }
-
-            return string.Empty;
         }
 
         private string GetTokenColor(Token token)

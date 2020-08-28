@@ -814,4 +814,13 @@ Or not saving history with:
   <data name="DeleteRelativeLinesDescription" xml:space="preserve">
     <value>Delete from the current logical line to the n-th requested logical line in a multiline buffer</value>
   </data>
+  <data name="NextSuggestionDescription" xml:space="preserve">
+    <value>Select the next suggestion item shown in the list view.</value>
+  </data>
+  <data name="PreviousSuggestionDescription" xml:space="preserve">
+    <value>Select the previous suggestion item shown in the list view.</value>
+  </data>
+  <data name="SwitchPredictionViewDescription" xml:space="preserve">
+    <value>Switch to the other prediction view.</value>
+  </data>
 </root>

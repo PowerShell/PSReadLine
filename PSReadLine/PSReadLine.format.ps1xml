@@ -162,6 +162,9 @@ $d = [Microsoft.PowerShell.KeyHandler]::GetGroupingDescription($_.Group)
                 <PropertyName>PredictionSource</PropertyName>
               </ListItem>
               <ListItem>
+                <PropertyName>PredictionViewStyle</PropertyName>
+              </ListItem>
+              <ListItem>
                 <Label>CommandColor</Label>
                 <ScriptBlock>[Microsoft.PowerShell.VTColorUtils]::FormatColor($_.CommandColor)</ScriptBlock>
               </ListItem>

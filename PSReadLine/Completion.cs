@@ -113,15 +113,6 @@ namespace Microsoft.PowerShell
             return GetUnquotedText(s, consistentQuoting);
         }
 
-        private void WriteBlankLines(int count)
-        {
-            var spaces = Spaces(_console.BufferWidth);
-            for (int i = 0; i < count; i++)
-            {
-                _console.Write(spaces);
-            }
-        }
-
         /// <summary>
         /// Attempt to perform completion on the text surrounding the cursor.
         /// If there are multiple possible completions, the longest unambiguous
@@ -534,7 +525,7 @@ namespace Microsoft.PowerShell
 
             public void Clear()
             {
-                WriteBlankLines(Top, Rows + ToolTipLines);
+                Singleton.WriteBlankLines(Top, Rows + ToolTipLines);
             }
 
             public void UpdateMenuSelection(int selectedItem, bool select, bool showTooltips, string toolTipColor)
@@ -659,14 +650,6 @@ namespace Microsoft.PowerShell
                     _singleton._initialY -= scrollCnt;
                     _savedCursorTop -= scrollCnt;
                 }
-            }
-
-            public void WriteBlankLines(int top, int count)
-            {
-                SaveCursor();
-                Singleton._console.SetCursorPosition(0, top);
-                Singleton.WriteBlankLines(count);
-                RestoreCursor();
             }
 
             private int _savedCursorLeft;
@@ -874,7 +857,7 @@ namespace Microsoft.PowerShell
                         if (menu.ToolTipLines > 0)
                         {
                             // Erase previous tooltip, taking into account if the menu moved up/down.
-                            menu.WriteBlankLines(menu.Top + menu.Rows, -topAdjustment + menu.ToolTipLines);
+                            WriteBlankLines(menu.Top + menu.Rows, -topAdjustment + menu.ToolTipLines);
                         }
                         menu.UpdateMenuSelection(previousSelection, /*select*/ false,
                             /*showToolTips*/false, Options._emphasisColor);

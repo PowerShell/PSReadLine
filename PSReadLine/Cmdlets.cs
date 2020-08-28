@@ -70,6 +70,12 @@ namespace Microsoft.PowerShell
         History,
     }
 
+    public enum PredictionViewStyle
+    {
+        InlineView,
+        ListView,
+    }
+
     public class PSConsoleReadLineOptions
     {
         public const ConsoleColor DefaultCommentColor   = ConsoleColor.DarkGreen;
@@ -144,6 +150,8 @@ namespace Microsoft.PowerShell
         /// </summary>
         public const PredictionSource DefaultPredictionSource = PredictionSource.None;
 
+        public const PredictionViewStyle DefaultPredictionViewStyle = PredictionViewStyle.InlineView;
+
         /// <summary>
         /// How long in milliseconds should we wait before concluding
         /// the input is not an escape sequence?
@@ -171,6 +179,7 @@ namespace Microsoft.PowerShell
             HistorySaveStyle = DefaultHistorySaveStyle;
             AnsiEscapeTimeout = DefaultAnsiEscapeTimeout;
             PredictionSource = DefaultPredictionSource;
+            PredictionViewStyle = DefaultPredictionViewStyle;
             MaximumHistoryCount = 0;
 
             var historyFileName = hostName + "_history.txt";
@@ -309,6 +318,7 @@ namespace Microsoft.PowerShell
 
         public bool HistorySearchCaseSensitive { get; set; }
         internal StringComparison HistoryStringComparison => HistorySearchCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
+        internal StringComparer HistoryStringComparer => HistorySearchCaseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
 
         /// <summary>
         /// How are command and insert modes indicated when in vi edit mode?
@@ -330,6 +340,11 @@ namespace Microsoft.PowerShell
         /// Sets the source to get predictive suggestions.
         /// </summary>
         public PredictionSource PredictionSource { get; set; }
+
+        /// <summary>
+        /// Sets the view style for rendering predictive suggestions.
+        /// </summary>
+        public PredictionViewStyle PredictionViewStyle { get; set; }
 
         /// <summary>
         /// How long in milliseconds should we wait before concluding
@@ -740,6 +755,14 @@ namespace Microsoft.PowerShell
             set => _predictionSource = value;
         }
         internal PredictionSource? _predictionSource;
+
+        [Parameter]
+        public PredictionViewStyle PredictionViewStyle
+        {
+            get => _predictionViewStyle.GetValueOrDefault();
+            set => _predictionViewStyle = value;
+        }
+        internal PredictionViewStyle? _predictionViewStyle;
 
         [Parameter]
         public Hashtable Colors { get; set; }
