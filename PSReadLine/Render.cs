@@ -98,7 +98,7 @@ namespace Microsoft.PowerShell
             _statusIsErrorMessage = false;
             if (render)
             {
-                using var _ = PausePrediction();
+                using var _ = _prediction.PauseQuery();
                 Render();
             }
         }
@@ -156,7 +156,7 @@ namespace Microsoft.PowerShell
         private int GenerateRender(string defaultColor)
         {
             var text = ParseInput();
-            PerformPrediction(text);
+            _prediction.QueryForSuggestion(text);
 
             string color = defaultColor;
             string activeColor = string.Empty;
@@ -339,7 +339,7 @@ namespace Microsoft.PowerShell
                 inSelectedRegion = false;
             }
 
-            _activePredictionView.RenderSuggestion(_consoleBufferLines, ref currentLogicalLine);
+            _prediction.ActiveView.RenderSuggestion(_consoleBufferLines, ref currentLogicalLine);
             activeColor = string.Empty;
 
             if (_statusLinePrompt != null)

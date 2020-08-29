@@ -146,7 +146,7 @@ namespace Microsoft.PowerShell
             if (options._predictionViewStyle.HasValue)
             {
                 Options.PredictionViewStyle = options.PredictionViewStyle;
-                SetPredictionView(options.PredictionViewStyle);
+                _prediction.SetViewStyle(options.PredictionViewStyle);
             }
             if (options.Colors != null)
             {

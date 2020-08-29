@@ -537,7 +537,7 @@ namespace Microsoft.PowerShell
                     break;
             }
 
-            using var _ = PredictionOff();
+            using var _ = _prediction.DisableScoped();
             Render();
         }
 
@@ -935,7 +935,7 @@ namespace Microsoft.PowerShell
 
         private void InteractiveHistorySearch(int direction)
         {
-            using var _ = PredictionOff();
+            using var _ = _prediction.DisableScoped();
             SaveCurrentLine();
 
             // Add a status line that will contain the search prompt and string

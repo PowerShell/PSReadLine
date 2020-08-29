@@ -550,8 +550,7 @@ namespace Microsoft.PowerShell
         private void ViIndicateCommandMode()
         {
             // Show suggestion in 'InsertMode' but not 'CommandMode'.
-            _showSuggestion = false;
-            _activePredictionView.Clear(cursorAtEol: false);
+            _prediction.DisableGlobal(cursorAtEol: false);
 
             if (_options.ViModeIndicator == ViModeStyle.Cursor)
             {
@@ -573,7 +572,7 @@ namespace Microsoft.PowerShell
         private void ViIndicateInsertMode()
         {
             // Show suggestion in 'InsertMode' but not 'CommandMode'.
-            _showSuggestion = true;
+            _prediction.EnableGlobal();
 
             if (_options.ViModeIndicator == ViModeStyle.Cursor)
             {

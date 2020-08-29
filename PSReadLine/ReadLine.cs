@@ -666,7 +666,7 @@ namespace Microsoft.PowerShell
                 hostName = "PSReadLine";
             }
             _options = new PSConsoleReadLineOptions(hostName);
-            SetPredictionView(_options.PredictionViewStyle);
+            _prediction = new Prediction(this);
             SetDefaultBindings(_options.EditMode);
         }
 
@@ -703,7 +703,7 @@ namespace Microsoft.PowerShell
             _statusIsErrorMessage = false;
 
             _initialOutputEncoding = _console.OutputEncoding;
-            _activePredictionView.Reset();
+            _prediction.ActiveView.Reset();
 
             // Don't change the OutputEncoding if already UTF8, no console, or using raster font on Windows
             _skipOutputEncodingChange = _initialOutputEncoding == Encoding.UTF8

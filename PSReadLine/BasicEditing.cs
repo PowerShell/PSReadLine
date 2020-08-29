@@ -80,7 +80,7 @@ namespace Microsoft.PowerShell
             _singleton.ClearStatusMessage(false);
             _singleton._current = _singleton._buffer.Length;
 
-            using var _ = _singleton.PredictionOff();
+            using var _ = _singleton._prediction.DisableScoped();
             _singleton.ForceRender();
 
             _singleton._console.Write("\x1b[91m^C\x1b[0m");
@@ -210,7 +210,7 @@ namespace Microsoft.PowerShell
 
         private bool AcceptLineImpl(bool validate)
         {
-            using var _ = PredictionOff();
+            using var _ = _prediction.DisableScoped();
 
             ParseInput();
             if (_parseErrors.Any(e => e.IncompleteInput))
@@ -272,7 +272,7 @@ namespace Microsoft.PowerShell
 
             // Let public API set cursor to end of line incase end of line is end of buffer
             SetCursorPosition(_current);
-            _activePredictionView.Clear(cursorAtEol: true);
+            _prediction.ActiveView.Clear(cursorAtEol: true);
 
             _console.Write("\n");
             _inputAccepted = true;
