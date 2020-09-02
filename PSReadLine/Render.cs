@@ -982,7 +982,7 @@ namespace Microsoft.PowerShell
                 return _options._memberColor;
             }
 
-            if ((token.Kind == TokenKind.Identifier | token.Kind == TokenKind.Generic) && token.TokenFlags == TokenFlags.None)
+            if ((token.Kind == TokenKind.Identifier || token.Kind == TokenKind.Generic) && token.TokenFlags == TokenFlags.None)
             {
                 return _options._commandArgumentColor;
             }
