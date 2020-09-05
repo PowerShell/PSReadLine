@@ -368,7 +368,7 @@ namespace Microsoft.PowerShell
             _singleton._buffer.Remove(_singleton._current, 1 + endPoint - _singleton._current);
             if (_singleton._current >= _singleton._buffer.Length)
             {
-                _singleton._current = Math.Max(0,_singleton._buffer.Length - 1);
+                _singleton._current = Math.Max(0, _singleton._buffer.Length - 1);
             }
             _singleton.Render();
         }
@@ -522,11 +522,11 @@ namespace Microsoft.PowerShell
             _singleton._dispatchTable = _viCmdKeyMap;
             _singleton._chordDispatchTable = _viCmdChordTable;
 
-            return new Disposable( () =>
-            {
-                _singleton._dispatchTable = oldDispatchTable;
-                _singleton._chordDispatchTable = oldChordDispatchTable;
-            } );
+            return new Disposable(() =>
+           {
+               _singleton._dispatchTable = oldDispatchTable;
+               _singleton._chordDispatchTable = oldChordDispatchTable;
+           });
         }
 
         /// <summary>
@@ -540,11 +540,11 @@ namespace Microsoft.PowerShell
             _singleton._dispatchTable = _viInsKeyMap;
             _singleton._chordDispatchTable = _viInsChordTable;
 
-            return new Disposable( () =>
-            {
-                _singleton._dispatchTable = oldDispatchTable;
-                _singleton._chordDispatchTable = oldChordDispatchTable;
-            } );
+            return new Disposable(() =>
+           {
+               _singleton._dispatchTable = oldDispatchTable;
+               _singleton._chordDispatchTable = oldChordDispatchTable;
+           });
         }
 
         private void ViIndicateCommandMode()
@@ -857,7 +857,15 @@ namespace Microsoft.PowerShell
             if (TryGetArgAsInt(arg, out var requestedLineNumber, 1))
             {
                 var currentLineIndex = _singleton.GetLogicalLineNumber() - 1;
-                var requestedLineIndex = Math.Max(requestedLineNumber, _singleton.GetStatusLineCount()) - 1;
+                var requestedLineIndex = requestedLineNumber - 1;
+                if (requestedLineIndex < 0)
+                {
+                    requestedLineIndex = 0;
+                }
+                if (requestedLineIndex >= _singleton.GetLogicalLineCount())
+                {
+                    requestedLineIndex = _singleton.GetLogicalLineCount() - 1;
+                }
 
                 var requestedLineCount = requestedLineIndex - currentLineIndex;
                 if (requestedLineCount < 0)
@@ -1284,7 +1292,7 @@ namespace Microsoft.PowerShell
             _singleton.MoveToBeginningOfPhrase();
             _singleton._buffer.Insert(_singleton._current, '\n');
             //_singleton._current = Math.Max(0, _singleton._current - 1);
-            _singleton.SaveEditItem(EditItemInsertChar.Create( '\n', _singleton._current));
+            _singleton.SaveEditItem(EditItemInsertChar.Create('\n', _singleton._current));
             _singleton.Render();
             ViInsertMode();
         }
