@@ -90,6 +90,7 @@ namespace Microsoft.PowerShell
 
         // History state
         private HistoryQueue<HistoryItem> _history;
+        private HistoryQueue<string> _recentHistory;
         private HistoryItem _previousHistoryItem;
         private Dictionary<string, int> _hashedHistory;
         private int _currentHistoryIndex;
@@ -204,6 +205,8 @@ namespace Microsoft.PowerShell
 
                 if (!fromHistoryFile)
                 {
+                    // Add to the recent history queue, which is used when querying for prediction.
+                    _recentHistory.Enqueue(result);
                     // 'MemoryOnly' indicates sensitive content in the command line
                     _previousHistoryItem._sensitive = addToHistoryOption == AddToHistoryOption.MemoryOnly;
                     _previousHistoryItem.StartTime = DateTime.UtcNow;

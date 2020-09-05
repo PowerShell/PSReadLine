@@ -966,7 +966,7 @@ namespace Microsoft.PowerShell
                                 userCompletionText = GetUnquotedText(currentMenuItem, consistentQuoting: false);
                             }
 
-                            // do not append the same char as last char in CompletionText (works for for '(', '\')
+                            // do not append the same char as last char in CompletionText (works for '(', '\')
                             prependNextKey = userCompletionText[userCompletionText.Length - 1] != nextKey.KeyChar;
                         }
                     }

@@ -3,9 +3,7 @@ Copyright (c) Microsoft Corporation.  All rights reserved.
 --********************************************************************/
 
 using System;
-using System.Collections.Generic;
 using System.Text;
-using Microsoft.PowerShell.Internal;
 
 namespace Microsoft.PowerShell
 {
@@ -13,13 +11,15 @@ namespace Microsoft.PowerShell
     {
         private struct SuggestionEntry
         {
+            internal readonly Guid PredictorId;
             internal readonly string Source;
             internal readonly string SuggestionText;
             internal readonly int InputMatchIndex;
 
-            internal SuggestionEntry(string soruce, string suggestion, int matchIndex)
+            internal SuggestionEntry(string soruce, Guid id, string suggestion, int matchIndex)
             {
                 Source = soruce;
+                PredictorId = id;
                 SuggestionText = suggestion;
                 InputMatchIndex = matchIndex;
             }
@@ -32,7 +32,15 @@ namespace Microsoft.PowerShell
             internal string GetListItemText(int width, string input)
             {
                 // '> ------list-item-text------ [History]'
-                int textWidth = width - PredictionListView.SourceWidth - 5;
+                int sourceStrLen = Source.Length;
+                int sourceWidth = LengthInBufferCells(Source);
+                if (sourceWidth > PredictionListView.SourceMaxWidth)
+                {
+                    sourceWidth = PredictionListView.SourceMaxWidth;
+                    sourceStrLen = SubstringLengthByCells(Source, sourceWidth - 3);
+                }
+
+                int textWidth = width - sourceWidth - 5;
 
                 StringBuilder line = new StringBuilder(capacity: width)
                     .Append(PredictionViewBase.TextMetadataFg)
@@ -263,9 +271,19 @@ namespace Microsoft.PowerShell
 
                 line.Append(' ')
                     .Append('[')
-                    .Append(PredictionViewBase.TextMetadataFg)
-                    .Append(Source)
-                    .Append(PredictionViewBase.DefaultFg)
+                    .Append(PredictionViewBase.TextMetadataFg);
+
+                if (sourceStrLen == Source.Length)
+                {
+                    line.Append(Source);
+                }
+                else
+                {
+                    line.Append(Source, 0, sourceStrLen)
+                        .Append("...");
+                }
+
+                line.Append(PredictionViewBase.DefaultFg)
                     .Append(']');
 
                 return line.ToString();

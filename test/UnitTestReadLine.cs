@@ -4,7 +4,10 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Management.Automation;
+using System.Management.Automation.Language;
 using System.Management.Automation.Runspaces;
+using System.Management.Automation.Subsystem;
+using System.Threading.Tasks;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using Microsoft.PowerShell;
@@ -33,6 +36,19 @@ namespace Test
         public bool RunspaceIsRemote(Runspace runspace)
         {
             return false;
+        }
+
+        public Task<List<PredictionResult>> PredictInput(Ast ast, Token[] tokens)
+        {
+            return null;
+        }
+
+        public void OnCommandLineAccepted(IReadOnlyList<string> history)
+        {
+        }
+
+        public void OnSuggestionAccepted(Guid predictorId, string suggestionText)
+        {
         }
     }
 

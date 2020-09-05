@@ -486,7 +486,11 @@ namespace Microsoft.PowerShell
                 ProcessOneKey(key, _dispatchTable, ignoreIfNoAction: false, arg: null);
                 if (_inputAccepted)
                 {
-                    return MaybeAddToHistory(_buffer.ToString(), _edits, _undoEditIndex);
+                    var commandLine = _buffer.ToString();
+                    MaybeAddToHistory(commandLine, _edits, _undoEditIndex);
+
+                    _prediction.ActiveView.OnCommandLineAccepted();
+                    return commandLine;
                 }
 
                 if (killCommandCount == _killCommandCount)
@@ -802,6 +806,7 @@ namespace Microsoft.PowerShell
             _historyFileMutex = new Mutex(false, GetHistorySaveFileMutexName());
 
             _history = new HistoryQueue<HistoryItem>(Options.MaximumHistoryCount);
+            _recentHistory = new HistoryQueue<string>(capacity: 5);
             _currentHistoryIndex = 0;
 
             bool readHistoryFile = true;

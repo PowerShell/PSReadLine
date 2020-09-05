@@ -3,11 +3,36 @@ Copyright (c) Microsoft Corporation.  All rights reserved.
 --********************************************************************/
 
 using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using System.Management.Automation.Language;
+using System.Management.Automation.Subsystem;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.PowerShell.Internal;
 
 namespace Microsoft.PowerShell
 {
     public partial class PSConsoleReadLine
     {
+        // Stub helper methods so prediction can be mocked
+        [ExcludeFromCodeCoverage]
+        Task<List<PredictionResult>> IPSConsoleReadLineMockableMethods.PredictInput(Ast ast, Token[] tokens)
+        {
+            return CommandPrediction.PredictInput(ast, tokens);
+        }
+
+        [ExcludeFromCodeCoverage]
+        void IPSConsoleReadLineMockableMethods.OnCommandLineAccepted(IReadOnlyList<string> history)
+        {
+            CommandPrediction.OnCommandLineAccepted(history);
+        }
+
+        [ExcludeFromCodeCoverage]
+        void IPSConsoleReadLineMockableMethods.OnSuggestionAccepted(Guid predictorId, string suggestionText)
+        {
+            CommandPrediction.OnSuggestionAccepted(predictorId, suggestionText);
+        }
+
         private readonly Prediction _prediction;
 
         /// <summary>

@@ -39,7 +39,7 @@ param(
     [ValidateSet("Debug", "Release")]
     [string] $Configuration = "Debug",
 
-    [ValidateSet("net461", "netcoreapp3.1")]
+    [ValidateSet("net461", "net5.0")]
     [string] $Framework
 )
 

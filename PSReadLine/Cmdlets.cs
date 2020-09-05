@@ -66,8 +66,10 @@ namespace Microsoft.PowerShell
 
     public enum PredictionSource
     {
-        None,
-        History,
+        None = 1,
+        History = 2,
+        Plugin = 4,
+        HistoryAndPlugin = 6,
     }
 
     public enum PredictionViewStyle
@@ -752,9 +754,18 @@ namespace Microsoft.PowerShell
         public PredictionSource PredictionSource
         {
             get => _predictionSource.GetValueOrDefault();
-            set => _predictionSource = value;
+            set
+            {
+                if ((value & PredictionSource.Plugin) != 0 && currentVersion < expectedVersion)
+                {
+                    throw new ArgumentException(PSReadLineResources.PredictionPluginNotSupported);
+                }
+                _predictionSource = value;
+            }
         }
         internal PredictionSource? _predictionSource;
+        private static readonly Version currentVersion = typeof(PSObject).Assembly.GetName().Version;
+        private static readonly Version expectedVersion = new Version(7, 1);
 
         [Parameter]
         public PredictionViewStyle PredictionViewStyle

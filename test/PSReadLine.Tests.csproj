@@ -5,25 +5,29 @@
     <OutputType>library</OutputType>
     <RootNamespace>UnitTestPSReadLine</RootNamespace>
     <AssemblyName>PSReadLine.Tests</AssemblyName>
-    <TargetFrameworks>net461;netcoreapp3.1</TargetFrameworks>
+    <TargetFrameworks>net461;net5.0</TargetFrameworks>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <IsCodedUITest>False</IsCodedUITest>
     <TestProjectType>UnitTest</TestProjectType>
+    <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp3.1'">
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net5.0'">
     <RuntimeFrameworkVersion>3.1.6</RuntimeFrameworkVersion>
   </PropertyGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net461'">
     <PackageReference Include="System.Xml.XDocument" version="4.3.0" />
     <PackageReference Include="System.Data.DataSetExtensions" version="4.5.0" />
     <PackageReference Include="System.Runtime.InteropServices.RuntimeInformation" version="4.3.0" />
     <PackageReference Include="Microsoft.CSharp" version="4.5.0" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
-    <PackageReference Include="Microsoft.PowerShell.SDK" Version="7.0.3" Condition="'$(TargetFramework)' == 'netcoreapp3.1'" />
-    <PackageReference Include="PowerShellStandard.Library" version="5.1.0" Condition="'$(TargetFramework)' == 'net461'" />
+    <PackageReference Include="PowerShellStandard.Library" version="5.1.0" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net5.0'">
+    <PackageReference Include="Microsoft.PowerShell.SDK" Version="7.1.0-preview.9" />
   </ItemGroup>
 
   <ItemGroup>
