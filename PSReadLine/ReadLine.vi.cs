@@ -862,9 +862,11 @@ namespace Microsoft.PowerShell
                 {
                     requestedLineIndex = 0;
                 }
-                if (requestedLineIndex >= _singleton.GetLogicalLineCount())
+
+                var logicalLineCount = _singleton.GetLogicalLineCount();
+                if (requestedLineIndex >= logicalLineCount)
                 {
-                    requestedLineIndex = _singleton.GetLogicalLineCount() - 1;
+                    requestedLineIndex = logicalLineCount - 1;
                 }
 
                 var requestedLineCount = requestedLineIndex - currentLineIndex;
