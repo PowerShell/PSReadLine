@@ -568,6 +568,50 @@ namespace Test
         }
 
         [SkippableFact]
+        public void ViDeleteRelativeLines()
+        {
+            TestSetup(KeyMode.Vi);
+
+            var continuationPrefixLength = PSConsoleReadLineOptions.DefaultContinuationPrompt.Length;
+
+            Test("\"\nthree\n\"", Keys(
+                _.DQuote, _.Enter,
+                "one", _.Enter,
+                "two", _.Enter,
+                "three", _.Enter,
+                _.DQuote, _.Escape,
+                "kkl", // go to the 'wo' portion of "two"
+                // delete from line 2 to the current line (3)
+                "2dgg",
+                CheckThat(() => AssertCursorLeftIs(continuationPrefixLength + 0))
+                ));
+
+            Test("\"\none\nthree\n\"", Keys(
+                _.DQuote, _.Enter,
+                "one", _.Enter,
+                "two", _.Enter,
+                "three", _.Enter,
+                _.DQuote, _.Escape,
+                "kkl", // go to the 'wo' portion of "two"
+                // delete the current line (3)
+                "3dgg",
+                CheckThat(() => AssertCursorLeftIs(continuationPrefixLength + 0))
+                ));
+
+            Test("\"\none\n\"", Keys(
+                _.DQuote, _.Enter,
+                "one", _.Enter,
+                "two", _.Enter,
+                "three", _.Enter,
+                _.DQuote, _.Escape,
+                "kkl", // go to the 'wo' portion of "two"
+                // delete from the current line (3) to line 4
+                "4dgg",
+                CheckThat(() => AssertCursorLeftIs(continuationPrefixLength + 0))
+                ));
+        }
+
+        [SkippableFact]
         public void ViGlobDelete()
         {
             TestSetup(KeyMode.Vi);

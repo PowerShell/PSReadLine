@@ -43,6 +43,7 @@ namespace Microsoft.PowerShell
         private static Dictionary<PSKeyInfo, KeyHandler> _viChordGTable;
         private static Dictionary<PSKeyInfo, KeyHandler> _viChordCTable;
         private static Dictionary<PSKeyInfo, KeyHandler> _viChordYTable;
+        private static Dictionary<PSKeyInfo, KeyHandler> _viChordDGTable;
 
         private static Dictionary<PSKeyInfo, Dictionary<PSKeyInfo, KeyHandler>> _viCmdChordTable;
         private static Dictionary<PSKeyInfo, Dictionary<PSKeyInfo, KeyHandler>> _viInsChordTable;
@@ -226,6 +227,7 @@ namespace Microsoft.PowerShell
                 { Keys.W,               MakeKeyHandler( DeleteWord,                   "DeleteWord") },
                 { Keys.ucW,             MakeKeyHandler( ViDeleteGlob,                 "ViDeleteGlob") },
                 { Keys.E,               MakeKeyHandler( DeleteEndOfWord,              "DeleteEndOfWord") },
+                { Keys.G,               MakeKeyHandler( ViDGChord,                    "ViDGChord") },
                 { Keys.ucG,             MakeKeyHandler( DeleteEndOfBuffer,            "DeleteEndOfBuffer") },
                 { Keys.ucE,             MakeKeyHandler( ViDeleteEndOfGlob,            "ViDeleteEndOfGlob") },
                 { Keys.H,               MakeKeyHandler( BackwardDeleteChar,           "BackwardDeleteChar") },
@@ -285,6 +287,11 @@ namespace Microsoft.PowerShell
                 { Keys._0,              MakeKeyHandler( ViYankBeginningOfLine, "ViYankBeginningOfLine") },
                 { Keys.Uphat,           MakeKeyHandler( ViYankToFirstChar,     "ViYankToFirstChar") },
                 { Keys.Percent,         MakeKeyHandler( ViYankPercent,         "ViYankPercent") },
+            };
+
+            _viChordDGTable = new Dictionary<PSKeyInfo, KeyHandler>
+            {
+                { Keys.G,               MakeKeyHandler( DeleteRelativeLines,   "DeleteRelativeLines") },
             };
 
             _viCmdChordTable = new Dictionary<PSKeyInfo, Dictionary<PSKeyInfo, KeyHandler>>();
