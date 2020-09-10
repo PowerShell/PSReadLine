@@ -315,6 +315,8 @@ namespace Microsoft.PowerShell
                         }
 
                         int index = -1;
+                        var comparison = _singleton._options.HistoryStringComparison;
+
                         foreach (var item in results)
                         {
                             if (item.Suggestions?.Count > 0)
@@ -328,7 +330,7 @@ namespace Microsoft.PowerShell
                                 for (int i = 0; i < _cacheList2[index]; i++)
                                 {
                                     string sugText = item.Suggestions[i].SuggestionText ?? string.Empty;
-                                    int matchIndex = sugText.IndexOf(_inputText);
+                                    int matchIndex = sugText.IndexOf(_inputText, comparison);
                                     _listItems.Add(new SuggestionEntry(item.Name, item.Id, sugText, matchIndex));
                                 }
                             }
@@ -477,6 +479,7 @@ namespace Microsoft.PowerShell
                         _lastInputText.Length > userInput.Length ||
                         !_suggestionText.StartsWith(userInput, _singleton._options.HistoryStringComparison))
                     {
+                        _suggestionText = null;
                         _lastInputText = userInput;
 
                         if (UsePlugin)
@@ -529,6 +532,7 @@ namespace Microsoft.PowerShell
 
                 if (_suggestionText == null)
                 {
+                    Reset();
                     return;
                 }
 
@@ -537,7 +541,7 @@ namespace Microsoft.PowerShell
 
                 currentLineBuffer.Append(_singleton._options._predictionColor)
                     .Append(_suggestionText, inputLength, _suggestionText.Length - inputLength)
-                    .Append(DefaultFg);
+                    .Append(AnsiReset);
             }
 
             internal override void OnSuggestionAccepted()
