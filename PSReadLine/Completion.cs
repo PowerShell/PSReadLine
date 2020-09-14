@@ -603,7 +603,7 @@ namespace Microsoft.PowerShell
 
                 if (select) console.Write(Singleton.Options._selectionColor);
                 console.Write(GetMenuItem(listItem, ColumnWidth));
-                if (select) console.Write("\x1b[0m");
+                if (select) console.Write(VTColorUtils.AnsiReset);
 
                 ToolTipLines = 0;
                 if (showTooltips)
@@ -617,7 +617,7 @@ namespace Microsoft.PowerShell
                     console.Write(toolTip);
                     ToolTipLines = toolTipLines;
 
-                    console.Write("\x1b[0m");
+                    console.Write(VTColorUtils.AnsiReset);
                 }
 
                 RestoreCursor();

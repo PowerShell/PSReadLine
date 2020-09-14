@@ -358,9 +358,9 @@ namespace Microsoft.PowerShell
                 for (int i = 0; i < minLength; i ++)
                 {
                     var text = _promptText[i];
-                    if (text.Contains('\x1b') && !text.EndsWith("\x1b[0m", StringComparison.Ordinal))
+                    if (text.Contains('\x1b') && !text.EndsWith(VTColorUtils.AnsiReset, StringComparison.Ordinal))
                     {
-                        _promptText[i] = string.Concat(text, "\x1b[0m");
+                        _promptText[i] = string.Concat(text, VTColorUtils.AnsiReset);
                     }
                 }
             }
@@ -946,6 +946,11 @@ namespace Microsoft.PowerShell
 
     public static class VTColorUtils
     {
+        internal const string AnsiReset = "\x1b[0m";
+        internal const string DefaultForeground = "\x1b[39m";
+        internal const string DefaultBackground = "\x1b[49m";
+        internal const string DefaultColor = "\x1b[39;49m";
+
         public const ConsoleColor UnknownColor = (ConsoleColor) (-1);
         private static readonly Dictionary<string, ConsoleColor> ConsoleColors =
             new Dictionary<string, ConsoleColor>(StringComparer.OrdinalIgnoreCase)
@@ -1138,7 +1143,7 @@ namespace Microsoft.PowerShell
             var result = seq.ToString();
             if (seq is ConsoleColor) return result;
 
-            result = result + "\"" + FormatEscape(result) + "\"" + "\x1b[0m";
+            result = result + "\"" + FormatEscape(result) + "\"" + AnsiReset;
             return result;
         }
     }

@@ -122,7 +122,7 @@ namespace Microsoft.PowerShell
 
         private void ForceRender()
         {
-            var defaultColor = "\x1b[39;49m";
+            var defaultColor = VTColorUtils.DefaultColor;
 
             // Geneate a sequence of logical lines with escape sequences for coloring.
             int logicalLineCount = GenerateRender(defaultColor);
@@ -179,7 +179,7 @@ namespace Microsoft.PowerShell
                     if (inSelectedRegion)
                     {
                         // Turn off inverse before end of line, turn on after continuation prompt
-                        _consoleBufferLines[currentLogicalLine].Append("\x1b[0m");
+                        _consoleBufferLines[currentLogicalLine].Append(VTColorUtils.AnsiReset);
                     }
 
                     currentLogicalLine += 1;
@@ -254,7 +254,7 @@ namespace Microsoft.PowerShell
                 }
                 else if (i == selectionEnd)
                 {
-                    _consoleBufferLines[currentLogicalLine].Append("\x1b[0m");
+                    _consoleBufferLines[currentLogicalLine].Append(VTColorUtils.AnsiReset);
                     _consoleBufferLines[currentLogicalLine].Append(activeColor);
                     inSelectedRegion = false;
                 }
@@ -334,7 +334,7 @@ namespace Microsoft.PowerShell
 
             if (inSelectedRegion)
             {
-                _consoleBufferLines[currentLogicalLine].Append("\x1b[0m");
+                _consoleBufferLines[currentLogicalLine].Append(VTColorUtils.AnsiReset);
                 inSelectedRegion = false;
             }
 
@@ -444,7 +444,7 @@ namespace Microsoft.PowerShell
                     string color = renderData.errorPrompt ? _options._errorColor : defaultColor;
                     _console.Write(color);
                     _console.Write(promptText);
-                    _console.Write("\x1b[0m");
+                    _console.Write(VTColorUtils.AnsiReset);
                 }
                 else
                 {
@@ -772,7 +772,7 @@ namespace Microsoft.PowerShell
             physicalLine -= pseudoPhysicalLineOffset;
 
             // Reset the colors after we've finished all our rendering.
-            _console.Write("\x1b[0m");
+            _console.Write(VTColorUtils.AnsiReset);
 
             if (_initialY + physicalLine > bufferHeight)
             {
