@@ -17,8 +17,6 @@ namespace Microsoft.PowerShell
         {
             internal const string TextSelectedBg = "\x1b[48;5;238m";
             internal const string TextMetadataFg = "\x1b[33m";
-            internal const string DefaultFg = "\x1b[39m";
-            internal const string AnsiReset = "\x1b[0m";
 
             protected readonly PSConsoleReadLine _singleton;
             protected Task<List<PredictionResult>> _predictionTask;
@@ -218,9 +216,17 @@ namespace Microsoft.PowerShell
 
             internal override void GetSuggestion(string userInput)
             {
+                bool inputUnchanged = string.Equals(_inputText, userInput, _singleton._options.HistoryStringComparison);
+
                 _inputText = userInput;
                 _selectedIndex = -1;
                 _listItemWidth = Math.Min(_singleton._console.BufferWidth, ListMaxWidth);
+
+                if (inputUnchanged)
+                {
+                    return;
+                }
+
                 _listItems?.Clear();
 
                 try
@@ -380,16 +386,16 @@ namespace Microsoft.PowerShell
                     bool itemSelected = i == _selectedIndex;
                     StringBuilder currentLineBuffer = consoleBufferLines[currentLogicalLine];
 
+                    string selectionColor = itemSelected ? TextSelectedBg : null;
+                    currentLineBuffer.Append(
+                        _listItems[i].GetListItemText(
+                            _listItemWidth,
+                            _inputText,
+                            selectionColor));
+
                     if (itemSelected)
                     {
-                        currentLineBuffer.Append(TextSelectedBg);
-                    }
-
-                    currentLineBuffer.Append(_listItems[i].GetListItemText(_listItemWidth, _inputText));
-
-                    if (itemSelected)
-                    {
-                        currentLineBuffer.Append(AnsiReset);
+                        currentLineBuffer.Append(VTColorUtils.AnsiReset);
                     }
                 }
             }
@@ -541,7 +547,7 @@ namespace Microsoft.PowerShell
 
                 currentLineBuffer.Append(_singleton._options._predictionColor)
                     .Append(_suggestionText, inputLength, _suggestionText.Length - inputLength)
-                    .Append(AnsiReset);
+                    .Append(VTColorUtils.AnsiReset);
             }
 
             internal override void OnSuggestionAccepted()

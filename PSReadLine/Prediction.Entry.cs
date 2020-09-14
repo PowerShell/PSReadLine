@@ -29,7 +29,7 @@ namespace Microsoft.PowerShell
                 return (divisor + dividend - 1) / dividend;
             }
 
-            internal string GetListItemText(int width, string input)
+            internal string GetListItemText(int width, string input, string selectionHighlighting)
             {
                 // '> ------list-item-text------ [History]'
                 int sourceStrLen = Source.Length;
@@ -43,9 +43,10 @@ namespace Microsoft.PowerShell
                 int textWidth = width - sourceWidth - 5;
 
                 StringBuilder line = new StringBuilder(capacity: width)
+                    .Append(selectionHighlighting)
                     .Append(PredictionViewBase.TextMetadataFg)
                     .Append('>')
-                    .Append(PredictionViewBase.DefaultFg)
+                    .EndColorSection(selectionHighlighting)
                     .Append(' ');
 
                 int textLengthInCells = LengthInBufferCells(SuggestionText);
@@ -63,7 +64,7 @@ namespace Microsoft.PowerShell
                             line.Append(SuggestionText, 0, InputMatchIndex)
                                 .Append(_singleton._options.EmphasisColor)
                                 .Append(SuggestionText, InputMatchIndex, input.Length)
-                                .Append(PredictionViewBase.DefaultFg)
+                                .EndColorSection(selectionHighlighting)
                                 .Append(SuggestionText, start, length);
                             break;
                         }
@@ -93,7 +94,7 @@ namespace Microsoft.PowerShell
                                 int length = SubstringLengthByCells(SuggestionText, textWidth - 3);
                                 line.Append(_singleton._options.EmphasisColor)
                                     .Append(SuggestionText, 0, input.Length)
-                                    .Append(PredictionViewBase.DefaultFg)
+                                    .EndColorSection(selectionHighlighting)
                                     .Append(SuggestionText, input.Length, length - input.Length)
                                     .Append("...");
                             }
@@ -107,7 +108,7 @@ namespace Microsoft.PowerShell
                                     line.Append(_singleton._options.EmphasisColor)
                                         .Append("...")
                                         .Append(SuggestionText, input.Length - length, length)
-                                        .Append(PredictionViewBase.DefaultFg)
+                                        .EndColorSection(selectionHighlighting)
                                         .Append(SuggestionText, input.Length, SuggestionText.Length - input.Length);
                                 }
                                 else
@@ -118,7 +119,7 @@ namespace Microsoft.PowerShell
                                     line.Append(_singleton._options.EmphasisColor)
                                         .Append("...")
                                         .Append(SuggestionText, startIndex, leftStrLen)
-                                        .Append(PredictionViewBase.DefaultFg)
+                                        .EndColorSection(selectionHighlighting)
                                         .Append(SuggestionText, input.Length, totalStrLen - leftStrLen)
                                         .Append("...");
                                 }
@@ -137,7 +138,7 @@ namespace Microsoft.PowerShell
                                 line.Append(SuggestionText, 0, InputMatchIndex)
                                     .Append(_singleton._options.EmphasisColor)
                                     .Append(SuggestionText, InputMatchIndex, input.Length)
-                                    .Append(PredictionViewBase.DefaultFg)
+                                    .EndColorSection(selectionHighlighting)
                                     .Append(SuggestionText, rightStartindex, rightStrLen)
                                     .Append("...");
                                 break;
@@ -151,7 +152,7 @@ namespace Microsoft.PowerShell
                                     .Append(SuggestionText, InputMatchIndex - leftStrLen, leftStrLen)
                                     .Append(_singleton._options.EmphasisColor)
                                     .Append(SuggestionText, InputMatchIndex, input.Length)
-                                    .Append(PredictionViewBase.DefaultFg)
+                                    .EndColorSection(selectionHighlighting)
                                     .Append(SuggestionText, rightStartindex, SuggestionText.Length - rightStartindex);
                                 break;
                             }
@@ -170,7 +171,7 @@ namespace Microsoft.PowerShell
                                     .Append(SuggestionText, InputMatchIndex - leftStrLen, leftStrLen)
                                     .Append(_singleton._options.EmphasisColor)
                                     .Append(SuggestionText, InputMatchIndex, input.Length)
-                                    .Append(PredictionViewBase.DefaultFg)
+                                    .EndColorSection(selectionHighlighting)
                                     .Append(SuggestionText, rightStartindex, rightStrLen)
                                     .Append("...");
                                 break;
@@ -191,7 +192,7 @@ namespace Microsoft.PowerShell
                                     .Append(SuggestionText, InputMatchIndex, midLeftStrLen)
                                     .Append("...")
                                     .Append(SuggestionText, rightStartindex - midRightStrLen, midRightStrLen)
-                                    .Append(PredictionViewBase.DefaultFg)
+                                    .EndColorSection(selectionHighlighting)
                                     .Append(SuggestionText, rightStartindex, SuggestionText.Length - rightStartindex);
                                 break;
                             }
@@ -214,7 +215,7 @@ namespace Microsoft.PowerShell
                                     .Append(SuggestionText, InputMatchIndex, midLeftStrLen)
                                     .Append("...")
                                     .Append(SuggestionText, rightStartindex - midRightStrLen, midRightStrLen)
-                                    .Append(PredictionViewBase.DefaultFg)
+                                    .EndColorSection(selectionHighlighting)
                                     .Append(SuggestionText, rightStartindex, rightStrLen)
                                     .Append("...");
                                 break;
@@ -236,7 +237,7 @@ namespace Microsoft.PowerShell
                                     .Append(SuggestionText, InputMatchIndex, midLeftStrLen)
                                     .Append("...")
                                     .Append(SuggestionText, rightStartindex - midRightStrLen, midRightStrLen)
-                                    .Append(PredictionViewBase.DefaultFg)
+                                    .EndColorSection(selectionHighlighting)
                                     .Append(SuggestionText, rightStartindex, SuggestionText.Length - rightStartindex);
                                 break;
                             }
@@ -259,7 +260,7 @@ namespace Microsoft.PowerShell
                                     .Append(SuggestionText, InputMatchIndex, midLeftStrLen)
                                     .Append("...")
                                     .Append(SuggestionText, rightStartindex - midRightStrLen, midRightStrLen)
-                                    .Append(PredictionViewBase.DefaultFg)
+                                    .EndColorSection(selectionHighlighting)
                                     .Append(SuggestionText, rightStartindex, rightStrLen)
                                     .Append("...")
                                     .Append(spaces);
@@ -283,7 +284,7 @@ namespace Microsoft.PowerShell
                         .Append("...");
                 }
 
-                line.Append(PredictionViewBase.DefaultFg)
+                line.EndColorSection(selectionHighlighting)
                     .Append(']');
 
                 return line.ToString();

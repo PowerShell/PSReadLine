@@ -107,25 +107,57 @@ namespace Microsoft.PowerShell
             UpdateListSelection(numericArg);
         }
 
-        private static bool UpdateListSelection(int numericArg, bool calledFromPreviousHistory = false)
+        private static bool UpdateListSelection(int numericArg)
         {
             if (_singleton._prediction.ActiveView is PredictionListView listView && listView.HasActiveSuggestion)
             {
-                if (calledFromPreviousHistory && listView.SelectedItemIndex == -1)
-                {
-                    return false;
-                }
-
                 // Ignore the visual selection.
                 _singleton._visualSelectionCommandCount = 0;
 
                 listView.UpdateListSelection(move: numericArg);
-                Replace(0, _singleton._buffer.Length, listView.SelectedItemText);
+                ReplaceSelection(listView.SelectedItemText);
 
                 return true;
             }
 
             return false;
+        }
+
+        private static void ReplaceSelection(string selectedItemText)
+        {
+            var insertStringItem = EditItemInsertString.Create(selectedItemText, position: 0);
+            insertStringItem.Replaceable = true;
+
+            if (_singleton.IsLastEditItemReplaceable)
+            {
+                _singleton.SaveEditItem(insertStringItem);
+                _singleton._buffer.Clear();
+                _singleton._buffer.Append(selectedItemText);
+                _singleton._current = selectedItemText.Length;
+
+                _singleton.Render();
+                return;
+            }
+
+            bool useEditGroup = _singleton._editGroupStart == -1;
+            if (useEditGroup)
+            {
+                _singleton.StartEditGroup();
+            }
+
+            var str = _singleton._buffer.ToString();
+            _singleton.SaveEditItem(EditItemDelete.Create(str, position: 0));
+            _singleton._buffer.Clear();
+
+            _singleton.SaveEditItem(insertStringItem);
+            _singleton._buffer.Append(selectedItemText);
+            _singleton._current = selectedItemText.Length;
+
+            if (useEditGroup)
+            {
+                _singleton.EndEditGroup(); // Instigator is needed for VI undo
+                _singleton.Render();
+            }
         }
 
         /// <summary>
@@ -245,6 +277,25 @@ namespace Microsoft.PowerShell
                 }
 
                 ActiveView.GetSuggestion(userInput);
+            }
+
+            internal bool RevertSuggestion()
+            {
+                bool retValue = false;
+                if (ActiveView is PredictionListView listView && listView.HasActiveSuggestion)
+                {
+                    if (listView.SelectedItemIndex > -1 && _singleton._undoEditIndex > 0)
+                    {
+                        _singleton._edits[_singleton._undoEditIndex - 1].Undo();
+                        _singleton._undoEditIndex--;
+                    }
+
+                    retValue = true;
+                    using var _ = DisableScoped();
+                    _singleton.Render();
+                }
+
+                return retValue;
             }
         }
     }

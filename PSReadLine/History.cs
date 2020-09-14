@@ -629,7 +629,7 @@ namespace Microsoft.PowerShell
                 numericArg = -numericArg;
             }
 
-            if (UpdateListSelection(numericArg, calledFromPreviousHistory: true))
+            if (UpdateListSelection(numericArg))
             {
                 return;
             }

@@ -57,6 +57,11 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void RevertLine(ConsoleKeyInfo? key = null, object arg = null)
         {
+            if (_singleton._prediction.RevertSuggestion())
+            {
+                return;
+            }
+
             if (_singleton._statusIsErrorMessage)
             {
                 // After an edit, clear the error message
