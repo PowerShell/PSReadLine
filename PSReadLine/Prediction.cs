@@ -67,6 +67,9 @@ namespace Microsoft.PowerShell
             }
         }
 
+        /// <summary>
+        /// Implementation for accepting the current or the next suggestion text word.
+        /// </summary>
         private static void AcceptNextSuggestionWord(int numericArg)
         {
             if (_singleton._prediction.ActiveView is PredictionInlineView inlineView && inlineView.HasActiveSuggestion)
@@ -107,6 +110,9 @@ namespace Microsoft.PowerShell
             UpdateListSelection(numericArg);
         }
 
+        /// <summary>
+        /// Implementation for updating the selected item in list view.
+        /// </summary>
         private static bool UpdateListSelection(int numericArg)
         {
             if (_singleton._prediction.ActiveView is PredictionListView listView && listView.HasActiveSuggestion)
@@ -123,6 +129,12 @@ namespace Microsoft.PowerShell
             return false;
         }
 
+        /// <summary>
+        /// Replace current buffer with the selected list item text.
+        /// The replacement is done in a way that allows further selection updates for the same list view
+        /// to override the previous update in the undo/redo stack, so that 'undo' always get back to the
+        /// original user input that triggers the current list view.
+        /// </summary>
         private static void ReplaceSelection(string selectedItemText)
         {
             var insertStringItem = EditItemInsertString.Create(selectedItemText, position: 0);
@@ -174,6 +186,9 @@ namespace Microsoft.PowerShell
             _singleton.Render();
         }
 
+        /// <summary>
+        /// The type that controls the predictive suggestion feature and exposes the active view.
+        /// </summary>
         private class Prediction
         {
             private readonly PSConsoleReadLine _singleton;
@@ -183,8 +198,14 @@ namespace Microsoft.PowerShell
             private PredictionListView _listView;
             private PredictionInlineView _inlineView;
 
+            /// <summary>
+            /// Gets indication on whether the prediction feature is on.
+            /// </summary>
             private bool IsPredictionOn => _singleton._options.PredictionSource != PredictionSource.None && _showPrediction;
 
+            /// <summary>
+            /// Gets the active prediction view.
+            /// </summary>
             internal PredictionViewBase ActiveView { get; private set; }
 
             internal Prediction(PSConsoleReadLine singleton)
@@ -279,6 +300,10 @@ namespace Microsoft.PowerShell
                 ActiveView.GetSuggestion(userInput);
             }
 
+            /// <summary>
+            /// Revert the list view suggestion.
+            /// Namely, clear the list view and revert the buffer to the original user input.
+            /// </summary>
             internal bool RevertSuggestion()
             {
                 bool retValue = false;

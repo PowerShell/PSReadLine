@@ -13,6 +13,9 @@ namespace Microsoft.PowerShell
 {
     public partial class PSConsoleReadLine
     {
+        /// <summary>
+        /// The base type of the prediction view.
+        /// </summary>
         private abstract class PredictionViewBase
         {
             internal const string TextSelectedBg = "\x1b[48;5;238m";
@@ -30,28 +33,59 @@ namespace Microsoft.PowerShell
                 _singleton = singleton;
             }
 
+            /// <summary>
+            /// Gets whether to use plugin as a source.
+            /// </summary>
             protected bool UsePlugin => (_singleton._options.PredictionSource & PredictionSource.Plugin) != 0;
 
+            /// <summary>
+            /// Gets whether to use history as a source.
+            /// </summary>
             protected bool UseHistory => (_singleton._options.PredictionSource & PredictionSource.History) != 0;
 
+            /// <summary>
+            /// Gets whether an update to the view is pending.
+            /// </summary>
             internal virtual bool HasPendingUpdate => false;
 
+            /// <summary>
+            /// Gets whether there is currently any suggestion results.
+            /// </summary>
             internal abstract bool HasActiveSuggestion { get; }
 
+            /// <summary>
+            /// Get suggestion results.
+            /// </summary>
             internal abstract void GetSuggestion(string userInput);
 
+            /// <summary>
+            /// Render the suggestion view.
+            /// </summary>
             internal abstract void RenderSuggestion(List<StringBuilder> consoleBufferLines, ref int currentLogicalLine);
 
+            /// <summary>
+            /// Get called when a suggestion result is accepted.
+            /// </summary>
             internal abstract void OnSuggestionAccepted();
 
+            /// <summary>
+            /// Clear the current suggestion view.
+            /// </summary>
+            /// <param name="cursorAtEol">Indicate if the cursor is currently at the end of input.</param>
             internal abstract void Clear(bool cursorAtEol);
 
+            /// <summary>
+            /// Reset the view instance.
+            /// </summary>
             internal virtual void Reset()
             {
                 _inputText = null;
                 _predictionTask = null;
             }
 
+            /// <summary>
+            /// Get called when a command line is accepted.
+            /// </summary>
             internal void OnCommandLineAccepted()
             {
                 if (UsePlugin)
@@ -87,6 +121,14 @@ namespace Microsoft.PowerShell
                 return null;
             }
 
+            /// <summary>
+            /// Get multiple suggestion results from histories, as long as a history is a single-line
+            /// command that contains the user input.
+            /// We favor history commands that are prefixed with the user input over those that contain
+            /// the user input in the middle or at the end.
+            /// </summary>
+            /// <param name="input">User input.</param>
+            /// <param name="count">Maximum number of results to return.</param>
             protected List<SuggestionEntry> GetHistorySuggestions(string input, int count)
             {
                 const string source = "History";
@@ -150,11 +192,17 @@ namespace Microsoft.PowerShell
                 return results;
             }
 
+            /// <summary>
+            /// Calls to the prediction API for suggestion results.
+            /// </summary>
             protected void PredictInput()
             {
                 _predictionTask = _singleton._mockableMethods.PredictInput(_singleton._ast, _singleton._tokens);
             }
 
+            /// <summary>
+            /// Gets the results from the prediction task.
+            /// </summary>
             protected List<PredictionResult> GetPredictionResults()
             {
                 try
@@ -172,6 +220,9 @@ namespace Microsoft.PowerShell
             }
         }
 
+        /// <summary>
+        /// This type represents the list view for prediction.
+        /// </summary>
         private class PredictionListView : PredictionViewBase
         {
             internal const int ListMaxCount = 10;
@@ -184,11 +235,18 @@ namespace Microsoft.PowerShell
             private int _selectedIndex;
             private bool _updatePending;
 
+            // Caches re-used when aggregating the suggestion results from predictors and history.
             private List<int> _cacheList1;
             private List<int> _cacheList2;
 
+            /// <summary>
+            /// The index of the currently selected item.
+            /// </summary>
             internal int SelectedItemIndex => _selectedIndex;
 
+            /// <summary>
+            /// The text of the currently selected item.
+            /// </summary>
             internal string SelectedItemText
             {
                 get {
@@ -247,6 +305,14 @@ namespace Microsoft.PowerShell
                 }
             }
 
+            /// <summary>
+            /// Aggregate the suggestion results from both the prediction API and the history.
+            /// </summary>
+            /// <remarks>
+            /// If the prediction source contains both the history and plugin, then we allocate 3
+            /// slots at most for history suggestions. The remaining slots are evenly distributed
+            /// to each predictor plugin.
+            /// </remarks>
             private void AggregateSuggestions()
             {
                 var results = GetPredictionResults();
@@ -262,6 +328,8 @@ namespace Microsoft.PowerShell
                         int hCount = Math.Min(3, _listItems.Count);
                         int remRows = ListMaxCount - hCount;
 
+                        // Calculate the number of plugins that we need to handle,
+                        // and the number of results each of them returned.
                         foreach (var item in results)
                         {
                             if (item.Suggestions?.Count > 0)
@@ -276,8 +344,13 @@ namespace Microsoft.PowerShell
                             }
                         }
 
+                        // Calculate the average slots to be allocated to each plugin.
                         int ave = remRows / pCount;
 
+                        // Assign the results of each plugin to the average slots.
+                        // Note that it's possible a plugin may return less results than the average slots,
+                        // and in that case, the unused slots will be come remaining slots that are to be
+                        // distributed again.
                         for (int i = 0; i < pCount; i++)
                         {
                             int val = _cacheList1[i];
@@ -291,6 +364,7 @@ namespace Microsoft.PowerShell
                             remRows -= val;
                         }
 
+                        // Distribute the remaining slots to each of the plugins one by one.
                         bool more = true;
                         while (remRows > 0 && more)
                         {
@@ -323,6 +397,7 @@ namespace Microsoft.PowerShell
                         int index = -1;
                         var comparison = _singleton._options.HistoryStringComparison;
 
+                        // Finalize the list items by assign the results to the allocated slots for each plugin.
                         foreach (var item in results)
                         {
                             if (item.Suggestions?.Count > 0)
@@ -437,6 +512,10 @@ namespace Microsoft.PowerShell
                 _updatePending = false;
             }
 
+            /// <summary>
+            /// Update the index of the selected item based on <paramref name="move"/>.
+            /// </summary>
+            /// <param name="move"></param>
             internal void UpdateListSelection(int move)
             {
                 int virtualItemIndex = _selectedIndex + 1;
@@ -460,6 +539,9 @@ namespace Microsoft.PowerShell
             }
         }
 
+        /// <summary>
+        /// This type represents the inline view for prediction.
+        /// </summary>
         private class PredictionInlineView : PredictionViewBase
         {
             private Guid _predictorId;
@@ -610,6 +692,9 @@ namespace Microsoft.PowerShell
                 _predictorId = Guid.Empty;
             }
 
+            /// <summary>
+            /// Perform forward lookup to find the ending index of the next word in the suggestion text.
+            /// </summary>
             internal int FindForwardSuggestionWordPoint(int currentIndex, string wordDelimiters)
             {
                 System.Diagnostics.Debug.Assert(
