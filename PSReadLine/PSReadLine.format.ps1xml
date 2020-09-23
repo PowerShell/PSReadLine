@@ -162,8 +162,16 @@ $d = [Microsoft.PowerShell.KeyHandler]::GetGroupingDescription($_.Group)
                 <PropertyName>PredictionSource</PropertyName>
               </ListItem>
               <ListItem>
+                <Label>AttributeColor</Label>
+                <ScriptBlock>[Microsoft.PowerShell.VTColorUtils]::FormatColor($_.AttributeColor)</ScriptBlock>
+              </ListItem>
+              <ListItem>
                 <Label>CommandColor</Label>
                 <ScriptBlock>[Microsoft.PowerShell.VTColorUtils]::FormatColor($_.CommandColor)</ScriptBlock>
+              </ListItem>
+              <ListItem>
+                <Label>CommandArgumentColor</Label>
+                <ScriptBlock>[Microsoft.PowerShell.VTColorUtils]::FormatColor($_.CommandArgumentColor)</ScriptBlock>
               </ListItem>
               <ListItem>
                 <Label>CommentColor</Label>
@@ -188,6 +196,10 @@ $d = [Microsoft.PowerShell.KeyHandler]::GetGroupingDescription($_.Group)
               <ListItem>
                 <Label>KeywordColor</Label>
                 <ScriptBlock>[Microsoft.PowerShell.VTColorUtils]::FormatColor($_.KeywordColor)</ScriptBlock>
+              </ListItem>
+              <ListItem>
+                <Label>LoopLabelColor</Label>
+                <ScriptBlock>[Microsoft.PowerShell.VTColorUtils]::FormatColor($_.LoopLabelColor)</ScriptBlock>
               </ListItem>
               <ListItem>
                 <Label>MemberColor</Label>

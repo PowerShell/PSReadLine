@@ -84,6 +84,7 @@ namespace Microsoft.PowerShell
         public const ConsoleColor DefaultMemberColor    = ConsoleColor.Gray;
         public const ConsoleColor DefaultEmphasisColor  = ConsoleColor.Cyan;
         public const ConsoleColor DefaultErrorColor     = ConsoleColor.Red;
+        public const ConsoleColor DefaultAttributeColor = ConsoleColor.Gray;
 
         // Use dark black by default for the suggestion text.
         // Find the most suitable color using https://stackoverflow.com/a/33206814
@@ -457,6 +458,24 @@ namespace Microsoft.PowerShell
             set => _predictionColor = VTColorUtils.AsEscapeSequence(value);
         }
 
+        public object AttributeColor
+        {
+            get => _attributeColor;
+            set => _attributeColor = VTColorUtils.AsEscapeSequence(value);
+        }
+
+        public object CommandArgumentColor
+        {
+            get => _commandArgumentColor;
+            set => _commandArgumentColor = VTColorUtils.AsEscapeSequence(value);
+        }
+
+        public object LoopLabelColor
+        {
+            get => _loopLabelColor;
+            set => _loopLabelColor = VTColorUtils.AsEscapeSequence(value);
+        }
+
         internal string _defaultTokenColor;
         internal string _commentColor;
         internal string _keywordColor;
@@ -472,24 +491,30 @@ namespace Microsoft.PowerShell
         internal string _errorColor;
         internal string _selectionColor;
         internal string _predictionColor;
+        internal string _attributeColor;
+        internal string _commandArgumentColor;
+        internal string _loopLabelColor;
 
         internal void ResetColors()
         {
             var fg = Console.ForegroundColor;
-            DefaultTokenColor = fg;
-            CommentColor      = DefaultCommentColor;
-            KeywordColor      = DefaultKeywordColor;
-            StringColor       = DefaultStringColor;
-            OperatorColor     = DefaultOperatorColor;
-            VariableColor     = DefaultVariableColor;
-            CommandColor      = DefaultCommandColor;
-            ParameterColor    = DefaultParameterColor;
-            TypeColor         = DefaultTypeColor;
-            NumberColor       = DefaultNumberColor;
-            MemberColor       = DefaultNumberColor;
-            EmphasisColor     = DefaultEmphasisColor;
-            ErrorColor        = DefaultErrorColor;
-            PredictionColor   = DefaultPredictionColor;
+            DefaultTokenColor    = fg;
+            CommentColor         = DefaultCommentColor;
+            KeywordColor         = DefaultKeywordColor;
+            StringColor          = DefaultStringColor;
+            OperatorColor        = DefaultOperatorColor;
+            VariableColor        = DefaultVariableColor;
+            CommandColor         = DefaultCommandColor;
+            ParameterColor       = DefaultParameterColor;
+            TypeColor            = DefaultTypeColor;
+            NumberColor          = DefaultNumberColor;
+            MemberColor          = DefaultNumberColor;
+            EmphasisColor        = DefaultEmphasisColor;
+            ErrorColor           = DefaultErrorColor;
+            PredictionColor      = DefaultPredictionColor;
+            AttributeColor       = DefaultAttributeColor;
+            CommandArgumentColor = fg;
+            LoopLabelColor       = fg;
 
             var bg = Console.BackgroundColor;
             if (fg == VTColorUtils.UnknownColor || bg == VTColorUtils.UnknownColor)
@@ -527,6 +552,9 @@ namespace Microsoft.PowerShell
                         {"Member", (o, v) => o.MemberColor = v},
                         {"Selection", (o, v) => o.SelectionColor = v},
                         {"Prediction", (o, v) => o.PredictionColor = v},
+                        {"Attribute", (o, v) => o.AttributeColor = v},
+                        {"CommandArgument", (o, v) => o.CommandArgumentColor = v},
+                        {"LoopLabel", (o, v) => o.LoopLabelColor = v},
                     };
 
                 Interlocked.CompareExchange(ref ColorSetters, setters, null);

@@ -61,6 +61,34 @@ namespace Test
                 InputAcceptedNow
                 ));
 
+            Test("", Keys(
+                "[AllowNull()]$R=ls C:\\;:Label while($true){break Label}",
+                _.Home,
+                CheckThat(() =>
+                    AssertScreenIs(1,
+                        TokenClassification.None, "[",
+                        TokenClassification.Attribute, "AllowNull",
+                        TokenClassification.None, "()]",
+                        TokenClassification.Variable, "$R",
+                        TokenClassification.Operator, "=",
+                        TokenClassification.Command, "ls",
+                        TokenClassification.None, " ",
+                        TokenClassification.CommandArgument, "C:\\",
+                        TokenClassification.None, ";",
+                        TokenClassification.LoopLabel, ":Label",
+                        TokenClassification.None, " ",
+                        TokenClassification.Keyword, "while",
+                        TokenClassification.None, "(",
+                        TokenClassification.Variable, "$true",
+                        TokenClassification.None, "){",
+                        TokenClassification.Keyword, "break",
+                        TokenClassification.None, " ",
+                        TokenClassification.Member, "Label",
+                        TokenClassification.None, "}")),
+                _.Ctrl_c,
+                InputAcceptedNow
+                ));
+
             // This tests for priority to highlight a command regardless of token kind and nested tokens potential to bleed the parent token color to the next token
             Test("", Keys(
                 ". -abc def;. abc$name -def",
@@ -69,7 +97,9 @@ namespace Test
                     AssertScreenIs(1,
                         TokenClassification.None, ". ",
                         TokenClassification.Command, "-abc",
-                        TokenClassification.None, " def;. ",
+                        TokenClassification.None, " ",
+                        TokenClassification.CommandArgument, "def",
+                        TokenClassification.None, ";. ",
                         TokenClassification.Command, "abc",
                         TokenClassification.Variable, "$name",
                         TokenClassification.None, " ",
@@ -86,7 +116,8 @@ namespace Test
                     AssertScreenIs(1,
                         TokenClassification.None, ". ",
                         TokenClassification.Command, "++",
-                        TokenClassification.None, " abc",
+                        TokenClassification.None, " ",
+                        TokenClassification.CommandArgument, "abc",
                         TokenClassification.Variable, "$name",
                         TokenClassification.None, " ",
                         TokenClassification.Parameter, "-def")),
@@ -103,7 +134,8 @@ namespace Test
                         TokenClassification.Keyword, "process",
                         TokenClassification.None, " ",
                         TokenClassification.Variable, "$abc",
-                        TokenClassification.None, "\\name | def")),
+                        TokenClassification.CommandArgument, "\\name",
+                        TokenClassification.None, " | def")),
                 _.Ctrl_c,
                 InputAcceptedNow
                 ));
@@ -113,7 +145,9 @@ namespace Test
                 CheckThat(() =>
                     AssertScreenIs(1,
                         TokenClassification.Keyword, "process",
-                        TokenClassification.None, " out put")),
+                        TokenClassification.None, " ",
+                        TokenClassification.CommandArgument, "out",
+                        TokenClassification.None, " put")),
                 _.Ctrl_c,
                 InputAcceptedNow
                 ));
