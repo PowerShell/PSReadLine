@@ -86,9 +86,9 @@ namespace Microsoft.PowerShell
             /// <summary>
             /// Get called when a command line is accepted.
             /// </summary>
-            internal void OnCommandLineAccepted()
+            internal void OnCommandLineAccepted(string commandLine)
             {
-                if (UsePlugin)
+                if (UsePlugin && !string.IsNullOrWhiteSpace(commandLine))
                 {
                     _singleton._mockableMethods.OnCommandLineAccepted(_singleton._recentHistory.ToArray());
                 }
@@ -275,6 +275,15 @@ namespace Microsoft.PowerShell
             internal override void GetSuggestion(string userInput)
             {
                 bool inputUnchanged = string.Equals(_inputText, userInput, _singleton._options.HistoryStringComparison);
+                if (!inputUnchanged && _selectedIndex > -1)
+                {
+                    // User input was changed while a specific list item was selected. This is a strong indicator that
+                    // the selected list item was accepted, because the user was editing based on the selected item.
+                    //
+                    // But be noted that it's not guaranteed to be 100% accurate, because it's still possible that the
+                    // user selected all the buffer and then was replacing it with something totally different.
+                    OnSuggestionAccepted();
+                }
 
                 _inputText = userInput;
                 _selectedIndex = -1;
@@ -282,6 +291,9 @@ namespace Microsoft.PowerShell
 
                 if (inputUnchanged)
                 {
+                    // This could happen when the user types 'ctrl+z' (undo) while looping through the suggestion list.
+                    // The 'undo' operation would revert the line back to the original user input, and in that cases, we
+                    // could reuse the existing suggestion results.
                     return;
                 }
 
@@ -547,6 +559,7 @@ namespace Microsoft.PowerShell
             private Guid _predictorId;
             private string _suggestionText;
             private string _lastInputText;
+            private bool _alreadyAccepted;
 
             internal string SuggestionText => _suggestionText;
 
@@ -567,6 +580,7 @@ namespace Microsoft.PowerShell
                         _lastInputText.Length > userInput.Length ||
                         !_suggestionText.StartsWith(userInput, _singleton._options.HistoryStringComparison))
                     {
+                        _alreadyAccepted = false;
                         _suggestionText = null;
                         _lastInputText = userInput;
 
@@ -639,8 +653,9 @@ namespace Microsoft.PowerShell
                     return;
                 }
 
-                if (_suggestionText != null && _predictorId != Guid.Empty)
+                if (!_alreadyAccepted && _suggestionText != null && _predictorId != Guid.Empty)
                 {
+                    _alreadyAccepted = true;
                     _singleton._mockableMethods.OnSuggestionAccepted(_predictorId, _suggestionText);
                 }
             }
@@ -690,6 +705,7 @@ namespace Microsoft.PowerShell
                 base.Reset();
                 _suggestionText = _lastInputText = null;
                 _predictorId = Guid.Empty;
+                _alreadyAccepted = false;
             }
 
             /// <summary>

@@ -98,9 +98,18 @@ namespace Microsoft.PowerShell
             _statusIsErrorMessage = false;
             if (render)
             {
-                using var _ = _prediction.PauseQuery();
-                Render();
+                RenderWithPredictionQueryPaused();
             }
+        }
+
+        private void RenderWithPredictionQueryPaused()
+        {
+            // Sometimes we need to re-render the buffer to show status line, or to clear
+            // the visual selection, or to clear the visual emphasis.
+            // In those cases, the buffer text is unchanged, and thus we can skip querying
+            // for prediction during the rendering, but instead, use the existing results.
+            using var _ = _prediction.PauseQuery();
+            Render();
         }
 
         private void Render()

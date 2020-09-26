@@ -46,6 +46,8 @@ namespace Microsoft.PowerShell
                 // Ignore the visual selection.
                 _singleton._visualSelectionCommandCount = 0;
 
+                inlineView.OnSuggestionAccepted();
+
                 using var _ = prediction.DisableScoped();
                 Replace(0, _singleton._buffer.Length, inlineView.SuggestionText);
             }
@@ -83,6 +85,7 @@ namespace Microsoft.PowerShell
                     index = inlineView.FindForwardSuggestionWordPoint(index, _singleton.Options.WordDelimiters);
                 }
 
+                inlineView.OnSuggestionAccepted();
                 Replace(0, _singleton._buffer.Length, inlineView.SuggestionText.Substring(0, index));
             }
         }
@@ -245,6 +248,14 @@ namespace Microsoft.PowerShell
             /// </summary>
             internal IDisposable PauseQuery()
             {
+                if (!IsPredictionOn)
+                {
+                    // If the prediction is off, there is no need to pause the prediction query in the
+                    // caller's lexical scope. So we return a non-op disposable object to avoid unneeded
+                    // allocation.
+                    return Disposable.NonOp;
+                }
+
                 var saved = _pauseQuery;
                 _pauseQuery = true;
 
@@ -258,6 +269,13 @@ namespace Microsoft.PowerShell
             /// </summary>
             internal IDisposable DisableScoped()
             {
+                if (_singleton._options.PredictionSource == PredictionSource.None)
+                {
+                    // If the prediction source is set to 'None', then the prediction feature is already
+                    // disabled. So we return a non-op disposable object to avoid unneeded allocation.
+                    return Disposable.NonOp;
+                }
+
                 var saved = _showPrediction;
                 _showPrediction = false;
 

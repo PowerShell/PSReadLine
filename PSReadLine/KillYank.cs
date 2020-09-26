@@ -345,7 +345,7 @@ namespace Microsoft.PowerShell
             }
             _singleton._visualSelectionCommandCount += 1;
             action();
-            _singleton.Render();
+            _singleton.RenderWithPredictionQueryPaused();
         }
 
         /// <summary>
@@ -420,7 +420,7 @@ namespace Microsoft.PowerShell
             _singleton._visualSelectionCommandCount += 1;
             _singleton._mark = 0;
             _singleton._current = _singleton._buffer.Length;
-            _singleton.Render();
+            _singleton.RenderWithPredictionQueryPaused();
         }
 
         /// <summary>

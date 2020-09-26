@@ -489,7 +489,7 @@ namespace Microsoft.PowerShell
                     var commandLine = _buffer.ToString();
                     MaybeAddToHistory(commandLine, _edits, _undoEditIndex);
 
-                    _prediction.ActiveView.OnCommandLineAccepted();
+                    _prediction.ActiveView.OnCommandLineAccepted(commandLine);
                     return commandLine;
                 }
 
@@ -521,7 +521,7 @@ namespace Microsoft.PowerShell
                     {
                         _emphasisStart = -1;
                         _emphasisLength = 0;
-                        Render();
+                        RenderWithPredictionQueryPaused();
                     }
                     _searchHistoryCommandCount = 0;
                     _searchHistoryPrefix = null;
@@ -543,7 +543,7 @@ namespace Microsoft.PowerShell
                 if (visualSelectionCommandCount == _visualSelectionCommandCount && _visualSelectionCommandCount > 0)
                 {
                     _visualSelectionCommandCount = 0;
-                    Render();  // Clears the visual selection
+                    RenderWithPredictionQueryPaused();  // Clears the visual selection
                 }
                 if (moveToLineCommandCount == _moveToLineCommandCount)
                 {
@@ -922,7 +922,7 @@ namespace Microsoft.PowerShell
                 sawDigit = true;
             }
 
-            _singleton.Render(); // Render prompt
+            _singleton.RenderWithPredictionQueryPaused(); // Render prompt
             while (true)
             {
                 var nextKey = ReadKey();
@@ -940,7 +940,7 @@ namespace Microsoft.PowerShell
                             {
                                 argBuffer.Insert(0, '-');
                             }
-                            _singleton.Render(); // Render prompt
+                            _singleton.RenderWithPredictionQueryPaused(); // Render prompt
                             continue;
                         }
 
@@ -954,7 +954,7 @@ namespace Microsoft.PowerShell
                             }
                             sawDigit = true;
                             argBuffer.Append(nextKey.KeyChar);
-                            _singleton.Render(); // Render prompt
+                            _singleton.RenderWithPredictionQueryPaused(); // Render prompt
                             continue;
                         }
                     }
