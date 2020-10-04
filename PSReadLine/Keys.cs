@@ -115,13 +115,21 @@ namespace Microsoft.PowerShell
         public static extern uint MapVirtualKey(ConsoleKey uCode, uint uMapType);
 
         [DllImport("user32.dll", CharSet = CharSet.Unicode)]
-        public static extern int ToUnicode(
+        public static extern int ToUnicodeEx(
             ConsoleKey uVirtKey,
             uint uScanCode,
             byte[] lpKeyState,
             [MarshalAs(UnmanagedType.LPArray)] [Out] char[] chars,
             int charMaxCount,
-            uint flags);
+            uint flags,
+            IntPtr dwhkl);
+
+        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+
+        private static extern IntPtr LoadKeyboardLayoutW(
+            string pwszKLID,
+            uint Flags
+            );
 
         static readonly ThreadLocal<char[]> toUnicodeBuffer = new ThreadLocal<char[]>(() => new char[2]);
         static readonly ThreadLocal<byte[]> toUnicodeStateBuffer = new ThreadLocal<byte[]>(() => new byte[256]);
@@ -147,7 +155,9 @@ namespace Microsoft.PowerShell
             {
                 flags |= (1 << 2); /* If bit 2 is set, keyboard state is not changed (Windows 10, version 1607 and newer) */
             }
-            int charCount = ToUnicode(virtualKey, scanCode, state, chars, chars.Length, flags);
+
+            var kl = LoadKeyboardLayoutW("00000409", 0); // US English keyboard layout
+            int charCount = ToUnicodeEx(virtualKey, scanCode, state, chars, chars.Length, flags, kl);
 
             if (charCount == 1)
             {
