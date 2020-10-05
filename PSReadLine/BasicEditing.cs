@@ -277,6 +277,14 @@ namespace Microsoft.PowerShell
 
             // Let public API set cursor to end of line incase end of line is end of buffer
             SetCursorPosition(_current);
+
+            if (_prediction.ActiveView is PredictionListView listView)
+            {
+                // Send feedback to prediction plugin if a list item is accepted as the final command line.
+                listView.OnSuggestionAccepted();
+            }
+
+            // Clear the prediction view if there is one.
             _prediction.ActiveView.Clear(cursorAtEol: true);
 
             _console.Write("\n");
