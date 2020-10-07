@@ -87,7 +87,7 @@ namespace Microsoft.PowerShell
 
         // Use dark black by default for the suggestion text.
         // Find the most suitable color using https://stackoverflow.com/a/33206814
-        public const string DefaultPredictionColor = "\x1b[38;5;238m";
+        public const string DefaultInlinePredictionColor = "\x1b[38;5;238m";
 
         public static EditMode DefaultEditMode = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
             ? EditMode.Windows
@@ -451,10 +451,10 @@ namespace Microsoft.PowerShell
             set => _selectionColor = VTColorUtils.AsEscapeSequence(value);
         }
 
-        public object PredictionColor
+        public object InlinePredictionColor
         {
-            get => _predictionColor;
-            set => _predictionColor = VTColorUtils.AsEscapeSequence(value);
+            get => _inlinePredictionColor;
+            set => _inlinePredictionColor = VTColorUtils.AsEscapeSequence(value);
         }
 
         internal string _defaultTokenColor;
@@ -471,7 +471,7 @@ namespace Microsoft.PowerShell
         internal string _emphasisColor;
         internal string _errorColor;
         internal string _selectionColor;
-        internal string _predictionColor;
+        internal string _inlinePredictionColor;
 
         internal void ResetColors()
         {
@@ -489,7 +489,7 @@ namespace Microsoft.PowerShell
             MemberColor       = DefaultNumberColor;
             EmphasisColor     = DefaultEmphasisColor;
             ErrorColor        = DefaultErrorColor;
-            PredictionColor   = DefaultPredictionColor;
+            InlinePredictionColor = DefaultInlinePredictionColor;
 
             var bg = Console.BackgroundColor;
             if (fg == VTColorUtils.UnknownColor || bg == VTColorUtils.UnknownColor)
@@ -526,7 +526,7 @@ namespace Microsoft.PowerShell
                         {"Number", (o, v) => o.NumberColor = v},
                         {"Member", (o, v) => o.MemberColor = v},
                         {"Selection", (o, v) => o.SelectionColor = v},
-                        {"Prediction", (o, v) => o.PredictionColor = v},
+                        {"InlinePrediction", (o, v) => o.InlinePredictionColor = v},
                     };
 
                 Interlocked.CompareExchange(ref ColorSetters, setters, null);

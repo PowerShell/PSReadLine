@@ -340,7 +340,7 @@ namespace Microsoft.PowerShell
 
             if (suggestion != null)
             {
-                color = _options._predictionColor;
+                color = _options._inlinePredictionColor;
                 foreach (char charToRender in suggestion)
                 {
                     RenderOneChar(charToRender, toEmphasize: false);
