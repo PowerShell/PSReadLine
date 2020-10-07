@@ -345,6 +345,9 @@ namespace Microsoft.PowerShell
                 {
                     RenderOneChar(charToRender, toEmphasize: false);
                 }
+
+                // Reset the inline prediction color, so that the color setting doesn't leak.
+                UpdateColorsIfNecessary(VTColorUtils.AnsiReset);
             }
 
             if (_statusLinePrompt != null)
