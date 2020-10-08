@@ -240,7 +240,7 @@ namespace Test
             TestSetup(KeyMode.Cmd);
             var predictionColor = MakeCombinedColor(ConsoleColor.DarkYellow, ConsoleColor.Yellow);
             var predictionColorToCheck = Tuple.Create(ConsoleColor.DarkYellow, ConsoleColor.Yellow);
-            PSConsoleReadLine.SetOptions(new SetPSReadLineOption {Colors = new Hashtable(){{"Prediction", predictionColor}}});
+            PSConsoleReadLine.SetOptions(new SetPSReadLineOption {Colors = new Hashtable(){{"InlinePrediction", predictionColor}}});
 
             SetHistory("echo -bar", "eca -zoo");
             Test("ech", Keys(

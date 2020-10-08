@@ -509,7 +509,7 @@ namespace Test
             var tokenTypes = new[]
             {
                 "Default", "Comment", "Keyword", "String", "Operator", "Variable",
-                "Command", "Parameter", "Type", "Number", "Member", "Selection", "Prediction"
+                "Command", "Parameter", "Type", "Number", "Member", "Selection", "InlinePrediction"
             };
             var colors = new Hashtable();
             for (var i = 0; i < tokenTypes.Length; i++)
