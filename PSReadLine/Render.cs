@@ -765,6 +765,9 @@ namespace Microsoft.PowerShell
                     // render anything for the current logical lines, then the cursor is already at
                     // the beginning of the right physical line that should be cleared, and thus no
                     // need to write a new line in such case.
+                    // In other cases, we need to write a new line to get the cursor to the correct
+                    // physical line.
+
                     _console.Write("\n");
                 }
 
