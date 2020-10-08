@@ -757,11 +757,19 @@ namespace Microsoft.PowerShell
             }
 
             // Fewer logical lines than our previous render? Clear them.
-            for (; previousLogicalLine < previousRenderLines.Length; previousLogicalLine++)
+            for (int line = previousLogicalLine; line < previousRenderLines.Length; line++)
             {
+                if (line > previousLogicalLine || logicalLineStartIndex < renderLines.Length)
+                {
+                    // For the first of the remaining previous logical lines, if we didn't actually
+                    // render anything for the current logical lines, then the cursor is already at
+                    // the beginning of the right physical line that should be cleared, and thus no
+                    // need to write a new line in such case.
+                    _console.Write("\n");
+                }
+
                 // No need to write new line if all we need is to clear the extra previous render.
-                if (logicalLineStartIndex < renderLines.Length) { _console.Write("\n"); }
-                _console.Write(Spaces(previousRenderLines[previousLogicalLine].columns));
+                _console.Write(Spaces(previousRenderLines[line].columns));
             }
 
             // Preserve the current render data.
