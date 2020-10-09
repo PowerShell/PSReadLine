@@ -757,10 +757,13 @@ namespace Microsoft.PowerShell
             // specifies a custom history save file, we don't want to try reading
             // from the default one.
 
-            var historyCountVar = _engineIntrinsics?.SessionState.PSVariable.Get("MaximumHistoryCount");
-            if (historyCountVar?.Value is int historyCountValue)
+            if (_options.MaximumHistoryCount == 0)
             {
-                _options.MaximumHistoryCount = historyCountValue;
+                // Initialize 'MaximumHistoryCount' if it's not defined in user's profile.
+                var historyCountVar = _engineIntrinsics?.SessionState.PSVariable.Get("MaximumHistoryCount");
+                _options.MaximumHistoryCount = (historyCountVar?.Value is int historyCountValue)
+                    ? historyCountValue
+                    : PSConsoleReadLineOptions.DefaultMaximumHistoryCount;
             }
 
             if (_options.PromptText == null &&
