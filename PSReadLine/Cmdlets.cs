@@ -159,7 +159,6 @@ namespace Microsoft.PowerShell
             ExtraPromptLineCount = DefaultExtraPromptLineCount;
             AddToHistoryHandler = DefaultAddToHistoryHandler;
             HistoryNoDuplicates = DefaultHistoryNoDuplicates;
-            MaximumHistoryCount = DefaultMaximumHistoryCount;
             MaximumKillRingCount = DefaultMaximumKillRingCount;
             HistorySearchCursorMovesToEnd = DefaultHistorySearchCursorMovesToEnd;
             ShowToolTips = DefaultShowToolTips;
@@ -172,6 +171,7 @@ namespace Microsoft.PowerShell
             HistorySaveStyle = DefaultHistorySaveStyle;
             AnsiEscapeTimeout = DefaultAnsiEscapeTimeout;
             PredictionSource = DefaultPredictionSource;
+            MaximumHistoryCount = 0;
 
             var historyFileName = hostName + "_history.txt";
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
