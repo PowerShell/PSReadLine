@@ -1,3 +1,33 @@
+### Version 2.1.0-rc1
+
+Pre-release notes:
+
+Bug fixes:
+
+* Add a key binding example: `ForwardCharAndAcceptNextSuggestionWord` (#1601)
+* Update `HelpInfoURI` for the PSReadLine module (#1589)
+* Fix incremental history saving when the history queue is full (#1602)
+* Make PSReadline to not force the background color during render (#1626) (Thanks @DHowett)
+* Update broken link in `README.md` (#1631) (Thanks @escape0707)
+* Fix `UpHat` (^) in vi-mode to move the cursor while yanking (#1656) (Thanks @springcomp)
+* vi-mode: Make `dd` deletes the logical line instead of the entire buffer (#1658) (Thanks @springcomp)
+* Improve the bug reporting message (#1698)
+* vi-mode: Add `dG` to delete to the end of multiline buffer (#1692) (Thanks @springcomp)
+* Remove duplicated code (#1700) (Thanks @springcomp)
+* vi-mode: `dd` now handles single line or multiline buffers consistently (#1694) (Thanks @springcomp)
+* vi-mode: Make `D` and `d$` delete to the end of the current logical line (#1695) (Thanks @springcomp)
+* vi-mode - Make `dj` delete the current and next `n` logical lines (#1697) (Thanks @springcomp)
+* Add comment in `SamplePSReadLineProfile.ps1` (#1712) (Thanks @sethvs)
+* Update the release build to satisfy the compliance requirement (#1702, #1714, #1726, #1731)
+* vi-mode: Use `dk` to delete the previous `n` logical lines and the current logical line in a multi-line buffer (#1737) (Thanks @springcomp)
+* vi-mode: Add `dgg` to delete from the beginning of the buffer to the current logical line (#1752) (Thanks @springcomp)
+* Use const strings for some often used `ANSI` control sequences (#1809)
+* Correct the descriptions of `SelectBackwardsLine` and `SelectLine` (#1857)
+* Fix the inline prediction to not leak color (#1861)
+* Rename `PredictionColor` to `InlinePredictionColor` (#1860)
+* Fix a rendering issue regarding cleanup of previous logical lines (#1865)
+* Allow `MaximumHistoryCount` to be set from user's profile (#1869)
+
 ### Version 2.1.0-beta2
 
 Pre-release notes:
@@ -22,6 +52,22 @@ Bug fixes:
 Pre-release notes:
 
 * Experimental support for fish-like suggestions in PSReadLine.
+
+### Version 2.0.4
+
+Bug fixes:
+
+* Revert the update to the module `HelpInfoURI`
+* Fix the env-data script and write buffer info in case of exception (#1482)
+* Improve the bug reporting message (#1698)
+* Update build to use .NET 3.1 for compliance (#1702)
+
+### Version 2.0.3
+
+Bug fixes:
+
+* Update `HelpInfoURI` for the PSReadLine module (#1589)
+* Make PSReadline to not force the background color during render (#1626) (Thanks @DHowett)
 
 ### Version 2.0.2
 
