@@ -18,9 +18,6 @@ namespace Microsoft.PowerShell
         /// </summary>
         private abstract class PredictionViewBase
         {
-            internal const string TextSelectedBg = "\x1b[48;5;238m";
-            internal const string TextMetadataFg = "\x1b[33m";
-
             protected readonly PSConsoleReadLine _singleton;
             protected Task<List<PredictionResult>> _predictionTask;
             protected string _inputText;
@@ -473,7 +470,7 @@ namespace Microsoft.PowerShell
                     bool itemSelected = i == _selectedIndex;
                     StringBuilder currentLineBuffer = consoleBufferLines[currentLogicalLine];
 
-                    string selectionColor = itemSelected ? TextSelectedBg : null;
+                    string selectionColor = itemSelected ? _singleton._options._listPredictionSelectedColor : null;
                     currentLineBuffer.Append(
                         _listItems[i].GetListItemText(
                             _listItemWidth,

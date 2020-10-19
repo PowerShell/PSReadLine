@@ -61,10 +61,11 @@ namespace Microsoft.PowerShell
 
                 // Calculate the remaining width after deducting the ' [SOURCE]' portion and the leading '> ' part.
                 int textWidth = width - sourceWidth - 5;
+                string textMetadataColor = _singleton._options._listPredictionColor;
 
                 StringBuilder line = new StringBuilder(capacity: width)
                     .Append(selectionHighlighting)
-                    .Append(PredictionViewBase.TextMetadataFg)
+                    .Append(textMetadataColor)
                     .Append('>')
                     .EndColorSection(selectionHighlighting)
                     .Append(' ');
@@ -328,7 +329,7 @@ namespace Microsoft.PowerShell
 
                 line.Append(' ')
                     .Append('[')
-                    .Append(PredictionViewBase.TextMetadataFg);
+                    .Append(textMetadataColor);
 
                 if (sourceStrLen == Source.Length)
                 {

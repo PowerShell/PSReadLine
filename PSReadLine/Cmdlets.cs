@@ -93,9 +93,14 @@ namespace Microsoft.PowerShell
         public const ConsoleColor DefaultEmphasisColor  = ConsoleColor.Cyan;
         public const ConsoleColor DefaultErrorColor     = ConsoleColor.Red;
 
-        // Use dark black by default for the suggestion text.
         // Find the most suitable color using https://stackoverflow.com/a/33206814
-        public const string DefaultInlinePredictionColor = "\x1b[38;5;238m";
+        // Default prediction color settings:
+        //  - use FG color 'dark black' for the inline-view suggestion text
+        //  - use FG color 'yellow' for the list-view suggestion text
+        //  - use BG color 'dark black' for the selected list-view suggestion text
+        public const string DefaultInlinePredictionColor       = "\x1b[38;5;238m";
+        public const string DefaultListPredictionColor         = "\x1b[33m";
+        public const string DefaultListPredictionSelectedColor = "\x1b[48;5;238m";
 
         public static EditMode DefaultEditMode = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
             ? EditMode.Windows
@@ -474,6 +479,18 @@ namespace Microsoft.PowerShell
             set => _inlinePredictionColor = VTColorUtils.AsEscapeSequence(value);
         }
 
+        public object ListPredictionColor
+        {
+            get => _listPredictionColor;
+            set => _listPredictionColor = VTColorUtils.AsEscapeSequence(value);
+        }
+
+        public object ListPredictionSelectedColor
+        {
+            get => _listPredictionSelectedColor;
+            set => _listPredictionSelectedColor = VTColorUtils.AsEscapeSequence(value);
+        }
+
         internal string _defaultTokenColor;
         internal string _commentColor;
         internal string _keywordColor;
@@ -489,6 +506,8 @@ namespace Microsoft.PowerShell
         internal string _errorColor;
         internal string _selectionColor;
         internal string _inlinePredictionColor;
+        internal string _listPredictionColor;
+        internal string _listPredictionSelectedColor;
 
         internal void ResetColors()
         {
@@ -506,7 +525,9 @@ namespace Microsoft.PowerShell
             MemberColor       = DefaultNumberColor;
             EmphasisColor     = DefaultEmphasisColor;
             ErrorColor        = DefaultErrorColor;
-            InlinePredictionColor = DefaultInlinePredictionColor;
+            InlinePredictionColor       = DefaultInlinePredictionColor;
+            ListPredictionColor         = DefaultListPredictionColor;
+            ListPredictionSelectedColor = DefaultListPredictionSelectedColor;
 
             var bg = Console.BackgroundColor;
             if (fg == VTColorUtils.UnknownColor || bg == VTColorUtils.UnknownColor)
@@ -544,6 +565,8 @@ namespace Microsoft.PowerShell
                         {"Member", (o, v) => o.MemberColor = v},
                         {"Selection", (o, v) => o.SelectionColor = v},
                         {"InlinePrediction", (o, v) => o.InlinePredictionColor = v},
+                        {"ListPrediction", (o, v) => o.ListPredictionColor = v},
+                        {"ListPredictionSelected", (o, v) => o.ListPredictionSelectedColor = v},
                     };
 
                 Interlocked.CompareExchange(ref ColorSetters, setters, null);
