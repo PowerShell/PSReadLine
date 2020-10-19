@@ -2020,7 +2020,18 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("WhatIsKeyDescription", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to The prediction 'ListView' is temporarily disabled because the current window size of the console is too small. To use the 'ListView', please make sure the 'WindowWidth' is not less than '{0}' and the 'WindowHeight' is not less than '{1}'.
+        /// </summary>
+        internal static string WindowSizeTooSmallForListView
+        {
+            get
+            {
+                return ResourceManager.GetString("WindowSizeTooSmallForListView", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Copy the text from the current kill ring position to the input.
         /// </summary>

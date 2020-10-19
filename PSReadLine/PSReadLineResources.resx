@@ -826,4 +826,7 @@ Or not saving history with:
   <data name="SwitchPredictionViewDescription" xml:space="preserve">
     <value>Switch to the other prediction view.</value>
   </data>
+  <data name="WindowSizeTooSmallForListView" xml:space="preserve">
+    <value>The prediction 'ListView' is temporarily disabled because the current window size of the console is too small. To use the 'ListView', please make sure the 'WindowWidth' is not less than '{0}' and the 'WindowHeight' is not less than '{1}'.</value>
+  </data>
 </root>

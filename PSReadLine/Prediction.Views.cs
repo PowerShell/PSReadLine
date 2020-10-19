@@ -226,6 +226,9 @@ namespace Microsoft.PowerShell
             internal const int ListMaxWidth = 100;
             internal const int SourceMaxWidth = 15;
 
+            internal const int MinWindowWidth = 54;
+            internal const int MinWindowHeight = 15;
+
             private List<SuggestionEntry> _listItems;
             private int _listItemWidth;
             private int _listItemHeight;
@@ -237,6 +240,18 @@ namespace Microsoft.PowerShell
             private List<int> _cacheList2;
 
             /// <summary>
+            /// Gets whether the current window size meets the minimum requirement for the List view to work.
+            /// </summary>
+            private bool WindowSizeMeetsMinRequirement
+            {
+                get
+                {
+                    var console = _singleton._console;
+                    return console.WindowWidth >= MinWindowWidth && console.WindowHeight >= MinWindowHeight;
+                }
+            }
+
+            /// <summary>
             /// The index of the currently selected item.
             /// </summary>
             internal int SelectedItemIndex => _selectedIndex;
@@ -246,7 +261,8 @@ namespace Microsoft.PowerShell
             /// </summary>
             internal string SelectedItemText
             {
-                get {
+                get
+                {
                     if (_listItems == null)
                         return null;
 
@@ -280,6 +296,13 @@ namespace Microsoft.PowerShell
                     // But be noted that it's not guaranteed to be 100% accurate, because it's still possible that the
                     // user selected all the buffer and then was replacing it with something totally different.
                     OnSuggestionAccepted();
+                }
+
+                if (!WindowSizeMeetsMinRequirement)
+                {
+                    // If the window size is too small for the list view to work, we just disable the list view.
+                    Reset();
+                    return;
                 }
 
                 _inputText = userInput;

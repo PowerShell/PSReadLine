@@ -145,6 +145,7 @@ namespace Microsoft.PowerShell
             }
             if (options._predictionViewStyle.HasValue)
             {
+                WarnWhenWindowSizeTooSmallForView(options.PredictionViewStyle, options);
                 Options.PredictionViewStyle = options.PredictionViewStyle;
                 _prediction.SetViewStyle(options.PredictionViewStyle);
             }

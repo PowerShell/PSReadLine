@@ -5,10 +5,12 @@ Copyright (c) Microsoft Corporation.  All rights reserved.
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Management.Automation;
 using System.Management.Automation.Language;
 using System.Management.Automation.Subsystem;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.PowerShell.Internal;
+using Microsoft.PowerShell.PSReadLine;
 
 namespace Microsoft.PowerShell
 {
@@ -187,6 +189,26 @@ namespace Microsoft.PowerShell
             _singleton._options.PredictionViewStyle = style;
             _singleton._prediction.SetViewStyle(style);
             _singleton.Render();
+        }
+
+        /// <summary>
+        /// Write a warning message if the current window size is too small for the specified prediction view.
+        /// </summary>
+        internal static void WarnWhenWindowSizeTooSmallForView(PredictionViewStyle viewStyle, PSCmdlet cmdlet)
+        {
+            if (viewStyle != PredictionViewStyle.ListView)
+            {
+                return;
+            }
+
+            var console = _singleton._console;
+            var minWidth = PredictionListView.MinWindowWidth;
+            var minHeight = PredictionListView.MinWindowHeight;
+
+            if (console.WindowWidth < minWidth || console.WindowHeight < minHeight)
+            {
+                cmdlet.WriteWarning(string.Format(PSReadLineResources.WindowSizeTooSmallForListView, minWidth, minHeight));
+            }
         }
 
         /// <summary>
