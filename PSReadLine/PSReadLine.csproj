@@ -4,9 +4,10 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.PowerShell.PSReadLine</RootNamespace>
     <AssemblyName>Microsoft.PowerShell.PSReadLine2</AssemblyName>
-    <AssemblyVersion>2.1.0.0</AssemblyVersion>
-    <FileVersion>2.1.0</FileVersion>
-    <InformationalVersion>2.1.0</InformationalVersion>
+    <NoWarn>$(NoWarn);CA1416</NoWarn>
+    <AssemblyVersion>2.2.0.0</AssemblyVersion>
+    <FileVersion>2.2.0</FileVersion>
+    <InformationalVersion>2.2.0-beta1</InformationalVersion>
     <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
     <TargetFrameworks>net461;net5.0</TargetFrameworks>
     <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
@@ -16,11 +17,11 @@
   <ItemGroup Condition="'$(TargetFramework)' == 'net461'">
     <PackageReference Include="PowerShellStandard.Library" version="5.1.0" />
     <PackageReference Include="Microsoft.CSharp" version="4.5.0" />
-    <ProjectReference Include="..\Polyfill\PriorToPS7\PriorToPS7.csproj" />
+    <ProjectReference Include="..\Polyfill\Polyfill.csproj" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net5.0'">
-    <PackageReference Include="System.Management.Automation" Version="7.1.0-preview.9" />
+    <PackageReference Include="System.Management.Automation" Version="7.1.0-rc.1" />
   </ItemGroup>
 
   <ItemGroup>

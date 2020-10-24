@@ -781,7 +781,7 @@ namespace Microsoft.PowerShell
             get => _predictionSource.GetValueOrDefault();
             set
             {
-                if ((value & PredictionSource.Plugin) != 0 && currentVersion < expectedVersion)
+                if ((value & PredictionSource.Plugin) != 0 && Environment.Version.Major < 5)
                 {
                     throw new ArgumentException(PSReadLineResources.PredictionPluginNotSupported);
                 }
@@ -789,8 +789,6 @@ namespace Microsoft.PowerShell
             }
         }
         internal PredictionSource? _predictionSource;
-        private static readonly Version currentVersion = typeof(PSObject).Assembly.GetName().Version;
-        private static readonly Version expectedVersion = new Version(7, 1);
 
         [Parameter]
         public PredictionViewStyle PredictionViewStyle
