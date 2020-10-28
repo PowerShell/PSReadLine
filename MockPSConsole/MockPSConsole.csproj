@@ -10,10 +10,6 @@
     <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(TargetFramework)' == 'net5.0'">
-    <RuntimeFrameworkVersion>3.1.6</RuntimeFrameworkVersion>
-  </PropertyGroup>
-
   <ItemGroup Condition="'$(TargetFramework)' == 'net461'">
     <PackageReference Include="System.Xml.XDocument" version="4.3.0" />
     <PackageReference Include="System.Data.DataSetExtensions" version="4.5.0" />
@@ -22,7 +18,7 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net5.0'">
-    <PackageReference Include="Microsoft.PowerShell.SDK" version="7.1.0-preview.9" />
+    <PackageReference Include="Microsoft.PowerShell.SDK" version="7.1.0-rc.2" />
   </ItemGroup>
 
   <ItemGroup>

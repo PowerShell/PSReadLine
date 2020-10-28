@@ -491,6 +491,7 @@ namespace Microsoft.PowerShell
         public static void ClearHistory(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton._history?.Clear();
+            _singleton._recentHistory?.Clear();
             _singleton._currentHistoryIndex = 0;
         }
 

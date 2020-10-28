@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net5.0'">
-    <PackageReference Include="System.Management.Automation" Version="7.1.0-rc.1" />
+    <PackageReference Include="System.Management.Automation" Version="7.1.0-rc.2" />
   </ItemGroup>
 
   <ItemGroup>

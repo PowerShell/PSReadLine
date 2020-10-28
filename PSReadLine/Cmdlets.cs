@@ -779,14 +779,7 @@ namespace Microsoft.PowerShell
         public PredictionSource PredictionSource
         {
             get => _predictionSource.GetValueOrDefault();
-            set
-            {
-                if ((value & PredictionSource.Plugin) != 0 && Environment.Version.Major < 5)
-                {
-                    throw new ArgumentException(PSReadLineResources.PredictionPluginNotSupported);
-                }
-                _predictionSource = value;
-            }
+            set => _predictionSource = value;
         }
         internal PredictionSource? _predictionSource;
 
