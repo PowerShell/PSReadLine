@@ -353,8 +353,8 @@ namespace Microsoft.PowerShell
                     try
                     {
                         _listItems ??= new List<SuggestionEntry>();
-                        _cacheList1 ??= new List<int>();
-                        _cacheList2 ??= new List<int>();
+                        _cacheList1 ??= new List<int>(); // This list holds the total number of suggestions from each of the predictors.
+                        _cacheList2 ??= new List<int>(); // This list holds the final number of suggestions that will be rendered for each of the predictors.
 
                         int pCount = 0;
                         int hCount = Math.Min(3, _listItems.Count);

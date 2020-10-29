@@ -30,9 +30,9 @@ namespace Microsoft.PowerShell
             /// <summary>
             /// Helper method to get the rounded-up result of a division.
             /// </summary>
-            private static int DivideAndRoundUp(int divisor, int dividend)
+            private static int DivideAndRoundUp(int dividend, int divisor)
             {
-                return (divisor + dividend - 1) / dividend;
+                return (dividend + divisor - 1) / divisor;
             }
 
             /// <summary>
@@ -41,25 +41,29 @@ namespace Microsoft.PowerShell
             /// <remarks>
             /// The list item text is in this format:
             ///  {> --------------------ITEM TEXT-------------------- [SOURCE]}
-            /// The leading character '>' and the 'SOURCE' portion are rendered with the configured metadata color.
+            /// The leading character '>' and the 'SOURCE' portion are rendered with the configured metadata color (ListPredictionColor).
             /// When the 'ITEM TEXT' portion contains the user input, the matching part will be rendered with the configured emphasis color.
-            /// When the current suggestion entry is selected in the list view, the whole line is rendered with the configured highlighting color.
+            /// When the current suggestion entry is selected in the list view, the whole line is rendered with the configured highlighting color (ListPredictionSelectedColor).
             /// </remarks>
             /// <param name="width">The width of the list item.</param>
             /// <param name="input">The user input.</param>
             /// <param name="selectionHighlighting">The highlighting sequences for a selected list item.</param>
             internal string GetListItemText(int width, string input, string selectionHighlighting)
             {
+                const string ellipsis = "...";
+                const int ellipsisLength = 3;
+
                 // Calculate the 'SOURCE' portion to be rendered.
                 int sourceStrLen = Source.Length;
                 int sourceWidth = LengthInBufferCells(Source);
                 if (sourceWidth > PredictionListView.SourceMaxWidth)
                 {
                     sourceWidth = PredictionListView.SourceMaxWidth;
-                    sourceStrLen = SubstringLengthByCells(Source, sourceWidth - 3);
+                    sourceStrLen = SubstringLengthByCells(Source, sourceWidth - ellipsisLength);
                 }
 
                 // Calculate the remaining width after deducting the ' [SOURCE]' portion and the leading '> ' part.
+                // 5 is the length of the decoration characters: "> ", " [", and ']'.
                 int textWidth = width - sourceWidth - 5;
                 string textMetadataColor = _singleton._options._listPredictionColor;
 
@@ -106,9 +110,9 @@ namespace Microsoft.PowerShell
                     {
                         case -1: {
                             // The suggestion text doesn't contain the user input.
-                            int length = SubstringLengthByCells(SuggestionText, textWidth - 3);
+                            int length = SubstringLengthByCells(SuggestionText, textWidth - ellipsisLength);
                             line.Append(SuggestionText, 0, length)
-                                .Append("...");
+                                .Append(ellipsis);
                             break;
                         }
 
@@ -120,25 +124,25 @@ namespace Microsoft.PowerShell
                             {
                                 // If the user input portion takes less than half of the text width,
                                 // then we just truncate the suggestion text at the end.
-                                int length = SubstringLengthByCells(SuggestionText, textWidth - 3);
+                                int length = SubstringLengthByCells(SuggestionText, textWidth - ellipsisLength);
                                 line.Append(_singleton._options.EmphasisColor)
                                     .Append(SuggestionText, 0, input.Length)
                                     .EndColorSection(selectionHighlighting)
                                     .Append(SuggestionText, input.Length, length - input.Length)
-                                    .Append("...");
+                                    .Append(ellipsis);
                             }
                             else
                             {
                                 // We want to reserve 5 cells at least to display the trailing characters of the user input (the left portion).
                                 int rightLenInCells = LengthInBufferCells(SuggestionText, input.Length, SuggestionText.Length);
-                                if (rightLenInCells <= textWidth - 3 - 5)
+                                if (rightLenInCells <= textWidth - ellipsisLength - 5)
                                 {
                                     // If the prediction text (the right portion) can fit in the rest width, the list item
                                     // will be rendered as '...LLLLLRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR'
-                                    int remainingLenInCells = textWidth - 3 - rightLenInCells;
+                                    int remainingLenInCells = textWidth - ellipsisLength - rightLenInCells;
                                     int length = SubstringLengthByCellsFromEnd(SuggestionText, input.Length - 1, remainingLenInCells);
                                     line.Append(_singleton._options.EmphasisColor)
-                                        .Append("...")
+                                        .Append(ellipsis)
                                         .Append(SuggestionText, input.Length - length, length)
                                         .EndColorSection(selectionHighlighting)
                                         .Append(SuggestionText, input.Length, SuggestionText.Length - input.Length);
@@ -149,13 +153,13 @@ namespace Microsoft.PowerShell
                                     // item is rendered as '...LLLLLRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR...'
                                     int leftStrLen = SubstringLengthByCellsFromEnd(SuggestionText, input.Length - 1, 5);
                                     int startIndex = input.Length - leftStrLen;
-                                    int totalStrLen = SubstringLengthByCells(SuggestionText, startIndex, textWidth - 6);
+                                    int totalStrLen = SubstringLengthByCells(SuggestionText, startIndex, textWidth - ellipsisLength * 2);
                                     line.Append(_singleton._options.EmphasisColor)
-                                        .Append("...")
+                                        .Append(ellipsis)
                                         .Append(SuggestionText, startIndex, leftStrLen)
                                         .EndColorSection(selectionHighlighting)
                                         .Append(SuggestionText, input.Length, totalStrLen - leftStrLen)
-                                        .Append("...");
+                                        .Append(ellipsis);
                                 }
                             }
 
@@ -170,17 +174,18 @@ namespace Microsoft.PowerShell
                             //  - prediction text on the right of the user input (right portion).
                             int leftMidLenInCells = LengthInBufferCells(SuggestionText, 0, InputMatchIndex + input.Length);
                             int rightStartindex = InputMatchIndex + input.Length;
+                            // Round up the 2/3 of the text width and use that as the threshold.
                             int threshold = DivideAndRoundUp(textWidth * 2, 3);
                             if (leftMidLenInCells <= threshold)
                             {
                                 // If the (left+mid) portions take up to 2/3 of the text width, we just truncate the suggestion text at the end.
-                                int rightStrLen = SubstringLengthByCells(SuggestionText, rightStartindex, textWidth - leftMidLenInCells - 3);
+                                int rightStrLen = SubstringLengthByCells(SuggestionText, rightStartindex, textWidth - leftMidLenInCells - ellipsisLength);
                                 line.Append(SuggestionText, 0, InputMatchIndex)
                                     .Append(_singleton._options.EmphasisColor)
                                     .Append(SuggestionText, InputMatchIndex, input.Length)
                                     .EndColorSection(selectionHighlighting)
                                     .Append(SuggestionText, rightStartindex, rightStrLen)
-                                    .Append("...");
+                                    .Append(ellipsis);
                                 break;
                             }
 
@@ -188,8 +193,8 @@ namespace Microsoft.PowerShell
                             if (midRightLenInCells <= threshold)
                             {
                                 // Otherwise, if the (mid+right) portions take up to 2/3 of the text width, we just truncate the suggestion text at the beginning.
-                                int leftStrLen = SubstringLengthByCellsFromEnd(SuggestionText, InputMatchIndex - 1, textWidth - midRightLenInCells - 3);
-                                line.Append("...")
+                                int leftStrLen = SubstringLengthByCellsFromEnd(SuggestionText, InputMatchIndex - 1, textWidth - midRightLenInCells - ellipsisLength);
+                                line.Append(ellipsis)
                                     .Append(SuggestionText, InputMatchIndex - leftStrLen, leftStrLen)
                                     .Append(_singleton._options.EmphasisColor)
                                     .Append(SuggestionText, InputMatchIndex, input.Length)
@@ -199,6 +204,7 @@ namespace Microsoft.PowerShell
                             }
 
                             int midLenInCells = LengthInBufferCells(SuggestionText, InputMatchIndex, InputMatchIndex + input.Length);
+                            // Round up the 1/3 of the text width and use that as the threshold.
                             threshold = DivideAndRoundUp(textWidth, 3);
                             if (midLenInCells <= threshold)
                             {
@@ -207,16 +213,16 @@ namespace Microsoft.PowerShell
                                 int leftCellLen = (textWidth - midLenInCells) / 2;
                                 int rigthCellLen = textWidth - midLenInCells - leftCellLen;
 
-                                int leftStrLen = SubstringLengthByCellsFromEnd(SuggestionText, InputMatchIndex - 1, leftCellLen - 3);
-                                int rightStrLen = SubstringLengthByCells(SuggestionText, rightStartindex, rigthCellLen - 3);
+                                int leftStrLen = SubstringLengthByCellsFromEnd(SuggestionText, InputMatchIndex - 1, leftCellLen - ellipsisLength);
+                                int rightStrLen = SubstringLengthByCells(SuggestionText, rightStartindex, rigthCellLen - ellipsisLength);
 
-                                line.Append("...")
+                                line.Append(ellipsis)
                                     .Append(SuggestionText, InputMatchIndex - leftStrLen, leftStrLen)
                                     .Append(_singleton._options.EmphasisColor)
                                     .Append(SuggestionText, InputMatchIndex, input.Length)
                                     .EndColorSection(selectionHighlighting)
                                     .Append(SuggestionText, rightStartindex, rightStrLen)
-                                    .Append("...");
+                                    .Append(ellipsis);
                                 break;
                             }
 
@@ -226,7 +232,7 @@ namespace Microsoft.PowerShell
                                 // Otherwise, the mid portion is relatively too long. In this case, if the (left+right) portions are not
                                 // too long -- namely we can reserve 7 cells at least for the mid portion, including '...' -- then let's
                                 // render the list item text as: 'LLLLLLLLLLLLLLLLLLMM...MMRRRRRRRRRRRRRRRRRR'
-                                int midRemainingLenInCells = textWidth - leftPlusRightLenInCells - 3;
+                                int midRemainingLenInCells = textWidth - leftPlusRightLenInCells - ellipsisLength;
                                 int midLeftCellLen = midRemainingLenInCells / 2;
                                 int midRightCellLen = midRemainingLenInCells - midLeftCellLen;
 
@@ -236,7 +242,7 @@ namespace Microsoft.PowerShell
                                 line.Append(SuggestionText, 0, InputMatchIndex)
                                     .Append(_singleton._options.EmphasisColor)
                                     .Append(SuggestionText, InputMatchIndex, midLeftStrLen)
-                                    .Append("...")
+                                    .Append(ellipsis)
                                     .Append(SuggestionText, rightStartindex - midRightStrLen, midRightStrLen)
                                     .EndColorSection(selectionHighlighting)
                                     .Append(SuggestionText, rightStartindex, SuggestionText.Length - rightStartindex);
@@ -253,7 +259,7 @@ namespace Microsoft.PowerShell
                                 // If the left portion is less than or equal to 1/3 of the text width, then we display the whole left portion,
                                 // reserve 1/3 of the text width to the mid portion, and the rest width is for the right portion. So the list
                                 // item text looks like: 'LLLLLLLLLMMMMMMMM...MMMMMMMMRRRRRRRRRRRRRRRRRRRRR...'
-                                int midRemainingLenInCells = textWidth / 3 - 3;
+                                int midRemainingLenInCells = textWidth / 3 - ellipsisLength;
                                 int midLeftCellLen = midRemainingLenInCells / 2;
                                 int midRightCellLen = midRemainingLenInCells - midLeftCellLen;
 
@@ -264,11 +270,11 @@ namespace Microsoft.PowerShell
                                 line.Append(SuggestionText, 0, InputMatchIndex)
                                     .Append(_singleton._options.EmphasisColor)
                                     .Append(SuggestionText, InputMatchIndex, midLeftStrLen)
-                                    .Append("...")
+                                    .Append(ellipsis)
                                     .Append(SuggestionText, rightStartindex - midRightStrLen, midRightStrLen)
                                     .EndColorSection(selectionHighlighting)
                                     .Append(SuggestionText, rightStartindex, rightStrLen)
-                                    .Append("...");
+                                    .Append(ellipsis);
                                 break;
                             }
 
@@ -277,7 +283,7 @@ namespace Microsoft.PowerShell
                                 // Similarly, if the right portion is less than or equal to 1/3 of the text width, then we display the whole
                                 // right portion, reserve 1/3 of the text width to the mid portion, and the rest width is for the left portion.
                                 // So the list item text looks like: '...LLLLLLLLLLLLLLLLMMMMMMMM...MMMMMMMMRRRRRRRRRRRRRR'
-                                int midRemainingLenInCells = textWidth / 3 - 3;
+                                int midRemainingLenInCells = textWidth / 3 - ellipsisLength;
                                 int midLeftCellLen = midRemainingLenInCells / 2;
                                 int midRightCellLen = midRemainingLenInCells - midLeftCellLen;
 
@@ -285,11 +291,11 @@ namespace Microsoft.PowerShell
                                 int midRightStrLen = SubstringLengthByCellsFromEnd(SuggestionText, rightStartindex - 1, midRightCellLen);
                                 int leftStrLen = SubstringLengthByCellsFromEnd(SuggestionText, InputMatchIndex - 1, midRemainingLenInCells);
 
-                                line.Append("...")
+                                line.Append(ellipsis)
                                     .Append(SuggestionText, InputMatchIndex - leftStrLen, leftStrLen)
                                     .Append(_singleton._options.EmphasisColor)
                                     .Append(SuggestionText, InputMatchIndex, midLeftStrLen)
-                                    .Append("...")
+                                    .Append(ellipsis)
                                     .Append(SuggestionText, rightStartindex - midRightStrLen, midRightStrLen)
                                     .EndColorSection(selectionHighlighting)
                                     .Append(SuggestionText, rightStartindex, SuggestionText.Length - rightStartindex);
@@ -300,7 +306,7 @@ namespace Microsoft.PowerShell
                                 // All left, mid, and right portions take longer than 1/3 of the text width. We assign 1/3 of the text width
                                 // to each of them equally in this case, so the list item text looks like:
                                 //   '...LLLLLLLLLLLLLLMMMMMMMM...MMMMMMMMRRRRRRRRRRRRRRRR...'
-                                int midRemainingLenInCells = textWidth / 3 - 3;
+                                int midRemainingLenInCells = textWidth / 3 - ellipsisLength;
                                 int midLeftCellLen = midRemainingLenInCells / 2;
                                 int midRightCellLen = midRemainingLenInCells - midLeftCellLen;
 
@@ -308,18 +314,18 @@ namespace Microsoft.PowerShell
                                 int midRightStrLen = SubstringLengthByCellsFromEnd(SuggestionText, rightStartindex - 1, midRightCellLen);
                                 int leftStrLen = SubstringLengthByCellsFromEnd(SuggestionText, InputMatchIndex - 1, midRemainingLenInCells);
                                 int rightStrLen = SubstringLengthByCells(SuggestionText, rightStartindex, midRemainingLenInCells);
-                                int spacesNeeded = textWidth - midRemainingLenInCells * 3 - 9;
+                                int spacesNeeded = textWidth - midRemainingLenInCells * 3 - ellipsisLength * 3;
                                 string spaces = spacesNeeded > 0 ? Spaces(spacesNeeded) : string.Empty;
 
-                                line.Append("...")
+                                line.Append(ellipsis)
                                     .Append(SuggestionText, InputMatchIndex - leftStrLen, leftStrLen)
                                     .Append(_singleton._options.EmphasisColor)
                                     .Append(SuggestionText, InputMatchIndex, midLeftStrLen)
-                                    .Append("...")
+                                    .Append(ellipsis)
                                     .Append(SuggestionText, rightStartindex - midRightStrLen, midRightStrLen)
                                     .EndColorSection(selectionHighlighting)
                                     .Append(SuggestionText, rightStartindex, rightStrLen)
-                                    .Append("...")
+                                    .Append(ellipsis)
                                     .Append(spaces);
                                 break;
                             }
@@ -338,7 +344,7 @@ namespace Microsoft.PowerShell
                 else
                 {
                     line.Append(Source, 0, sourceStrLen)
-                        .Append("...");
+                        .Append(ellipsis);
                 }
 
                 line.EndColorSection(selectionHighlighting)

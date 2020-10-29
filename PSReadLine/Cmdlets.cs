@@ -69,7 +69,7 @@ namespace Microsoft.PowerShell
         None = 1,
         History = 2,
         Plugin = 4,
-        HistoryAndPlugin = 6,
+        HistoryAndPlugin = History | Plugin,
     }
 
     public enum PredictionViewStyle
