@@ -1,6 +1,5 @@
 #if LEGACY
 
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Management.Automation.Language;
@@ -15,16 +14,19 @@ namespace System.Management.Automation.Subsystem
         /// <summary>
         /// Gets the Id of the predictor.
         /// </summary>
+        [HiddenAttribute]
         public Guid Id { get; }
 
         /// <summary>
         /// Gets the name of the predictor.
         /// </summary>
+        [HiddenAttribute]
         public string Name { get; }
 
         /// <summary>
         /// Gets the suggestions.
         /// </summary>
+        [HiddenAttribute]
         public IReadOnlyList<PredictiveSuggestion> Suggestions { get; }
 
         internal PredictionResult(Guid id, string name, List<PredictiveSuggestion> suggestions)
@@ -43,17 +45,20 @@ namespace System.Management.Automation.Subsystem
         /// <summary>
         /// Gets the suggestion.
         /// </summary>
+        [HiddenAttribute]
         public string SuggestionText { get; }
 
         /// <summary>
         /// Gets the tooltip of the suggestion.
         /// </summary>
+        [HiddenAttribute]
         public string ToolTip { get; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PredictiveSuggestion"/> class.
         /// </summary>
         /// <param name="suggestion">The predictive suggestion text.</param>
+        [HiddenAttribute]
         public PredictiveSuggestion(string suggestion)
             : this(suggestion, toolTip: null)
         {
@@ -64,6 +69,7 @@ namespace System.Management.Automation.Subsystem
         /// </summary>
         /// <param name="suggestion">The predictive suggestion text.</param>
         /// <param name="toolTip">The tooltip of the suggestion.</param>
+        [HiddenAttribute]
         public PredictiveSuggestion(string suggestion, string toolTip)
         {
             if (string.IsNullOrEmpty(suggestion))
@@ -87,6 +93,7 @@ namespace System.Management.Automation.Subsystem
         /// <param name="ast">The <see cref="Ast"/> object from parsing the current command line input.</param>
         /// <param name="astTokens">The <see cref="Token"/> objects from parsing the current command line input.</param>
         /// <returns>A list of <see cref="PredictionResult"/> objects.</returns>
+        [HiddenAttribute]
         public static Task<List<PredictionResult>> PredictInput(Ast ast, Token[] astTokens)
         {
             return null;
@@ -99,6 +106,7 @@ namespace System.Management.Automation.Subsystem
         /// <param name="astTokens">The <see cref="Token"/> objects from parsing the current command line input.</param>
         /// <param name="millisecondsTimeout">The milliseconds to timeout.</param>
         /// <returns>A list of <see cref="PredictionResult"/> objects.</returns>
+        [HiddenAttribute]
         public static Task<List<PredictionResult>> PredictInput(Ast ast, Token[] astTokens, int millisecondsTimeout)
         {
             return null;
@@ -108,6 +116,7 @@ namespace System.Management.Automation.Subsystem
         /// Allow registered predictors to do early processing when a command line is accepted.
         /// </summary>
         /// <param name="history">History command lines provided as references for prediction.</param>
+        [HiddenAttribute]
         public static void OnCommandLineAccepted(IReadOnlyList<string> history)
         {
         }
@@ -117,6 +126,7 @@ namespace System.Management.Automation.Subsystem
         /// </summary>
         /// <param name="predictorId">The identifier of the predictor whose prediction result was accepted.</param>
         /// <param name="suggestionText">The accepted suggestion text.</param>
+        [HiddenAttribute]
         public static void OnSuggestionAccepted(Guid predictorId, string suggestionText)
         {
         }
