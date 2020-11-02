@@ -6,7 +6,7 @@
     <AssemblyName>Microsoft.PowerShell.PSReadLine2</AssemblyName>
     <AssemblyVersion>2.1.0.0</AssemblyVersion>
     <FileVersion>2.1.0</FileVersion>
-    <InformationalVersion>2.1.0-rc1</InformationalVersion>
+    <InformationalVersion>2.1.0</InformationalVersion>
     <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
     <TargetFrameworks>net461;netcoreapp3.1</TargetFrameworks>
     <LangVersion>8.0</LangVersion>

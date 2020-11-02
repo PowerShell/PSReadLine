@@ -1,3 +1,9 @@
+### Version 2.1.0
+
+Changes:
+
+* Update ChangeLog and version for 2.1.0 GA release
+
 ### Version 2.1.0-rc1
 
 Pre-release notes:
