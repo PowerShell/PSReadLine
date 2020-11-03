@@ -46,8 +46,8 @@ namespace Microsoft.PowerShell
 
         private bool _delayedOneTimeInitCompleted;
 
-        private IPSConsoleReadLineMockableMethods _mockableMethods;
-        private IConsole _console;
+        private readonly IPSConsoleReadLineMockableMethods _mockableMethods;
+        private readonly IConsole _console;
         private ICharMap _charMap;
         private Encoding _initialOutputEncoding;
         private bool _skipOutputEncodingChange;
@@ -55,7 +55,7 @@ namespace Microsoft.PowerShell
         private Thread _readKeyThread;
         private AutoResetEvent _readKeyWaitHandle;
         private AutoResetEvent _keyReadWaitHandle;
-        private AutoResetEvent _forceEventWaitHandle;
+        private readonly AutoResetEvent _forceEventWaitHandle;
         private CancellationToken _cancelReadCancellationToken;
         internal ManualResetEvent _closingWaitHandle;
         private WaitHandle[] _threadProcWaitHandles;

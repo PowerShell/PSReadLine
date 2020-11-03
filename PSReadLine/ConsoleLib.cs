@@ -13,10 +13,10 @@ namespace Microsoft.PowerShell.Internal
         // custom ReadKey implementation. This is not a public API, but it is
         // part of a private contract with that project.
         #pragma warning disable CS0649
-        private static Func<bool, ConsoleKeyInfo> _readKeyOverride;
+        private static readonly Func<bool, ConsoleKeyInfo> _readKeyOverride;
         #pragma warning restore CS0649
 
-        private static Lazy<Func<bool, ConsoleKeyInfo>> _readKeyMethod = new Lazy<Func<bool, ConsoleKeyInfo>>(
+        private static readonly Lazy<Func<bool, ConsoleKeyInfo>> _readKeyMethod = new Lazy<Func<bool, ConsoleKeyInfo>>(
             () => _readKeyOverride == null ? Console.ReadKey : _readKeyOverride);
 
         public int CursorLeft

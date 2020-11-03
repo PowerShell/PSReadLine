@@ -69,7 +69,7 @@ namespace Test
         private readonly int _windowWidth;
         private readonly int _windowHeight;
         private bool _ignoreNextNewline;
-        private dynamic _keyboardLayout;
+        private readonly dynamic _keyboardLayout;
 
         internal TestConsole(dynamic keyboardLayout)
         {

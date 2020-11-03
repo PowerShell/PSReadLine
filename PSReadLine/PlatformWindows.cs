@@ -403,8 +403,8 @@ static class PlatformWindows
 
     internal class LegacyWin32Console : VirtualTerminal
     {
-        private static ConsoleColor InitialFG = Console.ForegroundColor;
-        private static ConsoleColor InitialBG = Console.BackgroundColor;
+        private static readonly ConsoleColor InitialFG = Console.ForegroundColor;
+        private static readonly ConsoleColor InitialBG = Console.BackgroundColor;
         private static int maxTop = 0;
 
         private static readonly Dictionary<int, Action> VTColorAction = new Dictionary<int, Action> {
