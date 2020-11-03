@@ -4,7 +4,10 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Management.Automation;
+using System.Management.Automation.Language;
 using System.Management.Automation.Runspaces;
+using System.Management.Automation.Subsystem;
+using System.Threading.Tasks;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using Microsoft.PowerShell;
@@ -19,6 +22,16 @@ namespace Test
     internal class MockedMethods : IPSConsoleReadLineMockableMethods
     {
         internal bool didDing;
+        internal IReadOnlyList<string> commandHistory;
+        internal Guid acceptedPredictorId;
+        internal string acceptedSuggestion;
+
+        internal void ClearPredictionFields()
+        {
+            commandHistory = null;
+            acceptedPredictorId = Guid.Empty;
+            acceptedSuggestion = null;
+        }
 
         public void Ding()
         {
@@ -33,6 +46,26 @@ namespace Test
         public bool RunspaceIsRemote(Runspace runspace)
         {
             return false;
+        }
+
+        public Task<List<PredictionResult>> PredictInput(Ast ast, Token[] tokens)
+        {
+            var result = ReadLine.MockedPredictInput(ast, tokens);
+            var source = new TaskCompletionSource<List<PredictionResult>>();
+
+            source.SetResult(result);
+            return source.Task;
+        }
+
+        public void OnCommandLineAccepted(IReadOnlyList<string> history)
+        {
+            commandHistory = history;
+        }
+
+        public void OnSuggestionAccepted(Guid predictorId, string suggestionText)
+        {
+            acceptedPredictorId = predictorId;
+            acceptedSuggestion = suggestionText;
         }
     }
 
@@ -50,7 +83,9 @@ namespace Test
         Number,
         Member,
         Selection,
-        Prediction,
+        InlinePrediction,
+        ListPrediction,
+        ListPredictionSelected,
     }
 
     public abstract partial class ReadLine
@@ -102,7 +137,9 @@ namespace Test
         /*Number*/    ConsoleColor.DarkBlue,
         /*Member*/    ConsoleColor.DarkMagenta,
         /*Selection*/ ConsoleColor.Black,
-        /*Prediction*/ConsoleColor.DarkGreen,
+        /*InlinePrediction*/       ConsoleColor.DarkGreen,
+        /*ListPrediction*/         ConsoleColor.Yellow,
+        /*ListPredictionSelected*/ ConsoleColor.Gray,
         };
 
         internal static readonly ConsoleColor[] BackgroundColors = new[]
@@ -119,7 +156,9 @@ namespace Test
         /*Number*/    ConsoleColor.Gray,
         /*Member*/    ConsoleColor.Yellow,
         /*Selection*/ ConsoleColor.Gray,
-        /*Prediction*/ConsoleColor.Cyan,
+        /*InlinePrediction*/       ConsoleColor.Cyan,
+        /*ListPrediction*/         ConsoleColor.Red,
+        /*ListPredictionSelected*/ ConsoleColor.DarkBlue,
         };
 
         class KeyHandler
@@ -217,10 +256,19 @@ namespace Test
                 }
                 if (item is NextLineToken)
                 {
-                    item = new string(' ', _console.BufferWidth - (result.Count % _console.BufferWidth));
                     fg = _console.ForegroundColor;
                     bg = _console.BackgroundColor;
-                    // Fallthrough to string case.
+
+                    int lineLen = result.Count % _console.BufferWidth;
+                    if (lineLen == 0 && result.Count > 0)
+                    {
+                        // The existing content is right at the end of a physical line,
+                        // so there is no need to pad.
+                        continue;
+                    }
+
+                    // Padding is needed. Fall through to the string case.
+                    item = new string(' ', _console.BufferWidth - lineLen);
                 }
                 if (item is string str)
                 {
@@ -478,7 +526,6 @@ namespace Test
                 ShowToolTips                      = PSConsoleReadLineOptions.DefaultShowToolTips,
                 WordDelimiters                    = PSConsoleReadLineOptions.DefaultWordDelimiters,
                 PromptText                        = new [] {""},
-                PredictionSource                  = PredictionSource.History,
                 Colors = new Hashtable {
                     { "ContinuationPrompt",       MakeCombinedColor(_console.ForegroundColor, _console.BackgroundColor) },
                     { "Emphasis",                 MakeCombinedColor(PSConsoleReadLineOptions.DefaultEmphasisColor, _console.BackgroundColor) },
@@ -509,7 +556,8 @@ namespace Test
             var tokenTypes = new[]
             {
                 "Default", "Comment", "Keyword", "String", "Operator", "Variable",
-                "Command", "Parameter", "Type", "Number", "Member", "Selection", "InlinePrediction"
+                "Command", "Parameter", "Type", "Number", "Member", "Selection",
+                "InlinePrediction", "ListPrediction", "ListPredictionSelected"
             };
             var colors = new Hashtable();
             for (var i = 0; i < tokenTypes.Length; i++)

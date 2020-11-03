@@ -667,6 +667,17 @@ namespace Microsoft.PowerShell.PSReadLine {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to The prediction plugin source is not supported in this version of PowerShell. The 7.1 or a higher version of PowerShell is required to use this source.
+        /// </summary>
+        internal static string PredictionPluginNotSupported
+        {
+            get
+            {
+                return ResourceManager.GetString("PredictionPluginNotSupported", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos; is not a valid color property.
         /// </summary>
         internal static string InvalidColorProperty {
@@ -2009,7 +2020,18 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("WhatIsKeyDescription", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to The prediction 'ListView' is temporarily disabled because the current window size of the console is too small. To use the 'ListView', please make sure the 'WindowWidth' is not less than '{0}' and the 'WindowHeight' is not less than '{1}'.
+        /// </summary>
+        internal static string WindowSizeTooSmallForListView
+        {
+            get
+            {
+                return ResourceManager.GetString("WindowSizeTooSmallForListView", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Copy the text from the current kill ring position to the input.
         /// </summary>

@@ -802,6 +802,9 @@ Or not saving history with:
   <data name="PredictiveSuggestionNotSupported" xml:space="preserve">
     <value>The predictive suggestion feature cannot be enabled because the console output doesn't support virtual terminal processing or it's redirected.</value>
   </data>
+  <data name="PredictionPluginNotSupported" xml:space="preserve">
+    <value>The prediction plugin source is not supported in this version of PowerShell. The 7.1 or a higher version of PowerShell is required to use this source.</value>
+  </data>
   <data name="DeleteEndOfBufferDescription" xml:space="preserve">
     <value>Delete the current logical line and up to the end of the multiline buffer</value>
   </data>
@@ -813,5 +816,17 @@ Or not saving history with:
   </data>
   <data name="DeleteRelativeLinesDescription" xml:space="preserve">
     <value>Delete from the current logical line to the n-th requested logical line in a multiline buffer</value>
+  </data>
+  <data name="NextSuggestionDescription" xml:space="preserve">
+    <value>Select the next suggestion item shown in the list view.</value>
+  </data>
+  <data name="PreviousSuggestionDescription" xml:space="preserve">
+    <value>Select the previous suggestion item shown in the list view.</value>
+  </data>
+  <data name="SwitchPredictionViewDescription" xml:space="preserve">
+    <value>Switch to the other prediction view.</value>
+  </data>
+  <data name="WindowSizeTooSmallForListView" xml:space="preserve">
+    <value>The prediction 'ListView' is temporarily disabled because the current window size of the console is too small. To use the 'ListView', please make sure the 'WindowWidth' is not less than '{0}' and the 'WindowHeight' is not less than '{1}'.</value>
   </data>
 </root>

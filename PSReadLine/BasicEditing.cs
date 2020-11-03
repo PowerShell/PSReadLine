@@ -57,6 +57,11 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void RevertLine(ConsoleKeyInfo? key = null, object arg = null)
         {
+            if (_singleton._prediction.RevertSuggestion())
+            {
+                return;
+            }
+
             if (_singleton._statusIsErrorMessage)
             {
                 // After an edit, clear the error message
@@ -80,7 +85,7 @@ namespace Microsoft.PowerShell
             _singleton.ClearStatusMessage(false);
             _singleton._current = _singleton._buffer.Length;
 
-            using var _ = _singleton.PredictionOff();
+            using var _ = _singleton._prediction.DisableScoped();
             _singleton.ForceRender();
 
             _singleton._console.Write("\x1b[91m^C\x1b[0m");
@@ -210,7 +215,7 @@ namespace Microsoft.PowerShell
 
         private bool AcceptLineImpl(bool validate)
         {
-            using var _ = PredictionOff();
+            using var _ = _prediction.DisableScoped();
 
             ParseInput();
             if (_parseErrors.Any(e => e.IncompleteInput))
@@ -272,11 +277,15 @@ namespace Microsoft.PowerShell
 
             // Let public API set cursor to end of line incase end of line is end of buffer
             SetCursorPosition(_current);
-            if (_suggestionText != null)
+
+            if (_prediction.ActiveView is PredictionListView listView)
             {
-                ResetSuggestion();
-                _console.BlankRestOfLine();
+                // Send feedback to prediction plugin if a list item is accepted as the final command line.
+                listView.OnSuggestionAccepted();
             }
+
+            // Clear the prediction view if there is one.
+            _prediction.ActiveView.Clear(cursorAtEol: true);
 
             _console.Write("\n");
             _inputAccepted = true;

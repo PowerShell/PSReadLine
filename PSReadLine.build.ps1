@@ -19,7 +19,7 @@ param(
     [ValidateSet("Debug", "Release")]
     [string]$Configuration = (property Configuration Release),
 
-    [ValidateSet("net461", "netcoreapp3.1")]
+    [ValidateSet("net461", "net5.0")]
     [string]$Framework,
 
     [switch]$CheckHelpContent
@@ -32,7 +32,7 @@ $targetDir = "bin/$Configuration/PSReadLine"
 
 if (-not $Framework)
 {
-    $Framework = if ($PSVersionTable.PSEdition -eq "Core") { "netcoreapp3.1" } else { "net461" }
+    $Framework = if ($PSVersionTable.PSEdition -eq "Core") { "net5.0" } else { "net461" }
 }
 
 Write-Verbose "Building for '$Framework'" -Verbose
@@ -41,8 +41,13 @@ function ConvertTo-CRLF([string] $text) {
     $text.Replace("`r`n","`n").Replace("`n","`r`n")
 }
 
+$polyFillerParams = @{
+    Inputs = { Get-ChildItem Polyfill/*.cs, Polyfill/Polyfill.csproj }
+    Outputs = "Polyfill/bin/$Configuration/$Framework/Microsoft.PowerShell.PSReadLine.Polyfiller.dll"
+}
+
 $binaryModuleParams = @{
-    Inputs  = { Get-ChildItem PSReadLine/*.cs, PSReadLine/PSReadLine.csproj, PSReadLine/PSReadLineResources.resx }
+    Inputs  = { Get-ChildItem PSReadLine/*.cs, PSReadLine/PSReadLine.csproj, PSReadLine/PSReadLineResources.resx, Polyfill/*.cs, Polyfill/Polyfill.csproj }
     Outputs = "PSReadLine/bin/$Configuration/$Framework/Microsoft.PowerShell.PSReadLine2.dll"
 }
 
@@ -54,6 +59,15 @@ $xUnitTestParams = @{
 $mockPSConsoleParams = @{
     Inputs = { Get-ChildItem MockPSConsole/*.cs, MockPSConsole/Program.manifest, MockPSConsole/MockPSConsole.csproj }
     Outputs = "MockPSConsole/bin/$Configuration/$Framework/MockPSConsole.dll"
+}
+
+<#
+Synopsis: Build the Polyfiller assembly
+#>
+task BuildPolyfiller @polyFillerParams -If ($Framework -eq "net461") {
+    ## Build both "net461" and "net5.0"
+    exec { dotnet publish -f "net461" -c $Configuration Polyfill }
+    exec { dotnet publish -f "net5.0" -c $Configuration Polyfill }
 }
 
 <#
@@ -108,7 +122,7 @@ task CheckHelpContent -If $CheckHelpContent {
 <#
 Synopsis: Copy all of the files that belong in the module to one place in the layout for installation
 #>
-task LayoutModule BuildMainModule, {
+task LayoutModule BuildPolyfiller, BuildMainModule, {
     if (-not (Test-Path $targetDir -PathType Container)) {
         New-Item $targetDir -ItemType Directory -Force > $null
     }
@@ -120,22 +134,30 @@ task LayoutModule BuildMainModule, {
         'PSReadLine/PSReadLine.format.ps1xml',
         'PSReadLine/PSReadLine.psm1'
 
-    foreach ($file in $extraFiles)
-    {
+    foreach ($file in $extraFiles) {
         # ensure files have \r\n line endings as the signing tool only uses those endings to avoid mixed endings
         $content = Get-Content -Path $file -Raw
         Set-Content -Path (Join-Path $targetDir (Split-Path $file -Leaf)) -Value (ConvertTo-CRLF $content) -Force
     }
 
+    if ($Framework -eq "net461") {
+        if (-not (Test-Path "$targetDir/net461")) {
+            New-Item "$targetDir/net461" -ItemType Directory -Force > $null
+        }
+        if (-not (Test-Path "$targetDir/net5.0")) {
+            New-Item "$targetDir/net5.0" -ItemType Directory -Force > $null
+        }
+
+        Copy-Item "Polyfill/bin/$Configuration/net461/Microsoft.PowerShell.PSReadLine.Polyfiller.dll" "$targetDir/net461" -Force
+        Copy-Item "Polyfill/bin/$Configuration/net5.0/Microsoft.PowerShell.PSReadLine.Polyfiller.dll" "$targetDir/net5.0" -Force
+    }
+
     $binPath = "PSReadLine/bin/$Configuration/$Framework/publish"
     Copy-Item $binPath/Microsoft.PowerShell.PSReadLine2.dll $targetDir
 
-    if (Test-Path $binPath/System.Runtime.InteropServices.RuntimeInformation.dll)
-    {
+    if (Test-Path $binPath/System.Runtime.InteropServices.RuntimeInformation.dll) {
         Copy-Item $binPath/System.Runtime.InteropServices.RuntimeInformation.dll $targetDir
-    }
-    else
-    {
+    } else {
         Write-Warning "Build using $Framework is not sufficient to be downlevel compatible"
     }
 
@@ -145,8 +167,7 @@ task LayoutModule BuildMainModule, {
     $version = $versionInfo.FileVersion
     $semVer = $versionInfo.ProductVersion
 
-    if ($semVer -match "(.*)-(.*)")
-    {
+    if ($semVer -match "(.*)-(.*)") {
         # Make sure versions match
         if ($matches[1] -ne $version) { throw "AssemblyFileVersion mismatch with AssemblyInformationalVersion" }
         $prerelease = $matches[2]
@@ -159,8 +180,7 @@ task LayoutModule BuildMainModule, {
     $moduleManifestContent | Set-Content -Path $targetDir/PSReadLine.psd1
 
     # Make sure we don't ship any read-only files
-    foreach ($file in (Get-ChildItem -Recurse -File $targetDir))
-    {
+    foreach ($file in (Get-ChildItem -Recurse -File $targetDir)) {
         $file.IsReadOnly = $false
     }
 }, CheckHelpContent

@@ -3,18 +3,18 @@ using System.Text;
 
 namespace Microsoft.PowerShell
 {
-    public class Range
+    internal class Range
     {
-        public Range(int offset, int count)
+        internal Range(int offset, int count)
         {
             Offset = offset;
             Count = count;
         }
-        public int Offset { get; }
-        public int Count { get; }
+        internal int Offset { get; }
+        internal int Count { get; }
     }
 
-    public static class StringBuilderLinewiseExtensions
+    internal static class StringBuilderLinewiseExtensions
     {
         /// <summary>
         /// Determines the offset and the length of the fragment
@@ -24,7 +24,7 @@ namespace Microsoft.PowerShell
         /// <param name="buffer" />
         /// <param name="lineIndex" />
         /// <param name="lineCount" />
-        public static Range GetRange(this StringBuilder buffer, int lineIndex, int lineCount)
+        internal static Range GetRange(this StringBuilder buffer, int lineIndex, int lineCount)
         {
             // this method considers lines by the first '\n' character from the previous line
             // up until the last non new-line character of the current line.
@@ -71,6 +71,14 @@ namespace Microsoft.PowerShell
                 startPosition,
                 endPosition - startPosition + 1
                 );
+        }
+    }
+
+    internal static class StringBuilderPredictionExtensions
+    {
+        internal static StringBuilder EndColorSection(this StringBuilder buffer, string selectionHighlighting)
+        {
+            return buffer.Append(VTColorUtils.AnsiReset).Append(selectionHighlighting);
         }
     }
 }

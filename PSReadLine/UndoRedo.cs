@@ -34,7 +34,26 @@ namespace Microsoft.PowerShell
                 ClearStatusMessage(render: true);
             }
 
-            RemoveEditsAfterUndo();
+            if (IsLastEditItemReplaceable)
+            {
+                int lastEditIndex = _edits.Count - 1;
+                if (editItem.Replaceable)
+                {
+                    if (_edits[lastEditIndex] is GroupedEdit groupedEdit)
+                    {
+                        var groupedEdits = groupedEdit._groupedEditItems;
+                        groupedEdits[groupedEdits.Count - 1] = editItem;
+                    }
+                    else
+                    {
+                        _edits[lastEditIndex] = editItem;
+                    }
+
+                    return;
+                }
+
+                _edits[lastEditIndex].Replaceable = false;
+            }
 
             _edits.Add(editItem);
             _undoEditIndex = _edits.Count;
@@ -76,6 +95,17 @@ namespace Microsoft.PowerShell
                 SaveEditItem(GroupedEdit.Create(groupedEditItems, instigator, instigatorArg));
             }
             _editGroupStart = -1;
+        }
+
+        private bool IsLastEditItemReplaceable
+        {
+            get
+            {
+                RemoveEditsAfterUndo();
+
+                int lastEditIndex = _edits.Count - 1;
+                return lastEditIndex >= 0 && _edits[lastEditIndex].Replaceable;
+            }
         }
 
         /// <summary>
@@ -129,6 +159,7 @@ namespace Microsoft.PowerShell
 
             public abstract void Undo();
             public abstract void Redo();
+            public virtual bool Replaceable { get; set; }
         }
 
         [DebuggerDisplay("Insert '{_insertedCharacter}' ({_insertStartPosition})")]
@@ -311,6 +342,12 @@ namespace Microsoft.PowerShell
                 {
                     editItem.Redo();
                 }
+            }
+
+            public override bool Replaceable
+            {
+                get => _groupedEditItems[_groupedEditItems.Count - 1].Replaceable;
+                set => _groupedEditItems[_groupedEditItems.Count - 1].Replaceable = value;
             }
         }
     }

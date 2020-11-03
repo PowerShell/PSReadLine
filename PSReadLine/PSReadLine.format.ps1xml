@@ -162,6 +162,9 @@ $d = [Microsoft.PowerShell.KeyHandler]::GetGroupingDescription($_.Group)
                 <PropertyName>PredictionSource</PropertyName>
               </ListItem>
               <ListItem>
+                <PropertyName>PredictionViewStyle</PropertyName>
+              </ListItem>
+              <ListItem>
                 <Label>CommandColor</Label>
                 <ScriptBlock>[Microsoft.PowerShell.VTColorUtils]::FormatColor($_.CommandColor)</ScriptBlock>
               </ListItem>
@@ -186,8 +189,20 @@ $d = [Microsoft.PowerShell.KeyHandler]::GetGroupingDescription($_.Group)
                 <ScriptBlock>[Microsoft.PowerShell.VTColorUtils]::FormatColor($_.ErrorColor)</ScriptBlock>
               </ListItem>
               <ListItem>
+                <Label>InlinePredictionColor</Label>
+                <ScriptBlock>[Microsoft.PowerShell.VTColorUtils]::FormatColor($_.InlinePredictionColor)</ScriptBlock>
+              </ListItem>
+              <ListItem>
                 <Label>KeywordColor</Label>
                 <ScriptBlock>[Microsoft.PowerShell.VTColorUtils]::FormatColor($_.KeywordColor)</ScriptBlock>
+              </ListItem>
+              <ListItem>
+                <Label>ListPredictionColor</Label>
+                <ScriptBlock>[Microsoft.PowerShell.VTColorUtils]::FormatColor($_.ListPredictionColor)</ScriptBlock>
+              </ListItem>
+              <ListItem>
+                <Label>ListPredictionSelectedColor</Label>
+                <ScriptBlock>[Microsoft.PowerShell.VTColorUtils]::FormatColor($_.ListPredictionSelectedColor)</ScriptBlock>
               </ListItem>
               <ListItem>
                 <Label>MemberColor</Label>
@@ -204,10 +219,6 @@ $d = [Microsoft.PowerShell.KeyHandler]::GetGroupingDescription($_.Group)
               <ListItem>
                 <Label>ParameterColor</Label>
                 <ScriptBlock>[Microsoft.PowerShell.VTColorUtils]::FormatColor($_.ParameterColor)</ScriptBlock>
-              </ListItem>
-              <ListItem>
-                <Label>InlinePredictionColor</Label>
-                <ScriptBlock>[Microsoft.PowerShell.VTColorUtils]::FormatColor($_.InlinePredictionColor)</ScriptBlock>
               </ListItem>
               <ListItem>
                 <Label>SelectionColor</Label>

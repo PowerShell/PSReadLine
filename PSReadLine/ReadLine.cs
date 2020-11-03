@@ -486,7 +486,11 @@ namespace Microsoft.PowerShell
                 ProcessOneKey(key, _dispatchTable, ignoreIfNoAction: false, arg: null);
                 if (_inputAccepted)
                 {
-                    return MaybeAddToHistory(_buffer.ToString(), _edits, _undoEditIndex);
+                    var commandLine = _buffer.ToString();
+                    MaybeAddToHistory(commandLine, _edits, _undoEditIndex);
+
+                    _prediction.ActiveView.OnCommandLineAccepted(commandLine);
+                    return commandLine;
                 }
 
                 if (killCommandCount == _killCommandCount)
@@ -517,7 +521,7 @@ namespace Microsoft.PowerShell
                     {
                         _emphasisStart = -1;
                         _emphasisLength = 0;
-                        Render();
+                        RenderWithPredictionQueryPaused();
                     }
                     _searchHistoryCommandCount = 0;
                     _searchHistoryPrefix = null;
@@ -539,7 +543,7 @@ namespace Microsoft.PowerShell
                 if (visualSelectionCommandCount == _visualSelectionCommandCount && _visualSelectionCommandCount > 0)
                 {
                     _visualSelectionCommandCount = 0;
-                    Render();  // Clears the visual selection
+                    RenderWithPredictionQueryPaused();  // Clears the visual selection
                 }
                 if (moveToLineCommandCount == _moveToLineCommandCount)
                 {
@@ -666,6 +670,7 @@ namespace Microsoft.PowerShell
                 hostName = "PSReadLine";
             }
             _options = new PSConsoleReadLineOptions(hostName);
+            _prediction = new Prediction(this);
             SetDefaultBindings(_options.EditMode);
         }
 
@@ -702,6 +707,7 @@ namespace Microsoft.PowerShell
             _statusIsErrorMessage = false;
 
             _initialOutputEncoding = _console.OutputEncoding;
+            _prediction.Reset();
 
             // Don't change the OutputEncoding if already UTF8, no console, or using raster font on Windows
             _skipOutputEncodingChange = _initialOutputEncoding == Encoding.UTF8
@@ -800,6 +806,7 @@ namespace Microsoft.PowerShell
             _historyFileMutex = new Mutex(false, GetHistorySaveFileMutexName());
 
             _history = new HistoryQueue<HistoryItem>(Options.MaximumHistoryCount);
+            _recentHistory = new HistoryQueue<string>(capacity: 5);
             _currentHistoryIndex = 0;
 
             bool readHistoryFile = true;
@@ -915,7 +922,7 @@ namespace Microsoft.PowerShell
                 sawDigit = true;
             }
 
-            _singleton.Render(); // Render prompt
+            _singleton.RenderWithPredictionQueryPaused(); // Render prompt
             while (true)
             {
                 var nextKey = ReadKey();
@@ -933,7 +940,7 @@ namespace Microsoft.PowerShell
                             {
                                 argBuffer.Insert(0, '-');
                             }
-                            _singleton.Render(); // Render prompt
+                            _singleton.RenderWithPredictionQueryPaused(); // Render prompt
                             continue;
                         }
 
@@ -947,7 +954,7 @@ namespace Microsoft.PowerShell
                             }
                             sawDigit = true;
                             argBuffer.Append(nextKey.KeyChar);
-                            _singleton.Render(); // Render prompt
+                            _singleton.RenderWithPredictionQueryPaused(); // Render prompt
                             continue;
                         }
                     }

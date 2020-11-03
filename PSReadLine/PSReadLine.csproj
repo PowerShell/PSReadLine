@@ -4,34 +4,31 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.PowerShell.PSReadLine</RootNamespace>
     <AssemblyName>Microsoft.PowerShell.PSReadLine2</AssemblyName>
-    <AssemblyVersion>2.1.0.0</AssemblyVersion>
-    <FileVersion>2.1.0</FileVersion>
-    <InformationalVersion>2.1.0</InformationalVersion>
+    <NoWarn>$(NoWarn);CA1416</NoWarn>
+    <AssemblyVersion>2.2.0.0</AssemblyVersion>
+    <FileVersion>2.2.0</FileVersion>
+    <InformationalVersion>2.2.0-beta1</InformationalVersion>
     <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
-    <TargetFrameworks>net461;netcoreapp3.1</TargetFrameworks>
+    <TargetFrameworks>net461;net5.0</TargetFrameworks>
+    <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
     <LangVersion>8.0</LangVersion>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp3.1'">
-    <RuntimeFrameworkVersion>3.1.6</RuntimeFrameworkVersion>
-  </PropertyGroup>
-
-  <ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net461'">
     <PackageReference Include="PowerShellStandard.Library" version="5.1.0" />
     <PackageReference Include="Microsoft.CSharp" version="4.5.0" />
+    <ProjectReference Include="..\Polyfill\Polyfill.csproj" />
   </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net5.0'">
+    <PackageReference Include="System.Management.Automation" Version="7.1.0-rc.2" />
+  </ItemGroup>
+
   <ItemGroup>
     <None Include="PSReadLine.psd1" CopyToOutputDirectory="PreserveNewest" />
     <None Include="PSReadLine.psm1" CopyToOutputDirectory="PreserveNewest" />
     <None Include="PSReadLine.format.ps1xml" CopyToOutputDirectory="PreserveNewest" />
     <None Include="SamplePSReadLineProfile.ps1" />
     <None Include="Changes.txt" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\docs\about_PSReadLine.help.txt" Link="docs\about_PSReadLine.help.txt" />
-    <None Include="..\docs\Get-PSReadLineKeyHandler.md" Link="docs\Get-PSReadLineKeyHandler.md" />
-    <None Include="..\docs\Get-PSReadLineOption.md" Link="docs\Get-PSReadLineOption.md" />
-    <None Include="..\docs\Set-PSReadLineKeyHandler.md" Link="docs\Set-PSReadLineKeyHandler.md" />
-    <None Include="..\docs\Set-PSReadLineOption.md" Link="docs\Set-PSReadLineOption.md" />
   </ItemGroup>
 </Project>

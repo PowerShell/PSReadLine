@@ -90,6 +90,7 @@ namespace Microsoft.PowerShell
 
         // History state
         private HistoryQueue<HistoryItem> _history;
+        private HistoryQueue<string> _recentHistory;
         private HistoryItem _previousHistoryItem;
         private Dictionary<string, int> _hashedHistory;
         private int _currentHistoryIndex;
@@ -204,6 +205,8 @@ namespace Microsoft.PowerShell
 
                 if (!fromHistoryFile)
                 {
+                    // Add to the recent history queue, which is used when querying for prediction.
+                    _recentHistory.Enqueue(result);
                     // 'MemoryOnly' indicates sensitive content in the command line
                     _previousHistoryItem._sensitive = addToHistoryOption == AddToHistoryOption.MemoryOnly;
                     _previousHistoryItem.StartTime = DateTime.UtcNow;
@@ -488,6 +491,7 @@ namespace Microsoft.PowerShell
         public static void ClearHistory(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton._history?.Clear();
+            _singleton._recentHistory?.Clear();
             _singleton._currentHistoryIndex = 0;
         }
 
@@ -537,7 +541,7 @@ namespace Microsoft.PowerShell
                     break;
             }
 
-            using var _ = PredictionOff();
+            using var _ = _prediction.DisableScoped();
             Render();
         }
 
@@ -626,6 +630,11 @@ namespace Microsoft.PowerShell
                 numericArg = -numericArg;
             }
 
+            if (UpdateListSelection(numericArg))
+            {
+                return;
+            }
+
             _singleton.SaveCurrentLine();
             _singleton.HistoryRecall(numericArg);
         }
@@ -636,6 +645,10 @@ namespace Microsoft.PowerShell
         public static void NextHistory(ConsoleKeyInfo? key = null, object arg = null)
         {
             TryGetArgAsInt(arg, out var numericArg, +1);
+            if (UpdateListSelection(numericArg))
+            {
+                return;
+            }
 
             _singleton.SaveCurrentLine();
             _singleton.HistoryRecall(numericArg);
@@ -712,30 +725,6 @@ namespace Microsoft.PowerShell
                         : HistoryMoveCursor.DontMove;
                 UpdateFromHistory(moveCursor);
             }
-        }
-
-        /// <summary>
-        /// Currently we only select single-line history that is prefixed with the user input,
-        /// but it can be improved to not strictly use the user input as a prefix, but a hint
-        /// to extract a partial pipeline or statement from a single-line or multiple-line
-        /// history entry.
-        /// </summary>
-        private string GetHistorySuggestion(string text)
-        {
-            for (int index = _history.Count - 1; index >= 0; index --)
-            {
-                var line = _history[index].CommandLine.TrimEnd();
-                if (line.Length > text.Length)
-                {
-                    bool isMultiLine = line.Contains('\n');
-                    if (!isMultiLine && line.StartsWith(text, Options.HistoryStringComparison))
-                    {
-                        return line;
-                    }
-                }
-            }
-
-            return null;
         }
 
         /// <summary>
@@ -950,7 +939,7 @@ namespace Microsoft.PowerShell
 
         private void InteractiveHistorySearch(int direction)
         {
-            using var _ = PredictionOff();
+            using var _ = _prediction.DisableScoped();
             SaveCurrentLine();
 
             // Add a status line that will contain the search prompt and string

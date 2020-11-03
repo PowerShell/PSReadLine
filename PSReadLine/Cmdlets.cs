@@ -66,8 +66,16 @@ namespace Microsoft.PowerShell
 
     public enum PredictionSource
     {
-        None,
-        History,
+        None = 1,
+        History = 2,
+        Plugin = 4,
+        HistoryAndPlugin = History | Plugin,
+    }
+
+    public enum PredictionViewStyle
+    {
+        InlineView,
+        ListView,
     }
 
     public class PSConsoleReadLineOptions
@@ -85,9 +93,14 @@ namespace Microsoft.PowerShell
         public const ConsoleColor DefaultEmphasisColor  = ConsoleColor.Cyan;
         public const ConsoleColor DefaultErrorColor     = ConsoleColor.Red;
 
-        // Use dark black by default for the suggestion text.
         // Find the most suitable color using https://stackoverflow.com/a/33206814
-        public const string DefaultInlinePredictionColor = "\x1b[38;5;238m";
+        // Default prediction color settings:
+        //  - use FG color 'dark black' for the inline-view suggestion text
+        //  - use FG color 'yellow' for the list-view suggestion text
+        //  - use BG color 'dark black' for the selected list-view suggestion text
+        public const string DefaultInlinePredictionColor       = "\x1b[38;5;238m";
+        public const string DefaultListPredictionColor         = "\x1b[33m";
+        public const string DefaultListPredictionSelectedColor = "\x1b[48;5;238m";
 
         public static EditMode DefaultEditMode = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
             ? EditMode.Windows
@@ -144,6 +157,8 @@ namespace Microsoft.PowerShell
         /// </summary>
         public const PredictionSource DefaultPredictionSource = PredictionSource.None;
 
+        public const PredictionViewStyle DefaultPredictionViewStyle = PredictionViewStyle.InlineView;
+
         /// <summary>
         /// How long in milliseconds should we wait before concluding
         /// the input is not an escape sequence?
@@ -171,6 +186,7 @@ namespace Microsoft.PowerShell
             HistorySaveStyle = DefaultHistorySaveStyle;
             AnsiEscapeTimeout = DefaultAnsiEscapeTimeout;
             PredictionSource = DefaultPredictionSource;
+            PredictionViewStyle = DefaultPredictionViewStyle;
             MaximumHistoryCount = 0;
 
             var historyFileName = hostName + "_history.txt";
@@ -309,6 +325,7 @@ namespace Microsoft.PowerShell
 
         public bool HistorySearchCaseSensitive { get; set; }
         internal StringComparison HistoryStringComparison => HistorySearchCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
+        internal StringComparer HistoryStringComparer => HistorySearchCaseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
 
         /// <summary>
         /// How are command and insert modes indicated when in vi edit mode?
@@ -330,6 +347,11 @@ namespace Microsoft.PowerShell
         /// Sets the source to get predictive suggestions.
         /// </summary>
         public PredictionSource PredictionSource { get; set; }
+
+        /// <summary>
+        /// Sets the view style for rendering predictive suggestions.
+        /// </summary>
+        public PredictionViewStyle PredictionViewStyle { get; set; }
 
         /// <summary>
         /// How long in milliseconds should we wait before concluding
@@ -457,6 +479,18 @@ namespace Microsoft.PowerShell
             set => _inlinePredictionColor = VTColorUtils.AsEscapeSequence(value);
         }
 
+        public object ListPredictionColor
+        {
+            get => _listPredictionColor;
+            set => _listPredictionColor = VTColorUtils.AsEscapeSequence(value);
+        }
+
+        public object ListPredictionSelectedColor
+        {
+            get => _listPredictionSelectedColor;
+            set => _listPredictionSelectedColor = VTColorUtils.AsEscapeSequence(value);
+        }
+
         internal string _defaultTokenColor;
         internal string _commentColor;
         internal string _keywordColor;
@@ -472,6 +506,8 @@ namespace Microsoft.PowerShell
         internal string _errorColor;
         internal string _selectionColor;
         internal string _inlinePredictionColor;
+        internal string _listPredictionColor;
+        internal string _listPredictionSelectedColor;
 
         internal void ResetColors()
         {
@@ -489,7 +525,9 @@ namespace Microsoft.PowerShell
             MemberColor       = DefaultNumberColor;
             EmphasisColor     = DefaultEmphasisColor;
             ErrorColor        = DefaultErrorColor;
-            InlinePredictionColor = DefaultInlinePredictionColor;
+            InlinePredictionColor       = DefaultInlinePredictionColor;
+            ListPredictionColor         = DefaultListPredictionColor;
+            ListPredictionSelectedColor = DefaultListPredictionSelectedColor;
 
             var bg = Console.BackgroundColor;
             if (fg == VTColorUtils.UnknownColor || bg == VTColorUtils.UnknownColor)
@@ -527,6 +565,8 @@ namespace Microsoft.PowerShell
                         {"Member", (o, v) => o.MemberColor = v},
                         {"Selection", (o, v) => o.SelectionColor = v},
                         {"InlinePrediction", (o, v) => o.InlinePredictionColor = v},
+                        {"ListPrediction", (o, v) => o.ListPredictionColor = v},
+                        {"ListPredictionSelected", (o, v) => o.ListPredictionSelectedColor = v},
                     };
 
                 Interlocked.CompareExchange(ref ColorSetters, setters, null);
@@ -550,7 +590,9 @@ namespace Microsoft.PowerShell
         [ExcludeFromCodeCoverage]
         protected override void EndProcessing()
         {
-            WriteObject(PSConsoleReadLine.GetOptions());
+            var options = PSConsoleReadLine.GetOptions();
+            WriteObject(options);
+            PSConsoleReadLine.WarnWhenWindowSizeTooSmallForView(options.PredictionViewStyle, this);
         }
     }
 
@@ -740,6 +782,14 @@ namespace Microsoft.PowerShell
             set => _predictionSource = value;
         }
         internal PredictionSource? _predictionSource;
+
+        [Parameter]
+        public PredictionViewStyle PredictionViewStyle
+        {
+            get => _predictionViewStyle.GetValueOrDefault();
+            set => _predictionViewStyle = value;
+        }
+        internal PredictionViewStyle? _predictionViewStyle;
 
         [Parameter]
         public Hashtable Colors { get; set; }

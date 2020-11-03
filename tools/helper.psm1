@@ -1,5 +1,5 @@
 
-$MinimalSDKVersion = '3.1.302'
+$MinimalSDKVersion = '5.0.100-rc.2.20479.15'
 $IsWindowsEnv = [System.Environment]::OSVersion.Platform -eq "Win32NT"
 $RepoRoot = (Resolve-Path "$PSScriptRoot/..").Path
 $LocalDotnetDirPath = if ($IsWindowsEnv) { "$env:LocalAppData\Microsoft\dotnet" } else { "$env:HOME/.dotnet" }
@@ -39,7 +39,7 @@ function Find-Dotnet
             $env:PATH = $LocalDotnetDirPath + [IO.Path]::PathSeparator + $env:PATH
         }
         else {
-            throw "Cannot find the dotnet SDK for .NET Core 3.1. Please specify '-Bootstrap' to install build dependencies."
+            throw "Cannot find the dotnet SDK for .NET 5. Please specify '-Bootstrap' to install build dependencies."
         }
     }
 }

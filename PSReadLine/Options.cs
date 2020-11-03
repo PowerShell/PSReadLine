@@ -141,7 +141,20 @@ namespace Microsoft.PowerShell
                 {
                     throw new ArgumentException(PSReadLineResources.PredictiveSuggestionNotSupported);
                 }
+
+                bool notTest = ReferenceEquals(_mockableMethods, this);
+                if ((options.PredictionSource & PredictionSource.Plugin) != 0 && Environment.Version.Major < 5 && notTest)
+                {
+                    throw new ArgumentException(PSReadLineResources.PredictionPluginNotSupported);
+                }
+
                 Options.PredictionSource = options.PredictionSource;
+            }
+            if (options._predictionViewStyle.HasValue)
+            {
+                WarnWhenWindowSizeTooSmallForView(options.PredictionViewStyle, options);
+                Options.PredictionViewStyle = options.PredictionViewStyle;
+                _prediction.SetViewStyle(options.PredictionViewStyle);
             }
             if (options.Colors != null)
             {

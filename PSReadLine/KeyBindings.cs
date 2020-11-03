@@ -225,6 +225,7 @@ namespace Microsoft.PowerShell
                 { Keys.Alt9,                   MakeKeyHandler(DigitArgument,             "DigitArgument") },
                 { Keys.AltMinus,               MakeKeyHandler(DigitArgument,             "DigitArgument") },
                 { Keys.AltQuestion,            MakeKeyHandler(WhatIsKey,                 "WhatIsKey") },
+                { Keys.F2,                     MakeKeyHandler(SwitchPredictionView,      "SwitchPredictionView") },
                 { Keys.F3,                     MakeKeyHandler(CharacterSearch,           "CharacterSearch") },
                 { Keys.ShiftF3,                MakeKeyHandler(CharacterSearchBackward,   "CharacterSearchBackward") },
                 { Keys.F8,                     MakeKeyHandler(HistorySearchBackward,     "HistorySearchBackward") },
@@ -232,7 +233,7 @@ namespace Microsoft.PowerShell
                 // Added for xtermjs-based terminals that send different key combinations.
                 { Keys.AltD,                   MakeKeyHandler(KillWord,                  "KillWord") },
                 { Keys.CtrlAt,                 MakeKeyHandler(MenuComplete,              "MenuComplete") },
-                { Keys.CtrlW,                  MakeKeyHandler(BackwardKillWord,          "BackwardKillWord")},
+                { Keys.CtrlW,                  MakeKeyHandler(BackwardKillWord,          "BackwardKillWord") },
             };
 
             // Some bindings are not available on certain platforms
@@ -557,6 +558,9 @@ namespace Microsoft.PowerShell
             case nameof(WhatIsKey):
             case nameof(AcceptSuggestion):
             case nameof(AcceptNextSuggestionWord):
+            case nameof(NextSuggestion):
+            case nameof(PreviousSuggestion):
+            case nameof(SwitchPredictionView):
                 return KeyHandlerGroup.Miscellaneous;
 
             case nameof(CharacterSearch):
