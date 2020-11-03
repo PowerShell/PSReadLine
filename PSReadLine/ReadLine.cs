@@ -707,7 +707,7 @@ namespace Microsoft.PowerShell
             _statusIsErrorMessage = false;
 
             _initialOutputEncoding = _console.OutputEncoding;
-            _prediction.ActiveView.Reset();
+            _prediction.Reset();
 
             // Don't change the OutputEncoding if already UTF8, no console, or using raster font on Windows
             _skipOutputEncodingChange = _initialOutputEncoding == Encoding.UTF8

@@ -770,6 +770,10 @@ namespace Test
             Test("abc", Keys(
                 "abc", _.Escape, _.Ctrl_d, InputAcceptedNow
                 ));
+
+            // "Ctrl+d" (ViAcceptLineOrExit) should switch to insert mode before accepting the line,
+            // so that we can keep typing in the new prompt.
+            Test("bbb", Keys("bbb"));
         }
 
         [SkippableFact]

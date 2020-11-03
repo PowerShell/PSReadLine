@@ -1277,6 +1277,7 @@ namespace Microsoft.PowerShell
         {
             if (_singleton._buffer.Length > 0)
             {
+                ViInsertMode(key, arg);
                 _singleton.AcceptLineImpl(false);
             }
             else

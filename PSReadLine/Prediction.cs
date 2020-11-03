@@ -264,6 +264,17 @@ namespace Microsoft.PowerShell
             }
 
             /// <summary>
+            /// Reset the prediction component on 'ReadLine' initialization.
+            /// </summary>
+            internal void Reset()
+            {
+                // This field may be set to 'false' globally and left that way,
+                // so we reset it on a new 'ReadLine' call just in case.
+                _showPrediction = true;
+                ActiveView.Reset();
+            }
+
+            /// <summary>
             /// Pause the query for predictive suggestions within the calling scope. 
             /// Note: the calling method need to use this method with the 'using' statement/variable,
             /// so that the suggestion feature can be properly restored.

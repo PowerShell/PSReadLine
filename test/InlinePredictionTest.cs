@@ -324,7 +324,7 @@ namespace Test
             using var disp = SetPrediction(PredictionSource.History, PredictionViewStyle.InlineView);
 
             SetHistory("echo -bar", "eca -zoo");
-            Test("ech", Keys(
+            Test("echo", Keys(
                 'e', CheckThat(() => AssertScreenIs(1,
                         TokenClassification.Command, 'e',
                         TokenClassification.InlinePrediction, "ca -zoo")),
@@ -345,11 +345,22 @@ namespace Test
                         TokenClassification.InlinePrediction, "o -bar")),
                 CheckThat(() => AssertCursorLeftIs(3)),
 
+                // Suggestion should be cleared when switching to the command mode.
+                _.Escape, CheckThat(() => AssertScreenIs(1,
+                        TokenClassification.Command, "ech")),
+                CheckThat(() => AssertCursorLeftIs(2)),
+
+                'i', _.RightArrow, 'o',
+                CheckThat(() => AssertScreenIs(1,
+                        TokenClassification.Command, "echo",
+                        TokenClassification.InlinePrediction, " -bar")),
+                CheckThat(() => AssertCursorLeftIs(4)),
+
                 _.RightArrow, _.Escape,
                 CheckThat(() => AssertCursorLeftIs(8)),
                 _.Ctrl_z, CheckThat(() => AssertScreenIs(1,
-                        TokenClassification.Command, "ech")),
-                CheckThat(() => AssertCursorLeftIs(2))
+                        TokenClassification.Command, "echo")),
+                CheckThat(() => AssertCursorLeftIs(3))
             ));
         }
 
