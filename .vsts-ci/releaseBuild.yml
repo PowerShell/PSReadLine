@@ -17,7 +17,7 @@ resources:
 
 jobs:
 - job: build_windows
-  pool: Package ES Standard Build
+  pool: Package ES CodeHub Lab E
 
   # APIScan can take a long time
   timeoutInMinutes: 240
