@@ -92,18 +92,6 @@ task BuildMockPSConsole @mockPSConsoleParams {
 }
 
 <#
-Synopsis: Generate the file catalog
-#>
-task GenerateCatalog {
-    exec {
-        Remove-Item -ea Ignore $PSScriptRoot/bin/$Configuration/PSReadLine/PSReadLine.cat
-        $null = New-FileCatalog -CatalogFilePath $PSScriptRoot/bin/$Configuration/PSReadLine/PSReadLine.cat `
-                                -Path $PSScriptRoot/bin/$Configuration/PSReadLine `
-                                -CatalogVersion 2.0
-    }
-}
-
-<#
 Synopsis: Run the unit tests
 #>
 task RunTests BuildMainModule, BuildXUnitTests, { Start-TestRun -Configuration $Configuration -Framework $Framework }

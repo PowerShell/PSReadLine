@@ -17,7 +17,7 @@ resources:
 
 jobs:
 - job: build_windows
-  pool: Package ES Lab A
+  pool: Package ES CodeHub Lab E
 
   # APIScan can take a long time
   timeoutInMinutes: 240
@@ -86,39 +86,14 @@ jobs:
   - pwsh: |
       # Show the signed files
       Get-ChildItem -Path $(Signed)
-      Copy-Item -Path $(Signed)\* -Destination $(PSReadLine) -Force
+      Copy-Item -Path $(Signed)\* -Destination $(PSReadLine) -Recurse -Force
     displayName: 'Replace unsigned files with signed ones'
-
-  # Create catalog file from the signed modules files
-  - pwsh: |
-      New-FileCatalog -CatalogFilePath $(PSReadLine)\PSReadLine.cat -Path $(PSReadLine) -CatalogVersion 2.0 | `
-          ForEach-Object -MemberName FullName
-    displayName: 'Create catalog file'
-
-  # Sign the catalog file
-  - task: PkgESCodeSign@10
-    displayName: 'CodeSign - catalog file'
-    env:
-      SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-    inputs:
-      signConfigXml: '$(Build.SourcesDirectory)\.vsts-ci\sign-catalog.xml'
-      inPathRoot: '$(PSReadLine)'
-      outPathRoot: '$(Signed)'
-      binVersion: Production
-      binVersionOverride: ''
-
-  # Copy the signed catalog file over
-  - pwsh: |
-      # Show the signed files
-      Get-ChildItem -Path $(Signed)
-      Copy-Item -Path $(Signed)\PSReadLine.cat -Destination $(PSReadLine) -Force
-    displayName: 'Replace catalog file with the signed one'
 
   # Verify the signatures
   - pwsh: |
       $HasInvalidFiles = $false
       $WrongCert = @{}
-      Get-ChildItem -Path $(PSReadLine) -Recurse -Include "*.dll","*.ps*1*","*.cat" | `
+      Get-ChildItem -Path $(PSReadLine) -Recurse -Include "*.dll","*.ps*1*" | `
           Get-AuthenticodeSignature | ForEach-Object {
               $_ | Select-Object Path, Status
               if ($_.Status -ne 'Valid') { $HasInvalidFiles = $true }
@@ -133,12 +108,6 @@ jobs:
           throw "Certificate should have the subject starts with 'Microsoft Corporation'"
       }
     displayName: 'Verify the signed files'
-
-  - pwsh: |
-      $CatInfo = Test-FileCatalog -Path $(PSReadLine) -CatalogFilePath $(PSReadLine)\PSReadLine.cat -Detailed
-      $CatInfo | Format-List
-      if ($CatInfo.Status -ne "Valid") { throw "Catalog file is invalid." }
-    displayName: 'Verify the catalog file'
 
   - pwsh: |
       try {
