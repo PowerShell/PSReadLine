@@ -1,3 +1,10 @@
+### Version 2.2.0-beta1
+
+Changes:
+
+* Add the prediction `ListView` and also hook up with the `CommandPrediction` APIs introduced in PS 7.1 (#1909)
+* Update the release build to work with new module artifacts (#1930)
+
 ### Version 2.1.0
 
 Changes:
