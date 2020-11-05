@@ -10,6 +10,7 @@
     - Use the present tense and imperative mood when describing your changes
 - [ ] Summarized changes
 - [ ] Make sure you've added one or more new tests
+- [ ] Make sure you've tested these changes in terminals that PowerShell is commonly used in (i.e. conhost.exe, Windows Terminal, Visual Studio Code Integrated Terminal, etc.)
 - **User-facing changes**
     - [ ] Not Applicable
     - **OR**
