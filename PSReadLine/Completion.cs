@@ -614,10 +614,42 @@ namespace Microsoft.PowerShell
                 RestoreCursor();
             }
 
-            public void MoveRight()    => CurrentSelection = Math.Min(CurrentSelection + Rows, MenuItems.Count - 1);
-            public void MoveLeft()     => CurrentSelection = Math.Max(CurrentSelection - Rows, 0);
-            public void MoveUp()       => CurrentSelection = Math.Max(CurrentSelection - 1, 0);
-            public void MoveDown()     => CurrentSelection = Math.Min(CurrentSelection + 1, MenuItems.Count - 1);
+            public void MoveRight()
+            {
+                int nextInSameRow = CurrentSelection + Rows;
+                if (nextInSameRow <= MenuItems.Count - 1)
+                {
+                    CurrentSelection = nextInSameRow;
+                    return;
+                }
+
+                int nextInNextRow = CurrentSelection - (Columns - 1) * Rows + 1;
+                CurrentSelection = Math.Max(nextInNextRow, 0);
+            }
+
+            public void MoveLeft()
+            {
+                int previousInSameRow = CurrentSelection - Rows;
+                if (previousInSameRow >= 0)
+                {
+                    CurrentSelection = previousInSameRow;
+                    return;
+                }
+
+                int previousInPreviousRow = CurrentSelection + (Columns - 1) * Rows - 1;
+                CurrentSelection = Math.Min(previousInPreviousRow, MenuItems.Count - 1);
+            }
+
+            public void MoveUp()
+            {
+                CurrentSelection = CurrentSelection > 0 ? CurrentSelection - 1 : MenuItems.Count - 1;
+            }
+
+            public void MoveDown()
+            {
+                CurrentSelection = CurrentSelection < (MenuItems.Count - 1) ? CurrentSelection + 1 : 0;
+            }
+
             public void MovePageDown() => CurrentSelection = Math.Min(CurrentSelection + Rows - (CurrentSelection % Rows) - 1,
                                                                       MenuItems.Count - 1);
             public void MovePageUp()   => CurrentSelection = Math.Max(CurrentSelection - (CurrentSelection % Rows), 0);
@@ -808,9 +840,6 @@ namespace Microsoft.PowerShell
 
             var userInitialCompletionLength = userCompletionText.Length;
 
-            completions.CurrentMatchIndex = 0;
-            menu.DrawMenu(null, menuSelect:true);
-
             bool processingKeys = true;
             int previousSelection = -1;
 
@@ -832,38 +861,51 @@ namespace Microsoft.PowerShell
 
                     ExchangePointAndMark();
 
-                    // After replacement, the menu might be misplaced from the command line
-                    // getting shorter or longer.
-                    var endOfCommandLine = ConvertOffsetToPoint(_buffer.Length);
-                    var topAdjustment = (endOfCommandLine.Y + 1) - menu.Top;
-
-                    if (topAdjustment != 0)
+                    if (previousSelection == -1)
                     {
-                        menu.Top += topAdjustment;
-                        menu.DrawMenu(null, menuSelect:true);
+                        completions.CurrentMatchIndex = 0;
+                        menu.DrawMenu(null, menuSelect: true);
                     }
-                    if (topAdjustment > 0)
+                    else
                     {
-                        // Render did not clear the rest of the command line which flowed
-                        // into the menu, so we must do that here.
-                        menu.SaveCursor();
-                        _console.SetCursorPosition(endOfCommandLine.X, endOfCommandLine.Y);
-                        _console.Write(Spaces(_console.BufferWidth - endOfCommandLine.X));
-                        menu.RestoreCursor();
-                    }
+                        // After replacement, the menu might be misplaced from the command line
+                        // getting shorter or longer.
+                        var endOfCommandLine = ConvertOffsetToPoint(_buffer.Length);
+                        var topAdjustment = (endOfCommandLine.Y + 1) - menu.Top;
 
-                    if (previousSelection != -1)
-                    {
+                        if (topAdjustment != 0)
+                        {
+                            menu.Top += topAdjustment;
+                            menu.DrawMenu(null, menuSelect: true);
+                        }
+                        if (topAdjustment > 0)
+                        {
+                            // Render did not clear the rest of the command line which flowed
+                            // into the menu, so we must do that here.
+                            menu.SaveCursor();
+                            _console.SetCursorPosition(endOfCommandLine.X, endOfCommandLine.Y);
+                            _console.Write(Spaces(_console.BufferWidth - endOfCommandLine.X));
+                            menu.RestoreCursor();
+                        }
+
                         if (menu.ToolTipLines > 0)
                         {
                             // Erase previous tooltip, taking into account if the menu moved up/down.
                             WriteBlankLines(menu.Top + menu.Rows, -topAdjustment + menu.ToolTipLines);
                         }
-                        menu.UpdateMenuSelection(previousSelection, /*select*/ false,
-                            /*showToolTips*/false, Options._emphasisColor);
+
+                        menu.UpdateMenuSelection(
+                            previousSelection,
+                            select: false,
+                            showTooltips: false,
+                            Options._emphasisColor);
                     }
-                    menu.UpdateMenuSelection(menu.CurrentSelection, /*select*/ true,
-                        Options.ShowToolTips, Options._emphasisColor);
+
+                    menu.UpdateMenuSelection(
+                        menu.CurrentSelection,
+                        select: true,
+                        Options.ShowToolTips,
+                        Options._emphasisColor);
 
                     previousSelection = menu.CurrentSelection;
                 }
