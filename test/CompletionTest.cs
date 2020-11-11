@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Management.Automation;
@@ -147,7 +148,7 @@ namespace Test
         }
 
         [SkippableFact]
-        public void MenuCompletions()
+        public void MenuCompletions_FilterByTyping()
         {
             TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+Spacebar", PSConsoleReadLine.MenuComplete));
 
@@ -168,6 +169,62 @@ namespace Test
                     TokenClassification.Selection, "Get-Many4  ", NextLine,
                     "                                                          ", NextLine,
                     "                                                          ", NextLine)),
+                _.Enter,
+                _.Enter
+                ));
+        }
+
+        [SkippableFact]
+        public void MenuCompletions_NavigateAndClearRendering()
+        {
+            TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+Spacebar", PSConsoleReadLine.MenuComplete));
+
+            _console.Clear();
+            int width = _console.BufferWidth;
+            string placeholderCommand = new string('A', width - 12); // 12 = "Get-Module".Length + 2
+
+            Test($"{placeholderCommand};Get-Module", Keys(
+                placeholderCommand, ';',
+                "Get-Mo", _.Ctrl_Spacebar,
+                // At this point, the editing line buffer takes 2 physical lines.
+                CheckThat(() => AssertScreenIs(4,
+                    TokenClassification.Command, placeholderCommand,
+                    TokenClassification.None, ';',
+                    TokenClassification.Command, "Get-Mo",
+                    TokenClassification.Selection, "ckDynamicParameters", NextLine,
+                    TokenClassification.Selection, "Get-MockDynamicParameters  ",
+                    TokenClassification.None, "Get-Module                 ", NextLine,
+                    TokenClassification.None, new string(' ', width))),
+                _.RightArrow,
+                // Navigating to the next item will cause the editing line to fit in
+                // one physical line, so the new menu is moved up and lines from the
+                // previous menu need to be properly cleared.
+                CheckThat(() => AssertScreenIs(3,
+                    TokenClassification.Command, placeholderCommand,
+                    TokenClassification.None, ';',
+                    TokenClassification.Command, "Get-Mo",
+                    TokenClassification.Selection, "dule", NextLine,
+                    TokenClassification.None, "Get-MockDynamicParameters  ",
+                    TokenClassification.Selection, "Get-Module                 ", NextLine,
+                    TokenClassification.None, new string(' ', width))),
+                _.LeftArrow,
+                CheckThat(() => AssertScreenIs(4,
+                    TokenClassification.Command, placeholderCommand,
+                    TokenClassification.None, ';',
+                    TokenClassification.Command, "Get-Mo",
+                    TokenClassification.Selection, "ckDynamicParameters", NextLine,
+                    TokenClassification.Selection, "Get-MockDynamicParameters  ",
+                    TokenClassification.None, "Get-Module                 ", NextLine,
+                    TokenClassification.None, new string(' ', width))),
+                _.DownArrow,
+                CheckThat(() => AssertScreenIs(3,
+                    TokenClassification.Command, placeholderCommand,
+                    TokenClassification.None, ';',
+                    TokenClassification.Command, "Get-Mo",
+                    TokenClassification.Selection, "dule", NextLine,
+                    TokenClassification.None, "Get-MockDynamicParameters  ",
+                    TokenClassification.Selection, "Get-Module                 ", NextLine,
+                    TokenClassification.None, new string(' ', width))),
                 _.Enter,
                 _.Enter
                 ));
@@ -289,6 +346,16 @@ namespace Test
                 completions.Add(new CompletionResult("idden"));
                 break;
             case "none":
+                break;
+
+            default:
+                if (input.EndsWith(";Get-Mo", StringComparison.OrdinalIgnoreCase))
+                {
+                    replacementIndex = input.IndexOf("Get-Mo", StringComparison.OrdinalIgnoreCase);
+                    replacementLength = 6;
+                    completions.Add(new CompletionResult("Get-MockDynamicParameters"));
+                    completions.Add(new CompletionResult("Get-Module"));
+                }
                 break;
             }
 
