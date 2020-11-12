@@ -642,8 +642,16 @@ namespace Microsoft.PowerShell
                     return;
                 }
 
-                int nextInNextRow = CurrentSelection - (Columns - 1) * Rows + 1;
-                CurrentSelection = Math.Max(nextInNextRow, 0);
+                // Index of the column where 'CurrentSelection' is at, assuming columns start from left at index 0.
+                int columnIndex = CurrentSelection / Rows;
+                int leftmostItemInSameRow = CurrentSelection - columnIndex * Rows;
+
+                // Index of the row where 'leftMostItemAtSameRow' is at, assuming rows start from top at index 0.
+                int rowIndex = leftmostItemInSameRow % Rows;
+
+                // If 'rowIndex == Rows - 1', then 'CurrentSelection' is at the rightmost position in the last row,
+                // so moving-to-right again should move to the item at index 0.
+                CurrentSelection = rowIndex == Rows - 1 ? 0 : leftmostItemInSameRow + 1;
             }
 
             public void MoveLeft()
@@ -655,8 +663,20 @@ namespace Microsoft.PowerShell
                     return;
                 }
 
-                int previousInPreviousRow = CurrentSelection + (Columns - 1) * Rows - 1;
-                CurrentSelection = Math.Min(previousInPreviousRow, MenuItems.Count - 1);
+                // Index of the row where 'CurrentSelection' is at, assuming rows start from top at index 0.
+                int rowIndex = CurrentSelection % Rows;
+                int leftmostItemInPreviousRow = rowIndex == 0 ? Rows - 1 : rowIndex - 1;
+
+                int lastItemIndex = MenuItems.Count - 1;
+                // Index of the column where the last item is at, assuming columns start from left at index 0.
+                int lastItemColumnIndex = lastItemIndex / Rows;
+
+                // Get the rightmost item in the previous row.
+                CurrentSelection = leftmostItemInPreviousRow + lastItemColumnIndex * Rows;
+                if (CurrentSelection > lastItemIndex)
+                {
+                    CurrentSelection = leftmostItemInPreviousRow + (lastItemColumnIndex - 1) * Rows;
+                }
             }
 
             public void MoveUp()
