@@ -639,12 +639,6 @@ namespace Test
 
             TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+Spacebar", PSConsoleReadLine.MenuComplete));
 
-            //while (!System.Diagnostics.Debugger.IsAttached)
-            //{
-            //    System.Threading.Thread.Sleep(200);
-            //}
-            //System.Diagnostics.Debugger.Break();
-
             _console.Clear();
             Test("Get-NewDynamicParameters", Keys(
                 "Get-New", _.Ctrl_Spacebar,
