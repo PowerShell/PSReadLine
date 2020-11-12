@@ -606,7 +606,7 @@ Set-PSReadLineKeyHandler -Key RightArrow `
 # on the command line. 
 Set-PSReadLineKeyHandler -Key Alt+a `
                          -BriefDescription SelectCommandArguments `
-                         -LongDescription "Set current selection to next command argument in the command line. Use of digit argument selects argument by position"                        
+                         -LongDescription "Set current selection to next command argument in the command line. Use of digit argument selects argument by position" `
                          -ScriptBlock {
     param($key, $arg)
   
