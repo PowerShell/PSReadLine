@@ -600,3 +600,54 @@ Set-PSReadLineKeyHandler -Key RightArrow `
         [Microsoft.PowerShell.PSConsoleReadLine]::AcceptNextSuggestionWord($key, $arg)
     }
 }
+
+Set-PSReadLineKeyHandler -Key Alt+a `
+                         -BriefDescription SelectCommandArguments `
+                         -LongDescription "Set current selection to next command argument in the command line. Use of digit argument selects argument by position"                        
+                         -ScriptBlock {
+    param($key, $arg)
+  
+    $line = $null
+    $cursor = $null
+    [Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$line, [ref]$cursor)
+  
+    $tokens = $null
+    $ast = $null
+    $parseErrors = $null
+    [Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$ast, [ref]$tokens, [ref]$parseErrors, [ref]$null)
+  
+    $asts = $ast.FindAll( {
+        $args[0] -is [System.Management.Automation.Language.StringConstantExpressionAst] -and
+        $args[0].Parent -is [System.Management.Automation.Language.CommandAst] -and
+        $args[0].Extent.StartOffset -ne $args[0].Parent.Extent.StartOffset
+      }, $true)
+  
+    if ($null -ne $arg) {
+      $nextAst = $asts[$arg - 1]
+    }
+    else {
+      foreach ($ast in $asts) {
+        if ($ast.Extent.StartOffset -ge $cursor) {
+          $nextAst = $ast
+          break
+        }
+      } 
+    
+      if ($null -eq $nextAst) {
+        $nextAst = $asts[0]
+      }
+    }
+    
+    if ($nextAst.StringConstantType -ne [System.Management.Automation.Language.StringConstantType]::BareWord) {
+      $startOffsetAdjustment = 1
+      $endOffsetAdjustment = 2
+    }
+    else {
+      $startOffsetAdjustment = 0
+      $endOffsetAdjustment = 0
+    }
+  
+    [Microsoft.PowerShell.PSConsoleReadLine]::SetCursorPosition($nextAst.Extent.StartOffset + $startOffsetAdjustment)
+    [Microsoft.PowerShell.PSConsoleReadLine]::SetMark($null, $null)
+    [Microsoft.PowerShell.PSConsoleReadLine]::SelectForwardChar($null, ($nextAst.Extent.EndOffset - $nextAst.Extent.StartOffset) - $endOffsetAdjustment)
+  }
