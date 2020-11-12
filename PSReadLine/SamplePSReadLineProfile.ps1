@@ -601,6 +601,9 @@ Set-PSReadLineKeyHandler -Key RightArrow `
     }
 }
 
+# Cycle through arguments on current line and select the text. This makes it easier to quickly change the argument if re-running a previously run command from the history
+# or if using a psreadline predictor. You can also use a digit argument to specify which argument you want to select, i.e. Alt+1, Alt+a selects the first argument
+# on the command line. 
 Set-PSReadLineKeyHandler -Key Alt+a `
                          -BriefDescription SelectCommandArguments `
                          -LongDescription "Set current selection to next command argument in the command line. Use of digit argument selects argument by position"                        
