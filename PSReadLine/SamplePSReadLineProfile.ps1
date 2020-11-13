@@ -617,7 +617,7 @@ Set-PSReadLineKeyHandler -Key Alt+a `
     [Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$ast, [ref]$tokens, [ref]$parseErrors, [ref]$cursor)
   
     $asts = $ast.FindAll( {
-        $args[0] -is [System.Management.Automation.Language.StringConstantExpressionAst] -and
+        $args[0] -is [System.Management.Automation.Language.ExpressionAst] -and
         $args[0].Parent -is [System.Management.Automation.Language.CommandAst] -and
         $args[0].Extent.StartOffset -ne $args[0].Parent.Extent.StartOffset
       }, $true)
@@ -639,14 +639,14 @@ Set-PSReadLineKeyHandler -Key Alt+a `
             $nextAst = $asts[0]
         }
     }
-    
-    if ($nextAst.StringConstantType -ne [System.Management.Automation.Language.StringConstantType]::BareWord) {
-        $startOffsetAdjustment = 1
-        $endOffsetAdjustment = 2
-    }
-    else {
-        $startOffsetAdjustment = 0
-        $endOffsetAdjustment = 0
+
+    $startOffsetAdjustment = 0
+    $endOffsetAdjustment = 0
+
+    if ($nextAst -is [System.Management.Automation.Language.StringConstantExpressionAst] -and
+        $nextAst.StringConstantType -ne [System.Management.Automation.Language.StringConstantType]::BareWord) {
+            $startOffsetAdjustment = 1
+            $endOffsetAdjustment = 2
     }
   
     [Microsoft.PowerShell.PSConsoleReadLine]::SetCursorPosition($nextAst.Extent.StartOffset + $startOffsetAdjustment)
