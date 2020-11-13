@@ -625,28 +625,28 @@ Set-PSReadLineKeyHandler -Key Alt+a `
     $nextAst = $null
 
     if ($null -ne $arg) {
-      $nextAst = $asts[$arg - 1]
+        $nextAst = $asts[$arg - 1]
     }
     else {
-      foreach ($ast in $asts) {
-        if ($ast.Extent.StartOffset -ge $cursor) {
-          $nextAst = $ast
-          break
+        foreach ($ast in $asts) {
+            if ($ast.Extent.StartOffset -ge $cursor) {
+                $nextAst = $ast
+                break
+            }
+        } 
+        
+        if ($null -eq $nextAst) {
+            $nextAst = $asts[0]
         }
-      } 
-    
-      if ($null -eq $nextAst) {
-        $nextAst = $asts[0]
-      }
     }
     
     if ($nextAst.StringConstantType -ne [System.Management.Automation.Language.StringConstantType]::BareWord) {
-      $startOffsetAdjustment = 1
-      $endOffsetAdjustment = 2
+        $startOffsetAdjustment = 1
+        $endOffsetAdjustment = 2
     }
     else {
-      $startOffsetAdjustment = 0
-      $endOffsetAdjustment = 0
+        $startOffsetAdjustment = 0
+        $endOffsetAdjustment = 0
     }
   
     [Microsoft.PowerShell.PSConsoleReadLine]::SetCursorPosition($nextAst.Extent.StartOffset + $startOffsetAdjustment)
