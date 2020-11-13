@@ -182,6 +182,11 @@ namespace Test
 
         public void SetCursorPosition(int left, int top)
         {
+            if (left != CursorLeft || top != CursorTop)
+            {
+                _ignoreNextNewline = false;
+            }
+
             CursorLeft = left;
             CursorTop = top;
         }

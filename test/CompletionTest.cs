@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Management.Automation;
@@ -147,7 +148,7 @@ namespace Test
         }
 
         [SkippableFact]
-        public void MenuCompletions()
+        public void MenuCompletions_FilterByTyping()
         {
             TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+Spacebar", PSConsoleReadLine.MenuComplete));
 
@@ -171,6 +172,678 @@ namespace Test
                 _.Enter,
                 _.Enter
                 ));
+        }
+
+        [SkippableFact]
+        public void MenuCompletions_Navigation1()
+        {
+            // Test 'RightArrow' and 'LeftArrow' with the following menu:
+            //   Get-Many0   Get-Many3   Get-Many6   Get-Many9   Get-Many12
+            //   Get-Many1   Get-Many4   Get-Many7   Get-Many10  Get-Many13
+            //   Get-Many2   Get-Many5   Get-Many8   Get-Many11  Get-Many14
+
+            TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+Spacebar", PSConsoleReadLine.MenuComplete));
+
+            _console.Clear();
+            Test("Get-Many0", Keys(
+                "Get-Many", _.Ctrl_Spacebar,
+                CheckThat(() => AssertScreenIs(4,
+                    TokenClassification.Command, "Get-Many",
+                    TokenClassification.Selection, "0", NextLine,
+                    TokenClassification.Selection, "Get-Many0   ",
+                    TokenClassification.None,
+                    "Get-Many3   Get-Many6   Get-Many9   Get-Many12", NextLine,
+                    "Get-Many1   Get-Many4   Get-Many7   Get-Many10  Get-Many13", NextLine,
+                    "Get-Many2   Get-Many5   Get-Many8   Get-Many11  Get-Many14")),
+                _.RightArrow,
+                CheckThat(() => AssertScreenIs(4,
+                    TokenClassification.Command, "Get-Many",
+                    TokenClassification.Selection, "3", NextLine,
+                    TokenClassification.None, "Get-Many0   ",
+                    TokenClassification.Selection, "Get-Many3   ",
+                    TokenClassification.None,
+                    "Get-Many6   Get-Many9   Get-Many12", NextLine,
+                    "Get-Many1   Get-Many4   Get-Many7   Get-Many10  Get-Many13", NextLine,
+                    "Get-Many2   Get-Many5   Get-Many8   Get-Many11  Get-Many14")),
+                _.RightArrow,
+                CheckThat(() => AssertScreenIs(4,
+                    TokenClassification.Command, "Get-Many",
+                    TokenClassification.Selection, "6", NextLine,
+                    TokenClassification.None, "Get-Many0   Get-Many3   ",
+                    TokenClassification.Selection, "Get-Many6   ",
+                    TokenClassification.None, "Get-Many9   Get-Many12", NextLine,
+                    "Get-Many1   Get-Many4   Get-Many7   Get-Many10  Get-Many13", NextLine,
+                    "Get-Many2   Get-Many5   Get-Many8   Get-Many11  Get-Many14")),
+                _.RightArrow,
+                CheckThat(() => AssertScreenIs(4,
+                    TokenClassification.Command, "Get-Many",
+                    TokenClassification.Selection, "9", NextLine,
+                    TokenClassification.None, "Get-Many0   Get-Many3   Get-Many6   ",
+                    TokenClassification.Selection, "Get-Many9   ",
+                    TokenClassification.None, "Get-Many12", NextLine,
+                    "Get-Many1   Get-Many4   Get-Many7   Get-Many10  Get-Many13", NextLine,
+                    "Get-Many2   Get-Many5   Get-Many8   Get-Many11  Get-Many14")),
+                _.RightArrow,
+                CheckThat(() => AssertScreenIs(4,
+                    TokenClassification.Command, "Get-Many",
+                    TokenClassification.Selection, "12", NextLine,
+                    TokenClassification.None, "Get-Many0   Get-Many3   Get-Many6   Get-Many9   ",
+                    TokenClassification.Selection, "Get-Many12  ", NextLine,
+                    TokenClassification.None,
+                    "Get-Many1   Get-Many4   Get-Many7   Get-Many10  Get-Many13", NextLine,
+                    "Get-Many2   Get-Many5   Get-Many8   Get-Many11  Get-Many14")),
+                _.RightArrow,
+                CheckThat(() => AssertScreenIs(4,
+                    TokenClassification.Command, "Get-Many",
+                    TokenClassification.Selection, "1", NextLine,
+                    TokenClassification.None,
+                    "Get-Many0   Get-Many3   Get-Many6   Get-Many9   Get-Many12", NextLine,
+                    TokenClassification.Selection, "Get-Many1   ",
+                    TokenClassification.None,
+                    "Get-Many4   Get-Many7   Get-Many10  Get-Many13", NextLine,
+                    "Get-Many2   Get-Many5   Get-Many8   Get-Many11  Get-Many14")),
+                _.LeftArrow,
+                CheckThat(() => AssertScreenIs(4,
+                    TokenClassification.Command, "Get-Many",
+                    TokenClassification.Selection, "12", NextLine,
+                    TokenClassification.None, "Get-Many0   Get-Many3   Get-Many6   Get-Many9   ",
+                    TokenClassification.Selection, "Get-Many12  ", NextLine,
+                    TokenClassification.None,
+                    "Get-Many1   Get-Many4   Get-Many7   Get-Many10  Get-Many13", NextLine,
+                    "Get-Many2   Get-Many5   Get-Many8   Get-Many11  Get-Many14")),
+                _.LeftArrow,
+                CheckThat(() => AssertScreenIs(4,
+                    TokenClassification.Command, "Get-Many",
+                    TokenClassification.Selection, "9", NextLine,
+                    TokenClassification.None, "Get-Many0   Get-Many3   Get-Many6   ",
+                    TokenClassification.Selection, "Get-Many9   ",
+                    TokenClassification.None, "Get-Many12", NextLine,
+                    "Get-Many1   Get-Many4   Get-Many7   Get-Many10  Get-Many13", NextLine,
+                    "Get-Many2   Get-Many5   Get-Many8   Get-Many11  Get-Many14")),
+                _.LeftArrow,
+                CheckThat(() => AssertScreenIs(4,
+                    TokenClassification.Command, "Get-Many",
+                    TokenClassification.Selection, "6", NextLine,
+                    TokenClassification.None, "Get-Many0   Get-Many3   ",
+                    TokenClassification.Selection, "Get-Many6   ",
+                    TokenClassification.None, "Get-Many9   Get-Many12", NextLine,
+                    "Get-Many1   Get-Many4   Get-Many7   Get-Many10  Get-Many13", NextLine,
+                    "Get-Many2   Get-Many5   Get-Many8   Get-Many11  Get-Many14")),
+                _.LeftArrow, _.LeftArrow,
+                CheckThat(() => AssertScreenIs(4,
+                    TokenClassification.Command, "Get-Many",
+                    TokenClassification.Selection, "0", NextLine,
+                    TokenClassification.Selection, "Get-Many0   ",
+                    TokenClassification.None,
+                    "Get-Many3   Get-Many6   Get-Many9   Get-Many12", NextLine,
+                    "Get-Many1   Get-Many4   Get-Many7   Get-Many10  Get-Many13", NextLine,
+                    "Get-Many2   Get-Many5   Get-Many8   Get-Many11  Get-Many14")),
+                _.LeftArrow,
+                CheckThat(() => AssertScreenIs(4,
+                    TokenClassification.Command, "Get-Many",
+                    TokenClassification.Selection, "14", NextLine,
+                    TokenClassification.None,
+                    "Get-Many0   Get-Many3   Get-Many6   Get-Many9   Get-Many12", NextLine,
+                    "Get-Many1   Get-Many4   Get-Many7   Get-Many10  Get-Many13", NextLine,
+                    "Get-Many2   Get-Many5   Get-Many8   Get-Many11  ",
+                    TokenClassification.Selection, "Get-Many14  ", NextLine)),
+                _.RightArrow,
+                CheckThat(() => AssertScreenIs(4,
+                    TokenClassification.Command, "Get-Many",
+                    TokenClassification.Selection, "0", NextLine,
+                    TokenClassification.Selection, "Get-Many0   ",
+                    TokenClassification.None,
+                    "Get-Many3   Get-Many6   Get-Many9   Get-Many12", NextLine,
+                    "Get-Many1   Get-Many4   Get-Many7   Get-Many10  Get-Many13", NextLine,
+                    "Get-Many2   Get-Many5   Get-Many8   Get-Many11  Get-Many14")),
+                _.Enter,
+                _.Enter
+                ));
+        }
+
+        [SkippableFact]
+        public void MenuCompletions_Navigation2()
+        {
+            // Test 'RightArrow' with the following menu:
+            //   Get-Less0   Get-Less3   Get-Less6   Get-Less9   Get-Less12
+            //   Get-Less1   Get-Less4   Get-Less7   Get-Less10
+            //   Get-Less2   Get-Less5   Get-Less8   Get-Less11
+
+            TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+Spacebar", PSConsoleReadLine.MenuComplete));
+
+            _console.Clear();
+            Test("Get-Less0", Keys(
+                "Get-Less", _.Ctrl_Spacebar,
+                CheckThat(() => AssertScreenIs(4,
+                    TokenClassification.Command, "Get-Less",
+                    TokenClassification.Selection, "0", NextLine,
+                    TokenClassification.Selection, "Get-Less0   ",
+                    TokenClassification.None,
+                    "Get-Less3   Get-Less6   Get-Less9   Get-Less12", NextLine,
+                    "Get-Less1   Get-Less4   Get-Less7   Get-Less10", NextLine,
+                    "Get-Less2   Get-Less5   Get-Less8   Get-Less11")),
+                _.RightArrow, _.RightArrow, _.RightArrow, _.RightArrow,
+                CheckThat(() => AssertScreenIs(4,
+                    TokenClassification.Command, "Get-Less",
+                    TokenClassification.Selection, "12", NextLine,
+                    TokenClassification.None, "Get-Less0   Get-Less3   Get-Less6   Get-Less9   ",
+                    TokenClassification.Selection, "Get-Less12  ", NextLine,
+                    TokenClassification.None,
+                    "Get-Less1   Get-Less4   Get-Less7   Get-Less10", NextLine,
+                    "Get-Less2   Get-Less5   Get-Less8   Get-Less11")),
+                _.RightArrow,
+                CheckThat(() => AssertScreenIs(4,
+                    TokenClassification.Command, "Get-Less",
+                    TokenClassification.Selection, "1", NextLine,
+                    TokenClassification.None,
+                    "Get-Less0   Get-Less3   Get-Less6   Get-Less9   Get-Less12", NextLine,
+                    TokenClassification.Selection, "Get-Less1   ",
+                    TokenClassification.None,
+                    "Get-Less4   Get-Less7   Get-Less10", NextLine,
+                    "Get-Less2   Get-Less5   Get-Less8   Get-Less11")),
+                _.RightArrow, _.RightArrow, _.RightArrow,
+                CheckThat(() => AssertScreenIs(4,
+                    TokenClassification.Command, "Get-Less",
+                    TokenClassification.Selection, "10", NextLine,
+                    TokenClassification.None,
+                    "Get-Less0   Get-Less3   Get-Less6   Get-Less9   Get-Less12", NextLine,
+                    "Get-Less1   Get-Less4   Get-Less7   ",
+                    TokenClassification.Selection, "Get-Less10  ", NextLine,
+                    TokenClassification.None,
+                    "Get-Less2   Get-Less5   Get-Less8   Get-Less11")),
+                _.RightArrow,
+                CheckThat(() => AssertScreenIs(4,
+                    TokenClassification.Command, "Get-Less",
+                    TokenClassification.Selection, "2", NextLine,
+                    TokenClassification.None,
+                    "Get-Less0   Get-Less3   Get-Less6   Get-Less9   Get-Less12", NextLine,
+                    "Get-Less1   Get-Less4   Get-Less7   Get-Less10", NextLine,
+                    TokenClassification.Selection, "Get-Less2   ",
+                    TokenClassification.None,
+                    "Get-Less5   Get-Less8   Get-Less11")),
+                _.RightArrow, _.RightArrow, _.RightArrow,
+                CheckThat(() => AssertScreenIs(4,
+                    TokenClassification.Command, "Get-Less",
+                    TokenClassification.Selection, "11", NextLine,
+                    TokenClassification.None,
+                    "Get-Less0   Get-Less3   Get-Less6   Get-Less9   Get-Less12", NextLine,
+                    "Get-Less1   Get-Less4   Get-Less7   Get-Less10", NextLine,
+                    "Get-Less2   Get-Less5   Get-Less8   ",
+                    TokenClassification.Selection, "Get-Less11  ")),
+                _.RightArrow,
+                CheckThat(() => AssertScreenIs(4,
+                    TokenClassification.Command, "Get-Less",
+                    TokenClassification.Selection, "0", NextLine,
+                    TokenClassification.Selection, "Get-Less0   ",
+                    TokenClassification.None,
+                    "Get-Less3   Get-Less6   Get-Less9   Get-Less12", NextLine,
+                    "Get-Less1   Get-Less4   Get-Less7   Get-Less10", NextLine,
+                    "Get-Less2   Get-Less5   Get-Less8   Get-Less11")),
+                _.Enter,
+                _.Enter
+            ));
+        }
+
+        [SkippableFact]
+        public void MenuCompletions_Navigation3()
+        {
+            // Test 'LeftArrow' with the following menu:
+            //   Get-Less0   Get-Less3   Get-Less6   Get-Less9   Get-Less12
+            //   Get-Less1   Get-Less4   Get-Less7   Get-Less10
+            //   Get-Less2   Get-Less5   Get-Less8   Get-Less11
+
+            TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+Spacebar", PSConsoleReadLine.MenuComplete));
+
+            _console.Clear();
+            Test("Get-Less6", Keys(
+                "Get-Less", _.Ctrl_Spacebar,
+                CheckThat(() => AssertScreenIs(4,
+                    TokenClassification.Command, "Get-Less",
+                    TokenClassification.Selection, "0", NextLine,
+                    TokenClassification.Selection, "Get-Less0   ",
+                    TokenClassification.None,
+                    "Get-Less3   Get-Less6   Get-Less9   Get-Less12", NextLine,
+                    "Get-Less1   Get-Less4   Get-Less7   Get-Less10", NextLine,
+                    "Get-Less2   Get-Less5   Get-Less8   Get-Less11")),
+                _.LeftArrow,
+                CheckThat(() => AssertScreenIs(4,
+                    TokenClassification.Command, "Get-Less",
+                    TokenClassification.Selection, "11", NextLine,
+                    TokenClassification.None,
+                    "Get-Less0   Get-Less3   Get-Less6   Get-Less9   Get-Less12", NextLine,
+                    "Get-Less1   Get-Less4   Get-Less7   Get-Less10", NextLine,
+                    "Get-Less2   Get-Less5   Get-Less8   ",
+                    TokenClassification.Selection, "Get-Less11  ")),
+                _.LeftArrow, _.LeftArrow, _.LeftArrow,
+                CheckThat(() => AssertScreenIs(4,
+                    TokenClassification.Command, "Get-Less",
+                    TokenClassification.Selection, "2", NextLine,
+                    TokenClassification.None,
+                    "Get-Less0   Get-Less3   Get-Less6   Get-Less9   Get-Less12", NextLine,
+                    "Get-Less1   Get-Less4   Get-Less7   Get-Less10", NextLine,
+                    TokenClassification.Selection, "Get-Less2   ",
+                    TokenClassification.None,
+                    "Get-Less5   Get-Less8   Get-Less11")),
+                _.LeftArrow,
+                CheckThat(() => AssertScreenIs(4,
+                    TokenClassification.Command, "Get-Less",
+                    TokenClassification.Selection, "10", NextLine,
+                    TokenClassification.None,
+                    "Get-Less0   Get-Less3   Get-Less6   Get-Less9   Get-Less12", NextLine,
+                    "Get-Less1   Get-Less4   Get-Less7   ",
+                    TokenClassification.Selection, "Get-Less10  ", NextLine,
+                    TokenClassification.None,
+                    "Get-Less2   Get-Less5   Get-Less8   Get-Less11")),
+                _.LeftArrow, _.LeftArrow, _.LeftArrow,
+                CheckThat(() => AssertScreenIs(4,
+                    TokenClassification.Command, "Get-Less",
+                    TokenClassification.Selection, "1", NextLine,
+                    TokenClassification.None,
+                    "Get-Less0   Get-Less3   Get-Less6   Get-Less9   Get-Less12", NextLine,
+                    TokenClassification.Selection, "Get-Less1   ",
+                    TokenClassification.None,
+                    "Get-Less4   Get-Less7   Get-Less10", NextLine,
+                    "Get-Less2   Get-Less5   Get-Less8   Get-Less11")),
+                _.LeftArrow,
+                CheckThat(() => AssertScreenIs(4,
+                    TokenClassification.Command, "Get-Less",
+                    TokenClassification.Selection, "12", NextLine,
+                    TokenClassification.None, "Get-Less0   Get-Less3   Get-Less6   Get-Less9   ",
+                    TokenClassification.Selection, "Get-Less12  ", NextLine,
+                    TokenClassification.None,
+                    "Get-Less1   Get-Less4   Get-Less7   Get-Less10", NextLine,
+                    "Get-Less2   Get-Less5   Get-Less8   Get-Less11")),
+                _.LeftArrow, _.LeftArrow,
+                _.Enter,
+                _.Enter
+            ));
+        }
+
+        [SkippableFact]
+        public void MenuCompletions_Navigation4()
+        {
+            // Test 'UpArrow' and 'DownArrow' with the following menu:
+            //   Get-Less0   Get-Less3   Get-Less6   Get-Less9   Get-Less12
+            //   Get-Less1   Get-Less4   Get-Less7   Get-Less10
+            //   Get-Less2   Get-Less5   Get-Less8   Get-Less11
+
+            TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+Spacebar", PSConsoleReadLine.MenuComplete));
+
+            _console.Clear();
+            Test("Get-Less0", Keys(
+                "Get-Less", _.Ctrl_Spacebar,
+                CheckThat(() => AssertScreenIs(4,
+                    TokenClassification.Command, "Get-Less",
+                    TokenClassification.Selection, "0", NextLine,
+                    TokenClassification.Selection, "Get-Less0   ",
+                    TokenClassification.None,
+                    "Get-Less3   Get-Less6   Get-Less9   Get-Less12", NextLine,
+                    "Get-Less1   Get-Less4   Get-Less7   Get-Less10", NextLine,
+                    "Get-Less2   Get-Less5   Get-Less8   Get-Less11")),
+                _.DownArrow,
+                CheckThat(() => AssertScreenIs(4,
+                    TokenClassification.Command, "Get-Less",
+                    TokenClassification.Selection, "1", NextLine,
+                    TokenClassification.None,
+                    "Get-Less0   Get-Less3   Get-Less6   Get-Less9   Get-Less12", NextLine,
+                    TokenClassification.Selection, "Get-Less1   ",
+                    TokenClassification.None,
+                    "Get-Less4   Get-Less7   Get-Less10", NextLine,
+                    "Get-Less2   Get-Less5   Get-Less8   Get-Less11")),
+                _.DownArrow,
+                CheckThat(() => AssertScreenIs(4,
+                    TokenClassification.Command, "Get-Less",
+                    TokenClassification.Selection, "2", NextLine,
+                    TokenClassification.None,
+                    "Get-Less0   Get-Less3   Get-Less6   Get-Less9   Get-Less12", NextLine,
+                    "Get-Less1   Get-Less4   Get-Less7   Get-Less10", NextLine,
+                    TokenClassification.Selection, "Get-Less2   ",
+                    TokenClassification.None,
+                    "Get-Less5   Get-Less8   Get-Less11")),
+                _.DownArrow,
+                CheckThat(() => AssertScreenIs(4,
+                    TokenClassification.Command, "Get-Less",
+                    TokenClassification.Selection, "3", NextLine,
+                    TokenClassification.None, "Get-Less0   ",
+                    TokenClassification.Selection, "Get-Less3   ",
+                    TokenClassification.None,
+                    "Get-Less6   Get-Less9   Get-Less12", NextLine,
+                    "Get-Less1   Get-Less4   Get-Less7   Get-Less10", NextLine,
+                    "Get-Less2   Get-Less5   Get-Less8   Get-Less11")),
+                _.UpArrow,
+                CheckThat(() => AssertScreenIs(4,
+                    TokenClassification.Command, "Get-Less",
+                    TokenClassification.Selection, "2", NextLine,
+                    TokenClassification.None,
+                    "Get-Less0   Get-Less3   Get-Less6   Get-Less9   Get-Less12", NextLine,
+                    "Get-Less1   Get-Less4   Get-Less7   Get-Less10", NextLine,
+                    TokenClassification.Selection, "Get-Less2   ",
+                    TokenClassification.None,
+                    "Get-Less5   Get-Less8   Get-Less11")),
+                _.UpArrow, _.UpArrow,
+                CheckThat(() => AssertScreenIs(4,
+                    TokenClassification.Command, "Get-Less",
+                    TokenClassification.Selection, "0", NextLine,
+                    TokenClassification.Selection, "Get-Less0   ",
+                    TokenClassification.None,
+                    "Get-Less3   Get-Less6   Get-Less9   Get-Less12", NextLine,
+                    "Get-Less1   Get-Less4   Get-Less7   Get-Less10", NextLine,
+                    "Get-Less2   Get-Less5   Get-Less8   Get-Less11")),
+                _.UpArrow,
+                CheckThat(() => AssertScreenIs(4,
+                    TokenClassification.Command, "Get-Less",
+                    TokenClassification.Selection, "12", NextLine,
+                    TokenClassification.None, "Get-Less0   Get-Less3   Get-Less6   Get-Less9   ",
+                    TokenClassification.Selection, "Get-Less12  ", NextLine,
+                    TokenClassification.None,
+                    "Get-Less1   Get-Less4   Get-Less7   Get-Less10", NextLine,
+                    "Get-Less2   Get-Less5   Get-Less8   Get-Less11")),
+                _.UpArrow,
+                CheckThat(() => AssertScreenIs(4,
+                    TokenClassification.Command, "Get-Less",
+                    TokenClassification.Selection, "11", NextLine,
+                    TokenClassification.None,
+                    "Get-Less0   Get-Less3   Get-Less6   Get-Less9   Get-Less12", NextLine,
+                    "Get-Less1   Get-Less4   Get-Less7   Get-Less10", NextLine,
+                    "Get-Less2   Get-Less5   Get-Less8   ",
+                    TokenClassification.Selection, "Get-Less11  ")),
+                _.DownArrow, _.DownArrow,
+                CheckThat(() => AssertScreenIs(4,
+                    TokenClassification.Command, "Get-Less",
+                    TokenClassification.Selection, "0", NextLine,
+                    TokenClassification.Selection, "Get-Less0   ",
+                    TokenClassification.None,
+                    "Get-Less3   Get-Less6   Get-Less9   Get-Less12", NextLine,
+                    "Get-Less1   Get-Less4   Get-Less7   Get-Less10", NextLine,
+                    "Get-Less2   Get-Less5   Get-Less8   Get-Less11")),
+                _.Enter,
+                _.Enter
+            ));
+        }
+
+        [SkippableFact]
+        public void MenuCompletions_Navigation5()
+        {
+            // Test 'UpArrow', 'DownArrow', 'LeftArrow', and 'RightArrow' with the following menu:
+            //   Get-MockDynamicParameters  Get-Module
+
+            TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+Spacebar", PSConsoleReadLine.MenuComplete));
+
+            _console.Clear();
+            Test("Get-MockDynamicParameters", Keys(
+                "Get-Mo", _.Ctrl_Spacebar,
+                CheckThat(() => AssertScreenIs(2,
+                    TokenClassification.Command, "Get-Mo",
+                    TokenClassification.Selection, "ckDynamicParameters", NextLine,
+                    TokenClassification.Selection, "Get-MockDynamicParameters  ",
+                    TokenClassification.None, "Get-Module")),
+                _.RightArrow,
+                CheckThat(() => AssertScreenIs(4,
+                    TokenClassification.Command, "Get-Mo",
+                    TokenClassification.Selection, "dule", NextLine,
+                    TokenClassification.None, "Get-MockDynamicParameters  ",
+                    TokenClassification.Selection, "Get-Module                 ")),
+                _.RightArrow,
+                CheckThat(() => AssertScreenIs(2,
+                    TokenClassification.Command, "Get-Mo",
+                    TokenClassification.Selection, "ckDynamicParameters", NextLine,
+                    TokenClassification.Selection, "Get-MockDynamicParameters  ",
+                    TokenClassification.None, "Get-Module")),
+                _.LeftArrow,
+                CheckThat(() => AssertScreenIs(4,
+                    TokenClassification.Command, "Get-Mo",
+                    TokenClassification.Selection, "dule", NextLine,
+                    TokenClassification.None, "Get-MockDynamicParameters  ",
+                    TokenClassification.Selection, "Get-Module                 ")),
+                _.LeftArrow,
+                CheckThat(() => AssertScreenIs(2,
+                    TokenClassification.Command, "Get-Mo",
+                    TokenClassification.Selection, "ckDynamicParameters", NextLine,
+                    TokenClassification.Selection, "Get-MockDynamicParameters  ",
+                    TokenClassification.None, "Get-Module")),
+                _.UpArrow,
+                CheckThat(() => AssertScreenIs(4,
+                    TokenClassification.Command, "Get-Mo",
+                    TokenClassification.Selection, "dule", NextLine,
+                    TokenClassification.None, "Get-MockDynamicParameters  ",
+                    TokenClassification.Selection, "Get-Module                 ")),
+                _.UpArrow,
+                CheckThat(() => AssertScreenIs(2,
+                    TokenClassification.Command, "Get-Mo",
+                    TokenClassification.Selection, "ckDynamicParameters", NextLine,
+                    TokenClassification.Selection, "Get-MockDynamicParameters  ",
+                    TokenClassification.None, "Get-Module")),
+                _.DownArrow,
+                CheckThat(() => AssertScreenIs(4,
+                    TokenClassification.Command, "Get-Mo",
+                    TokenClassification.Selection, "dule", NextLine,
+                    TokenClassification.None, "Get-MockDynamicParameters  ",
+                    TokenClassification.Selection, "Get-Module                 ")),
+                _.DownArrow,
+                CheckThat(() => AssertScreenIs(2,
+                    TokenClassification.Command, "Get-Mo",
+                    TokenClassification.Selection, "ckDynamicParameters", NextLine,
+                    TokenClassification.Selection, "Get-MockDynamicParameters  ",
+                    TokenClassification.None, "Get-Module")),
+                _.Enter,
+                _.Enter
+            ));
+        }
+
+        [SkippableFact]
+        public void MenuCompletions_Navigation6()
+        {
+            // Test 'UpArrow', 'DownArrow', 'LeftArrow', and 'RightArrow' with the following menu:
+            //   Get-NewDynamicParameters  Get-NewStyle
+            //   Get-NewIdea
+
+            TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+Spacebar", PSConsoleReadLine.MenuComplete));
+
+            _console.Clear();
+            Test("Get-NewDynamicParameters", Keys(
+                "Get-New", _.Ctrl_Spacebar,
+                CheckThat(() => AssertScreenIs(3,
+                    TokenClassification.Command, "Get-New",
+                    TokenClassification.Selection, "DynamicParameters", NextLine,
+                    TokenClassification.Selection, "Get-NewDynamicParameters  ",
+                    TokenClassification.None, "Get-NewStyle", NextLine,
+                    TokenClassification.None, "Get-NewIdea")),
+                _.RightArrow,
+                CheckThat(() => AssertScreenIs(3,
+                    TokenClassification.Command, "Get-New",
+                    TokenClassification.Selection, "Style", NextLine,
+                    TokenClassification.None, "Get-NewDynamicParameters  ",
+                    TokenClassification.Selection, "Get-NewStyle              ", NextLine,
+                    TokenClassification.None, "Get-NewIdea")),
+                _.RightArrow,
+                CheckThat(() => AssertScreenIs(3,
+                    TokenClassification.Command, "Get-New",
+                    TokenClassification.Selection, "Idea", NextLine,
+                    TokenClassification.None, "Get-NewDynamicParameters  Get-NewStyle", NextLine,
+                    TokenClassification.Selection, "Get-NewIdea               ")),
+                _.RightArrow,
+                CheckThat(() => AssertScreenIs(3,
+                    TokenClassification.Command, "Get-New",
+                    TokenClassification.Selection, "DynamicParameters", NextLine,
+                    TokenClassification.Selection, "Get-NewDynamicParameters  ",
+                    TokenClassification.None, "Get-NewStyle", NextLine,
+                    TokenClassification.None, "Get-NewIdea")),
+                _.LeftArrow,
+                CheckThat(() => AssertScreenIs(3,
+                    TokenClassification.Command, "Get-New",
+                    TokenClassification.Selection, "Idea", NextLine,
+                    TokenClassification.None, "Get-NewDynamicParameters  Get-NewStyle", NextLine,
+                    TokenClassification.Selection, "Get-NewIdea               ")),
+                _.LeftArrow,
+                CheckThat(() => AssertScreenIs(3,
+                    TokenClassification.Command, "Get-New",
+                    TokenClassification.Selection, "Style", NextLine,
+                    TokenClassification.None, "Get-NewDynamicParameters  ",
+                    TokenClassification.Selection, "Get-NewStyle              ", NextLine,
+                    TokenClassification.None, "Get-NewIdea")),
+                _.LeftArrow,
+                CheckThat(() => AssertScreenIs(3,
+                    TokenClassification.Command, "Get-New",
+                    TokenClassification.Selection, "DynamicParameters", NextLine,
+                    TokenClassification.Selection, "Get-NewDynamicParameters  ",
+                    TokenClassification.None, "Get-NewStyle", NextLine,
+                    TokenClassification.None, "Get-NewIdea")),
+                _.DownArrow,
+                CheckThat(() => AssertScreenIs(3,
+                    TokenClassification.Command, "Get-New",
+                    TokenClassification.Selection, "Idea", NextLine,
+                    TokenClassification.None, "Get-NewDynamicParameters  Get-NewStyle", NextLine,
+                    TokenClassification.Selection, "Get-NewIdea               ")),
+                _.DownArrow,
+                CheckThat(() => AssertScreenIs(3,
+                    TokenClassification.Command, "Get-New",
+                    TokenClassification.Selection, "Style", NextLine,
+                    TokenClassification.None, "Get-NewDynamicParameters  ",
+                    TokenClassification.Selection, "Get-NewStyle              ", NextLine,
+                    TokenClassification.None, "Get-NewIdea")),
+                _.DownArrow,
+                CheckThat(() => AssertScreenIs(3,
+                    TokenClassification.Command, "Get-New",
+                    TokenClassification.Selection, "DynamicParameters", NextLine,
+                    TokenClassification.Selection, "Get-NewDynamicParameters  ",
+                    TokenClassification.None, "Get-NewStyle", NextLine,
+                    TokenClassification.None, "Get-NewIdea")),
+                _.UpArrow,
+                CheckThat(() => AssertScreenIs(3,
+                    TokenClassification.Command, "Get-New",
+                    TokenClassification.Selection, "Style", NextLine,
+                    TokenClassification.None, "Get-NewDynamicParameters  ",
+                    TokenClassification.Selection, "Get-NewStyle              ", NextLine,
+                    TokenClassification.None, "Get-NewIdea")),
+                _.UpArrow,
+                CheckThat(() => AssertScreenIs(3,
+                    TokenClassification.Command, "Get-New",
+                    TokenClassification.Selection, "Idea", NextLine,
+                    TokenClassification.None, "Get-NewDynamicParameters  Get-NewStyle", NextLine,
+                    TokenClassification.Selection, "Get-NewIdea               ")),
+                _.UpArrow,
+                CheckThat(() => AssertScreenIs(3,
+                    TokenClassification.Command, "Get-New",
+                    TokenClassification.Selection, "DynamicParameters", NextLine,
+                    TokenClassification.Selection, "Get-NewDynamicParameters  ",
+                    TokenClassification.None, "Get-NewStyle", NextLine,
+                    TokenClassification.None, "Get-NewIdea")),
+                _.Enter,
+                _.Enter
+            ));
+        }
+
+        [SkippableFact]
+        public void MenuCompletions_ClearProperly()
+        {
+            TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+Spacebar", PSConsoleReadLine.MenuComplete));
+
+            _console.Clear();
+            int width = _console.BufferWidth;
+            string placeholderCommand = new string('A', width - 12); // 12 = "Get-Module".Length + 2
+            string emptyLine = new string(' ', width);
+
+            Test($"{placeholderCommand};Get-Module", Keys(
+                placeholderCommand, ';',
+                "Get-Mo", _.Ctrl_Spacebar,
+                // At this point, the editing line buffer takes 2 physical lines.
+                CheckThat(() => AssertScreenIs(4,
+                    TokenClassification.Command, placeholderCommand,
+                    TokenClassification.None, ';',
+                    TokenClassification.Command, "Get-Mo",
+                    TokenClassification.Selection, "ckDynamicParameters", NextLine,
+                    TokenClassification.Selection, "Get-MockDynamicParameters  ",
+                    TokenClassification.None, "Get-Module                 ", NextLine,
+                    TokenClassification.None, emptyLine)),
+                _.RightArrow,
+                // Navigating to the next item will cause the editing line to fit in
+                // one physical line, so the new menu is moved up and lines from the
+                // previous menu need to be properly cleared.
+                CheckThat(() => AssertScreenIs(3,
+                    TokenClassification.Command, placeholderCommand,
+                    TokenClassification.None, ';',
+                    TokenClassification.Command, "Get-Mo",
+                    TokenClassification.Selection, "dule", NextLine,
+                    TokenClassification.None, "Get-MockDynamicParameters  ",
+                    TokenClassification.Selection, "Get-Module                 ", NextLine,
+                    TokenClassification.None, emptyLine)),
+                _.LeftArrow,
+                CheckThat(() => AssertScreenIs(4,
+                    TokenClassification.Command, placeholderCommand,
+                    TokenClassification.None, ';',
+                    TokenClassification.Command, "Get-Mo",
+                    TokenClassification.Selection, "ckDynamicParameters", NextLine,
+                    TokenClassification.Selection, "Get-MockDynamicParameters  ",
+                    TokenClassification.None, "Get-Module                 ", NextLine,
+                    TokenClassification.None, emptyLine)),
+                _.DownArrow,
+                CheckThat(() => AssertScreenIs(3,
+                    TokenClassification.Command, placeholderCommand,
+                    TokenClassification.None, ';',
+                    TokenClassification.Command, "Get-Mo",
+                    TokenClassification.Selection, "dule", NextLine,
+                    TokenClassification.None, "Get-MockDynamicParameters  ",
+                    TokenClassification.Selection, "Get-Module                 ", NextLine,
+                    TokenClassification.None, emptyLine)),
+                _.Enter,
+                _.Enter
+                ));
+        }
+
+        [SkippableFact]
+        public void MenuCompletions_WorkWithListView()
+        {
+            TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+Spacebar", PSConsoleReadLine.MenuComplete));
+
+            var (listWidth, windowWidth) = CheckWindowSize();
+            var emphasisColors = Tuple.Create(PSConsoleReadLineOptions.DefaultEmphasisColor, _console.BackgroundColor);
+            string emptyLine = new string(' ', windowWidth);
+            using var disp = SetPrediction(PredictionSource.History, PredictionViewStyle.ListView);
+
+            _console.Clear();
+            SetHistory("Get-Mocha -AddMilk -AddSugur -ExtraCup", "Get-MoreBook -Kind Fiction -FlatCover");
+
+            Test("Get-Module", Keys(
+                "Get-Mo",
+                CheckThat(() => AssertScreenIs(3,
+                    TokenClassification.Command, "Get-Mo",
+                    NextLine,
+                    TokenClassification.ListPrediction, '>',
+                    TokenClassification.None, ' ',
+                    emphasisColors, "Get-Mo",
+                    TokenClassification.None, "reBook -Kind Fiction -FlatCover",
+                    TokenClassification.None, new string(' ', listWidth - 48), // 48 is the length of '> Get-MoreBook -Kind Fiction -FlatCover' plus '[History]'.
+                    TokenClassification.None, '[',
+                    TokenClassification.ListPrediction, "History",
+                    TokenClassification.None, ']',
+                    NextLine,
+                    TokenClassification.ListPrediction, '>',
+                    TokenClassification.None, ' ',
+                    emphasisColors, "Get-Mo",
+                    TokenClassification.None, "cha -AddMilk -AddSugur -ExtraCup",
+                    TokenClassification.None, new string(' ', listWidth - 49), // 49 is the length of '> Get-Mocha -AddMilk -AddSugur -ExtraCup' plus '[History]'.
+                    TokenClassification.None, '[',
+                    TokenClassification.ListPrediction, "History",
+                    TokenClassification.None, ']')),
+                _.Ctrl_Spacebar,
+                CheckThat(() => AssertScreenIs(4,
+                    TokenClassification.Command, "Get-Mo",
+                    TokenClassification.Selection, "ckDynamicParameters", NextLine,
+                    TokenClassification.Selection, "Get-MockDynamicParameters  ",
+                    TokenClassification.None, "Get-Module", NextLine,
+                    TokenClassification.None, emptyLine,
+                    TokenClassification.None, emptyLine)),
+                _.RightArrow,
+                CheckThat(() => AssertScreenIs(4,
+                    TokenClassification.Command, "Get-Mo",
+                    TokenClassification.Selection, "dule", NextLine,
+                    TokenClassification.None, "Get-MockDynamicParameters  ",
+                    TokenClassification.Selection, "Get-Module                 ", NextLine,
+                    TokenClassification.None, emptyLine,
+                    TokenClassification.None, emptyLine)),
+                _.Enter,
+                _.Enter
+            ));
         }
 
         [SkippableFact]
@@ -249,6 +922,21 @@ namespace Test
                     completions.Add(new CompletionResult("Get-Many" + i));
                 }
                 break;
+            case "Get-Less":
+                replacementIndex = 0;
+                replacementLength = 8;
+                for (int i = 0; i < 13; i++)
+                {
+                    completions.Add(new CompletionResult("Get-Less" + i));
+                }
+                break;
+            case "Get-New":
+                replacementIndex = 0;
+                replacementLength = 7;
+                completions.Add(new CompletionResult("Get-NewDynamicParameters"));
+                completions.Add(new CompletionResult("Get-NewIdea"));
+                completions.Add(new CompletionResult("Get-NewStyle"));
+                break;
             case "Get-Tooltips":
                 replacementIndex = 0;
                 replacementLength = 12;
@@ -289,6 +977,16 @@ namespace Test
                 completions.Add(new CompletionResult("idden"));
                 break;
             case "none":
+                break;
+
+            default:
+                if (input.EndsWith("Get-Mo", StringComparison.OrdinalIgnoreCase))
+                {
+                    replacementIndex = input.IndexOf("Get-Mo", StringComparison.OrdinalIgnoreCase);
+                    replacementLength = 6;
+                    completions.Add(new CompletionResult("Get-MockDynamicParameters"));
+                    completions.Add(new CompletionResult("Get-Module"));
+                }
                 break;
             }
 

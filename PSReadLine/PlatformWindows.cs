@@ -601,6 +601,8 @@ static class PlatformWindows
             var y = CursorTop;
 
             for (int i = 0; i < BufferWidth - x; i++) Console.Write(' ');
+
+            // Last step may result in scrolling.
             if (CursorTop != y+1) y -= 1;
 
             SetCursorPosition(x, y);

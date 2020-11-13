@@ -491,11 +491,18 @@ namespace Microsoft.PowerShell
                     }
                 }
 
+                bool extraPreRowsCleared = false;
                 if (previousMenu != null)
                 {
                     if (Rows < previousMenu.Rows + previousMenu.ToolTipLines)
                     {
-                        // Rest of the current line was erased, but the cursor was not moved to the next line.
+                        // If the last menu row took the whole buffer width, then the cursor could be pushed to the
+                        // beginning of the next line in the legacy console host (NOT in modern terminals such as
+                        // Windows Terminal, VSCode Terminal, or virtual-terminal-enabled console host). In such a
+                        // case, there is no need to move the cursor to the next line.
+                        //
+                        // If that is not the case, namely 'CursorLeft != 0', then the rest of the last menu row was
+                        // erased, but the cursor was not moved to the next line, so we will move the cursor.
                         if (console.CursorLeft != 0)
                         {
                             // There are lines from the previous rendering that need to be cleared,
@@ -504,13 +511,25 @@ namespace Microsoft.PowerShell
                         }
 
                         Singleton.WriteBlankLines(previousMenu.Rows + previousMenu.ToolTipLines - Rows);
+                        extraPreRowsCleared = true;
                     }
                 }
 
                 // if the menu has moved, we need to clear the lines under it
                 if (bufferEndPoint.Y < PreviousTop)
                 {
-                    console.BlankRestOfLine();
+                    // In either of the following two cases, we will need to move the cursor to the next line:
+                    //  - if extra rows from previous menu were cleared, then we know the current line was erased
+                    //    but the cursor was not moved to the next line.
+                    //  - if 'CursorLeft != 0', then the rest of the last menu row was erased, but the cursor
+                    //    was not moved to the next line.
+                    if (extraPreRowsCleared || console.CursorLeft != 0)
+                    {
+                        // There are lines from the previous rendering that need to be cleared,
+                        // so we are sure there is no need to scroll.
+                        MoveCursorDown(1);
+                    }
+
                     Singleton.WriteBlankLines(PreviousTop - bufferEndPoint.Y);
                 }
 
@@ -614,10 +633,62 @@ namespace Microsoft.PowerShell
                 RestoreCursor();
             }
 
-            public void MoveRight()    => CurrentSelection = Math.Min(CurrentSelection + Rows, MenuItems.Count - 1);
-            public void MoveLeft()     => CurrentSelection = Math.Max(CurrentSelection - Rows, 0);
-            public void MoveUp()       => CurrentSelection = Math.Max(CurrentSelection - 1, 0);
-            public void MoveDown()     => CurrentSelection = Math.Min(CurrentSelection + 1, MenuItems.Count - 1);
+            public void MoveRight()
+            {
+                int nextInSameRow = CurrentSelection + Rows;
+                if (nextInSameRow <= MenuItems.Count - 1)
+                {
+                    CurrentSelection = nextInSameRow;
+                    return;
+                }
+
+                // Index of the column where 'CurrentSelection' is at, assuming columns start from left at index 0.
+                int columnIndex = CurrentSelection / Rows;
+                int leftmostItemInSameRow = CurrentSelection - columnIndex * Rows;
+
+                // Index of the row where 'leftMostItemAtSameRow' is at, assuming rows start from top at index 0.
+                int rowIndex = leftmostItemInSameRow % Rows;
+
+                // If 'rowIndex == Rows - 1', then 'CurrentSelection' is at the rightmost position in the last row,
+                // so moving-to-right again should move to the item at index 0.
+                CurrentSelection = rowIndex == Rows - 1 ? 0 : leftmostItemInSameRow + 1;
+            }
+
+            public void MoveLeft()
+            {
+                int previousInSameRow = CurrentSelection - Rows;
+                if (previousInSameRow >= 0)
+                {
+                    CurrentSelection = previousInSameRow;
+                    return;
+                }
+
+                // Index of the row where 'CurrentSelection' is at, assuming rows start from top at index 0.
+                int rowIndex = CurrentSelection % Rows;
+                int leftmostItemInPreviousRow = rowIndex == 0 ? Rows - 1 : rowIndex - 1;
+
+                int lastItemIndex = MenuItems.Count - 1;
+                // Index of the column where the last item is at, assuming columns start from left at index 0.
+                int lastItemColumnIndex = lastItemIndex / Rows;
+
+                // Get the rightmost item in the previous row.
+                CurrentSelection = leftmostItemInPreviousRow + lastItemColumnIndex * Rows;
+                if (CurrentSelection > lastItemIndex)
+                {
+                    CurrentSelection = leftmostItemInPreviousRow + (lastItemColumnIndex - 1) * Rows;
+                }
+            }
+
+            public void MoveUp()
+            {
+                CurrentSelection = CurrentSelection > 0 ? CurrentSelection - 1 : MenuItems.Count - 1;
+            }
+
+            public void MoveDown()
+            {
+                CurrentSelection = CurrentSelection < (MenuItems.Count - 1) ? CurrentSelection + 1 : 0;
+            }
+
             public void MovePageDown() => CurrentSelection = Math.Min(CurrentSelection + Rows - (CurrentSelection % Rows) - 1,
                                                                       MenuItems.Count - 1);
             public void MovePageUp()   => CurrentSelection = Math.Max(CurrentSelection - (CurrentSelection % Rows), 0);
@@ -808,9 +879,6 @@ namespace Microsoft.PowerShell
 
             var userInitialCompletionLength = userCompletionText.Length;
 
-            completions.CurrentMatchIndex = 0;
-            menu.DrawMenu(null, menuSelect:true);
-
             bool processingKeys = true;
             int previousSelection = -1;
 
@@ -832,38 +900,51 @@ namespace Microsoft.PowerShell
 
                     ExchangePointAndMark();
 
-                    // After replacement, the menu might be misplaced from the command line
-                    // getting shorter or longer.
-                    var endOfCommandLine = ConvertOffsetToPoint(_buffer.Length);
-                    var topAdjustment = (endOfCommandLine.Y + 1) - menu.Top;
-
-                    if (topAdjustment != 0)
+                    if (previousSelection == -1)
                     {
-                        menu.Top += topAdjustment;
-                        menu.DrawMenu(null, menuSelect:true);
+                        completions.CurrentMatchIndex = 0;
+                        menu.DrawMenu(null, menuSelect: true);
                     }
-                    if (topAdjustment > 0)
+                    else
                     {
-                        // Render did not clear the rest of the command line which flowed
-                        // into the menu, so we must do that here.
-                        menu.SaveCursor();
-                        _console.SetCursorPosition(endOfCommandLine.X, endOfCommandLine.Y);
-                        _console.Write(Spaces(_console.BufferWidth - endOfCommandLine.X));
-                        menu.RestoreCursor();
-                    }
+                        // After replacement, the menu might be misplaced from the command line
+                        // getting shorter or longer.
+                        var endOfCommandLine = ConvertOffsetToPoint(_buffer.Length);
+                        var topAdjustment = (endOfCommandLine.Y + 1) - menu.Top;
 
-                    if (previousSelection != -1)
-                    {
+                        if (topAdjustment != 0)
+                        {
+                            menu.Top += topAdjustment;
+                            menu.DrawMenu(null, menuSelect: true);
+                        }
+                        if (topAdjustment > 0)
+                        {
+                            // Render did not clear the rest of the command line which flowed
+                            // into the menu, so we must do that here.
+                            menu.SaveCursor();
+                            _console.SetCursorPosition(endOfCommandLine.X, endOfCommandLine.Y);
+                            _console.Write(Spaces(_console.BufferWidth - endOfCommandLine.X));
+                            menu.RestoreCursor();
+                        }
+
                         if (menu.ToolTipLines > 0)
                         {
                             // Erase previous tooltip, taking into account if the menu moved up/down.
                             WriteBlankLines(menu.Top + menu.Rows, -topAdjustment + menu.ToolTipLines);
                         }
-                        menu.UpdateMenuSelection(previousSelection, /*select*/ false,
-                            /*showToolTips*/false, Options._emphasisColor);
+
+                        menu.UpdateMenuSelection(
+                            previousSelection,
+                            select: false,
+                            showTooltips: false,
+                            Options._emphasisColor);
                     }
-                    menu.UpdateMenuSelection(menu.CurrentSelection, /*select*/ true,
-                        Options.ShowToolTips, Options._emphasisColor);
+
+                    menu.UpdateMenuSelection(
+                        menu.CurrentSelection,
+                        select: true,
+                        Options.ShowToolTips,
+                        Options._emphasisColor);
 
                     previousSelection = menu.CurrentSelection;
                 }
