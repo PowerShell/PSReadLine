@@ -610,14 +610,11 @@ Set-PSReadLineKeyHandler -Key Alt+a `
                          -ScriptBlock {
     param($key, $arg)
   
-    $line = $null
-    $cursor = $null
-    [Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$line, [ref]$cursor)
-  
     $tokens = $null
     $ast = $null
     $parseErrors = $null
-    [Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$ast, [ref]$tokens, [ref]$parseErrors, [ref]$null)
+    $cursor = $null
+    [Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$ast, [ref]$tokens, [ref]$parseErrors, [ref]$cursor)
   
     $asts = $ast.FindAll( {
         $args[0] -is [System.Management.Automation.Language.StringConstantExpressionAst] -and
@@ -625,6 +622,8 @@ Set-PSReadLineKeyHandler -Key Alt+a `
         $args[0].Extent.StartOffset -ne $args[0].Parent.Extent.StartOffset
       }, $true)
   
+    $nextAst = $null
+
     if ($null -ne $arg) {
       $nextAst = $asts[$arg - 1]
     }
