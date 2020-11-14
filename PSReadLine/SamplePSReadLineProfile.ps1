@@ -610,11 +610,9 @@ Set-PSReadLineKeyHandler -Key Alt+a `
                          -ScriptBlock {
     param($key, $arg)
   
-    $tokens = $null
     $ast = $null
-    $parseErrors = $null
     $cursor = $null
-    [Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$ast, [ref]$tokens, [ref]$parseErrors, [ref]$cursor)
+    [Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$ast, [ref]$null, [ref]$null, [ref]$cursor)
   
     $asts = $ast.FindAll( {
         $args[0] -is [System.Management.Automation.Language.ExpressionAst] -and
