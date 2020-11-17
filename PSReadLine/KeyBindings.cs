@@ -252,8 +252,8 @@ namespace Microsoft.PowerShell
                 _dispatchTable.Add(Keys.CtrlPageUp,   MakeKeyHandler(ScrollDisplayUpLine,   "ScrollDisplayUpLine"));
                 _dispatchTable.Add(Keys.CtrlPageDown, MakeKeyHandler(ScrollDisplayDownLine, "ScrollDisplayDownLine"));
 
-                _dispatchTable.Add(Keys.AltH, MakeKeyHandler(DynamicHelpBlock, "DynamicHelpBlock", "Long desc"));
-                _dispatchTable.Add(Keys.F1, MakeKeyHandler(DynamicHelpBlock, "DynamicHelpBlock"));
+                _dispatchTable.Add(Keys.AltH, MakeKeyHandler(DynamicHelpParameter, "DynamicHelpParameter"));
+                _dispatchTable.Add(Keys.F1,   MakeKeyHandler(DynamicHelpFullHelp,  "DynamicHelpFullHelp"));
             }
 
             _chordDispatchTable = new Dictionary<PSKeyInfo, Dictionary<PSKeyInfo, KeyHandler>>();

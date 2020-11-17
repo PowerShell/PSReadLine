@@ -142,6 +142,7 @@ task LayoutModule BuildPolyfiller, BuildMainModule, {
 
     $binPath = "PSReadLine/bin/$Configuration/$Framework/publish"
     Copy-Item $binPath/Microsoft.PowerShell.PSReadLine2.dll $targetDir
+    Copy-Item $binPath/Microsoft.PowerShell.Pager.dll $targetDir
 
     if (Test-Path $binPath/System.Runtime.InteropServices.RuntimeInformation.dll) {
         Copy-Item $binPath/System.Runtime.InteropServices.RuntimeInformation.dll $targetDir

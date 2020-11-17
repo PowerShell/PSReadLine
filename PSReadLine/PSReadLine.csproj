@@ -16,6 +16,7 @@
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net461'">
     <PackageReference Include="PowerShellStandard.Library" version="5.1.0" />
+    <PackageReference Include="Microsoft.PowerShell.Pager" version="1.0.0-preview.2" />
     <PackageReference Include="Microsoft.CSharp" version="4.5.0" />
     <ProjectReference Include="..\Polyfill\Polyfill.csproj" />
   </ItemGroup>

@@ -2067,5 +2067,14 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("YankPopDescription", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to No help content available. Please use Update-Help.
+        /// </summary>
+        internal static string NeedsUpdateHelp {
+            get {
+                return ResourceManager.GetString("NeedsUpdateHelp", resourceCulture);
+            }
+        }
     }
 }
