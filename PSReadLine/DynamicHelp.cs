@@ -3,24 +3,20 @@ Copyright (c) Microsoft Corporation.  All rights reserved.
 --********************************************************************/
 
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
 using System.Linq;
 using System.Management.Automation;
 using System.Management.Automation.Language;
 using System.Management.Automation.Runspaces;
 using Microsoft.PowerShell.Internal;
 using Microsoft.PowerShell.PSReadLine;
+using Microsoft.PowerShell;
 
 namespace Microsoft.PowerShell
 {
     public partial class PSConsoleReadLine
     {
-        private Pager _pager;
+        private Microsoft.PowerShell.Pager _pager;
         private static System.Management.Automation.PowerShell _ps;
 
         /// <summary>
@@ -175,6 +171,22 @@ namespace Microsoft.PowerShell
             WriteDynamicHelpBlock(helpBlock);
         }
 
+        private static string GetHelpItem(string item, int columnWidth)
+        {
+            item = HandleNewlinesForPossibleCompletions(item);
+            var spacesNeeded = columnWidth - LengthInBufferCells(item);
+            if (spacesNeeded > 0)
+            {
+                item = item + Spaces(spacesNeeded);
+            }
+            else if (spacesNeeded < 0)
+            {
+                item = SubstringByCells(item, columnWidth - 3) + "...";
+            }
+
+            return item;
+        }
+
         private class DynamicHelp
         {
             internal PSConsoleReadLine Singleton;
@@ -239,11 +251,18 @@ namespace Microsoft.PowerShell
                     }
                 }
 
+                bool extraPreRowsCleared = false;
                 if (previousMenu != null)
                 {
                     if (Rows < previousMenu.Rows + previousMenu.ToolTipLines)
                     {
-                        // Rest of the current line was erased, but the cursor was not moved to the next line.
+                        // If the last menu row took the whole buffer width, then the cursor could be pushed to the
+                        // beginning of the next line in the legacy console host (NOT in modern terminals such as
+                        // Windows Terminal, VSCode Terminal, or virtual-terminal-enabled console host). In such a
+                        // case, there is no need to move the cursor to the next line.
+                        //
+                        // If that is not the case, namely 'CursorLeft != 0', then the rest of the last menu row was
+                        // erased, but the cursor was not moved to the next line, so we will move the cursor.
                         if (console.CursorLeft != 0)
                         {
                             // There are lines from the previous rendering that need to be cleared,
@@ -252,13 +271,25 @@ namespace Microsoft.PowerShell
                         }
 
                         Singleton.WriteBlankLines(previousMenu.Rows + previousMenu.ToolTipLines - Rows);
+                        extraPreRowsCleared = true;
                     }
                 }
 
                 // if the menu has moved, we need to clear the lines under it
                 if (bufferEndPoint.Y < PreviousTop)
                 {
-                    console.BlankRestOfLine();
+                    // In either of the following two cases, we will need to move the cursor to the next line:
+                    //  - if extra rows from previous menu were cleared, then we know the current line was erased
+                    //    but the cursor was not moved to the next line.
+                    //  - if 'CursorLeft != 0', then the rest of the last menu row was erased, but the cursor
+                    //    was not moved to the next line.
+                    if (extraPreRowsCleared || console.CursorLeft != 0)
+                    {
+                        // There are lines from the previous rendering that need to be cleared,
+                        // so we are sure there is no need to scroll.
+                        MoveCursorDown(1);
+                    }
+
                     Singleton.WriteBlankLines(PreviousTop - bufferEndPoint.Y);
                 }
 

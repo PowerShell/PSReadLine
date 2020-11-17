@@ -11,7 +11,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Management.Automation;
-using System.Management.Automation.Language;
 using System.Management.Automation.Runspaces;
 using Microsoft.PowerShell.Internal;
 using Microsoft.PowerShell.PSReadLine;
@@ -836,22 +835,6 @@ namespace Microsoft.PowerShell
                 menu.DrawMenu(null, menuSelect:false);
                 InvokePrompt(key: null, arg: _console.CursorTop);
             }
-        }
-
-        private static string GetHelpItem(string item, int columnWidth)
-        {
-            item = HandleNewlinesForPossibleCompletions(item);
-            var spacesNeeded = columnWidth - LengthInBufferCells(item);
-            if (spacesNeeded > 0)
-            {
-                item = item + Spaces(spacesNeeded);
-            }
-            else if (spacesNeeded < 0)
-            {
-                item = SubstringByCells(item, columnWidth - 3) + "...";
-            }
-
-            return item;
         }
 
         private static string GetMenuItem(string item, int columnWidth)
