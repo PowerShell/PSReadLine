@@ -620,6 +620,11 @@ Set-PSReadLineKeyHandler -Key Alt+a `
         $args[0].Extent.StartOffset -ne $args[0].Parent.Extent.StartOffset
       }, $true)
   
+    if ($asts.Count -eq 0) {
+        [Microsoft.PowerShell.PSConsoleReadLine]::Ding()
+        return
+    }
+    
     $nextAst = $null
 
     if ($null -ne $arg) {
