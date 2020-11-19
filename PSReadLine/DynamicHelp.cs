@@ -171,7 +171,7 @@ namespace Microsoft.PowerShell
             WriteDynamicHelpBlock(helpBlock);
         }
 
-        private static string GetHelpItem(string item, int columnWidth)
+        /* private static string GetHelpItem(string item, int columnWidth)
         {
             item = HandleNewlinesForPossibleCompletions(item);
             var spacesNeeded = columnWidth - LengthInBufferCells(item);
@@ -185,22 +185,11 @@ namespace Microsoft.PowerShell
             }
 
             return item;
-        }
+        } */
 
-        private class DynamicHelp
+        private class DynamicHelp : MultilineDisplayBlock
         {
-            internal PSConsoleReadLine Singleton;
-            internal int Top;
-
-            internal int PreviousTop;
-            internal int ColumnWidth;
-            internal int BufferLines;
-            internal int Rows;
-            internal int Columns;
-            internal int ToolTipLines;
             internal Collection<string> HelpItems;
-            //internal CompletionResult CurrentMenuItem => MenuItems[CurrentSelection];
-            internal int CurrentSelection;
 
             public void DrawHelpBlock(DynamicHelp previousMenu, bool menuSelect = true)
             {
@@ -230,7 +219,7 @@ namespace Microsoft.PowerShell
                         {
                             break;
                         }
-                        console.Write(GetHelpItem(items[index], columnWidth));
+                        console.Write(GetItem(items[index], columnWidth));
                         cells += columnWidth;
                     }
 
@@ -254,7 +243,7 @@ namespace Microsoft.PowerShell
                 bool extraPreRowsCleared = false;
                 if (previousMenu != null)
                 {
-                    if (Rows < previousMenu.Rows + previousMenu.ToolTipLines)
+                    if (Rows < previousMenu.Rows)
                     {
                         // If the last menu row took the whole buffer width, then the cursor could be pushed to the
                         // beginning of the next line in the legacy console host (NOT in modern terminals such as
@@ -270,7 +259,7 @@ namespace Microsoft.PowerShell
                             MoveCursorDown(1);
                         }
 
-                        Singleton.WriteBlankLines(previousMenu.Rows + previousMenu.ToolTipLines - Rows);
+                        Singleton.WriteBlankLines(previousMenu.Rows - Rows);
                         extraPreRowsCleared = true;
                     }
                 }
@@ -304,154 +293,8 @@ namespace Microsoft.PowerShell
 
             public void Clear()
             {
-                WriteBlankLines(Top, Rows + ToolTipLines);
+                WriteBlankLines(Top, Rows);
             }
-
-            /* public void UpdateMenuSelection(int selectedItem, bool select, bool showTooltips, string toolTipColor)
-            {
-                var console = Singleton._console;
-                var menuItem = MenuItems[selectedItem];
-                var listItem = menuItem.ListItemText;
-
-                string toolTip = null;
-                if (showTooltips)
-                {
-                    toolTip = menuItem.ToolTip.Trim();
-
-                    // Don't bother showing the tooltip if it doesn't add information.
-                    showTooltips = !string.IsNullOrWhiteSpace(toolTip)
-                        && !string.Equals(toolTip, listItem, StringComparison.OrdinalIgnoreCase)
-                        && !string.Equals(toolTip, menuItem.CompletionText, StringComparison.OrdinalIgnoreCase);
-                }
-
-                // We'll use one blank line to set the tooltip apart from the menu,
-                // and there will be at least 1 line in the tooltip, possibly more.
-                var toolTipLines = 2;
-                if (showTooltips)
-                {
-                    // Determine if showing the tooltip would scroll the top of our buffer off the screen.
-
-                    int lineLength = 0;
-                    for (var i = 0; i < toolTip.Length; i++)
-                    {
-                        char c = toolTip[i];
-                        if (c == '\r' && i < toolTip.Length && toolTip[i+1] == '\n')
-                        {
-                            // Skip the newline, but handle LF, CRLF, and CR.
-                            i += 1;
-                        }
-
-                        if (c == '\r' || c == '\n')
-                        {
-                            toolTipLines += 1;
-                            lineLength = 0;
-                        }
-                        else
-                        {
-                            lineLength += 1;
-                            if (lineLength == console.BufferWidth)
-                            {
-                                toolTipLines += 1;
-                                lineLength = 0;
-                            }
-                        }
-                    }
-
-                    // The +1 is for the blank line between the menu and tooltips.
-                    if (BufferLines + Rows + toolTipLines + 1 > console.WindowHeight)
-                    {
-                        showTooltips = false;
-                    }
-                }
-
-                SaveCursor();
-
-                var row = Top + selectedItem % Rows;
-                var col = ColumnWidth * (selectedItem / Rows);
-
-                console.SetCursorPosition(col, row);
-
-                if (select) console.Write(Singleton.Options._selectionColor);
-                console.Write(GetMenuItem(listItem, ColumnWidth));
-                if (select) console.Write("\x1b[0m");
-
-                ToolTipLines = 0;
-                if (showTooltips)
-                {
-                    Debug.Assert(select, "On unselect, caller must clear the tooltip");
-                    console.SetCursorPosition(0, Top + Rows - 1);
-                    // Move down 2 so we have 1 blank line between the menu and buffer.
-                    AdjustForPossibleScroll(toolTipLines);
-                    MoveCursorDown(2);
-                    console.Write(toolTipColor);
-                    console.Write(toolTip);
-                    ToolTipLines = toolTipLines;
-
-                    console.Write("\x1b[0m");
-                }
-
-                RestoreCursor();
-            }*/
-
-            /* public void MoveRight()    => CurrentSelection = Math.Min(CurrentSelection + Rows, HelpItems.Count - 1);
-            public void MoveLeft()     => CurrentSelection = Math.Max(CurrentSelection - Rows, 0);
-            public void MoveUp()       => CurrentSelection = Math.Max(CurrentSelection - 1, 0);
-            public void MoveDown()     => CurrentSelection = Math.Min(CurrentSelection + 1, HelpItems.Count - 1);
-            public void MovePageDown() => CurrentSelection = Math.Min(CurrentSelection + Rows - (CurrentSelection % Rows) - 1,
-                                                                      HelpItems.Count - 1);
-            public void MovePageUp()   => CurrentSelection = Math.Max(CurrentSelection - (CurrentSelection % Rows), 0);
-
-            public void MoveN(int n)
-            {
-                CurrentSelection = (CurrentSelection + n) % MenuItems.Count;
-                if (CurrentSelection < 0)
-                {
-                    CurrentSelection += MenuItems.Count;
-                }
-            }
-            */
-
-            private void MoveCursorDown(int cnt)
-            {
-                IConsole console = Singleton._console;
-                while (cnt-- > 0)
-                {
-                    console.Write("\n");
-                }
-            }
-
-
-            private void AdjustForPossibleScroll(int cnt)
-            {
-                IConsole console = Singleton._console;
-                var scrollCnt = console.CursorTop + cnt + 1 - console.BufferHeight;
-                if (scrollCnt > 0)
-                {
-                    Top -= scrollCnt;
-                    _singleton._initialY -= scrollCnt;
-                    _savedCursorTop -= scrollCnt;
-                }
-            }
-
-            public void WriteBlankLines(int top, int count)
-            {
-                SaveCursor();
-                Singleton._console.SetCursorPosition(0, top);
-                Singleton.WriteBlankLines(count);
-                RestoreCursor();
-            }
-
-            private int _savedCursorLeft;
-            private int _savedCursorTop;
-
-            public void SaveCursor()
-            {
-                IConsole console = Singleton._console;
-                _savedCursorLeft = console.CursorLeft;
-                _savedCursorTop = console.CursorTop;
-            }
-
-            public void RestoreCursor() => Singleton._console.SetCursorPosition(_savedCursorLeft, _savedCursorTop);
         }
     }
 }
