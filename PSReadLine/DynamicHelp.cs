@@ -55,7 +55,7 @@ namespace Microsoft.PowerShell
             {
                 if (token.TokenFlags == TokenFlags.CommandName)
                 {
-                    commandName = token.Extent.Text;
+                    commandName = token.Text;
                 }
 
                 var extent = token.Extent;
