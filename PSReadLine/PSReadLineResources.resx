@@ -829,4 +829,7 @@ Or not saving history with:
   <data name="WindowSizeTooSmallForListView" xml:space="preserve">
     <value>The prediction 'ListView' is temporarily disabled because the current window size of the console is too small. To use the 'ListView', please make sure the 'WindowWidth' is not less than '{0}' and the 'WindowHeight' is not less than '{1}'.</value>
   </data>
+  <data name="NeedsUpdateHelp" xml:space="preserve">
+    <value>No help content available. Please use Update-Help.</value>
+  </data>
 </root>
