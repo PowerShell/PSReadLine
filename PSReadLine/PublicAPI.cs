@@ -29,6 +29,7 @@ namespace Microsoft.PowerShell
             Task<List<PredictionResult>> PredictInput(Ast ast, Token[] tokens);
             void OnCommandLineAccepted(IReadOnlyList<string> history);
             void OnSuggestionAccepted(Guid predictorId, string suggestionText);
+            void GetDynamicHelpContent(string commandName, string parameterName, bool isFullHelp);
         }
 
         [SuppressMessage("Microsoft.MSInternal", "CA903:InternalNamespaceShouldNotContainPublicTypes")]
