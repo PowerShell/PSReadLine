@@ -37,39 +37,8 @@ namespace Microsoft.PowerShell
             _singleton.DynamicHelpImpl(isFullHelp: false);
         }
 
-        private void DynamicHelpImpl(bool isFullHelp)
+        void IPSConsoleReadLineMockableMethods.GetDynamicHelpContent(string commandName, string parameterName, bool isFullHelp)
         {
-            _pager ??= new Pager();
-
-            if (InViInsertMode())   // must close out the current edit group before engaging menu completion
-            {
-                ViCommandMode();
-                ViInsertWithAppend();
-            }
-
-            int cursor = _singleton._current;
-            string commandName = null;
-            string parameterName = null;
-
-            foreach(var token in _singleton._tokens)
-            {
-                if (token.TokenFlags == TokenFlags.CommandName)
-                {
-                    commandName = token.Text;
-                }
-
-                var extent = token.Extent;
-                if (extent.StartOffset <= cursor && extent.EndOffset >= cursor)
-                {
-                    if (token.Kind == TokenKind.Parameter)
-                    {
-                        parameterName = ((ParameterToken)token).ParameterName;
-
-                    }
-                    // Possible corner case here when cursor is at the end
-                }
-            }
-
             if (!String.IsNullOrEmpty(commandName) && isFullHelp)
             {
                 _ps ??= System.Management.Automation.PowerShell.Create(RunspaceMode.CurrentRunspace);
@@ -114,13 +83,48 @@ namespace Microsoft.PowerShell
             }
         }
 
+        private void DynamicHelpImpl(bool isFullHelp)
+        {
+            _pager ??= new Pager();
+
+            if (InViInsertMode())   // must close out the current edit group before engaging menu completion
+            {
+                ViCommandMode();
+                ViInsertWithAppend();
+            }
+
+            int cursor = _singleton._current;
+            string commandName = null;
+            string parameterName = null;
+
+            foreach(var token in _singleton._tokens)
+            {
+                if (token.TokenFlags == TokenFlags.CommandName)
+                {
+                    commandName = token.Text;
+                }
+
+                var extent = token.Extent;
+                if (extent.StartOffset <= cursor && extent.EndOffset >= cursor)
+                {
+                    if (token.Kind == TokenKind.Parameter)
+                    {
+                        parameterName = ((ParameterToken)token).ParameterName;
+                        break;
+                    }
+                }
+            }
+
+            _mockableMethods.GetDynamicHelpContent(commandName, parameterName, isFullHelp);
+        }
+
         private void WriteDynamicHelpBlock(Collection<string> helpBlock)
         {
             var bufferWidth = _console.BufferWidth;
             var colWidth = Math.Min(helpBlock.Max(s => LengthInBufferCells(s)) + 2, bufferWidth);
             int columns = 1;
 
-            var dynHelp = new DynamicHelp
+            var dynHelp = new MultilineDisplayBlock
             {
                 Singleton = this,
                 ColumnWidth = colWidth,
@@ -171,27 +175,11 @@ namespace Microsoft.PowerShell
             WriteDynamicHelpBlock(helpBlock);
         }
 
-        /* private static string GetHelpItem(string item, int columnWidth)
-        {
-            item = HandleNewlinesForPossibleCompletions(item);
-            var spacesNeeded = columnWidth - LengthInBufferCells(item);
-            if (spacesNeeded > 0)
-            {
-                item = item + Spaces(spacesNeeded);
-            }
-            else if (spacesNeeded < 0)
-            {
-                item = SubstringByCells(item, columnWidth - 3) + "...";
-            }
-
-            return item;
-        } */
-
-        private class DynamicHelp : MultilineDisplayBlock
+        private class MultilineDisplayBlock : DisplayBlockBase
         {
             internal Collection<string> HelpItems;
 
-            public void DrawHelpBlock(DynamicHelp previousMenu, bool menuSelect = true)
+            public void DrawHelpBlock(MultilineDisplayBlock previewBlock, bool menuSelect = true)
             {
                 IConsole console = Singleton._console;
 
@@ -241,9 +229,9 @@ namespace Microsoft.PowerShell
                 }
 
                 bool extraPreRowsCleared = false;
-                if (previousMenu != null)
+                if (previewBlock != null)
                 {
-                    if (Rows < previousMenu.Rows)
+                    if (Rows < previewBlock.Rows)
                     {
                         // If the last menu row took the whole buffer width, then the cursor could be pushed to the
                         // beginning of the next line in the legacy console host (NOT in modern terminals such as
@@ -259,7 +247,7 @@ namespace Microsoft.PowerShell
                             MoveCursorDown(1);
                         }
 
-                        Singleton.WriteBlankLines(previousMenu.Rows - Rows);
+                        Singleton.WriteBlankLines(previewBlock.Rows - Rows);
                         extraPreRowsCleared = true;
                     }
                 }

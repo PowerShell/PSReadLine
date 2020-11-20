@@ -9,7 +9,7 @@ namespace Microsoft.PowerShell
 {
     public partial class PSConsoleReadLine
     {
-        private class MultilineDisplayBlock
+        private class DisplayBlockBase
         {
             internal PSConsoleReadLine Singleton;
             internal int Top;

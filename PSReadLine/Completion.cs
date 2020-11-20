@@ -422,7 +422,7 @@ namespace Microsoft.PowerShell
             return s;
         }
 
-        private class Menu : MultilineDisplayBlock
+        private class Menu : DisplayBlockBase
         {
             internal int BufferLines;
             internal int ToolTipLines;
