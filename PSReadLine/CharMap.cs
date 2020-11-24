@@ -63,7 +63,9 @@ namespace Microsoft.PowerShell
     // Hard-coded translator for the only VT mode Windows supports.
     internal class WindowsAnsiCharMap : ICharMap
     {
-        private List<ConsoleKeyInfo> _pendingKeys;
+        private readonly List<ConsoleKeyInfo> _pendingKeys;
+        private readonly Stopwatch _escTimeoutStopwatch = new Stopwatch();
+
         // The next index in `_pendingKeys` to write to.
         private int _addKeyIndex;
         // The next index in `_pendingKeys` to read from. This index becomes
@@ -74,8 +76,6 @@ namespace Microsoft.PowerShell
         private int _readKeyIndexFrom;
         // The upper bound of `_pendingKeys` to read from, exclusive.
         private int _readKeyIndexTo;
-
-        private Stopwatch _escTimeoutStopwatch = new Stopwatch();
 
         public WindowsAnsiCharMap(long escapeTimeout = 50)
         {
