@@ -141,19 +141,19 @@ stages:
   dependsOn: Build
   jobs:
   - job: Compliance_Job
-      pool:
-        name: Package ES CodeHub Lab E
-      steps:
-      - checkout: self
-      - checkout: ComplianceRepo
-      - download: current
-        artifact: PSReadLine
+    pool:
+      name: Package ES CodeHub Lab E
+    steps:
+    - checkout: self
+    - checkout: ComplianceRepo
+    - download: current
+      artifact: PSReadLine
 
-      - pwsh: |
+    - pwsh: |
         Get-ChildItem -Path "$(Pipeline.Workspace)\PSReadLine" -Recurse
       displayName: Capture downloaded artifacts
 
-      - pwsh: |
+    - pwsh: |
         function Send-VstsCommand ($vstsCommandString) {
           Write-Host ("sending: " + $vstsCommandString)
           Write-Host "##$vstsCommandString"
@@ -165,22 +165,23 @@ stages:
         $prerelease = $psd1Data.PrivateData.PSData.Prerelease
         if ($prerelease) { $moduleVersion = "$moduleVersion-$prerelease" }
         Send-VstsCommand "vso[task.setvariable variable=ModuleVersion]$moduleVersion"
+      displayName: Get Module Version
 
-      - template: assembly-module-compliance.yml@ComplianceRepo
-        parameters:
-          # binskim
-          AnalyzeTarget: '$(Pipeline.Workspace)\PSReadLine\*.dll'
-          AnalyzeSymPath: 'SRV*'
-          # component-governance
-          sourceScanPath: ''
-          # credscan
-          suppressionsFile: ''
-          # TermCheck
-          optionsRulesDBPath: ''
-          optionsFTPath: ''
-          # tsa-upload
-          codeBaseName: 'PSReadLine_201912'
-          # apiscan
-          softwareFolder: '$(Pipeline.Workspace)\PSReadLine'
-          softwareName: 'PSReadLine'
-          softwareVersion: '$(ModuleVersion)'
+    - template: assembly-module-compliance.yml@ComplianceRepo
+      parameters:
+        # binskim
+        AnalyzeTarget: '$(Pipeline.Workspace)\PSReadLine\*.dll'
+        AnalyzeSymPath: 'SRV*'
+        # component-governance
+        sourceScanPath: ''
+        # credscan
+        suppressionsFile: ''
+        # TermCheck
+        optionsRulesDBPath: ''
+        optionsFTPath: ''
+        # tsa-upload
+        codeBaseName: 'PSReadLine_201912'
+        # apiscan
+        softwareFolder: '$(Pipeline.Workspace)\PSReadLine'
+        softwareName: 'PSReadLine'
+        softwareVersion: '$(ModuleVersion)'
