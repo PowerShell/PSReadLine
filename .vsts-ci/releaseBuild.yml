@@ -3,7 +3,6 @@ trigger:
   branches:
     include:
     - master
-    - release*
 
 variables:
   DOTNET_CLI_TELEMETRY_OPTOUT: 1
@@ -19,7 +18,7 @@ resources:
 
 stages:
 - stage: Build
-  displayName: Build
+  displayName: Build and Sign
   pool:
     name: Package ES CodeHub Lab E
   jobs:
@@ -27,8 +26,6 @@ stages:
     displayName: Build PSReadLine
     variables:
     - group: ESRP
-    # APIScan can take a long time
-    timeoutInMinutes: 240
 
     steps:
 
@@ -141,10 +138,14 @@ stages:
 - stage: compliance
   displayName: Compliance
   dependsOn: Build
+  pool:
+    name: Package ES CodeHub Lab E
   jobs:
   - job: Compliance_Job
-    pool:
-      name: Package ES CodeHub Lab E
+    displayName: PSReadLine Compliance
+    # APIScan can take a long time
+    timeoutInMinutes: 240
+
     steps:
     - checkout: self
     - checkout: ComplianceRepo
