@@ -33,19 +33,6 @@ stages:
       clean: true
       persistCredentials: true
 
-    - task: PkgESSetupBuild@10
-      displayName: 'Initialize build'
-      inputs:
-        # Do not create a release share.
-        # Enabling this will cause failures!
-        useDfs: false
-        productName: PSReadLine
-        # Add branch name to build name (only for non-master)
-        branchVersion: true
-        disableWorkspace: true
-        disableBuildTools: true
-        disableNugetPack: true
-
     - pwsh: |
         function Send-VstsCommand ($vstsCommandString) {
           Write-Host ("sending: " + $vstsCommandString)
