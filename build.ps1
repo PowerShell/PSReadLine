@@ -62,7 +62,7 @@ if ($Bootstrap) {
     Install-Dotnet
     if (-not (Get-Module -Name InvokeBuild -ListAvailable)) {
         Write-Log -Warning "Module 'InvokeBuild' is missing. Installing 'InvokeBuild' ..."
-        Install-Module -Name InvokeBuild -RequiredVersion 5.6.2 -Scope CurrentUser -Force
+        Install-Module -Name InvokeBuild -Scope CurrentUser -Force
     }
 
     return

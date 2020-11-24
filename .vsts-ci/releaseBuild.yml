@@ -55,10 +55,12 @@ stages:
           Write-Host "##$vstsCommandString"
         }
         Write-Host "PS Version: $($($PSVersionTable.PSVersion))"
-        $(Build.SourcesDirectory)\PSReadLine\build.ps1 -Bootstrap
-        $(Build.SourcesDirectory)\PSReadLine\build.ps1 -Configuration Release -Framework net461 -CheckHelpContent
+        Set-Location -Path '$(Build.SourcesDirectory)\PSReadLine'
+        .\build.ps1 -Bootstrap
+        .\build.ps1 -Configuration Release -Framework net461 -CheckHelpContent
+
         # Set target folder paths
-        New-Item -Path $(Build.SourcesDirectory)\PSReadLine\bin\Release\NuGetPackage -ItemType Directory > $null
+        New-Item -Path .\bin\Release\NuGetPackage -ItemType Directory > $null
         Send-VstsCommand "vso[task.setvariable variable=NuGetPackage]$(Build.SourcesDirectory)\PSReadLine\bin\Release\NuGetPackage"
         Send-VstsCommand "vso[task.setvariable variable=PSReadLine]$(Build.SourcesDirectory)\PSReadLine\bin\Release\PSReadLine"
         Send-VstsCommand "vso[task.setvariable variable=Signed]$(Build.SourcesDirectory)\PSReadLine\bin\Release\Signed"
