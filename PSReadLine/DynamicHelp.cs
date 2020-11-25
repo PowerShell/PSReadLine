@@ -37,22 +37,49 @@ namespace Microsoft.PowerShell
             _singleton.DynamicHelpImpl(isFullHelp: false);
         }
 
-        void IPSConsoleReadLineMockableMethods.GetDynamicHelpContent(string commandName, string parameterName, bool isFullHelp)
+        object IPSConsoleReadLineMockableMethods.GetDynamicHelpContent(string commandName, string parameterName, bool isFullHelp)
         {
             if (!String.IsNullOrEmpty(commandName) && isFullHelp)
             {
                 _ps ??= System.Management.Automation.PowerShell.Create(RunspaceMode.CurrentRunspace);
                 _ps.Commands.Clear();
 
-                var fullHelp = _ps
+                return _ps
                     .AddCommand($"Microsoft.PowerShell.Core\\Get-Help")
                     .AddParameter("Name", commandName)
                     .AddParameter("Full", value: true)
                     .AddCommand($"Microsoft.PowerShell.Utility\\Out-String")
                     .Invoke<string>()
                     .FirstOrDefault();
+            }
+            else if (!String.IsNullOrEmpty(commandName) && !String.IsNullOrEmpty(parameterName) && !isFullHelp)
+            {
+                _ps ??= System.Management.Automation.PowerShell.Create(RunspaceMode.CurrentRunspace);
+                _ps.Commands.Clear();
 
-                if (!String.Equals(fullHelp, String.Empty, StringComparison.OrdinalIgnoreCase))
+                return _ps
+                    .AddCommand("Microsoft.PowerShell.Core\\Get-Help")
+                    .AddParameter("Name", commandName)
+                    .AddParameter("Parameter", parameterName)
+                    .Invoke<PSObject>()
+                    .FirstOrDefault();
+            }
+
+            return null;
+        }
+
+        void IPSConsoleReadLineMockableMethods.WriteToPager(string content, string regexPatternToScrollTo)
+        {
+            _pager.Write(content, regexPatternToScrollTo);
+        }
+
+        private void WriteDynamicHelpContent(string commandName, string parameterName, bool isFullHelp)
+        {
+            var helpContent = _mockableMethods.GetDynamicHelpContent(commandName, parameterName, isFullHelp);
+
+            if (!String.IsNullOrEmpty(commandName) && isFullHelp)
+            {
+                if (helpContent is String fullHelp && !String.IsNullOrEmpty(fullHelp))
                 {
                     string regexPatternToScrollTo = null;
 
@@ -64,22 +91,15 @@ namespace Microsoft.PowerShell
                         regexPatternToScrollTo = $"-[{upper}|{lower}]{remainingString} [<|\\[]";
                     }
 
-                    _pager.Write(fullHelp, regexPatternToScrollTo);
+                    _mockableMethods.WriteToPager(fullHelp, regexPatternToScrollTo);
                 }
             }
             else if (!String.IsNullOrEmpty(commandName) && !String.IsNullOrEmpty(parameterName))
             {
-                _ps ??= System.Management.Automation.PowerShell.Create(RunspaceMode.CurrentRunspace);
-                _ps.Commands.Clear();
-
-                PSObject paramHelp = _ps
-                    .AddCommand("Microsoft.PowerShell.Core\\Get-Help")
-                    .AddParameter("Name", commandName)
-                    .AddParameter("Parameter", parameterName)
-                    .Invoke<PSObject>()
-                    .FirstOrDefault();
-
-                WriteParameterHelp(paramHelp);
+                if (helpContent is PSObject paramHelp)
+                {
+                    WriteParameterHelp(paramHelp);
+                }
             }
         }
 
@@ -115,7 +135,7 @@ namespace Microsoft.PowerShell
                 }
             }
 
-            _mockableMethods.GetDynamicHelpContent(commandName, parameterName, isFullHelp);
+            WriteDynamicHelpContent(commandName, parameterName, isFullHelp);
         }
 
         private void WriteDynamicHelpBlock(Collection<string> helpBlock)

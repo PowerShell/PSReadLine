@@ -67,6 +67,16 @@ namespace Test
             acceptedPredictorId = predictorId;
             acceptedSuggestion = suggestionText;
         }
+
+        public object GetDynamicHelpContent(string commandName, string parameterName, bool isFullHelp)
+        {
+            return ReadLine.GetDynamicHelpContent(commandName, parameterName, isFullHelp);
+        }
+
+        public void WriteToPager(string content, string regexPatternToScrollTo)
+        {
+
+        }
     }
 
     public enum TokenClassification
