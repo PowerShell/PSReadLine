@@ -3,130 +3,175 @@ trigger:
   branches:
     include:
     - master
-    - release*
 
 variables:
   DOTNET_CLI_TELEMETRY_OPTOUT: 1
   POWERSHELL_TELEMETRY_OPTOUT: 1
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
 
-# Set AzDevOps Agent to clean the machine after the end of the build
 resources:
-- repo: self
-  clean: true
+  repositories:
+  - repository: ComplianceRepo
+    type: github
+    endpoint: ComplianceGHRepo
+    name: PowerShell/compliance
 
-jobs:
-- job: build_windows
-  pool: Package ES CodeHub Lab E
+stages:
+- stage: Build
+  displayName: Build and Sign
+  pool:
+    name: Package ES CodeHub Lab E
+  jobs:
+  - job: build_windows
+    displayName: Build PSReadLine
+    variables:
+    - group: ESRP
 
-  # APIScan can take a long time
-  timeoutInMinutes: 240
+    steps:
 
-  steps:
+    - checkout: self
+      clean: true
+      persistCredentials: true
 
-  - checkout: self
-    clean: true
-    persistCredentials: true
+    - pwsh: |
+        function Send-VstsCommand ($vstsCommandString) {
+          Write-Host ("sending: " + $vstsCommandString)
+          Write-Host "##$vstsCommandString"
+        }
+        Write-Host "PS Version: $($($PSVersionTable.PSVersion))"
+        Set-Location -Path '$(Build.SourcesDirectory)\PSReadLine'
+        .\build.ps1 -Bootstrap
+        .\build.ps1 -Configuration Release -Framework net461 -CheckHelpContent
 
-  - task: PkgESSetupBuild@10
-    displayName: 'Initialize build'
-    inputs:
-      # Do not create a release share.
-      # Enabling this will cause failures!
-      useDfs: false
-      productName: PSReadLine
-      # Add branch name to build name (only for non-master)
-      branchVersion: true
-      disableWorkspace: true
-      disableBuildTools: true
-      disableNugetPack: true
+        # Set target folder paths
+        New-Item -Path .\bin\Release\NuGetPackage -ItemType Directory > $null
+        Send-VstsCommand "vso[task.setvariable variable=NuGetPackage]$(Build.SourcesDirectory)\PSReadLine\bin\Release\NuGetPackage"
+        Send-VstsCommand "vso[task.setvariable variable=PSReadLine]$(Build.SourcesDirectory)\PSReadLine\bin\Release\PSReadLine"
+        Send-VstsCommand "vso[task.setvariable variable=Signed]$(Build.SourcesDirectory)\PSReadLine\bin\Release\Signed"
+      displayName: Bootstrap & Build
 
-  - pwsh: |
-      function Send-VstsCommand ($vstsCommandString) {
-        Write-Host ("sending: " + $vstsCommandString)
-        Write-Host "##$vstsCommandString"
-      }
-      Write-Host "PS Version: $($($PSVersionTable.PSVersion))"
-      $(Build.SourcesDirectory)\build.ps1 -Bootstrap
-      $(Build.SourcesDirectory)\build.ps1 -Configuration Release -Framework net461 -CheckHelpContent
-      # Get module version
-      $psd1Data = Import-PowerShellDataFile -Path $(Build.SourcesDirectory)\bin\Release\PSReadLine\PSReadLine.psd1
-      $moduleVersion = $psd1Data.ModuleVersion
-      $prerelease = $psd1Data.PrivateData.PSData.Prerelease
-      if ($prerelease) { $moduleVersion = "$moduleVersion-$prerelease" }
-      Send-VstsCommand "vso[task.setvariable variable=ModuleVersion]$moduleVersion"
-      # Set target folder paths
-      New-Item -Path $(Build.SourcesDirectory)\bin\Release\NuGetPackage -ItemType Directory > $null
-      Send-VstsCommand "vso[task.setvariable variable=NuGetPackage]$(Build.SourcesDirectory)\bin\Release\NuGetPackage"
-      Send-VstsCommand "vso[task.setvariable variable=PSReadLine]$(Build.SourcesDirectory)\bin\Release\PSReadLine"
-      Send-VstsCommand "vso[task.setvariable variable=Signed]$(Build.SourcesDirectory)\bin\Release\Signed"
-    displayName: Bootstrap & Build
+    - task: ms.vss-governance-buildtask.governance-build-task-component-detection.ComponentGovernanceComponentDetection@0
+      displayName: 'Component Governance Detection'
+      inputs:
+        sourceScanPath: '$(Build.SourcesDirectory)\PSReadLine'
+        snapshotForceEnabled: true
+        scanType: 'Register'
+        failOnAlert: true
 
-  - task: ms.vss-governance-buildtask.governance-build-task-component-detection.ComponentGovernanceComponentDetection@0
-    displayName: 'Component Governance Detection'
-    inputs:
-      sourceScanPath: '$(Build.SourcesDirectory)'
-      snapshotForceEnabled: true
-      scanType: 'Register'
-      failOnAlert: true
+    - checkout: ComplianceRepo
 
-  # Sign the module files
-  - task: PkgESCodeSign@10
-    displayName: 'CodeSign - module artifacts'
-    env:
-      SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-    inputs:
-      signConfigXml: '$(Build.SourcesDirectory)\.vsts-ci\sign-module-files.xml'
-      inPathRoot: '$(PSReadLine)'
-      outPathRoot: '$(Signed)'
-      binVersion: Production
-      binVersionOverride: ''
+    # Sign the module files
+    - template: EsrpSign.yml@ComplianceRepo
+      parameters:
+        # the folder which contains the binaries to sign
+        buildOutputPath: $(PSReadLine)
+        # the location to put the signed output
+        signOutputPath: $(Signed)
+        # the certificate ID to use
+        certificateId: "CP-230012"
+        pattern: |
+          *.psd1
+          *.psm1
+          *.ps1
+          *.ps1xml
+          **\*.dll
+          !System.Runtime.InteropServices.RuntimeInformation.dll
+        useMinimatch: true
 
-  # Replace the *.psm1, *.ps1, *.psd1, *.dll files with the signed ones
-  - pwsh: |
-      # Show the signed files
-      Get-ChildItem -Path $(Signed)
-      Copy-Item -Path $(Signed)\* -Destination $(PSReadLine) -Recurse -Force
-    displayName: 'Replace unsigned files with signed ones'
+    # Replace the *.psm1, *.ps1, *.psd1, *.dll files with the signed ones
+    - pwsh: |
+        # Show the signed files
+        Get-ChildItem -Path $(Signed)
+        Copy-Item -Path $(Signed)\* -Destination $(PSReadLine) -Recurse -Force
+      displayName: 'Replace unsigned files with signed ones'
 
-  # Verify the signatures
-  - pwsh: |
-      $HasInvalidFiles = $false
-      $WrongCert = @{}
-      Get-ChildItem -Path $(PSReadLine) -Recurse -Include "*.dll","*.ps*1*" | `
-          Get-AuthenticodeSignature | ForEach-Object {
-              $_ | Select-Object Path, Status
-              if ($_.Status -ne 'Valid') { $HasInvalidFiles = $true }
-              if ($_.SignerCertificate.Subject -notmatch 'CN=Microsoft Corporation.*') {
-                  $WrongCert.Add($_.Path, $_.SignerCertificate.Subject)
-              }
-          }
+    # Verify the signatures
+    - pwsh: |
+        $HasInvalidFiles = $false
+        $WrongCert = @{}
+        Get-ChildItem -Path $(PSReadLine) -Recurse -Include "*.dll","*.ps*1*" | `
+            Get-AuthenticodeSignature | ForEach-Object {
+                $_ | Select-Object Path, Status
+                if ($_.Status -ne 'Valid') { $HasInvalidFiles = $true }
+                if ($_.SignerCertificate.Subject -notmatch 'CN=Microsoft Corporation.*') {
+                    $WrongCert.Add($_.Path, $_.SignerCertificate.Subject)
+                }
+            }
 
-      if ($HasInvalidFiles) { throw "Authenticode verification failed. There is one or more invalid files." }
-      if ($WrongCert.Count -gt 0) {
-          $WrongCert
-          throw "Certificate should have the subject starts with 'Microsoft Corporation'"
-      }
-    displayName: 'Verify the signed files'
+        if ($HasInvalidFiles) { throw "Authenticode verification failed. There is one or more invalid files." }
+        if ($WrongCert.Count -gt 0) {
+            $WrongCert
+            throw "Certificate should have the subject starts with 'Microsoft Corporation'"
+        }
+      displayName: 'Verify the signed files'
 
-  - pwsh: |
-      try {
-        $RepoName = "PSRLLocal"
-        Register-PSRepository -Name $RepoName -SourceLocation $(NuGetPackage) -PublishLocation $(NuGetPackage) -InstallationPolicy Trusted
-        Publish-Module -Repository $RepoName -Path $(PSReadLine)
-      } finally {
-        Unregister-PSRepository -Name $RepoName -ErrorAction SilentlyContinue
-      }
-      Get-ChildItem -Path $(NuGetPackage)
-    displayName: 'Create the NuGet package'
+    - pwsh: |
+        try {
+          $RepoName = "PSRLLocal"
+          Register-PSRepository -Name $RepoName -SourceLocation $(NuGetPackage) -PublishLocation $(NuGetPackage) -InstallationPolicy Trusted
+          Publish-Module -Repository $RepoName -Path $(PSReadLine)
+        } finally {
+          Unregister-PSRepository -Name $RepoName -ErrorAction SilentlyContinue
+        }
+        Get-ChildItem -Path $(NuGetPackage)
+      displayName: 'Create the NuGet package'
 
-  - pwsh: |
-      Get-ChildItem -Path $(PSReadLine), $(NuGetPackage)
-      Write-Host "##vso[artifact.upload containerfolder=PSReadLine;artifactname=PSReadLine]$(PSReadLine)"
-      Write-Host "##vso[artifact.upload containerfolder=NuGetPackage;artifactname=NuGetPackage]$(NuGetPackage)"
-    displayName: 'Upload artifacts'
+    - pwsh: |
+        Get-ChildItem -Path $(PSReadLine), $(NuGetPackage)
+        Write-Host "##vso[artifact.upload containerfolder=PSReadLine;artifactname=PSReadLine]$(PSReadLine)"
+        Write-Host "##vso[artifact.upload containerfolder=NuGetPackage;artifactname=NuGetPackage]$(NuGetPackage)"
+      displayName: 'Upload artifacts'
 
-  - template: templates/compliance.yml
-    parameters:
-      configuration: Release
-      framework: net461
+- stage: compliance
+  displayName: Compliance
+  dependsOn: Build
+  pool:
+    name: Package ES CodeHub Lab E
+  jobs:
+  - job: Compliance_Job
+    displayName: PSReadLine Compliance
+    # APIScan can take a long time
+    timeoutInMinutes: 240
+
+    steps:
+    - checkout: self
+    - checkout: ComplianceRepo
+    - download: current
+      artifact: PSReadLine
+
+    - pwsh: |
+        Get-ChildItem -Path "$(Pipeline.Workspace)\PSReadLine" -Recurse
+      displayName: Capture downloaded artifacts
+
+    - pwsh: |
+        function Send-VstsCommand ($vstsCommandString) {
+          Write-Host ("sending: " + $vstsCommandString)
+          Write-Host "##$vstsCommandString"
+        }
+
+        # Get module version
+        $psd1Data = Import-PowerShellDataFile -Path "$(Pipeline.Workspace)\PSReadLine\PSReadLine.psd1"
+        $moduleVersion = $psd1Data.ModuleVersion
+        $prerelease = $psd1Data.PrivateData.PSData.Prerelease
+        if ($prerelease) { $moduleVersion = "$moduleVersion-$prerelease" }
+        Send-VstsCommand "vso[task.setvariable variable=ModuleVersion]$moduleVersion"
+      displayName: Get Module Version
+
+    - template: assembly-module-compliance.yml@ComplianceRepo
+      parameters:
+        # binskim
+        AnalyzeTarget: '$(Pipeline.Workspace)\PSReadLine\*.dll'
+        AnalyzeSymPath: 'SRV*'
+        # component-governance
+        sourceScanPath: ''
+        # credscan
+        suppressionsFile: ''
+        # TermCheck
+        optionsRulesDBPath: ''
+        optionsFTPath: ''
+        # tsa-upload
+        codeBaseName: 'PSReadLine_201912'
+        # apiscan
+        softwareFolder: '$(Pipeline.Workspace)\PSReadLine'
+        softwareName: 'PSReadLine'
+        softwareVersion: '$(ModuleVersion)'
