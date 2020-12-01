@@ -115,19 +115,31 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Like BackwardKillLine - deletes text from the point to the start of the line,
+        /// Like BackwardKillLine - deletes text from the point to the start of the buffer,
+        /// but does not put the deleted text in the kill ring.
+        public static void BackwardDeleteBuffer(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            BackwardDeleteSubstring(0, BackwardDeleteBuffer);
+        }
+
+        /// <summary>
+        /// Like BackwardKillLine - deletes text from the point to the start of the logical line,
         /// but does not put the deleted text in the kill ring.
         /// </summary>
         public static void BackwardDeleteLine(ConsoleKeyInfo? key = null, object arg = null)
         {
             var position = GetBeginningOfLinePos(_singleton._current);
+            BackwardDeleteSubstring(position, BackwardDeleteLine);
+        }
 
+        private static void BackwardDeleteSubstring(int position, Action<ConsoleKeyInfo?, object> instigator = null)
+        {
             if (_singleton._current > position)
             {
                 var count = _singleton._current - position;
 
                 _clipboard.Record(_singleton._buffer, position, count);
-                _singleton.SaveEditItem(EditItemDelete.Create(_clipboard, position, BackwardDeleteLine));
+                _singleton.SaveEditItem(EditItemDelete.Create(_clipboard, position, instigator));
                 _singleton._buffer.Remove(position, count);
                 _singleton._current = position;
                 _singleton.Render();

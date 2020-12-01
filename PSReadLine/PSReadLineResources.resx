@@ -126,6 +126,9 @@
   <data name="BackwardCharDescription" xml:space="preserve">
     <value>Move the cursor back one character</value>
   </data>
+  <data name="BackwardDeleteBufferDescription" xml:space="preserve">
+    <value>Delete text from the cursor to the start of the input</value>
+  </data>
   <data name="BackwardDeleteCharDescription" xml:space="preserve">
     <value>Delete the character before the cursor</value>
   </data>
