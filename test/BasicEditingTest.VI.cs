@@ -571,6 +571,26 @@ namespace Test
         }
 
         [SkippableFact]
+        public void ViBackwardDeleteLine()
+        {
+            TestSetup(KeyMode.Vi);
+
+            int continuationPrefixLength = PSConsoleReadLineOptions.DefaultContinuationPrompt.Length;
+
+            Test("\"\nsome words\n\"", Keys(
+
+                _.DQuote, _.Enter,
+                "   this is a line with some words", _.Enter,
+                _.DQuote, _.Escape,
+                "k6W",
+                CheckThat(() => AssertCursorLeftIs(continuationPrefixLength + 23)),
+                // delete from first non blank of line
+                "d0",
+                CheckThat(() => AssertCursorLeftIs(continuationPrefixLength))
+            ));
+        }
+
+        [SkippableFact]
         public void ViDeleteLineToFirstChar()
         {
             TestSetup(KeyMode.Vi);

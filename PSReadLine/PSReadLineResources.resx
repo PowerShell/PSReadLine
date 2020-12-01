@@ -130,7 +130,7 @@
     <value>Delete the character before the cursor</value>
   </data>
   <data name="BackwardDeleteLineDescription" xml:space="preserve">
-    <value>Delete text from the cursor to the start of the line</value>
+    <value>Delete text from the cursor to the start of the current logical line</value>
   </data>
   <data name="BackwardKillLineDescription" xml:space="preserve">
     <value>Move the text from the cursor to the beginning of the line to the kill ring</value>

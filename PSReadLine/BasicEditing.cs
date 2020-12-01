@@ -120,12 +120,16 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void BackwardDeleteLine(ConsoleKeyInfo? key = null, object arg = null)
         {
-            if (_singleton._current > 0)
+            var position = GetBeginningOfLinePos(_singleton._current);
+
+            if (_singleton._current > position)
             {
-                _clipboard.Record(_singleton._buffer, 0, _singleton._current);
-                _singleton.SaveEditItem(EditItemDelete.Create(_clipboard, 0));
-                _singleton._buffer.Remove(0, _singleton._current);
-                _singleton._current = 0;
+                var count = _singleton._current - position;
+
+                _clipboard.Record(_singleton._buffer, position, count);
+                _singleton.SaveEditItem(EditItemDelete.Create(_clipboard, position, BackwardDeleteLine));
+                _singleton._buffer.Remove(position, count);
+                _singleton._current = position;
                 _singleton.Render();
             }
         }
