@@ -988,14 +988,14 @@ namespace Test
 
             Test("0123456", Keys(
                 "0123456", _.Escape, CheckThat(() => AssertLineIs("0123456")),
-                "cF0abc", _.Escape, CheckThat(() => AssertLineIs("abc")),
+                "cF0abc", _.Escape, CheckThat(() => AssertLineIs("abc6")),
                 'u', CheckThat(() => AssertLineIs("0123456")), CheckThat(() => AssertCursorLeftIs(6)),
-                "cF1abc", _.Escape, CheckThat(() => AssertLineIs("0abc")),
+                "cF1abc", _.Escape, CheckThat(() => AssertLineIs("0abc6")),
                 'u', CheckThat(() => AssertLineIs("0123456")), CheckThat(() => AssertCursorLeftIs(6)),
-                "hcF0abc", _.Escape, CheckThat(() => AssertLineIs("abc6")),
-                'u', CheckThat(() => AssertLineIs("0123456")), CheckThat(() => AssertCursorLeftIs(6)),
-                "hcF1abc", _.Escape, CheckThat(() => AssertLineIs("0abc6")),
-                'u', CheckThat(() => AssertLineIs("0123456")), CheckThat(() => AssertCursorLeftIs(6)),
+                "hcF0abc", _.Escape, CheckThat(() => AssertLineIs("abc56")),
+                'u', CheckThat(() => AssertLineIs("0123456")), CheckThat(() => AssertCursorLeftIs(5)),
+                "hcF1abc", _.Escape, CheckThat(() => AssertLineIs("0abc456")),
+                'u', CheckThat(() => AssertLineIs("0123456")), CheckThat(() => AssertCursorLeftIs(4)),
                 "0cF0abc", _.Escape, CheckThat(() => AssertLineIs("0bc123456")),
                 'u'
                 ));
@@ -1012,10 +1012,10 @@ namespace Test
 
             Test("0123456", Keys(
                 "0123456", _.Escape, CheckThat(() => AssertLineIs("0123456")),
-                "cT1abc", _.Escape, CheckThat(() => AssertLineIs("01abc")),
+                "cT1abc", _.Escape, CheckThat(() => AssertLineIs("01abc6")),
                 'u', CheckThat(() => AssertLineIs("0123456")), CheckThat(() => AssertCursorLeftIs(6)),
-                "hcT1abc", _.Escape, CheckThat(() => AssertLineIs("01abc6")),
-                'u', CheckThat(() => AssertLineIs("0123456")), CheckThat(() => AssertCursorLeftIs(6)),
+                "hcT1abc", _.Escape, CheckThat(() => AssertLineIs("01abc56")),
+                'u', CheckThat(() => AssertLineIs("0123456")), CheckThat(() => AssertCursorLeftIs(5)),
                 "0cT0abc", _.Escape, CheckThat(() => AssertLineIs("0bc123456")),
                 'u'
                 ));
