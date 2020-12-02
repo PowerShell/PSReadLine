@@ -529,6 +529,27 @@ namespace Test
                 ));
         }
 
+        // Defect #1674
+        [SkippableFact]
+        public void ViDeleteToCharBack()
+        {
+            TestSetup(KeyMode.Vi);
+
+            Test("g", Keys(
+                "abcdefg", _.Escape,
+                // delete to the first character 'a'
+                "dFa",
+                CheckThat(() => AssertCursorLeftIs(0))
+                ));
+
+            Test("06", Keys(
+                "0123456", _.Escape,
+                // delete to the first character '0'
+                "dT0", CheckThat(() => AssertLineIs("06")),
+                CheckThat(() => AssertCursorLeftIs(1))
+                ));
+        }
+
         [SkippableFact]
         public void ViDeleteToEnd()
         {
