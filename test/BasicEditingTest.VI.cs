@@ -1121,5 +1121,18 @@ namespace Test
                 _.RightArrow, // 'RightArrow' again does nothing, but doesn't crash
                 "c"));
         }
+
+        [SkippableFact]
+        public void ViDefect1281()
+        {
+            TestSetup(KeyMode.Vi);
+
+            Test("bcd", Keys(
+                "abcdabcd", _.Escape,
+                "Bc2tb", _.Escape, CheckThat(() => AssertCursorLeftIs(0)), 
+                "c2tb", CheckThat(() => AssertLineIs("bcd")),
+                "c2tb" // should not crash
+                ));
+        }
     }
 }
