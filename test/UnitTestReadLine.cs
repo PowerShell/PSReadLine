@@ -75,7 +75,7 @@ namespace Test
 
         public void WriteToPager(string content, string regexPatternToScrollTo)
         {
-
+            ReadLine.WriteToPager(content, regexPatternToScrollTo);
         }
     }
 

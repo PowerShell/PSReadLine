@@ -19,6 +19,8 @@ namespace Microsoft.PowerShell
         private Microsoft.PowerShell.Pager _pager;
         private static System.Management.Automation.PowerShell _ps;
 
+        public static bool EnableDynHelpTestHook;
+
         /// <summary>
         /// Attempt to show help content.
         /// Show the full help for the command on the alternate screen buffer.
@@ -148,18 +150,15 @@ namespace Microsoft.PowerShell
             {
                 Singleton = this,
                 ColumnWidth = colWidth,
-                Columns = columns,
                 Rows = (helpBlock.Count + columns - 1) / columns,
-                HelpItems = helpBlock
+                ItemsToDisplay = helpBlock
             };
 
             dynHelp.SaveCursor();
-            dynHelp.DrawHelpBlock(dynHelp);
-
-            Console.ReadKey(intercept: true);
-
-            dynHelp.Clear();
+            dynHelp.DrawMultilineBlock(dynHelp);
             dynHelp.RestoreCursor();
+            ReadKey();
+            dynHelp.Clear();            
         }
 
         private void WriteParameterHelp(dynamic helpContent)
@@ -176,9 +175,7 @@ namespace Microsoft.PowerShell
             }
             else
             {
-                char c = (char)0x1b;
-
-                string syntax = $"{c}[7m-{helpContent.name} <{helpContent.type.name}>{c}[0m";
+                string syntax = $"-{helpContent.name} <{helpContent.type.name}>";
                 string desc = "DESC: " + helpContent.Description[0].Text;
                 string details = $"Required: {helpContent.required}, Position: {helpContent.position}, Default Value: {helpContent.defaultValue}, Pipeline Input: {helpContent.pipelineInput}, WildCard: {helpContent.globbing}";
 
@@ -197,11 +194,18 @@ namespace Microsoft.PowerShell
 
         private class MultilineDisplayBlock : DisplayBlockBase
         {
-            internal Collection<string> HelpItems;
+            internal Collection<string> ItemsToDisplay;
 
-            public void DrawHelpBlock(MultilineDisplayBlock previewBlock, bool menuSelect = true)
+            internal int Rows;
+            internal int ColumnWidth;
+
+            private int multilineItems = 0;
+
+            public void DrawMultilineBlock(MultilineDisplayBlock multilineBlock)
             {
                 IConsole console = Singleton._console;
+
+                multilineItems = 0;
 
                 // Move cursor to the start of the first line after our input.
                 var bufferEndPoint = Singleton.ConvertOffsetToPoint(Singleton._buffer.Length);
@@ -216,20 +220,24 @@ namespace Microsoft.PowerShell
                 var bufferWidth = console.BufferWidth;
                 var columnWidth = this.ColumnWidth;
 
-                var items = this.HelpItems;
+                var items = this.ItemsToDisplay;
                 for (var row = 0; row < this.Rows; row++)
                 {
                     var cells = 0;
-                    for (var col = 0; col < this.Columns; col++)
+                    if (row >= items.Count)
                     {
-                        var index = row + (this.Rows * col);
-                        if (index >= items.Count)
-                        {
-                            break;
-                        }
-                        console.Write(GetItem(items[index], columnWidth));
-                        cells += columnWidth;
+                        break;
                     }
+
+                    var itemToWrite = items[row];
+
+                    if(itemToWrite.Length > bufferWidth)
+                    {
+                        multilineItems++;
+                    }
+
+                    console.Write(itemToWrite);
+                    cells += columnWidth;
 
                     // Make sure we always write out exactly 1 buffer width to erase anything
                     // from a previous menu.
@@ -241,17 +249,16 @@ namespace Microsoft.PowerShell
 
                     // Explicit newline so consoles see each row as distinct lines, but skip the
                     // last line so we don't scroll.
-                    if (row != (this.Rows - 1) || !menuSelect)
+                    if (row != (this.Rows - 1))
                     {
                         AdjustForPossibleScroll(1);
                         MoveCursorDown(1);
                     }
                 }
 
-                bool extraPreRowsCleared = false;
-                if (previewBlock != null)
+                if (multilineBlock != null)
                 {
-                    if (Rows < previewBlock.Rows)
+                    if (Rows < multilineBlock.Rows)
                     {
                         // If the last menu row took the whole buffer width, then the cursor could be pushed to the
                         // beginning of the next line in the legacy console host (NOT in modern terminals such as
@@ -267,41 +274,15 @@ namespace Microsoft.PowerShell
                             MoveCursorDown(1);
                         }
 
-                        Singleton.WriteBlankLines(previewBlock.Rows - Rows);
-                        extraPreRowsCleared = true;
+                        Singleton.WriteBlankLines(multilineBlock.Rows - Rows);
                     }
-                }
-
-                // if the menu has moved, we need to clear the lines under it
-                if (bufferEndPoint.Y < PreviousTop)
-                {
-                    // In either of the following two cases, we will need to move the cursor to the next line:
-                    //  - if extra rows from previous menu were cleared, then we know the current line was erased
-                    //    but the cursor was not moved to the next line.
-                    //  - if 'CursorLeft != 0', then the rest of the last menu row was erased, but the cursor
-                    //    was not moved to the next line.
-                    if (extraPreRowsCleared || console.CursorLeft != 0)
-                    {
-                        // There are lines from the previous rendering that need to be cleared,
-                        // so we are sure there is no need to scroll.
-                        MoveCursorDown(1);
-                    }
-
-                    Singleton.WriteBlankLines(PreviousTop - bufferEndPoint.Y);
-                }
-
-                PreviousTop = bufferEndPoint.Y;
-
-                if (menuSelect)
-                {
-                    RestoreCursor();
-                    console.CursorVisible = true;
                 }
             }
 
             public void Clear()
             {
-                WriteBlankLines(Top, Rows);
+                // Add 1 for the movement to next line before displaying block
+                WriteBlankLines(Top, Rows + multilineItems + 1);
             }
         }
     }

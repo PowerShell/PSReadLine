@@ -13,10 +13,10 @@ namespace Microsoft.PowerShell
         {
             internal PSConsoleReadLine Singleton;
             internal int Top;
-            internal int PreviousTop;
-            internal int ColumnWidth;
-            internal int Rows;
-            internal int Columns;
+            //internal int PreviousTop;
+            //internal int ColumnWidth;
+            //internal int Rows;
+            //internal int Columns;
 
             private protected void MoveCursorDown(int cnt)
             {

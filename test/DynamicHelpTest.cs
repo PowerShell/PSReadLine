@@ -12,7 +12,8 @@ namespace Test
 {
     public partial class ReadLine
     {
-        private static StringBuilder actualPagerContent = new StringBuilder();
+        private static string actualContent;        
+        
         private static readonly string fullHelp = @"
 
 NAME
@@ -33,15 +34,7 @@ PARAMETERS
         Accept pipeline input?       False
         Accept wildcard characters?  false
 ";
-
-        private static readonly string paramHelp = @"
-
--Date <System.DateTime>
-
-DESC: Specifies a date and time. Time is optional and if not specified, returns 00:00:00.
-Required: false, Position: 0, Default Value: None, Pipeline Input: True (ByPropertyName, ByValue), WildCard: false
-";
-
+                
         internal static object GetDynamicHelpContent(string commandName, string parameterName, bool isFullHelp)
         {
             string descText = @"Specifies a date and time. Time is optional and if not specified, returns 00:00:00.";
@@ -55,11 +48,17 @@ Required: false, Position: 0, Default Value: None, Pipeline Input: True (ByPrope
                 PSObject paramHelp = new PSObject();
 
                 PSObject[] descDetails = new PSObject[1];
+                descDetails[0] = new PSObject();
                 descDetails[0].Members.Add(new PSNoteProperty("Text", descText));
+
+                var np = new PSNoteProperty("name", "System.Datetime");
+                np.Value = "System.Datetime";
+
+                var typeName = new PSObject(np);
 
                 paramHelp.Members.Add(new PSNoteProperty("Description", descDetails));
                 paramHelp.Members.Add(new PSNoteProperty("Name", "Date"));
-                paramHelp.Members.Add(new PSNoteProperty("type", new PSNoteProperty("name", "System.Datetime")));
+                paramHelp.Members.Add(new PSNoteProperty("type", typeName));
                 paramHelp.Members.Add(new PSNoteProperty("required", "false"));
                 paramHelp.Members.Add(new PSNoteProperty("position", "0"));
                 paramHelp.Members.Add(new PSNoteProperty("defaultValue", "None"));
@@ -74,30 +73,56 @@ Required: false, Position: 0, Default Value: None, Pipeline Input: True (ByPrope
 
         internal static void WriteToPager(string content, string regexPatternToScrollTo)
         {
-            actualPagerContent.Clear();
-            actualPagerContent.Append(content);
+            actualContent = content;
+            PSConsoleReadLine.ReadKey();
         }
 
         [SkippableFact]
         public void DynHelp_GetFullHelp()
         {
             TestSetup(KeyMode.Cmd);
+
+            _console.Clear();
+
             Test("Get-Date", Keys(
-                "Get-Date",
-                _.F1,
-                CheckThat(() => AssertScreenIs(18, TokenClassification.String, fullHelp))
-            ));
+                "Get-Date", _.F1,
+                CheckThat(() => Assert.Equal(fullHelp, actualContent)),
+                _.Enter,
+                _.Enter
+                ));
         }
 
         [SkippableFact]
         public void DynHelp_GetParameterHelp()
         {
-            TestSetup(KeyMode.Cmd);
-            Test("Get-Date", Keys(
-                "Get-Date -Date",
-                _.Alt_h,
-                CheckThat(() => AssertScreenIs(6, TokenClassification.String, paramHelp))
-                ));
+            PSConsoleReadLine.EnableDynHelpTestHook = true;
+
+            try
+            {
+                TestSetup(KeyMode.Cmd, new KeyHandler("Alt+h", PSConsoleReadLine.DynamicHelpParameter));
+
+                _console.Clear();
+                string emptyLine = new string(' ', _console.BufferWidth);
+
+                Test("Get-Date -Date", Keys(
+                    "Get-Date -Date", _.Alt_h,
+                    CheckThat(() => AssertScreenIs(9,
+                    TokenClassification.Command, "Get-Date",
+                    TokenClassification.None, " ",
+                    TokenClassification.Parameter, "-Date", NextLine,
+                    emptyLine,
+                    TokenClassification.None, $"-Date <name>", NextLine,
+                    emptyLine,
+                    TokenClassification.None, "DESC: Specifies a date and time. Time is optional and if not", NextLine, " specified, returns 00:00:00.", NextLine,                    
+                    TokenClassification.None, "Required: false, Position: 0, Default Value: None, Pipeline ", NextLine, "Input: True (ByPropertyName, ByValue), WildCard: false")),
+                    _.Enter,
+                    _.Enter
+                    ));
+            }
+            finally
+            {
+                PSConsoleReadLine.EnableDynHelpTestHook = false;
+            }
         }
     }
 }

@@ -25,7 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.PowerShell.Pager" version="1.0.0-preview.2" />
+    <PackageReference Include="Microsoft.PowerShell.Pager" version="1.0.0-preview.4" />
   </ItemGroup>
 
   <ItemGroup>
