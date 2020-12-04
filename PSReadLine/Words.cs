@@ -90,13 +90,12 @@ namespace Microsoft.PowerShell
 
         private bool InWord(int index, string wordDelimiters)
         {
-            char c = _buffer[index];
-            return InWord(c, wordDelimiters);
+            return _buffer.InWord(index, wordDelimiters);
         }
 
         private bool InWord(char c, string wordDelimiters)
         {
-            return !char.IsWhiteSpace(c) && wordDelimiters.IndexOf(c) < 0;
+            return Character.IsInWord(c, wordDelimiters);
         }
 
         /// <summary>
