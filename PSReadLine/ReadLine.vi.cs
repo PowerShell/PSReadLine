@@ -237,14 +237,11 @@ namespace Microsoft.PowerShell
                 var length = endPosition - startPosition + 1;
                 if (length > 0)
                 {
-                    _clipboard.Record(_singleton._buffer, startPosition, length);
-                    _singleton.SaveEditItem(EditItemDelete.Create(
-                        _clipboard,
-                        _singleton._current,
+                    _singleton.RemoveTextToClipboard(
+                        startPosition,
+                        length,
                         DeleteToEnd,
-                        arg));
-
-                    _singleton._buffer.Remove(_singleton._current, length);
+                        arg);
 
                     // the cursor will go back one character, unless at the beginning of the line
                     var endOfLineCursorPos = GetEndOfLogicalLinePos(_singleton._current) - 1;
@@ -282,14 +279,13 @@ namespace Microsoft.PowerShell
 
         private static void DeleteToEndPoint(object arg, int endPoint, Action<ConsoleKeyInfo?, object> instigator)
         {
-            _singleton.SaveToClipboard(_singleton._current, endPoint - _singleton._current);
-            _singleton.SaveEditItem(EditItemDelete.Create(
-                _clipboard,
+            _singleton.RemoveTextToClipboard(
                 _singleton._current,
+                endPoint - _singleton._current,
                 instigator,
                 arg
-                ));
-            _singleton._buffer.Remove(_singleton._current, endPoint - _singleton._current);
+                );
+
             if (_singleton._current >= _singleton._buffer.Length)
             {
                 _singleton._current = Math.Max(0, _singleton._buffer.Length - 1);
@@ -301,14 +297,12 @@ namespace Microsoft.PowerShell
         {
             int deleteLength = _singleton._current - endPoint + 1;
 
-            _singleton.SaveToClipboard(endPoint, deleteLength);
-            _singleton.SaveEditItem(EditItemDelete.Create(
-                _clipboard,
+            _singleton.RemoveTextToClipboard(
                 endPoint,
+                deleteLength,
                 instigator,
-                arg
-                ));
-            _singleton._buffer.Remove(endPoint, deleteLength);
+                arg);
+
             _singleton._current = endPoint;
             _singleton.Render();
         }
@@ -324,21 +318,8 @@ namespace Microsoft.PowerShell
             {
                 endPoint = _singleton.ViFindNextGlob(endPoint);
             }
-            int length = endPoint - _singleton._current;
 
-            _singleton.SaveToClipboard(_singleton._current, length);
-            _singleton.SaveEditItem(EditItemDelete.Create(
-                _clipboard,
-                _singleton._current,
-                ViDeleteGlob,
-                arg
-                ));
-            _singleton._buffer.Remove(_singleton._current, length);
-            if (_singleton._current >= _singleton._buffer.Length)
-            {
-                _singleton._current = Math.Max(0, _singleton._buffer.Length - 1);
-            }
-            _singleton.Render();
+            DeleteToEndPoint(arg, endPoint, ViDeleteGlob);
         }
 
         /// <summary>
@@ -358,19 +339,8 @@ namespace Microsoft.PowerShell
                 Ding();
                 return;
             }
-            _singleton.SaveToClipboard(_singleton._current, 1 + endPoint - _singleton._current);
-            _singleton.SaveEditItem(EditItemDelete.Create(
-                _clipboard,
-                _singleton._current,
-                DeleteEndOfWord,
-                arg
-                ));
-            _singleton._buffer.Remove(_singleton._current, 1 + endPoint - _singleton._current);
-            if (_singleton._current >= _singleton._buffer.Length)
-            {
-                _singleton._current = Math.Max(0, _singleton._buffer.Length - 1);
-            }
-            _singleton.Render();
+
+            DeleteToEndPoint(arg, 1 + endPoint, DeleteEndOfWord);
         }
 
         /// <summary>
@@ -385,19 +355,7 @@ namespace Microsoft.PowerShell
                 endPoint = _singleton.ViFindGlobEnd(endPoint);
             }
 
-            _singleton.SaveToClipboard(_singleton._current, 1 + endPoint - _singleton._current);
-            _singleton.SaveEditItem(EditItemDelete.Create(
-                _clipboard,
-                _singleton._current,
-                ViDeleteEndOfGlob,
-                arg
-                ));
-            _singleton._buffer.Remove(_singleton._current, 1 + endPoint - _singleton._current);
-            if (_singleton._current >= _singleton._buffer.Length)
-            {
-                _singleton._current = Math.Max(0, _singleton._buffer.Length - 1);
-            }
-            _singleton.Render();
+            DeleteToEndPoint(arg, 1 + endPoint, ViDeleteEndOfGlob);
         }
 
         /// <summary>
@@ -731,10 +689,12 @@ namespace Microsoft.PowerShell
                     }
                 }
 
-                _singleton.SaveToClipboard(i, _singleton._current - i);
-                _singleton.SaveEditItem(EditItemDelete.Create(_clipboard, i, DeleteLineToFirstChar));
+                _singleton.RemoveTextToClipboard(
+                    i,
+                    _singleton._current - i,
+                    DeleteLineToFirstChar,
+                    arg);
 
-                _singleton._buffer.Remove(i, _singleton._current - i);
                 _singleton._current = i;
                 _singleton.Render();
             }
@@ -897,14 +857,12 @@ namespace Microsoft.PowerShell
                 Ding();
                 return;
             }
-            _clipboard.Record(_singleton._buffer, deletePoint, _singleton._current - deletePoint);
-            _singleton.SaveEditItem(EditItemDelete.Create(
-                _clipboard,
+            _singleton.RemoveTextToClipboard(
                 deletePoint,
+                _singleton._current - deletePoint,
                 BackwardDeleteWord,
-                arg
-                ));
-            _singleton._buffer.Remove(deletePoint, _singleton._current - deletePoint);
+                arg);
+
             _singleton._current = deletePoint;
             _singleton.Render();
         }
@@ -930,14 +888,12 @@ namespace Microsoft.PowerShell
                 Ding();
                 return;
             }
-            _clipboard.Record(_singleton._buffer, deletePoint, _singleton._current - deletePoint);
-            _singleton.SaveEditItem(EditItemDelete.Create(
-                _clipboard,
+            _singleton.RemoveTextToClipboard(
                 deletePoint,
+                _singleton._current - deletePoint,
                 BackwardDeleteWord,
-                arg
-                ));
-            _singleton._buffer.Remove(deletePoint, _singleton._current - deletePoint);
+                arg);
+
             _singleton._current = deletePoint;
             _singleton.Render();
         }
@@ -973,10 +929,12 @@ namespace Microsoft.PowerShell
         {
             int length = last - first + 1;
 
-            _singleton.SaveToClipboard(first, length);
-            _singleton.SaveEditItem(EditItemDelete.Create(_clipboard, first, action));
+            _singleton.RemoveTextToClipboard(
+                first,
+                length,
+                action);
+
             _singleton._current = first;
-            _singleton._buffer.Remove(first, length);
             _singleton.Render();
         }
 

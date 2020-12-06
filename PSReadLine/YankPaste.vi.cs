@@ -71,6 +71,26 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
+        /// Removes a portion of text from the buffer
+        /// and saves it to the clipboard in order to support undo.
+        /// </summary>
+        /// <param name="start"></param>
+        /// <param name="count"></param>
+        /// <param name="instigator"></param>
+        /// <param name="arg"></param>
+        private void RemoveTextToClipboard(int start, int count, Action<ConsoleKeyInfo?, object> instigator = null, object arg = null)
+        {
+            _singleton.SaveToClipboard(start, count);
+            _singleton.SaveEditItem(EditItemDelete.Create(
+                _clipboard,
+                start,
+                instigator,
+                arg
+                ));
+            _singleton._buffer.Remove(start, count);
+        }
+
+        /// <summary>
         /// Yank the entire buffer.
         /// </summary>
         public static void ViYankLine(ConsoleKeyInfo? key = null, object arg = null)
@@ -142,7 +162,7 @@ namespace Microsoft.PowerShell
             var length = end - start + 1;
             if (length > 0)
             {
-                _clipboard.Record(_singleton._buffer, start, length);
+                _singleton.SaveToClipboard(start, length);
             }
         }
 
@@ -255,7 +275,7 @@ namespace Microsoft.PowerShell
             var length = _singleton._current - start; 
             if (length > 0)
             {
-                _clipboard.Record(_singleton._buffer, start, length);
+                _singleton.SaveToClipboard(start, length);
                 _singleton.MoveCursor(start);
             }
         }
@@ -269,7 +289,7 @@ namespace Microsoft.PowerShell
             var length = _singleton._current - start;
             if (length > 0)
             {
-                _clipboard.Record(_singleton._buffer, start, length);
+                _singleton.SaveToClipboard(start, length);
                 _singleton.MoveCursor(start);
             }
         }
