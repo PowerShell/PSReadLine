@@ -476,7 +476,7 @@ If there are other parse errors, unresolved commands, or incorrect parameters, s
     <value>Switches to insert mode after positioning the cursor past the end of the line.</value>
   </data>
   <data name="DeleteLineToFirstCharDescription" xml:space="preserve">
-    <value>Deletes all of the line except for leading whitespace.</value>
+    <value>Deletes from the first non blank character of the current logical line in a multiline buffer.</value>
   </data>
   <data name="BackwardReplaceCharDescription" xml:space="preserve">
     <value>Replaces the character in front of the cursor.</value>

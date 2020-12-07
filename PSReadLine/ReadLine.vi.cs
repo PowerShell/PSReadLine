@@ -722,14 +722,7 @@ namespace Microsoft.PowerShell
         {
             if (_singleton._current > 0)
             {
-                int i = 0;
-                for (; i < _singleton._current; i++)
-                {
-                    if (!Char.IsWhiteSpace(_singleton._buffer[i]))
-                    {
-                        break;
-                    }
-                }
+                var i = GetFirstNonBlankOfLogicalLinePos(_singleton._current);
 
                 _singleton.SaveToClipboard(i, _singleton._current - i);
                 _singleton.SaveEditItem(EditItemDelete.Create(_clipboard, i, DeleteLineToFirstChar));

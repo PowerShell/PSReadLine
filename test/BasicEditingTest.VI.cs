@@ -550,6 +550,25 @@ namespace Test
         }
 
         [SkippableFact]
+        public void ViDeleteLineToFirstChar()
+        {
+            TestSetup(KeyMode.Vi);
+
+            int continuationPrefixLength = PSConsoleReadLineOptions.DefaultContinuationPrompt.Length;
+
+            Test("\"\n   some spaces\n\"", Keys(
+                _.DQuote, _.Enter,
+                "   this is a line with some spaces", _.Enter,
+                _.DQuote, _.Escape,
+                "k6W",
+                CheckThat(() => AssertCursorLeftIs(continuationPrefixLength + 23)),
+                // delete from first non blank of line
+                "d^",
+                CheckThat(() => AssertCursorLeftIs(continuationPrefixLength + 3))
+            ));
+        }
+
+        [SkippableFact]
         public void ViDeleteNextLines()
         {
             TestSetup(KeyMode.Vi);
