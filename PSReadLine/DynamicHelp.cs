@@ -158,7 +158,7 @@ namespace Microsoft.PowerShell
             dynHelp.DrawMultilineBlock(dynHelp);
             dynHelp.RestoreCursor();
             ReadKey();
-            dynHelp.Clear();            
+            dynHelp.Clear();
         }
 
         private void WriteParameterHelp(dynamic helpContent)
