@@ -621,11 +621,11 @@ namespace Test
                 "0dfg"
                 ));
 
-            Test("", Keys(
+            Test("g", Keys(
                 "abcdefg", _.Escape, CheckThat(() => AssertLineIs("abcdefg")),
-                "dFa", _.Escape, CheckThat(() => AssertLineIs("")),
+                "dFa", _.Escape, CheckThat(() => AssertLineIs("g")),
                 'u', CheckThat(() => AssertCursorLeftIs(6)),
-                "dFb", CheckThat(() => AssertLineIs("a")),
+                "dFb", CheckThat(() => AssertLineIs("ag")),
                 'u', CheckThat(() => AssertCursorLeftIs(6)),
                 "dFa"
                 ));
@@ -644,10 +644,10 @@ namespace Test
 
             Test("0123456", Keys(
                 "0123456", _.Escape, CheckThat(() => AssertLineIs("0123456")),
-                "dT0", CheckThat(() => AssertLineIs("0")),
+                "dT0", CheckThat(() => AssertLineIs("06")),
                 'u', CheckThat(() => AssertLineIs("0123456")), CheckThat(() => AssertCursorLeftIs(6)),
-                "hdT0", CheckThat(() => AssertLineIs("06")),
-                'u', CheckThat(() => AssertLineIs("0123456")), CheckThat(() => AssertCursorLeftIs(6)),
+                "hdT0", CheckThat(() => AssertLineIs("056")),
+                'u', CheckThat(() => AssertLineIs("0123456")), CheckThat(() => AssertCursorLeftIs(5)),
                 "0dT0"
                 ));
         }

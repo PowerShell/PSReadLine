@@ -299,7 +299,7 @@ namespace Microsoft.PowerShell
 
         private static void DeleteBackwardToEndPoint(object arg, int endPoint, Action<ConsoleKeyInfo?, object> instigator)
         {
-            int deleteLength = _singleton._current - endPoint + 1;
+            int deleteLength = _singleton._current - endPoint;
 
             _singleton.SaveToClipboard(endPoint, deleteLength);
             _singleton.SaveEditItem(EditItemDelete.Create(
