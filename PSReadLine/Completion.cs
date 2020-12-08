@@ -424,17 +424,16 @@ namespace Microsoft.PowerShell
 
         private class Menu : DisplayBlockBase
         {
-            internal int BufferLines;
-            internal int ToolTipLines;
             internal int PreviousTop;
             internal int ColumnWidth;
+            internal int BufferLines;
             internal int Rows;
             internal int Columns;
+            internal int ToolTipLines;
 
             internal Collection<CompletionResult> MenuItems;
             internal CompletionResult CurrentMenuItem => MenuItems[CurrentSelection];
             internal int CurrentSelection;
-
 
             public void DrawMenu(Menu previousMenu, bool menuSelect)
             {

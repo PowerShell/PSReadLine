@@ -13,10 +13,6 @@ namespace Microsoft.PowerShell
         {
             internal PSConsoleReadLine Singleton;
             internal int Top;
-            //internal int PreviousTop;
-            //internal int ColumnWidth;
-            //internal int Rows;
-            //internal int Columns;
 
             private protected void MoveCursorDown(int cnt)
             {
@@ -27,7 +23,7 @@ namespace Microsoft.PowerShell
                 }
             }
 
-            private protected void AdjustForPossibleScroll(int cnt)
+            protected void AdjustForPossibleScroll(int cnt)
             {
                 IConsole console = Singleton._console;
                 var scrollCnt = console.CursorTop + cnt + 1 - console.BufferHeight;
@@ -50,30 +46,6 @@ namespace Microsoft.PowerShell
             }
 
             public void RestoreCursor() => Singleton._console.SetCursorPosition(_savedCursorLeft, _savedCursorTop);
-
-            private protected void WriteBlankLines(int top, int count)
-            {
-                SaveCursor();
-                Singleton._console.SetCursorPosition(0, top);
-                Singleton.WriteBlankLines(count);
-                RestoreCursor();
-            }
-
-            private protected static string GetItem(string item, int columnWidth)
-            {
-                item = HandleNewlinesForPossibleCompletions(item);
-                var spacesNeeded = columnWidth - LengthInBufferCells(item);
-                if (spacesNeeded > 0)
-                {
-                    item = item + Spaces(spacesNeeded);
-                }
-                else if (spacesNeeded < 0)
-                {
-                    item = SubstringByCells(item, columnWidth - 3) + "...";
-                }
-
-                return item;
-            }
         }
     }
 }

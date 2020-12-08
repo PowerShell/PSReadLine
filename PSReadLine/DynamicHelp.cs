@@ -282,7 +282,7 @@ namespace Microsoft.PowerShell
             public void Clear()
             {
                 // Add 1 for the movement to next line before displaying block
-                WriteBlankLines(Top, Rows + multilineItems + 1);
+                _singleton.WriteBlankLines(Top, Rows + multilineItems + 1);
             }
         }
     }
