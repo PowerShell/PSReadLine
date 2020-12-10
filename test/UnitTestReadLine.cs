@@ -25,6 +25,7 @@ namespace Test
         internal IReadOnlyList<string> commandHistory;
         internal Guid acceptedPredictorId;
         internal string acceptedSuggestion;
+        internal string helpContentRendered;
 
         internal void ClearPredictionFields()
         {
@@ -73,9 +74,9 @@ namespace Test
             return ReadLine.GetDynamicHelpContent(commandName, parameterName, isFullHelp);
         }
 
-        public void WriteToPager(string content, string regexPatternToScrollTo)
+        public void RenderFullHelp(string content, string regexPatternToScrollTo)
         {
-            ReadLine.WriteToPager(content, regexPatternToScrollTo);
+            helpContentRendered = content;
         }
     }
 

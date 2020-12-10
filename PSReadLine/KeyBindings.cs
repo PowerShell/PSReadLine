@@ -234,6 +234,8 @@ namespace Microsoft.PowerShell
                 { Keys.AltD,                   MakeKeyHandler(KillWord,                  "KillWord") },
                 { Keys.CtrlAt,                 MakeKeyHandler(MenuComplete,              "MenuComplete") },
                 { Keys.CtrlW,                  MakeKeyHandler(BackwardKillWord,          "BackwardKillWord") },
+                { Keys.AltH,                   MakeKeyHandler(ShowParameterHelp,         "ShowParameterHelp") },
+                { Keys.F1,                     MakeKeyHandler(ShowCommandHelp,           "ShowCommandHelp") }
             };
 
             // Some bindings are not available on certain platforms
@@ -251,9 +253,6 @@ namespace Microsoft.PowerShell
                 _dispatchTable.Add(Keys.PageDown,     MakeKeyHandler(ScrollDisplayDown,     "ScrollDisplayDown"));
                 _dispatchTable.Add(Keys.CtrlPageUp,   MakeKeyHandler(ScrollDisplayUpLine,   "ScrollDisplayUpLine"));
                 _dispatchTable.Add(Keys.CtrlPageDown, MakeKeyHandler(ScrollDisplayDownLine, "ScrollDisplayDownLine"));
-
-                _dispatchTable.Add(Keys.AltH, MakeKeyHandler(DynamicHelpParameter, "DynamicHelpParameter"));
-                _dispatchTable.Add(Keys.F1,   MakeKeyHandler(DynamicHelpFullHelp,  "DynamicHelpFullHelp"));
             }
 
             _chordDispatchTable = new Dictionary<PSKeyInfo, Dictionary<PSKeyInfo, KeyHandler>>();
@@ -331,6 +330,8 @@ namespace Microsoft.PowerShell
                 { Keys.AltPeriod,       MakeKeyHandler(YankLastArg,          "YankLastArg") },
                 { Keys.AltUnderbar,     MakeKeyHandler(YankLastArg,          "YankLastArg") },
                 { Keys.CtrlAltY,        MakeKeyHandler(YankNthArg,           "YankNthArg") },
+                { Keys.AltH,            MakeKeyHandler(ShowParameterHelp,      "ShowParameterHelp") },
+                { Keys.F1,              MakeKeyHandler(ShowCommandHelp,        "ShowCommandHelp") }
             };
 
             // Some bindings are not available on certain platforms

@@ -30,7 +30,7 @@ namespace Microsoft.PowerShell
             void OnCommandLineAccepted(IReadOnlyList<string> history);
             void OnSuggestionAccepted(Guid predictorId, string suggestionText);
             object GetDynamicHelpContent(string commandName, string parameterName, bool isFullHelp);
-            void WriteToPager(string content, string regexPatternToScrollTo);
+            void RenderFullHelp(string content, string regexPatternToScrollTo);
         }
 
         [SuppressMessage("Microsoft.MSInternal", "CA903:InternalNamespaceShouldNotContainPublicTypes")]

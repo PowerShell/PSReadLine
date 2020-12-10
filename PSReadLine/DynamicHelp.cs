@@ -17,15 +17,12 @@ namespace Microsoft.PowerShell
     public partial class PSConsoleReadLine
     {
         private Microsoft.PowerShell.Pager _pager;
-        private static System.Management.Automation.PowerShell _ps;
-
-        public static bool EnableDynHelpTestHook;
 
         /// <summary>
         /// Attempt to show help content.
         /// Show the full help for the command on the alternate screen buffer.
         /// </summary>
-        public static void DynamicHelpFullHelp(ConsoleKeyInfo? key = null, object arg = null)
+        public static void ShowCommandHelp(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.DynamicHelpImpl(isFullHelp: true);
         }
@@ -34,43 +31,71 @@ namespace Microsoft.PowerShell
         /// Attempt to show help content.
         /// Show the short help of the parameter next to the cursor.
         /// </summary>
-        public static void DynamicHelpParameter(ConsoleKeyInfo? key = null, object arg = null)
+        public static void ShowParameterHelp(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.DynamicHelpImpl(isFullHelp: false);
         }
 
         object IPSConsoleReadLineMockableMethods.GetDynamicHelpContent(string commandName, string parameterName, bool isFullHelp)
         {
-            if (!String.IsNullOrEmpty(commandName) && isFullHelp)
+            if (string.IsNullOrEmpty(commandName))
             {
-                _ps ??= System.Management.Automation.PowerShell.Create(RunspaceMode.CurrentRunspace);
-                _ps.Commands.Clear();
-
-                return _ps
-                    .AddCommand($"Microsoft.PowerShell.Core\\Get-Help")
-                    .AddParameter("Name", commandName)
-                    .AddParameter("Full", value: true)
-                    .AddCommand($"Microsoft.PowerShell.Utility\\Out-String")
-                    .Invoke<string>()
-                    .FirstOrDefault();
+                return null;
             }
-            else if (!String.IsNullOrEmpty(commandName) && !String.IsNullOrEmpty(parameterName) && !isFullHelp)
-            {
-                _ps ??= System.Management.Automation.PowerShell.Create(RunspaceMode.CurrentRunspace);
-                _ps.Commands.Clear();
 
-                return _ps
+            try
+            {
+                System.Management.Automation.PowerShell ps;
+                if (!_mockableMethods.RunspaceIsRemote(_runspace))
+                {
+                    ps = System.Management.Automation.PowerShell.Create(RunspaceMode.CurrentRunspace);
+                }
+                else
+                {
+                    ps = System.Management.Automation.PowerShell.Create();
+                    ps.Runspace = _runspace;
+                }
+
+                if (isFullHelp)
+                {
+                    return ps
+                        .AddCommand($"Microsoft.PowerShell.Core\\Get-Help")
+                        .AddParameter("Name", commandName)
+                        .AddParameter("Full", value: true)
+                        .AddCommand($"Microsoft.PowerShell.Utility\\Out-String")
+                        .Invoke<string>()
+                        .FirstOrDefault();
+                }
+
+                if (string.IsNullOrEmpty(parameterName))
+                {
+                    return null;
+                }
+
+                return ps
                     .AddCommand("Microsoft.PowerShell.Core\\Get-Help")
                     .AddParameter("Name", commandName)
                     .AddParameter("Parameter", parameterName)
                     .Invoke<PSObject>()
                     .FirstOrDefault();
             }
-
-            return null;
+            catch (Exception)
+            {
+                return null;
+            }
+            finally
+            {
+                // GetDynamicHelpContent could scroll the screen, e.g. via Write-Progress. For example,
+                // cd <TAB> under the CloudShell Azure drive will show the progress bar while fetching data.
+                // We need to update the _initialY in case the current cursor postion has changed.
+                if (_singleton._initialY > _console.CursorTop)
+                {
+                    _singleton._initialY = _console.CursorTop;
+                }
+            }
         }
 
-        void IPSConsoleReadLineMockableMethods.WriteToPager(string content, string regexPatternToScrollTo)
+        void IPSConsoleReadLineMockableMethods.RenderFullHelp(string content, string regexPatternToScrollTo)
         {
             _pager.Write(content, regexPatternToScrollTo);
         }
@@ -79,40 +104,31 @@ namespace Microsoft.PowerShell
         {
             var helpContent = _mockableMethods.GetDynamicHelpContent(commandName, parameterName, isFullHelp);
 
-            if (!String.IsNullOrEmpty(commandName) && isFullHelp)
+            if (helpContent is string fullHelp && fullHelp.Length > 0)
             {
-                if (helpContent is String fullHelp && !String.IsNullOrEmpty(fullHelp))
+                string regexPatternToScrollTo = null;
+
+                if (!string.IsNullOrEmpty(parameterName))
                 {
-                    string regexPatternToScrollTo = null;
-
-                    if (!String.IsNullOrEmpty(parameterName))
-                    {
-                        string upper = parameterName[0].ToString().ToUpperInvariant();
-                        string lower = parameterName[0].ToString().ToLowerInvariant();
-                        string remainingString = parameterName.Substring(1);
-                        regexPatternToScrollTo = $"-[{upper}|{lower}]{remainingString} [<|\\[]";
-                    }
-
-                    _mockableMethods.WriteToPager(fullHelp, regexPatternToScrollTo);
+                    string upper = parameterName[0].ToString().ToUpperInvariant();
+                    string lower = parameterName[0].ToString().ToLowerInvariant();
+                    string remainingString = parameterName.Substring(1);
+                    regexPatternToScrollTo = $"-[{upper}|{lower}]{remainingString} [<|\\[]";
                 }
+
+                _mockableMethods.RenderFullHelp(fullHelp, regexPatternToScrollTo);
             }
-            else if (!String.IsNullOrEmpty(commandName) && !String.IsNullOrEmpty(parameterName))
+            else if (helpContent is PSObject paramHelp)
             {
-                if (helpContent is PSObject paramHelp)
-                {
-                    WriteParameterHelp(paramHelp);
-                }
+                WriteParameterHelp(paramHelp);
             }
         }
 
         private void DynamicHelpImpl(bool isFullHelp)
         {
-            _pager ??= new Pager();
-
-            if (InViInsertMode())   // must close out the current edit group before engaging menu completion
+            if (isFullHelp)
             {
-                ViCommandMode();
-                ViInsertWithAppend();
+                _pager ??= new Pager();
             }
 
             int cursor = _singleton._current;
@@ -121,12 +137,18 @@ namespace Microsoft.PowerShell
 
             foreach(var token in _singleton._tokens)
             {
+                var extent = token.Extent;
+
+                if (extent.EndOffset > cursor)
+                {
+                    break;
+                }
+
                 if (token.TokenFlags == TokenFlags.CommandName)
                 {
                     commandName = token.Text;
                 }
 
-                var extent = token.Extent;
                 if (extent.StartOffset <= cursor && extent.EndOffset >= cursor)
                 {
                     if (token.Kind == TokenKind.Parameter)
@@ -143,20 +165,14 @@ namespace Microsoft.PowerShell
         private void WriteDynamicHelpBlock(Collection<string> helpBlock)
         {
             var bufferWidth = _console.BufferWidth;
-            var colWidth = Math.Min(helpBlock.Max(s => LengthInBufferCells(s)) + 2, bufferWidth);
-            int columns = 1;
 
             var dynHelp = new MultilineDisplayBlock
             {
                 Singleton = this,
-                ColumnWidth = colWidth,
-                Rows = (helpBlock.Count + columns - 1) / columns,
                 ItemsToDisplay = helpBlock
             };
 
-            dynHelp.SaveCursor();
-            dynHelp.DrawMultilineBlock(dynHelp);
-            dynHelp.RestoreCursor();
+            dynHelp.DrawMultilineBlock();
             ReadKey();
             dynHelp.Clear();
         }
@@ -165,7 +181,7 @@ namespace Microsoft.PowerShell
         {
             Collection<string> helpBlock;
 
-            if (helpContent == null || String.IsNullOrEmpty(helpContent?.Description?[0]?.Text))
+            if (helpContent == null || string.IsNullOrEmpty(helpContent?.Description?[0]?.Text))
             {
                 helpBlock = new Collection<string>()
                 {
@@ -177,13 +193,17 @@ namespace Microsoft.PowerShell
             {
                 string syntax = $"-{helpContent.name} <{helpContent.type.name}>";
                 string desc = "DESC: " + helpContent.Description[0].Text;
+                
+                // trim new line characters as some help content has it at the end of the first list on the description.
+                desc = desc.Trim('\r', '\n');
+                
                 string details = $"Required: {helpContent.required}, Position: {helpContent.position}, Default Value: {helpContent.defaultValue}, Pipeline Input: {helpContent.pipelineInput}, WildCard: {helpContent.globbing}";
 
                 helpBlock = new Collection<string>
                 {
-                    String.Empty,
+                    string.Empty,
                     syntax,
-                    String.Empty,
+                    string.Empty,
                     desc,
                     details
                 };
@@ -196,16 +216,15 @@ namespace Microsoft.PowerShell
         {
             internal Collection<string> ItemsToDisplay;
 
-            internal int Rows;
-            internal int ColumnWidth;
-
             private int multilineItems = 0;
 
-            public void DrawMultilineBlock(MultilineDisplayBlock multilineBlock)
+            public void DrawMultilineBlock()
             {
                 IConsole console = Singleton._console;
 
                 multilineItems = 0;
+
+                this.SaveCursor();
 
                 // Move cursor to the start of the first line after our input.
                 var bufferEndPoint = Singleton.ConvertOffsetToPoint(Singleton._buffer.Length);
@@ -218,71 +237,40 @@ namespace Microsoft.PowerShell
                 MoveCursorDown(1);
 
                 var bufferWidth = console.BufferWidth;
-                var columnWidth = this.ColumnWidth;
 
                 var items = this.ItemsToDisplay;
-                for (var row = 0; row < this.Rows; row++)
+
+                for (var index = 0; index < items.Count; index++)
                 {
-                    var cells = 0;
-                    if (row >= items.Count)
+                    if (items[index].Length > bufferWidth)
                     {
-                        break;
+                        // if the length required is exactly a multiple of buffer width.
+                        multilineItems += items[index].Length / bufferWidth;
+
+                        /* if the item length is more than the buffer width it needs 1 extra line for the remaining characters.
+                        if (items[index].Length % bufferWidth != 0)
+                        {
+                            multilineItems++;
+                        }*/
                     }
 
-                    var itemToWrite = items[row];
-
-                    if(itemToWrite.Length > bufferWidth)
-                    {
-                        multilineItems++;
-                    }
-
-                    console.Write(itemToWrite);
-                    cells += columnWidth;
-
-                    // Make sure we always write out exactly 1 buffer width to erase anything
-                    // from a previous menu.
-                    if (cells < bufferWidth)
-                    {
-                        // 'BlankRestOfLine' erases rest of the current line, but the cursor is not moved.
-                        console.BlankRestOfLine();
-                    }
+                    console.Write(items[index]);
 
                     // Explicit newline so consoles see each row as distinct lines, but skip the
                     // last line so we don't scroll.
-                    if (row != (this.Rows - 1))
+                    if (index != (items.Count - 1))
                     {
                         AdjustForPossibleScroll(1);
                         MoveCursorDown(1);
                     }
                 }
 
-                if (multilineBlock != null)
-                {
-                    if (Rows < multilineBlock.Rows)
-                    {
-                        // If the last menu row took the whole buffer width, then the cursor could be pushed to the
-                        // beginning of the next line in the legacy console host (NOT in modern terminals such as
-                        // Windows Terminal, VSCode Terminal, or virtual-terminal-enabled console host). In such a
-                        // case, there is no need to move the cursor to the next line.
-                        //
-                        // If that is not the case, namely 'CursorLeft != 0', then the rest of the last menu row was
-                        // erased, but the cursor was not moved to the next line, so we will move the cursor.
-                        if (console.CursorLeft != 0)
-                        {
-                            // There are lines from the previous rendering that need to be cleared,
-                            // so we are sure there is no need to scroll.
-                            MoveCursorDown(1);
-                        }
-
-                        Singleton.WriteBlankLines(multilineBlock.Rows - Rows);
-                    }
-                }
+                this.RestoreCursor();
             }
 
             public void Clear()
             {
-                // Add 1 for the movement to next line before displaying block
-                _singleton.WriteBlankLines(Top, Rows + multilineItems + 1);
+                _singleton.WriteBlankLines(Top, ItemsToDisplay.Count + multilineItems);
             }
         }
     }

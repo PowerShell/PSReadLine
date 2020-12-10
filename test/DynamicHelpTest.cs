@@ -39,65 +39,65 @@ PARAMETERS
         {
             string descText = @"Specifies a date and time. Time is optional and if not specified, returns 00:00:00.";
 
-            if (!String.IsNullOrEmpty(commandName) && isFullHelp)
+            if (string.IsNullOrEmpty(commandName))
+            {
+                return null;
+            }
+
+            if (isFullHelp)
             {
                 return fullHelp;
             }
-            else if (!String.IsNullOrEmpty(commandName) && !String.IsNullOrEmpty(parameterName))
+
+            if (string.IsNullOrEmpty(parameterName))
             {
-                PSObject paramHelp = new PSObject();
-
-                if (String.Equals(commandName, "Get-FakeHelp", StringComparison.OrdinalIgnoreCase) && String.Equals(parameterName, "Fake", StringComparison.OrdinalIgnoreCase))
-                {
-                    PSObject[] descDetails = new PSObject[1];
-                    descDetails[0] = new PSObject();
-                    descDetails[0].Members.Add(new PSNoteProperty("Text", null));
-
-                }
-                else if (String.Equals(commandName, "Get-Date", StringComparison.OrdinalIgnoreCase) && String.Equals(parameterName, "Date", StringComparison.OrdinalIgnoreCase))
-                {
-                    PSObject[] descDetails = new PSObject[1];
-                    descDetails[0] = new PSObject();
-                    descDetails[0].Members.Add(new PSNoteProperty("Text", descText));
-
-                    var np = new PSNoteProperty("name", "System.Datetime");
-                    np.Value = "System.Datetime";
-
-                    var typeName = new PSObject(np);
-
-                    paramHelp.Members.Add(new PSNoteProperty("Description", descDetails));
-                    paramHelp.Members.Add(new PSNoteProperty("Name", "Date"));
-                    paramHelp.Members.Add(new PSNoteProperty("type", typeName));
-                    paramHelp.Members.Add(new PSNoteProperty("required", "false"));
-                    paramHelp.Members.Add(new PSNoteProperty("position", "0"));
-                    paramHelp.Members.Add(new PSNoteProperty("defaultValue", "None"));
-                    paramHelp.Members.Add(new PSNoteProperty("pipelineInput", "True (ByPropertyName, ByValue)"));
-                    paramHelp.Members.Add(new PSNoteProperty("globbing", "false"));
-                }
-
-                return paramHelp;
+                return null;
             }
 
-            return null;
-        }
+            if (string.IsNullOrEmpty(parameterName))
+            {
+                return null;
+            }
 
-        internal static void WriteToPager(string content, string regexPatternToScrollTo)
-        {
-            actualContent = content;
-            PSConsoleReadLine.ReadKey();
-        }
+            PSObject paramHelp = new PSObject();
 
+            if (string.Equals(commandName, "Get-FakeHelp", StringComparison.OrdinalIgnoreCase) && string.Equals(parameterName, "Fake", StringComparison.OrdinalIgnoreCase))
+            {
+                PSObject[] descDetails = new PSObject[1];
+                descDetails[0] = new PSObject();
+                descDetails[0].Members.Add(new PSNoteProperty("Text", null));
+            }
+            else if (string.Equals(commandName, "Get-Date", StringComparison.OrdinalIgnoreCase) && string.Equals(parameterName, "Date", StringComparison.OrdinalIgnoreCase))
+            {
+                PSObject[] descDetails = new PSObject[1];
+                descDetails[0] = new PSObject();
+                descDetails[0].Members.Add(new PSNoteProperty("Text", descText));
+
+                var np = new PSNoteProperty("name", "System.Datetime");
+                np.Value = "System.Datetime";
+
+                var typeName = new PSObject(np);
+
+                paramHelp.Members.Add(new PSNoteProperty("Description", descDetails));
+                paramHelp.Members.Add(new PSNoteProperty("Name", "Date"));
+                paramHelp.Members.Add(new PSNoteProperty("type", typeName));
+                paramHelp.Members.Add(new PSNoteProperty("required", "false"));
+                paramHelp.Members.Add(new PSNoteProperty("position", "0"));
+                paramHelp.Members.Add(new PSNoteProperty("defaultValue", "None"));
+                paramHelp.Members.Add(new PSNoteProperty("pipelineInput", "True (ByPropertyName, ByValue)"));
+                paramHelp.Members.Add(new PSNoteProperty("globbing", "false"));
+            }
+
+            return paramHelp;
+        }
+                
         [SkippableFact]
         public void DynHelp_GetFullHelp()
         {
             TestSetup(KeyMode.Cmd);
-
-            _console.Clear();
-
             Test("Get-Date", Keys(
                 "Get-Date", _.F1,
-                CheckThat(() => Assert.Equal(fullHelp, actualContent)),
-                _.Enter,
+                CheckThat(() => Assert.Equal(fullHelp, _mockedMethods.helpContentRendered)),
                 _.Enter
                 ));
         }
@@ -105,64 +105,42 @@ PARAMETERS
         [SkippableFact]
         public void DynHelp_GetParameterHelp()
         {
-            PSConsoleReadLine.EnableDynHelpTestHook = true;
+            TestSetup(KeyMode.Cmd);
+            string emptyLine = new string(' ', _console.BufferWidth);
 
-            try
-            {
-                TestSetup(KeyMode.Cmd, new KeyHandler("Alt+h", PSConsoleReadLine.DynamicHelpParameter));
-
-                _console.Clear();
-                string emptyLine = new string(' ', _console.BufferWidth);
-
-                Test("Get-Date -Date", Keys(
-                    "Get-Date -Date", _.Alt_h,
-                    CheckThat(() => AssertScreenIs(9,
-                    TokenClassification.Command, "Get-Date",
-                    TokenClassification.None, " ",
-                    TokenClassification.Parameter, "-Date", NextLine,
-                    emptyLine,
-                    TokenClassification.None, $"-Date <name>", NextLine,
-                    emptyLine,
-                    TokenClassification.None, "DESC: Specifies a date and time. Time is optional and if not", NextLine, " specified, returns 00:00:00.", NextLine,
-                    TokenClassification.None, "Required: false, Position: 0, Default Value: None, Pipeline ", NextLine, "Input: True (ByPropertyName, ByValue), WildCard: false")),
-                    _.Enter,
-                    _.Enter
-                    ));
-            }
-            finally
-            {
-                PSConsoleReadLine.EnableDynHelpTestHook = false;
-            }
+            Test("Get-Date -Date", Keys(
+                "Get-Date -Date", _.Alt_h,
+                CheckThat(() => AssertScreenIs(9,
+                TokenClassification.Command, "Get-Date",
+                TokenClassification.None, " ",
+                TokenClassification.Parameter, "-Date", NextLine,
+                emptyLine,
+                TokenClassification.None, $"-Date <name>", NextLine,
+                emptyLine,
+                TokenClassification.None, "DESC: Specifies a date and time. Time is optional and if not", NextLine, " specified, returns 00:00:00.", NextLine,
+                TokenClassification.None, "Required: false, Position: 0, Default Value: None, Pipeline ", NextLine, "Input: True (ByPropertyName, ByValue), WildCard: false")),
+                _.Enter,
+                _.Enter
+                ));
         }
 
         [SkippableFact]
         public void DynHelp_GetParameterHelpErrorMessage()
         {
-            PSConsoleReadLine.EnableDynHelpTestHook = true;
+            TestSetup(KeyMode.Cmd);
+            string emptyLine = new string(' ', _console.BufferWidth);
 
-            try
-            {
-                TestSetup(KeyMode.Cmd, new KeyHandler("Alt+h", PSConsoleReadLine.DynamicHelpParameter));
-
-                _console.Clear();
-                string emptyLine = new string(' ', _console.BufferWidth);
-
-                Test("Get-FakeHelp -Fake", Keys(
-                    "Get-FakeHelp -Fake", _.Alt_h,
-                    CheckThat(() => AssertScreenIs(3,
-                    TokenClassification.Command, "Get-FakeHelp",
-                    TokenClassification.None, " ",
-                    TokenClassification.Parameter, "-Fake", NextLine,
-                    emptyLine,
-                    TokenClassification.None, "No help content available. Please use Update-Help.")),
-                    _.Enter,
-                    _.Enter
-                    ));
-            }
-            finally
-            {
-                PSConsoleReadLine.EnableDynHelpTestHook = false;
-            }
+            Test("Get-FakeHelp -Fake", Keys(
+                "Get-FakeHelp -Fake", _.Alt_h,
+                CheckThat(() => AssertScreenIs(4,
+                TokenClassification.Command, "Get-FakeHelp",
+                TokenClassification.None, " ",
+                TokenClassification.Parameter, "-Fake", NextLine,
+                emptyLine,
+                TokenClassification.None, "No help content available. Please use Update-Help to downloa", NextLine, "d the latest help content.")),
+                _.Enter,
+                _.Enter
+                ));
         }
     }
 }
