@@ -832,4 +832,7 @@ Or not saving history with:
   <data name="NeedsUpdateHelp" xml:space="preserve">
     <value>No help content available. Please use Update-Help to download the latest help content.</value>
   </data>
+  <data name="LegacyConsoleFullHelpNotSupported" xml:space="preserve">
+    <value>Displaying help content is not supported on this console.</value>
+  </data>
 </root>

@@ -2076,5 +2076,17 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("NeedsUpdateHelp", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Displaying help content is not supported on this console.
+        /// </summary>
+        internal static string LegacyConsoleFullHelpNotSupported
+        {
+            get
+            {
+                return ResourceManager.GetString("LegacyConsoleFullHelpNotSupported", resourceCulture);
+            }
+        }
+
     }
 }

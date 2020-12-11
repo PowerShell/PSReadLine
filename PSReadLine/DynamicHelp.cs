@@ -24,6 +24,19 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void ShowCommandHelp(ConsoleKeyInfo? key = null, object arg = null)
         {
+            if (_singleton._console is PlatformWindows.LegacyWin32Console)
+            {
+                Collection<string> helpBlock = new Collection<string>()
+                {
+                    String.Empty,
+                    PSReadLineResources.LegacyConsoleFullHelpNotSupported
+                };
+
+                _singleton.WriteDynamicHelpBlock(helpBlock);
+
+                return;
+            }
+
             _singleton.DynamicHelpImpl(isFullHelp: true);
         }
 
@@ -193,10 +206,10 @@ namespace Microsoft.PowerShell
             {
                 string syntax = $"-{helpContent.name} <{helpContent.type.name}>";
                 string desc = "DESC: " + helpContent.Description[0].Text;
-                
+
                 // trim new line characters as some help content has it at the end of the first list on the description.
                 desc = desc.Trim('\r', '\n');
-                
+
                 string details = $"Required: {helpContent.required}, Position: {helpContent.position}, Default Value: {helpContent.defaultValue}, Pipeline Input: {helpContent.pipelineInput}, WildCard: {helpContent.globbing}";
 
                 helpBlock = new Collection<string>
@@ -242,16 +255,9 @@ namespace Microsoft.PowerShell
 
                 for (var index = 0; index < items.Count; index++)
                 {
-                    if (items[index].Length > bufferWidth)
+                    if (LengthInBufferCells(items[index]) > bufferWidth)
                     {
-                        // if the length required is exactly a multiple of buffer width.
                         multilineItems += items[index].Length / bufferWidth;
-
-                        /* if the item length is more than the buffer width it needs 1 extra line for the remaining characters.
-                        if (items[index].Length % bufferWidth != 0)
-                        {
-                            multilineItems++;
-                        }*/
                     }
 
                     console.Write(items[index]);
