@@ -49,7 +49,7 @@ namespace Test
                 _.Escape, CheckThat(() => AssertCursorLeftIs(5)),
                 'b', CheckThat(() => AssertCursorLeftIs(4)),
                 "dw", CheckThat(() => AssertLineIs("test")),
-                "ubcw", CheckThat(() => AssertLineIs("test")),
+                "ulbcw", CheckThat(() => AssertLineIs("test")),
                 "[]", _.Escape, CheckThat(() => AssertLineIs("test[]")),
                 'u'
                 ));
@@ -59,8 +59,8 @@ namespace Test
                 CheckThat(() => AssertLineIs(@"vim .\PSReadLine\VisualEditing.vi.cs")),
                 _.Escape, "Bll", CheckThat(() => AssertCursorLeftIs(6)),
                 "cw", _.Escape, CheckThat(() => AssertCursorLeftIs(5)), CheckThat(() => AssertLineIs(@"vim .\\VisualEditing.vi.cs")),
-                'u', CheckThat(() => AssertCursorLeftIs(16)), CheckThat(() => AssertLineIs(@"vim .\PSReadLine\VisualEditing.vi.cs")),
-                "bcwxx", _.Escape, CheckThat(() => AssertCursorLeftIs(7))
+                'u', CheckThat(() => AssertCursorLeftIs(6)), CheckThat(() => AssertLineIs(@"vim .\PSReadLine\VisualEditing.vi.cs")),
+                "cwxx", _.Escape, CheckThat(() => AssertCursorLeftIs(7))
                 ));
 
             Test("$response.Headers['location']", Keys(
