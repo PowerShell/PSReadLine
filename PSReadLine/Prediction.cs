@@ -69,13 +69,17 @@ namespace Microsoft.PowerShell
             Prediction prediction = _singleton._prediction;
             if (prediction.ActiveView is PredictionInlineView inlineView && inlineView.HasActiveSuggestion)
             {
+                var start = inlineView.InputText.Length;
+
                 // Ignore the visual selection.
                 _singleton._visualSelectionCommandCount = 0;
 
                 inlineView.OnSuggestionAccepted();
 
                 using var _ = prediction.DisableScoped();
-                Replace(0, _singleton._buffer.Length, inlineView.SuggestionText);
+
+                _singleton._current = start;
+                Insert(inlineView.SuggestionText.Substring(_singleton._current));
             }
         }
 
@@ -102,17 +106,21 @@ namespace Microsoft.PowerShell
         {
             if (_singleton._prediction.ActiveView is PredictionInlineView inlineView && inlineView.HasActiveSuggestion)
             {
+                var start = Math.Max(0, inlineView.InputText.Length);
+                var index = _singleton._buffer.Length;
+
                 // Ignore the visual selection.
                 _singleton._visualSelectionCommandCount = 0;
 
-                int index = _singleton._buffer.Length;
                 while (numericArg-- > 0 && index < inlineView.SuggestionText.Length)
                 {
                     index = inlineView.FindForwardSuggestionWordPoint(index, _singleton.Options.WordDelimiters);
                 }
 
                 inlineView.OnSuggestionAccepted();
-                Replace(0, _singleton._buffer.Length, inlineView.SuggestionText.Substring(0, index));
+
+                _singleton._current = start;
+                Insert(inlineView.SuggestionText.Substring(start, index - start));
             }
         }
 
