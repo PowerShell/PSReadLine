@@ -278,7 +278,7 @@ namespace Microsoft.PowerShell
             public override void Undo()
             {
                 _singleton._buffer.Insert(_deleteStartPosition, _deletedString);
-                _singleton._current = _deleteStartPosition + _deletedString.Length;
+                _singleton._current = _deleteStartPosition;
             }
 
             public override void Redo()
