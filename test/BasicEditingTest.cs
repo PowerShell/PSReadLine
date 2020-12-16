@@ -212,7 +212,7 @@ namespace Test
             Test("abc", Keys(
                 "abc", CheckThat(() => AssertLineIs("abc")),
                 _.Ctrl_t, CheckThat(() => AssertLineIs("acb")),
-                _.Ctrl_Underbar
+                _.Ctrl_Underbar, CheckThat(() => AssertCursorLeftIs(3))
                 ));
 
             Test("abcd", Keys(

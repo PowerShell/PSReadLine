@@ -657,19 +657,20 @@ namespace Microsoft.PowerShell
             if (cursor == bufferLength)
                 --cursor; // if at end of line, swap previous two chars
 
-            char current = _singleton._buffer[cursor];
-            char previous = _singleton._buffer[cursor - 1];
+            _singleton.SaveEditItem(EditItemSwapCharacters.Create(cursor));
+            _singleton.SwapCharactersImpl(cursor);
 
-            _singleton.StartEditGroup();
-            _singleton.SaveEditItem(EditItemDelete.Create(_singleton._buffer.ToString(cursor - 1, 2), cursor - 1));
-            _singleton.SaveEditItem(EditItemInsertChar.Create(current, cursor - 1));
-            _singleton.SaveEditItem(EditItemInsertChar.Create(previous, cursor));
-            _singleton.EndEditGroup();
-
-            _singleton._buffer[cursor] = previous;
-            _singleton._buffer[cursor - 1] = current;
             _singleton.MoveCursor(Math.Min(cursor + 1, cursorRightLimit));
             _singleton.Render();
+        }
+
+        private void SwapCharactersImpl(int cursor)
+        {
+            char current = _buffer[cursor];
+            char previous = _buffer[cursor - 1];
+
+            _buffer[cursor] = previous;
+            _buffer[cursor - 1] = current;
         }
 
         /// <summary>

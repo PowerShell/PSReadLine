@@ -314,6 +314,32 @@ namespace Microsoft.PowerShell
             }
         }
 
+        [DebuggerDisplay("SwapCharacters")]
+        class EditItemSwapCharacters : EditItem
+        {
+            private readonly int _swapPosition;
+
+            private EditItemSwapCharacters(int swapPosition)
+            {
+                _swapPosition = swapPosition;
+            }
+
+            public static EditItem Create(int swapPosition)
+            { 
+                return new EditItemSwapCharacters(swapPosition);
+            }
+
+            public override void Redo()
+            {
+                Undo();
+            }
+
+            public override void Undo()
+            {
+                _singleton.SwapCharactersImpl(_swapPosition);
+            }
+        }
+
         class GroupedEdit : EditItem
         {
             internal List<EditItem> _groupedEditItems;
