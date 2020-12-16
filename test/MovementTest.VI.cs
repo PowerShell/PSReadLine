@@ -666,5 +666,17 @@ namespace Test
                 _.Escape, "kjw"
                 ));
         }
+
+        [SkippableFact]
+        public void ViDefect1673()
+        {
+            TestSetup(KeyMode.Vi);
+
+            Test("one", Keys(
+                "one", _.Escape, _.D0,
+                _.x, CheckThat(() => AssertLineIs("ne")),
+                _.u, CheckThat(() => AssertCursorLeftIs(0))
+                ));
+        }
     }
 }
