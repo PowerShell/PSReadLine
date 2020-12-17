@@ -11,28 +11,17 @@ namespace Microsoft.PowerShell
         /// <param name="current">The position in the current logical line.</param>
         private static int GetBeginningOfLinePos(int current)
         {
-            var newCurrent = current;
-
-            if (_singleton.LineIsMultiLine())
+            int i = Math.Max(0, current);
+            while (i > 0)
             {
-                int i = Math.Max(0, current);
-                while (i > 0)
+                if (_singleton._buffer[--i] == '\n')
                 {
-                    if (_singleton._buffer[--i] == '\n')
-                    {
-                        i += 1;
-                        break;
-                    }
+                    i += 1;
+                    break;
                 }
-
-                newCurrent = i;
-            }
-            else
-            {
-                newCurrent = 0;
             }
 
-            return newCurrent;
+            return i;
         }
 
         /// <summary>
@@ -114,7 +103,7 @@ namespace Microsoft.PowerShell
 
             var newCurrent = beginningOfLine;
 
-            while (IsVisibleBlank(newCurrent))
+            while (newCurrent < _singleton._buffer.Length && IsVisibleBlank(newCurrent))
             {
                 newCurrent++;
             }

@@ -179,6 +179,16 @@ namespace Test
         }
 
         [SkippableFact]
+        public void ViDefect2050()
+        {
+            TestSetup(KeyMode.Vi);
+
+            Test("", Keys(
+                _.Escape, _.Underbar
+                ));
+        }
+
+        [SkippableFact]
         public void ViMoveToEndOfLine_NoOp_OnEmptyLine()
         {
             TestSetup(KeyMode.Vi);
