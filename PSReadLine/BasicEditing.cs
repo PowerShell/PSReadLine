@@ -432,21 +432,35 @@ namespace Microsoft.PowerShell
             {
                 switch (commandName[0])
                 {
-                // The following are debugger commands that should be accepted if we're debugging
-                // because the console host will interpret these commands directly.
-                case 's': case 'v': case 'o': case 'c': case 'q': case 'k': case 'l':
-                case 'S': case 'V': case 'O': case 'C': case 'Q': case 'K': case 'L':
-                case '?': case 'h': case 'H':
-                    // Ideally we would check $PSDebugContext, but it is set at function
-                    // scope, and because we're in a module, we can't find that variable
-                    // (arguably a PowerShell issue.)
-                    // NestedPromptLevel is good enough though - it's rare to be in a nested.
-                    var nestedPromptLevel = _engineIntrinsics.SessionState.PSVariable.GetValue("NestedPromptLevel");
-                    if (nestedPromptLevel is int)
-                    {
-                        return ((int)nestedPromptLevel) > 0;
-                    }
-                    break;
+                    // The following are debugger commands that should be accepted if we're debugging
+                    // because the console host will interpret these commands directly.
+                    case 's':
+                    case 'v':
+                    case 'o':
+                    case 'c':
+                    case 'q':
+                    case 'k':
+                    case 'l':
+                    case 'S':
+                    case 'V':
+                    case 'O':
+                    case 'C':
+                    case 'Q':
+                    case 'K':
+                    case 'L':
+                    case '?':
+                    case 'h':
+                    case 'H':
+                        // Ideally we would check $PSDebugContext, but it is set at function
+                        // scope, and because we're in a module, we can't find that variable
+                        // (arguably a PowerShell issue.)
+                        // NestedPromptLevel is good enough though - it's rare to be in a nested.
+                        var nestedPromptLevel = _engineIntrinsics.SessionState.PSVariable.GetValue("NestedPromptLevel");
+                        if (nestedPromptLevel is int)
+                        {
+                            return ((int)nestedPromptLevel) > 0;
+                        }
+                        break;
                 }
             }
 
@@ -522,24 +536,16 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void InsertLineBelow(ConsoleKeyInfo? key = null, object arg = null)
         {
-            // Move the current position to the end of the current line and only the current line.
-            if (_singleton.LineIsMultiLine())
+            int i = _singleton._current;
+            for (; i < _singleton._buffer.Length; i++)
             {
-                int i = _singleton._current;
-                for (; i < _singleton._buffer.Length; i++)
+                if (_singleton._buffer[i] == '\n')
                 {
-                    if (_singleton._buffer[i] == '\n')
-                    {
-                        break;
-                    }
+                    break;
                 }
+            }
 
-                _singleton._current = i;
-            }
-            else
-            {
-                _singleton._current = _singleton._buffer.Length;
-            }
+            _singleton._current = i;
 
             Insert('\n');
         }

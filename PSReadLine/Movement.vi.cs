@@ -160,20 +160,13 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void MoveToEndOfLine(ConsoleKeyInfo? key = null, object arg = null)
         {
-            if (_singleton.LineIsMultiLine())
+            var eol = GetEndOfLogicalLinePos(_singleton._current);
+            if (eol != _singleton._current)
             {
-                var eol = GetEndOfLogicalLinePos(_singleton._current);
-                if (eol != _singleton._current)
-                {
-                    _singleton.MoveCursor(eol);
-                }
-                _singleton._moveToEndOfLineCommandCount++;
-                _singleton._moveToLineDesiredColumn = int.MaxValue;
+                _singleton.MoveCursor(eol);
             }
-            else
-            {
-                _singleton.MoveCursor(Math.Max(0, _singleton._buffer.Length + ViEndOfLineFactor));
-            }
+            _singleton._moveToEndOfLineCommandCount++;
+            _singleton._moveToLineDesiredColumn = int.MaxValue;
         }
 
         /// <summary>
