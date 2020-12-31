@@ -142,7 +142,7 @@ namespace Microsoft.PowerShell
         public const int DefaultCompletionQueryItems = 100;
 
         // Default includes all characters PowerShell treats like a dash - em dash, en dash, horizontal bar
-        public const string DefaultWordDelimiters = @";:,.[]{}()/\|^&*-=+'""" + "\u2013\u2014\u2015";
+        public const string DefaultWordDelimiters = @";:,.[]{}()/\|!?^&*-=+'""" + "\u2013\u2014\u2015";
 
         /// <summary>
         /// When ringing the bell, what should be done?

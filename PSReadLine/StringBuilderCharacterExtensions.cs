@@ -35,6 +35,18 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
+        /// Returns true if the character at the specified position is 
+        /// at the end of the buffer
+        /// </summary>
+        /// <param name="buffer"></param>
+        /// <param name="i"></param>
+        /// <returns></returns>
+        public static bool IsAtEndOfBuffer(this StringBuilder buffer, int i)
+        {
+            return i >= (buffer.Length - 1);
+        }
+
+        /// <summary>
         /// Returns true if the character at the specified position is
         /// a unicode whitespace character.
         /// </summary>
