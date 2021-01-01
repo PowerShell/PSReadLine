@@ -51,7 +51,11 @@ Exit
 ```
 
 After installing `PowerShellGet`, you can simply run `Install-Module PSReadLine -AllowPrerelease -Force` to get the latest prerelease version of `PSReadLine`.
-If you only want to get the latest stable version, run `Install-Module PSReadLine`.
+If you only want to get the latest stable version, run:
+
+```powershell
+Install-Module PSReadLine
+```
 
 >[!NOTE] Prerelease versions will have newer features and bug fixes, but may also introduce new issues.
 
