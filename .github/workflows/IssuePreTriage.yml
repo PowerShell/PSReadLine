@@ -1,0 +1,29 @@
+name: Issue Pre-triage
+
+on:
+  schedule:
+    # At 13:00 UTC every day.
+    - cron:  '0 13 * * *'
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: pwsh
+
+env:
+  POWERSHELL_TELEMETRY_OPTOUT: 1
+
+jobs:
+  process-new-issues:
+    name: Process new issues
+    timeout-minutes: 20
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+
+      - name: do-work
+        run: |
+          $env:GITHUB_TOKEN = ${{ secrets.GITHUB_TOKEN }}
+          ./tools/issue-mgmt/CloseDupIssues.ps1
