@@ -25,5 +25,5 @@ jobs:
 
       - name: do-work
         run: |
-          $env:GITHUB_TOKEN = ${{ secrets.GITHUB_TOKEN }}
+          $env:GITHUB_TOKEN = '${{ secrets.GITHUB_TOKEN }}'
           ./tools/issue-mgmt/CloseDupIssues.ps1
