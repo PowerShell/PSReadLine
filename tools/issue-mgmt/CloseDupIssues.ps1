@@ -55,7 +55,8 @@ foreach ($item in $issues)
 
     if ($body.Contains('System.ArgumentOutOfRangeException:') -and
         $body.Contains('System.Console.SetCursorPosition(') -and
-        $body.Contains('Microsoft.PowerShell.PSConsoleReadLine.ReallyRender('))
+        $body.Contains('Microsoft.PowerShell.PSConsoleReadLine.ReallyRender(') -and
+        -not $body.Contains('Microsoft.PowerShell.PSConsoleReadLine.CalculateWhereAndWhatToRender('))
     {
         ## The issue either reported an old version of PSReadLine, or provided no
         ## information about the version. In either case, it's likely a duplicate
