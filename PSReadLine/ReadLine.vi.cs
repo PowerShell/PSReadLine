@@ -741,7 +741,7 @@ namespace Microsoft.PowerShell
 
             var deleteText = _singleton._buffer.ToString(range.Offset, range.Count);
 
-            _clipboard.LinewiseRecord(deleteText);
+            _viRegister.LinewiseRecord(deleteText);
 
             var deletePosition = range.Offset;
             var anchor = _singleton._current;
