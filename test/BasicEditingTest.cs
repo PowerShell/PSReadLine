@@ -73,7 +73,7 @@ namespace Test
         }
 
         [SkippableFact]
-        public void ForwardDeleteLine()
+        public void ForwardDeleteInput()
         {
             ConsoleKeyInfo deleteToEnd;
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))

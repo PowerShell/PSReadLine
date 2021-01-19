@@ -242,7 +242,7 @@ namespace Microsoft.PowerShell
                 _dispatchTable.Add(Keys.CtrlSpace,  MakeKeyHandler(MenuComplete,      "MenuComplete"));
                 _dispatchTable.Add(Keys.AltF7,      MakeKeyHandler(ClearHistory,      "ClearHistory"));
                 _dispatchTable.Add(Keys.CtrlDelete, MakeKeyHandler(KillWord,          "KillWord"));
-                _dispatchTable.Add(Keys.CtrlEnd,    MakeKeyHandler(ForwardDeleteLine, "ForwardDeleteLine"));
+                _dispatchTable.Add(Keys.CtrlEnd,    MakeKeyHandler(ForwardDeleteInput, "ForwardDeleteLine"));
                 _dispatchTable.Add(Keys.CtrlH,      MakeKeyHandler(BackwardDeleteChar,"BackwardDeleteChar"));
 
                 // PageUp/PageDown and CtrlPageUp/CtrlPageDown bindings are supported on Windows only because they depend on the
@@ -409,7 +409,7 @@ namespace Microsoft.PowerShell
             case nameof(DeletePreviousLines):
             case nameof(DeleteToEnd):
             case nameof(DeleteWord):
-            case nameof(ForwardDeleteLine):
+            case nameof(ForwardDeleteInput):
             case nameof(InsertLineAbove):
             case nameof(InsertLineBelow):
             case nameof(InvertCase):

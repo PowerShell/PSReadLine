@@ -97,10 +97,10 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Like ForwardKillLine - deletes text from the point to the end of the line,
+        /// Like ForwardKillLine - deletes text from the point to the end of the input,
         /// but does not put the deleted text in the kill ring.
         /// </summary>
-        public static void ForwardDeleteLine(ConsoleKeyInfo? key = null, object arg = null)
+        public static void ForwardDeleteInput(ConsoleKeyInfo? key = null, object arg = null)
         {
             var current = _singleton._current;
             var buffer = _singleton._buffer;

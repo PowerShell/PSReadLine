@@ -522,9 +522,9 @@ namespace Microsoft.PowerShell.PSReadLine {
         /// <summary>
         ///   Looks up a localized string similar to Delete text from the cursor to the end of the line.
         /// </summary>
-        internal static string ForwardDeleteLineDescription {
+        internal static string ForwardDeleteInputDescription {
             get {
-                return ResourceManager.GetString("ForwardDeleteLineDescription", resourceCulture);
+                return ResourceManager.GetString("ForwardDeleteInputDescription", resourceCulture);
             }
         }
         
