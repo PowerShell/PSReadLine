@@ -80,12 +80,6 @@ namespace Microsoft.PowerShell
                 _text = text;
             }
 
-            // for compatibility reasons, as an interim solution
-            public static implicit operator string(ViRegister register)
-            {
-                return register._text;
-            }
-
             public int PasteAfter(StringBuilder buffer, int position)
             {
                 if (IsEmpty)

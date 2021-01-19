@@ -82,7 +82,7 @@ namespace Microsoft.PowerShell
         {
             _singleton.SaveToClipboard(start, count);
             _singleton.SaveEditItem(EditItemDelete.Create(
-                _clipboard,
+                _clipboard.RawText,
                 start,
                 instigator,
                 arg));
