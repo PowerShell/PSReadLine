@@ -115,7 +115,16 @@ namespace Microsoft.PowerShell.PSReadLine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Delete text from the cursor to the start of the line.
+        ///   Looks up a localized string similar to Delete text from the cursor to the start of the input.
+        /// </summary>
+        internal static string BackwardDeleteInputDescription {
+            get {
+                return ResourceManager.GetString("BackwardDeleteInputDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Delete text from the cursor to the start of the current logical line.
         /// </summary>
         internal static string BackwardDeleteLineDescription {
             get {

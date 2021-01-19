@@ -209,7 +209,7 @@ namespace Microsoft.PowerShell
                 { Keys.CtrlY,                  MakeKeyHandler(Redo,                      "Redo") },
                 { Keys.CtrlZ,                  MakeKeyHandler(Undo,                      "Undo") },
                 { Keys.CtrlBackspace,          MakeKeyHandler(BackwardKillWord,          "BackwardKillWord") },
-                { Keys.CtrlHome,               MakeKeyHandler(BackwardDeleteBuffer,      "BackwardDeleteBuffer") },
+                { Keys.CtrlHome,               MakeKeyHandler(BackwardDeleteInput,       "BackwardDeleteInput") },
                 { Keys.CtrlRBracket,           MakeKeyHandler(GotoBrace,                 "GotoBrace") },
                 { Keys.CtrlAltQuestion,        MakeKeyHandler(ShowKeyBindings,           "ShowKeyBindings") },
                 { Keys.AltPeriod,              MakeKeyHandler(YankLastArg,               "YankLastArg") },
@@ -388,7 +388,7 @@ namespace Microsoft.PowerShell
             case nameof(AcceptAndGetNext):
             case nameof(AcceptLine):
             case nameof(AddLine):
-            case nameof(BackwardDeleteBuffer):
+            case nameof(BackwardDeleteInput):
             case nameof(BackwardDeleteChar):
             case nameof(BackwardDeleteLine):
             case nameof(BackwardDeleteWord):

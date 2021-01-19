@@ -98,7 +98,7 @@ namespace Test
         }
 
         [SkippableFact]
-        public void BackwardDeleteLine()
+        public void BackwardDeleteInput()
         {
             TestSetup(KeyMode.Cmd);
 

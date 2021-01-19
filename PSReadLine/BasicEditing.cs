@@ -115,11 +115,11 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Like BackwardKillLine - deletes text from the point to the start of the buffer,
+        /// Like BackwardKillInput - deletes text from the point to the start of the input,
         /// but does not put the deleted text in the kill ring.
-        public static void BackwardDeleteBuffer(ConsoleKeyInfo? key = null, object arg = null)
+        public static void BackwardDeleteInput(ConsoleKeyInfo? key = null, object arg = null)
         {
-            BackwardDeleteSubstring(0, BackwardDeleteBuffer);
+            BackwardDeleteSubstring(0, BackwardDeleteInput);
         }
 
         /// <summary>
