@@ -123,6 +123,16 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
+        /// Clear the input from the start of the current logical line to the cursor.  The cleared text is placed
+        /// in the kill ring.
+        /// </summary>
+        public static void BackwardKillLine(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            var start = GetBeginningOfLinePos(_singleton._current);
+            _singleton.Kill(start, _singleton._current, true);
+        }
+
+        /// <summary>
         /// Clear the input from the cursor to the end of the current word.  If the cursor
         /// is between words, the input is cleared from the cursor to the end of the next word.
         /// The cleared text is placed in the kill ring.

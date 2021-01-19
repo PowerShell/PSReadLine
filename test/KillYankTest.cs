@@ -112,6 +112,16 @@ namespace Test
         }
 
         [SkippableFact]
+        public void BackwardKillLine()
+        {
+            TestSetup(KeyMode.Emacs);
+
+            PSConsoleReadLine.SetKeyHandler(new[] { "Shift+Tab" }, PSConsoleReadLine.BackwardKillLine, "", "");
+
+            Test("", Keys("dir", _.Shift_Tab));
+        }
+
+        [SkippableFact]
         public void BackwardKillInput()
         {
             TestSetup(KeyMode.Emacs);
