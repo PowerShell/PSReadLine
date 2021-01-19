@@ -112,7 +112,7 @@ namespace Test
         }
 
         [SkippableFact]
-        public void BackwardKillLine()
+        public void BackwardKillInput()
         {
             TestSetup(KeyMode.Emacs);
 

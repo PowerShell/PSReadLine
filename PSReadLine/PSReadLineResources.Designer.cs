@@ -144,9 +144,9 @@ namespace Microsoft.PowerShell.PSReadLine {
         /// <summary>
         ///   Looks up a localized string similar to Move the text from the cursor to the beginning of the line to the kill ring.
         /// </summary>
-        internal static string BackwardKillLineDescription {
+        internal static string BackwardKillInputDescription {
             get {
-                return ResourceManager.GetString("BackwardKillLineDescription", resourceCulture);
+                return ResourceManager.GetString("BackwardKillInputDescription", resourceCulture);
             }
         }
         

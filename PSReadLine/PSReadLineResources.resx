@@ -135,8 +135,8 @@
   <data name="BackwardDeleteLineDescription" xml:space="preserve">
     <value>Delete text from the cursor to the start of the current logical line</value>
   </data>
-  <data name="BackwardKillLineDescription" xml:space="preserve">
-    <value>Move the text from the cursor to the beginning of the line to the kill ring</value>
+  <data name="BackwardKillInputDescription" xml:space="preserve">
+    <value>Move the text from the cursor to the beginning of the input to the kill ring</value>
   </data>
   <data name="BeginningOfHistoryDescription" xml:space="preserve">
     <value>Move to the first item in the history</value>

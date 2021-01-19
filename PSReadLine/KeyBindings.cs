@@ -294,7 +294,7 @@ namespace Microsoft.PowerShell
                 { Keys.CtrlR,           MakeKeyHandler(ReverseSearchHistory, "ReverseSearchHistory") },
                 { Keys.CtrlS,           MakeKeyHandler(ForwardSearchHistory, "ForwardSearchHistory") },
                 { Keys.CtrlT,           MakeKeyHandler(SwapCharacters,       "SwapCharacters") },
-                { Keys.CtrlU,           MakeKeyHandler(BackwardKillLine,     "BackwardKillLine") },
+                { Keys.CtrlU,           MakeKeyHandler(BackwardKillInput,     "BackwardKillLine") },
                 { Keys.CtrlX,           MakeKeyHandler(Chord,                "ChordFirstKey") },
                 { Keys.CtrlW,           MakeKeyHandler(UnixWordRubout,       "UnixWordRubout") },
                 { Keys.CtrlY,           MakeKeyHandler(Yank,                 "Yank") },
@@ -369,7 +369,7 @@ namespace Microsoft.PowerShell
                 // Ctrl+X,<key> table
                 [Keys.CtrlX] = new Dictionary<PSKeyInfo, KeyHandler>
                 {
-                    { Keys.Backspace, MakeKeyHandler(BackwardKillLine,     "BackwardKillLine") },
+                    { Keys.Backspace, MakeKeyHandler(BackwardKillInput,     "BackwardKillLine") },
                     { Keys.CtrlE,     MakeKeyHandler(ViEditVisually,       "ViEditVisually") },
                     { Keys.CtrlU,     MakeKeyHandler(Undo,                 "Undo") },
                     { Keys.CtrlX,     MakeKeyHandler(ExchangePointAndMark, "ExchangePointAndMark") },
@@ -392,7 +392,7 @@ namespace Microsoft.PowerShell
             case nameof(BackwardDeleteChar):
             case nameof(BackwardDeleteLine):
             case nameof(BackwardDeleteWord):
-            case nameof(BackwardKillLine):
+            case nameof(BackwardKillInput):
             case nameof(BackwardKillWord):
             case nameof(CancelLine):
             case nameof(Copy):
