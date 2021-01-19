@@ -529,6 +529,15 @@ namespace Microsoft.PowerShell.PSReadLine {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Delete text from the cursor to the end of the current logical line.
+        /// </summary>
+        internal static string ForwardDeleteLineDescription {
+            get {
+                return ResourceManager.GetString("ForwardDeleteLineDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Search history forward interactively.
         /// </summary>
         internal static string ForwardSearchHistoryDescription {

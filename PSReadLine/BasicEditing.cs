@@ -97,16 +97,36 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Like ForwardKillLine - deletes text from the point to the end of the input,
+        /// Like KillLine - deletes text from the point to the end of the input,
         /// but does not put the deleted text in the kill ring.
         /// </summary>
         public static void ForwardDeleteInput(ConsoleKeyInfo? key = null, object arg = null)
         {
+            ForwardDeleteImpl(_singleton._buffer.Length);
+        }
+
+        /// <summary>
+        /// Deletes text from the point to the end of the current logical line,
+        /// but does not put the deleted text in the kill ring.
+        /// </summary>
+        public static void ForwardDeleteLine(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            ForwardDeleteImpl(GetEndOfLogicalLinePos(_singleton._current) + 1);
+        }
+
+        /// <summary>
+        /// Deletes text from the cursor position to the specified end position
+        /// but does not put the deleted text in the kill ring.
+        /// </summary>
+        /// <param name="endPosition">0-based offset to one character past the end of the text.</param>
+        private static void ForwardDeleteImpl(int endPosition)
+        {
             var current = _singleton._current;
             var buffer = _singleton._buffer;
-            if (buffer.Length > 0 && current < buffer.Length)
+
+            if (buffer.Length > 0 && current < endPosition)
             {
-                int length = buffer.Length - current;
+                int length = endPosition - current;
                 var str = buffer.ToString(current, length);
                 _singleton.SaveEditItem(EditItemDelete.Create(str, current));
                 buffer.Remove(current, length);

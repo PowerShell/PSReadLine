@@ -189,6 +189,9 @@
   <data name="ForwardDeleteInputDescription" xml:space="preserve">
     <value>Delete text from the cursor to the end of the input</value>
   </data>
+  <data name="ForwardDeleteLineDescription" xml:space="preserve">
+    <value>Delete text from the cursor to the end of the current logical line</value>
+  </data>
   <data name="ShellForwardWordDescription" xml:space="preserve">
     <value>Move the cursor to the beginning of the next token or end of line</value>
   </data>

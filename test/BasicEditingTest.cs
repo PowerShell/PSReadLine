@@ -98,6 +98,21 @@ namespace Test
         }
 
         [SkippableFact]
+        public void ForwardDeleteLine()
+        {
+            TestSetup(KeyMode.Emacs);
+
+            PSConsoleReadLine.SetKeyHandler(new[] { "Shift+Tab" }, PSConsoleReadLine.ForwardDeleteLine, "", "");
+
+            Test("\"H\nWorld\"", Keys(
+                _.DQuote, "Hello", _.Enter,
+                "World", _.DQuote,
+                _.Home, _.Home, _.RightArrow, _.RightArrow,
+                _.Shift_Tab // delete to the end of the current logical line
+                ));
+        }
+
+        [SkippableFact]
         public void BackwardDeleteInput()
         {
             TestSetup(KeyMode.Cmd);
