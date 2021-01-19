@@ -283,8 +283,7 @@ namespace Microsoft.PowerShell
                 _singleton._current,
                 endPoint - _singleton._current,
                 instigator,
-                arg
-                );
+                arg);
 
             if (_singleton._current >= _singleton._buffer.Length)
             {

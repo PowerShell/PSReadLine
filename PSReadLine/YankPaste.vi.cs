@@ -85,8 +85,7 @@ namespace Microsoft.PowerShell
                 _clipboard,
                 start,
                 instigator,
-                arg
-                ));
+                arg));
             _singleton._buffer.Remove(start, count);
         }
 
