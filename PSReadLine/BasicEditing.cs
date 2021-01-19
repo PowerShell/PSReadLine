@@ -122,7 +122,7 @@ namespace Microsoft.PowerShell
         {
             if (_singleton._current > 0)
             {
-                _singleton.RemoveTextToClipboard(0, _singleton._current);
+                _singleton.RemoveTextToViRegister(0, _singleton._current);
                 _singleton._current = 0;
                 _singleton.Render();
             }
@@ -148,7 +148,7 @@ namespace Microsoft.PowerShell
 
                 int startDeleteIndex = _singleton._current - qty;
 
-                _singleton.RemoveTextToClipboard(startDeleteIndex, qty, BackwardDeleteChar, arg);
+                _singleton.RemoveTextToViRegister(startDeleteIndex, qty, BackwardDeleteChar, arg);
                 _singleton._current = startDeleteIndex;
                 _singleton.Render();
             }
@@ -169,7 +169,7 @@ namespace Microsoft.PowerShell
                 {
                     qty = Math.Min(qty, _singleton._buffer.Length - _singleton._current);
 
-                    RemoveTextToClipboard(_current, qty, DeleteChar);
+                    RemoveTextToViRegister(_current, qty, DeleteChar);
                     if (_current >= _buffer.Length)
                     {
                         _current = Math.Max(0, _buffer.Length + ViEndOfLineFactor);

@@ -237,7 +237,7 @@ namespace Microsoft.PowerShell
                 var length = endPosition - startPosition + 1;
                 if (length > 0)
                 {
-                    _singleton.RemoveTextToClipboard(
+                    _singleton.RemoveTextToViRegister(
                         startPosition,
                         length,
                         DeleteToEnd,
@@ -279,7 +279,7 @@ namespace Microsoft.PowerShell
 
         private static void DeleteToEndPoint(object arg, int endPoint, Action<ConsoleKeyInfo?, object> instigator)
         {
-            _singleton.RemoveTextToClipboard(
+            _singleton.RemoveTextToViRegister(
                 _singleton._current,
                 endPoint - _singleton._current,
                 instigator,
@@ -296,7 +296,7 @@ namespace Microsoft.PowerShell
         {
             int deleteLength = _singleton._current - endPoint + 1;
 
-            _singleton.RemoveTextToClipboard(
+            _singleton.RemoveTextToViRegister(
                 endPoint,
                 deleteLength,
                 instigator,
@@ -688,7 +688,7 @@ namespace Microsoft.PowerShell
                     }
                 }
 
-                _singleton.RemoveTextToClipboard(
+                _singleton.RemoveTextToViRegister(
                     i,
                     _singleton._current - i,
                     DeleteLineToFirstChar,
@@ -856,7 +856,7 @@ namespace Microsoft.PowerShell
                 Ding();
                 return;
             }
-            _singleton.RemoveTextToClipboard(
+            _singleton.RemoveTextToViRegister(
                 deletePoint,
                 _singleton._current - deletePoint,
                 BackwardDeleteWord,
@@ -887,7 +887,7 @@ namespace Microsoft.PowerShell
                 Ding();
                 return;
             }
-            _singleton.RemoveTextToClipboard(
+            _singleton.RemoveTextToViRegister(
                 deletePoint,
                 _singleton._current - deletePoint,
                 BackwardDeleteWord,
@@ -928,7 +928,7 @@ namespace Microsoft.PowerShell
         {
             int length = last - first + 1;
 
-            _singleton.RemoveTextToClipboard(
+            _singleton.RemoveTextToViRegister(
                 first,
                 length,
                 action);
