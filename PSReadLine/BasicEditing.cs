@@ -169,7 +169,7 @@ namespace Microsoft.PowerShell
                 {
                     qty = Math.Min(qty, _singleton._buffer.Length - _singleton._current);
 
-                    RemoveTextToViRegister(_current, qty, DeleteChar);
+                    RemoveTextToViRegister(_current, qty, DeleteChar, qty);
                     if (_current >= _buffer.Length)
                     {
                         _current = Math.Max(0, _buffer.Length + ViEndOfLineFactor);
