@@ -128,7 +128,17 @@ namespace Microsoft.PowerShell
             {
                 int length = endPosition - current;
                 var str = buffer.ToString(current, length);
-                _singleton.SaveEditItem(EditItemDelete.Create(str, current));
+                var adjustCursorOnUndelete = _singleton.Options.EditMode != EditMode.Vi;
+
+                _singleton.SaveEditItem(
+                    EditItemDelete.Create(
+                        str,
+                        current,
+                        ForwardDeleteLine,
+                        arg,
+                        adjustCursorOnUndelete
+                    ));
+
                 buffer.Remove(current, length);
                 _singleton.Render();
             }
@@ -152,13 +162,13 @@ namespace Microsoft.PowerShell
             BackwardDeleteSubstring(position, BackwardDeleteLine);
         }
 
-        private static void BackwardDeleteSubstring(int position, Action<ConsoleKeyInfo?, object> instigator = null)
+        private static void BackwardDeleteSubstring(int position, Action<ConsoleKeyInfo?, object> instigator)
         {
             if (_singleton._current > position)
             {
                 var count = _singleton._current - position;
-              
-                _singleton.RemoveTextToViRegister(position, count, instigator);
+
+                _singleton.RemoveTextToViRegister(position, count, instigator, arg: null, !InViEditMode());
                 _singleton._current = position;
                 _singleton.Render();
             }
@@ -184,7 +194,7 @@ namespace Microsoft.PowerShell
 
                 int startDeleteIndex = _singleton._current - qty;
 
-                _singleton.RemoveTextToViRegister(startDeleteIndex, qty, BackwardDeleteChar, arg);
+                _singleton.RemoveTextToViRegister(startDeleteIndex, qty, BackwardDeleteChar, arg, !InViEditMode());
                 _singleton._current = startDeleteIndex;
                 _singleton.Render();
             }
@@ -205,7 +215,7 @@ namespace Microsoft.PowerShell
                 {
                     qty = Math.Min(qty, _singleton._buffer.Length - _singleton._current);
 
-                    RemoveTextToViRegister(_current, qty, DeleteChar, qty);
+                    RemoveTextToViRegister(_current, qty, DeleteChar, qty, !InViEditMode());
                     if (_current >= _buffer.Length)
                     {
                         _current = Math.Max(0, _buffer.Length + ViEndOfLineFactor);

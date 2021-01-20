@@ -78,14 +78,21 @@ namespace Microsoft.PowerShell
         /// <param name="count"></param>
         /// <param name="instigator"></param>
         /// <param name="arg"></param>
-        private void RemoveTextToViRegister(int start, int count, Action<ConsoleKeyInfo?, object> instigator = null, object arg = null)
+        /// <param name="moveCursorToEndWhenUndo"></param>
+        private void RemoveTextToViRegister(
+            int start,
+            int count,
+            Action<ConsoleKeyInfo?, object> instigator = null,
+            object arg = null,
+            bool moveCursorToEndWhenUndo = false)
         {
             _singleton.SaveToClipboard(start, count);
             _singleton.SaveEditItem(EditItemDelete.Create(
                 _viRegister.RawText,
                 start,
                 instigator,
-                arg));
+                arg,
+                moveCursorToEndWhenUndo));
             _singleton._buffer.Remove(start, count);
         }
 

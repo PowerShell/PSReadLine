@@ -459,6 +459,11 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
+        /// Returns true if in Vi edit mode, otherwise false.
+        /// </summary>
+        internal static bool InViEditMode() => _singleton.Options.EditMode == EditMode.Vi;
+
+        /// <summary>
         /// Returns true if in Vi Command mode, otherwise false.
         /// </summary>
         public static bool InViCommandMode() => _singleton._dispatchTable == _viCmdKeyMap;
@@ -621,7 +626,13 @@ namespace Microsoft.PowerShell
                 if (Char.IsLetter(c))
                 {
                     char newChar = Char.IsUpper(c) ? Char.ToLower(c, CultureInfo.CurrentCulture) : char.ToUpper(c, CultureInfo.CurrentCulture);
-                    EditItem delEditItem = EditItemDelete.Create(c.ToString(), _singleton._current);
+                    EditItem delEditItem = EditItemDelete.Create(
+                        c.ToString(),
+                        _singleton._current,
+                        InvertCase,
+                        arg,
+                        adjustCursor: false);
+
                     EditItem insEditItem = EditItemInsertChar.Create(newChar, _singleton._current);
                     _singleton.SaveEditItem(GroupedEdit.Create(new List<EditItem>
                         {
@@ -1335,7 +1346,13 @@ namespace Microsoft.PowerShell
             {
                 _singleton._buffer[_singleton._current] = ' ';
                 _singleton._groupUndoHelper.StartGroup(ViJoinLines, arg);
-                _singleton.SaveEditItem(EditItemDelete.Create("\n", _singleton._current));
+                _singleton.SaveEditItem(EditItemDelete.Create(
+                    "\n",
+                    _singleton._current,
+                    ViJoinLines,
+                    arg,
+                    adjustCursor: false));
+
                 _singleton.SaveEditItem(EditItemInsertChar.Create(' ', _singleton._current));
                 _singleton._groupUndoHelper.EndGroup();
                 _singleton.Render();

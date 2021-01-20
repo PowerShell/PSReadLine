@@ -258,27 +258,45 @@ namespace Microsoft.PowerShell
             private readonly string _deletedString;
             private readonly int _deleteStartPosition;
 
+            // undoing a delete operation will insert some text starting from the _deleteStartPosition.
+            // the _adjustCursorOnUndo flag specifies whether the cursor must be adjusted.
+            // by default the cursor will move to end of the inserted text.
+            private readonly bool _adjustCursorOnUndo;
+
             protected EditItemDelete(string str, int position, Action<ConsoleKeyInfo?, object> instigator, object instigatorArg)
+                : this(str, position, instigator, instigatorArg, true)
+            {
+            }
+
+            protected EditItemDelete(string str, int position, Action<ConsoleKeyInfo?, object> instigator, object instigatorArg, bool adjustCursor)
             {
                 _deletedString = str;
                 _deleteStartPosition = position;
                 _instigator = instigator;
                 _instigatorArg = instigatorArg;
+                _adjustCursorOnUndo = adjustCursor;
             }
 
-            public static EditItem Create(string str, int position, Action<ConsoleKeyInfo?, object> instigator = null, object instigatorArg = null)
+            public static EditItem Create(string str, int position, Action<ConsoleKeyInfo?, object> instigator = null, object instigatorArg = null, bool adjustCursor = true)
             {
                 return new EditItemDelete(
                     str,
                     position,
                     instigator,
-                    instigatorArg);
+                    instigatorArg,
+                    adjustCursor);
             }
 
             public override void Undo()
             {
+                var newCurrent = _deleteStartPosition;
+                newCurrent += _adjustCursorOnUndo
+                    ? _deletedString.Length
+                    : 0
+                    ;
+
                 _singleton._buffer.Insert(_deleteStartPosition, _deletedString);
-                _singleton._current = _deleteStartPosition;
+                _singleton._current = newCurrent;
             }
 
             public override void Redo()
