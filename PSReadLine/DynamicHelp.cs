@@ -4,13 +4,12 @@ Copyright (c) Microsoft Corporation.  All rights reserved.
 
 using System;
 using System.Collections.ObjectModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Management.Automation;
 using System.Management.Automation.Language;
-using System.Management.Automation.Runspaces;
 using Microsoft.PowerShell.Internal;
 using Microsoft.PowerShell.PSReadLine;
-using Microsoft.PowerShell;
 
 namespace Microsoft.PowerShell
 {
@@ -28,8 +27,8 @@ namespace Microsoft.PowerShell
             {
                 Collection<string> helpBlock = new Collection<string>()
                 {
-                    String.Empty,
-                    PSReadLineResources.LegacyConsoleFullHelpNotSupported
+                    string.Empty,
+                    PSReadLineResources.FullHelpNotSupportedInLegacyConsole
                 };
 
                 _singleton.WriteDynamicHelpBlock(helpBlock);
@@ -49,6 +48,7 @@ namespace Microsoft.PowerShell
             _singleton.DynamicHelpImpl(isFullHelp: false);
         }
 
+        [ExcludeFromCodeCoverage]
         object IPSConsoleReadLineMockableMethods.GetDynamicHelpContent(string commandName, string parameterName, bool isFullHelp)
         {
             if (string.IsNullOrEmpty(commandName))
@@ -56,9 +56,10 @@ namespace Microsoft.PowerShell
                 return null;
             }
 
+            System.Management.Automation.PowerShell ps = null;
+
             try
             {
-                System.Management.Automation.PowerShell ps;
                 if (!_mockableMethods.RunspaceIsRemote(_runspace))
                 {
                     ps = System.Management.Automation.PowerShell.Create(RunspaceMode.CurrentRunspace);
@@ -91,6 +92,7 @@ namespace Microsoft.PowerShell
                     .AddParameter("Parameter", parameterName)
                     .Invoke<PSObject>()
                     .FirstOrDefault();
+
             }
             catch (Exception)
             {
@@ -98,8 +100,10 @@ namespace Microsoft.PowerShell
             }
             finally
             {
+                ps?.Dispose();
+
                 // GetDynamicHelpContent could scroll the screen, e.g. via Write-Progress. For example,
-                // cd <TAB> under the CloudShell Azure drive will show the progress bar while fetching data.
+                // Get-Help for unknown command under the CloudShell Azure drive will show the progress bar while searching for command.
                 // We need to update the _initialY in case the current cursor postion has changed.
                 if (_singleton._initialY > _console.CursorTop)
                 {
@@ -123,10 +127,7 @@ namespace Microsoft.PowerShell
 
                 if (!string.IsNullOrEmpty(parameterName))
                 {
-                    string upper = parameterName[0].ToString().ToUpperInvariant();
-                    string lower = parameterName[0].ToString().ToLowerInvariant();
-                    string remainingString = parameterName.Substring(1);
-                    regexPatternToScrollTo = $"-[{upper}|{lower}]{remainingString} [<|\\[]";
+                    regexPatternToScrollTo = $"-{parameterName} [<|\\[]";
                 }
 
                 _mockableMethods.RenderFullHelp(fullHelp, regexPatternToScrollTo);
@@ -152,7 +153,7 @@ namespace Microsoft.PowerShell
             {
                 var extent = token.Extent;
 
-                if (extent.EndOffset > cursor)
+                if (extent.StartOffset > cursor)
                 {
                     break;
                 }
@@ -177,8 +178,6 @@ namespace Microsoft.PowerShell
 
         private void WriteDynamicHelpBlock(Collection<string> helpBlock)
         {
-            var bufferWidth = _console.BufferWidth;
-
             var dynHelp = new MultilineDisplayBlock
             {
                 Singleton = this,
@@ -194,7 +193,7 @@ namespace Microsoft.PowerShell
         {
             Collection<string> helpBlock;
 
-            if (helpContent == null || string.IsNullOrEmpty(helpContent?.Description?[0]?.Text))
+            if (string.IsNullOrEmpty(helpContent?.Description?[0]?.Text))
             {
                 helpBlock = new Collection<string>()
                 {
@@ -255,9 +254,16 @@ namespace Microsoft.PowerShell
 
                 for (var index = 0; index < items.Count; index++)
                 {
-                    if (LengthInBufferCells(items[index]) > bufferWidth)
+                    var itemLength = LengthInBufferCells(items[index]);
+
+                    if (itemLength > bufferWidth)
                     {
-                        multilineItems += items[index].Length / bufferWidth;
+                        multilineItems += itemLength / bufferWidth;
+
+                        if (itemLength % bufferWidth == 0)
+                        {
+                            multilineItems--;
+                        }
                     }
 
                     console.Write(items[index]);

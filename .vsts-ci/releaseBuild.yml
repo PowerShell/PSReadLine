@@ -76,6 +76,7 @@ stages:
           *.ps1xml
           **\*.dll
           !System.Runtime.InteropServices.RuntimeInformation.dll
+          !Microsoft.PowerShell.Pager.dll
         useMinimatch: true
 
     # Replace the *.psm1, *.ps1, *.psd1, *.dll files with the signed ones

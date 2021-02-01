@@ -1,19 +1,11 @@
 using System;
-using System.Collections;
-using System.Collections.ObjectModel;
-using System.IO;
 using System.Management.Automation;
-using System.Reflection;
-using System.Text;
-using Microsoft.PowerShell;
 using Xunit;
 
 namespace Test
 {
     public partial class ReadLine
     {
-        private static string actualContent;
-
         private static readonly string fullHelp = @"
 
 NAME
@@ -37,8 +29,6 @@ PARAMETERS
 
         internal static object GetDynamicHelpContent(string commandName, string parameterName, bool isFullHelp)
         {
-            string descText = @"Specifies a date and time. Time is optional and if not specified, returns 00:00:00.";
-
             if (string.IsNullOrEmpty(commandName))
             {
                 return null;
@@ -47,11 +37,6 @@ PARAMETERS
             if (isFullHelp)
             {
                 return fullHelp;
-            }
-
-            if (string.IsNullOrEmpty(parameterName))
-            {
-                return null;
             }
 
             if (string.IsNullOrEmpty(parameterName))
@@ -69,24 +54,45 @@ PARAMETERS
             }
             else if (string.Equals(commandName, "Get-Date", StringComparison.OrdinalIgnoreCase) && string.Equals(parameterName, "Date", StringComparison.OrdinalIgnoreCase))
             {
-                PSObject[] descDetails = new PSObject[1];
-                descDetails[0] = new PSObject();
-                descDetails[0].Members.Add(new PSNoteProperty("Text", descText));
-
-                var np = new PSNoteProperty("name", "System.Datetime");
-                np.Value = "System.Datetime";
-
-                var typeName = new PSObject(np);
-
-                paramHelp.Members.Add(new PSNoteProperty("Description", descDetails));
-                paramHelp.Members.Add(new PSNoteProperty("Name", "Date"));
-                paramHelp.Members.Add(new PSNoteProperty("type", typeName));
-                paramHelp.Members.Add(new PSNoteProperty("required", "false"));
-                paramHelp.Members.Add(new PSNoteProperty("position", "0"));
-                paramHelp.Members.Add(new PSNoteProperty("defaultValue", "None"));
-                paramHelp.Members.Add(new PSNoteProperty("pipelineInput", "True (ByPropertyName, ByValue)"));
-                paramHelp.Members.Add(new PSNoteProperty("globbing", "false"));
+                return GetParameterHelpObject(description: "Specifies a date and time.");
             }
+            else if (string.Equals(commandName, "Get-MultiLineHelp", StringComparison.OrdinalIgnoreCase))
+            {
+                if(string.Equals(parameterName, "OneAndHalf", StringComparison.OrdinalIgnoreCase))
+                {
+                    string multiLineDesc = "Some very long description that is over the buffer width of 60 characters but shorter than 120.";
+                    return GetParameterHelpObject(multiLineDesc);
+                }
+                else if(string.Equals(parameterName, "ExactlyTwo", StringComparison.OrdinalIgnoreCase))
+                {
+                    string multiLineDesc = "Some very long description that is over the buffer width of 60 characters and exactly the length of 120 characters total";
+                    return GetParameterHelpObject(multiLineDesc);
+                }
+            }
+
+            return paramHelp;
+        }
+
+        private static PSObject GetParameterHelpObject(string description)
+        {
+            PSObject paramHelp = new PSObject();
+            PSObject[] descDetails = new PSObject[1];
+            descDetails[0] = new PSObject();
+            descDetails[0].Members.Add(new PSNoteProperty("Text", description));
+
+            var np = new PSNoteProperty("name", "System.Datetime");
+            np.Value = "System.Datetime";
+
+            var typeName = new PSObject(np);
+
+            paramHelp.Members.Add(new PSNoteProperty("Description", descDetails));
+            paramHelp.Members.Add(new PSNoteProperty("Name", "Date"));
+            paramHelp.Members.Add(new PSNoteProperty("type", typeName));
+            paramHelp.Members.Add(new PSNoteProperty("required", "false"));
+            paramHelp.Members.Add(new PSNoteProperty("position", "0"));
+            paramHelp.Members.Add(new PSNoteProperty("defaultValue", "None"));
+            paramHelp.Members.Add(new PSNoteProperty("pipelineInput", "True (ByPropertyName, ByValue)"));
+            paramHelp.Members.Add(new PSNoteProperty("globbing", "false"));
 
             return paramHelp;
         }
@@ -103,24 +109,65 @@ PARAMETERS
         }
 
         [SkippableFact]
-        public void DynHelp_GetParameterHelp()
+        public void DynHelp_GetParameterHelp_And_Clear()
         {
             TestSetup(KeyMode.Cmd);
             string emptyLine = new string(' ', _console.BufferWidth);
 
             Test("Get-Date -Date", Keys(
                 "Get-Date -Date", _.Alt_h,
-                CheckThat(() => AssertScreenIs(9,
-                TokenClassification.Command, "Get-Date",
-                TokenClassification.None, " ",
-                TokenClassification.Parameter, "-Date", NextLine,
-                emptyLine,
-                TokenClassification.None, $"-Date <name>", NextLine,
-                emptyLine,
-                TokenClassification.None, "DESC: Specifies a date and time. Time is optional and if not", NextLine, " specified, returns 00:00:00.", NextLine,
-                TokenClassification.None, "Required: false, Position: 0, Default Value: None, Pipeline ", NextLine, "Input: True (ByPropertyName, ByValue), WildCard: false")),
+                    CheckThat(() => AssertScreenIs(9,
+                        TokenClassification.Command, "Get-Date",
+                        TokenClassification.None, " ",
+                        TokenClassification.Parameter, "-Date",
+                        NextLine,
+                        emptyLine,
+                        TokenClassification.None, $"-Date <name>",
+                        NextLine,
+                        emptyLine,
+                        TokenClassification.None, "DESC: Specifies a date and time.",
+                        NextLine,
+                        TokenClassification.None, "Required: false, Position: 0, Default Value: None, Pipeline ",
+                        NextLine,
+                        "Input: True (ByPropertyName, ByValue), WildCard: false")),
                 _.Enter,
-                _.Enter
+                _.Enter,
+                    CheckThat(() => AssertScreenIs(1,
+                        TokenClassification.Command, "Get-Date",
+                        TokenClassification.None, " ",
+                        TokenClassification.Parameter, "-Date"))
+                ));
+        }
+
+        [SkippableFact]
+        public void DynHelp_GetParameterHelpMultiLine_And_Clear()
+        {
+            TestSetup(KeyMode.Cmd);
+            string emptyLine = new string(' ', _console.BufferWidth);
+
+            Test("Get-MultiLineHelp -OneAndHalf", Keys(
+                "Get-MultiLineHelp -OneAndHalf", _.Alt_h,
+                    CheckThat(() => AssertScreenIs(9,
+                        TokenClassification.Command, "Get-MultiLineHelp",
+                        TokenClassification.None, " ",
+                        TokenClassification.Parameter, "-OneAndHalf",
+                        NextLine,
+                        emptyLine,
+                        TokenClassification.None, $"-Date <name>",
+                        NextLine,
+                        emptyLine,
+                        TokenClassification.None, "DESC: Some very long description that is over the buffer width of ",
+                        TokenClassification.None, "60 characters but shorter than 120.",
+                        NextLine,
+                        TokenClassification.None, "Required: false, Position: 0, Default Value: None, Pipeline ",
+                        NextLine,
+                        "Input: True (ByPropertyName, ByValue), WildCard: false")),
+                _.Enter,
+                _.Enter,
+                    CheckThat(() => AssertScreenIs(1,
+                        TokenClassification.Command, "Get-MultiLineHelp",
+                        TokenClassification.None, " ",
+                        TokenClassification.Parameter, "-OneAndHalf"))
                 ));
         }
 
@@ -132,12 +179,15 @@ PARAMETERS
 
             Test("Get-FakeHelp -Fake", Keys(
                 "Get-FakeHelp -Fake", _.Alt_h,
-                CheckThat(() => AssertScreenIs(4,
-                TokenClassification.Command, "Get-FakeHelp",
-                TokenClassification.None, " ",
-                TokenClassification.Parameter, "-Fake", NextLine,
-                emptyLine,
-                TokenClassification.None, "No help content available. Please use Update-Help to downloa", NextLine, "d the latest help content.")),
+                    CheckThat(() => AssertScreenIs(4,
+                    TokenClassification.Command, "Get-FakeHelp",
+                    TokenClassification.None, " ",
+                    TokenClassification.Parameter, "-Fake",
+                    NextLine,
+                    emptyLine,
+                    TokenClassification.None, "No help content available. Please use Update-Help to downloa",
+                    NextLine,
+                    "d the latest help content.")),
                 _.Enter,
                 _.Enter
                 ));

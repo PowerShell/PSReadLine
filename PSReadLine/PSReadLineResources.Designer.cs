@@ -2069,7 +2069,7 @@ namespace Microsoft.PowerShell.PSReadLine {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to No help content available. Please use Update-Help.
+        ///   Looks up a localized string similar to No help content available. Please use Update-Help to download the latest help content.
         /// </summary>
         internal static string NeedsUpdateHelp {
             get {
@@ -2080,13 +2080,34 @@ namespace Microsoft.PowerShell.PSReadLine {
         /// <summary>
         ///   Looks up a localized string similar to Displaying help content is not supported on this console.
         /// </summary>
-        internal static string LegacyConsoleFullHelpNotSupported
+        internal static string FullHelpNotSupportedInLegacyConsole
         {
             get
             {
-                return ResourceManager.GetString("LegacyConsoleFullHelpNotSupported", resourceCulture);
+                return ResourceManager.GetString("FullHelpNotSupportedInLegacyConsole", resourceCulture);
             }
         }
 
+        /// <summary>
+        ///   Looks up a localized string similar to Shows help for the command at the cursor in an alternate screen buffer.
+        /// </summary>
+        internal static string ShowCommandHelpDescription
+        {
+            get
+            {
+                return ResourceManager.GetString("ShowCommandHelpDescription", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Shows help for the paramter at the cursor..
+        /// </summary>
+        internal static string ShowParameterHelpDescription
+        {
+            get
+            {
+                return ResourceManager.GetString("ShowParameterHelpDescription", resourceCulture);
+            }
+        }
     }
 }
