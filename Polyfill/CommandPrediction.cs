@@ -24,15 +24,23 @@ namespace System.Management.Automation.Subsystem
         public string Name { get; }
 
         /// <summary>
+        /// Gets the mini-session id that represents a specific invocation that returns this result.
+        /// When it's not specified, it's considered by a client that the predictor doesn't expect feedback.
+        /// </summary>
+        [HiddenAttribute]
+        public uint? Session { get; }
+
+        /// <summary>
         /// Gets the suggestions.
         /// </summary>
         [HiddenAttribute]
         public IReadOnlyList<PredictiveSuggestion> Suggestions { get; }
 
-        internal PredictionResult(Guid id, string name, List<PredictiveSuggestion> suggestions)
+        internal PredictionResult(Guid id, string name, uint? session, List<PredictiveSuggestion> suggestions)
         {
             Id = id;
             Name = name;
+            Session = session;
             Suggestions = suggestions;
         }
     }
@@ -90,11 +98,12 @@ namespace System.Management.Automation.Subsystem
         /// <summary>
         /// Collect the predictive suggestions from registered predictors using the default timeout.
         /// </summary>
+        /// <param name="client">Represents the client that initiates the call.</param>
         /// <param name="ast">The <see cref="Ast"/> object from parsing the current command line input.</param>
         /// <param name="astTokens">The <see cref="Token"/> objects from parsing the current command line input.</param>
         /// <returns>A list of <see cref="PredictionResult"/> objects.</returns>
         [HiddenAttribute]
-        public static Task<List<PredictionResult>> PredictInput(Ast ast, Token[] astTokens)
+        public static Task<List<PredictionResult>> PredictInput(string client, Ast ast, Token[] astTokens)
         {
             return null;
         }
@@ -102,12 +111,13 @@ namespace System.Management.Automation.Subsystem
         /// <summary>
         /// Collect the predictive suggestions from registered predictors using the specified timeout.
         /// </summary>
+        /// <param name="client">Represents the client that initiates the call.</param>
         /// <param name="ast">The <see cref="Ast"/> object from parsing the current command line input.</param>
         /// <param name="astTokens">The <see cref="Token"/> objects from parsing the current command line input.</param>
         /// <param name="millisecondsTimeout">The milliseconds to timeout.</param>
         /// <returns>A list of <see cref="PredictionResult"/> objects.</returns>
         [HiddenAttribute]
-        public static Task<List<PredictionResult>> PredictInput(Ast ast, Token[] astTokens, int millisecondsTimeout)
+        public static Task<List<PredictionResult>> PredictInput(string client, Ast ast, Token[] astTokens, int millisecondsTimeout)
         {
             return null;
         }
@@ -115,19 +125,37 @@ namespace System.Management.Automation.Subsystem
         /// <summary>
         /// Allow registered predictors to do early processing when a command line is accepted.
         /// </summary>
+        /// <param name="client">Represents the client that initiates the call.</param>
         /// <param name="history">History command lines provided as references for prediction.</param>
         [HiddenAttribute]
-        public static void OnCommandLineAccepted(IReadOnlyList<string> history)
+        public static void OnCommandLineAccepted(string client, IReadOnlyList<string> history)
+        {
+        }
+
+        /// <summary>
+        /// Send feedback to a predictor when one or more suggestions from it were displayed to the user.
+        /// </summary>
+        /// <param name="client">Represents the client that initiates the call.</param>
+        /// <param name="predictorId">The identifier of the predictor whose prediction result was accepted.</param>
+        /// <param name="session">The mini-session where the displayed suggestions came from.</param>
+        /// <param name="countOrIndex">
+        /// When the value is <code>> 0</code>, it's the number of displayed suggestions from the list returned in <see cref="session"/>, starting from the index 0.
+        /// When the value is <code><= 0</code>, it means a single suggestion from the list got displayed, and the index is the absolute value.
+        /// </param>
+        [HiddenAttribute]
+        public static void OnSuggestionDisplayed(string client, Guid predictorId, uint session, int countOrIndex)
         {
         }
 
         /// <summary>
         /// Send feedback to predictors about their last suggestions.
         /// </summary>
+        /// <param name="client">Represents the client that initiates the call.</param>
         /// <param name="predictorId">The identifier of the predictor whose prediction result was accepted.</param>
+        /// <param name="session">The mini-session where the accepted suggestion came from.</param>
         /// <param name="suggestionText">The accepted suggestion text.</param>
         [HiddenAttribute]
-        public static void OnSuggestionAccepted(Guid predictorId, string suggestionText)
+        public static void OnSuggestionAccepted(string client, Guid predictorId, uint session, string suggestionText)
         {
         }
     }

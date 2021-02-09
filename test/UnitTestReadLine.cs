@@ -26,12 +26,14 @@ namespace Test
         internal Guid acceptedPredictorId;
         internal string acceptedSuggestion;
         internal string helpContentRendered;
+        internal Dictionary<Guid, Tuple<uint, int>> displayedSuggestions = new Dictionary<Guid, Tuple<uint, int>>();
 
         internal void ClearPredictionFields()
         {
             commandHistory = null;
             acceptedPredictorId = Guid.Empty;
             acceptedSuggestion = null;
+            displayedSuggestions.Clear();
         }
 
         public void Ding()
@@ -63,7 +65,12 @@ namespace Test
             commandHistory = history;
         }
 
-        public void OnSuggestionAccepted(Guid predictorId, string suggestionText)
+        public void OnSuggestionDisplayed(Guid predictorId, uint session, int countOrIndex)
+        {
+            displayedSuggestions[predictorId] = Tuple.Create(session, countOrIndex);
+        }
+
+        public void OnSuggestionAccepted(Guid predictorId, uint session, string suggestionText)
         {
             acceptedPredictorId = predictorId;
             acceptedSuggestion = suggestionText;

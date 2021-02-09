@@ -37,6 +37,15 @@ namespace Test
                 new SetPSReadLineOption { PredictionSource = oldSource, PredictionViewStyle = oldView }));
         }
 
+        private void AssertDisplayedSuggestions(int count, Guid predictorId, uint session, int countOrIndex)
+        {
+            Assert.Equal(count, _mockedMethods.displayedSuggestions.Count);
+            _mockedMethods.displayedSuggestions.TryGetValue(predictorId, out var tuple);
+            Assert.NotNull(tuple);
+            Assert.Equal(session, tuple.Item1);
+            Assert.Equal(countOrIndex, tuple.Item2);
+        }
+
         [SkippableFact]
         public void List_RenderSuggestion_NoMatching()
         {
@@ -958,6 +967,10 @@ namespace Test
                         NextLine,
                         TokenClassification.None, new string(' ', windowWidth)
                      )),
+                // `OnSuggestionDisplayed` should be fired for both predictors.
+                CheckThat(() => AssertDisplayedSuggestions(count: 2, predictorId_1, 56, 2)),
+                CheckThat(() => AssertDisplayedSuggestions(count: 2, predictorId_2, 56, 1)),
+                CheckThat(() => _mockedMethods.ClearPredictionFields()),
                 _.DownArrow,
                      CheckThat(() => AssertScreenIs(5,
                         TokenClassification.Command, "SOME",
@@ -990,6 +1003,8 @@ namespace Test
                         NextLine,
                         TokenClassification.None, new string(' ', windowWidth)
                      )),
+                // `OnSuggestionDisplayed` should not be fired when navigating the list.
+                CheckThat(() => Assert.Empty(_mockedMethods.displayedSuggestions)),
                 _.Shift_Home,
                     CheckThat(() => AssertScreenIs(5,
                         TokenClassification.Selection, "SOME TEXT BEFORE ec",
@@ -1021,6 +1036,8 @@ namespace Test
                         NextLine,
                         TokenClassification.None, new string(' ', windowWidth)
                      )),
+                // `OnSuggestionDisplayed` should not be fired when selecting the input.
+                CheckThat(() => Assert.Empty(_mockedMethods.displayedSuggestions)),
                 "j",
                      CheckThat(() => AssertScreenIs(5,
                         TokenClassification.Command, "j",
@@ -1052,6 +1069,9 @@ namespace Test
                         NextLine,
                         TokenClassification.None, new string(' ', windowWidth)
                      )),
+                // `OnSuggestionDisplayed` should be fired for both predictors.
+                CheckThat(() => AssertDisplayedSuggestions(count: 2, predictorId_1, 56, 2)),
+                CheckThat(() => AssertDisplayedSuggestions(count: 2, predictorId_2, 56, 1)),
                 CheckThat(() => Assert.Equal(predictorId_1, _mockedMethods.acceptedPredictorId)),
                 CheckThat(() => Assert.Equal("SOME TEXT BEFORE ec", _mockedMethods.acceptedSuggestion)),
                 CheckThat(() => Assert.Null(_mockedMethods.commandHistory)),
@@ -1090,6 +1110,8 @@ namespace Test
                         NextLine,
                         TokenClassification.None, new string(' ', windowWidth)
                      )),
+                // `OnSuggestionDisplayed` should not be fired when navigating the input.
+                CheckThat(() => Assert.Empty(_mockedMethods.displayedSuggestions)),
                 _.Backspace,
                      CheckThat(() => AssertScreenIs(5,
                         TokenClassification.Command, "SOME",
@@ -1124,6 +1146,9 @@ namespace Test
                         NextLine,
                         TokenClassification.None, new string(' ', windowWidth)
                      )),
+                // `OnSuggestionDisplayed` should be fired for both predictors.
+                CheckThat(() => AssertDisplayedSuggestions(count: 2, predictorId_1, 56, 2)),
+                CheckThat(() => AssertDisplayedSuggestions(count: 2, predictorId_2, 56, 1)),
                 CheckThat(() => Assert.Equal(predictorId_2, _mockedMethods.acceptedPredictorId)),
                 CheckThat(() => Assert.Equal("SOME NEW TEXT", _mockedMethods.acceptedSuggestion)),
                 CheckThat(() => Assert.Null(_mockedMethods.commandHistory)),
@@ -1163,6 +1188,8 @@ namespace Test
                         NextLine,
                         TokenClassification.None, new string(' ', windowWidth)
                      )),
+                // `OnSuggestionDisplayed` should not be fired when navigating the input.
+                CheckThat(() => Assert.Empty(_mockedMethods.displayedSuggestions)),
                 // Once accepted, the list should be cleared.
                 _.Enter, CheckThat(() => AssertScreenIs(2,
                         TokenClassification.Command, "SOME",
@@ -1171,6 +1198,8 @@ namespace Test
                         TokenClassification.None, new string(' ', windowWidth)))
             ));
 
+            // `OnSuggestionDisplayed` should not be fired when 'Enter' accepting the input.
+            Assert.Empty(_mockedMethods.displayedSuggestions);
             Assert.Equal(predictorId_1, _mockedMethods.acceptedPredictorId);
             Assert.Equal("SOME NEW TEX SOME TEXT AFTER", _mockedMethods.acceptedSuggestion);
             Assert.Equal(3, _mockedMethods.commandHistory.Count);
@@ -1240,6 +1269,10 @@ namespace Test
                         NextLine,
                         TokenClassification.None, new string(' ', windowWidth)
                      )),
+                // `OnSuggestionDisplayed` should be fired for both predictors.
+                CheckThat(() => AssertDisplayedSuggestions(count: 2, predictorId_1, 56, 2)),
+                CheckThat(() => AssertDisplayedSuggestions(count: 2, predictorId_2, 56, 1)),
+                CheckThat(() => _mockedMethods.ClearPredictionFields()),
                 _.DownArrow, _.Shift_Home,
                      CheckThat(() => AssertScreenIs(7,
                         TokenClassification.Selection, "eca -zoo",
@@ -1289,6 +1322,8 @@ namespace Test
                         NextLine,
                         TokenClassification.None, new string(' ', windowWidth)
                      )),
+                // `OnSuggestionDisplayed` should not be fired when navigating the list.
+                CheckThat(() => Assert.Empty(_mockedMethods.displayedSuggestions)),
                 'j', CheckThat(() => AssertScreenIs(6,
                         TokenClassification.Command, "j",
                         NextLine,
@@ -1328,6 +1363,9 @@ namespace Test
                         NextLine,
                         TokenClassification.None, new string(' ', windowWidth)
                      )),
+                // `OnSuggestionDisplayed` should be fired for both predictors.
+                CheckThat(() => AssertDisplayedSuggestions(count: 2, predictorId_1, 56, 2)),
+                CheckThat(() => AssertDisplayedSuggestions(count: 2, predictorId_2, 56, 1)),
                 // Update the selected item won't trigger 'acceptance' callbacks if the item is from history.
                 CheckThat(() => Assert.Equal(Guid.Empty, _mockedMethods.acceptedPredictorId)),
                 CheckThat(() => Assert.Null(_mockedMethods.acceptedSuggestion)),
@@ -1374,6 +1412,8 @@ namespace Test
                         NextLine,
                         TokenClassification.None, new string(' ', windowWidth)
                      )),
+                // `OnSuggestionDisplayed` should not be fired when navigating the list.
+                CheckThat(() => Assert.Empty(_mockedMethods.displayedSuggestions)),
                 _.Backspace,
                      CheckThat(() => AssertScreenIs(5,
                         TokenClassification.Command, "SOME",
@@ -1408,6 +1448,9 @@ namespace Test
                         NextLine,
                         TokenClassification.None, new string(' ', windowWidth)
                      )),
+                // `OnSuggestionDisplayed` should be fired for both predictors.
+                CheckThat(() => AssertDisplayedSuggestions(count: 2, predictorId_1, 56, 2)),
+                CheckThat(() => AssertDisplayedSuggestions(count: 2, predictorId_2, 56, 1)),
                 CheckThat(() => Assert.Equal(predictorId_2, _mockedMethods.acceptedPredictorId)),
                 CheckThat(() => Assert.Equal("SOME NEW TEXT", _mockedMethods.acceptedSuggestion)),
                 CheckThat(() => Assert.Null(_mockedMethods.commandHistory)),
@@ -1447,6 +1490,8 @@ namespace Test
                         NextLine,
                         TokenClassification.None, new string(' ', windowWidth)
                      )),
+                // `OnSuggestionDisplayed` should not be fired when navigating the list.
+                CheckThat(() => Assert.Empty(_mockedMethods.displayedSuggestions)),
                 // Once accepted, the list should be cleared.
                 _.Enter, CheckThat(() => AssertScreenIs(2,
                         TokenClassification.Command, "SOME",
@@ -1455,6 +1500,7 @@ namespace Test
                         TokenClassification.None, new string(' ', windowWidth)))
             ));
 
+            Assert.Empty(_mockedMethods.displayedSuggestions);
             Assert.Equal(predictorId_1, _mockedMethods.acceptedPredictorId);
             Assert.Equal("SOME NEW TEX SOME TEXT AFTER", _mockedMethods.acceptedSuggestion);
             Assert.Equal(4, _mockedMethods.commandHistory.Count);

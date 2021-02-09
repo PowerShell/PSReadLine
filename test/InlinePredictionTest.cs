@@ -374,7 +374,7 @@ namespace Test
         {
             var ctor = typeof(PredictionResult).GetConstructor(
                 BindingFlags.NonPublic | BindingFlags.Instance, null,
-                new[] { typeof(Guid), typeof(string), typeof(List<PredictiveSuggestion>) }, null);
+                new[] { typeof(Guid), typeof(string), typeof(uint), typeof(List<PredictiveSuggestion>) }, null);
 
             var input = ast.Extent.Text;
             if (input == "netsh")
@@ -395,9 +395,9 @@ namespace Test
             return new List<PredictionResult>
             {
                 (PredictionResult)ctor.Invoke(
-                    new object[] { predictorId_1, "TestPredictor", suggestions_1 }),
+                    new object[] { predictorId_1, "TestPredictor", (uint)56, suggestions_1 }),
                 (PredictionResult)ctor.Invoke(
-                    new object[] { predictorId_2, "LongNamePredictor", suggestions_2 }),
+                    new object[] { predictorId_2, "LongNamePredictor", (uint)56, suggestions_2 }),
             };
         }
 
@@ -416,11 +416,15 @@ namespace Test
                 "git", CheckThat(() => AssertScreenIs(1,
                     TokenClassification.Command, "git",
                     TokenClassification.InlinePrediction, " SOME TEXT AFTER")),
+                // `OnSuggestionDisplayed` should be fired for only one predictor because we are in 'inline' view.
+                CheckThat(() => AssertDisplayedSuggestions(count: 1, predictorId_1, 56, -1)),
+                CheckThat(() => _mockedMethods.ClearPredictionFields()),
                 // 'ctrl+f' will trigger 'OnSuggestionAccepted'.
                 _.Ctrl_f, CheckThat(() => AssertScreenIs(1,
                     TokenClassification.Command, "git",
                     TokenClassification.None, " SOME ",
                     TokenClassification.InlinePrediction, "TEXT AFTER")),
+                CheckThat(() => Assert.Empty(_mockedMethods.displayedSuggestions)),
                 CheckThat(() => Assert.Equal(predictorId_1, _mockedMethods.acceptedPredictorId)),
                 CheckThat(() => Assert.Equal("git SOME TEXT AFTER", _mockedMethods.acceptedSuggestion)),
                 CheckThat(() => Assert.Null(_mockedMethods.commandHistory)),
@@ -430,18 +434,21 @@ namespace Test
                     TokenClassification.Command, "git",
                     TokenClassification.None, " SOME TEXT ",
                     TokenClassification.InlinePrediction, "AFTER")),
+                CheckThat(() => Assert.Empty(_mockedMethods.displayedSuggestions)),
                 CheckThat(() => Assert.Equal(Guid.Empty, _mockedMethods.acceptedPredictorId)),
                 CheckThat(() => Assert.Null(_mockedMethods.acceptedSuggestion)),
                 CheckThat(() => Assert.Null(_mockedMethods.commandHistory)),
                 _.RightArrow, CheckThat(() => AssertScreenIs(1,
                     TokenClassification.Command, "git",
                     TokenClassification.None, " SOME TEXT AFTER")),
+                CheckThat(() => Assert.Empty(_mockedMethods.displayedSuggestions)),
                 CheckThat(() => Assert.Equal(Guid.Empty, _mockedMethods.acceptedPredictorId)),
                 CheckThat(() => Assert.Null(_mockedMethods.acceptedSuggestion)),
                 CheckThat(() => Assert.Null(_mockedMethods.commandHistory))
             ));
 
             // 'Enter' will trigger 'OnCommandLineAccepted'.
+            Assert.Empty(_mockedMethods.displayedSuggestions);
             Assert.Equal(Guid.Empty, _mockedMethods.acceptedPredictorId);
             Assert.Null(_mockedMethods.acceptedSuggestion);
             Assert.NotNull(_mockedMethods.commandHistory);
@@ -458,6 +465,8 @@ namespace Test
             ));
 
             // 'Enter' will trigger 'OnCommandLineAccepted', because plugin is in use.
+            // Also, we still have `OnSuggestionDisplayed` fired, from the typing of each character of `nets`.
+            AssertDisplayedSuggestions(count: 1, predictorId_1, 56, -1);
             Assert.Equal(Guid.Empty, _mockedMethods.acceptedPredictorId);
             Assert.Null(_mockedMethods.acceptedSuggestion);
             Assert.NotNull(_mockedMethods.commandHistory);
@@ -482,10 +491,14 @@ namespace Test
                 "git", CheckThat(() => AssertScreenIs(1,
                     TokenClassification.Command, "git",
                     TokenClassification.InlinePrediction, " SOME TEXT AFTER")),
+                // `OnSuggestionDisplayed` should be fired for only one predictor because we are in 'inline' view.
+                CheckThat(() => AssertDisplayedSuggestions(count: 1, predictorId_1, 56, -1)),
+                CheckThat(() => _mockedMethods.ClearPredictionFields()),
                 _.Ctrl_f, CheckThat(() => AssertScreenIs(1,
                     TokenClassification.Command, "git",
                     TokenClassification.None, " SOME ",
                     TokenClassification.InlinePrediction, "TEXT AFTER")),
+                CheckThat(() => Assert.Empty(_mockedMethods.displayedSuggestions)),
                 CheckThat(() => Assert.Equal(predictorId_1, _mockedMethods.acceptedPredictorId)),
                 CheckThat(() => Assert.Equal("git SOME TEXT AFTER", _mockedMethods.acceptedSuggestion)),
                 CheckThat(() => Assert.Null(_mockedMethods.commandHistory)),
@@ -494,17 +507,20 @@ namespace Test
                     TokenClassification.Command, "git",
                     TokenClassification.None, " SOME TEXT ",
                     TokenClassification.InlinePrediction, "AFTER")),
+                CheckThat(() => Assert.Empty(_mockedMethods.displayedSuggestions)),
                 CheckThat(() => Assert.Equal(Guid.Empty, _mockedMethods.acceptedPredictorId)),
                 CheckThat(() => Assert.Null(_mockedMethods.acceptedSuggestion)),
                 CheckThat(() => Assert.Null(_mockedMethods.commandHistory)),
                 _.RightArrow, CheckThat(() => AssertScreenIs(1,
                     TokenClassification.Command, "git",
                     TokenClassification.None, " SOME TEXT AFTER")),
+                CheckThat(() => Assert.Empty(_mockedMethods.displayedSuggestions)),
                 CheckThat(() => Assert.Equal(Guid.Empty, _mockedMethods.acceptedPredictorId)),
                 CheckThat(() => Assert.Null(_mockedMethods.acceptedSuggestion)),
                 CheckThat(() => Assert.Null(_mockedMethods.commandHistory))
             ));
 
+            Assert.Empty(_mockedMethods.displayedSuggestions);
             Assert.Equal(Guid.Empty, _mockedMethods.acceptedPredictorId);
             Assert.Null(_mockedMethods.acceptedSuggestion);
             Assert.NotNull(_mockedMethods.commandHistory);
@@ -520,11 +536,15 @@ namespace Test
                 "netsh", CheckThat(() => AssertScreenIs(1,
                     TokenClassification.Command, "netsh",
                     TokenClassification.InlinePrediction, " show me")),
+                // Yeah, we still have `OnSuggestionDisplayed` fired, from the typing of each character of `nets`.
+                CheckThat(() => AssertDisplayedSuggestions(count: 1, predictorId_1, 56, -1)),
+                CheckThat(() => _mockedMethods.ClearPredictionFields()),
                 // 'ctrl+f' won't trigger 'OnSuggestionAccepted' as the suggestion is from history.
                 _.Ctrl_f, CheckThat(() => AssertScreenIs(1,
                     TokenClassification.Command, "netsh",
                     TokenClassification.None, " show ",
                     TokenClassification.InlinePrediction, "me")),
+                CheckThat(() => Assert.Empty(_mockedMethods.displayedSuggestions)),
                 CheckThat(() => Assert.Equal(Guid.Empty, _mockedMethods.acceptedPredictorId)),
                 CheckThat(() => Assert.Null(_mockedMethods.acceptedSuggestion)),
                 CheckThat(() => Assert.Null(_mockedMethods.commandHistory)),
@@ -532,11 +552,13 @@ namespace Test
                 _.RightArrow, CheckThat(() => AssertScreenIs(1,
                     TokenClassification.Command, "netsh",
                     TokenClassification.None, " show me")),
+                CheckThat(() => Assert.Empty(_mockedMethods.displayedSuggestions)),
                 CheckThat(() => Assert.Equal(Guid.Empty, _mockedMethods.acceptedPredictorId)),
                 CheckThat(() => Assert.Null(_mockedMethods.acceptedSuggestion)),
                 CheckThat(() => Assert.Null(_mockedMethods.commandHistory))
             ));
 
+            Assert.Empty(_mockedMethods.displayedSuggestions);
             Assert.Equal(Guid.Empty, _mockedMethods.acceptedPredictorId);
             Assert.Null(_mockedMethods.acceptedSuggestion);
             Assert.NotNull(_mockedMethods.commandHistory);
