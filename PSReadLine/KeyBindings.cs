@@ -411,6 +411,7 @@ namespace Microsoft.PowerShell
             case nameof(DeleteToEnd):
             case nameof(DeleteWord):
             case nameof(ForwardDeleteInput):
+            case nameof(ForwardDeleteLine):
             case nameof(InsertLineAbove):
             case nameof(InsertLineBelow):
             case nameof(InvertCase):
