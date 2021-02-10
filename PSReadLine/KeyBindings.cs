@@ -294,7 +294,7 @@ namespace Microsoft.PowerShell
                 { Keys.CtrlR,           MakeKeyHandler(ReverseSearchHistory, "ReverseSearchHistory") },
                 { Keys.CtrlS,           MakeKeyHandler(ForwardSearchHistory, "ForwardSearchHistory") },
                 { Keys.CtrlT,           MakeKeyHandler(SwapCharacters,       "SwapCharacters") },
-                { Keys.CtrlU,           MakeKeyHandler(BackwardKillInput,     "BackwardKillLine") },
+                { Keys.CtrlU,           MakeKeyHandler(BackwardKillInput,    "BackwardKillInput") },
                 { Keys.CtrlX,           MakeKeyHandler(Chord,                "ChordFirstKey") },
                 { Keys.CtrlW,           MakeKeyHandler(UnixWordRubout,       "UnixWordRubout") },
                 { Keys.CtrlY,           MakeKeyHandler(Yank,                 "Yank") },
