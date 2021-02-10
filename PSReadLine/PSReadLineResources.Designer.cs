@@ -2078,7 +2078,7 @@ namespace Microsoft.PowerShell.PSReadLine {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to Displaying help content is not supported on this console.
+        ///   Looks up a localized string similar to Displaying help content is not supported on this console as it does not support alternate screen buffer.
         /// </summary>
         internal static string FullHelpNotSupportedInLegacyConsole
         {
@@ -2100,7 +2100,7 @@ namespace Microsoft.PowerShell.PSReadLine {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to Shows help for the paramter at the cursor..
+        ///   Looks up a localized string similar to Shows help for the parameter at the cursor.
         /// </summary>
         internal static string ShowParameterHelpDescription
         {

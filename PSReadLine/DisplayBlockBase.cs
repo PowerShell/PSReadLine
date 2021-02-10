@@ -14,7 +14,7 @@ namespace Microsoft.PowerShell
             internal PSConsoleReadLine Singleton;
             internal int Top;
 
-            private protected void MoveCursorDown(int cnt)
+            protected void MoveCursorDown(int cnt)
             {
                 IConsole console = Singleton._console;
                 while (cnt-- > 0)

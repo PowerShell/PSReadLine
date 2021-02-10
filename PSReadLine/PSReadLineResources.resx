@@ -833,12 +833,12 @@ Or not saving history with:
     <value>No help content available. Please use Update-Help to download the latest help content.</value>
   </data>
   <data name="FullHelpNotSupportedInLegacyConsole" xml:space="preserve">
-    <value>Displaying help content is not supported on this console.</value>
+    <value>Displaying help content is not supported on this console as it does not support alternate screen buffer.</value>
   </data>
   <data name="ShowCommandHelpDescription" xml:space="preserve">
     <value>Shows help for the command at the cursor in an alternate screen buffer.</value>
   </data>
   <data name="ShowParameterHelpDescription" xml:space="preserve">
-    <value>Shows help for the paramter at the cursor.</value>
+    <value>Shows help for the parameter at the cursor.</value>
   </data>
 </root>
