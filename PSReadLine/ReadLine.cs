@@ -630,7 +630,7 @@ namespace Microsoft.PowerShell
         static PSConsoleReadLine()
         {
             _singleton = new PSConsoleReadLine();
-            _clipboard = new ViRegister(_singleton);
+            _viRegister = new ViRegister(_singleton);
         }
 
         private PSConsoleReadLine()

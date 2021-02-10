@@ -12,14 +12,14 @@ namespace Microsoft.PowerShell
         // *must* be initialized in the static ctor
         // because it depends on static member _singleton
         // being initialized first.
-        private static readonly ViRegister _clipboard;
+        private static readonly ViRegister _viRegister;
 
         /// <summary>
         /// Paste the clipboard after the cursor, moving the cursor to the end of the pasted text.
         /// </summary>
         public static void PasteAfter(ConsoleKeyInfo? key = null, object arg = null)
         {
-            if (_clipboard.IsEmpty)
+            if (_viRegister.IsEmpty)
             {
                 Ding();
                 return;
@@ -33,7 +33,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void PasteBefore(ConsoleKeyInfo? key = null, object arg = null)
         {
-            if (_clipboard.IsEmpty)
+            if (_viRegister.IsEmpty)
             {
                 Ding();
                 return;
@@ -43,19 +43,19 @@ namespace Microsoft.PowerShell
 
         private void PasteAfterImpl()
         {
-            _current = _clipboard.PasteAfter(_buffer, _current);
+            _current = _viRegister.PasteAfter(_buffer, _current);
             Render();
         }
 
         private void PasteBeforeImpl()
         {
-            _current = _clipboard.PasteBefore(_buffer, _current);
+            _current = _viRegister.PasteBefore(_buffer, _current);
             Render();
         }
 
         private void SaveToClipboard(int startIndex, int length)
         {
-            _clipboard.Record(_buffer, startIndex, length);
+            _viRegister.Record(_buffer, startIndex, length);
         }
 
         /// <summary>
@@ -67,7 +67,26 @@ namespace Microsoft.PowerShell
         private void SaveLinesToClipboard(int lineIndex, int lineCount)
         {
             var range = _buffer.GetRange(lineIndex, lineCount);
-            _clipboard.LinewiseRecord(_buffer.ToString(range.Offset, range.Count));
+            _viRegister.LinewiseRecord(_buffer.ToString(range.Offset, range.Count));
+        }
+
+        /// <summary>
+        /// Remove a portion of text from the buffer, save it to the vi register
+        /// and also save it to the edit list to support undo.
+        /// </summary>
+        /// <param name="start"></param>
+        /// <param name="count"></param>
+        /// <param name="instigator"></param>
+        /// <param name="arg"></param>
+        private void RemoveTextToViRegister(int start, int count, Action<ConsoleKeyInfo?, object> instigator = null, object arg = null)
+        {
+            _singleton.SaveToClipboard(start, count);
+            _singleton.SaveEditItem(EditItemDelete.Create(
+                _viRegister.RawText,
+                start,
+                instigator,
+                arg));
+            _singleton._buffer.Remove(start, count);
         }
 
         /// <summary>
@@ -142,7 +161,7 @@ namespace Microsoft.PowerShell
             var length = end - start + 1;
             if (length > 0)
             {
-                _clipboard.Record(_singleton._buffer, start, length);
+                _singleton.SaveToClipboard(start, length);
             }
         }
 
@@ -255,7 +274,7 @@ namespace Microsoft.PowerShell
             var length = _singleton._current - start; 
             if (length > 0)
             {
-                _clipboard.Record(_singleton._buffer, start, length);
+                _singleton.SaveToClipboard(start, length);
                 _singleton.MoveCursor(start);
             }
         }
@@ -269,7 +288,7 @@ namespace Microsoft.PowerShell
             var length = _singleton._current - start;
             if (length > 0)
             {
-                _clipboard.Record(_singleton._buffer, start, length);
+                _singleton.SaveToClipboard(start, length);
                 _singleton.MoveCursor(start);
             }
         }

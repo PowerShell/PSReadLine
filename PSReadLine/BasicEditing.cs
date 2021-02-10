@@ -157,10 +157,8 @@ namespace Microsoft.PowerShell
             if (_singleton._current > position)
             {
                 var count = _singleton._current - position;
-
-                _clipboard.Record(_singleton._buffer, position, count);
-                _singleton.SaveEditItem(EditItemDelete.Create(_clipboard, position, instigator));
-                _singleton._buffer.Remove(position, count);
+              
+                _singleton.RemoveTextToViRegister(position, count, instigator);
                 _singleton._current = position;
                 _singleton.Render();
             }
@@ -185,15 +183,8 @@ namespace Microsoft.PowerShell
                 qty = Math.Min(qty, _singleton._current);
 
                 int startDeleteIndex = _singleton._current - qty;
-                _singleton.SaveEditItem(
-                    EditItemDelete.Create(
-                        _singleton._buffer.ToString(startDeleteIndex, qty),
-                        startDeleteIndex,
-                        BackwardDeleteChar,
-                        arg)
-                        );
-                _singleton.SaveToClipboard(startDeleteIndex, qty);
-                _singleton._buffer.Remove(startDeleteIndex, qty);
+
+                _singleton.RemoveTextToViRegister(startDeleteIndex, qty, BackwardDeleteChar, arg);
                 _singleton._current = startDeleteIndex;
                 _singleton.Render();
             }
@@ -214,9 +205,7 @@ namespace Microsoft.PowerShell
                 {
                     qty = Math.Min(qty, _singleton._buffer.Length - _singleton._current);
 
-                    SaveEditItem(EditItemDelete.Create(_buffer.ToString(_current, qty), _current, DeleteChar, qty));
-                    SaveToClipboard(_current, qty);
-                    _buffer.Remove(_current, qty);
+                    RemoveTextToViRegister(_current, qty, DeleteChar, qty);
                     if (_current >= _buffer.Length)
                     {
                         _current = Math.Max(0, _buffer.Length + ViEndOfLineFactor);
