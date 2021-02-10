@@ -393,6 +393,7 @@ namespace Microsoft.PowerShell
             case nameof(BackwardDeleteLine):
             case nameof(BackwardDeleteWord):
             case nameof(BackwardKillInput):
+            case nameof(BackwardKillLine):
             case nameof(BackwardKillWord):
             case nameof(CancelLine):
             case nameof(Copy):
