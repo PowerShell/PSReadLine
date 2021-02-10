@@ -369,7 +369,7 @@ namespace Microsoft.PowerShell
                 // Ctrl+X,<key> table
                 [Keys.CtrlX] = new Dictionary<PSKeyInfo, KeyHandler>
                 {
-                    { Keys.Backspace, MakeKeyHandler(BackwardKillInput,     "BackwardKillLine") },
+                    { Keys.Backspace, MakeKeyHandler(BackwardKillInput,    "BackwardKillInput") },
                     { Keys.CtrlE,     MakeKeyHandler(ViEditVisually,       "ViEditVisually") },
                     { Keys.CtrlU,     MakeKeyHandler(Undo,                 "Undo") },
                     { Keys.CtrlX,     MakeKeyHandler(ExchangePointAndMark, "ExchangePointAndMark") },
