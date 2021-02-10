@@ -80,7 +80,7 @@ namespace Microsoft.PowerShell
                 { Keys.CtrlY,           MakeKeyHandler(Redo,                   "Redo") },
                 { Keys.CtrlZ,           MakeKeyHandler(Undo,                   "Undo") },
                 { Keys.CtrlBackspace,   MakeKeyHandler(BackwardKillWord,       "BackwardKillWord") },
-                { Keys.CtrlEnd,         MakeKeyHandler(ForwardDeleteInput,      "ForwardDeleteLine") },
+                { Keys.CtrlEnd,         MakeKeyHandler(ForwardDeleteInput,     "ForwardDeleteInput") },
                 { Keys.CtrlHome,        MakeKeyHandler(BackwardDeleteInput,    "BackwardDeleteInput") },
                 { Keys.CtrlRBracket,    MakeKeyHandler(GotoBrace,              "GotoBrace") },
                 { Keys.F3,              MakeKeyHandler(CharacterSearch,        "CharacterSearch") },
