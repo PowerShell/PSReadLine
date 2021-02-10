@@ -156,7 +156,7 @@ namespace Microsoft.PowerShell
                 _singleton._shouldAppend = true;
             }
 
-            _singleton.RemoveTextToClipboard(start, end - start);
+            _singleton.RemoveTextToViRegister(start, end - start);
             _singleton.AdjustCursorPosition(start);
             _singleton.Render();
         }

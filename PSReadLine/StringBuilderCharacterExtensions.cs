@@ -35,7 +35,7 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Returns true if the character at the specified position is 
+        /// Returns true if the character at the specified position is
         /// at the end of the buffer
         /// </summary>
         /// <param name="buffer"></param>
@@ -54,7 +54,7 @@ namespace Microsoft.PowerShell
         /// <param name="i"></param>
         /// <returns></returns>
         public static bool IsWhiteSpace(this StringBuilder buffer, int i)
-        { 
+        {
             // Treat just beyond the end of buffer as whitespace because
             // it looks like whitespace to the user even though they haven't
             // entered a character yet.
