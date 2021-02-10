@@ -65,7 +65,7 @@ PARAMETERS
                 }
                 else if(string.Equals(parameterName, "ExactlyTwo", StringComparison.OrdinalIgnoreCase))
                 {
-                    string multiLineDesc = "Some very long description that is over the buffer width of 60 characters and exactly the length of 120 characters total";
+                    string multiLineDesc = "Some very long description that is over the buffer width of 60 characters and exactly the length of 120 characters";
                     return GetParameterHelpObject(multiLineDesc);
                 }
             }
@@ -130,12 +130,12 @@ PARAMETERS
                         TokenClassification.None, "Required: false, Position: 0, Default Value: None, Pipeline ",
                         NextLine,
                         "Input: True (ByPropertyName, ByValue), WildCard: false")),
-                _.Enter,
-                _.Enter,
+                _.Escape,
                     CheckThat(() => AssertScreenIs(1,
                         TokenClassification.Command, "Get-Date",
                         TokenClassification.None, " ",
-                        TokenClassification.Parameter, "-Date"))
+                        TokenClassification.Parameter, "-Date")),
+                _.Enter
                 ));
         }
 
@@ -162,12 +162,108 @@ PARAMETERS
                         TokenClassification.None, "Required: false, Position: 0, Default Value: None, Pipeline ",
                         NextLine,
                         "Input: True (ByPropertyName, ByValue), WildCard: false")),
-                _.Enter,
-                _.Enter,
+                _.LeftArrow,
                     CheckThat(() => AssertScreenIs(1,
                         TokenClassification.Command, "Get-MultiLineHelp",
                         TokenClassification.None, " ",
-                        TokenClassification.Parameter, "-OneAndHalf"))
+                        TokenClassification.Parameter, "-OneAndHalf")),
+                _.Enter
+                ));
+        }
+
+        [SkippableFact]
+        public void DynHelp_GetParameterHelpTwoLines_And_Clear()
+        {
+            TestSetup(KeyMode.Cmd);
+            string emptyLine = new string(' ', _console.BufferWidth);
+
+            Test("Get-MultiLineHelp -ExactlyTwo", Keys(
+                "Get-MultiLineHelp -ExactlyTwo", _.Alt_h,
+                    CheckThat(() => AssertScreenIs(9,
+                        TokenClassification.Command, "Get-MultiLineHelp",
+                        TokenClassification.None, " ",
+                        TokenClassification.Parameter, "-ExactlyTwo",
+                        NextLine,
+                        emptyLine,
+                        TokenClassification.None, $"-Date <name>",
+                        NextLine,
+                        emptyLine,
+                        TokenClassification.None, "DESC: Some very long description that is over the buffer wid",
+                        TokenClassification.None, "th of 60 characters and exactly the length of 120 characters",
+                        NextLine,
+                        TokenClassification.None, "Required: false, Position: 0, Default Value: None, Pipeline ",
+                        NextLine,
+                        "Input: True (ByPropertyName, ByValue), WildCard: false")),
+                _.RightArrow,
+                    CheckThat(() => AssertScreenIs(1,
+                        TokenClassification.Command, "Get-MultiLineHelp",
+                        TokenClassification.None, " ",
+                        TokenClassification.Parameter, "-ExactlyTwo")),
+                _.Enter
+                ));
+        }
+
+        [SkippableFact]
+        public void DynHelp_GetParameterHelpTwoLines_And_Clear_Emacs()
+        {
+            TestSetup(KeyMode.Emacs);
+            string emptyLine = new string(' ', _console.BufferWidth);
+
+            Test("Get-MultiLineHelp -ExactlyTwo", Keys(
+                "Get-MultiLineHelp -ExactlyTwo", _.Alt_h,
+                    CheckThat(() => AssertScreenIs(9,
+                        TokenClassification.Command, "Get-MultiLineHelp",
+                        TokenClassification.None, " ",
+                        TokenClassification.Parameter, "-ExactlyTwo",
+                        NextLine,
+                        emptyLine,
+                        TokenClassification.None, $"-Date <name>",
+                        NextLine,
+                        emptyLine,
+                        TokenClassification.None, "DESC: Some very long description that is over the buffer wid",
+                        TokenClassification.None, "th of 60 characters and exactly the length of 120 characters",
+                        NextLine,
+                        TokenClassification.None, "Required: false, Position: 0, Default Value: None, Pipeline ",
+                        NextLine,
+                        "Input: True (ByPropertyName, ByValue), WildCard: false")),
+                _.RightArrow,
+                    CheckThat(() => AssertScreenIs(1,
+                        TokenClassification.Command, "Get-MultiLineHelp",
+                        TokenClassification.None, " ",
+                        TokenClassification.Parameter, "-ExactlyTwo")),
+                _.Enter
+                ));
+        }
+
+        [SkippableFact]
+        public void DynHelp_GetParameterHelpTwoLines_And_Clear_Vi()
+        {
+            TestSetup(KeyMode.Vi);
+            string emptyLine = new string(' ', _console.BufferWidth);
+
+            Test("Get-MultiLineHelp -ExactlyTwo", Keys(
+                "Get-MultiLineHelp -ExactlyTwo", _.Alt_h,
+                    CheckThat(() => AssertScreenIs(9,
+                        TokenClassification.Command, "Get-MultiLineHelp",
+                        TokenClassification.None, " ",
+                        TokenClassification.Parameter, "-ExactlyTwo",
+                        NextLine,
+                        emptyLine,
+                        TokenClassification.None, $"-Date <name>",
+                        NextLine,
+                        emptyLine,
+                        TokenClassification.None, "DESC: Some very long description that is over the buffer wid",
+                        TokenClassification.None, "th of 60 characters and exactly the length of 120 characters",
+                        NextLine,
+                        TokenClassification.None, "Required: false, Position: 0, Default Value: None, Pipeline ",
+                        NextLine,
+                        "Input: True (ByPropertyName, ByValue), WildCard: false")),
+                _.RightArrow,
+                    CheckThat(() => AssertScreenIs(1,
+                        TokenClassification.Command, "Get-MultiLineHelp",
+                        TokenClassification.None, " ",
+                        TokenClassification.Parameter, "-ExactlyTwo")),
+                _.Enter
                 ));
         }
 
@@ -188,7 +284,7 @@ PARAMETERS
                     TokenClassification.None, "No help content available. Please use Update-Help to downloa",
                     NextLine,
                     "d the latest help content.")),
-                _.Enter,
+                _.RightArrow,
                 _.Enter
                 ));
         }
