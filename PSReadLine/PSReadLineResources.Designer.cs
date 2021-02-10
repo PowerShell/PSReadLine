@@ -115,7 +115,16 @@ namespace Microsoft.PowerShell.PSReadLine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Delete text from the cursor to the start of the line.
+        ///   Looks up a localized string similar to Delete text from the cursor to the start of the input.
+        /// </summary>
+        internal static string BackwardDeleteInputDescription {
+            get {
+                return ResourceManager.GetString("BackwardDeleteInputDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Delete text from the cursor to the start of the current logical line.
         /// </summary>
         internal static string BackwardDeleteLineDescription {
             get {
@@ -134,6 +143,15 @@ namespace Microsoft.PowerShell.PSReadLine {
         
         /// <summary>
         ///   Looks up a localized string similar to Move the text from the cursor to the beginning of the line to the kill ring.
+        /// </summary>
+        internal static string BackwardKillInputDescription {
+            get {
+                return ResourceManager.GetString("BackwardKillInputDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Move the text from the start of the current logical line to the cursor to the kill ring.
         /// </summary>
         internal static string BackwardKillLineDescription {
             get {
@@ -503,6 +521,15 @@ namespace Microsoft.PowerShell.PSReadLine {
         
         /// <summary>
         ///   Looks up a localized string similar to Delete text from the cursor to the end of the line.
+        /// </summary>
+        internal static string ForwardDeleteInputDescription {
+            get {
+                return ResourceManager.GetString("ForwardDeleteInputDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Delete text from the cursor to the end of the current logical line.
         /// </summary>
         internal static string ForwardDeleteLineDescription {
             get {

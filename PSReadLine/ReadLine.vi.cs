@@ -294,7 +294,7 @@ namespace Microsoft.PowerShell
 
         private static void DeleteBackwardToEndPoint(object arg, int endPoint, Action<ConsoleKeyInfo?, object> instigator)
         {
-            int deleteLength = _singleton._current - endPoint + 1;
+            int deleteLength = _singleton._current - endPoint;
 
             _singleton.RemoveTextToViRegister(
                 endPoint,
@@ -679,14 +679,7 @@ namespace Microsoft.PowerShell
         {
             if (_singleton._current > 0)
             {
-                int i = 0;
-                for (; i < _singleton._current; i++)
-                {
-                    if (!Char.IsWhiteSpace(_singleton._buffer[i]))
-                    {
-                        break;
-                    }
-                }
+                var i = GetFirstNonBlankOfLogicalLinePos(_singleton._current);
 
                 _singleton.RemoveTextToViRegister(
                     i,

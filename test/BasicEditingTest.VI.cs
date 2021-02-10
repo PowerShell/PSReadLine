@@ -529,6 +529,27 @@ namespace Test
                 ));
         }
 
+        // Defect #1674
+        [SkippableFact]
+        public void ViDeleteToCharBack()
+        {
+            TestSetup(KeyMode.Vi);
+
+            Test("g", Keys(
+                "abcdefg", _.Escape,
+                // delete to the first character 'a'
+                "dFa",
+                CheckThat(() => AssertCursorLeftIs(0))
+                ));
+
+            Test("06", Keys(
+                "0123456", _.Escape,
+                // delete to the first character '0'
+                "dT0", CheckThat(() => AssertLineIs("06")),
+                CheckThat(() => AssertCursorLeftIs(1))
+                ));
+        }
+
         [SkippableFact]
         public void ViDeleteToEnd()
         {
@@ -547,6 +568,45 @@ namespace Test
                 "2d$",
                 CheckThat(() => AssertCursorLeftIs(continuationPrefixLength + 0))
                 ));
+        }
+
+        [SkippableFact]
+        public void ViBackwardDeleteLine()
+        {
+            TestSetup(KeyMode.Vi);
+
+            int continuationPrefixLength = PSConsoleReadLineOptions.DefaultContinuationPrompt.Length;
+
+            Test("\"\nsome words\n\"", Keys(
+
+                _.DQuote, _.Enter,
+                "   this is a line with some words", _.Enter,
+                _.DQuote, _.Escape,
+                "k6W",
+                CheckThat(() => AssertCursorLeftIs(continuationPrefixLength + 23)),
+                // delete from first non blank of line
+                "d0",
+                CheckThat(() => AssertCursorLeftIs(continuationPrefixLength))
+            ));
+        }
+
+        [SkippableFact]
+        public void ViDeleteLineToFirstChar()
+        {
+            TestSetup(KeyMode.Vi);
+
+            int continuationPrefixLength = PSConsoleReadLineOptions.DefaultContinuationPrompt.Length;
+
+            Test("\"\n   some spaces\n\"", Keys(
+                _.DQuote, _.Enter,
+                "   this is a line with some spaces", _.Enter,
+                _.DQuote, _.Escape,
+                "k6W",
+                CheckThat(() => AssertCursorLeftIs(continuationPrefixLength + 23)),
+                // delete from first non blank of line
+                "d^",
+                CheckThat(() => AssertCursorLeftIs(continuationPrefixLength + 3))
+            ));
         }
 
         [SkippableFact]
@@ -988,14 +1048,14 @@ namespace Test
 
             Test("0123456", Keys(
                 "0123456", _.Escape, CheckThat(() => AssertLineIs("0123456")),
-                "cF0abc", _.Escape, CheckThat(() => AssertLineIs("abc")),
+                "cF0abc", _.Escape, CheckThat(() => AssertLineIs("abc6")),
                 'u', CheckThat(() => AssertLineIs("0123456")), CheckThat(() => AssertCursorLeftIs(6)),
-                "cF1abc", _.Escape, CheckThat(() => AssertLineIs("0abc")),
+                "cF1abc", _.Escape, CheckThat(() => AssertLineIs("0abc6")),
                 'u', CheckThat(() => AssertLineIs("0123456")), CheckThat(() => AssertCursorLeftIs(6)),
-                "hcF0abc", _.Escape, CheckThat(() => AssertLineIs("abc6")),
-                'u', CheckThat(() => AssertLineIs("0123456")), CheckThat(() => AssertCursorLeftIs(6)),
-                "hcF1abc", _.Escape, CheckThat(() => AssertLineIs("0abc6")),
-                'u', CheckThat(() => AssertLineIs("0123456")), CheckThat(() => AssertCursorLeftIs(6)),
+                "hcF0abc", _.Escape, CheckThat(() => AssertLineIs("abc56")),
+                'u', CheckThat(() => AssertLineIs("0123456")), CheckThat(() => AssertCursorLeftIs(5)),
+                "hcF1abc", _.Escape, CheckThat(() => AssertLineIs("0abc456")),
+                'u', CheckThat(() => AssertLineIs("0123456")), CheckThat(() => AssertCursorLeftIs(4)),
                 "0cF0abc", _.Escape, CheckThat(() => AssertLineIs("0bc123456")),
                 'u'
                 ));
@@ -1012,10 +1072,10 @@ namespace Test
 
             Test("0123456", Keys(
                 "0123456", _.Escape, CheckThat(() => AssertLineIs("0123456")),
-                "cT1abc", _.Escape, CheckThat(() => AssertLineIs("01abc")),
+                "cT1abc", _.Escape, CheckThat(() => AssertLineIs("01abc6")),
                 'u', CheckThat(() => AssertLineIs("0123456")), CheckThat(() => AssertCursorLeftIs(6)),
-                "hcT1abc", _.Escape, CheckThat(() => AssertLineIs("01abc6")),
-                'u', CheckThat(() => AssertLineIs("0123456")), CheckThat(() => AssertCursorLeftIs(6)),
+                "hcT1abc", _.Escape, CheckThat(() => AssertLineIs("01abc56")),
+                'u', CheckThat(() => AssertLineIs("0123456")), CheckThat(() => AssertCursorLeftIs(5)),
                 "0cT0abc", _.Escape, CheckThat(() => AssertLineIs("0bc123456")),
                 'u'
                 ));
