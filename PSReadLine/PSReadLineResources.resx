@@ -129,11 +129,17 @@
   <data name="BackwardDeleteCharDescription" xml:space="preserve">
     <value>Delete the character before the cursor</value>
   </data>
+  <data name="BackwardDeleteInputDescription" xml:space="preserve">
+    <value>Delete text from the cursor to the start of the input</value>
+  </data>
   <data name="BackwardDeleteLineDescription" xml:space="preserve">
-    <value>Delete text from the cursor to the start of the line</value>
+    <value>Delete text from the cursor to the start of the current logical line</value>
+  </data>
+  <data name="BackwardKillInputDescription" xml:space="preserve">
+    <value>Move the text from the cursor to the beginning of the input to the kill ring</value>
   </data>
   <data name="BackwardKillLineDescription" xml:space="preserve">
-    <value>Move the text from the cursor to the beginning of the line to the kill ring</value>
+    <value>Move the text from the start of the current logical line to the cursor to the kill ring</value>
   </data>
   <data name="BeginningOfHistoryDescription" xml:space="preserve">
     <value>Move to the first item in the history</value>
@@ -180,8 +186,11 @@
   <data name="ForwardCharDescription" xml:space="preserve">
     <value>Move the cursor forward one character</value>
   </data>
+  <data name="ForwardDeleteInputDescription" xml:space="preserve">
+    <value>Delete text from the cursor to the end of the input</value>
+  </data>
   <data name="ForwardDeleteLineDescription" xml:space="preserve">
-    <value>Delete text from the cursor to the end of the line</value>
+    <value>Delete text from the cursor to the end of the current logical line</value>
   </data>
   <data name="ShellForwardWordDescription" xml:space="preserve">
     <value>Move the cursor to the beginning of the next token or end of line</value>

@@ -209,7 +209,7 @@ namespace Microsoft.PowerShell
                 { Keys.CtrlY,                  MakeKeyHandler(Redo,                      "Redo") },
                 { Keys.CtrlZ,                  MakeKeyHandler(Undo,                      "Undo") },
                 { Keys.CtrlBackspace,          MakeKeyHandler(BackwardKillWord,          "BackwardKillWord") },
-                { Keys.CtrlHome,               MakeKeyHandler(BackwardDeleteLine,        "BackwardDeleteLine") },
+                { Keys.CtrlHome,               MakeKeyHandler(BackwardDeleteInput,       "BackwardDeleteInput") },
                 { Keys.CtrlRBracket,           MakeKeyHandler(GotoBrace,                 "GotoBrace") },
                 { Keys.CtrlAltQuestion,        MakeKeyHandler(ShowKeyBindings,           "ShowKeyBindings") },
                 { Keys.AltPeriod,              MakeKeyHandler(YankLastArg,               "YankLastArg") },
@@ -242,7 +242,7 @@ namespace Microsoft.PowerShell
                 _dispatchTable.Add(Keys.CtrlSpace,  MakeKeyHandler(MenuComplete,      "MenuComplete"));
                 _dispatchTable.Add(Keys.AltF7,      MakeKeyHandler(ClearHistory,      "ClearHistory"));
                 _dispatchTable.Add(Keys.CtrlDelete, MakeKeyHandler(KillWord,          "KillWord"));
-                _dispatchTable.Add(Keys.CtrlEnd,    MakeKeyHandler(ForwardDeleteLine, "ForwardDeleteLine"));
+                _dispatchTable.Add(Keys.CtrlEnd,    MakeKeyHandler(ForwardDeleteInput, "ForwardDeleteInput"));
                 _dispatchTable.Add(Keys.CtrlH,      MakeKeyHandler(BackwardDeleteChar,"BackwardDeleteChar"));
 
                 // PageUp/PageDown and CtrlPageUp/CtrlPageDown bindings are supported on Windows only because they depend on the
@@ -294,7 +294,7 @@ namespace Microsoft.PowerShell
                 { Keys.CtrlR,           MakeKeyHandler(ReverseSearchHistory, "ReverseSearchHistory") },
                 { Keys.CtrlS,           MakeKeyHandler(ForwardSearchHistory, "ForwardSearchHistory") },
                 { Keys.CtrlT,           MakeKeyHandler(SwapCharacters,       "SwapCharacters") },
-                { Keys.CtrlU,           MakeKeyHandler(BackwardKillLine,     "BackwardKillLine") },
+                { Keys.CtrlU,           MakeKeyHandler(BackwardKillInput,    "BackwardKillInput") },
                 { Keys.CtrlX,           MakeKeyHandler(Chord,                "ChordFirstKey") },
                 { Keys.CtrlW,           MakeKeyHandler(UnixWordRubout,       "UnixWordRubout") },
                 { Keys.CtrlY,           MakeKeyHandler(Yank,                 "Yank") },
@@ -369,7 +369,7 @@ namespace Microsoft.PowerShell
                 // Ctrl+X,<key> table
                 [Keys.CtrlX] = new Dictionary<PSKeyInfo, KeyHandler>
                 {
-                    { Keys.Backspace, MakeKeyHandler(BackwardKillLine,     "BackwardKillLine") },
+                    { Keys.Backspace, MakeKeyHandler(BackwardKillInput,    "BackwardKillInput") },
                     { Keys.CtrlE,     MakeKeyHandler(ViEditVisually,       "ViEditVisually") },
                     { Keys.CtrlU,     MakeKeyHandler(Undo,                 "Undo") },
                     { Keys.CtrlX,     MakeKeyHandler(ExchangePointAndMark, "ExchangePointAndMark") },
@@ -388,9 +388,11 @@ namespace Microsoft.PowerShell
             case nameof(AcceptAndGetNext):
             case nameof(AcceptLine):
             case nameof(AddLine):
+            case nameof(BackwardDeleteInput):
             case nameof(BackwardDeleteChar):
             case nameof(BackwardDeleteLine):
             case nameof(BackwardDeleteWord):
+            case nameof(BackwardKillInput):
             case nameof(BackwardKillLine):
             case nameof(BackwardKillWord):
             case nameof(CancelLine):
@@ -408,6 +410,7 @@ namespace Microsoft.PowerShell
             case nameof(DeletePreviousLines):
             case nameof(DeleteToEnd):
             case nameof(DeleteWord):
+            case nameof(ForwardDeleteInput):
             case nameof(ForwardDeleteLine):
             case nameof(InsertLineAbove):
             case nameof(InsertLineBelow):

@@ -117,9 +117,19 @@ namespace Microsoft.PowerShell
         /// Clear the input from the start of the input to the cursor.  The cleared text is placed
         /// in the kill ring.
         /// </summary>
-        public static void BackwardKillLine(ConsoleKeyInfo? key = null, object arg = null)
+        public static void BackwardKillInput(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.Kill(0, _singleton._current, true);
+        }
+
+        /// <summary>
+        /// Clear the input from the start of the current logical line to the cursor.  The cleared text is placed
+        /// in the kill ring.
+        /// </summary>
+        public static void BackwardKillLine(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            var start = GetBeginningOfLinePos(_singleton._current);
+            _singleton.Kill(start, _singleton._current, true);
         }
 
         /// <summary>
