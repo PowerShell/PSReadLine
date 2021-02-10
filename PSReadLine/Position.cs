@@ -102,8 +102,9 @@ namespace Microsoft.PowerShell
             var beginningOfLine = GetBeginningOfLinePos(current);
 
             var newCurrent = beginningOfLine;
+            var buffer = _singleton._buffer;
 
-            while (newCurrent < _singleton._buffer.Length && _singleton._buffer.IsVisibleBlank(newCurrent))
+            while (newCurrent < buffer.Length && buffer.IsVisibleBlank(newCurrent))
             {
                 newCurrent++;
             }
