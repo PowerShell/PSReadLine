@@ -422,17 +422,15 @@ namespace Microsoft.PowerShell
             return s;
         }
 
-        private class Menu
+        private class Menu : DisplayBlockBase
         {
-            internal PSConsoleReadLine Singleton;
-            internal int Top;
-
             internal int PreviousTop;
             internal int ColumnWidth;
             internal int BufferLines;
             internal int Rows;
             internal int Columns;
             internal int ToolTipLines;
+
             internal Collection<CompletionResult> MenuItems;
             internal CompletionResult CurrentMenuItem => MenuItems[CurrentSelection];
             internal int CurrentSelection;
@@ -701,39 +699,6 @@ namespace Microsoft.PowerShell
                     CurrentSelection += MenuItems.Count;
                 }
             }
-
-            private void MoveCursorDown(int cnt)
-            {
-                IConsole console = Singleton._console;
-                while (cnt-- > 0)
-                {
-                    console.Write("\n");
-                }
-            }
-
-            private void AdjustForPossibleScroll(int cnt)
-            {
-                IConsole console = Singleton._console;
-                var scrollCnt = console.CursorTop + cnt + 1 - console.BufferHeight;
-                if (scrollCnt > 0)
-                {
-                    Top -= scrollCnt;
-                    _singleton._initialY -= scrollCnt;
-                    _savedCursorTop -= scrollCnt;
-                }
-            }
-
-            private int _savedCursorLeft;
-            private int _savedCursorTop;
-
-            public void SaveCursor()
-            {
-                IConsole console = Singleton._console;
-                _savedCursorLeft = console.CursorLeft;
-                _savedCursorTop = console.CursorTop;
-            }
-
-            public void RestoreCursor() => Singleton._console.SetCursorPosition(_savedCursorLeft, _savedCursorTop);
         }
 
         private Menu CreateCompletionMenu(Collection<CompletionResult> matches)

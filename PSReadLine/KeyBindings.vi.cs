@@ -88,6 +88,8 @@ namespace Microsoft.PowerShell
                 { Keys.CtrlAltQuestion, MakeKeyHandler(ShowKeyBindings,        "ShowKeyBindings") },
                 { Keys.CtrlR,           MakeKeyHandler(ViSearchHistoryBackward,"ViSearchHistoryBackward") },
                 { Keys.CtrlS,           MakeKeyHandler(SearchForward,          "SearchForward") },
+                { Keys.AltH,            MakeKeyHandler(ShowParameterHelp,      "ShowParameterHelp") },
+                { Keys.F1,              MakeKeyHandler(ShowCommandHelp,        "ShowCommandHelp") },
             };
 
             // Some bindings are not available on certain platforms
@@ -208,6 +210,8 @@ namespace Microsoft.PowerShell
                 { Keys.Period,          MakeKeyHandler(RepeatLastCommand,    "RepeatLastCommand") },
                 { Keys.Semicolon,       MakeKeyHandler(RepeatLastCharSearch, "RepeatLastCharSearch") },
                 { Keys.Comma,           MakeKeyHandler(RepeatLastCharSearchBackwards, "RepeatLastCharSearchBackwards") },
+                { Keys.AltH,            MakeKeyHandler(ShowParameterHelp,     "ShowParameterHelp") },
+                { Keys.F1,              MakeKeyHandler(ShowCommandHelp,       "ShowCommandHelp") },
             };
 
             // Some bindings are not available on certain platforms
@@ -215,7 +219,6 @@ namespace Microsoft.PowerShell
             {
                 _viCmdKeyMap.Add(Keys.CtrlDelete, MakeKeyHandler(KillWord, "KillWord"));
             }
-
 
             _viChordDTable = new Dictionary<PSKeyInfo, KeyHandler>
             {

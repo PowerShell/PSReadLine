@@ -24,7 +24,7 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net5.0'">
-    <PackageReference Include="Microsoft.PowerShell.SDK" Version="7.1.0-rc.2" />
+    <PackageReference Include="Microsoft.PowerShell.SDK" Version="7.1.0" />
   </ItemGroup>
 
   <ItemGroup>

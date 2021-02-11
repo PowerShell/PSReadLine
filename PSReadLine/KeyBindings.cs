@@ -234,6 +234,8 @@ namespace Microsoft.PowerShell
                 { Keys.AltD,                   MakeKeyHandler(KillWord,                  "KillWord") },
                 { Keys.CtrlAt,                 MakeKeyHandler(MenuComplete,              "MenuComplete") },
                 { Keys.CtrlW,                  MakeKeyHandler(BackwardKillWord,          "BackwardKillWord") },
+                { Keys.AltH,                   MakeKeyHandler(ShowParameterHelp,         "ShowParameterHelp") },
+                { Keys.F1,                     MakeKeyHandler(ShowCommandHelp,           "ShowCommandHelp") },
             };
 
             // Some bindings are not available on certain platforms
@@ -328,6 +330,8 @@ namespace Microsoft.PowerShell
                 { Keys.AltPeriod,       MakeKeyHandler(YankLastArg,          "YankLastArg") },
                 { Keys.AltUnderbar,     MakeKeyHandler(YankLastArg,          "YankLastArg") },
                 { Keys.CtrlAltY,        MakeKeyHandler(YankNthArg,           "YankNthArg") },
+                { Keys.AltH,            MakeKeyHandler(ShowParameterHelp,    "ShowParameterHelp") },
+                { Keys.F1,              MakeKeyHandler(ShowCommandHelp,      "ShowCommandHelp") },
             };
 
             // Some bindings are not available on certain platforms
@@ -564,6 +568,8 @@ namespace Microsoft.PowerShell
             case nameof(NextSuggestion):
             case nameof(PreviousSuggestion):
             case nameof(SwitchPredictionView):
+            case nameof(ShowCommandHelp):
+            case nameof(ShowParameterHelp):
                 return KeyHandlerGroup.Miscellaneous;
 
             case nameof(CharacterSearch):

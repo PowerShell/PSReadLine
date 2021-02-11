@@ -838,4 +838,16 @@ Or not saving history with:
   <data name="WindowSizeTooSmallForListView" xml:space="preserve">
     <value>The prediction 'ListView' is temporarily disabled because the current window size of the console is too small. To use the 'ListView', please make sure the 'WindowWidth' is not less than '{0}' and the 'WindowHeight' is not less than '{1}'.</value>
   </data>
+  <data name="NeedsUpdateHelp" xml:space="preserve">
+    <value>No help content available. Please use Update-Help to download the latest help content.</value>
+  </data>
+  <data name="FullHelpNotSupportedInLegacyConsole" xml:space="preserve">
+    <value>Displaying help content is not supported on this console as it does not support alternate screen buffer.</value>
+  </data>
+  <data name="ShowCommandHelpDescription" xml:space="preserve">
+    <value>Shows help for the command at the cursor in an alternate screen buffer.</value>
+  </data>
+  <data name="ShowParameterHelpDescription" xml:space="preserve">
+    <value>Shows help for the parameter at the cursor.</value>
+  </data>
 </root>
