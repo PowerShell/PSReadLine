@@ -12,8 +12,7 @@ namespace Microsoft.PowerShell
         /// <param name="arg" />
         public void MoveToFirstLine(ConsoleKeyInfo? key = null, object arg = null)
         {
-            var count = GetLogicalLineCount();
-            if (count == 1)
+            if (!LineIsMultiLine())
             {
                 Ding(key, arg);
                 return;
