@@ -555,6 +555,7 @@ namespace Microsoft.PowerShell
                         // nor a "move to line" command. In that case, the desired column
                         // number will be computed from the current position on the logical line.
 
+                        _moveToEndOfLineCommandCount = 0;
                         _moveToLineDesiredColumn = -1;
                     }
                 }
