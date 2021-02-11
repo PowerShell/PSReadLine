@@ -522,24 +522,16 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void InsertLineBelow(ConsoleKeyInfo? key = null, object arg = null)
         {
-            // Move the current position to the end of the current line and only the current line.
-            if (_singleton.LineIsMultiLine())
+            int i = _singleton._current;
+            for (; i < _singleton._buffer.Length; i++)
             {
-                int i = _singleton._current;
-                for (; i < _singleton._buffer.Length; i++)
+                if (_singleton._buffer[i] == '\n')
                 {
-                    if (_singleton._buffer[i] == '\n')
-                    {
-                        break;
-                    }
+                    break;
                 }
+            }
 
-                _singleton._current = i;
-            }
-            else
-            {
-                _singleton._current = _singleton._buffer.Length;
-            }
+            _singleton._current = i;
 
             Insert('\n');
         }

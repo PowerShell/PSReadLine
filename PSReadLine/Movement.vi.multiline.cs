@@ -38,13 +38,13 @@ namespace Microsoft.PowerShell
         /// <param name="arg" />
         public void MoveToLastLine(ConsoleKeyInfo? key = null, object arg = null)
         {
-            if (!LineIsMultiLine())
+            var count = GetLogicalLineCount();
+            if (count == 1)
             {
                 Ding(key, arg);
                 return;
             }
 
-            var count = GetLogicalLineCount();
             var currentLine = GetLogicalLineNumber();
 
             var pos = ConvertOffsetToPoint(_singleton._current);

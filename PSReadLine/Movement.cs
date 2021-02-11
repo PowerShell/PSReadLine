@@ -21,23 +21,16 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void EndOfLine(ConsoleKeyInfo? key = null, object arg = null)
         {
-            if (_singleton.LineIsMultiLine())
+            int i = _singleton._current;
+            for (; i < _singleton._buffer.Length; i++)
             {
-                int i = _singleton._current;
-                for (; i < _singleton._buffer.Length; i++)
+                if (_singleton._buffer[i] == '\n')
                 {
-                    if (_singleton._buffer[i] == '\n')
-                    {
-                        break;
-                    }
+                    break;
                 }
+            }
 
-                _singleton.MoveCursor((i == _singleton._current) ? _singleton._buffer.Length : i);
-            }
-            else
-            {
-                _singleton.MoveCursor(_singleton._buffer.Length);
-            }
+            _singleton.MoveCursor((i == _singleton._current) ? _singleton._buffer.Length : i);
         }
 
         /// <summary>
@@ -97,7 +90,7 @@ namespace Microsoft.PowerShell
                 }
                 else
                 {
-                    ViOffsetCursorPosition(+ numericArg);
+                    ViOffsetCursorPosition(+numericArg);
                 }
             }
         }
@@ -109,7 +102,7 @@ namespace Microsoft.PowerShell
         {
             if (TryGetArgAsInt(arg, out var numericArg, 1))
             {
-                ViOffsetCursorPosition(- numericArg);
+                ViOffsetCursorPosition(-numericArg);
             }
         }
 
@@ -225,7 +218,8 @@ namespace Microsoft.PowerShell
                 point = point ?? ConvertOffsetToPoint(_current);
                 int newY = point.Value.Y + lineOffset;
 
-                Point newPoint = new Point() {
+                Point newPoint = new Point()
+                {
                     X = _moveToLineDesiredColumn,
                     Y = Math.Max(newY, _initialY)
                 };
@@ -470,18 +464,18 @@ namespace Microsoft.PowerShell
             int direction;
             switch (token.Kind)
             {
-            case TokenKind.LParen:   toMatch = TokenKind.RParen; direction = 1; break;
-            case TokenKind.LCurly:   toMatch = TokenKind.RCurly; direction = 1; break;
-            case TokenKind.LBracket: toMatch = TokenKind.RBracket; direction = 1; break;
+                case TokenKind.LParen: toMatch = TokenKind.RParen; direction = 1; break;
+                case TokenKind.LCurly: toMatch = TokenKind.RCurly; direction = 1; break;
+                case TokenKind.LBracket: toMatch = TokenKind.RBracket; direction = 1; break;
 
-            case TokenKind.RParen:   toMatch = TokenKind.LParen; direction = -1; break;
-            case TokenKind.RCurly:   toMatch = TokenKind.LCurly; direction = -1; break;
-            case TokenKind.RBracket: toMatch = TokenKind.LBracket; direction = -1; break;
+                case TokenKind.RParen: toMatch = TokenKind.LParen; direction = -1; break;
+                case TokenKind.RCurly: toMatch = TokenKind.LCurly; direction = -1; break;
+                case TokenKind.RBracket: toMatch = TokenKind.LBracket; direction = -1; break;
 
-            default:
-                // Nothing to match (don't match inside strings/comments)
-                Ding();
-                return;
+                default:
+                    // Nothing to match (don't match inside strings/comments)
+                    Ding();
+                    return;
             }
 
             var matchCount = 0;
