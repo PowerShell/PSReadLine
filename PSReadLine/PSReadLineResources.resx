@@ -790,6 +790,9 @@ Or not saving history with:
   <data name="CompletionGrouping" xml:space="preserve">
     <value>Completion functions</value>
   </data>
+  <data name="PredictionGrouping" xml:space="preserve">
+    <value>Prediction functions</value>
+  </data>
   <data name="MiscellaneousGrouping" xml:space="preserve">
     <value>Miscellaneous functions</value>
   </data>

@@ -26,6 +26,8 @@ namespace Microsoft.PowerShell
         History,
         /// <summary>Completion functions</summary>
         Completion,
+        /// <summary>Prediction functions</summary>
+        Prediction,
         /// <summary>Miscellaneous functions</summary>
         Miscellaneous,
         /// <summary>Selection functions</summary>
@@ -89,6 +91,8 @@ namespace Microsoft.PowerShell
                 return PSReadLineResources.HistoryGrouping;
             case KeyHandlerGroup.Completion:
                 return PSReadLineResources.CompletionGrouping;
+            case KeyHandlerGroup.Prediction:
+                return PSReadLineResources.PredictionGrouping;
             case KeyHandlerGroup.Miscellaneous:
                 return PSReadLineResources.MiscellaneousGrouping;
             case KeyHandlerGroup.Selection:
@@ -545,6 +549,13 @@ namespace Microsoft.PowerShell
             case nameof(ViTabCompletePrevious):
                 return KeyHandlerGroup.Completion;
 
+            case nameof(AcceptSuggestion):
+            case nameof(AcceptNextSuggestionWord):
+            case nameof(NextSuggestion):
+            case nameof(PreviousSuggestion):
+            case nameof(SwitchPredictionView):
+                return KeyHandlerGroup.Prediction;
+
             case nameof(CaptureScreen):
             case nameof(ClearScreen):
             case nameof(DigitArgument):
@@ -563,11 +574,6 @@ namespace Microsoft.PowerShell
             case nameof(ViExit):
             case nameof(ViInsertMode):
             case nameof(WhatIsKey):
-            case nameof(AcceptSuggestion):
-            case nameof(AcceptNextSuggestionWord):
-            case nameof(NextSuggestion):
-            case nameof(PreviousSuggestion):
-            case nameof(SwitchPredictionView):
             case nameof(ShowCommandHelp):
             case nameof(ShowParameterHelp):
                 return KeyHandlerGroup.Miscellaneous;

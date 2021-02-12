@@ -320,7 +320,18 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("CompletionGrouping", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to Prediction functions.
+        /// </summary>
+        internal static string PredictionGrouping
+        {
+            get
+            {
+                return ResourceManager.GetString("PredictionGrouping", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Copy selected region to the system clipboard.  If no region is selected, copy the whole line.
         /// </summary>
