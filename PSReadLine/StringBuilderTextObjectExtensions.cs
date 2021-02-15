@@ -24,15 +24,23 @@ namespace Microsoft.PowerShell
 
             // if starting on a word consider a text object as a sequence of characters excluding the delimiters
             // otherwise, consider a word as a sequence of delimiters
+            // for the purpose of this method, a newline (\n) character is considered a delimiter.
 
-            var delimiters = wordDelimiters + '\n';
+            var ws = " \n\t";
+
+            var delimiters = wordDelimiters;
+
             if (buffer.InWord(i, wordDelimiters))
             {
-                delimiters += " \t";
+                delimiters += ws;
             }
-            if (delimiters.IndexOf(buffer[i]) == -1 && buffer.IsWhiteSpace(i))
+            if ((wordDelimiters + '\n').IndexOf(buffer[i]) == -1 && buffer.IsWhiteSpace(i))
             {
-                delimiters = " \t";
+                delimiters = ws;
+            }
+            else
+            {
+                delimiters += '\n';
             }
 
             var isTextObjectChar = buffer.InWord(i, wordDelimiters)
