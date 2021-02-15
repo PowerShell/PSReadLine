@@ -82,11 +82,24 @@ namespace Microsoft.PowerShell
         /// <returns></returns>
         public static bool IsLogigalLineEmpty(this StringBuilder buffer, int cursor)
         {
+            // the cursor is on a logical line considered empty if...
+
             return 
+
+                // the entire buffer is empty (by definition), or
+
                 buffer.Length == 0 ||
+
+                // the cursor sits at the start of the empty last line, 
+                // meaning that it is past the end of the buffer and the
+                // last character in the buffer is a newline character, or
+
                 (cursor == buffer.Length && buffer[cursor - 1] == '\n') ||
-                (cursor > 0 && buffer[cursor] == '\n') ||
-                (cursor > 0 && buffer[cursor] == '\n' && cursor < buffer.Length - 1 && buffer[cursor - 1] == '\n')
+
+                // if the cursor is on a newline character, or
+
+                (cursor > 0 && buffer[cursor] == '\n')
+
                 ;
         }
     }
