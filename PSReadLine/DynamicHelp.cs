@@ -15,37 +15,11 @@ namespace Microsoft.PowerShell
 {
     public partial class PSConsoleReadLine
     {
-        private Microsoft.PowerShell.Pager _pager;
-
-        /// <summary>
-        /// Attempt to show help content.
-        /// Show the full help for the command on the alternate screen buffer.
-        /// </summary>
-        public static void ShowCommandHelp(ConsoleKeyInfo? key = null, object arg = null)
+        // Stub helper methods so dynamic help can be mocked
+        [ExcludeFromCodeCoverage]
+        void IPSConsoleReadLineMockableMethods.RenderFullHelp(string content, string regexPatternToScrollTo)
         {
-            if (_singleton._console is PlatformWindows.LegacyWin32Console)
-            {
-                Collection<string> helpBlock = new Collection<string>()
-                {
-                    string.Empty,
-                    PSReadLineResources.FullHelpNotSupportedInLegacyConsole
-                };
-
-                _singleton.WriteDynamicHelpBlock(helpBlock);
-
-                return;
-            }
-
-            _singleton.DynamicHelpImpl(isFullHelp: true);
-        }
-
-        /// <summary>
-        /// Attempt to show help content.
-        /// Show the short help of the parameter next to the cursor.
-        /// </summary>
-        public static void ShowParameterHelp(ConsoleKeyInfo? key = null, object arg = null)
-        {
-            _singleton.DynamicHelpImpl(isFullHelp: false);
+            _pager.Write(content, regexPatternToScrollTo);
         }
 
         [ExcludeFromCodeCoverage]
@@ -112,9 +86,37 @@ namespace Microsoft.PowerShell
             }
         }
 
-        void IPSConsoleReadLineMockableMethods.RenderFullHelp(string content, string regexPatternToScrollTo)
+        private Pager _pager;
+
+        /// <summary>
+        /// Attempt to show help content.
+        /// Show the full help for the command on the alternate screen buffer.
+        /// </summary>
+        public static void ShowCommandHelp(ConsoleKeyInfo? key = null, object arg = null)
         {
-            _pager.Write(content, regexPatternToScrollTo);
+            if (_singleton._console is PlatformWindows.LegacyWin32Console)
+            {
+                Collection<string> helpBlock = new Collection<string>()
+                {
+                    string.Empty,
+                    PSReadLineResources.FullHelpNotSupportedInLegacyConsole
+                };
+
+                _singleton.WriteDynamicHelpBlock(helpBlock);
+
+                return;
+            }
+
+            _singleton.DynamicHelpImpl(isFullHelp: true);
+        }
+
+        /// <summary>
+        /// Attempt to show help content.
+        /// Show the short help of the parameter next to the cursor.
+        /// </summary>
+        public static void ShowParameterHelp(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            _singleton.DynamicHelpImpl(isFullHelp: false);
         }
 
         private void WriteDynamicHelpContent(string commandName, string parameterName, bool isFullHelp)

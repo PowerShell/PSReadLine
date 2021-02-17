@@ -4,6 +4,7 @@ Copyright (c) Microsoft Corporation.  All rights reserved.
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Management.Automation.Language;
 using Microsoft.PowerShell.Internal;
 
@@ -347,9 +348,9 @@ namespace Microsoft.PowerShell
             }
         }
 
-        private void VisualSelectionCommon(Action action)
+        private void VisualSelectionCommon(Action action, bool forceSetMark = false)
         {
-            if (_singleton._visualSelectionCommandCount == 0)
+            if (_singleton._visualSelectionCommandCount == 0 || forceSetMark)
             {
                 SetMark();
             }
@@ -447,6 +448,197 @@ namespace Microsoft.PowerShell
         public static void SelectBackwardsLine(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.VisualSelectionCommon(() => BeginningOfLine(key, arg));
+        }
+
+        /// <summary>
+        /// Select the command argument that the cursor is at, or the previous/next Nth command arguments from the current cursor position.
+        /// </summary>
+        public static void SelectCommandArgument(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            if (!TryGetArgAsInt(arg, out var numericArg, 0))
+            {
+                return;
+            }
+
+            _singleton.MaybeParseInput();
+
+            int cursor = _singleton._current;
+            int prev = -1, curr = -1, next = -1;
+            var sbAsts = _singleton._ast.FindAll(GetScriptBlockAst, searchNestedScriptBlocks: true).ToList();
+            var arguments = new List<ExpressionAst>();
+
+            // We start searching for command arguments from the most nested script block.
+            for (int i = sbAsts.Count - 1; i >= 0; i --)
+            {
+                var sbAst = sbAsts[i];
+                var cmdAsts = sbAst.FindAll(ast => ast is CommandAst, searchNestedScriptBlocks: false);
+
+                foreach (CommandAst cmdAst in cmdAsts)
+                {
+                    for (int j = 1; j < cmdAst.CommandElements.Count; j++)
+                    {
+                        var argument = cmdAst.CommandElements[j] switch
+                        {
+                            CommandParameterAst paramAst => paramAst.Argument,
+                            ExpressionAst expAst => expAst,
+                            _ => null,
+                        };
+
+                        if (argument is not null)
+                        {
+                            arguments.Add(argument);
+
+                            int start = argument.Extent.StartOffset;
+                            int end = argument.Extent.EndOffset;
+
+                            if (end <= cursor)
+                            {
+                                prev = arguments.Count - 1;
+                            }
+                            if (curr == -1 && start <= cursor && end > cursor)
+                            {
+                                curr = arguments.Count - 1;
+                            }
+                            else if (next == -1 && start > cursor)
+                            {
+                                next = arguments.Count - 1;
+                            }
+                        }
+                    }
+                }
+
+                // Stop searching the outer script blocks if we find any command arguments within the current script block.
+                if (arguments.Count > 0)
+                {
+                    break;
+                }
+            }
+
+            // Simply return if we didn't find any command arguments.
+            int count = arguments.Count;
+            if (count == 0)
+            {
+                return;
+            }
+
+            if (prev == -1) { prev = count - 1; }
+            if (next == -1) { next = 0; }
+            if (curr == -1) { curr = numericArg > 0 ? prev : next; }
+
+            int newStartCursor, newEndCursor;
+            int selectCount = _singleton._visualSelectionCommandCount;
+
+            // When an argument is already visually selected by the previous run of this function, the cursor would have past the selected argument.
+            // In this case, if a user wants to move backward to an argument that is before the currently selected argument by having numericArg < 0,
+            // we will need to adjust 'numericArg' to move to the expected argument.
+            // Scenario:
+            //   1) 'Alt+a' to select an argument;
+            //   2) 'Alt+-' to make 'numericArg = -1';
+            //   3) 'Alt+a' to select the argument that is right before the currently selected argument.
+            if (count > 1 && numericArg < 0 && curr == next && selectCount > 0)
+            {
+                var prevArg = arguments[prev];
+                if (_singleton._mark == prevArg.Extent.StartOffset && cursor == prevArg.Extent.EndOffset)
+                {
+                    numericArg--;
+                }
+            }
+
+            while (true)
+            {
+                ExpressionAst targetAst = null;
+                if (numericArg == 0)
+                {
+                    targetAst = arguments[curr];
+                }
+                else
+                {
+                    int index = curr + numericArg;
+                    index = index >= 0 ? index % count : (count + index % count) % count;
+                    targetAst = arguments[index];
+                }
+
+                // Handle quoted-string arguments specially, by leaving the quotes out of the visual selection.
+                StringConstantType? constantType = null;
+                if (targetAst is StringConstantExpressionAst conString)
+                {
+                    constantType = conString.StringConstantType;
+                }
+                else if (targetAst is ExpandableStringExpressionAst expString)
+                {
+                    constantType = expString.StringConstantType;
+                }
+
+                int startOffsetAdjustment = 0, endOffsetAdjustment = 0;
+                switch (constantType)
+                {
+                    case StringConstantType.DoubleQuoted:
+                    case StringConstantType.SingleQuoted:
+                        startOffsetAdjustment = endOffsetAdjustment = 1;
+                        break;
+                    case StringConstantType.DoubleQuotedHereString:
+                    case StringConstantType.SingleQuotedHereString:
+                        startOffsetAdjustment = 2;
+                        endOffsetAdjustment = 3;
+                        break;
+                    default: break;
+                }
+
+                newStartCursor = targetAst.Extent.StartOffset + startOffsetAdjustment;
+                newEndCursor = targetAst.Extent.EndOffset - endOffsetAdjustment;
+
+                // For quoted-string arguments, due to the special handling above, the cursor would always be
+                // within the selected argument (cursor is placed at the ending quote), and thus when running
+                // the 'SelectCommandArgument' action again, the same argument would be chosen.
+                //
+                // Below is how we detect this and move to the next argument when there is one:
+                //  * the previous action was a visual selection command and the visual range was exactly
+                //    what we are going to make. AND
+                //  * count > 1, meaning that there are other arguments. AND
+                //  * numericArg == 0. When 'numericArg' is not 0, the user is leaping among the available
+                //    arguments, so it's possible that the same argument gets chosen.
+                // In this case, we should select the next argument.
+                if (numericArg == 0 && count > 1 && selectCount > 0 &&
+                    _singleton._mark == newStartCursor && cursor == newEndCursor)
+                {
+                    curr = next;
+                    continue;
+                }
+
+                break;
+            }
+
+            // Move cursor to the start of the argument.
+            SetCursorPosition(newStartCursor);
+            // Make the intended range visually selected.
+            _singleton.VisualSelectionCommon(() => SetCursorPosition(newEndCursor), forceSetMark: true);
+
+
+            // Get the script block AST's whose extent contains the cursor.
+            bool GetScriptBlockAst(Ast ast)
+            {
+                if (ast is not ScriptBlockAst)
+                {
+                    return false;
+                }
+
+                if (ast.Parent is null)
+                {
+                    return true;
+                }
+
+                if (ast.Extent.StartOffset >= cursor)
+                {
+                    return false;
+                }
+
+                // If the script block is closed, then we want the script block only if the cursor is within the script block.
+                // Otherwise, if the script block is not completed, then we want the script block even if the cursor is at the end.
+                int textLength = ast.Extent.Text.Length;
+                return ast.Extent.Text[textLength - 1] == '}'
+                    ? ast.Extent.EndOffset - 1 > cursor
+                    : ast.Extent.EndOffset >= cursor;
+            }
         }
 
         /// <summary>

@@ -2147,5 +2147,49 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("ShowParameterHelpDescription", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Select the next suggestion item shown in the list view.
+        /// </summary>
+        internal static string NextSuggestionDescription
+        {
+            get
+            {
+                return ResourceManager.GetString("NextSuggestionDescription", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Select the previous suggestion item shown in the list view.
+        /// </summary>
+        internal static string PreviousSuggestionDescription
+        {
+            get
+            {
+                return ResourceManager.GetString("PreviousSuggestionDescription", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Switch between the inline and list prediction views.
+        /// </summary>
+        internal static string SwitchPredictionViewDescription
+        {
+            get
+            {
+                return ResourceManager.GetString("SwitchPredictionViewDescription", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Make visual selection of the command arguments.
+        /// </summary>
+        internal static string SelectCommandArgumentDescription
+        {
+            get
+            {
+                return ResourceManager.GetString("SelectCommandArgumentDescription", resourceCulture);
+            }
+        }
     }
 }
