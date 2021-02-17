@@ -506,16 +506,545 @@ namespace Test
                 "echo foo", _.Ctrl_a,
                 CheckThat(() => AssertScreenIs(1,
                     TokenClassification.Command, Selected("echo foo"))),
-                _.Delete
-                ));
+                _.Delete));
 
             Test("", Keys(
                 "echo foo", _.Ctrl_LeftArrow, _.Ctrl_a,
                 CheckThat(() => AssertScreenIs(1,
                     TokenClassification.Command, Selected("echo foo"))),
                 CheckThat(() => AssertCursorLeftIs(8)),
-                _.Delete
-                ));
+                _.Delete));
+        }
+
+        public void Debug()
+        {
+            while (!System.Diagnostics.Debugger.IsAttached)
+            {
+                System.Threading.Thread.Sleep(200);
+            }
+            System.Diagnostics.Debugger.Break();
+        }
+
+        [SkippableFact]
+        public void SelectCommandArgument_VariousArgs()
+        {
+            TestSetup(KeyMode.Cmd);
+
+            Test("", Keys(
+                "Test-Sca abc -p1:'a1' \"a2\" -p2 $false",
+                _.Alt_a, CheckThat(() => AssertScreenIs(1,
+                    TokenClassification.Command, "Test-Sca",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Selection, "abc",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Parameter, "-p1:",
+                    TokenClassification.String, "'a1'",
+                    TokenClassification.None, ' ',
+                    TokenClassification.String, "\"a2\"",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Parameter, "-p2",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Variable, "$false")),
+
+                // For single/double quoted strings, quotes are left out of selection.
+                _.Alt_a, CheckThat(() => AssertScreenIs(1,
+                    TokenClassification.Command, "Test-Sca",
+                    TokenClassification.None, " abc ",
+                    TokenClassification.Parameter, "-p1:",
+                    TokenClassification.String, '\'',
+                    TokenClassification.Selection, "a1",
+                    TokenClassification.String, '\'',
+                    TokenClassification.None, ' ',
+                    TokenClassification.String, "\"a2\"",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Parameter, "-p2",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Variable, "$false")),
+
+                _.Alt_a, CheckThat(() => AssertScreenIs(1,
+                    TokenClassification.Command, "Test-Sca",
+                    TokenClassification.None, " abc ",
+                    TokenClassification.Parameter, "-p1:",
+                    TokenClassification.String, "'a1'",
+                    TokenClassification.None, ' ',
+                    TokenClassification.String, '"',
+                    TokenClassification.Selection, "a2",
+                    TokenClassification.String, '"',
+                    TokenClassification.None, ' ',
+                    TokenClassification.Parameter, "-p2",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Variable, "$false")),
+
+                // Any expression argument can be selected, here we test with a varaible.
+                _.Alt_a, CheckThat(() => AssertScreenIs(1,
+                    TokenClassification.Command, "Test-Sca",
+                    TokenClassification.None, " abc ",
+                    TokenClassification.Parameter, "-p1:",
+                    TokenClassification.String, "'a1'",
+                    TokenClassification.None, ' ',
+                    TokenClassification.String, "\"a2\"",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Parameter, "-p2",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Selection, "$false")),
+
+                // Verify that we can loop through the arguments.
+                _.Alt_a, CheckThat(() => AssertScreenIs(1,
+                    TokenClassification.Command, "Test-Sca",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Selection, "abc",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Parameter, "-p1:",
+                    TokenClassification.String, "'a1'",
+                    TokenClassification.None, ' ',
+                    TokenClassification.String, "\"a2\"",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Parameter, "-p2",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Variable, "$false")),
+
+                // Verify that we can continue to do visual selection.
+                _.Shift_RightArrow, CheckThat(() => AssertScreenIs(1,
+                    TokenClassification.Command, "Test-Sca",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Selection, "abc ",
+                    TokenClassification.Parameter, "-p1:",
+                    TokenClassification.String, "'a1'",
+                    TokenClassification.None, ' ',
+                    TokenClassification.String, "\"a2\"",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Parameter, "-p2",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Variable, "$false")),
+                _.Escape));
+        }
+
+        [SkippableFact]
+        public void SelectCommandArgument_HereStringArgs()
+        {
+            TestSetup(KeyMode.Cmd);
+
+            Test("", Keys(
+                "& Test-Sca a1 @'\nabc\n'@ -p1 \"$false\"",
+                // Command name or command expression should be skipped.
+                _.Alt_a, CheckThat(() => AssertScreenIs(3,
+                    TokenClassification.None, "& ",
+                    TokenClassification.Command, "Test-Sca",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Selection, "a1",
+                    TokenClassification.None, ' ',
+                    TokenClassification.String, "@'",
+                    NextLine,
+                    TokenClassification.None, ">> ",
+                    TokenClassification.String, "abc",
+                    NextLine,
+                    TokenClassification.None, ">> ",
+                    TokenClassification.String, "'@",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Parameter, "-p1",
+                    TokenClassification.None, ' ',
+                    TokenClassification.String, '"',
+                    TokenClassification.Variable, "$false",
+                    TokenClassification.String, '"')),
+
+                // The here-string quotes should be left out of the selection.
+                _.Alt_a, CheckThat(() => AssertScreenIs(3,
+                    TokenClassification.None, "& ",
+                    TokenClassification.Command, "Test-Sca",
+                    TokenClassification.None, " a1 ",
+                    TokenClassification.String, "@'",
+                    NextLine,
+                    TokenClassification.None, ">> ",
+                    TokenClassification.Selection, "abc",
+                    NextLine,
+                    TokenClassification.None, ">> ",
+                    TokenClassification.String, "'@",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Parameter, "-p1",
+                    TokenClassification.None, ' ',
+                    TokenClassification.String, '"',
+                    TokenClassification.Variable, "$false",
+                    TokenClassification.String, '"')),
+
+                // The quotes for an expandable string should be left out of the selection.
+                _.Alt_a, CheckThat(() => AssertScreenIs(3,
+                    TokenClassification.None, "& ",
+                    TokenClassification.Command, "Test-Sca",
+                    TokenClassification.None, " a1 ",
+                    TokenClassification.String, "@'",
+                    NextLine,
+                    TokenClassification.None, ">> ",
+                    TokenClassification.String, "abc",
+                    NextLine,
+                    TokenClassification.None, ">> ",
+                    TokenClassification.String, "'@",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Parameter, "-p1",
+                    TokenClassification.None, ' ',
+                    TokenClassification.String, '"',
+                    TokenClassification.Selection, "$false",
+                    TokenClassification.String, '"')),
+
+                // Loop through arguments and get back to the first argument.
+                _.Alt_a, CheckThat(() => AssertScreenIs(3,
+                    TokenClassification.None, "& ",
+                    TokenClassification.Command, "Test-Sca",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Selection, "a1",
+                    TokenClassification.None, ' ',
+                    TokenClassification.String, "@'",
+                    NextLine,
+                    TokenClassification.None, ">> ",
+                    TokenClassification.String, "abc",
+                    NextLine,
+                    TokenClassification.None, ">> ",
+                    TokenClassification.String, "'@",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Parameter, "-p1",
+                    TokenClassification.None, ' ',
+                    TokenClassification.String, '"',
+                    TokenClassification.Variable, "$false",
+                    TokenClassification.String, '"')),
+
+                // Use digit argument to forward leap 3 arguments.
+                _.Alt_3,
+                _.Alt_a, CheckThat(() => AssertScreenIs(3,
+                    TokenClassification.None, "& ",
+                    TokenClassification.Command, "Test-Sca",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Selection, "a1",
+                    TokenClassification.None, ' ',
+                    TokenClassification.String, "@'",
+                    NextLine,
+                    TokenClassification.None, ">> ",
+                    TokenClassification.String, "abc",
+                    NextLine,
+                    TokenClassification.None, ">> ",
+                    TokenClassification.String, "'@",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Parameter, "-p1",
+                    TokenClassification.None, ' ',
+                    TokenClassification.String, '"',
+                    TokenClassification.Variable, "$false",
+                    TokenClassification.String, '"')),
+
+                // Use digit argument to forward leap 2 arguments.
+                _.Alt_2,
+                _.Alt_a, CheckThat(() => AssertScreenIs(3,
+                    TokenClassification.None, "& ",
+                    TokenClassification.Command, "Test-Sca",
+                    TokenClassification.None, " a1 ",
+                    TokenClassification.String, "@'",
+                    NextLine,
+                    TokenClassification.None, ">> ",
+                    TokenClassification.String, "abc",
+                    NextLine,
+                    TokenClassification.None, ">> ",
+                    TokenClassification.String, "'@",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Parameter, "-p1",
+                    TokenClassification.None, ' ',
+                    TokenClassification.String, '"',
+                    TokenClassification.Selection, "$false",
+                    TokenClassification.String, '"')),
+                _.Escape));
+        }
+
+        [SkippableFact]
+        public void SelectCommandArgument_NestedScriptBlock()
+        {
+            TestSetup(KeyMode.Cmd);
+
+            Test("", Keys(
+                "Test-Sca abc -p1:a1 { Get-Command cmd -Module xxx } -p2 a2",
+
+                // Loop through all arguments.
+                _.Alt_a, CheckThat(() => AssertScreenIs(1,
+                    TokenClassification.Command, "Test-Sca",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Selection, "abc",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Parameter, "-p1:",
+                    TokenClassification.None, "a1 { ",
+                    TokenClassification.Command, "Get-Command",
+                    TokenClassification.None, " cmd ",
+                    TokenClassification.Parameter, "-Module",
+                    TokenClassification.None, " xxx } ",
+                    TokenClassification.Parameter, "-p2",
+                    TokenClassification.None, " a2")),
+
+                _.Alt_a, CheckThat(() => AssertScreenIs(1,
+                    TokenClassification.Command, "Test-Sca",
+                    TokenClassification.None, " abc ",
+                    TokenClassification.Parameter, "-p1:",
+                    TokenClassification.Selection, "a1",
+                    TokenClassification.None, " { ",
+                    TokenClassification.Command, "Get-Command",
+                    TokenClassification.None, " cmd ",
+                    TokenClassification.Parameter, "-Module",
+                    TokenClassification.None, " xxx } ",
+                    TokenClassification.Parameter, "-p2",
+                    TokenClassification.None, " a2")),
+
+                _.Alt_a, CheckThat(() => AssertScreenIs(1,
+                    TokenClassification.Command, "Test-Sca",
+                    TokenClassification.None, " abc ",
+                    TokenClassification.Parameter, "-p1:",
+                    TokenClassification.None, "a1 ",
+                    TokenClassification.Selection, "{ Get-Command cmd -Module xxx }",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Parameter, "-p2",
+                    TokenClassification.None, " a2")),
+
+                _.Alt_a, CheckThat(() => AssertScreenIs(1,
+                    TokenClassification.Command, "Test-Sca",
+                    TokenClassification.None, " abc ",
+                    TokenClassification.Parameter, "-p1:",
+                    TokenClassification.None, "a1 { ",
+                    TokenClassification.Command, "Get-Command",
+                    TokenClassification.None, " cmd ",
+                    TokenClassification.Parameter, "-Module",
+                    TokenClassification.None, " xxx } ",
+                    TokenClassification.Parameter, "-p2",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Selection, "a2")),
+
+                // Forward leap 3 arguments, to select the script block argument.
+                _.Alt_3,
+                _.Alt_a, CheckThat(() => AssertScreenIs(1,
+                    TokenClassification.Command, "Test-Sca",
+                    TokenClassification.None, " abc ",
+                    TokenClassification.Parameter, "-p1:",
+                    TokenClassification.None, "a1 ",
+                    TokenClassification.Selection, "{ Get-Command cmd -Module xxx }",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Parameter, "-p2",
+                    TokenClassification.None, " a2")),
+                CheckThat(() => AssertCursorLeftIs(51)),
+
+                // Backward leap 3 arguments.
+                _.Alt_Minus, _.Alt_3,
+                _.Alt_a, CheckThat(() => AssertScreenIs(1,
+                    TokenClassification.Command, "Test-Sca",
+                    TokenClassification.None, " abc ",
+                    TokenClassification.Parameter, "-p1:",
+                    TokenClassification.None, "a1 { ",
+                    TokenClassification.Command, "Get-Command",
+                    TokenClassification.None, " cmd ",
+                    TokenClassification.Parameter, "-Module",
+                    TokenClassification.None, " xxx } ",
+                    TokenClassification.Parameter, "-p2",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Selection, "a2")),
+                CheckThat(() => AssertCursorLeftIs(58)),
+
+                // One more backward leap to again select the script block argument.
+                _.Alt_Minus,
+                _.Alt_a, CheckThat(() => AssertScreenIs(1,
+                    TokenClassification.Command, "Test-Sca",
+                    TokenClassification.None, " abc ",
+                    TokenClassification.Parameter, "-p1:",
+                    TokenClassification.None, "a1 ",
+                    TokenClassification.Selection, "{ Get-Command cmd -Module xxx }",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Parameter, "-p2",
+                    TokenClassification.None, " a2")),
+                CheckThat(() => AssertCursorLeftIs(51)),
+
+                // Move cursor to be inside the script block.
+                _.LeftArrow,
+                _.LeftArrow,
+
+                // Now we should loop through the command arguments within that script block.
+                _.Alt_a, CheckThat(() => AssertScreenIs(1,
+                    TokenClassification.Command, "Test-Sca",
+                    TokenClassification.None, " abc ",
+                    TokenClassification.Parameter, "-p1:",
+                    TokenClassification.None, "a1 { ",
+                    TokenClassification.Command, "Get-Command",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Selection, "cmd",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Parameter, "-Module",
+                    TokenClassification.None, " xxx } ",
+                    TokenClassification.Parameter, "-p2",
+                    TokenClassification.None, " a2")),
+
+                _.Alt_a, CheckThat(() => AssertScreenIs(1,
+                    TokenClassification.Command, "Test-Sca",
+                    TokenClassification.None, " abc ",
+                    TokenClassification.Parameter, "-p1:",
+                    TokenClassification.None, "a1 { ",
+                    TokenClassification.Command, "Get-Command",
+                    TokenClassification.None, " cmd ",
+                    TokenClassification.Parameter, "-Module",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Selection, "xxx",
+                    TokenClassification.None, " } ",
+                    TokenClassification.Parameter, "-p2",
+                    TokenClassification.None, " a2")),
+
+                _.Alt_a, CheckThat(() => AssertScreenIs(1,
+                    TokenClassification.Command, "Test-Sca",
+                    TokenClassification.None, " abc ",
+                    TokenClassification.Parameter, "-p1:",
+                    TokenClassification.None, "a1 { ",
+                    TokenClassification.Command, "Get-Command",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Selection, "cmd",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Parameter, "-Module",
+                    TokenClassification.None, " xxx } ",
+                    TokenClassification.Parameter, "-p2",
+                    TokenClassification.None, " a2")),
+
+                _.Escape));
+        }
+
+        [SkippableFact]
+        public void SelectCommandArgument_DigitArgument()
+        {
+            TestSetup(KeyMode.Cmd);
+
+            Test("", Keys(
+                "Test-Sca aaaa bbbb -p cccc",
+
+                // Move the cursor to the first 'a'
+                CheckThat(() => PSConsoleReadLine.SetCursorPosition(9)),
+                // Should select 'aaaa'
+                _.Alt_a, CheckThat(() => AssertScreenIs(1,
+                    TokenClassification.Command, "Test-Sca",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Selection, "aaaa",
+                    TokenClassification.None, " bbbb ",
+                    TokenClassification.Parameter, "-p",
+                    TokenClassification.None, " cccc")),
+
+                // Move the cursor to the second 'b'
+                CheckThat(() => PSConsoleReadLine.SetCursorPosition(15)),
+                // Should select 'bbbb'
+                _.Alt_a, CheckThat(() => AssertScreenIs(1,
+                    TokenClassification.Command, "Test-Sca",
+                    TokenClassification.None, " aaaa ",
+                    TokenClassification.Selection, "bbbb",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Parameter, "-p",
+                    TokenClassification.None, " cccc")),
+
+                // Move the cursor to the third 'c'
+                CheckThat(() => PSConsoleReadLine.SetCursorPosition(24)),
+                // Should select 'cccc'
+                _.Alt_a, CheckThat(() => AssertScreenIs(1,
+                    TokenClassification.Command, "Test-Sca",
+                    TokenClassification.None, " aaaa bbbb ",
+                    TokenClassification.Parameter, "-p",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Selection, "cccc")),
+
+                // Use digit argument '2', meaning forward by 2 arguments.
+                _.Alt_2,
+                _.Alt_a, CheckThat(() => AssertScreenIs(1,
+                    TokenClassification.Command, "Test-Sca",
+                    TokenClassification.None, " aaaa ",
+                    TokenClassification.Selection, "bbbb",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Parameter, "-p",
+                    TokenClassification.None, " cccc")),
+                CheckThat(() => AssertCursorLeftIs(18)),
+
+                // Use digit argument '-1', meaning backward by 1 argument.
+                // Since 'bbbb' is currently selected, backwarding by 1 should select 'aaaa'.
+                _.Alt_Minus,
+                _.Alt_a, CheckThat(() => AssertScreenIs(1,
+                    TokenClassification.Command, "Test-Sca",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Selection, "aaaa",
+                    TokenClassification.None, " bbbb ",
+                    TokenClassification.Parameter, "-p",
+                    TokenClassification.None, " cccc")),
+
+                // Use digit argument '-2', meaning backward by 2 arguments.
+                // Since 'aaaa' is currently selected, backwarding by 1 should select 'bbbb'.
+                _.Alt_Minus, _.Alt_2,
+                _.Alt_a, CheckThat(() => AssertScreenIs(1,
+                    TokenClassification.Command, "Test-Sca",
+                    TokenClassification.None, " aaaa ",
+                    TokenClassification.Selection, "bbbb",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Parameter, "-p",
+                    TokenClassification.None, " cccc")),
+
+                // Use digit argument '3', meaning forward by 3 arguments.
+                // Since 'bbbb' is currently selected, forwarding by 3 should select 'bbbb' again.
+                _.Alt_3,
+                _.Alt_a, CheckThat(() => AssertScreenIs(1,
+                    TokenClassification.Command, "Test-Sca",
+                    TokenClassification.None, " aaaa ",
+                    TokenClassification.Selection, "bbbb",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Parameter, "-p",
+                    TokenClassification.None, " cccc")),
+
+                // Use digit argument '-2', meaning backward by 2 arguments.
+                // Since 'bbbb' is currently selected, backwarding by 2 should select 'cccc'.
+                _.Alt_Minus, _.Alt_2,
+                _.Alt_a, CheckThat(() => AssertScreenIs(1,
+                    TokenClassification.Command, "Test-Sca",
+                    TokenClassification.None, " aaaa bbbb ",
+                    TokenClassification.Parameter, "-p",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Selection, "cccc")),
+
+                // Use digit argument '-1', meaning backward by 1 argument.
+                // Since 'cccc' is currently selected, backwarding by 2 should select 'bbbb'.
+                _.Alt_Minus,
+                _.Alt_a, CheckThat(() => AssertScreenIs(1,
+                    TokenClassification.Command, "Test-Sca",
+                    TokenClassification.None, " aaaa ",
+                    TokenClassification.Selection, "bbbb",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Parameter, "-p",
+                    TokenClassification.None, " cccc")),
+
+                // Clear the selection, and place cursor at the fourth 'b'
+                _.LeftArrow,
+                // Use digit argument '-1', meaning backward by 1 argument.
+                _.Alt_Minus,
+                // Since the cursor is currently on the argument 'bbbb', backwarding by 1 should select 'aaaa'.
+                _.Alt_a, CheckThat(() => AssertScreenIs(1,
+                    TokenClassification.Command, "Test-Sca",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Selection, "aaaa",
+                    TokenClassification.None, " bbbb ",
+                    TokenClassification.Parameter, "-p",
+                    TokenClassification.None, " cccc")),
+
+                // Clear the selection, and place cursor at the space right after 'aaaa'
+                _.RightArrow, _.LeftArrow,
+                // Use digit argument '-1', meaning backward by 1 argument.
+                _.Alt_Minus,
+                // Since the cursor is between the first and the second arguments, backwarding by 1 should select the first argument 'aaaa'.
+                _.Alt_a, CheckThat(() => AssertScreenIs(1,
+                    TokenClassification.Command, "Test-Sca",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Selection, "aaaa",
+                    TokenClassification.None, " bbbb ",
+                    TokenClassification.Parameter, "-p",
+                    TokenClassification.None, " cccc")),
+
+                // Clear the selection, and place cursor at the space right after 'aaaa'
+                _.RightArrow, _.LeftArrow,
+                // Use digit argument '2', meaning forward by 2 arguments.
+                _.Alt_2,
+                // Since the cursor is between the first and the second arguments, forwarding by 2 should select the 3rd argument 'cccc'.
+                _.Alt_a, CheckThat(() => AssertScreenIs(1,
+                    TokenClassification.Command, "Test-Sca",
+                    TokenClassification.None, " aaaa bbbb ",
+                    TokenClassification.Parameter, "-p",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Selection, "cccc")),
+
+                _.Escape));
         }
     }
 }

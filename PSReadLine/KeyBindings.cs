@@ -229,6 +229,7 @@ namespace Microsoft.PowerShell
                 { Keys.Alt9,                   MakeKeyHandler(DigitArgument,             "DigitArgument") },
                 { Keys.AltMinus,               MakeKeyHandler(DigitArgument,             "DigitArgument") },
                 { Keys.AltQuestion,            MakeKeyHandler(WhatIsKey,                 "WhatIsKey") },
+                { Keys.AltA,                   MakeKeyHandler(SelectCommandArgument,     "SelectCommandArgument") },
                 { Keys.F2,                     MakeKeyHandler(SwitchPredictionView,      "SwitchPredictionView") },
                 { Keys.F3,                     MakeKeyHandler(CharacterSearch,           "CharacterSearch") },
                 { Keys.ShiftF3,                MakeKeyHandler(CharacterSearchBackward,   "CharacterSearchBackward") },
@@ -334,6 +335,7 @@ namespace Microsoft.PowerShell
                 { Keys.AltPeriod,       MakeKeyHandler(YankLastArg,          "YankLastArg") },
                 { Keys.AltUnderbar,     MakeKeyHandler(YankLastArg,          "YankLastArg") },
                 { Keys.CtrlAltY,        MakeKeyHandler(YankNthArg,           "YankNthArg") },
+                { Keys.AltA,            MakeKeyHandler(SelectCommandArgument,"SelectCommandArgument") },
                 { Keys.AltH,            MakeKeyHandler(ShowParameterHelp,    "ShowParameterHelp") },
                 { Keys.F1,              MakeKeyHandler(ShowCommandHelp,      "ShowCommandHelp") },
             };
@@ -604,6 +606,7 @@ namespace Microsoft.PowerShell
             case nameof(SelectShellBackwardWord):
             case nameof(SelectShellForwardWord):
             case nameof(SelectShellNextWord):
+            case nameof(SelectCommandArgument):
                 return KeyHandlerGroup.Selection;
 
             default:
