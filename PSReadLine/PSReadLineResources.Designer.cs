@@ -705,7 +705,7 @@ namespace Microsoft.PowerShell.PSReadLine {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to The prediction plugin source is not supported in this version of PowerShell. The 7.1 or a higher version of PowerShell is required to use this source.
+        ///   Looks up a localized string similar to The prediction plugin source is not supported in this version of PowerShell. The 7.2 or a higher version of PowerShell is required to use this source.
         /// </summary>
         internal static string PredictionPluginNotSupported
         {
