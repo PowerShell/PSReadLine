@@ -21,13 +21,13 @@ namespace Microsoft.PowerShell
             internal readonly int InputMatchIndex;
 
             internal SuggestionEntry(string suggestion, int matchIndex)
-                : this(soruce: "History", predictorId: Guid.Empty, predictorSession: null, suggestion, matchIndex)
+                : this(source: "History", predictorId: Guid.Empty, predictorSession: null, suggestion, matchIndex)
             {
             }
 
-            internal SuggestionEntry(string soruce, Guid predictorId, uint? predictorSession, string suggestion, int matchIndex)
+            internal SuggestionEntry(string source, Guid predictorId, uint? predictorSession, string suggestion, int matchIndex)
             {
-                Source = soruce;
+                Source = source;
                 PredictorId = predictorId;
                 PredictorSession = predictorSession;
                 SuggestionText = suggestion;
