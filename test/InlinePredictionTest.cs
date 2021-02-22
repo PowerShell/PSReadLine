@@ -364,6 +364,7 @@ namespace Test
             ));
         }
 
+        private const uint MiniSessionId = 56;
         private static readonly Guid predictorId_1 = Guid.Parse("b45b5fbe-90fa-486c-9c87-e7940fdd6273");
         private static readonly Guid predictorId_2 = Guid.Parse("74a86463-033b-44a3-b386-41ee191c94be");
 
@@ -395,9 +396,9 @@ namespace Test
             return new List<PredictionResult>
             {
                 (PredictionResult)ctor.Invoke(
-                    new object[] { predictorId_1, "TestPredictor", (uint)56, suggestions_1 }),
+                    new object[] { predictorId_1, "TestPredictor", MiniSessionId, suggestions_1 }),
                 (PredictionResult)ctor.Invoke(
-                    new object[] { predictorId_2, "LongNamePredictor", (uint)56, suggestions_2 }),
+                    new object[] { predictorId_2, "LongNamePredictor", MiniSessionId, suggestions_2 }),
             };
         }
 
@@ -417,7 +418,7 @@ namespace Test
                     TokenClassification.Command, "git",
                     TokenClassification.InlinePrediction, " SOME TEXT AFTER")),
                 // `OnSuggestionDisplayed` should be fired for only one predictor because we are in 'inline' view.
-                CheckThat(() => AssertDisplayedSuggestions(count: 1, predictorId_1, 56, -1)),
+                CheckThat(() => AssertDisplayedSuggestions(count: 1, predictorId_1, MiniSessionId, -1)),
                 CheckThat(() => _mockedMethods.ClearPredictionFields()),
                 // 'ctrl+f' will trigger 'OnSuggestionAccepted'.
                 _.Ctrl_f, CheckThat(() => AssertScreenIs(1,
@@ -466,7 +467,7 @@ namespace Test
 
             // 'Enter' will trigger 'OnCommandLineAccepted', because plugin is in use.
             // Also, we still have `OnSuggestionDisplayed` fired, from the typing of each character of `nets`.
-            AssertDisplayedSuggestions(count: 1, predictorId_1, 56, -1);
+            AssertDisplayedSuggestions(count: 1, predictorId_1, MiniSessionId, -1);
             Assert.Equal(Guid.Empty, _mockedMethods.acceptedPredictorId);
             Assert.Null(_mockedMethods.acceptedSuggestion);
             Assert.NotNull(_mockedMethods.commandHistory);
@@ -492,7 +493,7 @@ namespace Test
                     TokenClassification.Command, "git",
                     TokenClassification.InlinePrediction, " SOME TEXT AFTER")),
                 // `OnSuggestionDisplayed` should be fired for only one predictor because we are in 'inline' view.
-                CheckThat(() => AssertDisplayedSuggestions(count: 1, predictorId_1, 56, -1)),
+                CheckThat(() => AssertDisplayedSuggestions(count: 1, predictorId_1, MiniSessionId, -1)),
                 CheckThat(() => _mockedMethods.ClearPredictionFields()),
                 _.Ctrl_f, CheckThat(() => AssertScreenIs(1,
                     TokenClassification.Command, "git",
@@ -537,7 +538,7 @@ namespace Test
                     TokenClassification.Command, "netsh",
                     TokenClassification.InlinePrediction, " show me")),
                 // Yeah, we still have `OnSuggestionDisplayed` fired, from the typing of each character of `nets`.
-                CheckThat(() => AssertDisplayedSuggestions(count: 1, predictorId_1, 56, -1)),
+                CheckThat(() => AssertDisplayedSuggestions(count: 1, predictorId_1, MiniSessionId, -1)),
                 CheckThat(() => _mockedMethods.ClearPredictionFields()),
                 // 'ctrl+f' won't trigger 'OnSuggestionAccepted' as the suggestion is from history.
                 _.Ctrl_f, CheckThat(() => AssertScreenIs(1,
