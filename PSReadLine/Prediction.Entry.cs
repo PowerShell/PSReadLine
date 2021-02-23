@@ -15,14 +15,21 @@ namespace Microsoft.PowerShell
         private struct SuggestionEntry
         {
             internal readonly Guid PredictorId;
+            internal readonly uint? PredictorSession;
             internal readonly string Source;
             internal readonly string SuggestionText;
             internal readonly int InputMatchIndex;
 
-            internal SuggestionEntry(string soruce, Guid id, string suggestion, int matchIndex)
+            internal SuggestionEntry(string suggestion, int matchIndex)
+                : this(source: "History", predictorId: Guid.Empty, predictorSession: null, suggestion, matchIndex)
             {
-                Source = soruce;
-                PredictorId = id;
+            }
+
+            internal SuggestionEntry(string source, Guid predictorId, uint? predictorSession, string suggestion, int matchIndex)
+            {
+                Source = source;
+                PredictorId = predictorId;
+                PredictorSession = predictorSession;
                 SuggestionText = suggestion;
                 InputMatchIndex = matchIndex;
             }

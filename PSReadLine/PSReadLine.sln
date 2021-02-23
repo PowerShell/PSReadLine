@@ -5,6 +5,8 @@ VisualStudioVersion = 15.0.26730.12
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PSReadLine", "PSReadLine.csproj", "{615788CB-1B9A-4B34-97B3-4608686E59CA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Polyfill", "..\Polyfill\Polyfill.csproj", "{DE521A7D-A3BE-4A07-BE75-5AB7D87E799D}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MockPSConsole", "..\MockPSConsole\MockPSConsole.csproj", "{08218B1A-8B85-4722-9E3F-4D6C0BF58AD8}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PSReadLine.Tests", "..\test\PSReadLine.Tests.csproj", "{8ED51D01-158C-4B29-824A-35B9B861E45A}"

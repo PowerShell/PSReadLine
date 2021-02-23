@@ -128,7 +128,6 @@ namespace Microsoft.PowerShell
             /// <param name="count">Maximum number of results to return.</param>
             protected List<SuggestionEntry> GetHistorySuggestions(string input, int count)
             {
-                const string source = "History";
                 List<SuggestionEntry> results = null;
                 int remainingCount = count;
 
@@ -164,7 +163,7 @@ namespace Microsoft.PowerShell
                     _cacheHistorySet.Add(line);
                     if (matchIndex == 0)
                     {
-                        results.Add(new SuggestionEntry(source, Guid.Empty, line, matchIndex));
+                        results.Add(new SuggestionEntry(line, matchIndex));
                         if (--remainingCount == 0)
                         {
                             break;
@@ -172,7 +171,7 @@ namespace Microsoft.PowerShell
                     }
                     else if (_cacheHistoryList.Count < remainingCount)
                     {
-                        _cacheHistoryList.Add(new SuggestionEntry(source, Guid.Empty, line, matchIndex));
+                        _cacheHistoryList.Add(new SuggestionEntry(line, matchIndex));
                     }
                 }
 
@@ -440,11 +439,19 @@ namespace Microsoft.PowerShell
                                     break;
                                 }
 
-                                for (int i = 0; i < _cacheList2[index]; i++)
+                                int num = _cacheList2[index];
+                                for (int i = 0; i < num; i++)
                                 {
                                     string sugText = item.Suggestions[i].SuggestionText ?? string.Empty;
                                     int matchIndex = sugText.IndexOf(_inputText, comparison);
-                                    _listItems.Add(new SuggestionEntry(item.Name, item.Id, sugText, matchIndex));
+                                    _listItems.Add(new SuggestionEntry(item.Name, item.Id, item.Session, sugText, matchIndex));
+                                }
+
+                                if (item.Session.HasValue)
+                                {
+                                    // Send feedback only if the mini-session id is specified.
+                                    // When it's not specified, we consider the predictor doesn't accept feedback.
+                                    _singleton._mockableMethods.OnSuggestionDisplayed(item.Id, item.Session.Value, num);
                                 }
                             }
                         }
@@ -517,9 +524,11 @@ namespace Microsoft.PowerShell
                 if (_listItems != null && _selectedIndex != -1)
                 {
                     var item = _listItems[_selectedIndex];
-                    if (item.PredictorId != Guid.Empty)
+                    if (item.PredictorSession.HasValue)
                     {
-                        _singleton._mockableMethods.OnSuggestionAccepted(item.PredictorId, item.SuggestionText);
+                        // Send feedback only if the mini-session id is specified.
+                        // When it's not specified, we consider the predictor doesn't accept feedback.
+                        _singleton._mockableMethods.OnSuggestionAccepted(item.PredictorId, item.PredictorSession.Value, item.SuggestionText);
                     }
                 }
             }
@@ -577,6 +586,7 @@ namespace Microsoft.PowerShell
         private class PredictionInlineView : PredictionViewBase
         {
             private Guid _predictorId;
+            private uint? _predictorSession;
             private string _suggestionText;
             private string _lastInputText;
             private bool _alreadyAccepted;
@@ -613,6 +623,7 @@ namespace Microsoft.PowerShell
                         {
                             _suggestionText = GetOneHistorySuggestion(userInput);
                             _predictorId = Guid.Empty;
+                            _predictorSession = null;
                         }
                     }
                 }
@@ -634,15 +645,27 @@ namespace Microsoft.PowerShell
                             continue;
                         }
 
+                        int index = 0;
                         foreach (var sug in item.Suggestions)
                         {
                             if (sug.SuggestionText != null &&
                                 sug.SuggestionText.StartsWith(_inputText, _singleton._options.HistoryStringComparison))
                             {
                                 _predictorId = item.Id;
+                                _predictorSession = item.Session;
                                 _suggestionText = sug.SuggestionText;
+
+                                if (_predictorSession.HasValue)
+                                {
+                                    // Send feedback only if the mini-session id is specified.
+                                    // When it's not specified, we consider the predictor doesn't accept feedback.
+                                    _singleton._mockableMethods.OnSuggestionDisplayed(_predictorId, _predictorSession.Value, -index);
+                                }
+
                                 return;
                             }
+
+                            index++;
                         }
                     }
                 }
@@ -673,10 +696,13 @@ namespace Microsoft.PowerShell
                     return;
                 }
 
-                if (!_alreadyAccepted && _suggestionText != null && _predictorId != Guid.Empty)
+                if (!_alreadyAccepted && _suggestionText != null && _predictorSession.HasValue)
                 {
                     _alreadyAccepted = true;
-                    _singleton._mockableMethods.OnSuggestionAccepted(_predictorId, _suggestionText);
+
+                    // Send feedback only if the mini-session id is specified.
+                    // When it's not specified, we consider the predictor doesn't accept feedback.
+                    _singleton._mockableMethods.OnSuggestionAccepted(_predictorId, _predictorSession.Value, _suggestionText);
                 }
             }
 
@@ -725,6 +751,7 @@ namespace Microsoft.PowerShell
                 base.Reset();
                 _suggestionText = _lastInputText = null;
                 _predictorId = Guid.Empty;
+                _predictorSession = null;
                 _alreadyAccepted = false;
             }
 

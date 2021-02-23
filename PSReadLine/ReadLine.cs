@@ -668,7 +668,7 @@ namespace Microsoft.PowerShell
             }
             if (hostName == null)
             {
-                hostName = "PSReadLine";
+                hostName = PSReadLine;
             }
             _options = new PSConsoleReadLineOptions(hostName);
             _prediction = new Prediction(this);

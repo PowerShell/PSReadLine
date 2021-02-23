@@ -143,7 +143,7 @@ namespace Microsoft.PowerShell
                 }
 
                 bool notTest = ReferenceEquals(_mockableMethods, this);
-                if ((options.PredictionSource & PredictionSource.Plugin) != 0 && Environment.Version.Major < 5 && notTest)
+                if ((options.PredictionSource & PredictionSource.Plugin) != 0 && Environment.Version.Major < 6 && notTest)
                 {
                     throw new ArgumentException(PSReadLineResources.PredictionPluginNotSupported);
                 }

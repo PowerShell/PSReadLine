@@ -16,23 +16,31 @@ namespace Microsoft.PowerShell
 {
     public partial class PSConsoleReadLine
     {
+        private const string PSReadLine = "PSReadLine";
+
         // Stub helper methods so prediction can be mocked
         [ExcludeFromCodeCoverage]
         Task<List<PredictionResult>> IPSConsoleReadLineMockableMethods.PredictInput(Ast ast, Token[] tokens)
         {
-            return CommandPrediction.PredictInput(ast, tokens);
+            return CommandPrediction.PredictInput(PSReadLine, ast, tokens);
+        }
+
+        [ExcludeFromCodeCoverage]
+        void IPSConsoleReadLineMockableMethods.OnSuggestionDisplayed(Guid predictorId, uint session, int countOrIndex)
+        {
+            CommandPrediction.OnSuggestionDisplayed(PSReadLine, predictorId, session, countOrIndex);
+        }
+
+        [ExcludeFromCodeCoverage]
+        void IPSConsoleReadLineMockableMethods.OnSuggestionAccepted(Guid predictorId, uint session, string suggestionText)
+        {
+            CommandPrediction.OnSuggestionAccepted(PSReadLine, predictorId, session, suggestionText);
         }
 
         [ExcludeFromCodeCoverage]
         void IPSConsoleReadLineMockableMethods.OnCommandLineAccepted(IReadOnlyList<string> history)
         {
-            CommandPrediction.OnCommandLineAccepted(history);
-        }
-
-        [ExcludeFromCodeCoverage]
-        void IPSConsoleReadLineMockableMethods.OnSuggestionAccepted(Guid predictorId, string suggestionText)
-        {
-            CommandPrediction.OnSuggestionAccepted(predictorId, suggestionText);
+            CommandPrediction.OnCommandLineAccepted(PSReadLine, history);
         }
 
         private readonly Prediction _prediction;
