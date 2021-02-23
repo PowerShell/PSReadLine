@@ -968,8 +968,8 @@ namespace Test
                         TokenClassification.None, new string(' ', windowWidth)
                      )),
                 // `OnSuggestionDisplayed` should be fired for both predictors.
-                CheckThat(() => AssertDisplayedSuggestions(count: 2, predictorId_1, 56, 2)),
-                CheckThat(() => AssertDisplayedSuggestions(count: 2, predictorId_2, 56, 1)),
+                CheckThat(() => AssertDisplayedSuggestions(count: 2, predictorId_1, MiniSessionId, 2)),
+                CheckThat(() => AssertDisplayedSuggestions(count: 2, predictorId_2, MiniSessionId, 1)),
                 CheckThat(() => _mockedMethods.ClearPredictionFields()),
                 _.DownArrow,
                      CheckThat(() => AssertScreenIs(5,
@@ -1070,8 +1070,8 @@ namespace Test
                         TokenClassification.None, new string(' ', windowWidth)
                      )),
                 // `OnSuggestionDisplayed` should be fired for both predictors.
-                CheckThat(() => AssertDisplayedSuggestions(count: 2, predictorId_1, 56, 2)),
-                CheckThat(() => AssertDisplayedSuggestions(count: 2, predictorId_2, 56, 1)),
+                CheckThat(() => AssertDisplayedSuggestions(count: 2, predictorId_1, MiniSessionId, 2)),
+                CheckThat(() => AssertDisplayedSuggestions(count: 2, predictorId_2, MiniSessionId, 1)),
                 CheckThat(() => Assert.Equal(predictorId_1, _mockedMethods.acceptedPredictorId)),
                 CheckThat(() => Assert.Equal("SOME TEXT BEFORE ec", _mockedMethods.acceptedSuggestion)),
                 CheckThat(() => Assert.Null(_mockedMethods.commandHistory)),
@@ -1147,8 +1147,8 @@ namespace Test
                         TokenClassification.None, new string(' ', windowWidth)
                      )),
                 // `OnSuggestionDisplayed` should be fired for both predictors.
-                CheckThat(() => AssertDisplayedSuggestions(count: 2, predictorId_1, 56, 2)),
-                CheckThat(() => AssertDisplayedSuggestions(count: 2, predictorId_2, 56, 1)),
+                CheckThat(() => AssertDisplayedSuggestions(count: 2, predictorId_1, MiniSessionId, 2)),
+                CheckThat(() => AssertDisplayedSuggestions(count: 2, predictorId_2, MiniSessionId, 1)),
                 CheckThat(() => Assert.Equal(predictorId_2, _mockedMethods.acceptedPredictorId)),
                 CheckThat(() => Assert.Equal("SOME NEW TEXT", _mockedMethods.acceptedSuggestion)),
                 CheckThat(() => Assert.Null(_mockedMethods.commandHistory)),
@@ -1270,8 +1270,8 @@ namespace Test
                         TokenClassification.None, new string(' ', windowWidth)
                      )),
                 // `OnSuggestionDisplayed` should be fired for both predictors.
-                CheckThat(() => AssertDisplayedSuggestions(count: 2, predictorId_1, 56, 2)),
-                CheckThat(() => AssertDisplayedSuggestions(count: 2, predictorId_2, 56, 1)),
+                CheckThat(() => AssertDisplayedSuggestions(count: 2, predictorId_1, MiniSessionId, 2)),
+                CheckThat(() => AssertDisplayedSuggestions(count: 2, predictorId_2, MiniSessionId, 1)),
                 CheckThat(() => _mockedMethods.ClearPredictionFields()),
                 _.DownArrow, _.Shift_Home,
                      CheckThat(() => AssertScreenIs(7,
@@ -1364,8 +1364,8 @@ namespace Test
                         TokenClassification.None, new string(' ', windowWidth)
                      )),
                 // `OnSuggestionDisplayed` should be fired for both predictors.
-                CheckThat(() => AssertDisplayedSuggestions(count: 2, predictorId_1, 56, 2)),
-                CheckThat(() => AssertDisplayedSuggestions(count: 2, predictorId_2, 56, 1)),
+                CheckThat(() => AssertDisplayedSuggestions(count: 2, predictorId_1, MiniSessionId, 2)),
+                CheckThat(() => AssertDisplayedSuggestions(count: 2, predictorId_2, MiniSessionId, 1)),
                 // Update the selected item won't trigger 'acceptance' callbacks if the item is from history.
                 CheckThat(() => Assert.Equal(Guid.Empty, _mockedMethods.acceptedPredictorId)),
                 CheckThat(() => Assert.Null(_mockedMethods.acceptedSuggestion)),
@@ -1449,8 +1449,8 @@ namespace Test
                         TokenClassification.None, new string(' ', windowWidth)
                      )),
                 // `OnSuggestionDisplayed` should be fired for both predictors.
-                CheckThat(() => AssertDisplayedSuggestions(count: 2, predictorId_1, 56, 2)),
-                CheckThat(() => AssertDisplayedSuggestions(count: 2, predictorId_2, 56, 1)),
+                CheckThat(() => AssertDisplayedSuggestions(count: 2, predictorId_1, MiniSessionId, 2)),
+                CheckThat(() => AssertDisplayedSuggestions(count: 2, predictorId_2, MiniSessionId, 1)),
                 CheckThat(() => Assert.Equal(predictorId_2, _mockedMethods.acceptedPredictorId)),
                 CheckThat(() => Assert.Equal("SOME NEW TEXT", _mockedMethods.acceptedSuggestion)),
                 CheckThat(() => Assert.Null(_mockedMethods.commandHistory)),
