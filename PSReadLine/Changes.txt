@@ -1,3 +1,26 @@
+### [2.2.0-beta2] - 2021-02-23
+
+- Update PSReadLine corresponding to the prediction interface updates (#2225)
+- Add white spaces to the emacs dispatch table (#2223)
+- Add the `SelectCommandArgument` bind-able function (#2222) (Thanks @ThePSAdmin for the idea!)
+- Move prediction functions to a new group (#2211)
+- Remove `LineIsMultiline` in favor of multi-line agnostic algorithms (#1125) (#2047) (Thanks @springcomp!)
+- Add the "Dynamic Help" feature to PSReadLine (#1777)
+- Prevent crash in `GotoFirstNonBlankOfLine` (#2050) (#2051) (Thanks @springcomp!)
+- Refactor the usage of `_clipboard` (#2022) (Thanks @springcomp!)
+- Make `d0` to delete to the start of the current logical line in a multiline buffer in VI mode (#2002) (Thanks @springcomp!)
+- Add github action to pre-triage new issues (#2117, #2118)
+- Highlight the install command in README.md (#2088) (Thanks @jiriurban21!)
+- Deleting backward to or until a character should preserve the character under the cursor (#2007) (Thanks @springcomp!)
+- Use `d^` to delete from the first non-blank character of a logical line (#2001) (Thanks @springcomp!)
+- Update nuget.config based on guidance (#2003)
+- Update the release build to use ESRP signing and unify the compliance job (#1983)
+- Add readonly modifier to some private fields (#1984)
+- Add argument selection handler to the sample profile (#1947) (Thanks @ThePSAdmin!)
+- Fix three issues with the menu completion (#1946)
+
+[2.2.0-beta2]: https://github.com/PowerShell/PSReadLine/compare/v2.2.0-beta1...v2.2.0-beta2
+
 ### Version 2.2.0-beta1
 
 Changes:

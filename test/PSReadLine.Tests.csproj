@@ -18,7 +18,7 @@
     <PackageReference Include="System.Xml.XDocument" version="4.3.0" />
     <PackageReference Include="System.Data.DataSetExtensions" version="4.5.0" />
     <PackageReference Include="System.Runtime.InteropServices.RuntimeInformation" version="4.3.0" />
-    <PackageReference Include="Microsoft.CSharp" version="4.5.0" />
+    <PackageReference Include="Microsoft.CSharp" version="4.7.0" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="PowerShellStandard.Library" version="5.1.0" />
   </ItemGroup>
