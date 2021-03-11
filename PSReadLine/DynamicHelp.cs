@@ -151,6 +151,9 @@ namespace Microsoft.PowerShell
             string commandName = null;
             string parameterName = null;
 
+            // Simply return if nothing is rendered yet.
+            if (_singleton._tokens == null) { return; }
+
             foreach(var token in _singleton._tokens)
             {
                 var extent = token.Extent;
