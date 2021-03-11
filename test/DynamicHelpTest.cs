@@ -98,6 +98,13 @@ PARAMETERS
         }
 
         [SkippableFact]
+        public void DynHelp_GetFullHelp_OnEmptyLine()
+        {
+            TestSetup(KeyMode.Cmd);
+            Test("", Keys(_.F1, _.Enter));
+        }
+
+        [SkippableFact]
         public void DynHelp_GetFullHelp()
         {
             TestSetup(KeyMode.Cmd);
@@ -106,6 +113,13 @@ PARAMETERS
                 CheckThat(() => Assert.Equal(fullHelp, _mockedMethods.helpContentRendered)),
                 _.Enter
                 ));
+        }
+
+        [SkippableFact]
+        public void DynHelp_GetParameterHelp_OnEmptyLine()
+        {
+            TestSetup(KeyMode.Cmd);
+            Test("", Keys(_.Alt_h, _.Enter));
         }
 
         [SkippableFact]
