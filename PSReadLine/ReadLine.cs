@@ -65,6 +65,7 @@ namespace Microsoft.PowerShell
         private readonly StringBuilder _statusBuffer;
         private bool _statusIsErrorMessage;
         private string _statusLinePrompt;
+        private string _acceptedCommandLine;
         private List<EditItem> _edits;
         private int _editGroupStart;
         private int _undoEditIndex;
@@ -302,11 +303,11 @@ namespace Microsoft.PowerShell
         /// after the prompt has been displayed.
         /// </summary>
         /// <returns>The complete command line.</returns>
-        public static string ReadLine(Runspace runspace, EngineIntrinsics engineIntrinsics)
+        public static string ReadLine(Runspace runspace, EngineIntrinsics engineIntrinsics, bool? lastRunStatus)
         {
             // Use a default cancellation token instead of CancellationToken.None because the
             // WaitHandle is shared and could be triggered accidently.
-            return ReadLine(runspace, engineIntrinsics, _defaultCancellationToken);
+            return ReadLine(runspace, engineIntrinsics, _defaultCancellationToken, lastRunStatus);
         }
 
         /// <summary>
@@ -314,7 +315,11 @@ namespace Microsoft.PowerShell
         /// ability to cancel ReadLine.
         /// </summary>
         /// <returns>The complete command line.</returns>
-        public static string ReadLine(Runspace runspace, EngineIntrinsics engineIntrinsics, CancellationToken cancellationToken)
+        public static string ReadLine(
+            Runspace runspace,
+            EngineIntrinsics engineIntrinsics,
+            CancellationToken cancellationToken,
+            bool? lastRunStatus)
         {
             var console = _singleton._console;
 
@@ -346,6 +351,11 @@ namespace Microsoft.PowerShell
                     Console.TreatControlCAsInput = true;
                 }
                 catch {}
+            }
+
+            if (lastRunStatus.HasValue)
+            {
+                _singleton.ReportExecutionStatus(lastRunStatus.Value);
             }
 
             bool firstTime = true;
@@ -486,11 +496,11 @@ namespace Microsoft.PowerShell
                 ProcessOneKey(key, _dispatchTable, ignoreIfNoAction: false, arg: null);
                 if (_inputAccepted)
                 {
-                    var commandLine = _buffer.ToString();
-                    MaybeAddToHistory(commandLine, _edits, _undoEditIndex);
+                    _acceptedCommandLine = _buffer.ToString();
+                    MaybeAddToHistory(_acceptedCommandLine, _edits, _undoEditIndex);
 
-                    _prediction.ActiveView.OnCommandLineAccepted(commandLine);
-                    return commandLine;
+                    _prediction.OnCommandLineAccepted(_acceptedCommandLine);
+                    return _acceptedCommandLine;
                 }
 
                 if (killCommandCount == _killCommandCount)

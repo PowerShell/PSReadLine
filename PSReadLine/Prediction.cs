@@ -17,33 +17,49 @@ namespace Microsoft.PowerShell
     public partial class PSConsoleReadLine
     {
         private const string PSReadLine = "PSReadLine";
+        private static PredictionClient s_predictionClient = new(PSReadLine, PredictionClient.ClientKind.Terminal);
 
         // Stub helper methods so prediction can be mocked
         [ExcludeFromCodeCoverage]
         Task<List<PredictionResult>> IPSConsoleReadLineMockableMethods.PredictInput(Ast ast, Token[] tokens)
         {
-            return CommandPrediction.PredictInput(PSReadLine, ast, tokens);
+            return CommandPrediction.PredictInput(s_predictionClient, ast, tokens);
         }
 
         [ExcludeFromCodeCoverage]
         void IPSConsoleReadLineMockableMethods.OnSuggestionDisplayed(Guid predictorId, uint session, int countOrIndex)
         {
-            CommandPrediction.OnSuggestionDisplayed(PSReadLine, predictorId, session, countOrIndex);
+            CommandPrediction.OnSuggestionDisplayed(s_predictionClient, predictorId, session, countOrIndex);
         }
 
         [ExcludeFromCodeCoverage]
         void IPSConsoleReadLineMockableMethods.OnSuggestionAccepted(Guid predictorId, uint session, string suggestionText)
         {
-            CommandPrediction.OnSuggestionAccepted(PSReadLine, predictorId, session, suggestionText);
+            CommandPrediction.OnSuggestionAccepted(s_predictionClient, predictorId, session, suggestionText);
         }
 
         [ExcludeFromCodeCoverage]
         void IPSConsoleReadLineMockableMethods.OnCommandLineAccepted(IReadOnlyList<string> history)
         {
-            CommandPrediction.OnCommandLineAccepted(PSReadLine, history);
+            CommandPrediction.OnCommandLineAccepted(s_predictionClient, history);
+        }
+
+        [ExcludeFromCodeCoverage]
+        void IPSConsoleReadLineMockableMethods.OnCommandLineExecuted(string commandLine, bool status)
+        {
+            CommandPrediction.OnCommandLineExecuted(s_predictionClient, commandLine, status);
         }
 
         private readonly Prediction _prediction;
+
+        /// <summary>
+        /// Report the execution result (success or failure) of the last accepted command line.
+        /// </summary>
+        /// <param name="status"></param>
+        private void ReportExecutionStatus(bool status)
+        {
+            _prediction.OnCommandLineExecuted(_acceptedCommandLine, status);
+        }
 
         /// <summary>
         /// Accept the suggestion text if there is one.
@@ -380,6 +396,28 @@ namespace Microsoft.PowerShell
                 }
 
                 return retValue;
+            }
+
+            /// <summary>
+            /// Get called when a command line is accepted.
+            /// </summary>
+            internal void OnCommandLineAccepted(string commandLine)
+            {
+                if (ActiveView.UsePlugin && !string.IsNullOrWhiteSpace(commandLine))
+                {
+                    _singleton._mockableMethods.OnCommandLineAccepted(_singleton._recentHistory.ToArray());
+                }
+            }
+
+            /// <summary>
+            /// Get called when the last accepted command line finished execution.
+            /// </summary>
+            internal void OnCommandLineExecuted(string commandLine, bool status)
+            {
+                if (ActiveView.UsePlugin && !string.IsNullOrWhiteSpace(commandLine))
+                {
+                    _singleton._mockableMethods.OnCommandLineExecuted(commandLine, status);
+                }
             }
         }
     }

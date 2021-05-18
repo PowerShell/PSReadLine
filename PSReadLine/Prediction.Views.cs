@@ -33,12 +33,12 @@ namespace Microsoft.PowerShell
             /// <summary>
             /// Gets whether to use plugin as a source.
             /// </summary>
-            protected bool UsePlugin => (_singleton._options.PredictionSource & PredictionSource.Plugin) != 0;
+            internal bool UsePlugin => (_singleton._options.PredictionSource & PredictionSource.Plugin) != 0;
 
             /// <summary>
             /// Gets whether to use history as a source.
             /// </summary>
-            protected bool UseHistory => (_singleton._options.PredictionSource & PredictionSource.History) != 0;
+            internal bool UseHistory => (_singleton._options.PredictionSource & PredictionSource.History) != 0;
 
             /// <summary>
             /// Gets whether an update to the view is pending.
@@ -78,17 +78,6 @@ namespace Microsoft.PowerShell
             {
                 _inputText = null;
                 _predictionTask = null;
-            }
-
-            /// <summary>
-            /// Get called when a command line is accepted.
-            /// </summary>
-            internal void OnCommandLineAccepted(string commandLine)
-            {
-                if (UsePlugin && !string.IsNullOrWhiteSpace(commandLine))
-                {
-                    _singleton._mockableMethods.OnCommandLineAccepted(_singleton._recentHistory.ToArray());
-                }
             }
 
             /// <summary>

@@ -23,6 +23,7 @@ namespace Test
     {
         internal bool didDing;
         internal IReadOnlyList<string> commandHistory;
+        internal bool? lastCommandRunStatus;
         internal Guid acceptedPredictorId;
         internal string acceptedSuggestion;
         internal string helpContentRendered;
@@ -31,6 +32,7 @@ namespace Test
         internal void ClearPredictionFields()
         {
             commandHistory = null;
+            lastCommandRunStatus = null;
             acceptedPredictorId = Guid.Empty;
             acceptedSuggestion = null;
             displayedSuggestions.Clear();
@@ -63,6 +65,11 @@ namespace Test
         public void OnCommandLineAccepted(IReadOnlyList<string> history)
         {
             commandHistory = history;
+        }
+
+        public void OnCommandLineExecuted(string commandLine, bool status)
+        {
+            lastCommandRunStatus = status;
         }
 
         public void OnSuggestionDisplayed(Guid predictorId, uint session, int countOrIndex)
@@ -474,7 +481,10 @@ namespace Test
 
             _console.Init(items);
 
-            var result = PSConsoleReadLine.ReadLine(null, null);
+            var result = PSConsoleReadLine.ReadLine(
+                runspace: null,
+                engineIntrinsics: null,
+                lastRunStatus: true);
 
             if (_console.validationFailure != null)
             {
