@@ -4,29 +4,29 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Management.Automation.Language;
 
-namespace System.Management.Automation.Subsystem
+namespace System.Management.Automation.Subsystem.Prediction
 {
+    /// <summary>
+    /// Kinds of prediction clients.
+    /// </summary>
+    public enum PredictionClientKind
+    {
+        /// <summary>
+        /// A terminal client, representing the command-line experience.
+        /// </summary>
+        Terminal,
+
+        /// <summary>
+        /// An editor client, representing the editor experience.
+        /// </summary>
+        Editor,
+    }
+
     /// <summary>
     /// The class represents a client that interacts with predictors.
     /// </summary>
     public class PredictionClient
     {
-        /// <summary>
-        /// Kinds of the client.
-        /// </summary>
-        public enum ClientKind
-        {
-            /// <summary>
-            /// A terminal client, representing the command-line experience.
-            /// </summary>
-            Terminal,
-
-            /// <summary>
-            /// An editor client, representing the editor experience.
-            /// </summary>
-            Editor,
-        }
-
         /// <summary>
         /// Gets the client name.
         /// </summary>
@@ -35,14 +35,14 @@ namespace System.Management.Automation.Subsystem
         /// <summary>
         /// Gets the client kind.
         /// </summary>
-        public ClientKind Kind { get; }
+        public PredictionClientKind Kind { get; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PredictionClient"/> class.
         /// </summary>
         /// <param name="name">Name of the interactive client.</param>
         /// <param name="kind">Kind of the interactive client.</param>
-        public PredictionClient(string name, ClientKind kind)
+        public PredictionClient(string name, PredictionClientKind kind)
         {
             Name = name;
             Kind = kind;
@@ -146,7 +146,7 @@ namespace System.Management.Automation.Subsystem
         /// <param name="astTokens">The <see cref="Token"/> objects from parsing the current command line input.</param>
         /// <returns>A list of <see cref="PredictionResult"/> objects.</returns>
         [HiddenAttribute]
-        public static Task<List<PredictionResult>> PredictInput(PredictionClient client, Ast ast, Token[] astTokens)
+        public static Task<List<PredictionResult>> PredictInputAsync(PredictionClient client, Ast ast, Token[] astTokens)
         {
             return null;
         }
@@ -160,7 +160,7 @@ namespace System.Management.Automation.Subsystem
         /// <param name="millisecondsTimeout">The milliseconds to timeout.</param>
         /// <returns>A list of <see cref="PredictionResult"/> objects.</returns>
         [HiddenAttribute]
-        public static Task<List<PredictionResult>> PredictInput(PredictionClient client, Ast ast, Token[] astTokens, int millisecondsTimeout)
+        public static Task<List<PredictionResult>> PredictInputAsync(PredictionClient client, Ast ast, Token[] astTokens, int millisecondsTimeout)
         {
             return null;
         }
@@ -180,9 +180,9 @@ namespace System.Management.Automation.Subsystem
         /// </summary>
         /// <param name="client">Represents the client that initiates the call.</param>
         /// <param name="commandLine">The last accepted command line.</param>
-        /// <param name="status">The execution status of the last command line. True for success, False for failure</param>
+        /// <param name="success">Whether the execution of the last command line was successful.</param>
         [HiddenAttribute]
-        public static void OnCommandLineExecuted(PredictionClient client, string commandLine, bool status)
+        public static void OnCommandLineExecuted(PredictionClient client, string commandLine, bool success)
         {
         }
 
@@ -217,9 +217,11 @@ namespace System.Management.Automation.Subsystem
 
 #else
 
-using System.Management.Automation.Subsystem;
+using System.Management.Automation.Subsystem.Prediction;
 using System.Runtime.CompilerServices;
 
+[assembly: TypeForwardedTo(typeof(PredictionClientKind))]
+[assembly: TypeForwardedTo(typeof(PredictionClient))]
 [assembly: TypeForwardedTo(typeof(PredictiveSuggestion))]
 [assembly: TypeForwardedTo(typeof(PredictionResult))]
 [assembly: TypeForwardedTo(typeof(CommandPrediction))]

@@ -9,7 +9,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Management.Automation;
 using System.Management.Automation.Language;
 using System.Management.Automation.Runspaces;
-using System.Management.Automation.Subsystem;
+using System.Management.Automation.Subsystem.Prediction;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.PowerShell.PSReadLine;
@@ -26,7 +26,7 @@ namespace Microsoft.PowerShell
             void Ding();
             CommandCompletion CompleteInput(string input, int cursorIndex, Hashtable options, System.Management.Automation.PowerShell powershell);
             bool RunspaceIsRemote(Runspace runspace);
-            Task<List<PredictionResult>> PredictInput(Ast ast, Token[] tokens);
+            Task<List<PredictionResult>> PredictInputAsync(Ast ast, Token[] tokens);
             void OnCommandLineAccepted(IReadOnlyList<string> history);
             void OnCommandLineExecuted(string commandLine, bool status);
             void OnSuggestionDisplayed(Guid predictorId, uint session, int countOrIndex);

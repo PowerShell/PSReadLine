@@ -6,7 +6,7 @@ using System.Linq;
 using System.Management.Automation;
 using System.Management.Automation.Language;
 using System.Management.Automation.Runspaces;
-using System.Management.Automation.Subsystem;
+using System.Management.Automation.Subsystem.Prediction;
 using System.Threading.Tasks;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -53,7 +53,7 @@ namespace Test
             return false;
         }
 
-        public Task<List<PredictionResult>> PredictInput(Ast ast, Token[] tokens)
+        public Task<List<PredictionResult>> PredictInputAsync(Ast ast, Token[] tokens)
         {
             var result = ReadLine.MockedPredictInput(ast, tokens);
             var source = new TaskCompletionSource<List<PredictionResult>>();

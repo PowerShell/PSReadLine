@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Management.Automation;
 using System.Management.Automation.Language;
-using System.Management.Automation.Subsystem;
+using System.Management.Automation.Subsystem.Prediction;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.PowerShell.Internal;
 using Microsoft.PowerShell.PSReadLine;
@@ -17,13 +17,13 @@ namespace Microsoft.PowerShell
     public partial class PSConsoleReadLine
     {
         private const string PSReadLine = "PSReadLine";
-        private static PredictionClient s_predictionClient = new(PSReadLine, PredictionClient.ClientKind.Terminal);
+        private static PredictionClient s_predictionClient = new(PSReadLine, PredictionClientKind.Terminal);
 
         // Stub helper methods so prediction can be mocked
         [ExcludeFromCodeCoverage]
-        Task<List<PredictionResult>> IPSConsoleReadLineMockableMethods.PredictInput(Ast ast, Token[] tokens)
+        Task<List<PredictionResult>> IPSConsoleReadLineMockableMethods.PredictInputAsync(Ast ast, Token[] tokens)
         {
-            return CommandPrediction.PredictInput(s_predictionClient, ast, tokens);
+            return CommandPrediction.PredictInputAsync(s_predictionClient, ast, tokens);
         }
 
         [ExcludeFromCodeCoverage]
@@ -55,10 +55,10 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// Report the execution result (success or failure) of the last accepted command line.
         /// </summary>
-        /// <param name="status"></param>
-        private void ReportExecutionStatus(bool status)
+        /// <param name="success">Whether the execution was successful.</param>
+        private void ReportExecutionStatus(bool success)
         {
-            _prediction.OnCommandLineExecuted(_acceptedCommandLine, status);
+            _prediction.OnCommandLineExecuted(_acceptedCommandLine, success);
         }
 
         /// <summary>
@@ -412,11 +412,11 @@ namespace Microsoft.PowerShell
             /// <summary>
             /// Get called when the last accepted command line finished execution.
             /// </summary>
-            internal void OnCommandLineExecuted(string commandLine, bool status)
+            internal void OnCommandLineExecuted(string commandLine, bool success)
             {
                 if (ActiveView.UsePlugin && !string.IsNullOrWhiteSpace(commandLine))
                 {
-                    _singleton._mockableMethods.OnCommandLineExecuted(commandLine, status);
+                    _singleton._mockableMethods.OnCommandLineExecuted(commandLine, success);
                 }
             }
         }
