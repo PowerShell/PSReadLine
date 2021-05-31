@@ -25,16 +25,18 @@ namespace System.Management.Automation.Subsystem.Prediction
     /// <summary>
     /// The class represents a client that interacts with predictors.
     /// </summary>
-    public class PredictionClient
+    public sealed class PredictionClient
     {
         /// <summary>
         /// Gets the client name.
         /// </summary>
+        [HiddenAttribute]
         public string Name { get; }
 
         /// <summary>
         /// Gets the client kind.
         /// </summary>
+        [HiddenAttribute]
         public PredictionClientKind Kind { get; }
 
         /// <summary>
@@ -42,6 +44,7 @@ namespace System.Management.Automation.Subsystem.Prediction
         /// </summary>
         /// <param name="name">Name of the interactive client.</param>
         /// <param name="kind">Kind of the interactive client.</param>
+        [HiddenAttribute]
         public PredictionClient(string name, PredictionClientKind kind)
         {
             Name = name;
