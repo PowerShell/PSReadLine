@@ -28,7 +28,7 @@ namespace Microsoft.PowerShell
             bool RunspaceIsRemote(Runspace runspace);
             Task<List<PredictionResult>> PredictInputAsync(Ast ast, Token[] tokens);
             void OnCommandLineAccepted(IReadOnlyList<string> history);
-            void OnCommandLineExecuted(string commandLine, bool status);
+            void OnCommandLineExecuted(string commandLine, bool success);
             void OnSuggestionDisplayed(Guid predictorId, uint session, int countOrIndex);
             void OnSuggestionAccepted(Guid predictorId, uint session, string suggestionText);
             void RenderFullHelp(string content, string regexPatternToScrollTo);

@@ -67,9 +67,9 @@ namespace Test
             commandHistory = history;
         }
 
-        public void OnCommandLineExecuted(string commandLine, bool status)
+        public void OnCommandLineExecuted(string commandLine, bool success)
         {
-            lastCommandRunStatus = status;
+            lastCommandRunStatus = success;
         }
 
         public void OnSuggestionDisplayed(Guid predictorId, uint session, int countOrIndex)

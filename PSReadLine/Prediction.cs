@@ -45,9 +45,9 @@ namespace Microsoft.PowerShell
         }
 
         [ExcludeFromCodeCoverage]
-        void IPSConsoleReadLineMockableMethods.OnCommandLineExecuted(string commandLine, bool status)
+        void IPSConsoleReadLineMockableMethods.OnCommandLineExecuted(string commandLine, bool success)
         {
-            CommandPrediction.OnCommandLineExecuted(s_predictionClient, commandLine, status);
+            CommandPrediction.OnCommandLineExecuted(s_predictionClient, commandLine, success);
         }
 
         private readonly Prediction _prediction;
