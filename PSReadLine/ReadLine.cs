@@ -311,6 +311,15 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
+        /// Temporary entry point for PowerShell VSCode extension to avoid breaking the existing PSES.
+        /// PSES will need to move away from this entry point to actually provide information about 'lastRunStatus'.
+        /// </summary>
+        public static string ReadLine(Runspace runspace, EngineIntrinsics engineIntrinsics, CancellationToken cancellationToken)
+        {
+            return ReadLine(runspace, engineIntrinsics, _defaultCancellationToken, lastRunStatus: null);
+        }
+
+        /// <summary>
         /// Entry point - called by custom PSHost implementations that require the
         /// ability to cancel ReadLine.
         /// </summary>
