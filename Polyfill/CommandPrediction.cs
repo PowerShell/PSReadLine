@@ -4,8 +4,54 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Management.Automation.Language;
 
-namespace System.Management.Automation.Subsystem
+namespace System.Management.Automation.Subsystem.Prediction
 {
+    /// <summary>
+    /// Kinds of prediction clients.
+    /// </summary>
+    public enum PredictionClientKind
+    {
+        /// <summary>
+        /// A terminal client, representing the command-line experience.
+        /// </summary>
+        Terminal,
+
+        /// <summary>
+        /// An editor client, representing the editor experience.
+        /// </summary>
+        Editor,
+    }
+
+    /// <summary>
+    /// The class represents a client that interacts with predictors.
+    /// </summary>
+    public sealed class PredictionClient
+    {
+        /// <summary>
+        /// Gets the client name.
+        /// </summary>
+        [HiddenAttribute]
+        public string Name { get; }
+
+        /// <summary>
+        /// Gets the client kind.
+        /// </summary>
+        [HiddenAttribute]
+        public PredictionClientKind Kind { get; }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PredictionClient"/> class.
+        /// </summary>
+        /// <param name="name">Name of the interactive client.</param>
+        /// <param name="kind">Kind of the interactive client.</param>
+        [HiddenAttribute]
+        public PredictionClient(string name, PredictionClientKind kind)
+        {
+            Name = name;
+            Kind = kind;
+        }
+    }
+
     /// <summary>
     /// The class represents the prediction result from a predictor.
     /// </summary>
@@ -103,7 +149,7 @@ namespace System.Management.Automation.Subsystem
         /// <param name="astTokens">The <see cref="Token"/> objects from parsing the current command line input.</param>
         /// <returns>A list of <see cref="PredictionResult"/> objects.</returns>
         [HiddenAttribute]
-        public static Task<List<PredictionResult>> PredictInput(string client, Ast ast, Token[] astTokens)
+        public static Task<List<PredictionResult>> PredictInputAsync(PredictionClient client, Ast ast, Token[] astTokens)
         {
             return null;
         }
@@ -117,7 +163,7 @@ namespace System.Management.Automation.Subsystem
         /// <param name="millisecondsTimeout">The milliseconds to timeout.</param>
         /// <returns>A list of <see cref="PredictionResult"/> objects.</returns>
         [HiddenAttribute]
-        public static Task<List<PredictionResult>> PredictInput(string client, Ast ast, Token[] astTokens, int millisecondsTimeout)
+        public static Task<List<PredictionResult>> PredictInputAsync(PredictionClient client, Ast ast, Token[] astTokens, int millisecondsTimeout)
         {
             return null;
         }
@@ -128,7 +174,18 @@ namespace System.Management.Automation.Subsystem
         /// <param name="client">Represents the client that initiates the call.</param>
         /// <param name="history">History command lines provided as references for prediction.</param>
         [HiddenAttribute]
-        public static void OnCommandLineAccepted(string client, IReadOnlyList<string> history)
+        public static void OnCommandLineAccepted(PredictionClient client, IReadOnlyList<string> history)
+        {
+        }
+
+        /// <summary>
+        /// Allow registered predictors to know the execution result (success/failure) of the last accepted command line.
+        /// </summary>
+        /// <param name="client">Represents the client that initiates the call.</param>
+        /// <param name="commandLine">The last accepted command line.</param>
+        /// <param name="success">Whether the execution of the last command line was successful.</param>
+        [HiddenAttribute]
+        public static void OnCommandLineExecuted(PredictionClient client, string commandLine, bool success)
         {
         }
 
@@ -143,7 +200,7 @@ namespace System.Management.Automation.Subsystem
         /// When the value is <code><= 0</code>, it means a single suggestion from the list got displayed, and the index is the absolute value.
         /// </param>
         [HiddenAttribute]
-        public static void OnSuggestionDisplayed(string client, Guid predictorId, uint session, int countOrIndex)
+        public static void OnSuggestionDisplayed(PredictionClient client, Guid predictorId, uint session, int countOrIndex)
         {
         }
 
@@ -155,7 +212,7 @@ namespace System.Management.Automation.Subsystem
         /// <param name="session">The mini-session where the accepted suggestion came from.</param>
         /// <param name="suggestionText">The accepted suggestion text.</param>
         [HiddenAttribute]
-        public static void OnSuggestionAccepted(string client, Guid predictorId, uint session, string suggestionText)
+        public static void OnSuggestionAccepted(PredictionClient client, Guid predictorId, uint session, string suggestionText)
         {
         }
     }
@@ -163,9 +220,11 @@ namespace System.Management.Automation.Subsystem
 
 #else
 
-using System.Management.Automation.Subsystem;
+using System.Management.Automation.Subsystem.Prediction;
 using System.Runtime.CompilerServices;
 
+[assembly: TypeForwardedTo(typeof(PredictionClientKind))]
+[assembly: TypeForwardedTo(typeof(PredictionClient))]
 [assembly: TypeForwardedTo(typeof(PredictiveSuggestion))]
 [assembly: TypeForwardedTo(typeof(PredictionResult))]
 [assembly: TypeForwardedTo(typeof(CommandPrediction))]

@@ -1509,5 +1509,137 @@ namespace Test
             Assert.Equal("eca -zoo", _mockedMethods.commandHistory[2]);
             Assert.Equal("SOME NEW TEX SOME TEXT AFTER", _mockedMethods.commandHistory[3]);
         }
+
+        [SkippableFact]
+        public void List_NoneSource_ExecutionStatus()
+        {
+            TestSetup(KeyMode.Cmd);
+            using var disp = SetPrediction(PredictionSource.None, PredictionViewStyle.ListView);
+
+            // The last accepted command line would be "yay" after this.
+            Test("yay", Keys("yay"));
+            _mockedMethods.ClearPredictionFields();
+
+            // We always pass in 'true' as the execution status of the last command line,
+            // and that feedback will be reported when
+            //  1. the plugin source is in use;
+            //  2. the last accepted command is not a whitespace string.
+            Test("   ", Keys(
+                // Since we set the prediction source to be 'None', this feedback won't be reported.
+                CheckThat(() => Assert.Null(_mockedMethods.lastCommandRunStatus)),
+                "   "));
+
+            Test("abc", Keys(
+                // The prediction source is 'None', and the last accepted command is a whitespace string,
+                // so this feedback won't be reported.
+                CheckThat(() => Assert.Null(_mockedMethods.lastCommandRunStatus)),
+                "abc"));
+
+            Assert.Null(_mockedMethods.lastCommandRunStatus);
+        }
+
+        [SkippableFact]
+        public void List_HistorySource_ExecutionStatus()
+        {
+            TestSetup(KeyMode.Cmd);
+            using var disp = SetPrediction(PredictionSource.History, PredictionViewStyle.InlineView);
+
+            // The last accepted command line would be "yay" after this.
+            Test("yay", Keys("yay"));
+            _mockedMethods.ClearPredictionFields();
+
+            // We always pass in 'true' as the execution status of the last command line,
+            // and that feedback will be reported when
+            //  1. the plugin source is in use;
+            //  2. the last accepted command is not a whitespace string.
+            Test("   ", Keys(
+                // Since we set the prediction source to be 'History', this feedback won't be reported.
+                CheckThat(() => Assert.Null(_mockedMethods.lastCommandRunStatus)),
+                "   "));
+
+            Test("abc", Keys(
+                // The prediction source is 'History', and the last accepted command is a whitespace string,
+                // so this feedback won't be reported.
+                CheckThat(() => Assert.Null(_mockedMethods.lastCommandRunStatus)),
+                "abc"));
+
+            Assert.Null(_mockedMethods.lastCommandRunStatus);
+        }
+
+        [SkippableFact]
+        public void List_PluginSource_ExecutionStatus()
+        {
+            TestSetup(KeyMode.Cmd);
+            using var disp = SetPrediction(PredictionSource.Plugin, PredictionViewStyle.InlineView);
+
+            // The last accepted command line would be an empty string after this.
+            Test("", Keys(_.Enter));
+            _mockedMethods.ClearPredictionFields();
+
+            // We always pass in 'true' as the execution status of the last command line,
+            // and that feedback will be reported when
+            //  1. the plugin source is in use;
+            //  2. the last accepted command is not a whitespace string.
+            Test("yay", Keys(
+                // The plugin source is in use, but the last accepted command is an empty string.
+                CheckThat(() => Assert.Null(_mockedMethods.lastCommandRunStatus)),
+                "yay"));
+
+            Assert.Null(_mockedMethods.lastCommandRunStatus);
+
+            // The last accepted command line would be a whitespace string with 3 space characters after this.
+            Test("   ", Keys(
+                // The plugin source is in use, and the last accepted command is "yay".
+                CheckThat(() => Assert.True(_mockedMethods.lastCommandRunStatus)),
+                "   "));
+
+            Assert.True(_mockedMethods.lastCommandRunStatus);
+            _mockedMethods.ClearPredictionFields();
+
+            Test("abc", Keys(
+                // The plugin source is in use, but the last accepted command is a whitespace string.
+                CheckThat(() => Assert.Null(_mockedMethods.lastCommandRunStatus)),
+                "abc"));
+
+            Assert.Null(_mockedMethods.lastCommandRunStatus);
+        }
+
+        [SkippableFact]
+        public void List_HistoryAndPluginSource_ExecutionStatus()
+        {
+            TestSetup(KeyMode.Cmd);
+            using var disp = SetPrediction(PredictionSource.HistoryAndPlugin, PredictionViewStyle.InlineView);
+
+            // The last accepted command line would be an empty string after this.
+            Test("", Keys(_.Enter));
+            _mockedMethods.ClearPredictionFields();
+
+            // We always pass in 'true' as the execution status of the last command line,
+            // and that feedback will be reported when
+            //  1. the plugin source is in use;
+            //  2. the last accepted command is not a whitespace string.
+            Test("yay", Keys(
+                // The plugin source is in use, but the last accepted command is an empty string.
+                CheckThat(() => Assert.Null(_mockedMethods.lastCommandRunStatus)),
+                "yay"));
+
+            Assert.Null(_mockedMethods.lastCommandRunStatus);
+
+            // The last accepted command line would be a whitespace string with 3 space characters after this.
+            Test("   ", Keys(
+                // The plugin source is in use, and the last accepted command is "yay".
+                CheckThat(() => Assert.True(_mockedMethods.lastCommandRunStatus)),
+                "   "));
+
+            Assert.True(_mockedMethods.lastCommandRunStatus);
+            _mockedMethods.ClearPredictionFields();
+
+            Test("abc", Keys(
+                // The plugin source is in use, but the last accepted command is a whitespace string.
+                CheckThat(() => Assert.Null(_mockedMethods.lastCommandRunStatus)),
+                "abc"));
+
+            Assert.Null(_mockedMethods.lastCommandRunStatus);
+        }
     }
 }

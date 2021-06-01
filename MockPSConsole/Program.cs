@@ -99,7 +99,7 @@ namespace MockPSConsole
                     ps.Commands.Clear();
                     Console.Write(string.Join("", ps.AddCommand("prompt").Invoke<string>()));
 
-                    var line = PSConsoleReadLine.ReadLine(rs, executionContext);
+                    var line = PSConsoleReadLine.ReadLine(rs, executionContext, lastRunStatus: null);
                     Console.WriteLine(line);
                     line = line.Trim();
                     if (line.Equals("exit"))
