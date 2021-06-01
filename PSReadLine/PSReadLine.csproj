@@ -7,7 +7,7 @@
     <NoWarn>$(NoWarn);CA1416</NoWarn>
     <AssemblyVersion>2.2.0.0</AssemblyVersion>
     <FileVersion>2.2.0</FileVersion>
-    <InformationalVersion>2.2.0-beta2</InformationalVersion>
+    <InformationalVersion>2.2.0-beta3</InformationalVersion>
     <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
     <TargetFrameworks>net461;net6.0</TargetFrameworks>
     <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>

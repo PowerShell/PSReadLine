@@ -1,3 +1,10 @@
+### [2.2.0-beta3] - 2021-06-01
+
+- Update the use of the prediction interface to adapt to the breaking changes introduced in PowerShell 7.2.0-preview.6 (#2524)
+- Fix a null-ref exception in `DynamicHelpImpl` (#2292)
+
+[2.2.0-beta3]: https://github.com/PowerShell/PSReadLine/compare/v2.2.0-beta2...v2.2.0-beta3
+
 ### [2.2.0-beta2] - 2021-02-23
 
 - Update PSReadLine corresponding to the prediction interface updates (#2225)
