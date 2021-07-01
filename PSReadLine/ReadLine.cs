@@ -316,7 +316,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static string ReadLine(Runspace runspace, EngineIntrinsics engineIntrinsics, CancellationToken cancellationToken)
         {
-            return ReadLine(runspace, engineIntrinsics, _defaultCancellationToken, lastRunStatus: null);
+            return ReadLine(runspace, engineIntrinsics, cancellationToken, lastRunStatus: null);
         }
 
         /// <summary>
