@@ -215,7 +215,7 @@ namespace Microsoft.PowerShell
                 // Keys I'm not familiar with, presumably we'd want to ignore.
                 case ConsoleKey.Clear: case ConsoleKey.Pause: case ConsoleKey.Select: case ConsoleKey.Print:
                 case ConsoleKey.Execute: case ConsoleKey.Help: case ConsoleKey.Sleep: case ConsoleKey.Process:
-                case ConsoleKey.Packet: case ConsoleKey.Attention: case ConsoleKey.CrSel: case ConsoleKey.ExSel:
+                case ConsoleKey.Attention: case ConsoleKey.CrSel: case ConsoleKey.ExSel:
                 case ConsoleKey.EraseEndOfFile: case ConsoleKey.Play: case ConsoleKey.Zoom: case ConsoleKey.NoName:
                 case ConsoleKey.Pa1:
 
