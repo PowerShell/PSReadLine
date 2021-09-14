@@ -41,7 +41,7 @@ stages:
         Write-Host "PS Version: $($($PSVersionTable.PSVersion))"
         Set-Location -Path '$(Build.SourcesDirectory)\PSReadLine'
         .\build.ps1 -Bootstrap
-        .\build.ps1 -Configuration Release -Framework net461 -CheckHelpContent
+        .\build.ps1 -Configuration Release -Framework net461
 
         # Set target folder paths
         New-Item -Path .\bin\Release\NuGetPackage -ItemType Directory > $null
