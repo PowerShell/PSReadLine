@@ -1,8 +1,6 @@
 name: PSReadLine-ModuleBuild-$(Build.BuildId)
-trigger:
-  branches:
-    include:
-    - master
+trigger: none
+pr: none
 
 variables:
   DOTNET_CLI_TELEMETRY_OPTOUT: 1
@@ -20,7 +18,9 @@ stages:
 - stage: Build
   displayName: Build and Sign
   pool:
-    name: Package ES CodeHub Lab E
+    name: PowerShell1ES
+    demands:
+    - ImageOverride -equals MMS2019
   jobs:
   - job: build_windows
     displayName: Build PSReadLine
@@ -127,10 +127,14 @@ stages:
   displayName: Compliance
   dependsOn: Build
   pool:
-    name: Package ES CodeHub Lab E
+    name: PowerShell1ES
+    demands:
+    - ImageOverride -equals MMS2019
   jobs:
   - job: Compliance_Job
     displayName: PSReadLine Compliance
+    variables:
+      - group: APIScan
     # APIScan can take a long time
     timeoutInMinutes: 240
 
@@ -176,3 +180,4 @@ stages:
         softwareFolder: '$(Pipeline.Workspace)\PSReadLine'
         softwareName: 'PSReadLine'
         softwareVersion: '$(ModuleVersion)'
+        connectionString: 'RunAs=App;AppId=$(APIScanClient);TenantId=$(APIScanTenant);AppKey=$(APIScanSecret)'
