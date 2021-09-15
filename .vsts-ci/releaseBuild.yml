@@ -133,6 +133,8 @@ stages:
   jobs:
   - job: Compliance_Job
     displayName: PSReadLine Compliance
+    variables:
+      - group: APIScan
     # APIScan can take a long time
     timeoutInMinutes: 240
 
@@ -178,3 +180,4 @@ stages:
         softwareFolder: '$(Pipeline.Workspace)\PSReadLine'
         softwareName: 'PSReadLine'
         softwareVersion: '$(ModuleVersion)'
+        connectionString: 'RunAs=App;AppId=$(APIScanClient);TenantId=$(APIScanTenant);AppKey=$(APIScanSecret)'
