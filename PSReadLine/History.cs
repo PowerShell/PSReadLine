@@ -313,15 +313,23 @@ namespace Microsoft.PowerShell
                             _historyFileMutex.ReleaseMutex();
                         }
                     }
+
+                    // Consider it a failure if we timed out on the mutex.
+                    return false;
                 }
                 catch (AbandonedMutexException)
                 {
                     retryCount += 1;
+
+                    // We acquired the Mutex object that was abandoned by another powershell process.
+                    // But since we owns it now, we must release it, otherwise, we will keep holding
+                    // the mutex and the waiting from all other powershell processes will time out.
+                    _historyFileMutex.ReleaseMutex();
                 }
             } while (retryCount > 0 && retryCount < 3);
 
-            // No errors to report, so consider it a success even if we timed out on the mutex.
-            return true;
+            // If we reach here, that means we've done the retries but always got the 'AbandonedMutexException'.
+            return false;
         }
 
         private void WriteHistoryRange(int start, int end, bool overwritten)
@@ -427,18 +435,16 @@ namespace Microsoft.PowerShell
 
         private void ReadHistoryFile()
         {
-            WithHistoryFileMutexDo(1000, () =>
+            if (File.Exists(Options.HistorySavePath))
             {
-                if (!File.Exists(Options.HistorySavePath))
+                WithHistoryFileMutexDo(1000, () =>
                 {
-                    return;
-                }
-
-                var historyLines = File.ReadAllLines(Options.HistorySavePath);
-                UpdateHistoryFromFile(historyLines, fromDifferentSession: false, fromInitialRead: true);
-                var fileInfo = new FileInfo(Options.HistorySavePath);
-                _historyFileLastSavedSize = fileInfo.Length;
-            });
+                    var historyLines = File.ReadAllLines(Options.HistorySavePath);
+                    UpdateHistoryFromFile(historyLines, fromDifferentSession: false, fromInitialRead: true);
+                    var fileInfo = new FileInfo(Options.HistorySavePath);
+                    _historyFileLastSavedSize = fileInfo.Length;
+                });
+            }
         }
 
         void UpdateHistoryFromFile(IEnumerable<string> historyLines, bool fromDifferentSession, bool fromInitialRead)
