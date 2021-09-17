@@ -321,9 +321,10 @@ namespace Microsoft.PowerShell
                 {
                     retryCount += 1;
 
-                    // We acquired the Mutex object that was abandoned by another powershell process.
-                    // But since we owns it now, we must release it, otherwise, we will keep holding
-                    // the mutex and the waiting from all other powershell processes will time out.
+                    // We acquired the mutex object that was abandoned by another powershell process.
+                    // Now, since we own it, we must release it before retry, otherwise, we will miss
+                    // a release and keep holding the mutex, in which case the 'WaitOne' calls from
+                    // all other powershell processes will time out.
                     _historyFileMutex.ReleaseMutex();
                 }
             } while (retryCount > 0 && retryCount < 3);
