@@ -205,8 +205,11 @@ namespace Microsoft.PowerShell
                     // the previous rendering string.
                     activeColor = string.Empty;
 
-                    UpdateColorsIfNecessary(Options._continuationPromptColor);
-                    _consoleBufferLines[currentLogicalLine].Append(Options.ContinuationPrompt);
+                    if (Options.ContinuationPrompt.Length > 0)
+                    {
+                        UpdateColorsIfNecessary(Options._continuationPromptColor);
+                        _consoleBufferLines[currentLogicalLine].Append(Options.ContinuationPrompt);
+                    }
 
                     if (inSelectedRegion)
                     {
@@ -465,6 +468,13 @@ namespace Microsoft.PowerShell
         /// </summary>
         private int PhysicalLineCount(int columns, bool isFirstLogicalLine, out int lenLastPhysicalLine)
         {
+            if (columns == 0)
+            {
+                // This could happen for a new logical line with an empty-string continuation prompt.
+                lenLastPhysicalLine = 0;
+                return 1;
+            }
+
             int cnt = 1;
             int bufferWidth = _console.BufferWidth;
 

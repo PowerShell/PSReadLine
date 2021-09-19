@@ -204,6 +204,65 @@ namespace Test
         }
 
         [SkippableFact]
+        public void MultiLine_ScreenCheck()
+        {
+            TestSetup(KeyMode.Cmd);
+
+            var defaultContinuationPrompt = PSConsoleReadLineOptions.DefaultContinuationPrompt;
+            var defaultContinuationPromptColors = Tuple.Create(_console.ForegroundColor, _console.BackgroundColor);
+
+            Test("@'\n\n hello\n\n world\n'@",
+                 Keys(
+                    "@'",     _.Enter, _.Enter,
+                    " hello", _.Enter, _.Enter,
+                    " world", _.Enter, "'@",
+                        CheckThat(() => AssertScreenIs(6,
+                            TokenClassification.String, "@'",
+                            NextLine,
+                            defaultContinuationPromptColors, defaultContinuationPrompt,
+                            NextLine,
+                            defaultContinuationPromptColors, defaultContinuationPrompt,
+                            TokenClassification.String, " hello",
+                            NextLine,
+                            defaultContinuationPromptColors, defaultContinuationPrompt,
+                            NextLine,
+                            defaultContinuationPromptColors, defaultContinuationPrompt,
+                            TokenClassification.String, " world",
+                            NextLine,
+                            defaultContinuationPromptColors, defaultContinuationPrompt,
+                            TokenClassification.String, "'@"))
+                 ));
+
+            string emptyLine = new string(' ', _console.BufferWidth);
+            // Set the continuation prompt to be an empty string.
+            var setOption = new SetPSReadLineOption { ContinuationPrompt = string.Empty };
+            PSConsoleReadLine.SetOptions(setOption);
+
+            try
+            {
+                Test("@'\n\n hello\n\n world\n'@",
+                     Keys(
+                        "@'", _.Enter, _.Enter,
+                        " hello", _.Enter, _.Enter,
+                        " world", _.Enter, "'@",
+                            CheckThat(() => AssertScreenIs(6,
+                                TokenClassification.String, "@'", NextLine,
+                                TokenClassification.None, emptyLine,
+                                TokenClassification.String, " hello", NextLine,
+                                TokenClassification.None, emptyLine,
+                                TokenClassification.String, " world", NextLine,
+                                TokenClassification.String, "'@"))
+                 ));
+            }
+            finally
+            {
+                // Restore to the default continuation prompt.
+                setOption.ContinuationPrompt = defaultContinuationPrompt;
+                PSConsoleReadLine.SetOptions(setOption);
+            }
+        }
+
+        [SkippableFact]
         public void LongLine()
         {
             TestSetup(KeyMode.Cmd);
