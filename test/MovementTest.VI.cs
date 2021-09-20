@@ -453,6 +453,11 @@ namespace Test
                     "ddi"
                     ));
             }
+
+            // <%> with empty text buffer should work fine.
+            Test("", Keys(
+                _.Escape, _.Percent,
+                CheckThat(() => AssertCursorLeftIs(0))));
         }
 
         [SkippableFact]
