@@ -234,6 +234,11 @@ namespace Microsoft.PowerShell
 
         private int ViFindBrace(int i)
         {
+            if (_buffer.Length == 0)
+            {
+                return i;
+            }
+
             switch (_buffer[i])
             {
                 case '{':
