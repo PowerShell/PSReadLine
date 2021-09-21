@@ -266,9 +266,16 @@ namespace Test
             var fg = _console.ForegroundColor;
             var bg = _console.BackgroundColor;
 
+            bool isLastItemNextLineToken = false;
+
             foreach (var i in items)
             {
                 var item = i;
+                if (item is not NextLineToken)
+                {
+                    isLastItemNextLineToken = false;
+                }
+
                 if (item is char c1)
                 {
                     result.Add(new CHAR_INFO(c1, fg, bg));
@@ -284,16 +291,28 @@ namespace Test
                     fg = _console.ForegroundColor;
                     bg = _console.BackgroundColor;
 
-                    int lineLen = result.Count % _console.BufferWidth;
-                    if (lineLen == 0 && result.Count > 0)
-                    {
-                        // The existing content is right at the end of a physical line,
-                        // so there is no need to pad.
-                        continue;
-                    }
+                    bool localCopy = isLastItemNextLineToken;
+                    isLastItemNextLineToken = true;
 
-                    // Padding is needed. Fall through to the string case.
-                    item = new string(' ', _console.BufferWidth - lineLen);
+                    if (localCopy)
+                    {
+                        // So this is the 2nd (or 3rd, 4th, and etc.) 'NextLineToken' in a row,
+                        // and that means an empty line is requested.
+                        item = _emptyLine;
+                    }
+                    else
+                    {
+                        int lineLen = result.Count % _console.BufferWidth;
+                        if (lineLen == 0 && result.Count > 0)
+                        {
+                            // The existing content is right at the end of a physical line,
+                            // so there is no need to pad.
+                            continue;
+                        }
+
+                        // Padding is needed. Fall through to the string case.
+                        item = new string(' ', _console.BufferWidth - lineLen);
+                    }
                 }
                 if (item is string str)
                 {
@@ -510,6 +529,7 @@ namespace Test
             Test(expectedResult, items, resetCursor: true, prompt: null, mustDing: true);
         }
 
+        private string _emptyLine;
         private TestConsole _console;
         private MockedMethods _mockedMethods;
 
@@ -531,6 +551,8 @@ namespace Test
             typeof(PSConsoleReadLine)
                 .GetField("_console", BindingFlags.Instance | BindingFlags.NonPublic)
                 .SetValue(instance, _console);
+
+            _emptyLine ??= new string(' ', _console.BufferWidth);
 
             PSConsoleReadLine.ClearHistory();
             PSConsoleReadLine.ClearKillRing();

@@ -126,7 +126,6 @@ PARAMETERS
         public void DynHelp_GetParameterHelp_And_Clear()
         {
             TestSetup(KeyMode.Cmd);
-            string emptyLine = new string(' ', _console.BufferWidth);
 
             Test("Get-Date -Date", Keys(
                 "Get-Date -Date", _.Alt_h,
@@ -135,10 +134,10 @@ PARAMETERS
                         TokenClassification.None, " ",
                         TokenClassification.Parameter, "-Date",
                         NextLine,
-                        emptyLine,
+                        NextLine,
                         TokenClassification.None, $"-Date <name>",
                         NextLine,
-                        emptyLine,
+                        NextLine,
                         TokenClassification.None, "DESC: Specifies a date and time.",
                         NextLine,
                         TokenClassification.None, "Required: false, Position: 0, Default Value: None, Pipeline ",
@@ -157,7 +156,6 @@ PARAMETERS
         public void DynHelp_GetParameterHelpMultiLine_And_Clear()
         {
             TestSetup(KeyMode.Cmd);
-            string emptyLine = new string(' ', _console.BufferWidth);
 
             Test("Get-MultiLineHelp -OneAndHalf", Keys(
                 "Get-MultiLineHelp -OneAndHalf", _.Alt_h,
@@ -166,10 +164,10 @@ PARAMETERS
                         TokenClassification.None, " ",
                         TokenClassification.Parameter, "-OneAndHalf",
                         NextLine,
-                        emptyLine,
+                        NextLine,
                         TokenClassification.None, $"-Date <name>",
                         NextLine,
-                        emptyLine,
+                        NextLine,
                         TokenClassification.None, "DESC: Some very long description that is over the buffer width of ",
                         TokenClassification.None, "60 characters but shorter than 120.",
                         NextLine,
@@ -189,7 +187,6 @@ PARAMETERS
         public void DynHelp_GetParameterHelpTwoLines_And_Clear()
         {
             TestSetup(KeyMode.Cmd);
-            string emptyLine = new string(' ', _console.BufferWidth);
 
             Test("Get-MultiLineHelp -ExactlyTwo", Keys(
                 "Get-MultiLineHelp -ExactlyTwo", _.Alt_h,
@@ -198,10 +195,10 @@ PARAMETERS
                         TokenClassification.None, " ",
                         TokenClassification.Parameter, "-ExactlyTwo",
                         NextLine,
-                        emptyLine,
+                        NextLine,
                         TokenClassification.None, $"-Date <name>",
                         NextLine,
-                        emptyLine,
+                        NextLine,
                         TokenClassification.None, "DESC: Some very long description that is over the buffer wid",
                         TokenClassification.None, "th of 60 characters and exactly the length of 120 characters",
                         NextLine,
@@ -221,7 +218,6 @@ PARAMETERS
         public void DynHelp_GetParameterHelpTwoLines_And_Clear_Emacs()
         {
             TestSetup(KeyMode.Emacs);
-            string emptyLine = new string(' ', _console.BufferWidth);
 
             Test("Get-MultiLineHelp -ExactlyTwo", Keys(
                 "Get-MultiLineHelp -ExactlyTwo", _.Alt_h,
@@ -230,10 +226,10 @@ PARAMETERS
                         TokenClassification.None, " ",
                         TokenClassification.Parameter, "-ExactlyTwo",
                         NextLine,
-                        emptyLine,
+                        NextLine,
                         TokenClassification.None, $"-Date <name>",
                         NextLine,
-                        emptyLine,
+                        NextLine,
                         TokenClassification.None, "DESC: Some very long description that is over the buffer wid",
                         TokenClassification.None, "th of 60 characters and exactly the length of 120 characters",
                         NextLine,
@@ -253,7 +249,6 @@ PARAMETERS
         public void DynHelp_GetParameterHelpTwoLines_And_Clear_Vi()
         {
             TestSetup(KeyMode.Vi);
-            string emptyLine = new string(' ', _console.BufferWidth);
 
             Test("Get-MultiLineHelp -ExactlyTwo", Keys(
                 "Get-MultiLineHelp -ExactlyTwo", _.Alt_h,
@@ -262,10 +257,10 @@ PARAMETERS
                         TokenClassification.None, " ",
                         TokenClassification.Parameter, "-ExactlyTwo",
                         NextLine,
-                        emptyLine,
+                        NextLine,
                         TokenClassification.None, $"-Date <name>",
                         NextLine,
-                        emptyLine,
+                        NextLine,
                         TokenClassification.None, "DESC: Some very long description that is over the buffer wid",
                         TokenClassification.None, "th of 60 characters and exactly the length of 120 characters",
                         NextLine,
@@ -285,7 +280,6 @@ PARAMETERS
         public void DynHelp_GetParameterHelpErrorMessage()
         {
             TestSetup(KeyMode.Cmd);
-            string emptyLine = new string(' ', _console.BufferWidth);
 
             Test("Get-FakeHelp -Fake", Keys(
                 "Get-FakeHelp -Fake", _.Alt_h,
@@ -294,7 +288,7 @@ PARAMETERS
                     TokenClassification.None, " ",
                     TokenClassification.Parameter, "-Fake",
                     NextLine,
-                    emptyLine,
+                    NextLine,
                     TokenClassification.None, "No help content available. Please use Update-Help to downloa",
                     NextLine,
                     "d the latest help content.")),
