@@ -741,7 +741,6 @@ namespace Test
             _console.Clear();
             int width = _console.BufferWidth;
             string placeholderCommand = new string('A', width - 12); // 12 = "Get-Module".Length + 2
-            string emptyLine = new string(' ', width);
 
             Test($"{placeholderCommand};Get-Module", Keys(
                 placeholderCommand, ';',
@@ -751,10 +750,12 @@ namespace Test
                     TokenClassification.Command, placeholderCommand,
                     TokenClassification.None, ';',
                     TokenClassification.Command, "Get-Mo",
-                    TokenClassification.Selection, "ckDynamicParameters", NextLine,
+                    TokenClassification.Selection, "ckDynamicParameters",
+                    NextLine,
                     TokenClassification.Selection, "Get-MockDynamicParameters  ",
-                    TokenClassification.None, "Get-Module                 ", NextLine,
-                    TokenClassification.None, emptyLine)),
+                    TokenClassification.None, "Get-Module                 ",
+                    NextLine,
+                    NextLine)),
                 _.RightArrow,
                 // Navigating to the next item will cause the editing line to fit in
                 // one physical line, so the new menu is moved up and lines from the
@@ -763,28 +764,34 @@ namespace Test
                     TokenClassification.Command, placeholderCommand,
                     TokenClassification.None, ';',
                     TokenClassification.Command, "Get-Mo",
-                    TokenClassification.Selection, "dule", NextLine,
+                    TokenClassification.Selection, "dule",
+                    NextLine,
                     TokenClassification.None, "Get-MockDynamicParameters  ",
-                    TokenClassification.Selection, "Get-Module                 ", NextLine,
-                    TokenClassification.None, emptyLine)),
+                    TokenClassification.Selection, "Get-Module                 ",
+                    NextLine,
+                    NextLine)),
                 _.LeftArrow,
                 CheckThat(() => AssertScreenIs(4,
                     TokenClassification.Command, placeholderCommand,
                     TokenClassification.None, ';',
                     TokenClassification.Command, "Get-Mo",
-                    TokenClassification.Selection, "ckDynamicParameters", NextLine,
+                    TokenClassification.Selection, "ckDynamicParameters",
+                    NextLine,
                     TokenClassification.Selection, "Get-MockDynamicParameters  ",
-                    TokenClassification.None, "Get-Module                 ", NextLine,
-                    TokenClassification.None, emptyLine)),
+                    TokenClassification.None, "Get-Module                 ",
+                    NextLine,
+                    NextLine)),
                 _.DownArrow,
                 CheckThat(() => AssertScreenIs(3,
                     TokenClassification.Command, placeholderCommand,
                     TokenClassification.None, ';',
                     TokenClassification.Command, "Get-Mo",
-                    TokenClassification.Selection, "dule", NextLine,
+                    TokenClassification.Selection, "dule",
+                    NextLine,
                     TokenClassification.None, "Get-MockDynamicParameters  ",
-                    TokenClassification.Selection, "Get-Module                 ", NextLine,
-                    TokenClassification.None, emptyLine)),
+                    TokenClassification.Selection, "Get-Module                 ",
+                    NextLine,
+                    NextLine)),
                 _.Enter,
                 _.Enter
                 ));
@@ -795,9 +802,8 @@ namespace Test
         {
             TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+Spacebar", PSConsoleReadLine.MenuComplete));
 
-            var (listWidth, windowWidth) = CheckWindowSize();
+            int listWidth = CheckWindowSize();
             var emphasisColors = Tuple.Create(PSConsoleReadLineOptions.DefaultEmphasisColor, _console.BackgroundColor);
-            string emptyLine = new string(' ', windowWidth);
             using var disp = SetPrediction(PredictionSource.History, PredictionViewStyle.ListView);
 
             _console.Clear();
@@ -828,19 +834,23 @@ namespace Test
                 _.Ctrl_Spacebar,
                 CheckThat(() => AssertScreenIs(4,
                     TokenClassification.Command, "Get-Mo",
-                    TokenClassification.Selection, "ckDynamicParameters", NextLine,
+                    TokenClassification.Selection, "ckDynamicParameters",
+                    NextLine,
                     TokenClassification.Selection, "Get-MockDynamicParameters  ",
-                    TokenClassification.None, "Get-Module", NextLine,
-                    TokenClassification.None, emptyLine,
-                    TokenClassification.None, emptyLine)),
+                    TokenClassification.None, "Get-Module",
+                    NextLine,
+                    NextLine,
+                    NextLine)),
                 _.RightArrow,
                 CheckThat(() => AssertScreenIs(4,
                     TokenClassification.Command, "Get-Mo",
-                    TokenClassification.Selection, "dule", NextLine,
+                    TokenClassification.Selection, "dule",
+                    NextLine,
                     TokenClassification.None, "Get-MockDynamicParameters  ",
-                    TokenClassification.Selection, "Get-Module                 ", NextLine,
-                    TokenClassification.None, emptyLine,
-                    TokenClassification.None, emptyLine)),
+                    TokenClassification.Selection, "Get-Module                 ",
+                    NextLine,
+                    NextLine,
+                    NextLine)),
                 _.Enter,
                 _.Enter
             ));

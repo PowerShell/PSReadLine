@@ -12,16 +12,15 @@ namespace Test
 
             Test("", Keys( _.End, CheckThat(() => AssertCursorLeftIs(0)) ));
 
-            var buffer = new string(' ', _console.BufferWidth);
-            Test(buffer, Keys(
-                buffer,
+            Test(_emptyLine, Keys(
+                _emptyLine,
                 _.Home,
                 CheckThat(() => AssertCursorLeftIs(0)),
                 _.End,
                 CheckThat(() => AssertCursorLeftTopIs(0, 1))
                 ));
 
-            buffer = new string(' ', _console.BufferWidth + 5);
+            var buffer = new string(' ', _console.BufferWidth + 5);
             Test(buffer, Keys(
                 buffer,
                 _.Home,

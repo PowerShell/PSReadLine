@@ -13,7 +13,7 @@ namespace Test
         private const int ListMaxWidth = 100;
         private const int SourceMaxWidth = 15;
 
-        private (int, int) CheckWindowSize()
+        private int CheckWindowSize()
         {
             // The buffer/window size of 'TestConsole' is currently fixed to be width 60 and height 1000.
             // This is a precaution check, just in case that things change.
@@ -23,7 +23,7 @@ namespace Test
             Assert.True(winHeight >= 15, $"list-view prediction requires minimum window height {MinWindowHeight}. Make sure the TestConsole's height is set properly.");
 
             int listWidth = winWidth > ListMaxWidth ? ListMaxWidth : winWidth;
-            return (listWidth, winWidth);
+            return listWidth;
         }
 
         private Disposable SetPrediction(PredictionSource source, PredictionViewStyle view)
@@ -68,7 +68,7 @@ namespace Test
         public void List_RenderSuggestion_ListUpdatesWhileTyping()
         {
             TestSetup(KeyMode.Cmd);
-            var (listWidth, windowWidth) = CheckWindowSize();
+            int listWidth = CheckWindowSize();
             var emphasisColors = Tuple.Create(PSConsoleReadLineOptions.DefaultEmphasisColor, _console.BackgroundColor);
             using var disp = SetPrediction(PredictionSource.History, PredictionViewStyle.ListView);
 
@@ -133,7 +133,7 @@ namespace Test
                 _.Enter, CheckThat(() => AssertScreenIs(2,
                         TokenClassification.Command, "ech",
                         NextLine,
-                        TokenClassification.None, new string(' ', windowWidth)))
+                        NextLine))
             ));
         }
 
@@ -141,7 +141,7 @@ namespace Test
         public void List_RenderSuggestion_NavigateInList()
         {
             TestSetup(KeyMode.Cmd);
-            var (listWidth, windowWidth) = CheckWindowSize();
+            int listWidth = CheckWindowSize();
             var emphasisColors = Tuple.Create(PSConsoleReadLineOptions.DefaultEmphasisColor, _console.BackgroundColor);
             using var disp = SetPrediction(PredictionSource.History, PredictionViewStyle.ListView);
 
@@ -313,7 +313,7 @@ namespace Test
                 _.Enter, CheckThat(() => AssertScreenIs(2,
                         TokenClassification.Command, "e",
                         NextLine,
-                        TokenClassification.None, new string(' ', windowWidth)))
+                        NextLine))
             ));
         }
 
@@ -321,7 +321,7 @@ namespace Test
         public void List_RenderSuggestion_Escape()
         {
             TestSetup(KeyMode.Cmd);
-            var (listWidth, windowWidth) = CheckWindowSize();
+            int listWidth = CheckWindowSize();
             var emphasisColors = Tuple.Create(PSConsoleReadLineOptions.DefaultEmphasisColor, _console.BackgroundColor);
             using var disp = SetPrediction(PredictionSource.History, PredictionViewStyle.ListView);
 
@@ -390,7 +390,7 @@ namespace Test
                         TokenClassification.None, ' ',
                         TokenClassification.Parameter, "-bar",
                         NextLine,
-                        TokenClassification.None, new string(' ', windowWidth)))
+                        NextLine))
             ));
 
             // Press 'Escape' after selecting an item.
@@ -446,7 +446,7 @@ namespace Test
                      CheckThat(() => AssertScreenIs(2,
                         TokenClassification.Command, 'c',
                         NextLine,
-                        TokenClassification.None, new string(' ', windowWidth)
+                        NextLine
                      )),
                 // 'UpArrow' and 'DownArrow' should navigate history after 'Escape' cleared the list view
                 _.UpArrow, CheckThat(() => AssertLineIs("eca -zoo")),
@@ -459,7 +459,7 @@ namespace Test
         public void List_RenderSuggestion_DigitArgument()
         {
             TestSetup(KeyMode.Cmd);
-            var (listWidth, windowWidth) = CheckWindowSize();
+            int listWidth = CheckWindowSize();
             var emphasisColors = Tuple.Create(PSConsoleReadLineOptions.DefaultEmphasisColor, _console.BackgroundColor);
             using var disp = SetPrediction(PredictionSource.History, PredictionViewStyle.ListView);
 
@@ -586,7 +586,7 @@ namespace Test
                 _.Enter, CheckThat(() => AssertScreenIs(2,
                         TokenClassification.Command, 'c',
                         NextLine,
-                        TokenClassification.None, new string(' ', windowWidth)))
+                        NextLine))
             ));
         }
 
@@ -594,7 +594,7 @@ namespace Test
         public void List_RenderSuggestion_CtrlZ()
         {
             TestSetup(KeyMode.Cmd);
-            var (listWidth, windowWidth) = CheckWindowSize();
+            int listWidth = CheckWindowSize();
             var emphasisColors = Tuple.Create(PSConsoleReadLineOptions.DefaultEmphasisColor, _console.BackgroundColor);
             using var disp = SetPrediction(PredictionSource.History, PredictionViewStyle.ListView);
 
@@ -698,7 +698,7 @@ namespace Test
                 _.Enter, CheckThat(() => AssertScreenIs(2,
                         TokenClassification.Command, 'e',
                         NextLine,
-                        TokenClassification.None, new string(' ', windowWidth)))
+                        NextLine))
             ));
         }
 
@@ -706,7 +706,7 @@ namespace Test
         public void List_RenderSuggestion_Selection()
         {
             TestSetup(KeyMode.Cmd);
-            var (listWidth, windowWidth) = CheckWindowSize();
+            int listWidth = CheckWindowSize();
             var emphasisColors = Tuple.Create(PSConsoleReadLineOptions.DefaultEmphasisColor, _console.BackgroundColor);
             using var disp = SetPrediction(PredictionSource.History, PredictionViewStyle.ListView);
 
@@ -863,7 +863,7 @@ namespace Test
                         TokenClassification.Selection, "eca -",
                         TokenClassification.Parameter, "zoo",
                         NextLine,
-                        TokenClassification.None, new string(' ', windowWidth)))
+                        NextLine))
             ));
         }
 
@@ -871,7 +871,7 @@ namespace Test
         public void List_HistorySource_NoAcceptanceCallback()
         {
             TestSetup(KeyMode.Cmd);
-            var (listWidth, windowWidth) = CheckWindowSize();
+            int listWidth = CheckWindowSize();
             var emphasisColors = Tuple.Create(PSConsoleReadLineOptions.DefaultEmphasisColor, _console.BackgroundColor);
 
             // Using the 'History' source will not trigger 'acceptance' callbacks.
@@ -911,7 +911,7 @@ namespace Test
                         TokenClassification.Parameter, "-zooa",
                         // List view is done, no more list item following.
                         NextLine,
-                        TokenClassification.None, new string(' ', windowWidth)
+                        NextLine
                      )),
                 CheckThat(() => Assert.Equal(Guid.Empty, _mockedMethods.acceptedPredictorId)),
                 CheckThat(() => Assert.Null(_mockedMethods.acceptedSuggestion)),
@@ -928,7 +928,7 @@ namespace Test
         public void List_PluginSource_Acceptance()
         {
             TestSetup(KeyMode.Cmd);
-            var (listWidth, windowWidth) = CheckWindowSize();
+            int listWidth = CheckWindowSize();
             var emphasisColors = Tuple.Create(PSConsoleReadLineOptions.DefaultEmphasisColor, _console.BackgroundColor);
 
             // Using the 'Plugin' source will make PSReadLine get prediction from the plugin only.
@@ -965,7 +965,7 @@ namespace Test
                         TokenClassification.None, ']',
                         // List view is done, no more list item following.
                         NextLine,
-                        TokenClassification.None, new string(' ', windowWidth)
+                        NextLine
                      )),
                 // `OnSuggestionDisplayed` should be fired for both predictors.
                 CheckThat(() => AssertDisplayedSuggestions(count: 2, predictorId_1, MiniSessionId, 2)),
@@ -1001,7 +1001,7 @@ namespace Test
                         TokenClassification.None, ']',
                         // List view is done, no more list item following.
                         NextLine,
-                        TokenClassification.None, new string(' ', windowWidth)
+                        NextLine
                      )),
                 // `OnSuggestionDisplayed` should not be fired when navigating the list.
                 CheckThat(() => Assert.Empty(_mockedMethods.displayedSuggestions)),
@@ -1034,7 +1034,7 @@ namespace Test
                         TokenClassification.None, ']',
                         // List view is done, no more list item following.
                         NextLine,
-                        TokenClassification.None, new string(' ', windowWidth)
+                        NextLine
                      )),
                 // `OnSuggestionDisplayed` should not be fired when selecting the input.
                 CheckThat(() => Assert.Empty(_mockedMethods.displayedSuggestions)),
@@ -1067,7 +1067,7 @@ namespace Test
                         TokenClassification.None, ']',
                         // List view is done, no more list item following.
                         NextLine,
-                        TokenClassification.None, new string(' ', windowWidth)
+                        NextLine
                      )),
                 // `OnSuggestionDisplayed` should be fired for both predictors.
                 CheckThat(() => AssertDisplayedSuggestions(count: 2, predictorId_1, MiniSessionId, 2)),
@@ -1108,7 +1108,7 @@ namespace Test
                         TokenClassification.ListPredictionSelected, ']',
                         // List view is done, no more list item following.
                         NextLine,
-                        TokenClassification.None, new string(' ', windowWidth)
+                        NextLine
                      )),
                 // `OnSuggestionDisplayed` should not be fired when navigating the input.
                 CheckThat(() => Assert.Empty(_mockedMethods.displayedSuggestions)),
@@ -1144,7 +1144,7 @@ namespace Test
                         TokenClassification.None, ']',
                         // List view is done, no more list item following.
                         NextLine,
-                        TokenClassification.None, new string(' ', windowWidth)
+                        NextLine
                      )),
                 // `OnSuggestionDisplayed` should be fired for both predictors.
                 CheckThat(() => AssertDisplayedSuggestions(count: 2, predictorId_1, MiniSessionId, 2)),
@@ -1186,7 +1186,7 @@ namespace Test
                         TokenClassification.None, ']',
                         // List view is done, no more list item following.
                         NextLine,
-                        TokenClassification.None, new string(' ', windowWidth)
+                        NextLine
                      )),
                 // `OnSuggestionDisplayed` should not be fired when navigating the input.
                 CheckThat(() => Assert.Empty(_mockedMethods.displayedSuggestions)),
@@ -1195,7 +1195,7 @@ namespace Test
                         TokenClassification.Command, "SOME",
                         TokenClassification.None, " NEW TEX SOME TEXT AFTER",
                         NextLine,
-                        TokenClassification.None, new string(' ', windowWidth)))
+                        NextLine))
             ));
 
             // `OnSuggestionDisplayed` should not be fired when 'Enter' accepting the input.
@@ -1212,7 +1212,7 @@ namespace Test
         public void List_HistoryAndPluginSource_Acceptance()
         {
             TestSetup(KeyMode.Cmd);
-            var (listWidth, windowWidth) = CheckWindowSize();
+            int listWidth = CheckWindowSize();
             var emphasisColors = Tuple.Create(PSConsoleReadLineOptions.DefaultEmphasisColor, _console.BackgroundColor);
 
             // Using the 'HistoryAndPlugin' source will make PSReadLine get prediction from both history and plugin.
@@ -1267,7 +1267,7 @@ namespace Test
                         TokenClassification.None, ']',
                         // List view is done, no more list item following.
                         NextLine,
-                        TokenClassification.None, new string(' ', windowWidth)
+                        NextLine
                      )),
                 // `OnSuggestionDisplayed` should be fired for both predictors.
                 CheckThat(() => AssertDisplayedSuggestions(count: 2, predictorId_1, MiniSessionId, 2)),
@@ -1320,7 +1320,7 @@ namespace Test
                         TokenClassification.None, ']',
                         // List view is done, no more list item following.
                         NextLine,
-                        TokenClassification.None, new string(' ', windowWidth)
+                        NextLine
                      )),
                 // `OnSuggestionDisplayed` should not be fired when navigating the list.
                 CheckThat(() => Assert.Empty(_mockedMethods.displayedSuggestions)),
@@ -1361,7 +1361,7 @@ namespace Test
                         TokenClassification.None, ']',
                         // List view is done, no more list item following.
                         NextLine,
-                        TokenClassification.None, new string(' ', windowWidth)
+                        NextLine
                      )),
                 // `OnSuggestionDisplayed` should be fired for both predictors.
                 CheckThat(() => AssertDisplayedSuggestions(count: 2, predictorId_1, MiniSessionId, 2)),
@@ -1410,7 +1410,7 @@ namespace Test
                         TokenClassification.ListPredictionSelected, ']',
                         // List view is done, no more list item following.
                         NextLine,
-                        TokenClassification.None, new string(' ', windowWidth)
+                        NextLine
                      )),
                 // `OnSuggestionDisplayed` should not be fired when navigating the list.
                 CheckThat(() => Assert.Empty(_mockedMethods.displayedSuggestions)),
@@ -1446,7 +1446,7 @@ namespace Test
                         TokenClassification.None, ']',
                         // List view is done, no more list item following.
                         NextLine,
-                        TokenClassification.None, new string(' ', windowWidth)
+                        NextLine
                      )),
                 // `OnSuggestionDisplayed` should be fired for both predictors.
                 CheckThat(() => AssertDisplayedSuggestions(count: 2, predictorId_1, MiniSessionId, 2)),
@@ -1488,7 +1488,7 @@ namespace Test
                         TokenClassification.None, ']',
                         // List view is done, no more list item following.
                         NextLine,
-                        TokenClassification.None, new string(' ', windowWidth)
+                        NextLine
                      )),
                 // `OnSuggestionDisplayed` should not be fired when navigating the list.
                 CheckThat(() => Assert.Empty(_mockedMethods.displayedSuggestions)),
@@ -1497,7 +1497,7 @@ namespace Test
                         TokenClassification.Command, "SOME",
                         TokenClassification.None, " NEW TEX SOME TEXT AFTER",
                         NextLine,
-                        TokenClassification.None, new string(' ', windowWidth)))
+                        NextLine))
             ));
 
             Assert.Empty(_mockedMethods.displayedSuggestions);

@@ -233,7 +233,6 @@ namespace Test
                             TokenClassification.String, "'@"))
                  ));
 
-            string emptyLine = new string(' ', _console.BufferWidth);
             // Set the continuation prompt to be an empty string.
             var setOption = new SetPSReadLineOption { ContinuationPrompt = string.Empty };
             PSConsoleReadLine.SetOptions(setOption);
@@ -246,11 +245,14 @@ namespace Test
                         " hello", _.Enter, _.Enter,
                         " world", _.Enter, "'@",
                             CheckThat(() => AssertScreenIs(6,
-                                TokenClassification.String, "@'", NextLine,
-                                TokenClassification.None, emptyLine,
-                                TokenClassification.String, " hello", NextLine,
-                                TokenClassification.None, emptyLine,
-                                TokenClassification.String, " world", NextLine,
+                                TokenClassification.String, "@'",
+                                NextLine,
+                                NextLine,
+                                TokenClassification.String, " hello",
+                                NextLine,
+                                NextLine,
+                                TokenClassification.String, " world",
+                                NextLine,
                                 TokenClassification.String, "'@"))
                  ));
             }
