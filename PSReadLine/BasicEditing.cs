@@ -102,7 +102,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void ForwardDeleteInput(ConsoleKeyInfo? key = null, object arg = null)
         {
-            ForwardDeleteImpl(_singleton._buffer.Length);
+            ForwardDeleteImpl(_singleton._buffer.Length, ForwardDeleteInput);
         }
 
         /// <summary>
@@ -111,7 +111,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void ForwardDeleteLine(ConsoleKeyInfo? key = null, object arg = null)
         {
-            ForwardDeleteImpl(GetEndOfLogicalLinePos(_singleton._current) + 1);
+            ForwardDeleteImpl(GetEndOfLogicalLinePos(_singleton._current) + 1, ForwardDeleteLine);
         }
 
         /// <summary>
@@ -119,7 +119,7 @@ namespace Microsoft.PowerShell
         /// but does not put the deleted text in the kill ring.
         /// </summary>
         /// <param name="endPosition">0-based offset to one character past the end of the text.</param>
-        private static void ForwardDeleteImpl(int endPosition)
+        private static void ForwardDeleteImpl(int endPosition, Action<ConsoleKeyInfo?, object> instigator)
         {
             var current = _singleton._current;
             var buffer = _singleton._buffer;
@@ -128,7 +128,15 @@ namespace Microsoft.PowerShell
             {
                 int length = endPosition - current;
                 var str = buffer.ToString(current, length);
-                _singleton.SaveEditItem(EditItemDelete.Create(str, current));
+
+                _singleton.SaveEditItem(
+                    EditItemDelete.Create(
+                        str,
+                        current,
+                        instigator,
+                        instigatorArg: null,
+                        !InViEditMode()));
+
                 buffer.Remove(current, length);
                 _singleton.Render();
             }
@@ -152,13 +160,13 @@ namespace Microsoft.PowerShell
             BackwardDeleteSubstring(position, BackwardDeleteLine);
         }
 
-        private static void BackwardDeleteSubstring(int position, Action<ConsoleKeyInfo?, object> instigator = null)
+        private static void BackwardDeleteSubstring(int position, Action<ConsoleKeyInfo?, object> instigator)
         {
             if (_singleton._current > position)
             {
                 var count = _singleton._current - position;
-              
-                _singleton.RemoveTextToViRegister(position, count, instigator);
+
+                _singleton.RemoveTextToViRegister(position, count, instigator, arg: null, !InViEditMode());
                 _singleton._current = position;
                 _singleton.Render();
             }
@@ -184,7 +192,7 @@ namespace Microsoft.PowerShell
 
                 int startDeleteIndex = _singleton._current - qty;
 
-                _singleton.RemoveTextToViRegister(startDeleteIndex, qty, BackwardDeleteChar, arg);
+                _singleton.RemoveTextToViRegister(startDeleteIndex, qty, BackwardDeleteChar, arg, !InViEditMode());
                 _singleton._current = startDeleteIndex;
                 _singleton.Render();
             }
@@ -205,7 +213,7 @@ namespace Microsoft.PowerShell
                 {
                     qty = Math.Min(qty, _singleton._buffer.Length - _singleton._current);
 
-                    RemoveTextToViRegister(_current, qty, DeleteChar, qty);
+                    RemoveTextToViRegister(_current, qty, DeleteChar, qty, !InViEditMode());
                     if (_current >= _buffer.Length)
                     {
                         _current = Math.Max(0, _buffer.Length + ViEndOfLineFactor);

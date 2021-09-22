@@ -620,25 +620,25 @@ namespace Test
             Test("", Keys(
                 "abcdefg", _.Escape, CheckThat(() => AssertLineIs("abcdefg")),
                 "0dfg", CheckThat(() => AssertLineIs("")),
-                'u', CheckThat(() => AssertLineIs("abcdefg")), CheckThat(() => AssertCursorLeftIs(6)),
+                'u', CheckThat(() => AssertLineIs("abcdefg")), CheckThat(() => AssertCursorLeftIs(0)),
                 "0dff", CheckThat(() => AssertLineIs("g")),
-                'u', CheckThat(() => AssertLineIs("abcdefg")), CheckThat(() => AssertCursorLeftIs(6)),
+                'u', CheckThat(() => AssertLineIs("abcdefg")), CheckThat(() => AssertCursorLeftIs(0)),
                 "0dfg"
                 ));
 
-            Test("g", Keys(
+            Test("bcdefg", Keys(
                 "abcdefg", _.Escape, CheckThat(() => AssertLineIs("abcdefg")),
                 "dFa", _.Escape, CheckThat(() => AssertLineIs("g")),
-                'u', CheckThat(() => AssertCursorLeftIs(6)),
-                "dFb", CheckThat(() => AssertLineIs("ag")),
-                'u', CheckThat(() => AssertCursorLeftIs(6)),
+                'u', CheckThat(() => AssertCursorLeftIs(0)),
+                "$dFb", CheckThat(() => AssertLineIs("ag")),
+                'u', CheckThat(() => AssertCursorLeftIs(1)),
                 "dFa"
                 ));
 
             Test("0123456", Keys(
                 "0123456", _.Escape, CheckThat(() => AssertLineIs("0123456")),
                 "0dt6", CheckThat(() => AssertLineIs("6")),
-                'u', CheckThat(() => AssertLineIs("0123456")), CheckThat(() => AssertCursorLeftIs(6)),
+                'u', CheckThat(() => AssertLineIs("0123456")), CheckThat(() => AssertCursorLeftIs(0)),
                 "0dt5", CheckThat(() => AssertLineIs("56")),
                 'u', CheckThat(() => AssertLineIs("0123456")),
                 "0ldt6", CheckThat(() => AssertLineIs("06")),
@@ -650,9 +650,9 @@ namespace Test
             Test("0123456", Keys(
                 "0123456", _.Escape, CheckThat(() => AssertLineIs("0123456")),
                 "dT0", CheckThat(() => AssertLineIs("06")),
-                'u', CheckThat(() => AssertLineIs("0123456")), CheckThat(() => AssertCursorLeftIs(6)),
-                "hdT0", CheckThat(() => AssertLineIs("056")),
-                'u', CheckThat(() => AssertLineIs("0123456")), CheckThat(() => AssertCursorLeftIs(5)),
+                'u', CheckThat(() => AssertLineIs("0123456")), CheckThat(() => AssertCursorLeftIs(1)),
+                "$hdT0", CheckThat(() => AssertLineIs("056")),
+                'u', CheckThat(() => AssertLineIs("0123456")), CheckThat(() => AssertCursorLeftIs(1)),
                 "0dT0"
                 ));
         }
@@ -664,6 +664,18 @@ namespace Test
 
             Test("", Keys(
                 _.Escape, "kjw"
+                ));
+        }
+
+        [SkippableFact]
+        public void ViDefect1673()
+        {
+            TestSetup(KeyMode.Vi);
+
+            Test("one", Keys(
+                "one", _.Escape, _.D0,
+                _.x, CheckThat(() => AssertLineIs("ne")),
+                _.u, CheckThat(() => AssertCursorLeftIs(0))
                 ));
         }
     }

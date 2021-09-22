@@ -201,6 +201,36 @@ namespace Test
         }
 
         [SkippableFact]
+        public void SelectAndDelete()
+        {
+            TestSetup(KeyMode.Cmd);
+
+            Test("abcde", Keys(
+                "abcde",
+                CheckThat(() => AssertCursorLeftIs(5)),
+                _.Shift_LeftArrow, _.Shift_LeftArrow, _.Shift_LeftArrow,
+                _.Backspace,
+                CheckThat(() => AssertLineIs("ab")),
+                CheckThat(() => AssertCursorLeftIs(2)),
+                _.Ctrl_z,
+                CheckThat(() => AssertLineIs("abcde")),
+                CheckThat(() => AssertCursorLeftIs(5))));
+
+            Test("abcde", Keys(
+                "abcde", _.Home,
+                CheckThat(() => AssertCursorLeftIs(0)),
+                _.RightArrow, _.RightArrow,
+                CheckThat(() => AssertCursorLeftIs(2)),
+                _.Shift_RightArrow, _.Shift_RightArrow,
+                _.Delete,
+                CheckThat(() => AssertLineIs("abe")),
+                CheckThat(() => AssertCursorLeftIs(2)),
+                _.Ctrl_z,
+                CheckThat(() => AssertLineIs("abcde")),
+                CheckThat(() => AssertCursorLeftIs(4))));
+        }
+
+        [SkippableFact]
         public void SwapCharacters()
         {
             TestSetup(KeyMode.Emacs);
@@ -212,7 +242,7 @@ namespace Test
             Test("abc", Keys(
                 "abc", CheckThat(() => AssertLineIs("abc")),
                 _.Ctrl_t, CheckThat(() => AssertLineIs("acb")),
-                _.Ctrl_Underbar
+                _.Ctrl_Underbar, CheckThat(() => AssertCursorLeftIs(3))
                 ));
 
             Test("abcd", Keys(

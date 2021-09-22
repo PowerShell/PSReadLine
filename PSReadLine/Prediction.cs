@@ -75,7 +75,9 @@ namespace Microsoft.PowerShell
                 inlineView.OnSuggestionAccepted();
 
                 using var _ = prediction.DisableScoped();
-                Replace(0, _singleton._buffer.Length, inlineView.SuggestionText);
+
+                _singleton._current = _singleton._buffer.Length;
+                Insert(inlineView.SuggestionText.Substring(_singleton._current));
             }
         }
 
@@ -105,14 +107,17 @@ namespace Microsoft.PowerShell
                 // Ignore the visual selection.
                 _singleton._visualSelectionCommandCount = 0;
 
-                int index = _singleton._buffer.Length;
+                int start = _singleton._buffer.Length;
+                int index = start;
                 while (numericArg-- > 0 && index < inlineView.SuggestionText.Length)
                 {
                     index = inlineView.FindForwardSuggestionWordPoint(index, _singleton.Options.WordDelimiters);
                 }
 
                 inlineView.OnSuggestionAccepted();
-                Replace(0, _singleton._buffer.Length, inlineView.SuggestionText.Substring(0, index));
+
+                _singleton._current = start;
+                Insert(inlineView.SuggestionText.Substring(start, index - start));
             }
         }
 

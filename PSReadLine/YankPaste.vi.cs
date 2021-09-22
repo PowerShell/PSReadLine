@@ -78,14 +78,25 @@ namespace Microsoft.PowerShell
         /// <param name="count"></param>
         /// <param name="instigator"></param>
         /// <param name="arg"></param>
-        private void RemoveTextToViRegister(int start, int count, Action<ConsoleKeyInfo?, object> instigator = null, object arg = null)
+        /// <param name="moveCursorToEndWhenUndoDelete">
+        /// Use 'false' as the default value because this method is used a lot by VI operations,
+        /// and for VI opeartions, we do NOT want to move the cursor to the end when undoing a
+        /// deletion.
+        /// </param>
+        private void RemoveTextToViRegister(
+            int start,
+            int count,
+            Action<ConsoleKeyInfo?, object> instigator = null,
+            object arg = null,
+            bool moveCursorToEndWhenUndoDelete = false)
         {
             _singleton.SaveToClipboard(start, count);
             _singleton.SaveEditItem(EditItemDelete.Create(
                 _viRegister.RawText,
                 start,
                 instigator,
-                arg));
+                arg,
+                moveCursorToEndWhenUndoDelete));
             _singleton._buffer.Remove(start, count);
         }
 

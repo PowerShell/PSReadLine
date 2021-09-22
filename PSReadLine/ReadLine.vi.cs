@@ -459,6 +459,11 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
+        /// Returns true if in Vi edit mode, otherwise false.
+        /// </summary>
+        internal static bool InViEditMode() => _singleton.Options.EditMode == EditMode.Vi;
+
+        /// <summary>
         /// Returns true if in Vi Command mode, otherwise false.
         /// </summary>
         public static bool InViCommandMode() => _singleton._dispatchTable == _viCmdKeyMap;
@@ -621,7 +626,13 @@ namespace Microsoft.PowerShell
                 if (Char.IsLetter(c))
                 {
                     char newChar = Char.IsUpper(c) ? Char.ToLower(c, CultureInfo.CurrentCulture) : char.ToUpper(c, CultureInfo.CurrentCulture);
-                    EditItem delEditItem = EditItemDelete.Create(c.ToString(), _singleton._current);
+                    EditItem delEditItem = EditItemDelete.Create(
+                        c.ToString(),
+                        _singleton._current,
+                        InvertCase,
+                        arg,
+                        moveCursorToEndWhenUndo: false);
+
                     EditItem insEditItem = EditItemInsertChar.Create(newChar, _singleton._current);
                     _singleton.SaveEditItem(GroupedEdit.Create(new List<EditItem>
                         {
@@ -657,19 +668,20 @@ namespace Microsoft.PowerShell
             if (cursor == bufferLength)
                 --cursor; // if at end of line, swap previous two chars
 
-            char current = _singleton._buffer[cursor];
-            char previous = _singleton._buffer[cursor - 1];
+            _singleton.SaveEditItem(EditItemSwapCharacters.Create(cursor));
+            _singleton.SwapCharactersImpl(cursor);
 
-            _singleton.StartEditGroup();
-            _singleton.SaveEditItem(EditItemDelete.Create(_singleton._buffer.ToString(cursor - 1, 2), cursor - 1));
-            _singleton.SaveEditItem(EditItemInsertChar.Create(current, cursor - 1));
-            _singleton.SaveEditItem(EditItemInsertChar.Create(previous, cursor));
-            _singleton.EndEditGroup();
-
-            _singleton._buffer[cursor] = previous;
-            _singleton._buffer[cursor - 1] = current;
             _singleton.MoveCursor(Math.Min(cursor + 1, cursorRightLimit));
             _singleton.Render();
+        }
+
+        private void SwapCharactersImpl(int cursor)
+        {
+            char current = _buffer[cursor];
+            char previous = _buffer[cursor - 1];
+
+            _buffer[cursor] = previous;
+            _buffer[cursor - 1] = current;
         }
 
         /// <summary>
@@ -1334,7 +1346,13 @@ namespace Microsoft.PowerShell
             {
                 _singleton._buffer[_singleton._current] = ' ';
                 _singleton._groupUndoHelper.StartGroup(ViJoinLines, arg);
-                _singleton.SaveEditItem(EditItemDelete.Create("\n", _singleton._current));
+                _singleton.SaveEditItem(EditItemDelete.Create(
+                    "\n",
+                    _singleton._current,
+                    ViJoinLines,
+                    arg,
+                    moveCursorToEndWhenUndo: false));
+
                 _singleton.SaveEditItem(EditItemInsertChar.Create(' ', _singleton._current));
                 _singleton._groupUndoHelper.EndGroup();
                 _singleton.Render();

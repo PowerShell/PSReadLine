@@ -364,6 +364,36 @@ namespace Test
             ));
         }
 
+        [SkippableFact]
+        public void ViDefect2408()
+        {
+            TestSetup(KeyMode.Vi);
+            using var disp = SetPrediction(PredictionSource.History, PredictionViewStyle.InlineView);
+
+            SetHistory("echo -bar");
+            Test("ech", Keys(
+                "abcd",
+                CheckThat(() => AssertScreenIs(1,
+                    TokenClassification.Command, "abcd")),
+                _.Escape, 'S',
+                CheckThat(() => AssertLineIs(string.Empty)),
+                CheckThat(() => AssertCursorLeftIs(0)),
+                "ech",
+                CheckThat(() => AssertScreenIs(1,
+                    TokenClassification.Command, "ech",
+                    TokenClassification.InlinePrediction, "o -bar")),
+                _.RightArrow,
+                CheckThat(() => AssertScreenIs(1,
+                    TokenClassification.Command, "echo",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Parameter, "-bar")),
+                CheckThat(() => AssertCursorLeftIs(9)),
+                _.Ctrl_z,
+                CheckThat(() => AssertScreenIs(1,
+                    TokenClassification.Command, "ech",
+                    TokenClassification.InlinePrediction, "o -bar"))));
+        }
+
         private const uint MiniSessionId = 56;
         private static readonly Guid predictorId_1 = Guid.Parse("b45b5fbe-90fa-486c-9c87-e7940fdd6273");
         private static readonly Guid predictorId_2 = Guid.Parse("74a86463-033b-44a3-b386-41ee191c94be");
