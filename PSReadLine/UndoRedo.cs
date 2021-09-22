@@ -258,45 +258,40 @@ namespace Microsoft.PowerShell
             private readonly string _deletedString;
             private readonly int _deleteStartPosition;
 
-            // undoing a delete operation will insert some text starting from the _deleteStartPosition.
-            // the _adjustCursorOnUndo flag specifies whether the cursor must be adjusted.
-            // by default the cursor will move to end of the inserted text.
-            private readonly bool _adjustCursorOnUndo;
+            // The undo-delete operation will insert some text starting from the '_deleteStartPosition'.
+            // The '_moveCursorToEndWhenUndo' flag specifies whether the cursor should be moved to the end of the inserted text.
+            private readonly bool _moveCursorToEndWhenUndo;
 
-            protected EditItemDelete(string str, int position, Action<ConsoleKeyInfo?, object> instigator, object instigatorArg)
-                : this(str, position, instigator, instigatorArg, true)
-            {
-            }
-
-            protected EditItemDelete(string str, int position, Action<ConsoleKeyInfo?, object> instigator, object instigatorArg, bool adjustCursor)
+            protected EditItemDelete(string str, int position, Action<ConsoleKeyInfo?, object> instigator, object instigatorArg, bool moveCursorToEndWhenUndo)
             {
                 _deletedString = str;
                 _deleteStartPosition = position;
                 _instigator = instigator;
                 _instigatorArg = instigatorArg;
-                _adjustCursorOnUndo = adjustCursor;
+                _moveCursorToEndWhenUndo = moveCursorToEndWhenUndo;
             }
 
-            public static EditItem Create(string str, int position, Action<ConsoleKeyInfo?, object> instigator = null, object instigatorArg = null, bool adjustCursor = true)
+            public static EditItem Create(
+                string str,
+                int position,
+                Action<ConsoleKeyInfo?, object> instigator = null,
+                object instigatorArg = null,
+                bool moveCursorToEndWhenUndo = true)
             {
                 return new EditItemDelete(
                     str,
                     position,
                     instigator,
                     instigatorArg,
-                    adjustCursor);
+                    moveCursorToEndWhenUndo);
             }
 
             public override void Undo()
             {
-                var newCurrent = _deleteStartPosition;
-                newCurrent += _adjustCursorOnUndo
-                    ? _deletedString.Length
-                    : 0
-                    ;
-
                 _singleton._buffer.Insert(_deleteStartPosition, _deletedString);
-                _singleton._current = newCurrent;
+                _singleton._current = _moveCursorToEndWhenUndo
+                    ? _deleteStartPosition + _deletedString.Length
+                    : _deleteStartPosition;
             }
 
             public override void Redo()
@@ -315,7 +310,7 @@ namespace Microsoft.PowerShell
             private readonly int _deleteAnchor;
 
             private EditItemDeleteLines(string str, int position, int anchor, Action<ConsoleKeyInfo?, object> instigator, object instigatorArg)
-                : base(str, position, instigator, instigatorArg)
+                : base(str, position, instigator, instigatorArg, moveCursorToEndWhenUndo: false)
             {
                 _deleteAnchor = anchor;
             }
@@ -332,7 +327,7 @@ namespace Microsoft.PowerShell
             }
         }
 
-        [DebuggerDisplay("SwapCharacters")]
+        [DebuggerDisplay("SwapCharacters (position: {_swapPosition})")]
         class EditItemSwapCharacters : EditItem
         {
             private readonly int _swapPosition;
@@ -349,7 +344,7 @@ namespace Microsoft.PowerShell
 
             public override void Redo()
             {
-                Undo();
+                _singleton.SwapCharactersImpl(_swapPosition);
             }
 
             public override void Undo()

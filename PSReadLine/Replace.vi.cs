@@ -70,7 +70,7 @@ namespace Microsoft.PowerShell
                     startingCursor,
                     ViReplaceUntilEsc,
                     arg,
-                    adjustCursor: false));
+                    moveCursorToEndWhenUndo: false));
 
                 _singleton.SaveEditItem(EditItemInsertString.Create(insStr, startingCursor));
                 _singleton.EndEditGroup();
@@ -237,7 +237,7 @@ namespace Microsoft.PowerShell
                     _singleton._current,
                     ReplaceCharInPlace,
                     arg,
-                    adjustCursor: false));
+                    moveCursorToEndWhenUndo: false));
 
                 _singleton.SaveEditItem(EditItemInsertString.Create(nextKey.KeyStr, _singleton._current));
                 _singleton.EndEditGroup();

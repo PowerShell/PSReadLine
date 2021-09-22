@@ -631,7 +631,7 @@ namespace Microsoft.PowerShell
                         _singleton._current,
                         InvertCase,
                         arg,
-                        adjustCursor: false);
+                        moveCursorToEndWhenUndo: false);
 
                     EditItem insEditItem = EditItemInsertChar.Create(newChar, _singleton._current);
                     _singleton.SaveEditItem(GroupedEdit.Create(new List<EditItem>
@@ -1351,7 +1351,7 @@ namespace Microsoft.PowerShell
                     _singleton._current,
                     ViJoinLines,
                     arg,
-                    adjustCursor: false));
+                    moveCursorToEndWhenUndo: false));
 
                 _singleton.SaveEditItem(EditItemInsertChar.Create(' ', _singleton._current));
                 _singleton._groupUndoHelper.EndGroup();

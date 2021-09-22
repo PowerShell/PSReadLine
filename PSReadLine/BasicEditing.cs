@@ -102,7 +102,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void ForwardDeleteInput(ConsoleKeyInfo? key = null, object arg = null)
         {
-            ForwardDeleteImpl(_singleton._buffer.Length);
+            ForwardDeleteImpl(_singleton._buffer.Length, ForwardDeleteInput);
         }
 
         /// <summary>
@@ -111,7 +111,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void ForwardDeleteLine(ConsoleKeyInfo? key = null, object arg = null)
         {
-            ForwardDeleteImpl(GetEndOfLogicalLinePos(_singleton._current) + 1);
+            ForwardDeleteImpl(GetEndOfLogicalLinePos(_singleton._current) + 1, ForwardDeleteLine);
         }
 
         /// <summary>
@@ -119,7 +119,7 @@ namespace Microsoft.PowerShell
         /// but does not put the deleted text in the kill ring.
         /// </summary>
         /// <param name="endPosition">0-based offset to one character past the end of the text.</param>
-        private static void ForwardDeleteImpl(int endPosition)
+        private static void ForwardDeleteImpl(int endPosition, Action<ConsoleKeyInfo?, object> instigator)
         {
             var current = _singleton._current;
             var buffer = _singleton._buffer;
@@ -128,16 +128,14 @@ namespace Microsoft.PowerShell
             {
                 int length = endPosition - current;
                 var str = buffer.ToString(current, length);
-                var adjustCursorOnUndelete = _singleton.Options.EditMode != EditMode.Vi;
 
                 _singleton.SaveEditItem(
                     EditItemDelete.Create(
                         str,
                         current,
-                        ForwardDeleteLine,
-                        arg,
-                        adjustCursorOnUndelete
-                    ));
+                        instigator,
+                        instigatorArg: null,
+                        !InViEditMode()));
 
                 buffer.Remove(current, length);
                 _singleton.Render();

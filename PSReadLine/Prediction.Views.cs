@@ -25,8 +25,6 @@ namespace Microsoft.PowerShell
             private HashSet<string> _cacheHistorySet;
             private List<SuggestionEntry> _cacheHistoryList;
 
-            internal string InputText => _inputText;
-
             protected PredictionViewBase(PSConsoleReadLine singleton)
             {
                 _singleton = singleton;
@@ -583,6 +581,7 @@ namespace Microsoft.PowerShell
             private bool _alreadyAccepted;
 
             internal string SuggestionText => _suggestionText;
+
             internal PredictionInlineView(PSConsoleReadLine singleton)
                 : base(singleton)
             {
