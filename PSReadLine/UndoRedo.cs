@@ -20,7 +20,7 @@ namespace Microsoft.PowerShell
                 _edits.RemoveRange(_undoEditIndex, removeCount);
                 if (_edits.Count < _editGroupStart)
                 {
-                    // Reset the group start index if any edits before setting the start mark were undone.
+                    // Reset the group start index if any edits after setting the start mark were undone.
                     _editGroupStart = -1;
                 }
             }

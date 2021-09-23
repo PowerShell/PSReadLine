@@ -122,16 +122,22 @@ namespace Microsoft.PowerShell
 
             for (int i = start; i < text.Length; i++)
             {
-                if (cellLength >= countOfCells)
+                cellLength += LengthInBufferCells(text[i]);
+
+                if (cellLength > countOfCells)
                 {
                     return charLength;
                 }
 
-                cellLength += LengthInBufferCells(text[i]);
                 charLength++;
+
+                if (cellLength == countOfCells)
+                {
+                    return charLength;
+                }
             }
 
-            return 0;
+            return charLength;
         }
 
         private static int SubstringLengthByCellsFromEnd(string text, int countOfCells)
@@ -146,16 +152,22 @@ namespace Microsoft.PowerShell
 
             for (int i = start; i >= 0; i--)
             {
-                if (cellLength >= countOfCells)
+                cellLength += LengthInBufferCells(text[i]);
+
+                if (cellLength > countOfCells)
                 {
                     return charLength;
                 }
 
-                cellLength += LengthInBufferCells(text[i]);
                 charLength++;
+
+                if (cellLength == countOfCells)
+                {
+                    return charLength;
+                }
             }
 
-            return 0;
+            return charLength;
         }
     }
 }

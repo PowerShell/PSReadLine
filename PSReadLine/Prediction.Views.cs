@@ -578,6 +578,7 @@ namespace Microsoft.PowerShell
             private uint? _predictorSession;
             private string _suggestionText;
             private string _lastInputText;
+            private int _renderedLength;
             private bool _alreadyAccepted;
 
             internal string SuggestionText => _suggestionText;
@@ -671,11 +672,59 @@ namespace Microsoft.PowerShell
                 }
 
                 int inputLength = _inputText.Length;
+                int totalLength = _suggestionText.Length;
+
+                // Get the maximum buffer cells that could be available to the current command line.
+                int maxBufferCells = _singleton._console.BufferHeight * _singleton._console.BufferWidth - _singleton._initialX;
+                bool skipRendering = false;
+
+                // Assuming the suggestion text contains wide characters only (1 character takes up 2 buffer cells),
+                // if it still can fit in the console buffer, then we are all good; otherwise, it is possible that
+                // it could not fit, and thus more calculation is needed to check if that's really the case.
+                if (totalLength * 2 > maxBufferCells)
+                {
+                    int length = SubstringLengthByCells(_suggestionText, maxBufferCells);
+                    if (length <= inputLength)
+                    {
+                        // Even the user input cannot fit in the console buffer without having part of it scrolled up-off the buffer.
+                        // We don't attempt to render the suggestion text in this case.
+                        skipRendering = true;
+                    }
+                    else if (length < totalLength)
+                    {
+                        // The whole suggestion text cannot fit in the console buffer without having part of it scrolled up off the buffer.
+                        // We truncate the end part and append ellipsis.
+
+                        // We need to truncate 4 buffer cells ealier (just to be safe), so we have enough room to add the ellipsis.
+                        int lenFromEnd = SubstringLengthByCellsFromEnd(_suggestionText, length - 1, countOfCells: 4);
+                        totalLength = length - lenFromEnd;
+                        if (totalLength <= inputLength)
+                        {
+                            // No suggestion left after truncation, so no need to render.
+                            skipRendering = true;
+                        }
+                    }
+                }
+
+                if (skipRendering)
+                {
+                    _renderedLength = 0;
+                    return;
+                }
+
+                _renderedLength = totalLength;
                 StringBuilder currentLineBuffer = consoleBufferLines[currentLogicalLine];
 
-                currentLineBuffer.Append(_singleton._options._inlinePredictionColor)
-                    .Append(_suggestionText, inputLength, _suggestionText.Length - inputLength)
-                    .Append(VTColorUtils.AnsiReset);
+                currentLineBuffer
+                    .Append(_singleton._options._inlinePredictionColor)
+                    .Append(_suggestionText, inputLength, _renderedLength - inputLength);
+
+                if (_renderedLength < _suggestionText.Length)
+                {
+                    currentLineBuffer.Append("...");
+                }
+
+                currentLineBuffer.Append(VTColorUtils.AnsiReset);
             }
 
             internal override void OnSuggestionAccepted()
@@ -702,34 +751,38 @@ namespace Microsoft.PowerShell
                     return;
                 }
 
-                int left, top;
-                int inputLen = _inputText.Length;
-                IConsole console = _singleton._console;
-
-                if (cursorAtEol)
+                if (_renderedLength > 0)
                 {
-                    left = console.CursorLeft;
-                    top = console.CursorTop;
-                    console.BlankRestOfLine();
-                }
-                else
-                {
-                    Point bufferEndPoint = _singleton.ConvertOffsetToPoint(inputLen);
-                    left = bufferEndPoint.X;
-                    top = bufferEndPoint.Y;
-                    _singleton.WriteBlankRestOfLine(left, top);
-                }
+                    // Clear the suggestion only if we actually rendered it.
+                    int left, top;
+                    int inputLen = _inputText.Length;
+                    IConsole console = _singleton._console;
 
-                int bufferWidth = console.BufferWidth;
-                int columns = LengthInBufferCells(_suggestionText, inputLen, _suggestionText.Length);
+                    if (cursorAtEol)
+                    {
+                        left = console.CursorLeft;
+                        top = console.CursorTop;
+                        console.BlankRestOfLine();
+                    }
+                    else
+                    {
+                        Point bufferEndPoint = _singleton.ConvertOffsetToPoint(inputLen);
+                        left = bufferEndPoint.X;
+                        top = bufferEndPoint.Y;
+                        _singleton.WriteBlankRestOfLine(left, top);
+                    }
 
-                int remainingLenInCells = bufferWidth - left;
-                columns -= remainingLenInCells;
-                if (columns > 0)
-                {
-                    int extra = columns % bufferWidth > 0 ? 1 : 0;
-                    int count = columns / bufferWidth + extra;
-                    _singleton.WriteBlankLines(top + 1, count);
+                    int bufferWidth = console.BufferWidth;
+                    int columns = LengthInBufferCells(_suggestionText, inputLen, _renderedLength);
+
+                    int remainingLenInCells = bufferWidth - left;
+                    columns -= remainingLenInCells;
+                    if (columns > 0)
+                    {
+                        int extra = columns % bufferWidth > 0 ? 1 : 0;
+                        int count = columns / bufferWidth + extra;
+                        _singleton.WriteBlankLines(top + 1, count);
+                    }
                 }
 
                 Reset();
@@ -742,6 +795,7 @@ namespace Microsoft.PowerShell
                 _predictorId = Guid.Empty;
                 _predictorSession = null;
                 _alreadyAccepted = false;
+                _renderedLength = 0;
             }
 
             /// <summary>

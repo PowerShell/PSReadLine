@@ -538,10 +538,15 @@ namespace Test
 
         private void TestSetup(KeyMode keyMode, params KeyHandler[] keyHandlers)
         {
+            TestSetup(console: null, keyMode, keyHandlers);
+        }
+
+        private void TestSetup(TestConsole console, KeyMode keyMode, params KeyHandler[] keyHandlers)
+        {
             Skip.If(WindowsConsoleFixtureHelper.GetKeyboardLayout() != this.Fixture.Lang,
                     $"Keyboard layout must be set to {this.Fixture.Lang}");
 
-            _console = new TestConsole(_);
+            _console = console ?? new TestConsole(_);
             _mockedMethods = new MockedMethods();
             var instance = (PSConsoleReadLine)typeof(PSConsoleReadLine)
                 .GetField("_singleton", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
