@@ -84,6 +84,19 @@ namespace Test
             ClearBuffer();
         }
 
+        internal TestConsole(int width, int height, dynamic keyboardLayout)
+        {
+            _keyboardLayout = keyboardLayout;
+            BackgroundColor = ReadLine.BackgroundColors[0];
+            ForegroundColor = ReadLine.Colors[0];
+            CursorLeft = 0;
+            CursorTop = 0;
+            _bufferWidth = _windowWidth = width;
+            _bufferHeight = _windowHeight = height; // big enough to avoid the need to implement scrolling
+            buffer = new CHAR_INFO[BufferWidth * BufferHeight];
+            ClearBuffer();
+        }
+
         internal void Init(object[] items)
         {
             this.index = 0;

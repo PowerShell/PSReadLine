@@ -727,5 +727,28 @@ namespace Test
 
             Assert.Null(_mockedMethods.lastCommandRunStatus);
         }
+
+        [SkippableFact]
+        public void Inline_TruncateVeryLongSuggestion()
+        {
+            TestSetup(new TestConsole(width: 10, height: 2, keyboardLayout: _), KeyMode.Cmd);
+            using var disp = SetPrediction(PredictionSource.History, PredictionViewStyle.InlineView);
+
+            // Truncate long suggestion to make sure the user input is not scrolled up-off the console buffer.
+            SetHistory(new string('v', 25));
+            Test("vv", Keys(
+                'v', CheckThat(() => AssertScreenIs(2,
+                        TokenClassification.Command, 'v',
+                        TokenClassification.InlinePrediction, new string('v', 9),
+                        TokenClassification.InlinePrediction, new string('v', 6) + "...")),
+                'v', CheckThat(() => AssertScreenIs(2,
+                        TokenClassification.Command, "vv",
+                        TokenClassification.InlinePrediction, new string('v', 8),
+                        TokenClassification.InlinePrediction, new string('v', 6) + "...")),
+                // Once accepted, the suggestion text should be blanked out.
+                _.Enter, CheckThat(() => AssertScreenIs(1,
+                        TokenClassification.Command, "vv"))
+            ));
+        }
     }
 }
