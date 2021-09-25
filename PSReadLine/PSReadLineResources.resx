@@ -400,7 +400,7 @@
     <value>
 Oops, something went wrong.
 Please report this bug with ALL the details below, including both the 'Environment' and 'Exception' sections.
-Please report on GitHub: https://github.com/PowerShell/PSReadLine/issues/new?template=Bug_Report.md
+Please report on GitHub: https://github.com/PowerShell/PSReadLine/issues/new?template=Bug_Report.yaml
 Thank you!
 </value>
   </data>
