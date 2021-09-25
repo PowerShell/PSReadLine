@@ -1,7 +1,13 @@
-name: Feature Request/Idea 🚀
-description: Suggest a new feature or improvement (this does not mean you have to implement it)
+name: Feature Request or Idea 🚀
+description: Suggest a new feature or improvement.
 labels: Issue-Enhancement
 body:
+- type: checkboxes
+  attributes:
+    label: Prerequisites
+    options:
+    - label: Write a descriptive title.
+      required: true
 - type: textarea
   attributes:
     label: Description of the new feature/enhancement

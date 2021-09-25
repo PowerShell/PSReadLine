@@ -1,7 +1,13 @@
 name: Documentation Issue 📚
-description: Report issues in our documentation 🤔
+description: Report issues in our documentation.
 labels: Issue-Docs
 body:
+- type: checkboxes
+  attributes:
+    label: Prerequisites
+    options:
+    - label: Write a descriptive title.
+      required: true
 - type: textarea
   attributes:
     label: Issue summary
