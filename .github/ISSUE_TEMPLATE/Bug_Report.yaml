@@ -27,8 +27,8 @@ body:
     label: Screenshot
     description: |
       In case of an exception, **DO NOT take screenshot of the exception report**!
-      Instead, please scroll up to above the exception report, and take a screenshot of the terminal window right before the exception happened.
-      - Please keep your terminal window size unchanged when taking screenshot.
+      Instead, please scroll up to above the exception report, and take a screenshot of the console state right before the exception happened.
+        - Please keep your terminal window size unchanged when taking screenshot.
       If no exception was involved, please upload images or animations that you think may be helpful, or put "N/A" below.
 - type: textarea
   attributes:
