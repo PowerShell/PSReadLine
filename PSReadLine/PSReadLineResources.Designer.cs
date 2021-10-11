@@ -900,14 +900,14 @@ namespace Microsoft.PowerShell.PSReadLine {
         ///BufferHeight: {4}
 
         ///Last {5} Keys
-        ///```
+        ///
         ///{6}
-        ///```
+        ///
 
         ///### Exception
-        ///```
+        ///
         ///{7}
-        ///```
+        ///
         /// </summary>
         internal static string OopsAnErrorMessage2 {
             get {
@@ -1664,7 +1664,7 @@ namespace Microsoft.PowerShell.PSReadLine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invokes the console compatible editor specified by $env:VISUAL or $env:$EDITOR on the current command line..
+        ///   Looks up a localized string similar to Invokes the console compatible editor specified by $env:VISUAL or $env:EDITOR on the current command line..
         /// </summary>
         internal static string ViEditVisuallyDescription {
             get {

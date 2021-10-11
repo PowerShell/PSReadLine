@@ -30,6 +30,8 @@ body:
         Instead, please scroll up to above the exception report, and take a screenshot of the console state right before the exception happened.
         Also, please keep your terminal window size unchanged when taking screenshot.
       - If no exception was involved, please upload images or animations that you think may be helpful, or put "N/A" below.
+  validations:
+    required: true
 - type: textarea
   attributes:
     label: Environment data

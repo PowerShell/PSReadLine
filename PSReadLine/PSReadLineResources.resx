@@ -412,15 +412,14 @@ OS: {2}
 BufferWidth: {3}
 BufferHeight: {4}
 
-Last {5} Keys
-```
+Last {5} Keys:
+
 {6}
-```
 
 ### Exception
-```
+
 {7}
-```
+
 </value>
   </data>
   <data name="NextLineDescription" xml:space="preserve">
@@ -713,7 +712,7 @@ If there are other parse errors, unresolved commands, or incorrect parameters, s
     <value>Invokes TabCompletePrevious after doing some vi-specific clean up.</value>
   </data>
   <data name="ViEditVisuallyDescription" xml:space="preserve">
-    <value>Invokes the console compatible editor specified by $env:VISUAL or $env:$EDITOR on the current command line.</value>
+    <value>Invokes the console compatible editor specified by $env:VISUAL or $env:EDITOR on the current command line.</value>
   </data>
   <data name="ViAppendLineDescription" xml:space="preserve">
     <value>Appends a new multi-line edit mode line to the current line.</value>
