@@ -6,6 +6,7 @@ variables:
   DOTNET_CLI_TELEMETRY_OPTOUT: 1
   POWERSHELL_TELEMETRY_OPTOUT: 1
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+  SBOMGenerator_Formats: 'spdx:2.2'
 
 resources:
   repositories:
@@ -105,6 +106,13 @@ stages:
             throw "Certificate should have the subject starts with 'Microsoft Corporation'"
         }
       displayName: 'Verify the signed files'
+
+    # Generate a Software Bill of Materials (SBOM)
+    - template: Sbom.yml@ComplianceRepo
+      parameters:
+        BuildDropPath: '$(PSReadLine)'
+        Build_Repository_Uri: 'https://github.com/PowerShell/PSReadLine.git'
+        displayName: Generate SBOM
 
     - pwsh: |
         try {
