@@ -44,7 +44,9 @@ namespace Microsoft.PowerShell
 
         private static readonly CancellationToken _defaultCancellationToken = new CancellationTokenSource().Token;
 
-        private static Action _handleIdleOverride;
+        // This exists for PowerShell Editor Services (the backend of the PowerShell VSCode extension)
+        // so that it can call PSReadLine from a delegate and not hit nested pipeline issues
+        private static Action<CancellationToken> _handleIdleOverride;
 
         private bool _delayedOneTimeInitCompleted;
 
@@ -203,9 +205,9 @@ namespace Microsoft.PowerShell
                     if (handleId != WaitHandle.WaitTimeout && handleId != EventProcessingRequested)
                         break;
 
-                    if (_handleIdleOverride != null)
+                    if (_handleIdleOverride is not null)
                     {
-                        _handleIdleOverride();
+                        _handleIdleOverride(_singleton._cancelReadCancellationToken);
                         continue;
                     }
 
