@@ -182,35 +182,41 @@ namespace Test
             var newHistorySaveStyle = HistorySaveStyle.SaveIncrementally;
 
             string[] expectedHistoryItems = new[] {
-                "$token = 'abcd'     ## assign expr-value to sensitive variable. Will not be saved to file",
-                "Set-Secret abc $mySecret   ## Set-Secret will not be save to file",
+                "$token = 'abcd'", // Assign expr-value to sensitive variable. Not saved to file.
+                "Set-Secret abc $mySecret", // 'Set-Secret' will not be save to file.
+                "ConvertTo-SecureString stringValue -AsPlainText", // '-AsPlainText' is an alert. Not saved to file.
+                "Get-Secret PSGalleryApiKey -AsPlainText", // For eligible secret-mgmt command, the whole command is skipped, so '-AsPlainText' here is OK.
                 "$token = Get-Secret -Name github-token -Vault MySecret",
                 "[MyType]::CallRestAPI($token, $url, $args)",
                 "$template -f $token",
                 "Invoke-RestCall $url -UseDefaultToken",
                 "Publish-Module -NuGetApiKey $apikey",
-                "Publish-Module -NuGetApiKey (Get-Secret -Name apikey)",
-                "Publish-Module -NuGetApiKey (Get-NewSecret -Name apikey)   ## Get-NewSecret is not in our allow-list. Will not be saved to file",
+                "Publish-Module -NuGetApiKey (Get-Secret PSGalleryApiKey -AsPlainText)",
+                "Publish-Module -NuGetApiKey (Get-NewSecret -Name apikey)", // 'Get-NewSecret' is not in our allow-list. Not saved to file.
                 "Send-HeartBeat -UseDefaultToken",
                 "Send-HeartBeat -password $pass -SavePassword",
-                "Invoke-WebRequest -Token xxx   ## Expr-value as argument to -Token. Will not be saved to file",
-                "Invoke-WebRequest -Token (2+2) ## Expr-value as argument to -Token. Will not be saved to file",
+                "Invoke-WebRequest -Token xxx", // Expr-value as argument to '-Token'. Not saved to file.
+                "Invoke-WebRequest -Token (2+2)", // Expr-value as argument to '-Token'. Not saved to file.
                 "Get-SecretInfo -Name mytoken; Get-SecretVault; Register-SecretVault; Remove-Secret apikey",
-                "Get-SecretInfo -Name mytoken; Get-SecretVault; Register-SecretVault; Remove-Secret apikey; Set-Secret  ## Set-Secret will not be saved to file",
+                "Get-SecretInfo -Name mytoken; Get-SecretVault; Register-SecretVault; Remove-Secret apikey; Set-Secret", // 'Set-Secret' Not saved to file.
                 "Set-SecretInfo -Name apikey; Set-SecretVaultDefault; Test-SecretVault; Unlock-SecretVault -password $pwd; Unregister-SecretVault -SecretVault vaultInfo",
+                "Get-ResultFromTwo -Secret1 (Get-Secret -Name blah -AsPlainText) -Secret2 $secret2",
+                "Get-ResultFromTwo -Secret1 (Get-Secret -Name blah -AsPlainText) -Secret2 sdv87ysdfayf798hfasd8f7ha" // '-Secret2' has expr-value argument. Not saved to file.
             };
 
             string[] expectedSavedItems = new[] {
+                "Get-Secret PSGalleryApiKey -AsPlainText",
                 "$token = Get-Secret -Name github-token -Vault MySecret",
                 "[MyType]::CallRestAPI($token, $url, $args)",
                 "$template -f $token",
                 "Invoke-RestCall $url -UseDefaultToken",
                 "Publish-Module -NuGetApiKey $apikey",
-                "Publish-Module -NuGetApiKey (Get-Secret -Name apikey)",
+                "Publish-Module -NuGetApiKey (Get-Secret PSGalleryApiKey -AsPlainText)",
                 "Send-HeartBeat -UseDefaultToken",
                 "Send-HeartBeat -password $pass -SavePassword",
                 "Get-SecretInfo -Name mytoken; Get-SecretVault; Register-SecretVault; Remove-Secret apikey",
                 "Set-SecretInfo -Name apikey; Set-SecretVaultDefault; Test-SecretVault; Unlock-SecretVault -password $pwd; Unregister-SecretVault -SecretVault vaultInfo",
+                "Get-ResultFromTwo -Secret1 (Get-Secret -Name blah -AsPlainText) -Secret2 $secret2",
             };
 
             try
