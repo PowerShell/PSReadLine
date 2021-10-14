@@ -89,7 +89,7 @@ namespace Test
         }
 
         [SkippableFact]
-        public void SensitiveHistoryDefaultBehavior()
+        public void SensitiveHistoryDefaultBehavior_One()
         {
             TestSetup(KeyMode.Cmd);
 
@@ -131,6 +131,92 @@ namespace Test
                 "echo bar",
                 "echo zoo",
                 "gcm p*"
+            };
+
+            try
+            {
+                options.HistorySavePath = newHistoryFilePath;
+                options.HistorySaveStyle = newHistorySaveStyle;
+                SetHistory(expectedHistoryItems);
+
+                // Sensitive input history should be kept in the internal history queue.
+                var historyItems = PSConsoleReadLine.GetHistoryItems();
+                Assert.Equal(expectedHistoryItems.Length, historyItems.Length);
+                for (int i = 0; i < expectedHistoryItems.Length; i++)
+                {
+                    Assert.Equal(expectedHistoryItems[i], historyItems[i].CommandLine);
+                }
+
+                // Sensitive input history should NOT be saved to the history file.
+                string[] text = File.ReadAllLines(newHistoryFilePath);
+                Assert.Equal(expectedSavedItems.Length, text.Length);
+                for (int i = 0; i < text.Length; i++)
+                {
+                    Assert.Equal(expectedSavedItems[i], text[i]);
+                }
+            }
+            finally
+            {
+                options.HistorySavePath = oldHistoryFilePath;
+                options.HistorySaveStyle = oldHistorySaveStyle;
+                File.Delete(newHistoryFilePath);
+            }
+        }
+
+        [SkippableFact]
+        public void SensitiveHistoryDefaultBehavior_Two()
+        {
+            TestSetup(KeyMode.Cmd);
+
+            // Clear history
+            SetHistory();
+
+            var options = PSConsoleReadLine.GetOptions();
+            var oldHistoryFilePath = options.HistorySavePath;
+            var oldHistorySaveStyle = options.HistorySaveStyle;
+
+            // AddToHistoryHandler should be set to the default handler.
+            Assert.Same(PSConsoleReadLineOptions.DefaultAddToHistoryHandler, options.AddToHistoryHandler);
+
+            var newHistoryFilePath = Path.GetTempFileName();
+            var newHistorySaveStyle = HistorySaveStyle.SaveIncrementally;
+
+            string[] expectedHistoryItems = new[] {
+                "$token = 'abcd'", // Assign expr-value to sensitive variable. Not saved to file.
+                "Set-Secret abc $mySecret", // 'Set-Secret' will not be save to file.
+                "ConvertTo-SecureString stringValue -AsPlainText", // '-AsPlainText' is an alert. Not saved to file.
+                "Get-Secret PSGalleryApiKey -AsPlainText", // For eligible secret-mgmt command, the whole command is skipped, so '-AsPlainText' here is OK.
+                "$token = Get-Secret -Name github-token -Vault MySecret",
+                "[MyType]::CallRestAPI($token, $url, $args)",
+                "$template -f $token",
+                "Invoke-RestCall $url -UseDefaultToken",
+                "Publish-Module -NuGetApiKey $apikey",
+                "Publish-Module -NuGetApiKey (Get-Secret PSGalleryApiKey -AsPlainText)",
+                "Publish-Module -NuGetApiKey (Get-NewSecret -Name apikey)", // 'Get-NewSecret' is not in our allow-list. Not saved to file.
+                "Send-HeartBeat -UseDefaultToken",
+                "Send-HeartBeat -password $pass -SavePassword",
+                "Invoke-WebRequest -Token xxx", // Expr-value as argument to '-Token'. Not saved to file.
+                "Invoke-WebRequest -Token (2+2)", // Expr-value as argument to '-Token'. Not saved to file.
+                "Get-SecretInfo -Name mytoken; Get-SecretVault; Register-SecretVault; Remove-Secret apikey",
+                "Get-SecretInfo -Name mytoken; Get-SecretVault; Register-SecretVault; Remove-Secret apikey; Set-Secret", // 'Set-Secret' Not saved to file.
+                "Set-SecretInfo -Name apikey; Set-SecretVaultDefault; Test-SecretVault; Unlock-SecretVault -password $pwd; Unregister-SecretVault -SecretVault vaultInfo",
+                "Get-ResultFromTwo -Secret1 (Get-Secret -Name blah -AsPlainText) -Secret2 $secret2",
+                "Get-ResultFromTwo -Secret1 (Get-Secret -Name blah -AsPlainText) -Secret2 sdv87ysdfayf798hfasd8f7ha" // '-Secret2' has expr-value argument. Not saved to file.
+            };
+
+            string[] expectedSavedItems = new[] {
+                "Get-Secret PSGalleryApiKey -AsPlainText",
+                "$token = Get-Secret -Name github-token -Vault MySecret",
+                "[MyType]::CallRestAPI($token, $url, $args)",
+                "$template -f $token",
+                "Invoke-RestCall $url -UseDefaultToken",
+                "Publish-Module -NuGetApiKey $apikey",
+                "Publish-Module -NuGetApiKey (Get-Secret PSGalleryApiKey -AsPlainText)",
+                "Send-HeartBeat -UseDefaultToken",
+                "Send-HeartBeat -password $pass -SavePassword",
+                "Get-SecretInfo -Name mytoken; Get-SecretVault; Register-SecretVault; Remove-Secret apikey",
+                "Set-SecretInfo -Name apikey; Set-SecretVaultDefault; Test-SecretVault; Unlock-SecretVault -password $pwd; Unregister-SecretVault -SecretVault vaultInfo",
+                "Get-ResultFromTwo -Secret1 (Get-Secret -Name blah -AsPlainText) -Secret2 $secret2",
             };
 
             try
