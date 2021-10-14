@@ -12,6 +12,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Management.Automation.Language;
 using Microsoft.PowerShell.PSReadLine;
 
 namespace Microsoft.PowerShell
@@ -115,6 +116,20 @@ namespace Microsoft.PowerShell
         private static readonly Regex s_sensitivePattern = new Regex(
             "password|asplaintext|token|apikey|secret",
             RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+        private static readonly HashSet<string> s_SecretMgmtCommands = new(StringComparer.OrdinalIgnoreCase)
+        {
+            "Get-Secret",
+            "Get-SecretInfo",
+            "Get-SecretVault",
+            "Register-SecretVault",
+            "Remove-Secret",
+            "Set-SecretInfo",
+            "Set-SecretVaultDefault",
+            "Test-SecretVault",
+            "Unlock-SecretVault",
+            "Unregister-SecretVault"
+        };
 
         private void ClearSavedCurrentLine()
         {
@@ -474,11 +489,169 @@ namespace Microsoft.PowerShell
             }
         }
 
+        private static bool IsOnLeftSideOfAnAssignment(Ast ast, out Ast rhs)
+        {
+            bool result = false;
+            rhs = null;
+
+            do
+            {
+                if (ast.Parent is AssignmentStatementAst assignment)
+                {
+                    rhs = assignment.Right;
+                    result = ReferenceEquals(assignment.Left, ast);
+
+                    break;
+                }
+
+                ast = ast.Parent;
+            }
+            while (ast.Parent is not null);
+
+            return result;
+        }
+
+        private static bool IsSecretMgmtCommand(StringConstantExpressionAst strConst, out CommandAst command)
+        {
+            bool result = false;
+            command = strConst.Parent as CommandAst;
+
+            if (command is not null)
+            {
+                result = ReferenceEquals(command.CommandElements[0], strConst)
+                    && s_SecretMgmtCommands.Contains(strConst.Value);
+            }
+
+            return result;
+        }
+
+        private static ExpressionAst GetArgumentForParameter(CommandParameterAst param)
+        {
+            if (param.Argument is not null)
+            {
+                return param.Argument;
+            }
+
+            var command = (CommandAst)param.Parent;
+            int index = 1;
+            for (; index < command.CommandElements.Count; index++)
+            {
+                if (ReferenceEquals(command.CommandElements[index], param))
+                {
+                    break;
+                }
+            }
+
+            int argIndex = index + 1;
+            if (argIndex < command.CommandElements.Count
+                && command.CommandElements[argIndex] is ExpressionAst arg)
+            {
+                return arg;
+            }
+
+            return null;
+        }
+
         public static AddToHistoryOption GetDefaultAddToHistoryOption(string line)
         {
-            return s_sensitivePattern.IsMatch(line)
-                ? AddToHistoryOption.MemoryOnly
-                : AddToHistoryOption.MemoryAndFile;
+            if (string.IsNullOrEmpty(line))
+            {
+                return AddToHistoryOption.SkipAdding;
+            }
+
+            Match match = s_sensitivePattern.Match(line);
+            if (ReferenceEquals(match, Match.Empty))
+            {
+                return AddToHistoryOption.MemoryAndFile;
+            }
+
+            bool isSensitive = false;
+            Ast ast = string.Equals(_singleton._ast?.Extent.Text, line)
+                ? _singleton._ast
+                : Parser.ParseInput(line, out _, out _);
+
+            do
+            {
+                int start = match.Index;
+                int end = start + match.Length;
+
+                IEnumerable<Ast> asts = ast.FindAll(
+                    ast => ast.Extent.StartOffset <= start && ast.Extent.EndOffset >= end,
+                    searchNestedScriptBlocks: true);
+
+                Ast innerAst = asts.Last();
+                switch (innerAst)
+                {
+                    case VariableExpressionAst:
+                        // It's a variable with sensitive name. Using the variable is fine, but assigning to
+                        // the variable could potentially expose sensitive content.
+                        // If it appears on the left-hand-side of an assignment, and the right-hand-side is
+                        // not a command invocation, we consider it sensitive.
+                        // e.g. `$token = Get-Secret` vs. `$token = 'token-text'` or `$token, $url = ...`
+                        isSensitive = IsOnLeftSideOfAnAssignment(innerAst, out Ast rhs)
+                            && rhs is not PipelineAst;
+
+                        if (!isSensitive)
+                        {
+                            match = match.NextMatch();
+                        }
+                        break;
+
+                    case StringConstantExpressionAst strConst:
+                        // If it's not a command name, or it's not one of the secret management commands that
+                        // we can ignore, we consider it sensitive.
+                        isSensitive = !IsSecretMgmtCommand(strConst, out CommandAst command);
+
+                        if (!isSensitive)
+                        {
+                            // We can safely skip the whole command text.
+                            match = s_sensitivePattern.Match(line, command.Extent.EndOffset);
+                        }
+                        break;
+
+                    case CommandParameterAst param:
+                        // Special-case the '-AsPlainText' parameter.
+                        if (string.Equals(param.ParameterName, "AsPlainText"))
+                        {
+                            isSensitive = true;
+                            break;
+                        }
+
+                        ExpressionAst arg = GetArgumentForParameter(param);
+                        if (arg is null)
+                        {
+                            // If no argument is found following the parameter, then it could be a switching parameter
+                            // such as '-UseDefaultPassword' or '-SaveToken', which we assume will not expose sensitive information.
+                            match = match.NextMatch();
+                        }
+                        else if (arg is VariableExpressionAst)
+                        {
+                            // Argument is a variable. It's fine to use a variable for a senstive parameter.
+                            // e.g. `Invoke-WebRequest -Token $token`
+                            match = s_sensitivePattern.Match(line, arg.Extent.EndOffset);
+                        }
+                        else if (arg is ParenExpressionAst paren
+                            && paren.Pipeline is PipelineAst pipeline
+                            && pipeline.PipelineElements[0] is not CommandExpressionAst)
+                        {
+                            // Argument is a command invocation, such as `Invoke-WebRequest -Token (Get-Secret)`.
+                            match = match.NextMatch();
+                        }
+                        else
+                        {
+                            // We consider all other arguments sensitive.
+                            isSensitive = true;
+                        }
+                        break;
+
+                    default:
+                        isSensitive = true;
+                        break;
+                }
+            }
+            while (!isSensitive && !ReferenceEquals(match, Match.Empty));
+
+            return isSensitive ? AddToHistoryOption.MemoryOnly : AddToHistoryOption.MemoryAndFile;
         }
 
         /// <summary>
