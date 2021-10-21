@@ -177,7 +177,12 @@ namespace Microsoft.PowerShell
             {
                 if (!object.ReferenceEquals(newColor, activeColor))
                 {
-                    if (!inSelectedRegion) _consoleBufferLines[currentLogicalLine].Append(newColor);
+                    if (!inSelectedRegion)
+                    {
+                        _consoleBufferLines[currentLogicalLine]
+                            .Append(VTColorUtils.AnsiReset)
+                            .Append(newColor);
+                    }
                     activeColor = newColor;
                 }
             }
