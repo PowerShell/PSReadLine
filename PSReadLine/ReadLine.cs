@@ -44,7 +44,9 @@ namespace Microsoft.PowerShell
 
         // This is used by PowerShellEditorServices (the backend of the PowerShell VSCode extension)
         // so that it can call PSReadLine from a delegate and not hit nested pipeline issues.
+        #pragma warning disable CS0649
         private static Action<CancellationToken> _handleIdleOverride;
+        #pragma warning restore CS0649
 
         private bool _delayedOneTimeInitCompleted;
 
