@@ -218,18 +218,27 @@ namespace Microsoft.PowerShell
                         bool runPipelineForEventProcessing = false;
                         foreach (var sub in eventSubscribers)
                         {
-                            runPipelineForEventProcessing = true;
                             if (sub.SourceIdentifier.Equals(PSEngineEvent.OnIdle, StringComparison.OrdinalIgnoreCase))
                             {
-                                // There is an OnIdle event.  We're idle because we timed out.  Normally
+                                // If the buffer is not empty, let's not consider we are idle because the user
+                                // is in the middle of typing something.
+                                if (_singleton._buffer.Length > 0)
+                                {
+                                    continue;
+                                }
+
+                                // There is an OnIdle event. We timed out and the buffer is empty.  Normally
                                 // PowerShell generates this event, but PowerShell assumes the engine is not
                                 // idle because it called PSConsoleHostReadLine which isn't returning.
                                 // So we generate the event instead.
+                                runPipelineForEventProcessing = true;
                                 _singleton._engineIntrinsics.Events.GenerateEvent(PSEngineEvent.OnIdle, null, null, null);
 
                                 // Break out so we don't genreate more than one 'OnIdle' event for a timeout.
                                 break;
                             }
+
+                            runPipelineForEventProcessing = true;
                         }
 
                         // If there are any event subscribers, run a tiny useless PowerShell pipeline
