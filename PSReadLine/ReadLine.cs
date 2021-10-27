@@ -35,8 +35,6 @@ namespace Microsoft.PowerShell
 
         private const int CancellationRequested = 2;
 
-        private const int EventProcessingRequested = 3;
-
         // *must* be initialized in the static ctor
         // because the static member _clipboard depends upon it
         // for its own initialization
@@ -44,8 +42,8 @@ namespace Microsoft.PowerShell
 
         private static readonly CancellationToken _defaultCancellationToken = new CancellationTokenSource().Token;
 
-        // This exists for PowerShell Editor Services (the backend of the PowerShell VSCode extension)
-        // so that it can call PSReadLine from a delegate and not hit nested pipeline issues
+        // This is used by PowerShellEditorServices (the backend of the PowerShell VSCode extension)
+        // so that it can call PSReadLine from a delegate and not hit nested pipeline issues.
         private static Action<CancellationToken> _handleIdleOverride;
 
         private bool _delayedOneTimeInitCompleted;
@@ -59,7 +57,6 @@ namespace Microsoft.PowerShell
         private Thread _readKeyThread;
         private AutoResetEvent _readKeyWaitHandle;
         private AutoResetEvent _keyReadWaitHandle;
-        private AutoResetEvent _forceEventWaitHandle;
         private CancellationToken _cancelReadCancellationToken;
         internal ManualResetEvent _closingWaitHandle;
         private WaitHandle[] _threadProcWaitHandles;
@@ -199,11 +196,13 @@ namespace Microsoft.PowerShell
                     // Next, wait for one of three things:
                     //   - a key is pressed
                     //   - the console is exiting
-                    //   - 300ms - to process events if we're idle
+                    //   - 300ms timeout - to process events if we're idle
                     //   - ReadLine cancellation is requested externally
                     handleId = WaitHandle.WaitAny(_singleton._requestKeyWaitHandles, 300);
-                    if (handleId != WaitHandle.WaitTimeout && handleId != EventProcessingRequested)
+                    if (handleId != WaitHandle.WaitTimeout)
+                    {
                         break;
+                    }
 
                     if (_handleIdleOverride is not null)
                     {
@@ -317,15 +316,6 @@ namespace Microsoft.PowerShell
             // Use a default cancellation token instead of CancellationToken.None because the
             // WaitHandle is shared and could be triggered accidently.
             return ReadLine(runspace, engineIntrinsics, _defaultCancellationToken, lastRunStatus);
-        }
-
-        /// <summary>
-        /// Temporary entry point for PowerShell VSCode extension to avoid breaking the existing PSES.
-        /// PSES will need to move away from this entry point to actually provide information about 'lastRunStatus'.
-        /// </summary>
-        public static string ReadLine(Runspace runspace, EngineIntrinsics engineIntrinsics, CancellationToken cancellationToken)
-        {
-            return ReadLine(runspace, engineIntrinsics, cancellationToken, lastRunStatus: null);
         }
 
         /// <summary>

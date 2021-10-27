@@ -145,7 +145,7 @@ task LayoutModule BuildPolyfiller, BuildMainModule, {
     Copy-Item $binPath/Microsoft.PowerShell.Pager.dll $targetDir
 
     if ($Configuration -eq 'Debug') {
-      Copy-Item $binPath/*.pdb $targetDir
+        Copy-Item $binPath/*.pdb $targetDir
     }
 
     if (Test-Path $binPath/System.Runtime.InteropServices.RuntimeInformation.dll) {
