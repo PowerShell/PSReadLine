@@ -1,3 +1,24 @@
+### [2.2.0-beta4] - 2021-10-27
+
+- Generate `OnIdle` event only if the editing buffer is empty (#2934)
+- Add private contract delegate for PSES to handle idle (#1679)
+- Disable warning for the private contract field used by PSES (#2935)
+- Reset all ANSI attributes before changing color in rendering to avoid color leaking (#2925)
+- Make the default sensitive history scrubbing function a little smarter (#2921)
+- Generate ADO SBOM for PSReadLine (#2918)
+- Update the issue templates to use form templates (#2898, #2900, #2917)
+- Update the inline suggestion rendering to not exceed the max window buffer (#2892)
+- VI Mode: "Undo" now leaves the cursor under the position at the start of the deletion (#2045) (Thanks @springcomp!)
+- Update `CreateCharInfoBuffer` to support continuous 'NextLineToken' (#2880)
+- Fix `GotoBrace` to handle the case when the text buffer is empty (#2879)
+- Fix rendering when continuation prompt is an empty string (#2875)
+- Release mutex when facing `AbandonedMutexException` (#2867)
+- Migrate the release build to use the 1ES agent pool and also fix the API scan (#2859)
+- Pass the cancellation token along instead of using the default one (#2636)
+- Don't ignore `ConsoleKey.Packet` type as that is simply Unicode (#2632)
+
+[2.2.0-beta4]: https://github.com/PowerShell/PSReadLine/compare/v2.2.0-beta3...v2.2.0-beta4
+
 ### [2.2.0-beta3] - 2021-06-01
 
 - Update the use of the prediction interface to adapt to the breaking changes introduced in PowerShell 7.2.0-preview.6 (#2524)
