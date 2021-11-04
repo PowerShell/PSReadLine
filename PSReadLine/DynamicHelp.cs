@@ -233,13 +233,14 @@ namespace Microsoft.PowerShell
         {
             internal Collection<string> ItemsToDisplay;
 
-            private int multilineItems = 0;
+            // Keep track of the number of extra physical lines due to multi-line text.
+            private int extraPhysicalLines = 0;
 
             public void DrawMultilineBlock()
             {
                 IConsole console = Singleton._console;
 
-                multilineItems = 0;
+                extraPhysicalLines = 0;
 
                 this.SaveCursor();
 
@@ -261,14 +262,21 @@ namespace Microsoft.PowerShell
                 {
                     var itemLength = LengthInBufferCells(items[index]);
 
+                    int extra = 0;
                     if (itemLength > bufferWidth)
                     {
-                        multilineItems += itemLength / bufferWidth;
-
+                        extra = itemLength / bufferWidth;
                         if (itemLength % bufferWidth == 0)
                         {
-                            multilineItems--;
+                            extra--;
                         }
+                    }
+
+                    if (extra > 0)
+                    {
+                        // Extra physical lines may cause buffer to scroll up.
+                        AdjustForPossibleScroll(extra);
+                        extraPhysicalLines += extra;
                     }
 
                     console.Write(items[index]);
@@ -287,7 +295,7 @@ namespace Microsoft.PowerShell
 
             public void Clear()
             {
-                _singleton.WriteBlankLines(Top, ItemsToDisplay.Count + multilineItems);
+                _singleton.WriteBlankLines(Top, ItemsToDisplay.Count + extraPhysicalLines);
             }
         }
     }
