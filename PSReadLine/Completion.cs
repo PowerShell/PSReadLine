@@ -445,15 +445,8 @@ namespace Microsoft.PowerShell
                     SaveCursor();
                 }
 
-                // Move cursor to the start of the first line after our input.
-                var bufferEndPoint = Singleton.ConvertOffsetToPoint(Singleton._buffer.Length);
-                console.SetCursorPosition(bufferEndPoint.X, bufferEndPoint.Y);
-                // Top must be initialized before calling AdjustForPossibleScroll, otherwise
-                // on the last line of the buffer, the scroll operation causes Top to point
-                // past the buffer, which in turn causes the menu to be printed twice.
-                this.Top = bufferEndPoint.Y + 1;
-                AdjustForPossibleScroll(1);
-                MoveCursorDown(1);
+                PreviousTop = Top;
+                MoveCursorToStartDrawingPosition(console);
 
                 var bufferWidth = console.BufferWidth;
                 var columnWidth = this.ColumnWidth;
@@ -514,7 +507,7 @@ namespace Microsoft.PowerShell
                 }
 
                 // if the menu has moved, we need to clear the lines under it
-                if (bufferEndPoint.Y < PreviousTop)
+                if (Top < PreviousTop)
                 {
                     // In either of the following two cases, we will need to move the cursor to the next line:
                     //  - if extra rows from previous menu were cleared, then we know the current line was erased
@@ -528,10 +521,8 @@ namespace Microsoft.PowerShell
                         MoveCursorDown(1);
                     }
 
-                    Singleton.WriteBlankLines(PreviousTop - bufferEndPoint.Y);
+                    Singleton.WriteBlankLines(PreviousTop - Top);
                 }
-
-                PreviousTop = bufferEndPoint.Y;
 
                 if (menuSelect)
                 {
@@ -797,7 +788,7 @@ namespace Microsoft.PowerShell
             }
             else
             {
-                menu.DrawMenu(null, menuSelect:false);
+                menu.DrawMenu(null, menuSelect: false);
                 InvokePrompt(key: null, arg: _console.CursorTop);
             }
         }
@@ -879,7 +870,6 @@ namespace Microsoft.PowerShell
 
                         if (topAdjustment != 0)
                         {
-                            menu.Top += topAdjustment;
                             menu.DrawMenu(null, menuSelect: true);
                         }
                         if (topAdjustment > 0)
@@ -963,7 +953,7 @@ namespace Microsoft.PowerShell
                     {
                         var newMenu = menuStack.Pop();
 
-                        newMenu.DrawMenu(menu, menuSelect:true);
+                        newMenu.DrawMenu(menu, menuSelect: true);
                         previousSelection = -1;
 
                         menu = newMenu;
@@ -1025,7 +1015,7 @@ namespace Microsoft.PowerShell
                         {
                             var newMenu = CreateCompletionMenu(newMatches);
 
-                            newMenu.DrawMenu(menu, menuSelect:true);
+                            newMenu.DrawMenu(menu, menuSelect: true);
                             previousSelection = -1;
 
                             // Remember the current menu for when we see Backspace.
