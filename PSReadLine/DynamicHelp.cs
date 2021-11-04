@@ -241,21 +241,11 @@ namespace Microsoft.PowerShell
 
                 multilineItems = 0;
 
-                this.SaveCursor();
-
-                // Move cursor to the start of the first line after our input.
-                var bufferEndPoint = Singleton.ConvertOffsetToPoint(Singleton._buffer.Length);
-                console.SetCursorPosition(bufferEndPoint.X, bufferEndPoint.Y);
-                // Top must be initialized before calling AdjustForPossibleScroll, otherwise
-                // on the last line of the buffer, the scroll operation causes Top to point
-                // past the buffer, which in turn causes the menu to be printed twice.
-                this.Top = bufferEndPoint.Y + 1;
-                AdjustForPossibleScroll(1);
-                MoveCursorDown(1);
+                SaveCursor();
+                MoveCursorToStartDrawingPosition(console);
 
                 var bufferWidth = console.BufferWidth;
-
-                var items = this.ItemsToDisplay;
+                var items = ItemsToDisplay;
 
                 for (var index = 0; index < items.Count; index++)
                 {
@@ -282,7 +272,7 @@ namespace Microsoft.PowerShell
                     }
                 }
 
-                this.RestoreCursor();
+                RestoreCursor();
             }
 
             public void Clear()
