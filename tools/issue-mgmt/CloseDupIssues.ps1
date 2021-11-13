@@ -42,21 +42,36 @@ foreach ($item in $issues)
 
     Write-Host "Issue: $root_url/$number" -ForegroundColor Green
 
-    if ($title.Contains('https://github.com/PowerShell/PSReadLine/issues/new') -or
-        $body.Contains('https://github.com/PowerShell/PSReadLine/issues/new') -or
-        $body -match 'PSReadLine: 2\.\d\.\d(-\w+)?' -or
-        $body -match 'PSReadline version: 2\.\d\.\d(-\w+)?' -or
-        $body -match 'PowerShell: 7\.\d\.\d' -or
-        $body -match 'PS version: 7\.\d\.\d')
+    if ($body.Contains("System.TypeLoadException: Could not load type 'System.Management.Automation.Subsystem.PredictionResult'") -and
+        $body -match 'PSReadLine: 2\.2\.0-beta[12]' -and
+        $body -match 'PowerShell: 7\.2\.0')
+    {
+        $comment = @'
+This issue was fixed in 2.2.0-beta3 version of PSReadLine. You can fix this by upgrading to the latest [2.2.0-beta4 version of PSReadLine](https://www.powershellgallery.com/packages/PSReadLine/2.2.0-beta4). Instructions for doing so:
+1. stop all instances of `pwsh`.
+2. from `cmd.exe` run: `pwsh -noprofile -command "Install-Module PSReadLine -AllowPrerelease -Force"`
+
+--------
+
+If you want to remove that beta version of PSReadLine and use the 2.1.0 version of PSReadLine that's shipped with PowerShell 7.2, you can:
+1. run `pwsh -noprofile -noninteractive` to start `pwsh` without loading PSReadLine
+2. run `Uninstall-Module -Name PSReadLine -RequiredVersion <2.2.0-beta1 or 2.2.0-beta2> -AllowPrerelease` to remove the module. Or, you can manually remove that module folder.
+'@
+    }
+    elseif ($title.Contains('https://github.com/PowerShell/PSReadLine/issues/new') -or
+            $body.Contains('https://github.com/PowerShell/PSReadLine/issues/new') -or
+            $body -match 'PSReadLine: 2\.\d\.\d(-\w+)?' -or
+            $body -match 'PSReadline version: 2\.\d\.\d(-\w+)?' -or
+            $body -match 'PowerShell: 7\.\d\.\d' -or
+            $body -match 'PS version: 7\.\d\.\d')
     {
         ## The issue reported a recent version of PSReadLine, so leave it as is.
         continue
     }
-
-    if ($body.Contains('System.ArgumentOutOfRangeException:') -and
-        $body.Contains('System.Console.SetCursorPosition(') -and
-        $body.Contains('Microsoft.PowerShell.PSConsoleReadLine.ReallyRender(') -and
-        -not $body.Contains('Microsoft.PowerShell.PSConsoleReadLine.CalculateWhereAndWhatToRender('))
+    elseif ($body.Contains('System.ArgumentOutOfRangeException:') -and
+            $body.Contains('System.Console.SetCursorPosition(') -and
+            $body.Contains('Microsoft.PowerShell.PSConsoleReadLine.ReallyRender(') -and
+            -not $body.Contains('Microsoft.PowerShell.PSConsoleReadLine.CalculateWhereAndWhatToRender('))
     {
         ## The issue either reported an old version of PSReadLine, or provided no
         ## information about the version. In either case, it's likely a duplicate
