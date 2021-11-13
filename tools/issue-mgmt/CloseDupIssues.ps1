@@ -49,7 +49,7 @@ foreach ($item in $issues)
         $comment = @'
 This issue was fixed in 2.2.0-beta3 version of PSReadLine. You can fix this by upgrading to the latest [2.2.0-beta4 version of PSReadLine](https://www.powershellgallery.com/packages/PSReadLine/2.2.0-beta4). Instructions for doing so:
 1. stop all instances of `pwsh`.
-2. from `cmd.exe` on Windows or `bash` on Linux, run: `pwsh -noprofile -command """Install-Module PSReadLine -AllowPrerelease -Force"""`
+2. from `cmd.exe` on Windows or `bash` on Linux, run: `pwsh -noprofile -command \"Install-Module PSReadLine -AllowPrerelease -Force\"`
 
 --------
 
