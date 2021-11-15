@@ -12,12 +12,40 @@ namespace Microsoft.PowerShell.Internal
         // These two fields are used by PowerShellEditorServices to inject a
         // custom ReadKey implementation. This is not a public API, but it is
         // part of a private contract with that project.
-        #pragma warning disable CS0649
+#pragma warning disable CS0649
         private static Func<bool, ConsoleKeyInfo> _readKeyOverride;
-        #pragma warning restore CS0649
+#pragma warning restore CS0649
+
+#pragma warning disable CS0649
+        private static Action<string> _writeLineOverride;
+#pragma warning restore CS0649
+
+#pragma warning disable CS0649
+        private static Action<string> _writeOverride;
+#pragma warning restore CS0649
+
+#pragma warning disable CS0649
+        private static Action<int, int> _setWindowPositionOverride;
+#pragma warning restore CS0649
+
+#pragma warning disable CS0649
+        private static Action<int, int> _setCursorPositionOverride;
+#pragma warning restore CS0649
 
         private static Lazy<Func<bool, ConsoleKeyInfo>> _readKeyMethod = new Lazy<Func<bool, ConsoleKeyInfo>>(
             () => _readKeyOverride == null ? Console.ReadKey : _readKeyOverride);
+
+        private static Lazy<Action<string>> _writeLineMethod = new Lazy<Action<string>>(
+            () => _writeLineOverride == null ? s => Console.WriteLine(s) : s => _writeLineOverride(s));
+
+        private static Lazy<Action<string>> _writeMethod = new Lazy<Action<string>>(
+            () => _writeOverride == null ? s => Console.Write(s) : s => _writeOverride(s));
+
+        private static Lazy<Action<int, int>> _setWindowsPositionMethod = new Lazy<Action<int, int>>(
+            () => _setWindowPositionOverride == null ? (x, y) => Console.SetWindowPosition(x, y) : (x, y) => _setWindowPositionOverride(x, y));
+
+        private static Lazy<Action<int, int>> _setCursorPositionMethod = new Lazy<Action<int, int>>(
+            () => _setCursorPositionOverride == null ? (x, y) => Console.SetCursorPosition(x, y) : (x, y) => _setCursorPositionOverride(x, y));
 
         public int CursorLeft
         {
@@ -107,12 +135,12 @@ namespace Microsoft.PowerShell.Internal
             set { try { Console.OutputEncoding = value; } catch { } }
         }
 
-        public ConsoleKeyInfo ReadKey()                  => _readKeyMethod.Value(true);
-        public bool KeyAvailable                         => Console.KeyAvailable;
-        public void SetWindowPosition(int left, int top) => Console.SetWindowPosition(left, top);
-        public void SetCursorPosition(int left, int top) => Console.SetCursorPosition(left, top);
-        public virtual void Write(string value)          => Console.Write(value);
-        public virtual void WriteLine(string value)      => Console.WriteLine(value);
-        public virtual void BlankRestOfLine()            => Console.Write("\x1b[K");
+        public ConsoleKeyInfo ReadKey() => _readKeyMethod.Value(true);
+        public bool KeyAvailable => Console.KeyAvailable;
+        public void SetWindowPosition(int left, int top) => _setWindowsPositionMethod.Value(left, top);
+        public void SetCursorPosition(int left, int top) => _setCursorPositionMethod.Value(left, top);
+        public virtual void Write(string value) => _writeMethod.Value(value);
+        public virtual void WriteLine(string value) => _writeLineMethod.Value(value);
+        public virtual void BlankRestOfLine() => _writeMethod.Value("\x1b[K");
     }
 }
