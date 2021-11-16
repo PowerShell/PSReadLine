@@ -4,6 +4,8 @@ on:
   schedule:
     # At 13:00 UTC every day.
     - cron:  '0 13 * * *'
+  issues:
+    types: [opened]
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
