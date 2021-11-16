@@ -1,4 +1,4 @@
-## Close issues that are duplicate to #1306 and #1315
+## Close issues that are duplicate to #1306 and #1315 and #3040
 
 class issue
 {
