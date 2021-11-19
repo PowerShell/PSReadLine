@@ -710,9 +710,7 @@ namespace Microsoft.PowerShell
             }
 
             _previousRender = _initialPrevRender;
-            _previousRender.bufferWidth = _console.BufferWidth;
-            _previousRender.bufferHeight = _console.BufferHeight;
-            _previousRender.errorPrompt = false;
+            _previousRender.UpdateConsoleInfo(_console);
             _buffer.Clear();
             _edits = new List<EditItem>();
             _undoEditIndex = 0;
@@ -1033,6 +1031,7 @@ namespace Microsoft.PowerShell
             _singleton._initialX = console.CursorLeft;
             _singleton._initialY = console.CursorTop;
             _singleton._previousRender = _initialPrevRender;
+            _singleton._previousRender.UpdateConsoleInfo(console);
 
             _singleton.Render();
             console.CursorVisible = true;

@@ -26,6 +26,114 @@ namespace Microsoft.PowerShell
         }
     }
 
+    internal class RenderedLineData
+    {
+        public readonly string Line;
+        private readonly bool _isFirstLogicalLine;
+
+        private int _physicalLineCount, _lengthOfLastPhsicalLine;
+        private int _bufferWidth, _initialX;
+
+        public RenderedLineData(string line, bool isFirstLogicalLine)
+        {
+            Line = line;
+            _isFirstLogicalLine = isFirstLogicalLine;
+        }
+
+        public int PhysicalLineCount(int bufferWidth, int initialX, out int lenLastPhysicalLine)
+        {
+            bool useCachedValues = bufferWidth == _bufferWidth && (!_isFirstLogicalLine || initialX == _initialX);
+            if (useCachedValues)
+            {
+                lenLastPhysicalLine = _lengthOfLastPhsicalLine;
+                return _physicalLineCount;
+            }
+
+            _bufferWidth = bufferWidth;
+            _initialX = initialX;
+
+            // The first logical line has the user prompt.
+            int x = _isFirstLogicalLine ? initialX : 0;
+            int y = 1;
+            lenLastPhysicalLine = 0;
+
+            for (int i = 0; i < Line.Length; i++)
+            {
+                var c = Line[i];
+
+                // Simple escape sequence skipping.
+                if (c == 0x1b && (i + 1) < Line.Length && Line[i + 1] == '[')
+                {
+                    i += 2;
+                    while (i < Line.Length && Line[i] != 'm')
+                    {
+                        i++;
+                    }
+
+                    continue;
+                }
+
+                int size = PSConsoleReadLine.LengthInBufferCells(c);
+                if (x == 0 && lenLastPhysicalLine > 0)
+                {
+                    y++;
+                    lenLastPhysicalLine = 0;
+                }
+
+                x += size;
+                lenLastPhysicalLine += size;
+
+                if (x == bufferWidth)
+                {
+                    x = 0;
+                }
+                else if (x > bufferWidth)
+                {
+                    // It could wrap to the next line in case of a multi-cell character.
+                    // If character didn't fit on current line, it will move entirely to the next line.
+                    x = size;
+                    y++;
+                    lenLastPhysicalLine = size;
+                }
+            }
+
+            _lengthOfLastPhsicalLine = lenLastPhysicalLine;
+            _physicalLineCount = y;
+
+            return y;
+        }
+    }
+
+    internal class RenderData
+    {
+        public int bufferWidth;
+        public int bufferHeight;
+        public int cursorLeft;
+        public int cursorTop;
+        public bool errorPrompt;
+        public RenderedLineData[] lines;
+
+        public void UpdateConsoleInfo(IConsole console)
+        {
+            bufferWidth = console.BufferWidth;
+            bufferHeight = console.BufferHeight;
+            cursorLeft = console.CursorLeft;
+            cursorTop = console.CursorTop;
+        }
+    }
+
+    internal readonly struct RenderDataOffset
+    {
+        public RenderDataOffset(int logicalLineIndex, int visibleCharIndex)
+        {
+            LogicalLineIndex = logicalLineIndex;
+            VisibleCharIndex = visibleCharIndex;
+        }
+
+        public readonly int LogicalLineIndex;
+        public readonly int VisibleCharIndex;
+    }
+
     public partial class PSConsoleReadLine
     {
         struct LineInfoForRendering
@@ -37,27 +145,14 @@ namespace Microsoft.PowerShell
             public int PseudoPhysicalLineOffset;
         }
 
-        struct RenderedLineData
-        {
-            public string line;
-            public int columns;
-        }
-
-        class RenderData
-        {
-            public int bufferWidth;
-            public int bufferHeight;
-            public bool errorPrompt;
-            public RenderedLineData[] lines;
-        }
-
         private const int COMMON_WIDEST_CONSOLE_WIDTH = 160;
-        private readonly List<StringBuilder> _consoleBufferLines = new List<StringBuilder>(1) {new StringBuilder(COMMON_WIDEST_CONSOLE_WIDTH)};
+        private readonly List<StringBuilder> _consoleBufferLines = new(1) {new StringBuilder(COMMON_WIDEST_CONSOLE_WIDTH)};
         private static readonly string[] _spaces = new string[80];
         private RenderData _previousRender;
-        private static readonly RenderData _initialPrevRender = new RenderData
+        private static readonly RenderData _initialPrevRender = new()
         {
-            lines = new[] { new RenderedLineData{ columns = 0, line = ""}}
+            lines = new[] { new RenderedLineData(line: "", isFirstLogicalLine: true) },
+            errorPrompt = false
         };
         private int _initialX;
         private int _initialY;
@@ -145,8 +240,7 @@ namespace Microsoft.PowerShell
             for (var i = 0; i < logicalLineCount; i++)
             {
                 var line = _consoleBufferLines[i].ToString();
-                renderLines[i].line = line;
-                renderLines[i].columns = LengthInBufferCells(line);
+                renderLines[i] = new RenderedLineData(line, isFirstLogicalLine: i == 0);
             }
 
             // And then do the real work of writing to the screen.
@@ -468,52 +562,6 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Given the length of a logical line, calculate the number of physical lines it takes to render
-        /// the logical line on the console.
-        /// </summary>
-        private int PhysicalLineCount(int columns, bool isFirstLogicalLine, out int lenLastPhysicalLine)
-        {
-            if (columns == 0)
-            {
-                // This could happen for a new logical line with an empty-string continuation prompt.
-                lenLastPhysicalLine = 0;
-                return 1;
-            }
-
-            int cnt = 1;
-            int bufferWidth = _console.BufferWidth;
-
-            if (isFirstLogicalLine)
-            {
-                // The first logical line has the user prompt that we don't touch
-                // (except where we turn part to red, but we've finished that
-                // before getting here.)
-                var maxFirstLine = bufferWidth - _initialX;
-                if (columns > maxFirstLine)
-                {
-                    cnt += 1;
-                    columns -= maxFirstLine;
-                }
-                else
-                {
-                    lenLastPhysicalLine = columns;
-                    return 1;
-                }
-            }
-
-            lenLastPhysicalLine = columns % bufferWidth;
-            if (lenLastPhysicalLine == 0)
-            {
-                // Handle the last column when the columns is equal to n * bufferWidth
-                // where n >= 1 integers
-                lenLastPhysicalLine = bufferWidth;
-                return cnt - 1 + columns / bufferWidth;
-            }
-
-            return cnt + columns / bufferWidth;
-        }
-
-        /// <summary>
         /// We avoid re-rendering everything while editing if it's possible.
         /// This method attempts to find the first changed logical line and move the cursor to the right position for the subsequent rendering.
         /// </summary>
@@ -565,9 +613,9 @@ namespace Microsoft.PowerShell
                 for (; logicalLine < minLinesLength; logicalLine++)
                 {
                     // Found the first different logical line? Break out the loop.
-                    if (renderLines[logicalLine].line != previousRenderLines[logicalLine].line) { break; }
+                    if (renderLines[logicalLine].Line != previousRenderLines[logicalLine].Line) { break; }
 
-                    int count = PhysicalLineCount(renderLines[logicalLine].columns, logicalLine == 0, out _);
+                    int count = renderLines[logicalLine].PhysicalLineCount(bufferWidth, _initialX, out _);
                     physicalLine += count;
 
                     if (linesToCheck < 0)
@@ -678,7 +726,7 @@ namespace Microsoft.PowerShell
             }
 
             // In case the buffer was resized
-            RecomputeInitialCoords();
+            RecomputeInitialCoords(isTextBufferUnchanged: false);
             renderData.bufferWidth = bufferWidth;
             renderData.bufferHeight = bufferHeight;
 
@@ -689,8 +737,7 @@ namespace Microsoft.PowerShell
             bool cursorMovedToInitialPos = RenderErrorPrompt(renderData, defaultColor);
 
             // Calculate what to render and where to start the rendering.
-            LineInfoForRendering lineInfoForRendering;
-            CalculateWhereAndWhatToRender(cursorMovedToInitialPos, renderData, out lineInfoForRendering);
+            CalculateWhereAndWhatToRender(cursorMovedToInitialPos, renderData, out LineInfoForRendering lineInfoForRendering);
 
             RenderedLineData[] previousRenderLines = _previousRender.lines;
             int previousLogicalLine = lineInfoForRendering.PreviousLogicalLineIndex;
@@ -710,9 +757,9 @@ namespace Microsoft.PowerShell
                 if (logicalLine != logicalLineStartIndex) _console.Write("\n");
 
                 var lineData = renderLines[logicalLine];
-                _console.Write(lineData.line);
+                _console.Write(lineData.Line);
 
-                physicalLine += PhysicalLineCount(lineData.columns, logicalLine == 0, out int lenLastLine);
+                physicalLine += lineData.PhysicalLineCount(bufferWidth, _initialX, out int lenLastLine);
 
                 // Find the previous logical line (if any) that would have rendered
                 // the current physical line because we may need to clear it.
@@ -722,9 +769,7 @@ namespace Microsoft.PowerShell
                 while (physicalLine > previousPhysicalLine
                     && previousLogicalLine < previousRenderLines.Length)
                 {
-                    previousPhysicalLine += PhysicalLineCount(previousRenderLines[previousLogicalLine].columns,
-                                                              previousLogicalLine == 0,
-                                                              out lenPrevLastLine);
+                    previousPhysicalLine += previousRenderLines[previousLogicalLine].PhysicalLineCount(bufferWidth, _initialX, out lenPrevLastLine);
                     previousLogicalLine += 1;
                 }
 
@@ -768,10 +813,13 @@ namespace Microsoft.PowerShell
                 _console.SetCursorPosition(0, _initialY + currentLines);
 
                 currentLines++;
-                var lenToClear = currentLines == previousPhysicalLine ? lenPrevLastLine : bufferWidth;
-                if (lenToClear > 0)
+                if (currentLines == previousPhysicalLine)
                 {
-                    _console.Write(Spaces(lenToClear));
+                    _console.Write(Spaces(lenPrevLastLine));
+                }
+                else
+                {
+                    _console.BlankRestOfLine();
                 }
             }
 
@@ -791,7 +839,8 @@ namespace Microsoft.PowerShell
                 }
 
                 // No need to write new line if all we need is to clear the extra previous render.
-                _console.Write(Spaces(previousRenderLines[line].columns));
+                int lineCount = previousRenderLines[line].PhysicalLineCount(bufferWidth, _initialX, out _);
+                WriteBlankLines(lineCount);
             }
 
             // Preserve the current render data.
@@ -872,6 +921,9 @@ namespace Microsoft.PowerShell
             _console.SetCursorPosition(point.X, point.Y);
             _console.CursorVisible = true;
 
+            _previousRender.cursorLeft = _console.CursorLeft;
+            _previousRender.cursorTop = _console.CursorTop;
+
             // TODO: set WindowTop if necessary
 
             _lastRenderTime.Restart();
@@ -945,19 +997,90 @@ namespace Microsoft.PowerShell
             }
         }
 
-        private void RecomputeInitialCoords()
+        private void RecomputeInitialCoords(bool isTextBufferUnchanged)
         {
-            if ((_previousRender.bufferWidth != _console.BufferWidth)
-            ||  (_previousRender.bufferHeight != _console.BufferHeight))
+            if (_previousRender.bufferWidth == _console.BufferWidth &&
+                _previousRender.bufferHeight == _console.BufferHeight)
             {
-                // If the buffer width changed, our initial coordinates
-                // may have as well.
+                int left = _console.CursorLeft;
+                int top = _console.CursorTop;
+
+                int preLeft = _previousRender.cursorLeft;
+                int preTop = _previousRender.cursorTop;
+
+                if (preLeft == left && preTop > top)
+                {
+                    // Try to handle a special scenario: the max-size terminal windows gets restored to
+                    // the normal size, and then is immediately changed to max size again.
+                    _initialY -= preTop - top;
+                }
+                else if (left == 0 && top == 0 && preLeft != 0 && preTop != 0)
+                {
+                    // Try to handle a special scenario: a Terminal User Interface (TUI) utility is used
+                    // with a custom key-binding to get rich editing experience, for example:
+                    //   Set-PSReadlineKeyHandler -Chord "Shift+Tab" -ScriptBlock {
+                    //       $s = fzf.exe
+                    //       [Microsoft.PowerShell.PSConsoleReadLine]::Insert($s)
+                    //   }
+                    // The TUI utility will likely erase the screen buffer, so we try writing out prompt
+                    // and start afresh in this case.
+                    string newPrompt = GetPrompt();
+                    if (!string.IsNullOrEmpty(newPrompt))
+                    {
+                        _console.Write(newPrompt);
+                    }
+
+                    _initialX = _console.CursorLeft;
+                    _initialY = _console.CursorTop;
+                    _previousRender = _initialPrevRender;
+                }
+
+                return;
+            }
+
+            // If the console buffer width or height changed, our initial coordinates may have as well.
+            if (isTextBufferUnchanged)
+            {
+                // The '_buffer' and '_current' still reflects what has been rendered on the screen,
+                // so we can use them to re-calculate the initial coordinates in this case.
+
                 // Recompute X from the buffer width:
-                _initialX = _initialX % _console.BufferWidth;
+                _initialX %= _console.BufferWidth;
 
                 // Recompute Y from the cursor
                 _initialY = 0;
+                // Calculate the new cursor position when assuming '_initialY' is at line 0.
                 var pt = ConvertOffsetToPoint(_current);
+                // Update '_initialY' based on the difference from the actual current cursor position after the resize.
+                _initialY = _console.CursorTop - pt.Y;
+            }
+            else
+            {
+                // The '_buffer' and '_current' have changed since the last rendering, so we cannot rely on them
+                // for the re-calculation. A typical example would be the user clears the input with `Escape` after
+                // a resize. That will cause the '_buffer' to be empty and '_current' to be 0 when we reach here.
+                //
+                // Instead, we will use the saved previous cursor position to re-calculate the initial coordinates,
+                // based on the previous rendering data.
+                // First, calculate the offset in the previous rendering data based on the old initial coordinates,
+                // old buffer width, and the old cursor position.
+                RenderDataOffset offset = ConvertPointToRenderDataOffset(_initialX, _initialY, _previousRender);
+                if (offset.LogicalLineIndex == -1)
+                {
+                    // This should never happen unless it's a bug in 'ConvertPointToRenderDataOffset'.
+                    throw new InvalidOperationException();
+                }
+
+                // Recompute X from the buffer width:
+                _initialX %= _console.BufferWidth;
+
+                // Recompute Y from the cursor
+                _initialY = 0;
+                // Now, use the new initial coordinates, new buffer width, and the rendering data offset to calculate
+                // the new cursor position when assuming '_initialY' is at line 0.
+                Point pt = ConvertRenderDataOffsetToPoint(_initialX, _initialY, _console.BufferWidth, _previousRender, offset);
+                // Update '_initialY' based on the difference from the actual current cursor position after the resize.
+                // This is assuming the cursor is still pointing to the same character after resizing.
                 _initialY = _console.CursorTop - pt.Y;
             }
         }
@@ -968,7 +1091,7 @@ namespace Microsoft.PowerShell
             if (!_waitingToRender)
             {
                 // In case the buffer was resized
-                RecomputeInitialCoords();
+                RecomputeInitialCoords(isTextBufferUnchanged: true);
                 _previousRender.bufferWidth = _console.BufferWidth;
                 _previousRender.bufferHeight = _console.BufferHeight;
 
@@ -981,7 +1104,8 @@ namespace Microsoft.PowerShell
 
                 if (point.Y == _console.BufferHeight)
                 {
-                    // The cursor top exceeds the buffer height, so adjust the initial cursor
+                    // The cursor top exceeds the buffer height. This may happen when moving cursor to the end of line,
+                    // while the end of line is actually the end of buffer. In this case, we adjust the initial cursor
                     // position and the to-be-set cursor position for scrolling up the buffer.
                     _initialY -= 1;
                     point.Y -= 1;
@@ -997,6 +1121,9 @@ namespace Microsoft.PowerShell
                 {
                     _console.SetCursorPosition(point.X, point.Y);
                 }
+
+                _previousRender.cursorLeft = _console.CursorLeft;
+                _previousRender.cursorTop = _console.CursorTop;
             }
 
             // While waiting to render, and a keybinding has occured that is moving the cursor,
@@ -1107,6 +1234,296 @@ namespace Microsoft.PowerShell
             // Return -1 if y is out of range, otherwise the last line was shorter
             // than we wanted, but still in range so just return the last offset.
             return (point.Y == y) ? offset : -1;
+        }
+
+        internal Point ConvertRenderDataOffsetToPoint(int initialX, int initialY, int bufferWidth, RenderData renderData, RenderDataOffset offset)
+        {
+            if (offset.LogicalLineIndex == 0 && offset.VisibleCharIndex == -1)
+            {
+                // (0, -1) means the cursor should be right at the initial coordinate.
+                return new Point { X = initialX, Y = initialY };
+            }
+
+            int x = initialX;
+            int y = initialY;
+
+            int lengthOfLastPhysicalLine = -1;
+            int limit = offset.LogicalLineIndex;
+            if (offset.VisibleCharIndex == int.MaxValue)
+            {
+                limit++;
+            }
+
+            // Make sure 'x' and 'y' are pointing to the end of the last processed logical line after this loop ends.
+            for (int i = 0; i < limit; i++)
+            {
+                if (i > 0)
+                {
+                    // Move 'x' and 'y' to the start position where the next logical line would be rendered from.
+                    // If 'x == 0 && lengthOfLastPhysicalLine == 0', it's a special case we need to handle:
+                    //  * the last logical line starts from the beginning of a physical line (x == 0), AND
+                    //  * the last logical line contains no visible character.
+                    if (x > 0 || lengthOfLastPhysicalLine == 0)
+                    {
+                        x = 0;
+                        y++;
+                    }
+                }
+
+                RenderedLineData lineData = renderData.lines[i];
+                int physicalLineCount = lineData.PhysicalLineCount(bufferWidth, initialX, out lengthOfLastPhysicalLine);
+                y += physicalLineCount - 1;
+
+                if (y == initialY)
+                {
+                    x += lengthOfLastPhysicalLine;
+                }
+                else
+                {
+                    x = lengthOfLastPhysicalLine;
+                }
+
+                if (x == bufferWidth)
+                {
+                    // In the case that the length of last physical line takes the whole buffer width,
+                    // the cursor would be pushed to the start of the next line.
+                    x = 0;
+                    y++;
+                }
+            }
+
+            if (offset.VisibleCharIndex == int.MaxValue)
+            {
+                // The cursor is right at the end of the logical line.
+                return new Point { X = x, Y = y };
+            }
+
+            if (limit > 0)
+            {
+                // The logical line we are going to scan character by character is not the first logical line,
+                // so we need to move 'x' and 'y' to the start of the next physical line.
+                if (x > 0 || lengthOfLastPhysicalLine == 0)
+                {
+                    x = 0;
+                    y++;
+                }
+            }
+
+            int visibleCharIndex = -1, size = 0;
+            string line = renderData.lines[limit].Line;
+            for (int i = 0; i < line.Length; i++)
+            {
+                var c = line[i];
+
+                // Simple escape sequence skipping.
+                if (c == 0x1b && (i + 1) < line.Length && line[i + 1] == '[')
+                {
+                    i += 2;
+                    while (i < line.Length && line[i] != 'm')
+                    {
+                        i++;
+                    }
+
+                    continue;
+                }
+
+                visibleCharIndex++;
+                size = LengthInBufferCells(c);
+
+                if (visibleCharIndex == offset.VisibleCharIndex)
+                {
+                    break;
+                }
+
+                x += size;
+                if (x == bufferWidth)
+                {
+                    x = 0;
+                    y++;
+                }
+                else if (x > bufferWidth)
+                {
+                    // It could wrap to the next line in case of a multi-cell character.
+                    // If character didn't fit on current line, it will move entirely to the next line.
+                    x = size;
+                    y++;
+                }
+            }
+
+            // If the offset is pointing to a double-cell character that happens to be wrapped to the next physical line,
+            // then we move 'x' and 'y' to the start of the next physical line, so the new cursor continues to point to
+            // that specific character.
+            if (x + size > bufferWidth)
+            {
+                x = 0;
+                y++;
+            }
+
+            return new Point { X = x, Y = y };
+        }
+
+        internal RenderDataOffset ConvertPointToRenderDataOffset(int initialX, int initialY, RenderData renderData)
+        {
+            int x = initialX;
+            int y = initialY;
+            var point = new Point { X = renderData.cursorLeft, Y = renderData.cursorTop };
+
+            if (point.Y == y && point.X == x)
+            {
+                // The given cursor is the same as the initial coordinate, return (0, -1) in this case.
+                return new RenderDataOffset(logicalLineIndex: 0, visibleCharIndex: -1);
+            }
+
+            if (point.Y < y || (point.Y == y && point.X < x))
+            {
+                // The given cursor is out of range, return (-1, -1).
+                return new RenderDataOffset(-1, -1);
+            }
+
+            int prevX = 0, prevY = 0;
+            int logicalLineIndex = 0;
+            int bufferWidth = renderData.bufferWidth;
+
+            for (; logicalLineIndex < renderData.lines.Length; logicalLineIndex++)
+            {
+                // Make 'prevX' and 'prevY' point to the start position where the current logical line would be rendered from.
+                prevX = x;
+                prevY = y;
+
+                RenderedLineData lineData = renderData.lines[logicalLineIndex];
+                int physicalLineCount = lineData.PhysicalLineCount(bufferWidth, initialX, out int lengthOfLastPhysicalLine);
+                y += physicalLineCount - 1;
+
+                if (y == initialY)
+                {
+                    x += lengthOfLastPhysicalLine;
+                }
+                else
+                {
+                    x = lengthOfLastPhysicalLine;
+                }
+
+                if (x == bufferWidth)
+                {
+                    // In the case that the length of last physical line takes the whole buffer width,
+                    // the cursor would be pushed to the start of the next line.
+                    x = 0;
+                    y++;
+                }
+
+                if (point.Y == y && point.X == x)
+                {
+                    // The cursor is right at the end of the logical line.
+                    // We use 'int.MaxValue' as the character index to indicate that the whole logical line is included.
+                    return new RenderDataOffset(logicalLineIndex, visibleCharIndex: int.MaxValue);
+                }
+
+                if (point.Y < y || (point.Y == y && point.X < x))
+                {
+                    // The current logical line covers where the cursor is pointing at, so we will look for the character
+                    // index within the logical line next.
+                    break;
+                }
+
+                // Now move 'x' and 'y' to the start position where the next logical line would be rendered from.
+                //  - when 'x > 0', move to the start of the next line;
+                //  - when 'x == 0', we either already did this from above, or it's a special case:
+                //     * the current logical line starts from the beginning of a physical line (x == 0), AND
+                //     * the current logical line contains no visible character.
+                if (x > 0 || lengthOfLastPhysicalLine == 0)
+                {
+                    x = 0;
+                    y++;
+                }
+            }
+
+            // If we didn't find the given cursor within the range of the rendered lines, return (-1, -1).
+            if (logicalLineIndex == renderData.lines.Length || point.Y < prevY)
+            {
+                // - logicalLineIndex == renderData.lines.Length
+                //   This could happen when the cursor was somehow pointing to a screen buffer position
+                //   beyond the ending coordinate of the last logical line.
+                //
+                // - point.Y < prevY
+                //   This could happen when the cursor was somehow pointing to a screen buffer position
+                //   on the same last physical line of a logical line, but was beyond the ending X of
+                //   the logical line. For example, the end of the logical line is at (x:3, y:2), and the
+                //   cursor was pointing to (x:7, y:2).
+                //
+                // Both should never happen practically because we should never move cursor to an invalid
+                // position like that. But we need to handle the extreme situation where either of them
+                // just happened due to a bug in our code.
+                return new RenderDataOffset(-1, -1);
+            }
+
+            // Now we have found the logical line that contains the visible character that the cursor was pointing at.
+            // Move 'x' and 'y' back to the start point where that logical line would be rendered from.
+            x = prevX;
+            y = prevY;
+
+            // If it's right at where the cursor was pointing to, then we are done.
+            if (point.Y == y && point.X == x)
+            {
+                return new RenderDataOffset(logicalLineIndex, 0);
+            }
+
+            // Now we will scan the current logical line to find which character the cursor was pointing at.
+            int visibleCharIndex = 0;
+            string line = renderData.lines[logicalLineIndex].Line;
+
+            for (int i = 0; i < line.Length; i++)
+            {
+                var c = line[i];
+
+                // Simple escape sequence skipping.
+                if (c == 0x1b && (i + 1) < line.Length && line[i + 1] == '[')
+                {
+                    i += 2;
+                    while (i < line.Length && line[i] != 'm')
+                    {
+                        i++;
+                    }
+
+                    continue;
+                }
+
+                int size = LengthInBufferCells(c);
+                x += size;
+
+                if (x == bufferWidth)
+                {
+                    x = 0;
+                    y++;
+                }
+                else if (x > bufferWidth)
+                {
+                    // It could wrap to the next line in case of a multi-cell character.
+                    // If character didn't fit on current line, it will move entirely to the next line.
+                    x = size;
+                    y++;
+                }
+
+                if (point.Y == y)
+                {
+                    if (point.X < x)
+                    {
+                        // This could happen when the cursor was pointing to a double-cell character
+                        // that was wrapped to the next physical line -- because there was only one
+                        // cell space left at the end of the previous physical line.
+                        return new RenderDataOffset(logicalLineIndex, visibleCharIndex);
+                    }
+                    else if (point.X == x)
+                    {
+                        // 'x' is pointing to where the next visible character would be rendered.
+                        return new RenderDataOffset(logicalLineIndex, visibleCharIndex + 1);
+                    }
+                }
+
+                visibleCharIndex++;
+            }
+
+            // We should never reach here in theory.
+            return new RenderDataOffset(-1, -1);
         }
 
         /// <summary>
