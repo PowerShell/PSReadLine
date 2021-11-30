@@ -12,6 +12,7 @@ using System.Management.Automation.Language;
 using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.PowerShell.Internal;
+using Microsoft.PowerShell.PSReadLine;
 
 namespace Microsoft.PowerShell
 {
@@ -110,6 +111,7 @@ namespace Microsoft.PowerShell
         public int bufferHeight;
         public int cursorLeft;
         public int cursorTop;
+        public int initialY;
         public bool errorPrompt;
         public RenderedLineData[] lines;
 
@@ -157,6 +159,7 @@ namespace Microsoft.PowerShell
         private int _initialX;
         private int _initialY;
         private bool _waitingToRender;
+        private bool _handlePotentialResizing;
 
         private ConsoleColor _initialForeground;
         private ConsoleColor _initialBackground;
@@ -727,8 +730,6 @@ namespace Microsoft.PowerShell
 
             // In case the buffer was resized
             RecomputeInitialCoords(isTextBufferUnchanged: false);
-            renderData.bufferWidth = bufferWidth;
-            renderData.bufferHeight = bufferHeight;
 
             // Make cursor invisible while we're rendering.
             _console.CursorVisible = false;
@@ -921,8 +922,8 @@ namespace Microsoft.PowerShell
             _console.SetCursorPosition(point.X, point.Y);
             _console.CursorVisible = true;
 
-            _previousRender.cursorLeft = _console.CursorLeft;
-            _previousRender.cursorTop = _console.CursorTop;
+            _previousRender.UpdateConsoleInfo(_console);
+            _previousRender.initialY = _initialY;
 
             // TODO: set WindowTop if necessary
 
@@ -999,6 +1000,30 @@ namespace Microsoft.PowerShell
 
         private void RecomputeInitialCoords(bool isTextBufferUnchanged)
         {
+            if (!_handlePotentialResizing)
+            {
+                return;
+            }
+
+            // We attempt to handle window resizing only once per a keybinding processing, because we assume the
+            // window resizing cannot and shouldn't happen within the processing of a given keybinding.
+            // This is, in particular, to avoid unneeded checks while we are in the 'MenuComplete' or a similar
+            // function that handles some keystroke inputs directly within the function, does rendering multiple
+            // times, and changes cursor position directly by '_console.SetCursorPosition'.
+            // For 'MenuComplete', we will not attempt to handle resizing while the menu is displayed, because
+            // that's simply a wrong thing to do.
+            _handlePotentialResizing = false;
+
+            // Operations like menu completion and inline dynamic help may cause the screen buffer to scroll up,
+            // and '_initialY' would have been adjusted accordingly.
+            // In that case, we need to adjust the old cursor position accordingly too.
+            int preInitialY = _previousRender.initialY;
+            if (preInitialY != _initialY)
+            {
+                _previousRender.cursorTop -= preInitialY - _initialY;
+                _previousRender.initialY = _initialY;
+            }
+
             if (_previousRender.bufferWidth == _console.BufferWidth &&
                 _previousRender.bufferHeight == _console.BufferHeight)
             {
@@ -1068,7 +1093,16 @@ namespace Microsoft.PowerShell
                 if (offset.LogicalLineIndex == -1)
                 {
                     // This should never happen unless it's a bug in 'ConvertPointToRenderDataOffset'.
-                    throw new InvalidOperationException();
+                    string message = string.Format(
+                        CultureInfo.CurrentCulture,
+                        PSReadLineResources.FailedToConvertPointToRenderDataOffset,
+                        _initialX,
+                        _initialY,
+                        _previousRender.bufferWidth,
+                        _previousRender.bufferHeight,
+                        _previousRender.cursorLeft,
+                        _previousRender.cursorTop);
+                    throw new InvalidOperationException(message);
                 }
 
                 // Recompute X from the buffer width:
@@ -1080,7 +1114,11 @@ namespace Microsoft.PowerShell
                 // the new cursor position when assuming '_initialY' is at line 0.
                 Point pt = ConvertRenderDataOffsetToPoint(_initialX, _initialY, _console.BufferWidth, _previousRender, offset);
                 // Update '_initialY' based on the difference from the actual current cursor position after the resize.
-                // This is assuming the cursor is still pointing to the same character after resizing.
+                // This is based on the assumption that the cursor is still pointing to the same character after resizing,
+                // or at least pointing to the physical line where the same character is located after resizing.
+                // However, that assumption is not always guaranteed in Windows Terminal, see the issue:
+                //    https://github.com/microsoft/terminal/issues/10848, and
+                //    https://github.com/microsoft/terminal/issues/10868
                 _initialY = _console.CursorTop - pt.Y;
             }
         }
@@ -1092,8 +1130,6 @@ namespace Microsoft.PowerShell
             {
                 // In case the buffer was resized
                 RecomputeInitialCoords(isTextBufferUnchanged: true);
-                _previousRender.bufferWidth = _console.BufferWidth;
-                _previousRender.bufferHeight = _console.BufferHeight;
 
                 var point = ConvertOffsetToPoint(newCursor);
                 if (point.Y < 0)
@@ -1122,8 +1158,8 @@ namespace Microsoft.PowerShell
                     _console.SetCursorPosition(point.X, point.Y);
                 }
 
-                _previousRender.cursorLeft = _console.CursorLeft;
-                _previousRender.cursorTop = _console.CursorTop;
+                _previousRender.UpdateConsoleInfo(_console);
+                _previousRender.initialY = _initialY;
             }
 
             // While waiting to render, and a keybinding has occured that is moving the cursor,
