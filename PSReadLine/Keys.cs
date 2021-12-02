@@ -114,6 +114,7 @@ namespace Microsoft.PowerShell
         [DllImport("user32.dll", SetLastError = true)]
         public static extern uint MapVirtualKey(ConsoleKey uCode, uint uMapType);
 
+        [DllImport("user32.dll")]
         public static extern int ToUnicodeEx(
        ConsoleKey uVirtKey,
        uint uScanCode,
