@@ -721,6 +721,7 @@ namespace Microsoft.PowerShell
             _mark = 0;
             _emphasisStart = -1;
             _emphasisLength = 0;
+            _ast = null;
             _tokens = null;
             _parseErrors = null;
             _inputAccepted = false;

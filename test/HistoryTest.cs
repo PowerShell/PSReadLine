@@ -201,7 +201,8 @@ namespace Test
                 "Get-SecretInfo -Name mytoken; Get-SecretVault; Register-SecretVault; Remove-Secret apikey; Set-Secret", // 'Set-Secret' Not saved to file.
                 "Set-SecretInfo -Name apikey; Set-SecretVaultDefault; Test-SecretVault; Unlock-SecretVault -password $pwd; Unregister-SecretVault -SecretVault vaultInfo",
                 "Get-ResultFromTwo -Secret1 (Get-Secret -Name blah -AsPlainText) -Secret2 $secret2",
-                "Get-ResultFromTwo -Secret1 (Get-Secret -Name blah -AsPlainText) -Secret2 sdv87ysdfayf798hfasd8f7ha" // '-Secret2' has expr-value argument. Not saved to file.
+                "Get-ResultFromTwo -Secret1 (Get-Secret -Name blah -AsPlainText) -Secret2 sdv87ysdfayf798hfasd8f7ha", // '-Secret2' has expr-value argument. Not saved to file.
+                "$environment -brand $brand -userBitWardenEmail $bwuser -userBitWardenPassword $bwpass" // '-userBitWardenPassword' matches sensitive pattern and it has parsing error. Not save to file.
             };
 
             string[] expectedSavedItems = new[] {
