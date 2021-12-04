@@ -734,6 +734,174 @@ namespace Test
         }
 
         [SkippableFact]
+        public void MenuCompletions_Navigation7()
+        {
+            // Trigger the menu completion from the last line in the screen buffer, which will cause the screen
+            // to scroll up. Then test 'DownArrow' and 'UpArrow' with the following menu to verify if scrolling
+            // was handled correctly:
+            //   Get-Many0   Get-Many3   Get-Many6   Get-Many9   Get-Many12
+            //   Get-Many1   Get-Many4   Get-Many7   Get-Many10  Get-Many13
+            //   Get-Many2   Get-Many5   Get-Many8   Get-Many11  Get-Many14
+
+            var basicScrollingConsole = new BasicScrollingConsole(keyboardLayout: _, width: 60, height: 10);
+            TestSetup(basicScrollingConsole, KeyMode.Cmd, new KeyHandler("Ctrl+Spacebar", PSConsoleReadLine.MenuComplete));
+
+            // Write 12 new-lines, so that the next input will be at the last line of the screen buffer.
+            basicScrollingConsole.Write(new string('\n', 12));
+            AssertCursorLeftTopIs(0, 9);
+
+            Test("Get-Many0", Keys(
+                "Get-Many",
+                CheckThat(() => AssertCursorLeftTopIs(8, 9)),
+                _.Ctrl_Spacebar,
+                // Menu completion will trigger scrolling.
+                CheckThat(() => AssertCursorLeftTopIs(8, 6)),
+                CheckThat(() => AssertScreenIs(top: 12, lines: 4,
+                    TokenClassification.Command, "Get-Many",
+                    TokenClassification.Selection, "0", NextLine,
+                    TokenClassification.Selection, "Get-Many0   ",
+                    TokenClassification.None,
+                    "Get-Many3   Get-Many6   Get-Many9   Get-Many12", NextLine,
+                    "Get-Many1   Get-Many4   Get-Many7   Get-Many10  Get-Many13", NextLine,
+                    "Get-Many2   Get-Many5   Get-Many8   Get-Many11  Get-Many14")),
+
+                _.DownArrow,
+                CheckThat(() => AssertCursorLeftTopIs(8, 6)),
+                CheckThat(() => AssertScreenIs(top: 12, lines: 4,
+                    TokenClassification.Command, "Get-Many",
+                    TokenClassification.Selection, "1", NextLine,
+                    TokenClassification.None,
+                    "Get-Many0   Get-Many3   Get-Many6   Get-Many9   Get-Many12", NextLine,
+                    TokenClassification.Selection, "Get-Many1   ",
+                    TokenClassification.None,
+                    "Get-Many4   Get-Many7   Get-Many10  Get-Many13", NextLine,
+                    "Get-Many2   Get-Many5   Get-Many8   Get-Many11  Get-Many14")),
+
+                _.DownArrow,
+                CheckThat(() => AssertCursorLeftTopIs(8, 6)),
+                CheckThat(() => AssertScreenIs(top: 12, lines: 4,
+                    TokenClassification.Command, "Get-Many",
+                    TokenClassification.Selection, "2", NextLine,
+                    TokenClassification.None,
+                    "Get-Many0   Get-Many3   Get-Many6   Get-Many9   Get-Many12", NextLine,
+                    "Get-Many1   Get-Many4   Get-Many7   Get-Many10  Get-Many13", NextLine,
+                    TokenClassification.Selection, "Get-Many2   ",
+                    TokenClassification.None,
+                    "Get-Many5   Get-Many8   Get-Many11  Get-Many14")),
+
+                _.DownArrow,
+                CheckThat(() => AssertCursorLeftTopIs(8, 6)),
+                CheckThat(() => AssertScreenIs(top: 12, lines: 4,
+                    TokenClassification.Command, "Get-Many",
+                    TokenClassification.Selection, "3", NextLine,
+                    TokenClassification.None, "Get-Many0   ",
+                    TokenClassification.Selection, "Get-Many3   ",
+                    TokenClassification.None,
+                    "Get-Many6   Get-Many9   Get-Many12", NextLine,
+                    "Get-Many1   Get-Many4   Get-Many7   Get-Many10  Get-Many13", NextLine,
+                    "Get-Many2   Get-Many5   Get-Many8   Get-Many11  Get-Many14")),
+
+                _.DownArrow,
+                CheckThat(() => AssertCursorLeftTopIs(8, 6)),
+                CheckThat(() => AssertScreenIs(top: 12, lines: 4,
+                    TokenClassification.Command, "Get-Many",
+                    TokenClassification.Selection, "4", NextLine,
+                    TokenClassification.None,
+                    "Get-Many0   Get-Many3   Get-Many6   Get-Many9   Get-Many12", NextLine,
+                    "Get-Many1   ",
+                    TokenClassification.Selection, "Get-Many4   ",
+                    TokenClassification.None,
+                    "Get-Many7   Get-Many10  Get-Many13", NextLine,
+                    "Get-Many2   Get-Many5   Get-Many8   Get-Many11  Get-Many14")),
+
+                _.DownArrow,
+                CheckThat(() => AssertCursorLeftTopIs(8, 6)),
+                CheckThat(() => AssertScreenIs(top: 12, lines: 4,
+                    TokenClassification.Command, "Get-Many",
+                    TokenClassification.Selection, "5", NextLine,
+                    TokenClassification.None,
+                    "Get-Many0   Get-Many3   Get-Many6   Get-Many9   Get-Many12", NextLine,
+                    "Get-Many1   Get-Many4   Get-Many7   Get-Many10  Get-Many13", NextLine,
+                    "Get-Many2   ",
+                    TokenClassification.Selection, "Get-Many5   ",
+                    TokenClassification.None,
+                    "Get-Many8   Get-Many11  Get-Many14")),
+
+                _.UpArrow,
+                CheckThat(() => AssertCursorLeftTopIs(8, 6)),
+                CheckThat(() => AssertScreenIs(top: 12, lines: 4,
+                    TokenClassification.Command, "Get-Many",
+                    TokenClassification.Selection, "4", NextLine,
+                    TokenClassification.None,
+                    "Get-Many0   Get-Many3   Get-Many6   Get-Many9   Get-Many12", NextLine,
+                    "Get-Many1   ",
+                    TokenClassification.Selection, "Get-Many4   ",
+                    TokenClassification.None,
+                    "Get-Many7   Get-Many10  Get-Many13", NextLine,
+                    "Get-Many2   Get-Many5   Get-Many8   Get-Many11  Get-Many14")),
+
+                _.UpArrow,
+                CheckThat(() => AssertCursorLeftTopIs(8, 6)),
+                CheckThat(() => AssertScreenIs(top: 12, lines: 4,
+                    TokenClassification.Command, "Get-Many",
+                    TokenClassification.Selection, "3", NextLine,
+                    TokenClassification.None, "Get-Many0   ",
+                    TokenClassification.Selection, "Get-Many3   ",
+                    TokenClassification.None,
+                    "Get-Many6   Get-Many9   Get-Many12", NextLine,
+                    "Get-Many1   Get-Many4   Get-Many7   Get-Many10  Get-Many13", NextLine,
+                    "Get-Many2   Get-Many5   Get-Many8   Get-Many11  Get-Many14")),
+
+                _.UpArrow,
+                CheckThat(() => AssertCursorLeftTopIs(8, 6)),
+                CheckThat(() => AssertScreenIs(top: 12, lines: 4,
+                    TokenClassification.Command, "Get-Many",
+                    TokenClassification.Selection, "2", NextLine,
+                    TokenClassification.None,
+                    "Get-Many0   Get-Many3   Get-Many6   Get-Many9   Get-Many12", NextLine,
+                    "Get-Many1   Get-Many4   Get-Many7   Get-Many10  Get-Many13", NextLine,
+                    TokenClassification.Selection, "Get-Many2   ",
+                    TokenClassification.None,
+                    "Get-Many5   Get-Many8   Get-Many11  Get-Many14")),
+
+                _.UpArrow, _.UpArrow,
+                CheckThat(() => AssertCursorLeftTopIs(8, 6)),
+                CheckThat(() => AssertScreenIs(top: 12, lines: 4,
+                    TokenClassification.Command, "Get-Many",
+                    TokenClassification.Selection, "0", NextLine,
+                    TokenClassification.Selection, "Get-Many0   ",
+                    TokenClassification.None,
+                    "Get-Many3   Get-Many6   Get-Many9   Get-Many12", NextLine,
+                    "Get-Many1   Get-Many4   Get-Many7   Get-Many10  Get-Many13", NextLine,
+                    "Get-Many2   Get-Many5   Get-Many8   Get-Many11  Get-Many14")),
+
+                _.LeftArrow,
+                CheckThat(() => AssertCursorLeftTopIs(8, 6)),
+                CheckThat(() => AssertScreenIs(top: 12, lines: 4,
+                    TokenClassification.Command, "Get-Many",
+                    TokenClassification.Selection, "14", NextLine,
+                    TokenClassification.None,
+                    "Get-Many0   Get-Many3   Get-Many6   Get-Many9   Get-Many12", NextLine,
+                    "Get-Many1   Get-Many4   Get-Many7   Get-Many10  Get-Many13", NextLine,
+                    "Get-Many2   Get-Many5   Get-Many8   Get-Many11  ",
+                    TokenClassification.Selection, "Get-Many14  ", NextLine)),
+
+                _.RightArrow,
+                CheckThat(() => AssertCursorLeftTopIs(8, 6)),
+                CheckThat(() => AssertScreenIs(top: 12, lines: 4,
+                    TokenClassification.Command, "Get-Many",
+                    TokenClassification.Selection, "0", NextLine,
+                    TokenClassification.Selection, "Get-Many0   ",
+                    TokenClassification.None,
+                    "Get-Many3   Get-Many6   Get-Many9   Get-Many12", NextLine,
+                    "Get-Many1   Get-Many4   Get-Many7   Get-Many10  Get-Many13", NextLine,
+                    "Get-Many2   Get-Many5   Get-Many8   Get-Many11  Get-Many14")),
+                _.Enter,
+                _.Enter),
+                resetCursor: false);
+        }
+
+        [SkippableFact]
         public void MenuCompletions_ClearProperly()
         {
             TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+Spacebar", PSConsoleReadLine.MenuComplete));
@@ -854,6 +1022,269 @@ namespace Test
                 _.Enter,
                 _.Enter
             ));
+        }
+
+        [SkippableFact]
+        public void MenuCompletions_HandleScrolling1()
+        {
+            // This test case covers the fix to https://github.com/PowerShell/PSReadLine/issues/2928.
+            var basicScrollingConsole = new BasicScrollingConsole(keyboardLayout: _, width: 133, height: 10);
+            TestSetup(basicScrollingConsole, KeyMode.Cmd, new KeyHandler("Ctrl+Spacebar", PSConsoleReadLine.MenuComplete));
+
+            // Write 12 new-lines, so that the next input will be at the last line of the screen buffer.
+            basicScrollingConsole.Write(new string('\n', 12));
+            AssertCursorLeftTopIs(0, 9);
+
+            // Input length: 131; BufferWidth: 133. MenuComplete on '[reg' will first get '[regex', which makes the line
+            // fit exactly the whole buffer width, and thus will cause screen scrolling when the current line is at the
+            // last line of the screen buffer.
+            string input = @"$instMods = 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' -replace [reg] $env:HOMEPATH ,""`$env:HOMEPATH""";
+
+            Test(input, Keys(
+                input,
+                CheckThat(() => AssertCursorLeftTopIs(131, 9)),
+                _.Ctrl_LeftArrow, _.Ctrl_LeftArrow, _.Ctrl_LeftArrow, _.Ctrl_LeftArrow,
+                _.LeftArrow, _.LeftArrow,
+                CheckThat(() => AssertCursorLeftTopIs(98, 9)),
+                _.Ctrl_Spacebar,
+                CheckThat(() => AssertCursorLeftTopIs(98, 6)),
+                CheckThat(() => AssertScreenIs(top: 12, lines: 4,
+                    TokenClassification.Variable, "$instMods",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Operator, '=',
+                    TokenClassification.None, ' ',
+                    TokenClassification.String, "'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Operator, "-replace",
+                    TokenClassification.None, " [",
+                    TokenClassification.Type, "reg",
+                    TokenClassification.Selection, "ex",
+                    TokenClassification.None, "] ",
+                    TokenClassification.Variable, "$env:HOMEPATH",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Operator, ',',
+                    TokenClassification.String, @"""`$env:HOMEPATH""",
+                    TokenClassification.None, _emptyLine,
+                    TokenClassification.Selection, "Regex                                    ",
+                    TokenClassification.None, "RegionInfo                               RegisterPSSessionConfigurationCommand", NextLine,
+                    TokenClassification.None, "RegexCompilationInfo                     RegisterArgumentCompleterCommand         RegistryProviderSetItemDynamicParameter")),
+
+                _.RightArrow,
+                CheckThat(() => AssertCursorLeftTopIs(119, 6)),
+                CheckThat(() => AssertScreenIs(top: 12, lines: 4,
+                    TokenClassification.Variable, "$instMods",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Operator, '=',
+                    TokenClassification.None, ' ',
+                    TokenClassification.String, "'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Operator, "-replace",
+                    TokenClassification.None, " [",
+                    TokenClassification.Type, "System.Globalization.Reg",
+                    TokenClassification.Selection, "ionInfo",
+                    TokenClassification.None, "] ",
+                    TokenClassification.Variable, "$env:HOMEPATH",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Operator, ',',
+                    TokenClassification.String, @"""`$env:HOMEPATH""",
+                    NextLine,
+                    TokenClassification.None, "Regex                                    ",
+                    TokenClassification.Selection, "RegionInfo                               ",
+                    TokenClassification.None, "RegisterPSSessionConfigurationCommand", NextLine,
+                    TokenClassification.None, "RegexCompilationInfo                     RegisterArgumentCompleterCommand         RegistryProviderSetItemDynamicParameter")),
+
+                _.Escape,
+                CheckThat(() => AssertCursorLeftTopIs(98, 6)),
+                CheckThat(() => AssertScreenIs(top: 12, lines: 4,
+                    TokenClassification.Variable, "$instMods",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Operator, '=',
+                    TokenClassification.None, ' ',
+                    TokenClassification.String, "'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Operator, "-replace",
+                    TokenClassification.None, " [",
+                    TokenClassification.Type, "reg",
+                    TokenClassification.None, "] ",
+                    TokenClassification.Variable, "$env:HOMEPATH",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Operator, ',',
+                    TokenClassification.String, @"""`$env:HOMEPATH""",
+                    NextLine,
+                    NextLine,
+                    NextLine,
+                    NextLine)),
+
+                _.Enter),
+            resetCursor: false);
+        }
+
+        [SkippableFact]
+        public void MenuCompletions_HandleScrolling2()
+        {
+            // This test case covers the fix to https://github.com/PowerShell/PSReadLine/issues/2948.
+            var basicScrollingConsole = new BasicScrollingConsole(keyboardLayout: _, width: 133, height: 10);
+            TestSetup(basicScrollingConsole, KeyMode.Cmd, new KeyHandler("Ctrl+Spacebar", PSConsoleReadLine.MenuComplete));
+
+            // Write 12 new-lines, so that the next input will be at the last line of the screen buffer.
+            basicScrollingConsole.Write(new string('\n', 12));
+            AssertCursorLeftTopIs(0, 9);
+
+            // Input length: 69; BufferWidth: 133.
+            // MenuComplete on '[reg' contains one entry that will make the line fit exactly the whole buffer width,
+            // and thus will cause screen scrolling. But that entry is not the first one in the menu.
+            string input = @"'AAAAAAAAAAAAAAAAAAAAA' -replace [reg] $env:HOMEPATH ,'$env:HOMEPATH'";
+
+            Test(input, Keys(
+                input,
+                CheckThat(() => AssertCursorLeftTopIs(69, 9)),
+                _.Ctrl_LeftArrow, _.Ctrl_LeftArrow, _.Ctrl_LeftArrow, _.Ctrl_LeftArrow,
+                _.LeftArrow, _.LeftArrow,
+                CheckThat(() => AssertCursorLeftTopIs(37, 9)),
+                _.Ctrl_Spacebar,
+                CheckThat(() => AssertCursorLeftTopIs(37, 7)),
+                CheckThat(() => AssertScreenIs(top: 12, lines: 3,
+                    TokenClassification.String, "'AAAAAAAAAAAAAAAAAAAAA'",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Operator, "-replace",
+                    TokenClassification.None, " [",
+                    TokenClassification.Type, "reg",
+                    TokenClassification.Selection, "ex",
+                    TokenClassification.None, "] ",
+                    TokenClassification.Variable, "$env:HOMEPATH",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Operator, ',',
+                    TokenClassification.String, "'$env:HOMEPATH'",
+                    NextLine,
+                    TokenClassification.Selection, "Regex                                    ",
+                    TokenClassification.None, "RegionInfo                               RegisterPSSessionConfigurationCommand", NextLine,
+                    TokenClassification.None, "RegexCompilationInfo                     RegisterArgumentCompleterCommand         RegistryProviderSetItemDynamicParameter")),
+
+                _.RightArrow,
+                CheckThat(() => AssertCursorLeftTopIs(58, 7)),
+                CheckThat(() => AssertScreenIs(top: 12, lines: 3,
+                    TokenClassification.String, "'AAAAAAAAAAAAAAAAAAAAA'",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Operator, "-replace",
+                    TokenClassification.None, " [",
+                    TokenClassification.Type, "System.Globalization.Reg",
+                    TokenClassification.Selection, "ionInfo",
+                    TokenClassification.None, "] ",
+                    TokenClassification.Variable, "$env:HOMEPATH",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Operator, ',',
+                    TokenClassification.String, "'$env:HOMEPATH'",
+                    NextLine,
+                    TokenClassification.None, "Regex                                    ",
+                    TokenClassification.Selection, "RegionInfo                               ",
+                    TokenClassification.None, "RegisterPSSessionConfigurationCommand", NextLine,
+                    TokenClassification.None, "RegexCompilationInfo                     RegisterArgumentCompleterCommand         RegistryProviderSetItemDynamicParameter")),
+
+                _.RightArrow,
+                CheckThat(() => AssertCursorLeftTopIs(67, 6)),
+                CheckThat(() => AssertScreenIs(top: 12, lines: 4,
+                    TokenClassification.String, "'AAAAAAAAAAAAAAAAAAAAA'",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Operator, "-replace",
+                    TokenClassification.None, " [",
+                    TokenClassification.Type, "Microsoft.PowerShell.Commands.Reg",
+                    TokenClassification.Selection, "isterPSSessionConfigurationCommand",
+                    TokenClassification.None, "] ",
+                    TokenClassification.Variable, "$env:HOMEPATH",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Operator, ',',
+                    TokenClassification.String, "'$env:HOMEPATH'",
+                    TokenClassification.None, _emptyLine,
+                    TokenClassification.None, "Regex                                    RegionInfo                               ",
+                    TokenClassification.Selection, "RegisterPSSessionConfigurationCommand    ", NextLine,
+                    TokenClassification.None, "RegexCompilationInfo                     RegisterArgumentCompleterCommand         RegistryProviderSetItemDynamicParameter")),
+
+                _.RightArrow,
+                CheckThat(() => AssertCursorLeftTopIs(49, 6)),
+                CheckThat(() => AssertScreenIs(top: 12, lines: 4,
+                    TokenClassification.String, "'AAAAAAAAAAAAAAAAAAAAA'",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Operator, "-replace",
+                    TokenClassification.None, " [",
+                    TokenClassification.Type, "System.Text.Reg",
+                    TokenClassification.Selection, "ularExpressions.RegexCompilationInfo",
+                    TokenClassification.None, "] ",
+                    TokenClassification.Variable, "$env:HOMEPATH",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Operator, ',',
+                    TokenClassification.String, "'$env:HOMEPATH'",
+                    NextLine,
+                    TokenClassification.None, "Regex                                    RegionInfo                               RegisterPSSessionConfigurationCommand",
+                    NextLine,
+                    TokenClassification.Selection, "RegexCompilationInfo                     ",
+                    TokenClassification.None, "RegisterArgumentCompleterCommand         RegistryProviderSetItemDynamicParameter",
+                    NextLine,
+                    NextLine)),
+
+                _.RightArrow,
+                CheckThat(() => AssertCursorLeftTopIs(66, 6)),
+                CheckThat(() => AssertScreenIs(top: 12, lines: 4,
+                    TokenClassification.String, "'AAAAAAAAAAAAAAAAAAAAA'",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Operator, "-replace",
+                    TokenClassification.None, " [",
+                    TokenClassification.Type, "System.Management.Automation.Reg",
+                    TokenClassification.Selection, "isterArgumentCompleterCommand",
+                    TokenClassification.None, "] ",
+                    TokenClassification.Variable, "$env:HOMEPATH",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Operator, ',',
+                    TokenClassification.String, "'$env:HOMEPATH'",
+                    NextLine,
+                    TokenClassification.None, "Regex                                    RegionInfo                               RegisterPSSessionConfigurationCommand",
+                    NextLine,
+                    TokenClassification.None, "RegexCompilationInfo                     ",
+                    TokenClassification.Selection, "RegisterArgumentCompleterCommand         ",
+                    TokenClassification.None, "RegistryProviderSetItemDynamicParameter",
+                    NextLine,
+                    NextLine)),
+
+                _.RightArrow,
+                CheckThat(() => AssertCursorLeftTopIs(67, 6)),
+                CheckThat(() => AssertScreenIs(top: 12, lines: 4,
+                    TokenClassification.String, "'AAAAAAAAAAAAAAAAAAAAA'",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Operator, "-replace",
+                    TokenClassification.None, " [",
+                    TokenClassification.Type, "Microsoft.PowerShell.Commands.Reg",
+                    TokenClassification.Selection, "istryProviderSetItemDynamicParameter",
+                    TokenClassification.None, "] ",
+                    TokenClassification.Variable, "$env:HOMEPATH",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Operator, ',',
+                    TokenClassification.String, "'$env:HOMEPATH'",
+                    NextLine,
+                    TokenClassification.None, "Regex                                    RegionInfo                               RegisterPSSessionConfigurationCommand",
+                    NextLine,
+                    TokenClassification.None, "RegexCompilationInfo                     RegisterArgumentCompleterCommand         ",
+                    TokenClassification.Selection, "RegistryProviderSetItemDynamicParameter  ",
+                    NextLine)),
+
+                _.Escape,
+                CheckThat(() => AssertCursorLeftTopIs(37, 6)),
+                CheckThat(() => AssertScreenIs(top: 12, lines: 4,
+                    TokenClassification.String, "'AAAAAAAAAAAAAAAAAAAAA'",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Operator, "-replace",
+                    TokenClassification.None, " [",
+                    TokenClassification.Type, "reg",
+                    TokenClassification.None, "] ",
+                    TokenClassification.Variable, "$env:HOMEPATH",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Operator, ',',
+                    TokenClassification.String, "'$env:HOMEPATH'",
+                    NextLine,
+                    NextLine,
+                    NextLine,
+                    NextLine)),
+
+                _.Enter),
+            resetCursor: false);
         }
 
         [SkippableFact]
@@ -996,10 +1427,58 @@ namespace Test
                     replacementLength = 6;
                     completions.Add(new CompletionResult("Get-MockDynamicParameters"));
                     completions.Add(new CompletionResult("Get-Module"));
+                    break;
                 }
+
+                int index = input.IndexOf("[reg]");
+                if (index > 0 && index + 4 == cursor)
+                {
+                    // cursor is pointing at ']'.
+                    replacementIndex = index + 1;
+                    replacementLength = 3;
+                    completions.Add(
+                        new CompletionResult(
+                            "regex",
+                            "Regex",
+                            CompletionResultType.Type,
+                            "regex"));
+                    completions.Add(
+                        new CompletionResult(
+                            "System.Text.RegularExpressions.RegexCompilationInfo",
+                            "RegexCompilationInfo",
+                            CompletionResultType.Type,
+                            "System.Text.RegularExpressions.RegexCompilationInfo"));
+                    completions.Add(
+                        new CompletionResult(
+                            "System.Globalization.RegionInfo",
+                            "RegionInfo",
+                            CompletionResultType.Type,
+                            "System.Globalization.RegionInfo"));
+                    completions.Add(
+                        new CompletionResult(
+                            "System.Management.Automation.RegisterArgumentCompleterCommand",
+                            "RegisterArgumentCompleterCommand",
+                            CompletionResultType.Type,
+                            "System.Management.Automation.RegisterArgumentCompleterCommand"));
+                    completions.Add(
+                        new CompletionResult(
+                            "Microsoft.PowerShell.Commands.RegisterPSSessionConfigurationCommand",
+                            "RegisterPSSessionConfigurationCommand",
+                            CompletionResultType.Type,
+                            "Microsoft.PowerShell.Commands.RegisterPSSessionConfigurationCommand"));
+                    completions.Add(
+                        new CompletionResult(
+                            "Microsoft.PowerShell.Commands.RegistryProviderSetItemDynamicParameter",
+                            "RegistryProviderSetItemDynamicParameter",
+                            CompletionResultType.Type,
+                            "Microsoft.PowerShell.Commands.RegistryProviderSetItemDynamicParameter"));
+                    break;
+                }
+
                 break;
             }
 
+            //new CommandCompletion(completions, currentMatchIndex, replacementIndex, replacementLength);
             return (CommandCompletion)ctor.Invoke(
                 new object[] {completions, currentMatchIndex, replacementIndex, replacementLength});
         }

@@ -867,6 +867,7 @@ namespace Microsoft.PowerShell
                         // getting shorter or longer.
                         var endOfCommandLine = ConvertOffsetToPoint(_buffer.Length);
                         var topAdjustment = (endOfCommandLine.Y + 1) - menu.Top;
+                        int oldInitialY = _initialY;
 
                         if (topAdjustment != 0)
                         {
@@ -877,6 +878,14 @@ namespace Microsoft.PowerShell
                             // Render did not clear the rest of the command line which flowed
                             // into the menu, so we must do that here.
                             menu.SaveCursor();
+
+                            if (oldInitialY > _initialY)
+                            {
+                                // Scrolling happened when drawing the menu, so we need to adjust
+                                // this point as it was calculated before drawing the menu.
+                                endOfCommandLine.Y -= oldInitialY - _initialY;
+                            }
+
                             _console.SetCursorPosition(endOfCommandLine.X, endOfCommandLine.Y);
                             _console.Write(Spaces(_console.BufferWidth - endOfCommandLine.X));
                             menu.RestoreCursor();

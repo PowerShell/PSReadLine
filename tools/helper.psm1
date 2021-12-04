@@ -1,5 +1,5 @@
 
-$MinimalSDKVersion = '6.0.100-preview.1.21103.13'
+$MinimalSDKVersion = '6.0.100'
 $IsWindowsEnv = [System.Environment]::OSVersion.Platform -eq "Win32NT"
 $RepoRoot = (Resolve-Path "$PSScriptRoot/..").Path
 $LocalDotnetDirPath = if ($IsWindowsEnv) { "$env:LocalAppData\Microsoft\dotnet" } else { "$env:HOME/.dotnet" }

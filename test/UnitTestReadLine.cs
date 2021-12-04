@@ -429,7 +429,12 @@ namespace Test
 
         private void AssertScreenIs(int lines, params object[] items)
         {
-            var consoleBuffer = _console.ReadBufferLines(0, lines);
+            AssertScreenIs(top: 0, lines, items);
+        }
+
+        private void AssertScreenIs(int top, int lines, params object[] items)
+        {
+            var consoleBuffer = _console.ReadBufferLines(top, lines);
 
             var expectedBuffer = CreateCharInfoBuffer(lines, items);
             Assert.Equal(expectedBuffer.Length, consoleBuffer.Length);

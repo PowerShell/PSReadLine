@@ -57,43 +57,54 @@ namespace Test
         }
     }
 
-
     internal class TestConsole : IConsole
     {
         internal int index;
         internal object[] inputOrValidateItems;
         internal Exception validationFailure;
-        private readonly CHAR_INFO[] buffer;
-        private readonly int _bufferWidth;
-        private readonly int _bufferHeight;
-        private readonly int _windowWidth;
-        private readonly int _windowHeight;
-        private readonly dynamic _keyboardLayout;
-        private bool _ignoreNextNewline;
 
+        protected readonly CHAR_INFO[] buffer;
+        protected readonly int _bufferWidth;
+        protected readonly int _windowWidth;
+        protected readonly int _bufferHeight;
+        protected readonly int _windowHeight;
+        protected dynamic _keyboardLayout;
+
+        private bool _ignoreNextNewline;
+        private bool _negative;
+        private ConsoleColor _foregroundColor;
+        private ConsoleColor _backgroundColor;
+
+        /// <summary>
+        /// Use big enough window/buffer to avoid the need to implement scrolling.
+        /// </summary>
         internal TestConsole(dynamic keyboardLayout)
+            : this(width: 60, height: 1000, mimicScrolling: false)
         {
             _keyboardLayout = keyboardLayout;
-            BackgroundColor = ReadLine.BackgroundColors[0];
-            ForegroundColor = ReadLine.Colors[0];
-            CursorLeft = 0;
-            CursorTop = 0;
-            _bufferWidth = _windowWidth = 60;
-            _bufferHeight = _windowHeight = 1000; // big enough to avoid the need to implement scrolling
-            buffer = new CHAR_INFO[BufferWidth * BufferHeight];
-            ClearBuffer();
         }
 
-        internal TestConsole(int width, int height, dynamic keyboardLayout)
+        /// <summary>
+        /// Use specific window width and height without scrolling capability.
+        /// </summary>
+        internal TestConsole(dynamic keyboardLayout, int width, int height)
+            : this(width, height, mimicScrolling: false)
         {
             _keyboardLayout = keyboardLayout;
+        }
+
+        protected TestConsole(int width, int height, bool mimicScrolling)
+        {
             BackgroundColor = ReadLine.BackgroundColors[0];
             ForegroundColor = ReadLine.Colors[0];
             CursorLeft = 0;
             CursorTop = 0;
             _bufferWidth = _windowWidth = width;
-            _bufferHeight = _windowHeight = height; // big enough to avoid the need to implement scrolling
-            buffer = new CHAR_INFO[BufferWidth * BufferHeight];
+            _bufferHeight = _windowHeight = height;
+
+            // Use a big enough buffer when we are mimicing scrolling.
+            int bufferSize = mimicScrolling ? BufferWidth * 1000 : BufferWidth * BufferHeight;
+            buffer = new CHAR_INFO[bufferSize];
             ClearBuffer();
         }
 
@@ -104,7 +115,7 @@ namespace Test
             this.validationFailure = null;
         }
 
-        public ConsoleKeyInfo ReadKey()
+        public virtual ConsoleKeyInfo ReadKey()
         {
             while (index < inputOrValidateItems.Length)
             {
@@ -133,67 +144,63 @@ namespace Test
             return _keyboardLayout.Ctrl_c;
         }
 
-        public bool KeyAvailable => index < inputOrValidateItems.Length && inputOrValidateItems[index] is ConsoleKeyInfo;
+        public virtual bool KeyAvailable => index < inputOrValidateItems.Length && inputOrValidateItems[index] is ConsoleKeyInfo;
 
-        public int CursorLeft { get; set; }
-        public int CursorTop { get; set; }
+        public virtual int CursorLeft { get; set; }
+        public virtual int CursorTop { get; set; }
 
-        public int CursorSize { get; set; }
-        public bool CursorVisible { get; set; }
+        public virtual int CursorSize { get; set; }
+        public virtual bool CursorVisible { get; set; }
 
-        public int BufferWidth
+        public virtual int BufferWidth
         {
             get => _bufferWidth;
             set => throw new NotImplementedException();
         }
 
-        public int BufferHeight
+        public virtual int BufferHeight
         {
             get => _bufferHeight;
             set => throw new NotImplementedException();
         }
 
-        public int WindowWidth
+        public virtual int WindowWidth
         {
             get => _windowWidth;
             set => throw new NotImplementedException();
         }
 
-        public int WindowHeight
+        public virtual int WindowHeight
         {
             get => _windowHeight;
             set => throw new NotImplementedException();
         }
 
-        public int WindowTop { get; set; }
+        public virtual int WindowTop { get; set; }
 
-        public ConsoleColor BackgroundColor
+        public virtual ConsoleColor BackgroundColor
         {
             get => _backgroundColor;
-            set => _backgroundColor = Negative ? (ConsoleColor)((int)value ^ 7) : value;
+            set => _backgroundColor = _negative ? (ConsoleColor)((int)value ^ 7) : value;
         }
-        private ConsoleColor _backgroundColor;
 
-        public ConsoleColor ForegroundColor
+        public virtual ConsoleColor ForegroundColor
         {
             get => _foregroundColor;
-            set => _foregroundColor = Negative ? (ConsoleColor)((int)value ^ 7) : value;
+            set => _foregroundColor = _negative ? (ConsoleColor)((int)value ^ 7) : value;
         }
-        private ConsoleColor _foregroundColor;
 
-        public Encoding OutputEncoding
+        public virtual Encoding OutputEncoding
         {
             get => Encoding.Default;
             set { }
         }
 
-        private bool Negative;
-
-        public void SetWindowPosition(int left, int top)
+        public virtual void SetWindowPosition(int left, int top)
         {
         }
 
-        public void SetCursorPosition(int left, int top)
+        public virtual void SetCursorPosition(int left, int top)
         {
             if (left != CursorLeft || top != CursorTop)
             {
@@ -204,7 +211,7 @@ namespace Test
             CursorTop = top;
         }
 
-        public void WriteLine(string s)
+        public virtual void WriteLine(string s)
         {
             // Crappy code here - no checks for a string that's too long, no scrolling.
             Write(s);
@@ -212,8 +219,7 @@ namespace Test
             CursorTop += 1;
         }
 
-        static readonly char[] endEscapeChars = { 'm', 'J' };
-        public void Write(string s)
+        public virtual void Write(string s)
         {
             // Crappy code here - no checks for a string that's too long, no scrolling.
             var writePos = CursorTop * BufferWidth + CursorLeft;
@@ -277,7 +283,7 @@ namespace Test
             }
         }
 
-        public void BlankRestOfLine()
+        public virtual void BlankRestOfLine()
         {
             var writePos = CursorTop * BufferWidth + CursorLeft;
             for (int i = 0; i < BufferWidth - CursorLeft; i++)
@@ -288,13 +294,13 @@ namespace Test
             }
         }
 
-        public void Clear()
+        public virtual void Clear()
         {
             SetCursorPosition(0, 0);
             ClearBuffer();
         }
 
-        void ClearBuffer()
+        protected void ClearBuffer()
         {
             for (int i = 0; i < buffer.Length; i++)
             {
@@ -310,17 +316,19 @@ namespace Test
             return result;
         }
 
+        protected static readonly char[] endEscapeChars = { 'm', 'J' };
         private static readonly ConsoleColor DefaultForeground = ReadLine.Colors[0];
         private static readonly ConsoleColor DefaultBackground = ReadLine.BackgroundColors[0];
 
         private static void ToggleNegative(TestConsole c, bool b)
         {
-            c.Negative = false;
+            c._negative = false;
             c.ForegroundColor = (ConsoleColor)((int)c.ForegroundColor ^ 7);
             c.BackgroundColor = (ConsoleColor)((int)c.BackgroundColor ^ 7);
-            c.Negative = b;
+            c._negative = b;
         }
-        private static readonly Dictionary<string, Action<TestConsole>> EscapeSequenceActions = new Dictionary<string, Action<TestConsole>> {
+        protected static readonly Dictionary<string, Action<TestConsole>> EscapeSequenceActions = new()
+        {
             {"7", c => ToggleNegative(c, true) },
             {"27", c => ToggleNegative(c, false) },
             {"40", c => c.BackgroundColor = ConsoleColor.Black},
@@ -364,5 +372,144 @@ namespace Test
             {"2J", c => c.SetCursorPosition(0, 0) }
         };
     }
-}
 
+    internal class BasicScrollingConsole : TestConsole
+    {
+        private int _offset;
+
+        internal BasicScrollingConsole(dynamic keyboardLayout, int width, int height)
+            : base(width, height, mimicScrolling: true)
+        {
+            _keyboardLayout = keyboardLayout;
+            _offset = 0;
+        }
+
+        private void AdjustCursorWhenNeeded()
+        {
+            // If the last character written out happened to be in the last cell
+            // of a physical line, we need to adjust the cursor.
+            if (CursorLeft == BufferWidth)
+            {
+                CursorLeft = 0;
+                CursorTop++;
+            }
+
+            // After adjusting the cursor, we may need to handle scrolling in case
+            // that the cursor top went beyond the buffer height.
+            if (CursorTop == BufferHeight)
+            {
+                _offset++;
+                CursorTop--;
+            }
+        }
+
+        public override void SetCursorPosition(int left, int top)
+        {
+            if (left < 0 || left >= _bufferWidth)
+            {
+                throw new ArgumentOutOfRangeException(nameof(left), $"Value should be >= 0 and < BufferWidth({_bufferWidth}), but it's {left}.");
+            }
+
+            if (top < 0 || top >= _bufferHeight)
+            {
+                throw new ArgumentOutOfRangeException(nameof(top), $"Value should be >= 0 and < BufferHeight({_bufferHeight}), but it's {top}.");
+            }
+
+            CursorLeft = left;
+            CursorTop = top;
+        }
+
+        public override void WriteLine(string s)
+        {
+            Write(s);
+            CursorLeft = 0;
+            CursorTop += 1;
+
+            AdjustCursorWhenNeeded();
+        }
+
+        public override void Write(string s)
+        {
+            // Crappy code here - no checks for a string that's too long, basic scrolling handling.
+            var writePos = (_offset + CursorTop) * BufferWidth + CursorLeft;
+            for (int i = 0; i < s.Length; i++)
+            {
+                if (s[i] == (char)0x1b)
+                {
+                    // Escape sequence - limited support here, and assumed to be well formed.
+                    if (s[i + 1] != '[') throw new ArgumentException("Unexpected escape sequence", nameof(s));
+
+                    var endSequence = s.IndexOfAny(endEscapeChars, i);
+                    var len = endSequence - i - (s[endSequence] != 'm' ? 1 : 2);
+                    var escapeSequence = s.Substring(i + 2, len);
+                    foreach (var subsequence in escapeSequence.Split(';'))
+                    {
+                        EscapeSequenceActions[subsequence](this);
+                    }
+                    i = endSequence;
+                    continue;
+                }
+
+                if (s[i] == '\b')
+                {
+                    CursorLeft -= 1;
+                    if (CursorLeft < 0)
+                    {
+                        CursorTop -= 1;
+                        CursorLeft = BufferWidth - 1;
+                    }
+                }
+                else if (s[i] == '\n')
+                {
+                    CursorTop += 1;
+                    CursorLeft = 0;
+
+                    // Explicitly writing a new-line may trigger scrolling.
+                    AdjustCursorWhenNeeded();
+                    writePos = (_offset + CursorTop) * BufferWidth;
+                }
+                else
+                {
+                    AdjustCursorWhenNeeded();
+                    CursorLeft += 1;
+
+                    // When 'CursorLeft == BufferWidth', it means the current character will take up the last cell in the current physical line.
+                    // Assuming the current physical line is 'Y'.
+                    // In such a case, Windows Terminal will set the cursor position to be the following after writing out the character in the
+                    // last cell of the current physical line:
+                    //   CursorLeft: BufferWidth - 1
+                    //   CursorTop: Y
+                    // It doesn't directly set the cursor to be (0, Y+1) in this case, but when there are more visible characters (non-control chars)
+                    // to be written, it will automatically adjust the cursor position to be (2, Y+1) after writing out the next visible character.
+                    //
+                    // This behavior makes handling the new-line character '\n' much easier -- you can simply set the cursor to be (0, top+1), and
+                    // then take care of scrolling if needed.
+                    // So, we mimic that behavior here: we allow 'CursorLeft' to be 'BufferWidth' after 'CursorLeft += 1' above, and we adjust the
+                    // cursor when we are about to write a new visible character.
+
+                    buffer[writePos].UnicodeChar = s[i];
+                    buffer[writePos].BackgroundColor = BackgroundColor;
+                    buffer[writePos].ForegroundColor = ForegroundColor;
+                    writePos += 1;
+                }
+            }
+        }
+
+        public override void BlankRestOfLine()
+        {
+            var writePos = (_offset + CursorTop) * BufferWidth + CursorLeft;
+            for (int i = 0; i < BufferWidth - CursorLeft; i++)
+            {
+                buffer[writePos + i].UnicodeChar = ' ';
+                buffer[writePos + i].BackgroundColor = BackgroundColor;
+                buffer[writePos + i].ForegroundColor = ForegroundColor;
+            }
+        }
+
+        public override void Clear()
+        {
+            _offset = 0;
+            base.Clear();
+        }
+    }
+}
