@@ -60,10 +60,8 @@ If you want to remove that beta version of PSReadLine and use the 2.1.0 version 
     }
     elseif ($title.Contains('https://github.com/PowerShell/PSReadLine/issues/new') -or
             $body.Contains('https://github.com/PowerShell/PSReadLine/issues/new') -or
-            $body -match 'PSReadLine: 2\.\d\.\d(-\w+)?' -or
-            $body -match 'PSReadline version: 2\.\d\.\d(-\w+)?' -or
-            $body -match 'PowerShell: 7\.\d\.\d' -or
-            $body -match 'PS version: 7\.\d\.\d')
+            $body -match 'PSReadLine( version)?: (2\.[01]\.\d$)|(2\.[2-5]\.\d(-\w+)?$)' -or
+            $body -match '(PowerShell|PS version): 7\.\d\.\d')
     {
         ## The issue reported a recent version of PSReadLine, so leave it as is.
         continue
