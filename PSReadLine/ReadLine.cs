@@ -1108,7 +1108,9 @@ namespace Microsoft.PowerShell
 
         internal static bool IsRunningCI(IConsole console)
         {
-            return console.GetType().FullName == "Test.TestConsole";
+            Type consoleType = console.GetType();
+            return consoleType.FullName == "Test.TestConsole"
+                || consoleType.BaseType.FullName == "Test.TestConsole";
         }
     }
 }

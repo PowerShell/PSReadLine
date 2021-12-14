@@ -731,7 +731,7 @@ namespace Test
         [SkippableFact]
         public void Inline_TruncateVeryLongSuggestion()
         {
-            TestSetup(new TestConsole(width: 10, height: 2, keyboardLayout: _), KeyMode.Cmd);
+            TestSetup(new TestConsole(keyboardLayout: _, width: 10, height: 2), KeyMode.Cmd);
             using var disp = SetPrediction(PredictionSource.History, PredictionViewStyle.InlineView);
 
             // Truncate long suggestion to make sure the user input is not scrolled up-off the console buffer.
