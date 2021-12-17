@@ -43,8 +43,7 @@ foreach ($item in $issues)
     Write-Host "Issue: $root_url/$number" -ForegroundColor Green
 
     if ($body.Contains("System.TypeLoadException: Could not load type 'System.Management.Automation.Subsystem.PredictionResult'") -and
-        $body -match 'PSReadLine: 2\.2\.0-beta[12]' -and
-        $body -match 'PowerShell: 7\.2\.\d')
+        $body -match 'PSReadLine: 2\.2\.0-beta[12]')
     {
         $comment = @'
 This issue was fixed in 2.2.0-beta3 version of PSReadLine. You can fix this by upgrading to the latest [2.2.0-beta4 version of PSReadLine](https://www.powershellgallery.com/packages/PSReadLine/2.2.0-beta4). Instructions for doing so:
