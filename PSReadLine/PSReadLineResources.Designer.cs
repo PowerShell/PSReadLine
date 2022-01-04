@@ -2191,5 +2191,16 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("SelectCommandArgumentDescription", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to: Cannot locate the offset in the rendered text that was pointed by the original cursor. Initial Coord: ({0}, {1}) Buffer: ({2}, {3}) Cursor: ({4}, {5}).
+        /// </summary>
+        internal static string FailedToConvertPointToRenderDataOffset
+        {
+            get
+            {
+                return ResourceManager.GetString("FailedToConvertPointToRenderDataOffset", resourceCulture);
+            }
+        }
     }
 }

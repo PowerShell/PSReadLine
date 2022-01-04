@@ -855,4 +855,7 @@ Or not saving history with:
   <data name="SelectCommandArgumentDescription" xml:space="preserve">
     <value>Make visual selection of the command arguments.</value>
   </data>
+  <data name="FailedToConvertPointToRenderDataOffset" xml:space="preserve">
+    <value>Cannot locate the offset in the rendered text that was pointed by the original cursor. Initial Coord: ({0}, {1}) Buffer: ({2}, {3}) Cursor: ({4}, {5})</value>
+  </data>
 </root>

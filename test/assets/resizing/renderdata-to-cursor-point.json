@@ -1,0 +1,1008 @@
+[
+  {
+    "Name": "BasicTest_1",
+    "Lines": [
+      "\u001b[0m\u001b[93mnew-ilNugetPackage\u001b[0m\u001b[39;49m \u001b[0m\u001b[90m-PackagePath\u001b[0m\u001b[39;49m \u001b[0m\u001b[37mC:\\arena\\tmp\\NugetPackages\u001b[0m\u001b[39;49m \u001b[0m\u001b[90m-PackageVersion\u001b[0m\u001b[39;49m \u001b[0m\u001b[37m7.2.0-preview.1\u001b[0m\u001b[39;49m \u001b[0m\u001b[90m-WinFxdBinPath\u001b[0m\u001b[39;49m \u001b[0m\u001b[37mC:\\Users\\rocky\\Downloads\\Win\\\u001b[0m\u001b[39;49m \u001b[0m\u001b[90m-LinuxFxdBinPath\u001b[0m\u001b[39;49m \u001b[0m\u001b[37mC:\\Users\\rocky\\Downloads\\Linux\\\u001b[0m\u001b[39;49m \u001b[0m\u001b[90m-GenAPIToolPath\u001b[0m\u001b[39;49m \u001b[0m\u001b[37mC:\\Users\\rocky\\Tools\\genapi",
+      "\u001b[0m\u001b[37m>> ",
+      "\u001b[0m\u001b[37m>> \u001b[0m\u001b[93mnew-ilNugetPackage\u001b[0m\u001b[39;49m \u001b[0m\u001b[90m-PackagePath\u001b[0m\u001b[39;49m \u001b[0m\u001b[37mC:\\arena\\tmp\\NugetPackages\u001b[0m\u001b[39;49m \u001b[0m\u001b[90m-PackageVersion\u001b[0m\u001b[39;49m \u001b[0m\u001b[37m7.2.0-preview.1\u001b[0m\u001b[39;49m \u001b[0m\u001b[90m-WinFxdBinPath\u001b[0m\u001b[39;49m \u001b[0m\u001b[37mC:\\Users\\rocky\\Downloads\\Win\\\u001b[0m\u001b[39;49m \u001b[0m\u001b[90m-LinuxFxdBinPath\u001b[0m\u001b[39;49m \u001b[0m\u001b[37mC:\\Users\\rocky\\Downloads\\Linux\\\u001b[0m\u001b[39;49m \u001b[0m\u001b[90m-GenAPIToolPath\u001b[0m\u001b[39;49m \u001b[0m\u001b[37mC:\\Users\\rocky\\Tools\\genapi"
+    ],
+    "OldBufferWidth": 90,
+    "NewBufferWidth": 124,
+    "Context": [
+      {
+        "OldInitial": {
+          "X": 7,
+          "Y": 9
+        },
+        // Pointing to the end of the third logical line.
+        "OldCursor": {
+          "X": 51,
+          "Y": 15
+        },
+
+        "Offset": {
+          "LineIndex": 2,
+          "CharIndex": 2147483647
+        },
+
+        "NewInitial": {
+          "X": 7,
+          "Y": 9
+        },
+        "NewCursor": {
+          "X": 107,
+          "Y": 13
+        }
+      },
+      {
+        "OldInitial": {
+          "X": 7,
+          "Y": 9
+        },
+        // Pointing to '\' at "Downloads\Linux" of the third logical line.
+        "OldCursor": {
+          "X": 0,
+          "Y": 15
+        },
+
+        "Offset": {
+          "LineIndex": 2,
+          "CharIndex": 180
+        },
+
+        "NewInitial": {
+          "X": 7,
+          "Y": 9
+        },
+        "NewCursor": {
+          "X": 56,
+          "Y": 13
+        }
+      },
+      {
+        "OldInitial": {
+          "X": 7,
+          "Y": 9
+        },
+        // Pointing to the space right after "Downloads\Linux" of the third logical line.
+        "OldCursor": {
+          "X": 7,
+          "Y": 15
+        },
+
+        "Offset": {
+          "LineIndex": 2,
+          "CharIndex": 187
+        },
+
+        "NewInitial": {
+          "X": 7,
+          "Y": 9
+        },
+        "NewCursor": {
+          "X": 63,
+          "Y": 13
+        }
+      },
+      {
+        "OldInitial": {
+          "X": 7,
+          "Y": 9
+        },
+        // Pointing to the start of the third logical line.
+        "OldCursor": {
+          "X": 3,
+          "Y": 13
+        },
+
+        "Offset": {
+          "LineIndex": 2,
+          "CharIndex": 3
+        },
+
+        "NewInitial": {
+          "X": 7,
+          "Y": 10
+        },
+        "NewCursor": {
+          "X": 3,
+          "Y": 13
+        }
+      },
+      {
+        "OldInitial": {
+          "X": 7,
+          "Y": 14
+        },
+        // Pointing to the end of the first physical line -- 'r' from "7.2.0-preview.1" of the first logical line.
+        "OldCursor": {
+          "X": 89,
+          "Y": 14
+        },
+
+        "Offset": {
+          "LineIndex": 0,
+          "CharIndex": 82
+        },
+
+        "NewInitial": {
+          "X": 7,
+          "Y": 14
+        },
+        "NewCursor": {
+          "X": 89,
+          "Y": 14
+        }
+      },
+      {
+        "OldInitial": {
+          "X": 7,
+          "Y": 14
+        },
+        // Pointing to the start of the second physical line -- first 'e' from "7.2.0-preview.1" of the first logical line.
+        "OldCursor": {
+          "X": 0,
+          "Y": 15
+        },
+
+        "Offset": {
+          "LineIndex": 0,
+          "CharIndex": 83
+        },
+
+        "NewInitial": {
+          "X": 7,
+          "Y": 14
+        },
+        "NewCursor": {
+          "X": 90,
+          "Y": 14
+        }
+      },
+      {
+        "OldInitial": {
+          "X": 7,
+          "Y": 14
+        },
+        // Pointing at the start of the second logical line.
+        "OldCursor": {
+          "X": 3,
+          "Y": 17
+        },
+
+        "Offset": {
+          "LineIndex": 1,
+          "CharIndex": 2147483647
+        },
+
+        "NewInitial": {
+          "X": 7,
+          "Y": 14
+        },
+        "NewCursor": {
+          "X": 3,
+          "Y": 16
+        }
+      },
+      {
+        "OldInitial": {
+          "X": 7,
+          "Y": 14
+        },
+        // Pointing to the initial coordinates.
+        "OldCursor": {
+          "X": 7,
+          "Y": 14
+        },
+
+        "Offset": {
+          "LineIndex": 0,
+          "CharIndex": -1
+        },
+
+        "NewInitial": {
+          "X": 7,
+          "Y": 14
+        },
+        "NewCursor": {
+          "X": 7,
+          "Y": 14
+        }
+      },
+      {
+        "OldInitial": {
+          "X": 7,
+          "Y": 1
+        },
+        // Pointing to a position that is beyond the end of third logical line.
+        "OldCursor": {
+          "X": 7,
+          "Y": 8
+        },
+
+        "Offset": {
+          "LineIndex": -1,
+          "CharIndex": -1
+        },
+
+        "NewInitial": {
+          "X": -1,
+          "Y": -1
+        },
+        "NewCursor": {
+          "X": -1,
+          "Y": -1
+        }
+      },
+      {
+        "OldInitial": {
+          "X": 7,
+          "Y": 1
+        },
+        // Pointing to a position that is beyond the end of first logical line at its last physical line.
+        "OldCursor": {
+          "X": 70,
+          "Y": 3
+        },
+
+        "Offset": {
+          "LineIndex": -1,
+          "CharIndex": -1
+        },
+
+        "NewInitial": {
+          "X": -1,
+          "Y": -1
+        },
+        "NewCursor": {
+          "X": -1,
+          "Y": -1
+        }
+      },
+      {
+        "OldInitial": {
+          "X": 7,
+          "Y": 1
+        },
+        // Pointing to a position that is beyond the end of the second logical line, at its last physical line.
+        "OldCursor": {
+          "X": 4,
+          "Y": 4
+        },
+
+        "Offset": {
+          "LineIndex": -1,
+          "CharIndex": -1
+        },
+
+        "NewInitial": {
+          "X": -1,
+          "Y": -1
+        },
+        "NewCursor": {
+          "X": -1,
+          "Y": -1
+        }
+      }
+    ]
+  },
+
+  {
+    "Name": "BasicTest_2",
+    "Lines": [
+      "\u001b[0m\u001b[93mnew-ilNugetPackage\u001b[0m\u001b[39;49m \u001b[0m\u001b[90m-PackagePath\u001b[0m\u001b[39;49m \u001b[0m\u001b[37mC:\\arena\\tmp\\NugetPackages\u001b[0m\u001b[39;49m \u001b[0m\u001b[90m-PackageVersion\u001b[0m\u001b[39;49m \u001b[0m\u001b[37m7.2.0-preview.1\u001b[0m\u001b[39;49m \u001b[0m\u001b[90m-WinFxdBinPath\u001b[0m\u001b[39;49m \u001b[0m\u001b[37mC:\\Users\\rocky\\Downloads\\Win\\\u001b[0m\u001b[39;49m \u001b[0m\u001b[90m-LinuxFxdBinPath\u001b[0m\u001b[39;49m \u001b[0m\u001b[37mC:\\Users\\rocky\\Downloads\\Linux\\\u001b[0m\u001b[39;49m \u001b[0m\u001b[90m-GenAPIToolPath\u001b[0m\u001b[39;49m \u001b[0m\u001b[37mC:\\Users\\rocky\\Tools\\genapi",
+      "\u001b[0m\u001b[37m>> ",
+      "\u001b[0m\u001b[37m>> \u001b[0m\u001b[93mnew-ilNugetPackage\u001b[0m\u001b[39;49m \u001b[0m\u001b[90m-PackagePath\u001b[0m\u001b[39;49m \u001b[0m\u001b[37mC:\\arena\\tmp\\NugetPackages\u001b[0m\u001b[39;49m \u001b[0m\u001b[90m-PackageVersion\u001b[0m\u001b[39;49m \u001b[0m\u001b[37m7.2.0-preview.1\u001b[0m\u001b[39;49m \u001b[0m\u001b[90m-WinFxdBinPath\u001b[0m\u001b[39;49m \u001b[0m\u001b[37mC:\\Users\\rocky\\Downloads\\Win\\\u001b[0m\u001b[39;49m \u001b[0m\u001b[90m-LinuxFxdBinPath\u001b[0m\u001b[39;49m \u001b[0m\u001b[37mC:\\Users\\rocky\\Downloads\\Linux\\\u001b[0m\u001b[39;49m \u001b[0m\u001b[90m-GenAPIToolPath\u001b[0m\u001b[39;49m \u001b[0m\u001b[37mC:\\Users\\rocky\\Tools\\genapi"
+    ],
+    "OldBufferWidth": 124,
+    "NewBufferWidth": 90,
+    "Context": [
+      {
+        "OldInitial": {
+          "X": 7,
+          "Y": 11
+        },
+        // Pointing to the end of the third logical line.
+        "OldCursor": {
+          "X": 107,
+          "Y": 15
+        },
+
+        "Offset": {
+          "LineIndex": 2,
+          "CharIndex": 2147483647
+        },
+
+        "NewInitial": {
+          "X": 7,
+          "Y": 9
+        },
+        "NewCursor": {
+          "X": 51,
+          "Y": 15
+        }
+      },
+      {
+        "OldInitial": {
+          "X": 7,
+          "Y": 11
+        },
+        // Pointing to '\' at "Downloads\Linux" of the third logical line.
+        "OldCursor": {
+          "X": 56,
+          "Y": 15
+        },
+
+        "Offset": {
+          "LineIndex": 2,
+          "CharIndex": 180
+        },
+
+        "NewInitial": {
+          "X": 7,
+          "Y": 8
+        },
+        "NewCursor": {
+          "X": 0,
+          "Y": 14
+        }
+      },
+      {
+        "OldInitial": {
+          "X": 7,
+          "Y": 11
+        },
+        // Pointing to the space right after "Downloads\Linux" of the third logical line.
+        "OldCursor": {
+          "X": 63,
+          "Y": 15
+        },
+
+        "Offset": {
+          "LineIndex": 2,
+          "CharIndex": 187
+        },
+
+        "NewInitial": {
+          "X": 7,
+          "Y": 8
+        },
+        "NewCursor": {
+          "X": 7,
+          "Y": 14
+        }
+      },
+      {
+        "OldInitial": {
+          "X": 7,
+          "Y": 11
+        },
+        // Pointing to the start of the third logical line.
+        "OldCursor": {
+          "X": 3,
+          "Y": 14
+        },
+
+        "Offset": {
+          "LineIndex": 2,
+          "CharIndex": 3
+        },
+
+        "NewInitial": {
+          "X": 7,
+          "Y": 9
+        },
+        "NewCursor": {
+          "X": 3,
+          "Y": 13
+        }
+      },
+      {
+        "OldInitial": {
+          "X": 7,
+          "Y": 11
+        },
+        // Pointing to the 'D' at "Downloads\Win" of the third logical line.
+        "OldCursor": {
+          "X": 0,
+          "Y": 15
+        },
+
+        "Offset": {
+          "LineIndex": 2,
+          "CharIndex": 124
+        },
+
+        "NewInitial": {
+          "X": 7,
+          "Y": 9
+        },
+        "NewCursor": {
+          "X": 34,
+          "Y": 14
+        }
+      },
+      {
+        "OldInitial": {
+          "X": 7,
+          "Y": 11
+        },
+        // Pointing to the end of the first physical line -- 'o' at "-WinFxdBinPath C:\Users\ro" of the first logical line.
+        "OldCursor": {
+          "X": 123,
+          "Y": 11
+        },
+
+        "Offset": {
+          "LineIndex": 0,
+          "CharIndex": 116
+        },
+
+        "NewInitial": {
+          "X": 7,
+          "Y": 9
+        },
+        "NewCursor": {
+          "X": 33,
+          "Y": 10
+        }
+      },
+      {
+        "OldInitial": {
+          "X": 7,
+          "Y": 11
+        },
+        // Pointing to the start of the second logical line.
+        "OldCursor": {
+          "X": 3,
+          "Y": 13
+        },
+
+        "Offset": {
+          "LineIndex": 1,
+          "CharIndex": 2147483647
+        },
+
+        "NewInitial": {
+          "X": 7,
+          "Y": 9
+        },
+        "NewCursor": {
+          "X": 3,
+          "Y": 12
+        }
+      }
+    ]
+  },
+
+  {
+    "Name": "BasicTest_3",
+    // Use empty string as the continuation prompt.
+    "Lines": [
+      "\u001b[0m\u001b[93mnew-ilNugetPackage\u001b[0m\u001b[39;49m \u001b[0m\u001b[90m-PackagePath\u001b[0m\u001b[39;49m \u001b[0m\u001b[37mC:\\arena\\tmp\\NugetPackages\u001b[0m\u001b[39;49m \u001b[0m\u001b[90m-PackageVersion\u001b[0m\u001b[39;49m \u001b[0m\u001b[37m7.2.0-preview.1\u001b[0m\u001b[39;49m \u001b[0m\u001b[90m-WinFxdBinPath\u001b[0m\u001b[39;49m \u001b[0m\u001b[37mC:\\Users\\rocky\\Downloads\\Win\\\u001b[0m\u001b[39;49m \u001b[0m\u001b[90m-LinuxFxdBinPath\u001b[0m\u001b[39;49m \u001b[0m\u001b[37mC:\\Users\\rocky\\Downloads\\Linux\\\u001b[0m\u001b[39;49m \u001b[0m\u001b[90m-GenAPIToolPath\u001b[0m\u001b[39;49m \u001b[0m\u001b[37mC:\\Users\\rocky\\Tools\\genapi",
+      "",
+      "\u001b[0m\u001b[93mnew-ilNugetPackage\u001b[0m\u001b[39;49m \u001b[0m\u001b[90m-PackagePath\u001b[0m\u001b[39;49m \u001b[0m\u001b[37mC:\\arena\\tmp\\NugetPackages\u001b[0m\u001b[39;49m \u001b[0m\u001b[90m-PackageVersion\u001b[0m\u001b[39;49m \u001b[0m\u001b[37m7.2.0-preview.1\u001b[0m\u001b[39;49m \u001b[0m\u001b[90m-WinFxdBinPath\u001b[0m\u001b[39;49m \u001b[0m\u001b[37mC:\\Users\\rocky\\Downloads\\Win\\\u001b[0m\u001b[39;49m \u001b[0m\u001b[90m-LinuxFxdBinPath\u001b[0m\u001b[39;49m \u001b[0m\u001b[37mC:\\Users\\rocky\\Downloads\\Linux\\\u001b[0m\u001b[39;49m \u001b[0m\u001b[90m-GenAPIToolPath\u001b[0m\u001b[39;49m \u001b[0m\u001b[37mC:\\Users\\rocky\\Tools\\genapi",
+      "\u001b[0m\u001b[93mhello"
+    ],
+    "OldBufferWidth": 90,
+    "NewBufferWidth": 124,
+    "Context": [
+      {
+        "OldInitial": {
+          "X": 6,
+          "Y": 9
+        },
+        // Pointing to the start of the third logical line.
+        "OldCursor": {
+          "X": 0,
+          "Y": 13
+        },
+
+        "Offset": {
+          "LineIndex": 2,
+          "CharIndex": 0
+        },
+
+        "NewInitial": {
+          "X": 6,
+          "Y": 9
+        },
+        "NewCursor": {
+          "X": 0,
+          "Y": 12
+        }
+      },
+      {
+        "OldInitial": {
+          "X": 6,
+          "Y": 9
+        },
+        // Pointing to the start of the second logical line.
+        "OldCursor": {
+          "X": 0,
+          "Y": 12
+        },
+
+        "Offset": {
+          "LineIndex": 1,
+          "CharIndex": 2147483647
+        },
+
+        "NewInitial": {
+          "X": 6,
+          "Y": 9
+        },
+        "NewCursor": {
+          "X": 0,
+          "Y": 11
+        }
+      },
+      {
+        "OldInitial": {
+          "X": 6,
+          "Y": 9
+        },
+        // Pointing to the start of the fourth logical line.
+        "OldCursor": {
+          "X": 0,
+          "Y": 16
+        },
+
+        "Offset": {
+          "LineIndex": 3,
+          "CharIndex": 0
+        },
+
+        "NewInitial": {
+          "X": 6,
+          "Y": 9
+        },
+        "NewCursor": {
+          "X": 0,
+          "Y": 14
+        }
+      },
+      {
+        "OldInitial": {
+          "X": 6,
+          "Y": 9
+        },
+        // Pointing to 'e' of the fourth logical line.
+        "OldCursor": {
+          "X": 1,
+          "Y": 16
+        },
+
+        "Offset": {
+          "LineIndex": 3,
+          "CharIndex": 1
+        },
+
+        "NewInitial": {
+          "X": 6,
+          "Y": 9
+        },
+        "NewCursor": {
+          "X": 1,
+          "Y": 14
+        }
+      }
+    ]
+  },
+
+  {
+    "Name": "BasicTest_4",
+    // Use empty string as the continuation prompt.
+    "Lines": [
+      "\u001b[0m\u001b[93mhello",
+      "\u001b[0m\u001b[93mworld",
+      "\u001b[0m\u001b[93mnew-ilNugetPackage\u001b[0m\u001b[39;49m \u001b[0m\u001b[90m-PackagePath\u001b[0m\u001b[39;49m \u001b[0m\u001b[37mC:\\arena\\tmp\\NugetPackages\u001b[0m\u001b[39;49m \u001b[0m\u001b[90m-PackageVersion\u001b[0m\u001b[39;49m \u001b[0m\u001b[37m7.2.0-preview.1\u001b[0m\u001b[39;49m \u001b[0m\u001b[90m-WinFxdBinPath\u001b[0m\u001b[39;49m \u001b[0m\u001b[37mC:\\Users\\rocky\\Downloads\\Win\\\u001b[0m\u001b[39;49m \u001b[0m\u001b[90m-LinuxFxdBinPath\u001b[0m\u001b[39;49m \u001b[0m\u001b[37mC:\\Users\\rocky\\Downloads\\Linux\\\u001b[0m\u001b[39;49m \u001b[0m\u001b[90m-GenAPIToolPath\u001b[0m\u001b[39;49m \u001b[0m\u001b[37mC:\\Users\\rocky\\Tools\\genapi"
+    ],
+    "OldBufferWidth": 90,
+    "NewBufferWidth": 124,
+    "Context": [
+      {
+        "OldInitial": {
+          "X": 6,
+          "Y": 11
+        },
+        // Pointing to the position right after 'o' in the first logical line.
+        "OldCursor": {
+          "X": 11,
+          "Y": 11
+        },
+
+        "Offset": {
+          "LineIndex": 0,
+          "CharIndex": 2147483647
+        },
+
+        "NewInitial": {
+          "X": 6,
+          "Y": 11
+        },
+        "NewCursor": {
+          "X": 11,
+          "Y": 11
+        }
+      },
+      {
+        "OldInitial": {
+          "X": 6,
+          "Y": 11
+        },
+        // Pointing to the 'w' in the second logical line.
+        "OldCursor": {
+          "X": 0,
+          "Y": 12
+        },
+
+        "Offset": {
+          "LineIndex": 1,
+          "CharIndex": 0
+        },
+
+        "NewInitial": {
+          "X": 6,
+          "Y": 11
+        },
+        "NewCursor": {
+          "X": 0,
+          "Y": 12
+        }
+      },
+      {
+        "OldInitial": {
+          "X": 6,
+          "Y": 11
+        },
+        // Pointing to 'r' in the second logical line.
+        "OldCursor": {
+          "X": 2,
+          "Y": 12
+        },
+
+        "Offset": {
+          "LineIndex": 1,
+          "CharIndex": 2
+        },
+
+        "NewInitial": {
+          "X": 6,
+          "Y": 11
+        },
+        "NewCursor": {
+          "X": 2,
+          "Y": 12
+        }
+      }
+    ]
+  },
+
+  {
+    "Name": "BasicTest_5",
+    // Use empty string as the continuation prompt.
+    "Lines": [
+      "\u001b[0m\u001b[93m12345678901234567890123456789012345678901234567890123456789012345678901234567890123有4567890",
+      "\u001b[0m\u001b[93m12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789有准备0"
+    ],
+    "OldBufferWidth": 90,
+    "NewBufferWidth": 124,
+    "Context": [
+      {
+        "OldInitial": {
+          "X": 6,
+          "Y": 12
+        },
+        // Pointing to '有' in the first logical line.
+        "OldCursor": {
+          "X": 0,
+          "Y": 13
+        },
+
+        "Offset": {
+          "LineIndex": 0,
+          "CharIndex": 83
+        },
+
+        "NewInitial": {
+          "X": 6,
+          "Y": 12
+        },
+        "NewCursor": {
+          "X": 89,
+          "Y": 12
+        }
+      },
+      {
+        "OldInitial": {
+          "X": 6,
+          "Y": 12
+        },
+        // Pointing to '4' after the '有' in the first logical line.
+        "OldCursor": {
+          "X": 2,
+          "Y": 13
+        },
+
+        "Offset": {
+          "LineIndex": 0,
+          "CharIndex": 84
+        },
+
+        "NewInitial": {
+          "X": 6,
+          "Y": 12
+        },
+        "NewCursor": {
+          "X": 91,
+          "Y": 12
+        }
+      },
+      {
+        "OldInitial": {
+          "X": 6,
+          "Y": 12
+        },
+        // Pointing to '有' in the second logical line.
+        "OldCursor": {
+          "X": 0,
+          "Y": 15
+        },
+
+        "Offset": {
+          "LineIndex": 1,
+          "CharIndex": 89
+        },
+
+        "NewInitial": {
+          "X": 6,
+          "Y": 12
+        },
+        "NewCursor": {
+          "X": 89,
+          "Y": 13
+        }
+      },
+      {
+        "OldInitial": {
+          "X": 6,
+          "Y": 12
+        },
+        // Pointing to '准' in the second logical line.
+        "OldCursor": {
+          "X": 2,
+          "Y": 15
+        },
+
+        "Offset": {
+          "LineIndex": 1,
+          "CharIndex": 90
+        },
+
+        "NewInitial": {
+          "X": 6,
+          "Y": 12
+        },
+        "NewCursor": {
+          "X": 91,
+          "Y": 13
+        }
+      },
+      {
+        "OldInitial": {
+          "X": 6,
+          "Y": 12
+        },
+        // Pointing to '备' in the second logical line.
+        "OldCursor": {
+          "X": 4,
+          "Y": 15
+        },
+
+        "Offset": {
+          "LineIndex": 1,
+          "CharIndex": 91
+        },
+
+        "NewInitial": {
+          "X": 6,
+          "Y": 12
+        },
+        "NewCursor": {
+          "X": 93,
+          "Y": 13
+        }
+      },
+      {
+        "OldInitial": {
+          "X": 6,
+          "Y": 12
+        },
+        // Pointing to the '0' right after '备' in the second logical line.
+        "OldCursor": {
+          "X": 6,
+          "Y": 15
+        },
+
+        "Offset": {
+          "LineIndex": 1,
+          "CharIndex": 92
+        },
+
+        "NewInitial": {
+          "X": 6,
+          "Y": 11
+        },
+        "NewCursor": {
+          "X": 95,
+          "Y": 12
+        }
+      }
+    ]
+  },
+
+  {
+    // Testing scenarios where the logical lines happen to fit in the whole buffer width.
+    "Name": "BasicTest_6",
+    "Lines": [
+      "\u001b[0m\u001b[97m123456789012345678901234567890123456789012345678901234567890123456789012345678901234",
+      "\u001b[0m\u001b[37m>> \u001b[0m\u001b[97m123456789012345678901234567890123456789012345678901234567890123456789012345678901234567",
+      "\u001b[0m\u001b[37m>> \u001b[0m\u001b[97m123456"
+    ],
+    "OldBufferWidth": 90,
+    "NewBufferWidth": 124,
+    "Context": [
+      {
+        "OldInitial": {
+          "X": 6,
+          "Y": 3
+        },
+        // Pointing to the end of the the third logical line.
+        "OldCursor": {
+          "X": 9,
+          "Y": 5
+        },
+
+        "Offset": {
+          "LineIndex": 2,
+          "CharIndex": 2147483647
+        },
+
+        "NewInitial": {
+          "X": 6,
+          "Y": 3
+        },
+        "NewCursor": {
+          "X": 9,
+          "Y": 5
+        }
+      },
+      {
+        "OldInitial": {
+          "X": 6,
+          "Y": 3
+        },
+        // Pointing to '3' of the third logical line.
+        "OldCursor": {
+          "X": 5,
+          "Y": 5
+        },
+
+        "Offset": {
+          "LineIndex": 2,
+          "CharIndex": 5
+        },
+
+        "NewInitial": {
+          "X": 6,
+          "Y": 3
+        },
+        "NewCursor": {
+          "X": 5,
+          "Y": 5
+        }
+      },
+      {
+        "OldInitial": {
+          "X": 6,
+          "Y": 3
+        },
+        // Pointing to '1' of the third logical line.
+        "OldCursor": {
+          "X": 3,
+          "Y": 5
+        },
+
+        "Offset": {
+          "LineIndex": 2,
+          "CharIndex": 3
+        },
+
+        "NewInitial": {
+          "X": 6,
+          "Y": 3
+        },
+        "NewCursor": {
+          "X": 3,
+          "Y": 5
+        }
+      },
+      {
+        "OldInitial": {
+          "X": 6,
+          "Y": 3
+        },
+        // Pointing to the end of the second logical line.
+        "OldCursor": {
+          "X": 0,
+          "Y": 5
+        },
+
+        "Offset": {
+          "LineIndex": 1,
+          "CharIndex": 2147483647
+        },
+
+        "NewInitial": {
+          "X": 6,
+          "Y": 3
+        },
+        "NewCursor": {
+          "X": 90,
+          "Y": 4
+        }
+      },
+      {
+        "OldInitial": {
+          "X": 6,
+          "Y": 3
+        },
+        // Pointing to the end of the second logical line.
+        "OldCursor": {
+          "X": 89,
+          "Y": 4
+        },
+
+        "Offset": {
+          "LineIndex": 1,
+          "CharIndex": 89
+        },
+
+        "NewInitial": {
+          "X": 6,
+          "Y": 3
+        },
+        "NewCursor": {
+          "X": 89,
+          "Y": 4
+        }
+      },
+      {
+        "OldInitial": {
+          "X": 6,
+          "Y": 3
+        },
+        // Pointing to the end of the first logical line.
+        "OldCursor": {
+          "X": 0,
+          "Y": 4
+        },
+
+        "Offset": {
+          "LineIndex": 0,
+          "CharIndex": 2147483647
+        },
+
+        "NewInitial": {
+          "X": 6,
+          "Y": 3
+        },
+        "NewCursor": {
+          "X": 90,
+          "Y": 3
+        }
+      }
+    ]
+  }
+]

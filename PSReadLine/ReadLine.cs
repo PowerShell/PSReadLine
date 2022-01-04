@@ -509,6 +509,10 @@ namespace Microsoft.PowerShell
                 var moveToLineCommandCount = _moveToLineCommandCount;
                 var moveToEndOfLineCommandCount = _moveToEndOfLineCommandCount;
 
+                // We attempt to handle window resizing only once per a keybinding processing, because we assume the
+                // window resizing cannot and shouldn't happen within the processing of a given keybinding.
+                _handlePotentialResizing = true;
+
                 var key = ReadKey();
                 ProcessOneKey(key, _dispatchTable, ignoreIfNoAction: false, arg: null);
                 if (_inputAccepted)
@@ -709,10 +713,6 @@ namespace Microsoft.PowerShell
                 _delayedOneTimeInitCompleted = true;
             }
 
-            _previousRender = _initialPrevRender;
-            _previousRender.bufferWidth = _console.BufferWidth;
-            _previousRender.bufferHeight = _console.BufferHeight;
-            _previousRender.errorPrompt = false;
             _buffer.Clear();
             _edits = new List<EditItem>();
             _undoEditIndex = 0;
@@ -729,6 +729,9 @@ namespace Microsoft.PowerShell
             _initialY = _console.CursorTop;
             _initialForeground = _console.ForegroundColor;
             _initialBackground = _console.BackgroundColor;
+            _previousRender = _initialPrevRender;
+            _previousRender.UpdateConsoleInfo(_console);
+            _previousRender.initialY = _initialY;
             _statusIsErrorMessage = false;
 
             _initialOutputEncoding = _console.OutputEncoding;
@@ -1034,6 +1037,8 @@ namespace Microsoft.PowerShell
             _singleton._initialX = console.CursorLeft;
             _singleton._initialY = console.CursorTop;
             _singleton._previousRender = _initialPrevRender;
+            _singleton._previousRender.UpdateConsoleInfo(console);
+            _singleton._previousRender.initialY = _singleton._initialY;
 
             _singleton.Render();
             console.CursorVisible = true;
