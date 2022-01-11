@@ -958,6 +958,11 @@ namespace Microsoft.PowerShell
                 numericArg = -numericArg;
             }
 
+            if (UpdateListSelection(numericArg))
+            {
+                return;
+            }
+
             _singleton.SaveCurrentLine();
             _singleton.HistorySearch(numericArg);
         }
@@ -969,6 +974,10 @@ namespace Microsoft.PowerShell
         public static void HistorySearchForward(ConsoleKeyInfo? key = null, object arg = null)
         {
             TryGetArgAsInt(arg, out var numericArg, +1);
+            if (UpdateListSelection(numericArg))
+            {
+                return;
+            }
 
             _singleton.SaveCurrentLine();
             _singleton.HistorySearch(numericArg);

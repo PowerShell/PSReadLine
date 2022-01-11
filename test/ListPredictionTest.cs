@@ -47,7 +47,7 @@ namespace Test
         }
 
         [SkippableFact]
-        public void List_RenderSuggestion_NoMatching()
+        public void List_RenderSuggestion_NoMatching_DefaultUpArrowDownArrow()
         {
             TestSetup(KeyMode.Cmd);
             using var disp = SetPrediction(PredictionSource.History, PredictionViewStyle.ListView);
@@ -61,6 +61,25 @@ namespace Test
                 _.DownArrow, _.DownArrow,
                 CheckThat(() => AssertLineIs("s")),
                 CheckThat(() => AssertCursorLeftIs(1))
+            ));
+        }
+
+        [SkippableFact]
+        public void List_RenderSuggestion_NoMatching_HistorySearchBackwardForward()
+        {
+            TestSetup(KeyMode.Cmd,
+                      new KeyHandler("Ctrl+p", PSConsoleReadLine.HistorySearchBackward),
+                      new KeyHandler("Ctrl+l", PSConsoleReadLine.HistorySearchForward));
+            using var disp = SetPrediction(PredictionSource.History, PredictionViewStyle.ListView);
+
+            // No matching history entry
+            SetHistory("echo -bar", "eca -zoo");
+            Test(string.Empty, Keys(
+                _.Ctrl_p, CheckThat(() => AssertLineIs("eca -zoo")),
+                _.Ctrl_p, CheckThat(() => AssertLineIs("echo -bar")),
+                _.Ctrl_l, _.Ctrl_l,
+                CheckThat(() => AssertLineIs(string.Empty)),
+                CheckThat(() => AssertCursorLeftIs(0))
             ));
         }
 
@@ -138,7 +157,7 @@ namespace Test
         }
 
         [SkippableFact]
-        public void List_RenderSuggestion_NavigateInList()
+        public void List_RenderSuggestion_NavigateInList_DefaultUpArrowDownArrow()
         {
             TestSetup(KeyMode.Cmd);
             int listWidth = CheckWindowSize();
@@ -288,6 +307,188 @@ namespace Test
                         TokenClassification.None, ']'
                      )),
                 _.UpArrow,
+                     CheckThat(() => AssertScreenIs(3,
+                        TokenClassification.Command, 'e',
+                        NextLine,
+                        TokenClassification.ListPrediction, '>',
+                        TokenClassification.None, ' ',
+                        emphasisColors, 'e',
+                        TokenClassification.None, "ca -zoo",
+                        TokenClassification.None, new string(' ', listWidth - 19), // 19 is the length of '> eca -zoo' plus '[History]'.
+                        TokenClassification.None, '[',
+                        TokenClassification.ListPrediction, "History",
+                        TokenClassification.None, ']',
+                        NextLine,
+                        TokenClassification.ListPrediction, '>',
+                        TokenClassification.None, ' ',
+                        emphasisColors, 'e',
+                        TokenClassification.None, "cho -bar",
+                        TokenClassification.None, new string(' ', listWidth - 20), // 20 is the length of '> echo -bar' plus '[History]'.
+                        TokenClassification.None, '[',
+                        TokenClassification.ListPrediction, "History",
+                        TokenClassification.None, ']'
+                     )),
+                // Once accepted, the list should be cleared.
+                _.Enter, CheckThat(() => AssertScreenIs(2,
+                        TokenClassification.Command, "e",
+                        NextLine,
+                        NextLine))
+            ));
+        }
+
+        [SkippableFact]
+        public void List_RenderSuggestion_NavigateInList_HistorySearchBackwardForward()
+        {
+            TestSetup(KeyMode.Cmd,
+                      new KeyHandler("Ctrl+p", PSConsoleReadLine.HistorySearchBackward),
+                      new KeyHandler("Ctrl+l", PSConsoleReadLine.HistorySearchForward));
+            int listWidth = CheckWindowSize();
+            var emphasisColors = Tuple.Create(PSConsoleReadLineOptions.DefaultEmphasisColor, _console.BackgroundColor);
+            using var disp = SetPrediction(PredictionSource.History, PredictionViewStyle.ListView);
+
+            // Navigate up and down in the list
+            SetHistory("echo -bar", "eca -zoo");
+            Test("e", Keys(
+                'e', CheckThat(() => AssertScreenIs(3,
+                        TokenClassification.Command, 'e',
+                        NextLine,
+                        TokenClassification.ListPrediction, '>',
+                        TokenClassification.None, ' ',
+                        emphasisColors, 'e',
+                        TokenClassification.None, "ca -zoo",
+                        TokenClassification.None, new string(' ', listWidth - 19), // 19 is the length of '> eca -zoo' plus '[History]'.
+                        TokenClassification.None, '[',
+                        TokenClassification.ListPrediction, "History",
+                        TokenClassification.None, ']',
+                        NextLine,
+                        TokenClassification.ListPrediction, '>',
+                        TokenClassification.None, ' ',
+                        emphasisColors, 'e',
+                        TokenClassification.None, "cho -bar",
+                        TokenClassification.None, new string(' ', listWidth - 20), // 20 is the length of '> echo -bar' plus '[History]'.
+                        TokenClassification.None, '[',
+                        TokenClassification.ListPrediction, "History",
+                        TokenClassification.None, ']'
+                     )),
+                _.Ctrl_l,
+                     CheckThat(() => AssertScreenIs(3,
+                        TokenClassification.Command, "eca",
+                        TokenClassification.None, ' ',
+                        TokenClassification.Parameter, "-zoo",
+                        NextLine,
+                        TokenClassification.ListPrediction, '>',
+                        TokenClassification.ListPredictionSelected, ' ',
+                        emphasisColors, 'e',
+                        TokenClassification.ListPredictionSelected, "ca -zoo",
+                        TokenClassification.ListPredictionSelected, new string(' ', listWidth - 19), // 19 is the length of '> eca -zoo' plus '[History]'.
+                        TokenClassification.ListPredictionSelected, '[',
+                        TokenClassification.ListPrediction, "History",
+                        TokenClassification.ListPredictionSelected, ']',
+                        NextLine,
+                        TokenClassification.ListPrediction, '>',
+                        TokenClassification.None, ' ',
+                        emphasisColors, 'e',
+                        TokenClassification.None, "cho -bar",
+                        TokenClassification.None, new string(' ', listWidth - 20), // 20 is the length of '> echo -bar' plus '[History]'.
+                        TokenClassification.None, '[',
+                        TokenClassification.ListPrediction, "History",
+                        TokenClassification.None, ']'
+                     )),
+                _.Ctrl_l,
+                     CheckThat(() => AssertScreenIs(3,
+                        TokenClassification.Command, "echo",
+                        TokenClassification.None, ' ',
+                        TokenClassification.Parameter, "-bar",
+                        NextLine,
+                        TokenClassification.ListPrediction, '>',
+                        TokenClassification.None, ' ',
+                        emphasisColors, 'e',
+                        TokenClassification.None, "ca -zoo",
+                        TokenClassification.None, new string(' ', listWidth - 19), // 19 is the length of '> eca -zoo' plus '[History]'.
+                        TokenClassification.None, '[',
+                        TokenClassification.ListPrediction, "History",
+                        TokenClassification.None, ']',
+                        NextLine,
+                        TokenClassification.ListPrediction, '>',
+                        TokenClassification.ListPredictionSelected, ' ',
+                        emphasisColors, 'e',
+                        TokenClassification.ListPredictionSelected, "cho -bar",
+                        TokenClassification.ListPredictionSelected, new string(' ', listWidth - 20), // 20 is the length of '> echo -bar' plus '[History]'.
+                        TokenClassification.ListPredictionSelected, '[',
+                        TokenClassification.ListPrediction, "History",
+                        TokenClassification.ListPredictionSelected, ']'
+                     )),
+                _.Ctrl_l,
+                     CheckThat(() => AssertScreenIs(3,
+                        TokenClassification.Command, 'e',
+                        NextLine,
+                        TokenClassification.ListPrediction, '>',
+                        TokenClassification.None, ' ',
+                        emphasisColors, 'e',
+                        TokenClassification.None, "ca -zoo",
+                        TokenClassification.None, new string(' ', listWidth - 19), // 19 is the length of '> eca -zoo' plus '[History]'.
+                        TokenClassification.None, '[',
+                        TokenClassification.ListPrediction, "History",
+                        TokenClassification.None, ']',
+                        NextLine,
+                        TokenClassification.ListPrediction, '>',
+                        TokenClassification.None, ' ',
+                        emphasisColors, 'e',
+                        TokenClassification.None, "cho -bar",
+                        TokenClassification.None, new string(' ', listWidth - 20), // 20 is the length of '> echo -bar' plus '[History]'.
+                        TokenClassification.None, '[',
+                        TokenClassification.ListPrediction, "History",
+                        TokenClassification.None, ']'
+                     )),
+                _.Ctrl_p,
+                     CheckThat(() => AssertScreenIs(3,
+                        TokenClassification.Command, "echo",
+                        TokenClassification.None, ' ',
+                        TokenClassification.Parameter, "-bar",
+                        NextLine,
+                        TokenClassification.ListPrediction, '>',
+                        TokenClassification.None, ' ',
+                        emphasisColors, 'e',
+                        TokenClassification.None, "ca -zoo",
+                        TokenClassification.None, new string(' ', listWidth - 19), // 19 is the length of '> eca -zoo' plus '[History]'.
+                        TokenClassification.None, '[',
+                        TokenClassification.ListPrediction, "History",
+                        TokenClassification.None, ']',
+                        NextLine,
+                        TokenClassification.ListPrediction, '>',
+                        TokenClassification.ListPredictionSelected, ' ',
+                        emphasisColors, 'e',
+                        TokenClassification.ListPredictionSelected, "cho -bar",
+                        TokenClassification.ListPredictionSelected, new string(' ', listWidth - 20), // 20 is the length of '> echo -bar' plus '[History]'.
+                        TokenClassification.ListPredictionSelected, '[',
+                        TokenClassification.ListPrediction, "History",
+                        TokenClassification.ListPredictionSelected, ']'
+                     )),
+                _.Ctrl_p,
+                     CheckThat(() => AssertScreenIs(3,
+                        TokenClassification.Command, "eca",
+                        TokenClassification.None, ' ',
+                        TokenClassification.Parameter, "-zoo",
+                        NextLine,
+                        TokenClassification.ListPrediction, '>',
+                        TokenClassification.ListPredictionSelected, ' ',
+                        emphasisColors, 'e',
+                        TokenClassification.ListPredictionSelected, "ca -zoo",
+                        TokenClassification.ListPredictionSelected, new string(' ', listWidth - 19), // 19 is the length of '> eca -zoo' plus '[History]'.
+                        TokenClassification.ListPredictionSelected, '[',
+                        TokenClassification.ListPrediction, "History",
+                        TokenClassification.ListPredictionSelected, ']',
+                        NextLine,
+                        TokenClassification.ListPrediction, '>',
+                        TokenClassification.None, ' ',
+                        emphasisColors, 'e',
+                        TokenClassification.None, "cho -bar",
+                        TokenClassification.None, new string(' ', listWidth - 20), // 20 is the length of '> echo -bar' plus '[History]'.
+                        TokenClassification.None, '[',
+                        TokenClassification.ListPrediction, "History",
+                        TokenClassification.None, ']'
+                     )),
+                _.Ctrl_p,
                      CheckThat(() => AssertScreenIs(3,
                         TokenClassification.Command, 'e',
                         NextLine,
