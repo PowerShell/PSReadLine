@@ -30,9 +30,11 @@ It provides:
 
 The "out of box" experience is meant to be very familiar to PowerShell users - there should be no need to learn any new key strokes.
 
-Keith Hill wrote a great introduction to `PSReadLine` [here](https://rkeithhill.wordpress.com/2013/10/18/psreadline-a-better-line-editing-experience-for-the-powershell-console/).
+Keith Hill wrote a [great introduction](https://rkeithhill.wordpress.com/2013/10/18/psreadline-a-better-line-editing-experience-for-the-powershell-console/) (2013) to `PSReadLine`.
 
-Ed Wilson (Scripting Guy) wrote a series on `PSReadLine`, starting [here](https://devblogs.microsoft.com/scripting/tag/psreadline/).
+Ed Wilson (Scripting Guy) wrote a [series](https://devblogs.microsoft.com/scripting/tag/psreadline/) (2014-2015) on `PSReadLine`.
+
+John Savill has a [video](https://www.youtube.com/watch?v=Q11sSltuTE0) (2021) covering installation, configuration, and tailoring `PSReadLine` to your liking.
 
 ## Installation
 
