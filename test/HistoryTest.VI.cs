@@ -51,229 +51,122 @@ namespace Test
         }
 
         [SkippableFact]
-        public void ViInteractiveHistorySearch()
+        public void ViSearchHistory()
         {
             TestSetup(KeyMode.Vi);
 
-            SetHistory("echo aaa");
-            Test("echo aaa", Keys(_.Ctrl_r, 'a'));
+            // Clear history in case the above added some history (but it shouldn't)
+            SetHistory();
+            Test(" ", Keys(' ', _.UpArrow, _.DownArrow));
 
             var emphasisColors = Tuple.Create(PSConsoleReadLineOptions.DefaultEmphasisColor, _console.BackgroundColor);
             var statusColors = Tuple.Create(_console.ForegroundColor, _console.BackgroundColor);
 
-            // Test entering multiple characters and the line is updated with new matches
-            SetHistory("zz1", "echo abc", "zz2", "echo abb", "zz3", "echo aaa", "zz4");
-            Test("echo abc", Keys(_.Ctrl_r,
-                'a',
-                CheckThat(() => AssertScreenIs(2,
-                    TokenClassification.Command, "echo",
-                    TokenClassification.None, " ",
-                    emphasisColors, 'a',
-                    TokenClassification.None, "aa",
-                    NextLine,
-                    statusColors, "bck-i-search: a_")),
-                'b', CheckThat(() => AssertScreenIs(2,
-                    TokenClassification.Command, "echo",
-                    TokenClassification.None, " ",
-                    emphasisColors, "ab",
-                    TokenClassification.None, 'b',
-                    NextLine,
-                    statusColors, "bck-i-search: ab_")),
-                'c', CheckThat(() => AssertScreenIs(2,
-                    TokenClassification.Command, "echo",
-                    TokenClassification.None, " ",
-                    emphasisColors, "abc",
-                    NextLine,
-                    statusColors, "bck-i-search: abc_"))));
+            SetHistory("dosomething", "this way", "that way", "anyway", "no way", "yah way");
 
-            // Test repeated Ctrl+r goes back through multiple matches
-            SetHistory("zz1", "echo abc", "zz2", "echo abb", "zz3", "echo aaa", "zz4");
-            Test("echo abc", Keys(_.Ctrl_r,
-                'a',
-                CheckThat(() => AssertScreenIs(2,
-                    TokenClassification.Command, "echo",
-                    TokenClassification.None, " ",
-                    emphasisColors, 'a',
-                    TokenClassification.None, "aa",
-                    NextLine,
-                    statusColors, "bck-i-search: a_")),
-                _.Ctrl_r, CheckThat(() => AssertScreenIs(2,
-                    TokenClassification.Command, "echo",
-                    TokenClassification.None, " ",
-                    emphasisColors, 'a',
-                    TokenClassification.None, "bb",
-                    NextLine,
-                    statusColors, "bck-i-search: a_")),
-                _.Ctrl_r, CheckThat(() => AssertScreenIs(2,
-                    TokenClassification.Command, "echo",
-                    TokenClassification.None, " ",
-                    emphasisColors, 'a',
-                    TokenClassification.None, "bc",
-                    NextLine,
-                    statusColors, "bck-i-search: a_"))));
-
-            // Test that the current match doesn't change when typing
-            // additional characters, only emphasis should change.
-            SetHistory("zz1", "echo abzz", "echo abc", "zz2");
-            Test("echo abc", Keys(_.Ctrl_r,
-                'a',
-                CheckThat(() => AssertScreenIs(2,
-                    TokenClassification.Command, "echo",
-                    TokenClassification.None, " ",
-                    emphasisColors, 'a',
-                    TokenClassification.None, "bc",
-                    NextLine,
-                    statusColors, "bck-i-search: a_")),
-                'b',
-                CheckThat(() => AssertScreenIs(2,
-                    TokenClassification.Command, "echo",
-                    TokenClassification.None, " ",
-                    emphasisColors, "ab",
-                    TokenClassification.None, 'c',
-                    NextLine,
-                    statusColors, "bck-i-search: ab_"))));
-
-            // Test that abort restores line state before Ctrl+r
-            SetHistory("zz1", "echo abzz", "echo abc", "zz2");
-            Test("echo zed", Keys("echo zed", _.Ctrl_r,
-                'a',
-                CheckThat(() => AssertScreenIs(2,
-                    TokenClassification.Command, "echo",
-                    TokenClassification.None, " ",
-                    emphasisColors, 'a',
-                    TokenClassification.None, "bc",
-                    NextLine,
-                    statusColors, "bck-i-search: a_")),
-                _.Ctrl_g,
-                CheckThat(() => AssertScreenIs(2,
-                    TokenClassification.Command, "echo",
-                    TokenClassification.None, " ",
-                    TokenClassification.None, "zed",
-                    NextLine))));
-
-            // Test that Escape terminates the search leaving the
-            // cursor at the point in the match.
-            SetHistory("zz1", "echo abzz", "echo abc", "zz2");
-            Test("echo yabc", Keys(_.Ctrl_r,
-                'a',
-                CheckThat(() => AssertScreenIs(2,
-                    TokenClassification.Command, "echo",
-                    TokenClassification.None, " ",
-                    emphasisColors, 'a',
-                    TokenClassification.None, "bc",
-                    NextLine,
-                    statusColors, "bck-i-search: a_")),
-                _.Escape, "y"));
-
-            // Test entering multiple characters, then backspace, make sure we restore
-            // the correct line
-            SetHistory("zz1", "echo abc", "zz2", "echo abb", "zz3", "echo aaa", "zz4");
-            Test("echo aaa", Keys(_.Ctrl_r,
-                _.Backspace,  // Try backspace on empty search string
-                "ab", CheckThat(() => AssertScreenIs(2,
-                    TokenClassification.Command, "echo",
-                    TokenClassification.None, " ",
-                    emphasisColors, "ab",
-                    TokenClassification.None, 'b',
-                    NextLine,
-                    statusColors, "bck-i-search: ab_")),
-                _.Backspace,
-                CheckThat(() => AssertScreenIs(2,
-                    TokenClassification.Command, "echo",
-                    TokenClassification.None, " ",
-                    emphasisColors, 'a',
-                    TokenClassification.None, "aa",
-                    NextLine,
-                    statusColors, "bck-i-search: a_"))));
-
-            SetHistory("zz1", "echo abzz", "echo abc", "zz2");
-            Test("", Keys(_.Ctrl_r,
-                'a',
-                CheckThat(() => AssertScreenIs(2,
-                    TokenClassification.Command, "echo",
-                    TokenClassification.None, " ",
-                    emphasisColors, 'a',
-                    TokenClassification.None, "bc",
-                    NextLine,
-                    statusColors, "bck-i-search: a_")),
-                _.Ctrl_r,
-                CheckThat(() => AssertScreenIs(2,
-                    TokenClassification.Command, "echo",
-                    TokenClassification.None, " ",
-                    emphasisColors, 'a',
-                    TokenClassification.None, "bzz",
-                    NextLine,
-                    statusColors, "bck-i-search: a_")),
-                _.Ctrl_r,
-                CheckThat(() => AssertScreenIs(2,
-                    TokenClassification.Command, "echo",
-                    TokenClassification.None, " ",
-                    TokenClassification.None, "abzz",
-                    NextLine,
-                    statusColors, "failed-bck-i-search: a_")),
-                _.Ctrl_s,
-                CheckThat(() => AssertScreenIs(2,
-                    TokenClassification.Command, "echo",
-                    TokenClassification.None, " ",
-                    emphasisColors, 'a',
-                    TokenClassification.None, "bzz",
-                    NextLine,
-                    statusColors, "fwd-i-search: a_")),
-                _.Ctrl_g));
-
-            // Test that searching works after a failed search
-            SetHistory("echo aa1", "echo bb1", "echo bb2", "echo aa2");
-            Test("echo aa1", Keys(_.Ctrl_r, "zz", _.Backspace, _.Backspace, "a1",
-                CheckThat(() => AssertScreenIs(2,
-                    TokenClassification.Command, "echo",
-                    TokenClassification.None, " a",
-                    emphasisColors, "a1",
-                    NextLine,
-                    statusColors, "bck-i-search: a1_"))
+            Test("dosomething", Keys(
+                _.Escape, _.Slash, "some", _.Enter, CheckThat(() => AssertLineIs("dosomething")),
+                _.Question, "yah", _.Enter, CheckThat(() => AssertLineIs("yah way")),
+                _.Slash, "some", _.Enter, 'h'   // need 'h' here to avoid bogus failure
                 ));
 
-            // Test that searching works after backspace after a successful search
-            SetHistory("echo aa1", "echo bb1", "echo bb2", "echo aa2");
-            Test("echo aa2", Keys(
-                _.Ctrl_r,
-                "aa",
-                CheckThat(() => AssertScreenIs(2,
-                    TokenClassification.Command, "echo",
-                    TokenClassification.None, " ",
-                    emphasisColors, "aa",
-                    TokenClassification.None, "2",
-                    NextLine,
-                    statusColors, "bck-i-search: aa_")),
-                _.Ctrl_r,
-                CheckThat(() => AssertScreenIs(2,
-                    TokenClassification.Command, "echo",
-                    TokenClassification.None, " ",
-                    emphasisColors, "aa",
-                    TokenClassification.None, "1",
-                    NextLine,
-                    statusColors, "bck-i-search: aa_")),
-                _.Backspace,
-                CheckThat(() => AssertScreenIs(2,
-                    TokenClassification.Command, "echo",
-                    TokenClassification.None, " ",
-                    emphasisColors, "a",
-                    TokenClassification.None, "a2",
-                    NextLine,
-                    statusColors, "bck-i-search: a_")),
-                'a', _.Ctrl_r,
-                CheckThat(() => AssertScreenIs(2,
-                    TokenClassification.Command, "echo",
-                    TokenClassification.None, " ",
-                    emphasisColors, "aa",
-                    TokenClassification.None, "1",
-                    NextLine,
-                    statusColors, "bck-i-search: aa_")),
-                _.Backspace));
+            SetHistory("someway", "noway", "yahway");
 
-            // TODO: long search line
-            // TODO: start with Ctrl+s
-            // TODO: "fast" typing in search where buffered keys after search is accepted
+            Test("yahway", Keys(
+                // Change to Command mode.
+                _.Escape,
+                _.Ctrl_r, "way",
+                CheckThat(() => AssertScreenIs(2,
+                    TokenClassification.Command, "yah",
+                    emphasisColors, "way",
+                    NextLine,
+                    statusColors, "bck-i-search: way_")),
+                _.Ctrl_r,
+                CheckThat(() => AssertScreenIs(2,
+                    TokenClassification.Command, "no",
+                    emphasisColors, "way",
+                    NextLine,
+                    statusColors, "bck-i-search: way_")),
+                _.Ctrl_r,
+                CheckThat(() => AssertScreenIs(2,
+                    TokenClassification.Command, "some",
+                    emphasisColors, "way",
+                    NextLine,
+                    statusColors, "bck-i-search: way_")),
+                _.Ctrl_s,
+                CheckThat(() => AssertScreenIs(2,
+                    TokenClassification.Command, "no",
+                    emphasisColors, "way",
+                    NextLine,
+                    statusColors, "fwd-i-search: way_")),
+                _.Ctrl_s,
+                CheckThat(() => AssertScreenIs(2,
+                    TokenClassification.Command, "yah",
+                    emphasisColors, "way",
+                    NextLine,
+                    statusColors, "fwd-i-search: way_")),
+                _.Ctrl_s,
+                CheckThat(() => AssertScreenIs(2,
+                    TokenClassification.Command, "yahway",
+                    NextLine,
+                    statusColors, "failed-fwd-i-search: way_")),
+
+                // Abort the history search.
+                _.Ctrl_g, CheckThat(() => AssertLineIs(string.Empty)),
+                // Search again and escape from the search.
+                _.Ctrl_r, "yah",
+                _.Escape, CheckThat(() => AssertScreenIs(1, TokenClassification.Command, "yahway")),
+                // We should not be able to edit the line, because we are in Command mode.
+                "nnn"));
+
+            SetHistory("someway", "noway", "yahway");
+
+            Test("nnnyahway", Keys(
+                _.Ctrl_r, "way",
+                CheckThat(() => AssertScreenIs(2,
+                    TokenClassification.Command, "yah",
+                    emphasisColors, "way",
+                    NextLine,
+                    statusColors, "bck-i-search: way_")),
+                _.Ctrl_r,
+                CheckThat(() => AssertScreenIs(2,
+                    TokenClassification.Command, "no",
+                    emphasisColors, "way",
+                    NextLine,
+                    statusColors, "bck-i-search: way_")),
+                _.Ctrl_r,
+                CheckThat(() => AssertScreenIs(2,
+                    TokenClassification.Command, "some",
+                    emphasisColors, "way",
+                    NextLine,
+                    statusColors, "bck-i-search: way_")),
+                _.Ctrl_s,
+                CheckThat(() => AssertScreenIs(2,
+                    TokenClassification.Command, "no",
+                    emphasisColors, "way",
+                    NextLine,
+                    statusColors, "fwd-i-search: way_")),
+                _.Ctrl_s,
+                CheckThat(() => AssertScreenIs(2,
+                    TokenClassification.Command, "yah",
+                    emphasisColors, "way",
+                    NextLine,
+                    statusColors, "fwd-i-search: way_")),
+                _.Ctrl_s,
+                CheckThat(() => AssertScreenIs(2,
+                    TokenClassification.Command, "yahway",
+                    NextLine,
+                    statusColors, "failed-fwd-i-search: way_")),
+
+                // Abort the history search.
+                _.Ctrl_g, CheckThat(() => AssertLineIs(string.Empty)),
+                // Search again and escape from the search.
+                _.Ctrl_r, "yah",
+                _.Escape, CheckThat(() => AssertScreenIs(1, TokenClassification.Command, "yahway")),
+                // We should be able to edit the line, because we are in Edit mode.
+                "nnn"));
         }
+
         [SkippableFact]
         public void ViHistoryRepeat()
         {
