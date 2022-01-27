@@ -21,7 +21,7 @@ stages:
   pool:
     name: PowerShell1ES
     demands:
-    - ImageOverride -equals MMSWindows2019-Secure
+    - ImageOverride -equals PSMMS2019-Secure
   jobs:
   - job: build_windows
     displayName: Build PSReadLine
@@ -137,7 +137,7 @@ stages:
   pool:
     name: PowerShell1ES
     demands:
-    - ImageOverride -equals MMSWindows2019-Secure
+    - ImageOverride -equals PSMMS2019-Secure
   jobs:
   - job: Compliance_Job
     displayName: PSReadLine Compliance
