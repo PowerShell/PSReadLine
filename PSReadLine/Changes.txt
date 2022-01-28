@@ -1,3 +1,14 @@
+### [2.2.1-rc1] - 2022-01-28
+
+- Update build agent to use `PSMMS2019-Secure` per requirement (#3174, #3187)
+- Update the `HelpInfoURI` to point to the latest help content (#3171)
+- Update the version of PowerShell nuget packages to 7.2.0 (#3170)
+- Update `README.md` with updated links to content helping get set up (#3149, #3152) (Thanks @cgorshing!)
+- Make `Ctrl+r` and `Ctrl+s` in `Vi` edit mode work the same way as in `Emacs` edit mode (#3148) (Thanks @davetapley!)
+- Make `HistorySearchBackward` and `HistorySearchForward` able to navigate the list view (#3144)
+
+[2.2.1-rc1]: https://github.com/PowerShell/PSReadLine/compare/v2.2.0-beta5...v2.2.1-rc1
+
 ### [2.2.0-beta5] - 2022-01-05
 
 - Improve `RecomputeInitialCoords` to be more robust and handle a couple special cases (#3074)

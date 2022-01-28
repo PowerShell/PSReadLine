@@ -46,7 +46,11 @@ try {
     $ProgressPreference = $savedProgressPreference
 }
 
-$psReadLineAboutHelpFile = Get-ChildItem $psReadLineHelpDirectory -Include "about_PSReadLine.help.txt" -Recurse | ForEach-Object FullName
+## Get the path to the latest 'about_PSReadLine.help.txt' file.
+$psReadLineAboutHelpFile = Join-Path $psReadLineHelpDirectory "en-US" "about_PSReadLine.help.txt"
+if (-not (Test-Path $psReadLineAboutHelpFile)) {
+    throw "The file '$psReadLineAboutHelpFile' should have been created by 'Update-Help', but it was not found."
+}
 $about_topic = Get-Content $psReadLineAboutHelpFile -Raw
 
 #endregion
