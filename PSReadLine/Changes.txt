@@ -1,3 +1,10 @@
+### [2.2.2] - 2022-02-22
+
+- Update to use the 1.0.0 version of `Microsoft.PowerShell.Pager` (#3206)
+- No need to clear lines when it's not a menu completion rendering (#3199)
+
+[2.2.2]: https://github.com/PowerShell/PSReadLine/compare/v2.2.1-rc1...v2.2.2
+
 ### [2.2.1-rc1] - 2022-01-28
 
 - Update build agent to use `PSMMS2019-Secure` per requirement (#3174, #3187)
