@@ -91,7 +91,7 @@ namespace Microsoft.PowerShell
             return runspace?.ConnectionInfo != null;
         }
 
-        private void ReadOneOrMoreKeys()
+        private void ReadOneOrMoreKeys(CancellationToken cancellationToken)
         {
             _readkeyStopwatch.Restart();
             while (_console.KeyAvailable)
@@ -144,6 +144,14 @@ namespace Microsoft.PowerShell
                 while (_charMap.KeyAvailable)
                 {
                     var key = PSKeyInfo.FromConsoleKeyInfo(_charMap.ReadKey());
+                    if (cancellationToken.IsCancellationRequested)
+                    {
+                        // If PSReadLine is running under a host that can cancel it, the
+                        // cancellation will come at a time when ReadKey is stuck waiting for input.
+                        // The next key press will be used to force it to return, and so we want to
+                        // discard this key since we were already canceled.
+                        continue;
+                    }
                     _lastNKeys.Enqueue(key);
                     _queuedKeys.Enqueue(key);
                 }
@@ -160,7 +168,7 @@ namespace Microsoft.PowerShell
                     break;
 
                 var localCancellationToken = _singleton._cancelReadCancellationToken;
-                ReadOneOrMoreKeys();
+                ReadOneOrMoreKeys(localCancellationToken);
                 if (localCancellationToken.IsCancellationRequested)
                 {
                     continue;
