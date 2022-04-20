@@ -28,7 +28,7 @@ namespace Microsoft.PowerShell.PSReadLine
             }
 
             string root = Path.GetDirectoryName(typeof(OnModuleImportAndRemove).Assembly.Location);
-            string subd = (Environment.Version.Major >= 6) ? "net6plus" : "net461";
+            string subd = (Environment.Version.Major >= 6) ? "net6plus" : "net462";
             string path = Path.Combine(root, subd, "Microsoft.PowerShell.PSReadLine.Polyfiller.dll");
 
             return Assembly.LoadFrom(path);
