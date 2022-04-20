@@ -1,3 +1,9 @@
+### [2.2.3] - 2022-04-20
+
+- Respect cancellation in `ReadOneOrMoreKeys()` (#3274, #3280)
+
+[2.2.3]: https://github.com/PowerShell/PSReadLine/compare/v2.2.2...v2.2.3
+
 ### [2.2.2] - 2022-02-22
 
 - Update to use the 1.0.0 version of `Microsoft.PowerShell.Pager` (#3206)
