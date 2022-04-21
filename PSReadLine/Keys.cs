@@ -116,13 +116,13 @@ namespace Microsoft.PowerShell
 
         [DllImport("user32.dll")]
         public static extern int ToUnicodeEx(
-       ConsoleKey uVirtKey,
-       uint uScanCode,
-       byte[] lpKeyState,
-       [MarshalAs(UnmanagedType.LPArray)][Out] char[] chars,
-       int charMaxCount,
-       uint flags,
-       uint dwhkl);
+            ConsoleKey uVirtKey,
+            uint uScanCode,
+            byte[] lpKeyState,
+            [MarshalAs(UnmanagedType.LPArray)][Out] char[] chars,
+            int charMaxCount,
+            uint flags,
+            uint dwhkl);
 
         [DllImport("user32.dll")]
         public static extern uint GetForegroundWindow();
@@ -135,6 +135,8 @@ namespace Microsoft.PowerShell
 
         static readonly ThreadLocal<char[]> toUnicodeBuffer = new ThreadLocal<char[]>(() => new char[2]);
         static readonly ThreadLocal<byte[]> toUnicodeStateBuffer = new ThreadLocal<byte[]>(() => new byte[256]);
+        static readonly ThreadLocal<uint> windowThreadProcessId = new ThreadLocal<uint>(() => GetWindowThreadProcessId(GetForegroundWindow(), 0));
+
         internal static void TryGetCharFromConsoleKey(ConsoleKeyInfo key, ref char result, ref bool isDeadKey)
         {
             var modifiers = key.Modifiers;
@@ -157,7 +159,9 @@ namespace Microsoft.PowerShell
             {
                 flags |= (1 << 2); /* If bit 2 is set, keyboard state is not changed (Windows 10, version 1607 and newer) */
             }
-            uint layout = GetKeyboardLayout(GetWindowThreadProcessId(GetForegroundWindow(), 0));
+            
+            uint thread = windowThreadProcessId.Value;
+            uint layout = GetKeyboardLayout(thread);
             int charCount = ToUnicodeEx(virtualKey, scanCode, state, chars, chars.Length, flags, layout);
 
             if (charCount == 1)
