@@ -1,3 +1,41 @@
+### [2.2.3] - 2022-04-20
+
+- Respect cancellation in `ReadOneOrMoreKeys()` (#3274, #3280)
+
+[2.2.3]: https://github.com/PowerShell/PSReadLine/compare/v2.2.2...v2.2.3
+
+### [2.2.2] - 2022-02-22
+
+- Update to use the 1.0.0 version of `Microsoft.PowerShell.Pager` (#3206)
+- No need to clear lines when it's not a menu completion rendering (#3199)
+
+[2.2.2]: https://github.com/PowerShell/PSReadLine/compare/v2.2.1-rc1...v2.2.2
+
+### [2.2.1-rc1] - 2022-01-28
+
+- Update build agent to use `PSMMS2019-Secure` per requirement (#3174, #3187)
+- Update the `HelpInfoURI` to point to the latest help content (#3171)
+- Update the version of PowerShell nuget packages to 7.2.0 (#3170)
+- Update `README.md` with updated links to content helping get set up (#3149, #3152) (Thanks @cgorshing!)
+- Make `Ctrl+r` and `Ctrl+s` in `Vi` edit mode work the same way as in `Emacs` edit mode (#3148) (Thanks @davetapley!)
+- Make `HistorySearchBackward` and `HistorySearchForward` able to navigate the list view (#3144)
+
+[2.2.1-rc1]: https://github.com/PowerShell/PSReadLine/compare/v2.2.0-beta5...v2.2.1-rc1
+
+### [2.2.0-beta5] - 2022-01-05
+
+- Improve `RecomputeInitialCoords` to be more robust and handle a couple special cases (#3074)
+- Add `BasicScrollingConsole` to support test cases for scrolling up scenarios (#3081)
+- Fix the regex matching in the issue-triage script (#3082, #3110, #3113)
+- Skip the AST analysis when command-line input has any parsing errors (#3075)
+- Trigger the GitHub action by issue-open event (#3041)
+- Fix the double quotes in the comment text for duplicate-issue handling (#3029, #3030)
+- Update GitHub action to handle the `TypeLoadException` issue (#3025)
+- Handle screen buffer scrolling correctly for inline dynamic help (#2951)
+- Fix 2 menu completion issues that happen when we need to scroll screen buffer (#2949)
+
+[2.2.0-beta5]: https://github.com/PowerShell/PSReadLine/compare/v2.2.0-beta4...v2.2.0-beta5
+
 ### [2.2.0-beta4] - 2021-10-27
 
 - Generate `OnIdle` event only if the editing buffer is empty (#2934)

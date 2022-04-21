@@ -1,0 +1,225 @@
+[
+  {
+    "Name": "BasicTest_1",
+    // The prompt and input used are actually:
+    // PS:1> new-ilNugetPackage -PackagePath C:\arena\tmp\NugetPackages -PackageVersion 7.2.0-preview.1 -WinFxdBinPath C:\Users\rocky\Downloads\Win\ -LinuxFxdBinPath C:\Users\rocky\Downloads\Linux\ -GenAPIToolPath C:\Users\rocky\Tools\genapi
+    "Line": "\u001b[0m\u001b[93mnew-ILNugetPackage\u001b[0m\u001b[39;49m \u001b[0m\u001b[90m-PackagePath\u001b[0m\u001b[39;49m \u001b[0m\u001b[37mC:\\arena\\tmp\\NugetPackages\u001b[0m\u001b[39;49m \u001b[0m\u001b[90m-PackageVersion\u001b[0m\u001b[39;49m \u001b[0m\u001b[37m7.2.0-preview.1\u001b[0m\u001b[39;49m \u001b[0m\u001b[90m-WinFxdBinPath\u001b[0m\u001b[39;49m \u001b[0m\u001b[37mC:\\Users\\rocky\\Downloads\\Win\\\u001b[0m\u001b[39;49m \u001b[0m\u001b[90m-LinuxFxdBinPath\u001b[0m\u001b[39;49m \u001b[0m\u001b[37mC:\\Users\\rocky\\Downloads\\Linux\\\u001b[0m\u001b[39;49m \u001b[0m\u001b[90m-GenAPIToolPath\u001b[0m\u001b[39;49m \u001b[0m\u001b[37mC:\\Users\\rocky\\Tools\\genapi",
+    "IsFirstLogicalLine": true,
+    "Context": [
+      {
+        "BufferWidth": 150,
+        "InitialX": 6,
+        "LineCount": 2,
+        "LastLineLen": 84
+      },
+      {
+        "BufferWidth": 102,
+        "InitialX": 6,
+        "LineCount": 3,
+        "LastLineLen": 30
+      },
+      {
+        "BufferWidth": 59,
+        "InitialX": 6,
+        "LineCount": 4,
+        "LastLineLen": 57
+      },
+      {
+        "BufferWidth": 58,
+        "InitialX": 6,
+        "LineCount": 5,
+        "LastLineLen": 2
+      },
+      {
+        "BufferWidth": 117,
+        "InitialX": 6,
+        "LineCount": 2,
+        "LastLineLen": 117
+      },
+      {
+        "BufferWidth": 234,
+        "InitialX": 6,
+        "LineCount": 1,
+        "LastLineLen": 228
+      },
+      {
+        "BufferWidth": 236,
+        "InitialX": 6,
+        "LineCount": 1,
+        "LastLineLen": 228
+      }
+    ]
+  },
+
+  {
+    "Name": "BasicTest_2",
+    // The continuation prompt and input used are actually:
+    // >> new-ilNugetPackage -PackagePath C:\arena\tmp\NugetPackages -PackageVersion 7.2.0-preview.1 -WinFxdBinPath C:\Users\rocky\Downloads\Win\ -LinuxFxdBinPath C:\Users\rocky\Downloads\Linux\ -GenAPIToolPath C:\Users\rocky\Tools\genapi
+    "Line": "\u001b[0m\u001b[37m>> \u001b[0m\u001b[93mnew-ILNugetPackage\u001b[0m\u001b[39;49m \u001b[0m\u001b[90m-PackagePath\u001b[0m\u001b[39;49m \u001b[0m\u001b[37mC:\\arena\\tmp\\NugetPackages\u001b[0m\u001b[39;49m \u001b[0m\u001b[90m-PackageVersion\u001b[0m\u001b[39;49m \u001b[0m\u001b[37m7.2.0-preview.1\u001b[0m\u001b[39;49m \u001b[0m\u001b[90m-WinFxdBinPath\u001b[0m\u001b[39;49m \u001b[0m\u001b[37mC:\\Users\\rocky\\Downloads\\Win\\\u001b[0m\u001b[39;49m \u001b[0m\u001b[90m-LinuxFxdBinPath\u001b[0m\u001b[39;49m \u001b[0m\u001b[37mC:\\Users\\rocky\\Downloads\\Linux\\\u001b[0m\u001b[39;49m \u001b[0m\u001b[90m-GenAPIToolPath\u001b[0m\u001b[39;49m \u001b[0m\u001b[37mC:\\Users\\rocky\\Tools\\genapi",
+    "IsFirstLogicalLine": false,
+    "Context": [
+      {
+        "BufferWidth": 150,
+        "InitialX": 6,
+        "LineCount": 2,
+        "LastLineLen": 81
+      },
+      {
+        "BufferWidth": 102,
+        "InitialX": 6,
+        "LineCount": 3,
+        "LastLineLen": 27
+      },
+      {
+        "BufferWidth": 77,
+        "InitialX": 6,
+        "LineCount": 3,
+        "LastLineLen": 77
+      },
+      {
+        "BufferWidth": 54,
+        "InitialX": 6,
+        "LineCount": 5,
+        "LastLineLen": 15
+      },
+      {
+        "BufferWidth": 234,
+        "InitialX": 6,
+        "LineCount": 1,
+        "LastLineLen": 231
+      },
+      {
+        "BufferWidth": 236,
+        "InitialX": 6,
+        "LineCount": 1,
+        "LastLineLen": 231
+      }
+    ]
+  },
+
+  {
+    "Name": "BasicTest_3",
+    // Empty prompt, and the input contains no visible character.
+    "Line": "\u001b[0m\u001b[93m",
+    "IsFirstLogicalLine": true,
+    "Context": [
+      {
+        "BufferWidth": 58,
+        "InitialX": 6,
+        "LineCount": 1,
+        "LastLineLen": 0
+      },
+      {
+        "BufferWidth": 54,
+        "InitialX": 0,
+        "LineCount": 1,
+        "LastLineLen": 0
+      }
+    ]
+  },
+
+  {
+    "Name": "BasicTest_4",
+    // Empty prompt, and the input contains no visible character.
+    "Line": "\u001b[0m\u001b[93m",
+    "IsFirstLogicalLine": false,
+    "Context": [
+      {
+        "BufferWidth": 58,
+        "InitialX": 6,
+        "LineCount": 1,
+        "LastLineLen": 0
+      },
+      {
+        "BufferWidth": 54,
+        "InitialX": 0,
+        "LineCount": 1,
+        "LastLineLen": 0
+      }
+    ]
+  },
+
+  {
+    "Name": "BasicTest_5",
+    // Continuation prompt followed by an empty line.
+    "Line": "\u001b[0m\u001b[93m>> ",
+    "IsFirstLogicalLine": false,
+    "Context": [
+      {
+        "BufferWidth": 58,
+        "InitialX": 6,
+        "LineCount": 1,
+        "LastLineLen": 3
+      },
+      {
+        "BufferWidth": 54,
+        "InitialX": 0,
+        "LineCount": 1,
+        "LastLineLen": 3
+      }
+    ]
+  },
+
+  {
+    "Name": "BasicTest_6",
+    // Input is: dir *.psd1 -Recurse | sls -SimpleMatch Desktop-ab
+    "Line": "\u001b[0m\u001b[93mdir\u001b[0m\u001b[39;49m \u001b[0m\u001b[37m*.psd1\u001b[0m\u001b[39;49m \u001b[0m\u001b[90m-Recurse\u001b[0m\u001b[39;49m \u001b[0m\u001b[37m|\u001b[0m\u001b[39;49m \u001b[0m\u001b[93msls\u001b[0m\u001b[39;49m \u001b[0m\u001b[90m-SimpleMatch\u001b[0m\u001b[39;49m \u001b[0m\u001b[37mDesktop-ab",
+    "IsFirstLogicalLine": true,
+    "Context": [
+      {
+        "BufferWidth": 55,
+        "InitialX": 6,
+        "LineCount": 1,
+        "LastLineLen": 49
+      },
+      {
+        "BufferWidth": 54,
+        "InitialX": 6,
+        "LineCount": 2,
+        "LastLineLen": 1
+      }
+    ]
+  },
+
+  {
+    "Name": "BasicTest_7",
+    // Input is: dir *.psd1 -Recurse | sls -SimpleMatch Desktop-有
+    "Line": "\u001b[0m\u001b[93mdir\u001b[0m\u001b[39;49m \u001b[0m\u001b[37m*.psd1\u001b[0m\u001b[39;49m \u001b[0m\u001b[90m-Recurse\u001b[0m\u001b[39;49m \u001b[0m\u001b[37m|\u001b[0m\u001b[39;49m \u001b[0m\u001b[93msls\u001b[0m\u001b[39;49m \u001b[0m\u001b[90m-SimpleMatch\u001b[0m\u001b[39;49m \u001b[0m\u001b[37mDesktop-有",
+    "IsFirstLogicalLine": true,
+    "Context": [
+      {
+        "BufferWidth": 54,
+        "InitialX": 6,
+        "LineCount": 2,
+        "LastLineLen": 2
+      },
+      {
+        "BufferWidth": 54,
+        "InitialX": 7,
+        "LineCount": 2,
+        "LastLineLen": 2
+      }
+    ]
+  },
+
+  {
+    "Name": "BasicTest_8",
+    // dir *.psd1 -Recurse | sls -SimpleMatch Desktop-有人
+    "Line": "\u001b[0m\u001b[93mdir\u001b[0m\u001b[39;49m \u001b[0m\u001b[37m*.psd1\u001b[0m\u001b[39;49m \u001b[0m\u001b[90m-Recurse\u001b[0m\u001b[39;49m \u001b[0m\u001b[37m|\u001b[0m\u001b[39;49m \u001b[0m\u001b[93msls\u001b[0m\u001b[39;49m \u001b[0m\u001b[90m-SimpleMatch\u001b[0m\u001b[39;49m \u001b[0m\u001b[37mDesktop-有人",
+    "IsFirstLogicalLine": true,
+    "Context": [
+      {
+        "BufferWidth": 54,
+        "InitialX": 6,
+        "LineCount": 2,
+        "LastLineLen": 4
+      },
+      {
+        "BufferWidth": 54,
+        "InitialX": 7,
+        "LineCount": 2,
+        "LastLineLen": 4
+      }
+    ]
+  }
+]

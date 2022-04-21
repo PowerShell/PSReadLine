@@ -506,26 +506,26 @@ namespace Microsoft.PowerShell
                     }
                 }
 
-                // if the menu has moved, we need to clear the lines under it
-                if (Top < PreviousTop)
-                {
-                    // In either of the following two cases, we will need to move the cursor to the next line:
-                    //  - if extra rows from previous menu were cleared, then we know the current line was erased
-                    //    but the cursor was not moved to the next line.
-                    //  - if 'CursorLeft != 0', then the rest of the last menu row was erased, but the cursor
-                    //    was not moved to the next line.
-                    if (extraPreRowsCleared || console.CursorLeft != 0)
-                    {
-                        // There are lines from the previous rendering that need to be cleared,
-                        // so we are sure there is no need to scroll.
-                        MoveCursorDown(1);
-                    }
-
-                    Singleton.WriteBlankLines(PreviousTop - Top);
-                }
-
                 if (menuSelect)
                 {
+                    // if the menu has moved, we need to clear the lines under it
+                    if (Top < PreviousTop)
+                    {
+                        // In either of the following two cases, we will need to move the cursor to the next line:
+                        //  - if extra rows from previous menu were cleared, then we know the current line was erased
+                        //    but the cursor was not moved to the next line.
+                        //  - if 'CursorLeft != 0', then the rest of the last menu row was erased, but the cursor
+                        //    was not moved to the next line.
+                        if (extraPreRowsCleared || console.CursorLeft != 0)
+                        {
+                            // There are lines from the previous rendering that need to be cleared,
+                            // so we are sure there is no need to scroll.
+                            MoveCursorDown(1);
+                        }
+
+                        Singleton.WriteBlankLines(PreviousTop - Top);
+                    }
+
                     RestoreCursor();
                     console.CursorVisible = true;
                 }
@@ -867,6 +867,7 @@ namespace Microsoft.PowerShell
                         // getting shorter or longer.
                         var endOfCommandLine = ConvertOffsetToPoint(_buffer.Length);
                         var topAdjustment = (endOfCommandLine.Y + 1) - menu.Top;
+                        int oldInitialY = _initialY;
 
                         if (topAdjustment != 0)
                         {
@@ -877,6 +878,14 @@ namespace Microsoft.PowerShell
                             // Render did not clear the rest of the command line which flowed
                             // into the menu, so we must do that here.
                             menu.SaveCursor();
+
+                            if (oldInitialY > _initialY)
+                            {
+                                // Scrolling happened when drawing the menu, so we need to adjust
+                                // this point as it was calculated before drawing the menu.
+                                endOfCommandLine.Y -= oldInitialY - _initialY;
+                            }
+
                             _console.SetCursorPosition(endOfCommandLine.X, endOfCommandLine.Y);
                             _console.Write(Spaces(_console.BufferWidth - endOfCommandLine.X));
                             menu.RestoreCursor();

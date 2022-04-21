@@ -11,7 +11,7 @@ class issue
 $repo_name = "PowerShell/PSReadLine"
 $root_url = "https://github.com/PowerShell/PSReadLine/issues"
 $msg_upgrade = @"
-Please upgrade to the [2.1.0 version of PSReadLine](https://www.powershellgallery.com/packages/PSReadLine/2.1.0) from PowerShell Gallery.
+Please upgrade to the [2.2.3 version of PSReadLine](https://www.powershellgallery.com/packages/PSReadLine/2.2.3) from PowerShell Gallery.
 See the [upgrading section](https://github.com/PowerShell/PSReadLine#upgrading) for instructions. Please let us know if you run into the same issue with the latest version.
 "@
 
@@ -43,13 +43,11 @@ foreach ($item in $issues)
     Write-Host "Issue: $root_url/$number" -ForegroundColor Green
 
     if ($body.Contains("System.TypeLoadException: Could not load type 'System.Management.Automation.Subsystem.PredictionResult'") -and
-        $body -match 'PSReadLine: 2\.2\.0-beta[12]' -and
-        $body -match 'PowerShell: 7\.2\.0')
+        $body -match 'PSReadLine: 2\.2\.0-beta[12]')
     {
         $comment = @'
-This issue was fixed in 2.2.0-beta3 version of PSReadLine. You can fix this by upgrading to the latest [2.2.0-beta4 version of PSReadLine](https://www.powershellgallery.com/packages/PSReadLine/2.2.0-beta4). Instructions for doing so:
-1. stop all instances of `pwsh`.
-2. from `cmd.exe` on Windows or `bash` on Linux, run: `pwsh -noprofile -command \"Install-Module PSReadLine -AllowPrerelease -Force\"`
+This issue was fixed in 2.2.0-beta3 version of PSReadLine. You can fix this by upgrading to the latest [2.2.3 version of PSReadLine](https://www.powershellgallery.com/packages/PSReadLine/2.2.3).
+To upgrade, simply run `Install-Module PSReadLine -AllowPrerelease -Force` from your PowerShell console.
 
 --------
 
@@ -60,10 +58,8 @@ If you want to remove that beta version of PSReadLine and use the 2.1.0 version 
     }
     elseif ($title.Contains('https://github.com/PowerShell/PSReadLine/issues/new') -or
             $body.Contains('https://github.com/PowerShell/PSReadLine/issues/new') -or
-            $body -match 'PSReadLine: 2\.\d\.\d(-\w+)?' -or
-            $body -match 'PSReadline version: 2\.\d\.\d(-\w+)?' -or
-            $body -match 'PowerShell: 7\.\d\.\d' -or
-            $body -match 'PS version: 7\.\d\.\d')
+            $body -match 'PSReadLine( version)?: (2\.[01]\.\d$)|(2\.[2-5]\.\d(-\w+)?$)' -or
+            $body -match '(PowerShell|PS version): 7\.\d\.\d')
     {
         ## The issue reported a recent version of PSReadLine, so leave it as is.
         continue

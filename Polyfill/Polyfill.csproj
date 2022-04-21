@@ -3,19 +3,19 @@
   <PropertyGroup>
     <AssemblyName>Microsoft.PowerShell.PSReadLine.Polyfiller</AssemblyName>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
-    <TargetFrameworks>net461;net6.0</TargetFrameworks>
+    <TargetFrameworks>net462;net6.0</TargetFrameworks>
     <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net461'">
+  <ItemGroup Condition="'$(TargetFramework)' == 'net462'">
     <PackageReference Include="PowerShellStandard.Library" Version="5.1.0" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
-    <PackageReference Include="System.Management.Automation" Version="7.2.0-preview.9" />
+    <PackageReference Include="System.Management.Automation" Version="7.2.0" />
   </ItemGroup>
 
-  <PropertyGroup Condition="'$(TargetFramework)' == 'net461'">
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net462'">
     <DefineConstants>$(DefineConstants);LEGACY</DefineConstants>
   </PropertyGroup>
 

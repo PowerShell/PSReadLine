@@ -159,7 +159,7 @@ PARAMETERS
 
             Test("Get-MultiLineHelp -OneAndHalf", Keys(
                 "Get-MultiLineHelp -OneAndHalf", _.Alt_h,
-                    CheckThat(() => AssertScreenIs(9,
+                    CheckThat(() => AssertScreenIs(8,
                         TokenClassification.Command, "Get-MultiLineHelp",
                         TokenClassification.None, " ",
                         TokenClassification.Parameter, "-OneAndHalf",
@@ -172,8 +172,7 @@ PARAMETERS
                         TokenClassification.None, "60 characters but shorter than 120.",
                         NextLine,
                         TokenClassification.None, "Required: false, Position: 0, Default Value: None, Pipeline ",
-                        NextLine,
-                        "Input: True (ByPropertyName, ByValue), WildCard: false")),
+                        TokenClassification.None, "Input: True (ByPropertyName, ByValue), WildCard: false")),
                 _.LeftArrow,
                     CheckThat(() => AssertScreenIs(1,
                         TokenClassification.Command, "Get-MultiLineHelp",
@@ -181,6 +180,157 @@ PARAMETERS
                         TokenClassification.Parameter, "-OneAndHalf")),
                 _.Enter
                 ));
+        }
+
+        [SkippableFact]
+        public void DynHelp_GetParameterHelpMultiLine_And_Clear_WithScrolling1()
+        {
+            // This test case covers the fix to https://github.com/PowerShell/PSReadLine/issues/2950.
+            var basicScrollingConsole = new BasicScrollingConsole(keyboardLayout: _, width: 60, height: 10);
+            TestSetup(basicScrollingConsole, KeyMode.Cmd);
+
+            // Write 12 new-lines, so that the next input will be at the last line of the screen buffer.
+            basicScrollingConsole.Write(new string('\n', 12));
+            AssertCursorLeftTopIs(0, 9);
+
+            Test("Get-MultiLineHelp -OneAndHalf", Keys(
+                "Get-MultiLineHelp -OneAndHalf",
+                    CheckThat(() => AssertCursorLeftTopIs(29, 9)),
+                _.Alt_h,
+                    CheckThat(() => AssertCursorLeftTopIs(29, 2)),
+                    CheckThat(() => AssertScreenIs(top: 12, lines: 8,
+                        TokenClassification.Command, "Get-MultiLineHelp",
+                        TokenClassification.None, " ",
+                        TokenClassification.Parameter, "-OneAndHalf",
+                        NextLine,
+                        NextLine,
+                        TokenClassification.None, $"-Date <name>",
+                        NextLine,
+                        NextLine,
+                        TokenClassification.None, "DESC: Some very long description that is over the buffer width of ",
+                        TokenClassification.None, "60 characters but shorter than 120.",
+                        NextLine,
+                        TokenClassification.None, "Required: false, Position: 0, Default Value: None, Pipeline ",
+                        TokenClassification.None, "Input: True (ByPropertyName, ByValue), WildCard: false")),
+                _.Alt_h,
+                    CheckThat(() => AssertCursorLeftTopIs(29, 2)),
+                    CheckThat(() => AssertScreenIs(top: 12, lines: 8,
+                        TokenClassification.Command, "Get-MultiLineHelp",
+                        TokenClassification.None, " ",
+                        TokenClassification.Parameter, "-OneAndHalf", NextLine,
+                        NextLine,
+                        NextLine,
+                        NextLine,
+                        NextLine,
+                        NextLine,
+                        NextLine,
+                        NextLine)),
+                _.Alt_h,
+                    CheckThat(() => AssertCursorLeftTopIs(29, 2)),
+                    CheckThat(() => AssertScreenIs(top: 12, lines: 8,
+                        TokenClassification.Command, "Get-MultiLineHelp",
+                        TokenClassification.None, " ",
+                        TokenClassification.Parameter, "-OneAndHalf",
+                        NextLine,
+                        NextLine,
+                        TokenClassification.None, $"-Date <name>",
+                        NextLine,
+                        NextLine,
+                        TokenClassification.None, "DESC: Some very long description that is over the buffer width of ",
+                        TokenClassification.None, "60 characters but shorter than 120.",
+                        NextLine,
+                        TokenClassification.None, "Required: false, Position: 0, Default Value: None, Pipeline ",
+                        TokenClassification.None, "Input: True (ByPropertyName, ByValue), WildCard: false")),
+                _.LeftArrow,
+                    CheckThat(() => AssertCursorLeftTopIs(29, 2)),
+                    CheckThat(() => AssertScreenIs(top: 12, lines: 8,
+                        TokenClassification.Command, "Get-MultiLineHelp",
+                        TokenClassification.None, " ",
+                        TokenClassification.Parameter, "-OneAndHalf", NextLine,
+                        NextLine,
+                        NextLine,
+                        NextLine,
+                        NextLine,
+                        NextLine,
+                        NextLine,
+                        NextLine)),
+                _.Enter),
+                resetCursor: false);
+        }
+
+        [SkippableFact]
+        public void DynHelp_GetParameterHelpMultiLine_And_Clear_WithScrolling2()
+        {
+            // This test case covers the new changes in 'RecomputeInitialCoords', to verify that the
+            // previous cursor position gets updated when scrolling happens.
+            var basicScrollingConsole = new BasicScrollingConsole(keyboardLayout: _, width: 60, height: 10);
+            TestSetup(basicScrollingConsole, KeyMode.Cmd);
+
+            // Write 12 new-lines, so that the next input will be at the last line of the screen buffer.
+            basicScrollingConsole.Write(new string('\n', 12));
+            AssertCursorLeftTopIs(0, 9);
+
+            Test("Get-MultiLineHelp -OneAndHalf", Keys(
+                "Get-MultiLineHelp -OneAndHalf",
+                    CheckThat(() => AssertCursorLeftTopIs(29, 9)),
+                _.Alt_h,
+                    CheckThat(() => AssertCursorLeftTopIs(29, 2)),
+                    CheckThat(() => AssertScreenIs(top: 12, lines: 8,
+                        TokenClassification.Command, "Get-MultiLineHelp",
+                        TokenClassification.None, " ",
+                        TokenClassification.Parameter, "-OneAndHalf",
+                        NextLine,
+                        NextLine,
+                        TokenClassification.None, $"-Date <name>",
+                        NextLine,
+                        NextLine,
+                        TokenClassification.None, "DESC: Some very long description that is over the buffer width of ",
+                        TokenClassification.None, "60 characters but shorter than 120.",
+                        NextLine,
+                        TokenClassification.None, "Required: false, Position: 0, Default Value: None, Pipeline ",
+                        TokenClassification.None, "Input: True (ByPropertyName, ByValue), WildCard: false")),
+                _.Escape,
+                    CheckThat(() => AssertCursorLeftTopIs(29, 2)),
+                    CheckThat(() => AssertScreenIs(top: 12, lines: 8,
+                        TokenClassification.Command, "Get-MultiLineHelp",
+                        TokenClassification.None, " ",
+                        TokenClassification.Parameter, "-OneAndHalf", NextLine,
+                        NextLine,
+                        NextLine,
+                        NextLine,
+                        NextLine,
+                        NextLine,
+                        NextLine,
+                        NextLine)),
+                // Write more characters after clearing the inline help content, verify that the initial coordinates are up-to-date.
+                "abc",
+                    CheckThat(() => AssertCursorLeftTopIs(32, 2)),
+                    CheckThat(() => AssertScreenIs(top: 12, lines: 8,
+                        TokenClassification.Command, "Get-MultiLineHelp",
+                        TokenClassification.None, " ",
+                        TokenClassification.Parameter, "-OneAndHalfabc", NextLine,
+                        NextLine,
+                        NextLine,
+                        NextLine,
+                        NextLine,
+                        NextLine,
+                        NextLine,
+                        NextLine)),
+                _.Backspace, _.Backspace, _.Backspace,
+                    CheckThat(() => AssertCursorLeftTopIs(29, 2)),
+                    CheckThat(() => AssertScreenIs(top: 12, lines: 8,
+                        TokenClassification.Command, "Get-MultiLineHelp",
+                        TokenClassification.None, " ",
+                        TokenClassification.Parameter, "-OneAndHalf", NextLine,
+                        NextLine,
+                        NextLine,
+                        NextLine,
+                        NextLine,
+                        NextLine,
+                        NextLine,
+                        NextLine)),
+                _.Enter),
+                resetCursor: false);
         }
 
         [SkippableFact]

@@ -565,10 +565,24 @@ namespace Microsoft.PowerShell
                 return AddToHistoryOption.MemoryAndFile;
             }
 
+            // The input contains at least one match of some sensitive patterns, so now we need to further
+            // analyze the input using the ASTs to see if it should actually be considered sensitive.
             bool isSensitive = false;
+            ParseError[] parseErrors = _singleton._parseErrors;
+
+            // We need to compare the text here, instead of simply checking whether or not '_ast' is null.
+            // This is because we may need to update from history file in the middle of editing an input,
+            // and in that case, the '_ast' may be not-null, but it was not parsed from 'line'.
             Ast ast = string.Equals(_singleton._ast?.Extent.Text, line)
                 ? _singleton._ast
-                : Parser.ParseInput(line, out _, out _);
+                : Parser.ParseInput(line, out _, out parseErrors);
+
+            if (parseErrors != null && parseErrors.Length > 0)
+            {
+                // If the input has any parsing errors, we cannot reliably analyze the AST. We just consider
+                // it sensitive in this case, given that it contains matches of our sensitive pattern.
+                return AddToHistoryOption.MemoryOnly;
+            }
 
             do
             {
@@ -944,6 +958,11 @@ namespace Microsoft.PowerShell
                 numericArg = -numericArg;
             }
 
+            if (UpdateListSelection(numericArg))
+            {
+                return;
+            }
+
             _singleton.SaveCurrentLine();
             _singleton.HistorySearch(numericArg);
         }
@@ -955,6 +974,10 @@ namespace Microsoft.PowerShell
         public static void HistorySearchForward(ConsoleKeyInfo? key = null, object arg = null)
         {
             TryGetArgAsInt(arg, out var numericArg, +1);
+            if (UpdateListSelection(numericArg))
+            {
+                return;
+            }
 
             _singleton.SaveCurrentLine();
             _singleton.HistorySearch(numericArg);

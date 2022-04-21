@@ -19,7 +19,7 @@ param(
     [ValidateSet("Debug", "Release")]
     [string]$Configuration = (property Configuration Release),
 
-    [ValidateSet("net461", "net6.0")]
+    [ValidateSet("net462", "net6.0")]
     [string]$Framework,
 
     [switch]$CheckHelpContent
@@ -32,7 +32,7 @@ $targetDir = "bin/$Configuration/PSReadLine"
 
 if (-not $Framework)
 {
-    $Framework = if ($PSVersionTable.PSEdition -eq "Core") { "net6.0" } else { "net461" }
+    $Framework = if ($PSVersionTable.PSEdition -eq "Core") { "net6.0" } else { "net462" }
 }
 
 Write-Verbose "Building for '$Framework'" -Verbose
@@ -64,9 +64,9 @@ $mockPSConsoleParams = @{
 <#
 Synopsis: Build the Polyfiller assembly
 #>
-task BuildPolyfiller @polyFillerParams -If ($Framework -eq "net461") {
-    ## Build both "net461" and "net6.0"
-    exec { dotnet publish -f "net461" -c $Configuration Polyfill }
+task BuildPolyfiller @polyFillerParams -If ($Framework -eq "net462") {
+    ## Build both "net462" and "net6.0"
+    exec { dotnet publish -f "net462" -c $Configuration Polyfill }
     exec { dotnet publish -f "net6.0" -c $Configuration Polyfill }
 }
 
@@ -128,15 +128,15 @@ task LayoutModule BuildPolyfiller, BuildMainModule, {
         Set-Content -Path (Join-Path $targetDir (Split-Path $file -Leaf)) -Value (ConvertTo-CRLF $content) -Force
     }
 
-    if ($Framework -eq "net461") {
-        if (-not (Test-Path "$targetDir/net461")) {
-            New-Item "$targetDir/net461" -ItemType Directory -Force > $null
+    if ($Framework -eq "net462") {
+        if (-not (Test-Path "$targetDir/net462")) {
+            New-Item "$targetDir/net462" -ItemType Directory -Force > $null
         }
         if (-not (Test-Path "$targetDir/net6plus")) {
             New-Item "$targetDir/net6plus" -ItemType Directory -Force > $null
         }
 
-        Copy-Item "Polyfill/bin/$Configuration/net461/Microsoft.PowerShell.PSReadLine.Polyfiller.dll" "$targetDir/net461" -Force
+        Copy-Item "Polyfill/bin/$Configuration/net462/Microsoft.PowerShell.PSReadLine.Polyfiller.dll" "$targetDir/net462" -Force
         Copy-Item "Polyfill/bin/$Configuration/net6.0/Microsoft.PowerShell.PSReadLine.Polyfiller.dll" "$targetDir/net6plus" -Force
     }
 

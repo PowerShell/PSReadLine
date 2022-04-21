@@ -21,7 +21,7 @@ stages:
   pool:
     name: PowerShell1ES
     demands:
-    - ImageOverride -equals MMS2019
+    - ImageOverride -equals PSMMS2019-Secure
   jobs:
   - job: build_windows
     displayName: Build PSReadLine
@@ -42,7 +42,7 @@ stages:
         Write-Host "PS Version: $($($PSVersionTable.PSVersion))"
         Set-Location -Path '$(Build.SourcesDirectory)\PSReadLine'
         .\build.ps1 -Bootstrap
-        .\build.ps1 -Configuration Release -Framework net461 -CheckHelpContent
+        .\build.ps1 -Configuration Release -Framework net462 -CheckHelpContent
 
         # Set target folder paths
         New-Item -Path .\bin\Release\NuGetPackage -ItemType Directory > $null
@@ -137,7 +137,7 @@ stages:
   pool:
     name: PowerShell1ES
     demands:
-    - ImageOverride -equals MMS2019
+    - ImageOverride -equals PSMMS2019-Secure
   jobs:
   - job: Compliance_Job
     displayName: PSReadLine Compliance

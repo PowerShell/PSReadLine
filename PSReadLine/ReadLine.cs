@@ -143,7 +143,17 @@ namespace Microsoft.PowerShell
                 }
                 while (_charMap.KeyAvailable)
                 {
-                    var key = PSKeyInfo.FromConsoleKeyInfo(_charMap.ReadKey());
+                    ConsoleKeyInfo keyInfo = _charMap.ReadKey();
+                    if (_cancelReadCancellationToken.IsCancellationRequested)
+                    {
+                        // If PSReadLine is running under a host that can cancel it, the
+                        // cancellation will come at a time when ReadKey is stuck waiting for input.
+                        // The next key press will be used to force it to return, and so we want to
+                        // discard this key since we were already canceled.
+                        continue;
+                    }
+
+                    var key = PSKeyInfo.FromConsoleKeyInfo(keyInfo);
                     _lastNKeys.Enqueue(key);
                     _queuedKeys.Enqueue(key);
                 }
@@ -155,13 +165,12 @@ namespace Microsoft.PowerShell
             while (true)
             {
                 // Wait until ReadKey tells us to read a key (or it's time to exit).
-                int handleId = WaitHandle.WaitAny(_singleton._threadProcWaitHandles);
+                int handleId = WaitHandle.WaitAny(_threadProcWaitHandles);
                 if (handleId == 1) // It was the _closingWaitHandle that was signaled.
                     break;
 
-                var localCancellationToken = _singleton._cancelReadCancellationToken;
                 ReadOneOrMoreKeys();
-                if (localCancellationToken.IsCancellationRequested)
+                if (_cancelReadCancellationToken.IsCancellationRequested)
                 {
                     continue;
                 }
@@ -387,7 +396,7 @@ namespace Microsoft.PowerShell
                     }
 
                     _singleton._cancelReadCancellationToken = cancellationToken;
-                    _singleton._requestKeyWaitHandles[2] = _singleton._cancelReadCancellationToken.WaitHandle;
+                    _singleton._requestKeyWaitHandles[2] = cancellationToken.WaitHandle;
                     return _singleton.InputLoop();
                 }
                 catch (OperationCanceledException)
@@ -508,6 +517,10 @@ namespace Microsoft.PowerShell
                 var visualSelectionCommandCount = _visualSelectionCommandCount;
                 var moveToLineCommandCount = _moveToLineCommandCount;
                 var moveToEndOfLineCommandCount = _moveToEndOfLineCommandCount;
+
+                // We attempt to handle window resizing only once per a keybinding processing, because we assume the
+                // window resizing cannot and shouldn't happen within the processing of a given keybinding.
+                _handlePotentialResizing = true;
 
                 var key = ReadKey();
                 ProcessOneKey(key, _dispatchTable, ignoreIfNoAction: false, arg: null);
@@ -709,10 +722,6 @@ namespace Microsoft.PowerShell
                 _delayedOneTimeInitCompleted = true;
             }
 
-            _previousRender = _initialPrevRender;
-            _previousRender.bufferWidth = _console.BufferWidth;
-            _previousRender.bufferHeight = _console.BufferHeight;
-            _previousRender.errorPrompt = false;
             _buffer.Clear();
             _edits = new List<EditItem>();
             _undoEditIndex = 0;
@@ -721,6 +730,7 @@ namespace Microsoft.PowerShell
             _mark = 0;
             _emphasisStart = -1;
             _emphasisLength = 0;
+            _ast = null;
             _tokens = null;
             _parseErrors = null;
             _inputAccepted = false;
@@ -728,6 +738,9 @@ namespace Microsoft.PowerShell
             _initialY = _console.CursorTop;
             _initialForeground = _console.ForegroundColor;
             _initialBackground = _console.BackgroundColor;
+            _previousRender = _initialPrevRender;
+            _previousRender.UpdateConsoleInfo(_console);
+            _previousRender.initialY = _initialY;
             _statusIsErrorMessage = false;
 
             _initialOutputEncoding = _console.OutputEncoding;
@@ -861,11 +874,11 @@ namespace Microsoft.PowerShell
             _killIndex = -1; // So first add indexes 0.
             _killRing = new List<string>(Options.MaximumKillRingCount);
 
-            _singleton._readKeyWaitHandle = new AutoResetEvent(false);
-            _singleton._keyReadWaitHandle = new AutoResetEvent(false);
-            _singleton._closingWaitHandle = new ManualResetEvent(false);
-            _singleton._requestKeyWaitHandles = new WaitHandle[] {_singleton._keyReadWaitHandle, _singleton._closingWaitHandle, _defaultCancellationToken.WaitHandle};
-            _singleton._threadProcWaitHandles = new WaitHandle[] {_singleton._readKeyWaitHandle, _singleton._closingWaitHandle};
+            _readKeyWaitHandle = new AutoResetEvent(false);
+            _keyReadWaitHandle = new AutoResetEvent(false);
+            _closingWaitHandle = new ManualResetEvent(false);
+            _requestKeyWaitHandles = new WaitHandle[] {_keyReadWaitHandle, _closingWaitHandle, null};
+            _threadProcWaitHandles = new WaitHandle[] {_readKeyWaitHandle, _closingWaitHandle};
 
             // This is for a "being hosted in an alternate appdomain scenario" (the
             // DomainUnload event is not raised for the default appdomain). It allows us
@@ -875,13 +888,13 @@ namespace Microsoft.PowerShell
             {
                 AppDomain.CurrentDomain.DomainUnload += (x, y) =>
                 {
-                    _singleton._closingWaitHandle.Set();
-                    _singleton._readKeyThread.Join(); // may need to wait for history to be written
+                    _closingWaitHandle.Set();
+                    _readKeyThread.Join(); // may need to wait for history to be written
                 };
             }
 
-            _singleton._readKeyThread = new Thread(_singleton.ReadKeyThreadProc) {IsBackground = true, Name = "PSReadLine ReadKey Thread"};
-            _singleton._readKeyThread.Start();
+            _readKeyThread = new Thread(ReadKeyThreadProc) {IsBackground = true, Name = "PSReadLine ReadKey Thread"};
+            _readKeyThread.Start();
         }
 
         private static void Chord(ConsoleKeyInfo? key = null, object arg = null)
@@ -1033,6 +1046,8 @@ namespace Microsoft.PowerShell
             _singleton._initialX = console.CursorLeft;
             _singleton._initialY = console.CursorTop;
             _singleton._previousRender = _initialPrevRender;
+            _singleton._previousRender.UpdateConsoleInfo(console);
+            _singleton._previousRender.initialY = _singleton._initialY;
 
             _singleton.Render();
             console.CursorVisible = true;
@@ -1107,7 +1122,9 @@ namespace Microsoft.PowerShell
 
         internal static bool IsRunningCI(IConsole console)
         {
-            return console.GetType().FullName == "Test.TestConsole";
+            Type consoleType = console.GetType();
+            return consoleType.FullName == "Test.TestConsole"
+                || consoleType.BaseType.FullName == "Test.TestConsole";
         }
     }
 }

@@ -45,12 +45,12 @@ namespace Microsoft.PowerShell
                 : new string(' ', cnt);
         }
 
-        private static int LengthInBufferCells(string str)
+        internal static int LengthInBufferCells(string str)
         {
             return LengthInBufferCells(str, 0, str.Length);
         }
 
-        private static int LengthInBufferCells(string str, int start, int end)
+        internal static int LengthInBufferCells(string str, int start, int end)
         {
             var sum = 0;
             for (var i = start; i < end; i++)
@@ -70,7 +70,7 @@ namespace Microsoft.PowerShell
             return sum;
         }
 
-        private static int LengthInBufferCells(char c)
+        internal static int LengthInBufferCells(char c)
         {
             if (c < 256)
             {

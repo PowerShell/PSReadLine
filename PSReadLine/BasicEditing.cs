@@ -267,10 +267,6 @@ namespace Microsoft.PowerShell
             _emphasisStart = -1;
             _emphasisLength = 0;
 
-            var insertionPoint = _current;
-            // Make sure cursor is at the end before writing the line
-            _current = _buffer.Length;
-
             if (renderNeeded)
             {
                 ForceRender();
@@ -281,6 +277,7 @@ namespace Microsoft.PowerShell
             // can report an error as it normally does.
             if (validate && !_statusIsErrorMessage)
             {
+                var insertionPoint = _current;
                 var errorMessage = Validate(_ast);
                 if (!string.IsNullOrWhiteSpace(errorMessage))
                 {
@@ -308,8 +305,13 @@ namespace Microsoft.PowerShell
                 ClearStatusMessage(render: true);
             }
 
-            // Let public API set cursor to end of line incase end of line is end of buffer
-            SetCursorPosition(_current);
+            // Make sure cursor is at the end before writing the line.
+            if (_current != _buffer.Length)
+            {
+                // Let public API set cursor to end of line incase end of line is end of buffer.
+                _current = _buffer.Length;
+                SetCursorPosition(_current);
+            }
 
             if (_prediction.ActiveView is PredictionListView listView)
             {

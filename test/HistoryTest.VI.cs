@@ -1,4 +1,5 @@
-﻿using Microsoft.PowerShell;
+﻿using System;
+using Microsoft.PowerShell;
 using Xunit;
 
 namespace Test
@@ -56,31 +57,114 @@ namespace Test
 
             // Clear history in case the above added some history (but it shouldn't)
             SetHistory();
-            Test( " ", Keys( ' ', _.UpArrow, _.DownArrow ) );
+            Test(" ", Keys(' ', _.UpArrow, _.DownArrow));
 
-            SetHistory( "dosomething", "this way", "that way", "anyway", "no way", "yah way" );
+            var emphasisColors = Tuple.Create(PSConsoleReadLineOptions.DefaultEmphasisColor, _console.BackgroundColor);
+            var statusColors = Tuple.Create(_console.ForegroundColor, _console.BackgroundColor);
 
-            Test( "dosomething", Keys(
-                _.Escape, _.Slash, "some", _.Enter, CheckThat( () => AssertLineIs( "dosomething" ) ),
-                _.Question, "yah", _.Enter, CheckThat( () => AssertLineIs( "yah way" ) ),
+            SetHistory("dosomething", "this way", "that way", "anyway", "no way", "yah way");
+
+            Test("dosomething", Keys(
+                _.Escape, _.Slash, "some", _.Enter, CheckThat(() => AssertLineIs("dosomething")),
+                _.Question, "yah", _.Enter, CheckThat(() => AssertLineIs("yah way")),
                 _.Slash, "some", _.Enter, 'h'   // need 'h' here to avoid bogus failure
-                ) );
-
-            SetHistory("dosomething", "this way", "that way", "anyway", "no way", "yah way");
-
-            Test("dosomething", Keys(
-                _.Escape, _.Ctrl_r, "some", _.Enter, CheckThat(() => AssertLineIs("dosomething")),
-                _.Ctrl_s, "yah", _.Enter, CheckThat(() => AssertLineIs("yah way")),
-                _.Ctrl_r, "some", _.Enter, 'h'   // need 'h' here to avoid bogus failure
                 ));
 
-            SetHistory("dosomething", "this way", "that way", "anyway", "no way", "yah way");
+            SetHistory("someway", "noway", "yahway");
 
-            Test("dosomething", Keys(
-                _.Ctrl_r, "some", _.Enter, CheckThat(() => AssertLineIs("dosomething")),
-                _.Ctrl_s, "yah", _.Enter, CheckThat(() => AssertLineIs("yah way")),
-                _.Ctrl_r, "some", _.Enter, _.Escape  // new esc here to avoid bogus failure
-                ));
+            Test("yahway", Keys(
+                // Change to Command mode.
+                _.Escape,
+                _.Ctrl_r, "way",
+                CheckThat(() => AssertScreenIs(2,
+                    TokenClassification.Command, "yah",
+                    emphasisColors, "way",
+                    NextLine,
+                    statusColors, "bck-i-search: way_")),
+                _.Ctrl_r,
+                CheckThat(() => AssertScreenIs(2,
+                    TokenClassification.Command, "no",
+                    emphasisColors, "way",
+                    NextLine,
+                    statusColors, "bck-i-search: way_")),
+                _.Ctrl_r,
+                CheckThat(() => AssertScreenIs(2,
+                    TokenClassification.Command, "some",
+                    emphasisColors, "way",
+                    NextLine,
+                    statusColors, "bck-i-search: way_")),
+                _.Ctrl_s,
+                CheckThat(() => AssertScreenIs(2,
+                    TokenClassification.Command, "no",
+                    emphasisColors, "way",
+                    NextLine,
+                    statusColors, "fwd-i-search: way_")),
+                _.Ctrl_s,
+                CheckThat(() => AssertScreenIs(2,
+                    TokenClassification.Command, "yah",
+                    emphasisColors, "way",
+                    NextLine,
+                    statusColors, "fwd-i-search: way_")),
+                _.Ctrl_s,
+                CheckThat(() => AssertScreenIs(2,
+                    TokenClassification.Command, "yahway",
+                    NextLine,
+                    statusColors, "failed-fwd-i-search: way_")),
+
+                // Abort the history search.
+                _.Ctrl_g, CheckThat(() => AssertLineIs(string.Empty)),
+                // Search again and escape from the search.
+                _.Ctrl_r, "yah",
+                _.Escape, CheckThat(() => AssertScreenIs(1, TokenClassification.Command, "yahway")),
+                // We should not be able to edit the line, because we are in Command mode.
+                "nnn"));
+
+            SetHistory("someway", "noway", "yahway");
+
+            Test("nnnyahway", Keys(
+                _.Ctrl_r, "way",
+                CheckThat(() => AssertScreenIs(2,
+                    TokenClassification.Command, "yah",
+                    emphasisColors, "way",
+                    NextLine,
+                    statusColors, "bck-i-search: way_")),
+                _.Ctrl_r,
+                CheckThat(() => AssertScreenIs(2,
+                    TokenClassification.Command, "no",
+                    emphasisColors, "way",
+                    NextLine,
+                    statusColors, "bck-i-search: way_")),
+                _.Ctrl_r,
+                CheckThat(() => AssertScreenIs(2,
+                    TokenClassification.Command, "some",
+                    emphasisColors, "way",
+                    NextLine,
+                    statusColors, "bck-i-search: way_")),
+                _.Ctrl_s,
+                CheckThat(() => AssertScreenIs(2,
+                    TokenClassification.Command, "no",
+                    emphasisColors, "way",
+                    NextLine,
+                    statusColors, "fwd-i-search: way_")),
+                _.Ctrl_s,
+                CheckThat(() => AssertScreenIs(2,
+                    TokenClassification.Command, "yah",
+                    emphasisColors, "way",
+                    NextLine,
+                    statusColors, "fwd-i-search: way_")),
+                _.Ctrl_s,
+                CheckThat(() => AssertScreenIs(2,
+                    TokenClassification.Command, "yahway",
+                    NextLine,
+                    statusColors, "failed-fwd-i-search: way_")),
+
+                // Abort the history search.
+                _.Ctrl_g, CheckThat(() => AssertLineIs(string.Empty)),
+                // Search again and escape from the search.
+                _.Ctrl_r, "yah",
+                _.Escape, CheckThat(() => AssertScreenIs(1, TokenClassification.Command, "yahway")),
+                // We should be able to edit the line, because we are in Edit mode.
+                "nnn"));
         }
 
         [SkippableFact]
