@@ -33,8 +33,6 @@ namespace Microsoft.PowerShell
     {
         private const int ConsoleExiting = 1;
 
-        private const int CancellationRequested = 2;
-
         // *must* be initialized in the static ctor
         // because the static member _clipboard depends upon it
         // for its own initialization
@@ -194,7 +192,6 @@ namespace Microsoft.PowerShell
                     //   - a key is pressed
                     //   - the console is exiting
                     //   - 300ms timeout - to process events if we're idle
-                    //   - ReadLine cancellation is requested externally
                     handleId = WaitHandle.WaitAny(_singleton._requestKeyWaitHandles, 300);
                     if (handleId != WaitHandle.WaitTimeout)
                     {
