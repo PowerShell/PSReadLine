@@ -143,8 +143,7 @@ namespace Microsoft.PowerShell
                 }
                 while (_charMap.KeyAvailable)
                 {
-                    ConsoleKeyInfo keyInfo = _charMap.ReadKey();
-                    var key = PSKeyInfo.FromConsoleKeyInfo(keyInfo);
+                    var key = PSKeyInfo.FromConsoleKeyInfo(_charMap.ReadKey());
                     _lastNKeys.Enqueue(key);
                     _queuedKeys.Enqueue(key);
                 }
