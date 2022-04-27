@@ -144,15 +144,6 @@ namespace Microsoft.PowerShell
                 while (_charMap.KeyAvailable)
                 {
                     ConsoleKeyInfo keyInfo = _charMap.ReadKey();
-                    if (_cancelReadCancellationToken.IsCancellationRequested)
-                    {
-                        // If PSReadLine is running under a host that can cancel it, the
-                        // cancellation will come at a time when ReadKey is stuck waiting for input.
-                        // The next key press will be used to force it to return, and so we want to
-                        // discard this key since we were already canceled.
-                        continue;
-                    }
-
                     var key = PSKeyInfo.FromConsoleKeyInfo(keyInfo);
                     _lastNKeys.Enqueue(key);
                     _queuedKeys.Enqueue(key);
@@ -170,10 +161,6 @@ namespace Microsoft.PowerShell
                     break;
 
                 ReadOneOrMoreKeys();
-                if (_cancelReadCancellationToken.IsCancellationRequested)
-                {
-                    continue;
-                }
 
                 // One or more keys were read - let ReadKey know we're done.
                 _keyReadWaitHandle.Set();
@@ -292,10 +279,12 @@ namespace Microsoft.PowerShell
                 throw new OperationCanceledException();
             }
 
-            if (handleId == CancellationRequested)
+            if (_singleton._cancelReadCancellationToken.IsCancellationRequested)
             {
-                // ReadLine was cancelled. Save the current line to be restored next time ReadLine
-                // is called, clear the buffer and throw an exception so we can return an empty string.
+                // ReadLine was cancelled. Dequeue the dummy input sent by the host, save the current
+                // line to be restored next time ReadLine is called, clear the buffer and throw an
+                // exception so we can return an empty string.
+                _singleton._queuedKeys.Dequeue();
                 _singleton.SaveCurrentLine();
                 _singleton._getNextHistoryIndex = _singleton._history.Count;
                 _singleton._current = 0;
@@ -396,7 +385,6 @@ namespace Microsoft.PowerShell
                     }
 
                     _singleton._cancelReadCancellationToken = cancellationToken;
-                    _singleton._requestKeyWaitHandles[2] = cancellationToken.WaitHandle;
                     return _singleton.InputLoop();
                 }
                 catch (OperationCanceledException)
@@ -877,7 +865,7 @@ namespace Microsoft.PowerShell
             _readKeyWaitHandle = new AutoResetEvent(false);
             _keyReadWaitHandle = new AutoResetEvent(false);
             _closingWaitHandle = new ManualResetEvent(false);
-            _requestKeyWaitHandles = new WaitHandle[] {_keyReadWaitHandle, _closingWaitHandle, null};
+            _requestKeyWaitHandles = new WaitHandle[] {_keyReadWaitHandle, _closingWaitHandle};
             _threadProcWaitHandles = new WaitHandle[] {_readKeyWaitHandle, _closingWaitHandle};
 
             // This is for a "being hosted in an alternate appdomain scenario" (the
