@@ -38,8 +38,6 @@ namespace Microsoft.PowerShell
         // for its own initialization
         private static readonly PSConsoleReadLine _singleton;
 
-        private static readonly CancellationToken _defaultCancellationToken = new CancellationTokenSource().Token;
-
         // This is used by PowerShellEditorServices (the backend of the PowerShell VSCode extension)
         // so that it can call PSReadLine from a delegate and not hit nested pipeline issues.
         #pragma warning disable CS0649
@@ -316,9 +314,7 @@ namespace Microsoft.PowerShell
         /// <returns>The complete command line.</returns>
         public static string ReadLine(Runspace runspace, EngineIntrinsics engineIntrinsics, bool? lastRunStatus)
         {
-            // Use a default cancellation token instead of CancellationToken.None because the
-            // WaitHandle is shared and could be triggered accidently.
-            return ReadLine(runspace, engineIntrinsics, _defaultCancellationToken, lastRunStatus);
+            return ReadLine(runspace, engineIntrinsics, CancellationToken.None, lastRunStatus);
         }
 
         /// <summary>
