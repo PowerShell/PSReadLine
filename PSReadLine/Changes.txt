@@ -1,3 +1,7 @@
+### [2.2.5] - 2022-05-03
+
+- Re-package the `2.2.4-beta1` version to `2.2.5` as an offical servicing release.
+
 ### [2.2.4-beta1] - 2022-04-27
 
 - Sync ReadKeyProc thread with pipeline thread (#3294)
