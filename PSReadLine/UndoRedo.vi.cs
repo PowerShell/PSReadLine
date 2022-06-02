@@ -15,15 +15,15 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void UndoAll(ConsoleKeyInfo? key = null, object arg = null)
     {
-        if (_singleton._undoEditIndex > 0)
+        if (Singleton._undoEditIndex > 0)
         {
-            while (_singleton._undoEditIndex > 0)
+            while (Singleton._undoEditIndex > 0)
             {
-                _singleton._edits[_singleton._undoEditIndex - 1].Undo();
-                _singleton._undoEditIndex--;
+                Singleton._edits[Singleton._undoEditIndex - 1].Undo();
+                Singleton._undoEditIndex--;
             }
 
-            _singleton.Render();
+            _renderer.Render();
         }
         else
         {
@@ -33,8 +33,8 @@ public partial class PSConsoleReadLine
 
     private class GroupUndoHelper
     {
-        public Action<ConsoleKeyInfo?, object> _instigator;
-        public object _instigatorArg;
+        private Action<ConsoleKeyInfo?, object> _instigator;
+        private object _instigatorArg;
 
         public GroupUndoHelper()
         {
@@ -46,10 +46,10 @@ public partial class PSConsoleReadLine
         {
             _instigator = instigator;
             _instigatorArg = instigatorArg;
-            _singleton.StartEditGroup();
+            Singleton.StartEditGroup();
         }
 
-        public void Clear()
+        private void Clear()
         {
             _instigator = null;
             _instigatorArg = null;
@@ -57,8 +57,7 @@ public partial class PSConsoleReadLine
 
         public void EndGroup()
         {
-            if (_singleton._editGroupStart >= 0) _singleton.EndEditGroup(_instigator, _instigatorArg);
-
+            if (Singleton._editGroupStart >= 0) Singleton.EndEditGroup(_instigator, _instigatorArg);
             Clear();
         }
     }

@@ -11,13 +11,13 @@ public partial class PSConsoleReadLine
 {
     private static void ViReplaceUntilEsc(ConsoleKeyInfo? key, object arg)
     {
-        if (_singleton._current >= _singleton._buffer.Length)
+        if (_renderer.Current >= Singleton.buffer.Length)
         {
             Ding();
             return;
         }
 
-        var startingCursor = _singleton._current;
+        var startingCursor = _renderer.Current;
         var deletedStr = new StringBuilder();
 
         var nextKey = ReadKey();
@@ -25,58 +25,58 @@ public partial class PSConsoleReadLine
         {
             if (nextKey == Keys.Backspace)
             {
-                if (_singleton._current == startingCursor)
+                if (_renderer.Current == startingCursor)
                 {
                     Ding();
                 }
                 else
                 {
-                    if (deletedStr.Length == _singleton._current - startingCursor)
+                    if (deletedStr.Length == _renderer.Current - startingCursor)
                     {
-                        _singleton._buffer[_singleton._current - 1] = deletedStr[deletedStr.Length - 1];
+                        Singleton.buffer[_renderer.Current - 1] = deletedStr[deletedStr.Length - 1];
                         deletedStr.Remove(deletedStr.Length - 1, 1);
                     }
                     else
                     {
-                        _singleton._buffer.Remove(_singleton._current - 1, 1);
+                        Singleton.buffer.Remove(_renderer.Current - 1, 1);
                     }
 
-                    _singleton._current--;
-                    _singleton.Render();
+                    _renderer.Current--;
+                    _renderer.Render();
                 }
             }
             else
             {
-                if (_singleton._current >= _singleton._buffer.Length)
+                if (_renderer.Current >= Singleton.buffer.Length)
                 {
-                    _singleton._buffer.Append(nextKey.KeyChar);
+                    Singleton.buffer.Append(nextKey.KeyChar);
                 }
                 else
                 {
-                    deletedStr.Append(_singleton._buffer[_singleton._current]);
-                    _singleton._buffer[_singleton._current] = nextKey.KeyChar;
+                    deletedStr.Append(Singleton.buffer[_renderer.Current]);
+                    Singleton.buffer[_renderer.Current] = nextKey.KeyChar;
                 }
 
-                _singleton._current++;
-                _singleton.Render();
+                _renderer.Current++;
+                _renderer.Render();
             }
 
             nextKey = ReadKey();
         }
 
-        if (_singleton._current > startingCursor)
+        if (_renderer.Current > startingCursor)
         {
-            _singleton.StartEditGroup();
-            var insStr = _singleton._buffer.ToString(startingCursor, _singleton._current - startingCursor);
-            _singleton.SaveEditItem(EditItemDelete.Create(
+            Singleton.StartEditGroup();
+            var insStr = Singleton.buffer.ToString(startingCursor, _renderer.Current - startingCursor);
+            Singleton.SaveEditItem(EditItemDelete.Create(
                 deletedStr.ToString(),
                 startingCursor,
                 ViReplaceUntilEsc,
                 arg,
                 false));
 
-            _singleton.SaveEditItem(EditItemInsertString.Create(insStr, startingCursor));
-            _singleton.EndEditGroup();
+            Singleton.SaveEditItem(EditItemInsertString.Create(insStr, startingCursor));
+            Singleton.EndEditGroup();
         }
 
         if (nextKey == Keys.Enter) ViAcceptLine(nextKey.AsConsoleKeyInfo());
@@ -84,51 +84,51 @@ public partial class PSConsoleReadLine
 
     private static void ViReplaceBrace(ConsoleKeyInfo? key, object arg)
     {
-        _singleton._groupUndoHelper.StartGroup(ViReplaceBrace, arg);
+        Singleton._groupUndoHelper.StartGroup(ViReplaceBrace, arg);
         ViDeleteBrace(key, arg);
         ViInsertMode(key, arg);
     }
 
     private static void ViBackwardReplaceLineToFirstChar(ConsoleKeyInfo? key, object arg)
     {
-        _singleton._groupUndoHelper.StartGroup(ViBackwardReplaceLineToFirstChar, arg);
+        Singleton._groupUndoHelper.StartGroup(ViBackwardReplaceLineToFirstChar, arg);
         DeleteLineToFirstChar(key, arg);
         ViInsertMode(key, arg);
     }
 
     private static void ViBackwardReplaceLine(ConsoleKeyInfo? key, object arg)
     {
-        _singleton._groupUndoHelper.StartGroup(ViBackwardReplaceLine, arg);
+        Singleton._groupUndoHelper.StartGroup(ViBackwardReplaceLine, arg);
         BackwardDeleteLine(key, arg);
         ViInsertMode(key, arg);
     }
 
     private static void BackwardReplaceChar(ConsoleKeyInfo? key, object arg)
     {
-        _singleton._groupUndoHelper.StartGroup(BackwardReplaceChar, arg);
+        Singleton._groupUndoHelper.StartGroup(BackwardReplaceChar, arg);
         BackwardDeleteChar(key, arg);
         ViInsertMode(key, arg);
     }
 
     private static void ViBackwardReplaceWord(ConsoleKeyInfo? key, object arg)
     {
-        _singleton._groupUndoHelper.StartGroup(ViBackwardReplaceWord, arg);
+        Singleton._groupUndoHelper.StartGroup(ViBackwardReplaceWord, arg);
         BackwardDeleteWord(key, arg);
         ViInsertMode(key, arg);
     }
 
     private static void ViBackwardReplaceGlob(ConsoleKeyInfo? key, object arg)
     {
-        _singleton._groupUndoHelper.StartGroup(ViBackwardReplaceGlob, arg);
+        Singleton._groupUndoHelper.StartGroup(ViBackwardReplaceGlob, arg);
         ViBackwardDeleteGlob(key, arg);
         ViInsertMode(key, arg);
     }
 
     private static void ViReplaceToEnd(ConsoleKeyInfo? key, object arg)
     {
-        _singleton._groupUndoHelper.StartGroup(ViReplaceToEnd, arg);
+        Singleton._groupUndoHelper.StartGroup(ViReplaceToEnd, arg);
         DeleteToEnd(key, arg);
-        _singleton.MoveCursor(Math.Min(_singleton._buffer.Length, _singleton._current + 1));
+        _renderer.MoveCursor(Math.Min(Singleton.buffer.Length, _renderer.Current + 1));
         ViInsertMode(key, arg);
     }
 
@@ -137,31 +137,31 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void ViReplaceLine(ConsoleKeyInfo? key = null, object arg = null)
     {
-        _singleton._groupUndoHelper.StartGroup(ViReplaceLine, arg);
+        Singleton._groupUndoHelper.StartGroup(ViReplaceLine, arg);
         DeleteLine(key, arg);
         ViInsertMode(key, arg);
     }
 
     private static void ViReplaceWord(ConsoleKeyInfo? key, object arg)
     {
-        _singleton._groupUndoHelper.StartGroup(ViReplaceWord, arg);
-        _singleton._lastWordDelimiter = char.MinValue;
-        _singleton._shouldAppend = false;
+        Singleton._groupUndoHelper.StartGroup(ViReplaceWord, arg);
+        Singleton._lastWordDelimiter = char.MinValue;
+        Singleton._shouldAppend = false;
         DeleteWord(key, arg);
-        if (_singleton._current < _singleton._buffer.Length - 1)
+        if (_renderer.Current < Singleton.buffer.Length - 1)
         {
-            if (char.IsWhiteSpace(_singleton._lastWordDelimiter))
+            if (char.IsWhiteSpace(Singleton._lastWordDelimiter))
             {
-                Insert(_singleton._lastWordDelimiter);
-                _singleton.MoveCursor(_singleton._current - 1);
+                Insert(Singleton._lastWordDelimiter);
+                _renderer.MoveCursor(_renderer.Current - 1);
             }
 
-            _singleton._lastWordDelimiter = char.MinValue;
+            Singleton._lastWordDelimiter = char.MinValue;
         }
 
-        if (_singleton._current == _singleton._buffer.Length - 1
-            && !_singleton.IsDelimiter(_singleton._lastWordDelimiter, _singleton.Options.WordDelimiters)
-            && _singleton._shouldAppend)
+        if (_renderer.Current == Singleton.buffer.Length - 1
+            && !Singleton.IsDelimiter(Singleton._lastWordDelimiter, Singleton.Options.WordDelimiters)
+            && Singleton._shouldAppend)
             ViInsertWithAppend(key, arg);
         else
             ViInsertMode(key, arg);
@@ -169,15 +169,15 @@ public partial class PSConsoleReadLine
 
     private static void ViReplaceGlob(ConsoleKeyInfo? key, object arg)
     {
-        _singleton._groupUndoHelper.StartGroup(ViReplaceGlob, arg);
+        Singleton._groupUndoHelper.StartGroup(ViReplaceGlob, arg);
         ViDeleteGlob(key, arg);
-        if (_singleton._current < _singleton._buffer.Length - 1)
+        if (_renderer.Current < Singleton.buffer.Length - 1)
         {
             Insert(' ');
-            _singleton.MoveCursor(_singleton._current - 1);
+            _renderer.MoveCursor(_renderer.Current - 1);
         }
 
-        if (_singleton._current == _singleton._buffer.Length - 1)
+        if (_renderer.Current == Singleton.buffer.Length - 1)
             ViInsertWithAppend(key, arg);
         else
             ViInsertMode(key, arg);
@@ -185,9 +185,9 @@ public partial class PSConsoleReadLine
 
     private static void ViReplaceEndOfWord(ConsoleKeyInfo? key, object arg)
     {
-        _singleton._groupUndoHelper.StartGroup(ViReplaceEndOfWord, arg);
+        Singleton._groupUndoHelper.StartGroup(ViReplaceEndOfWord, arg);
         DeleteEndOfWord(key, arg);
-        if (_singleton._current == _singleton._buffer.Length - 1)
+        if (_renderer.Current == Singleton.buffer.Length - 1)
             ViInsertWithAppend(key, arg);
         else
             ViInsertMode(key, arg);
@@ -195,9 +195,9 @@ public partial class PSConsoleReadLine
 
     private static void ViReplaceEndOfGlob(ConsoleKeyInfo? key, object arg)
     {
-        _singleton._groupUndoHelper.StartGroup(ViReplaceEndOfGlob, arg);
+        Singleton._groupUndoHelper.StartGroup(ViReplaceEndOfGlob, arg);
         ViDeleteEndOfGlob(key, arg);
-        if (_singleton._current == _singleton._buffer.Length - 1)
+        if (_renderer.Current == Singleton.buffer.Length - 1)
             ViInsertWithAppend(key, arg);
         else
             ViInsertMode(key, arg);
@@ -205,7 +205,7 @@ public partial class PSConsoleReadLine
 
     private static void ReplaceChar(ConsoleKeyInfo? key, object arg)
     {
-        _singleton._groupUndoHelper.StartGroup(ReplaceChar, arg);
+        Singleton._groupUndoHelper.StartGroup(ReplaceChar, arg);
         ViInsertMode(key, arg);
         DeleteChar(key, arg);
     }
@@ -216,21 +216,21 @@ public partial class PSConsoleReadLine
     private static void ReplaceCharInPlace(ConsoleKeyInfo? key, object arg)
     {
         var nextKey = ReadKey();
-        if (_singleton._buffer.Length > 0 && nextKey.KeyStr.Length == 1)
+        if (Singleton.buffer.Length > 0 && nextKey.KeyStr.Length == 1)
         {
-            _singleton.StartEditGroup();
-            _singleton.SaveEditItem(EditItemDelete.Create(
-                _singleton._buffer[_singleton._current].ToString(),
-                _singleton._current,
+            Singleton.StartEditGroup();
+            Singleton.SaveEditItem(EditItemDelete.Create(
+                Singleton.buffer[_renderer.Current].ToString(),
+                _renderer.Current,
                 ReplaceCharInPlace,
                 arg,
                 false));
 
-            _singleton.SaveEditItem(EditItemInsertString.Create(nextKey.KeyStr, _singleton._current));
-            _singleton.EndEditGroup();
+            Singleton.SaveEditItem(EditItemInsertString.Create(nextKey.KeyStr, _renderer.Current));
+            Singleton.EndEditGroup();
 
-            _singleton._buffer[_singleton._current] = nextKey.KeyChar;
-            _singleton.Render();
+            Singleton.buffer[_renderer.Current] = nextKey.KeyChar;
+            _renderer.Render();
         }
         else
         {
@@ -249,14 +249,14 @@ public partial class PSConsoleReadLine
 
     private static void ViReplaceToChar(char keyChar, ConsoleKeyInfo? key = null, object arg = null)
     {
-        var initialCurrent = _singleton._current;
+        var initialCurrent = _renderer.Current;
 
-        _singleton._groupUndoHelper.StartGroup(ReplaceChar, arg);
+        Singleton._groupUndoHelper.StartGroup(ReplaceChar, arg);
         ViCharacterSearcher.Set(keyChar, false, false);
         if (ViCharacterSearcher.SearchDelete(keyChar, arg, false,
                 (_key, _arg) => ViReplaceToChar(keyChar, _key, _arg)))
         {
-            if (_singleton._current < initialCurrent || _singleton._current >= _singleton._buffer.Length)
+            if (_renderer.Current < initialCurrent || _renderer.Current >= Singleton.buffer.Length)
                 ViInsertWithAppend(key, arg);
             else
                 ViInsertMode(key, arg);
@@ -274,10 +274,9 @@ public partial class PSConsoleReadLine
 
     private static void ViReplaceToCharBack(char keyChar, ConsoleKeyInfo? key = null, object arg = null)
     {
-        _singleton._groupUndoHelper.StartGroup(ReplaceChar, arg);
+        Singleton._groupUndoHelper.StartGroup(ReplaceChar, arg);
         if (ViCharacterSearcher.SearchBackwardDelete(keyChar, arg, false,
-                (_key, _arg) => ViReplaceToCharBack(keyChar, _key, _arg)))
-            ViInsertMode(key, arg);
+                (_key, _arg) => ViReplaceToCharBack(keyChar, _key, _arg))) ViInsertMode(key, arg);
     }
 
     /// <summary>
@@ -291,11 +290,10 @@ public partial class PSConsoleReadLine
 
     private static void ViReplaceToBeforeChar(char keyChar, ConsoleKeyInfo? key = null, object arg = null)
     {
-        _singleton._groupUndoHelper.StartGroup(ReplaceChar, arg);
+        Singleton._groupUndoHelper.StartGroup(ReplaceChar, arg);
         ViCharacterSearcher.Set(keyChar, false, true);
         if (ViCharacterSearcher.SearchDelete(keyChar, arg, true,
-                (_key, _arg) => ViReplaceToBeforeChar(keyChar, _key, _arg)))
-            ViInsertMode(key, arg);
+                (_key, _arg) => ViReplaceToBeforeChar(keyChar, _key, _arg))) ViInsertMode(key, arg);
     }
 
     /// <summary>
@@ -309,9 +307,8 @@ public partial class PSConsoleReadLine
 
     private static void ViReplaceToBeforeCharBack(char keyChar, ConsoleKeyInfo? key = null, object arg = null)
     {
-        _singleton._groupUndoHelper.StartGroup(ReplaceChar, arg);
+        Singleton._groupUndoHelper.StartGroup(ReplaceChar, arg);
         if (ViCharacterSearcher.SearchBackwardDelete(keyChar, arg, true,
-                (_key, _arg) => ViReplaceToBeforeCharBack(keyChar, _key, _arg)))
-            ViInsertMode(key, arg);
+                (_key, _arg) => ViReplaceToBeforeCharBack(keyChar, _key, _arg))) ViInsertMode(key, arg);
     }
 }

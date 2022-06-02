@@ -12,7 +12,7 @@ namespace Microsoft.PowerShell;
 
 internal static class ScreenCapture
 {
-    internal const string CmdColorTable = @"
+    private const string CmdColorTable = @"
 \red0\green0\blue0;
 \red0\green0\blue128;
 \red0\green128\blue0;
@@ -31,7 +31,7 @@ internal static class ScreenCapture
 \red255\green255\blue255;
 ";
 
-    internal const string PowerShellColorTable = @"
+    private const string PowerShellColorTable = @"
 \red1\green36\blue86;
 \red0\green0\blue128;
 \red0\green128\blue0;
@@ -62,7 +62,7 @@ internal static class ScreenCapture
     private static extern bool GetConsoleScreenBufferInfoEx(IntPtr hConsoleOutput,
         ref CONSOLE_SCREEN_BUFFER_INFO_EX csbe);
 
-    internal static CHAR_INFO[] ReadBufferLines(int top, int count, int bufferWidth)
+    private static CHAR_INFO[] ReadBufferLines(int top, int count, int bufferWidth)
     {
         var result = new CHAR_INFO[bufferWidth * count];
         var handle = PlatformWindows.GetStdHandle((uint) PlatformWindows.StandardHandleId.Output);
@@ -84,7 +84,7 @@ internal static class ScreenCapture
         return result;
     }
 
-    internal static void WriteBufferLines(CHAR_INFO[] buffer, int top, IConsole console)
+    private static void WriteBufferLines(CHAR_INFO[] buffer, int top, IConsole console)
     {
         var handle = PlatformWindows.GetStdHandle((uint) PlatformWindows.StandardHandleId.Output);
 
@@ -127,7 +127,7 @@ internal static class ScreenCapture
             "\\blue", colorref.B.ToString("D"), ";");
     }
 
-    internal static string GetColorTable(IConsole console)
+    private static string GetColorTable(IConsole console)
     {
         var handle = PlatformWindows.GetStdHandle((uint) PlatformWindows.StandardHandleId.Output);
         var csbe = new CONSOLE_SCREEN_BUFFER_INFO_EX
@@ -242,7 +242,7 @@ internal static class ScreenCapture
         Clipboard.SetRtf(textBuffer.ToString(), rtfBuffer.ToString());
     }
 
-    internal struct COORD
+    private struct COORD
     {
         public short X;
         public short Y;
@@ -253,12 +253,12 @@ internal static class ScreenCapture
         }
     }
 
-    internal struct CHAR_INFO
+    private struct CHAR_INFO
     {
-        public ushort UnicodeChar;
-        public ushort Attributes;
+        internal readonly ushort UnicodeChar;
+        internal ushort Attributes;
 
-        public CHAR_INFO(char c, ConsoleColor foreground, ConsoleColor background)
+        internal CHAR_INFO(char c, ConsoleColor foreground, ConsoleColor background)
         {
             UnicodeChar = c;
             Attributes = (ushort) (((int) background << 4) | (int) foreground);
@@ -304,14 +304,14 @@ internal static class ScreenCapture
     [StructLayout(LayoutKind.Sequential)]
     private struct COLORREF
     {
-        internal readonly uint ColorDWORD;
+        private readonly uint ColorDWORD;
 
         internal uint R => ColorDWORD & 0xff;
         internal uint G => (ColorDWORD >> 8) & 0xff;
         internal uint B => (ColorDWORD >> 16) & 0xff;
     }
 
-    public struct SMALL_RECT
+    private struct SMALL_RECT
     {
         public short Left;
         public short Top;
@@ -371,12 +371,12 @@ public partial class PSConsoleReadLine
         PlatformWindows.CallUsingOurInputMode(CaptureScreenImpl);
     }
 
-    internal static void CaptureScreenImpl()
+    private static void CaptureScreenImpl()
     {
-        var selectionTop = _singleton._console.CursorTop;
+        var selectionTop = Renderer.Console.CursorTop;
         var selectionHeight = 1;
         var currentY = selectionTop;
-        var console = _singleton._console;
+        var console = Renderer.Console;
 
         // We'll keep the current selection line (currentY) at least 4 lines
         // away from the top or bottom of the window.
@@ -409,7 +409,7 @@ public partial class PSConsoleReadLine
             var k = ReadKey();
             if (k == Keys.K || k == Keys.ucK || k == Keys.UpArrow || k == Keys.ShiftUpArrow)
             {
-                if (TooCloseToTop()) ScrollDisplayUpLine();
+                if (TooCloseToTop()) Renderer.ScrollDisplayUpLine();
 
                 if (currentY > 0)
                 {
@@ -439,7 +439,7 @@ public partial class PSConsoleReadLine
             else if (k == Keys.J || k == Keys.ucJ || k == Keys.DownArrow || k == Keys.ShiftDownArrow)
             {
                 if (TooCloseToBottom())
-                    ScrollDisplayDownLine();
+                    Renderer.ScrollDisplayDownLine();
 
                 if (currentY < console.BufferHeight - 1)
                 {
@@ -470,7 +470,7 @@ public partial class PSConsoleReadLine
             {
                 ScreenCapture.InvertLines(selectionTop, selectionHeight, console);
                 ScreenCapture.DumpScreenToClipboard(selectionTop, selectionHeight, console);
-                ScrollDisplayToCursor();
+                Renderer.ScrollDisplayToCursor();
                 return;
             }
             else if (k == Keys.Escape || k == Keys.CtrlC || k == Keys.CtrlG)
@@ -484,6 +484,6 @@ public partial class PSConsoleReadLine
         }
 
         ScreenCapture.InvertLines(selectionTop, selectionHeight, console);
-        ScrollDisplayToCursor();
+        Renderer.ScrollDisplayToCursor();
     }
 }

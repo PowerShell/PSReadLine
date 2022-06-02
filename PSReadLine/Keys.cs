@@ -9,7 +9,7 @@ using System.Threading;
 
 namespace Microsoft.PowerShell;
 
-internal class PSKeyInfo : IEquatable<PSKeyInfo>
+public class PSKeyInfo : IEquatable<PSKeyInfo>
 {
     private static readonly ThreadLocal<char[]> toUnicodeBuffer = new(() => new char[2]);
     private static readonly ThreadLocal<byte[]> toUnicodeStateBuffer = new(() => new byte[256]);
@@ -91,8 +91,7 @@ internal class PSKeyInfo : IEquatable<PSKeyInfo>
 
     internal static PSKeyInfo WithShiftCtrl(ConsoleKey key)
     {
-        return new PSKeyInfo("Shift+Ctrl+" + key)
-            {Control = true, Shift = true};
+        return new PSKeyInfo("Shift+Ctrl+" + key) {Control = true, Shift = true};
     }
 
     internal static PSKeyInfo WithCtrlAlt(char c)
@@ -183,7 +182,6 @@ internal class PSKeyInfo : IEquatable<PSKeyInfo>
         if (osVersion.Major == 10 && osVersion.Build >= 14393 || osVersion.MajorRevision > 10)
             flags |= 1 <<
                      2; /* If bit 2 is set, keyboard state is not changed (Windows 10, version 1607 and newer) */
-
         var charCount = ToUnicode(virtualKey, scanCode, state, chars, chars.Length, flags);
 
         if (charCount == 1)
@@ -300,11 +298,8 @@ internal class PSKeyInfo : IEquatable<PSKeyInfo>
             case ConsoleKey.Pa1:
 
                 if (isShift) AppendPart("Shift");
-
                 if (isCtrl) AppendPart("Ctrl");
-
                 if (isAlt) AppendPart("Alt");
-
                 AppendPart(consoleKey.ToString());
                 return sb.ToString();
         }
@@ -333,8 +328,7 @@ internal class PSKeyInfo : IEquatable<PSKeyInfo>
                     // For those dead keys we try again to identify them by calling the Win32 API 'ToUnicode'. This API doesn't work
                     // well with keyboards that are not natively supported by Windows, such as the Neo keyboard layout. Hopefully,
                     // dead keys of the non-natively-supported keyboard layouts are captured by our heuristic check above.
-                    var keySansControl =
-                        new ConsoleKeyInfo(key.KeyChar, consoleKey, isShift, isAlt, false);
+                    var keySansControl = new ConsoleKeyInfo(key.KeyChar, consoleKey, isShift, isAlt, false);
                     TryGetCharFromConsoleKey(keySansControl, ref c, ref isDeadKey);
                 }
             }
@@ -398,18 +392,15 @@ internal class PSKeyInfo : IEquatable<PSKeyInfo>
         }
 
         if (isShift) AppendPart("Shift");
-
         if (isCtrl) AppendPart("Ctrl");
-
         if (isAlt) AppendPart("Alt");
-
         AppendPart(s);
 
         return sb.ToString();
     }
 }
 
-internal static class Keys
+public static class Keys
 {
     public static PSKeyInfo F1 = Key(ConsoleKey.F1);
     public static PSKeyInfo F2 = Key(ConsoleKey.F2);

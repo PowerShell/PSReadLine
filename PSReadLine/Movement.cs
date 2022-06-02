@@ -21,12 +21,12 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void EndOfLine(ConsoleKeyInfo? key = null, object arg = null)
     {
-        var i = _singleton._current;
-        for (; i < _singleton._buffer.Length; i++)
-            if (_singleton._buffer[i] == '\n')
+        var i = _renderer.Current;
+        for (; i < Singleton.buffer.Length; i++)
+            if (Singleton.buffer[i] == '\n')
                 break;
 
-        _singleton.MoveCursor(i == _singleton._current ? _singleton._buffer.Length : i);
+        _renderer.MoveCursor(i == _renderer.Current ? Singleton.buffer.Length : i);
     }
 
     /// <summary>
@@ -36,10 +36,10 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void BeginningOfLine(ConsoleKeyInfo? key = null, object arg = null)
     {
-        var newCurrent = GetBeginningOfLinePos(_singleton._current);
-        newCurrent = newCurrent == _singleton._current ? 0 : newCurrent;
+        var newCurrent = GetBeginningOfLinePos(_renderer.Current);
+        newCurrent = newCurrent == _renderer.Current ? 0 : newCurrent;
 
-        _singleton.MoveCursor(newCurrent);
+        _renderer.MoveCursor(newCurrent);
     }
 
     /// <summary>
@@ -50,10 +50,10 @@ public partial class PSConsoleReadLine
     {
         if (TryGetArgAsInt(arg, out var numericArg, 1))
         {
-            if (_singleton._current == _singleton._buffer.Length && numericArg > 0)
+            if (_renderer.Current == Singleton.buffer.Length && numericArg > 0)
                 AcceptSuggestion(key, arg);
             else
-                SetCursorPosition(_singleton._current + numericArg);
+                SetCursorPosition(_renderer.Current + numericArg);
         }
     }
 
@@ -63,7 +63,7 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void BackwardChar(ConsoleKeyInfo? key = null, object arg = null)
     {
-        if (TryGetArgAsInt(arg, out var numericArg, 1)) SetCursorPosition(_singleton._current - numericArg);
+        if (TryGetArgAsInt(arg, out var numericArg, 1)) SetCursorPosition(_renderer.Current - numericArg);
     }
 
     /// <summary>
@@ -73,7 +73,7 @@ public partial class PSConsoleReadLine
     {
         if (TryGetArgAsInt(arg, out var numericArg, 1))
         {
-            if (InViInsertMode() && _singleton._current == _singleton._buffer.Length && numericArg > 0)
+            if (InViInsertMode() && _renderer.Current == Singleton.buffer.Length && numericArg > 0)
                 AcceptSuggestion(key, arg);
             else
                 ViOffsetCursorPosition(+numericArg);
@@ -96,21 +96,21 @@ public partial class PSConsoleReadLine
     {
         if (count < 0)
         {
-            var start = GetBeginningOfLinePos(_singleton._current);
-            var newCurrent = Math.Max(start, _singleton._current + count);
-            if (_singleton._current != newCurrent) _singleton.MoveCursor(newCurrent);
+            var start = GetBeginningOfLinePos(_renderer.Current);
+            var newCurrent = Math.Max(start, _renderer.Current + count);
+            if (_renderer.Current != newCurrent) _renderer.MoveCursor(newCurrent);
         }
-        else if (_singleton._current < _singleton._buffer.Length)
+        else if (_renderer.Current < Singleton.buffer.Length)
         {
             // when in the VI command mode, 'end' is the position of the last character;
             // when in the VI insert mode, 'end' is 1 char beyond the last character.
-            var end = GetEndOfLogicalLinePos(_singleton._current) + 1 + ViEndOfLineFactor;
-            var newCurrent = Math.Min(end, _singleton._current + count);
-            if (_singleton._current != newCurrent) _singleton.MoveCursor(newCurrent);
+            var end = GetEndOfLogicalLinePos(_renderer.Current) + 1 + ViEndOfLineFactor;
+            var newCurrent = Math.Min(end, _renderer.Current + count);
+            if (_renderer.Current != newCurrent) _renderer.MoveCursor(newCurrent);
         }
     }
 
-    private void MoveToLine(int lineOffset)
+    public void MoveToLine(int lineOffset)
     {
         if (InViCommandMode())
             ViMoveToLine(lineOffset);
@@ -134,9 +134,9 @@ public partial class PSConsoleReadLine
 
         if (_moveToLineCommandCount == 1)
         {
-            point = ConvertOffsetToPoint(_current);
+            point = _renderer.ConvertOffsetToPoint(_renderer.Current);
             _moveToLineDesiredColumn =
-                _current == _buffer.Length || _buffer[_current] == '\n'
+                _renderer.Current == buffer.Length || buffer[_renderer.Current] == '\n'
                     ? endOfLine
                     : point.Value.X;
         }
@@ -144,30 +144,30 @@ public partial class PSConsoleReadLine
         // Nothing needs to be done when:
         //  - actually not moving the line, or
         //  - moving the line down when it's at the end of the last line.
-        if (lineOffset == 0 || lineOffset > 0 && _current == _buffer.Length) return;
+        if (lineOffset == 0 || lineOffset > 0 && _renderer.Current == buffer.Length) return;
 
         int newCurrent;
         if (_moveToLineDesiredColumn == endOfLine)
         {
-            newCurrent = _current;
+            newCurrent = _renderer.Current;
 
             if (lineOffset > 0)
             {
                 // Moving to the end of a subsequent logical line.
                 for (var i = 0; i < lineOffset; i++)
                 {
-                    for (newCurrent++; newCurrent < _buffer.Length && _buffer[newCurrent] != '\n'; newCurrent++) ;
+                    for (newCurrent++; newCurrent < buffer.Length && buffer[newCurrent] != '\n'; newCurrent++) ;
 
-                    if (newCurrent == _buffer.Length) break;
+                    if (newCurrent == buffer.Length) break;
                 }
             }
             else
             {
                 // Moving to the end of a previous logical line.
-                var lastEndOfLineIndex = _current;
+                var lastEndOfLineIndex = _renderer.Current;
                 for (var i = 0; i < -lineOffset; i++)
                 {
-                    for (newCurrent--; newCurrent >= 0 && _buffer[newCurrent] != '\n'; newCurrent--) ;
+                    for (newCurrent--; newCurrent >= 0 && buffer[newCurrent] != '\n'; newCurrent--) ;
 
                     if (newCurrent < 0)
                     {
@@ -181,19 +181,19 @@ public partial class PSConsoleReadLine
         }
         else
         {
-            point = point ?? ConvertOffsetToPoint(_current);
+            point = point ?? _renderer.ConvertOffsetToPoint(_renderer.Current);
             var newY = point.Value.Y + lineOffset;
 
             var newPoint = new Point
             {
                 X = _moveToLineDesiredColumn,
-                Y = Math.Max(newY, _initialY)
+                Y = Math.Max(newY, _renderer.InitialY)
             };
 
-            newCurrent = ConvertLineAndColumnToOffset(newPoint);
+            newCurrent = _renderer.ConvertLineAndColumnToOffset(newPoint);
         }
 
-        if (newCurrent != -1) MoveCursor(newCurrent);
+        if (newCurrent != -1) _renderer.MoveCursor(newCurrent);
     }
 
     /// <summary>
@@ -201,7 +201,7 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void PreviousLine(ConsoleKeyInfo? key = null, object arg = null)
     {
-        if (TryGetArgAsInt(arg, out var numericArg, 1)) _singleton.MoveToLine(-numericArg);
+        if (TryGetArgAsInt(arg, out var numericArg, 1)) Singleton.MoveToLine(-numericArg);
     }
 
     /// <summary>
@@ -209,7 +209,7 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void NextLine(ConsoleKeyInfo? key = null, object arg = null)
     {
-        if (TryGetArgAsInt(arg, out var numericArg, 1)) _singleton.MoveToLine(numericArg);
+        if (TryGetArgAsInt(arg, out var numericArg, 1)) Singleton.MoveToLine(numericArg);
     }
 
     /// <summary>
@@ -227,7 +227,7 @@ public partial class PSConsoleReadLine
         }
 
         while (numericArg-- > 0)
-            _singleton.MoveCursor(_singleton.FindNextWordPoint(_singleton.Options.WordDelimiters));
+            _renderer.MoveCursor(Singleton.FindNextWordPoint(Singleton.Options.WordDelimiters));
     }
 
     /// <summary>
@@ -246,12 +246,12 @@ public partial class PSConsoleReadLine
 
         while (numericArg-- > 0)
         {
-            var token = _singleton.FindToken(_singleton._current, FindTokenMode.Next);
+            var token = Singleton.FindToken(_renderer.Current, FindTokenMode.Next);
 
             Debug.Assert(token != null, "We'll always find EOF");
 
-            _singleton.MoveCursor(token.Kind == TokenKind.EndOfInput
-                ? _singleton._buffer.Length
+            _renderer.MoveCursor(token.Kind == TokenKind.EndOfInput
+                ? Singleton.buffer.Length
                 : token.Extent.StartOffset);
         }
     }
@@ -265,7 +265,7 @@ public partial class PSConsoleReadLine
     {
         if (!TryGetArgAsInt(arg, out var numericArg, 1)) return;
 
-        if (_singleton._current == _singleton._buffer.Length && numericArg > 0)
+        if (_renderer.Current == Singleton.buffer.Length && numericArg > 0)
         {
             AcceptNextSuggestionWord(numericArg);
             return;
@@ -278,7 +278,7 @@ public partial class PSConsoleReadLine
         }
 
         while (numericArg-- > 0)
-            _singleton.MoveCursor(_singleton.FindForwardWordPoint(_singleton.Options.WordDelimiters));
+            _renderer.MoveCursor(Singleton.FindForwardWordPoint(Singleton.Options.WordDelimiters));
     }
 
     /// <summary>
@@ -297,22 +297,21 @@ public partial class PSConsoleReadLine
 
         while (numericArg-- > 0)
         {
-            var token = _singleton.FindToken(_singleton._current, FindTokenMode.CurrentOrNext);
+            var token = Singleton.FindToken(_renderer.Current, FindTokenMode.CurrentOrNext);
 
             Debug.Assert(token != null, "We'll always find EOF");
 
-            _singleton.MoveCursor(token.Kind == TokenKind.EndOfInput
-                ? _singleton._buffer.Length
+            _renderer.MoveCursor(token.Kind == TokenKind.EndOfInput
+                ? Singleton.buffer.Length
                 : token.Extent.EndOffset);
         }
     }
 
     private static bool CheckIsBound(Action<ConsoleKeyInfo?, object> action)
     {
-        foreach (var entry in _singleton._dispatchTable)
+        foreach (var entry in Singleton._dispatchTable)
             if (entry.Value.Action == action)
                 return true;
-
         return false;
     }
 
@@ -331,12 +330,11 @@ public partial class PSConsoleReadLine
                 ForwardWord(key, -numericArg);
             else
                 NextWord(key, -numericArg);
-
             return;
         }
 
         while (numericArg-- > 0)
-            _singleton.MoveCursor(_singleton.FindBackwardWordPoint(_singleton.Options.WordDelimiters));
+            _renderer.MoveCursor(Singleton.FindBackwardWordPoint(Singleton.Options.WordDelimiters));
     }
 
     /// <summary>
@@ -353,14 +351,13 @@ public partial class PSConsoleReadLine
                 ShellForwardWord(key, -numericArg);
             else
                 ShellNextWord(key, -numericArg);
-
             return;
         }
 
         while (numericArg-- > 0)
         {
-            var token = _singleton.FindToken(_singleton._current, FindTokenMode.Previous);
-            _singleton.MoveCursor(token?.Extent.StartOffset ?? 0);
+            var token = Singleton.FindToken(_renderer.Current, FindTokenMode.Previous);
+            _renderer.MoveCursor(token?.Extent.StartOffset ?? 0);
         }
     }
 
@@ -369,20 +366,19 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void GotoBrace(ConsoleKeyInfo? key = null, object arg = null)
     {
-        if (_singleton._current >= _singleton._buffer.Length)
+        if (_renderer.Current >= Singleton.buffer.Length)
         {
             Ding();
             return;
         }
 
-        _singleton.MaybeParseInput();
-
         Token token = null;
         var index = 0;
-        for (; index < _singleton._tokens.Length; index++)
+        for (; index < Singleton.Tokens.Length; index++)
         {
-            token = _singleton._tokens[index];
-            if (token.Extent.StartOffset == _singleton._current)
+            var tempQualifier = Singleton;
+            token = tempQualifier.Tokens[index];
+            if (token.Extent.StartOffset == _renderer.Current)
                 break;
         }
 
@@ -423,10 +419,10 @@ public partial class PSConsoleReadLine
         }
 
         var matchCount = 0;
-        var limit = direction > 0 ? _singleton._tokens.Length - 1 : -1;
+        var limit = direction > 0 ? Singleton.Tokens.Length - 1 : -1;
         for (; index != limit; index += direction)
         {
-            var t = _singleton._tokens[index];
+            var t = Singleton.Tokens[index];
             if (t.Kind == token.Kind)
             {
                 matchCount++;
@@ -436,7 +432,7 @@ public partial class PSConsoleReadLine
                 matchCount--;
                 if (matchCount == 0)
                 {
-                    _singleton.MoveCursor(t.Extent.StartOffset);
+                    _renderer.MoveCursor(t.Extent.StartOffset);
                     return;
                 }
             }
@@ -450,7 +446,7 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void ClearScreen(ConsoleKeyInfo? key = null, object arg = null)
     {
-        var console = _singleton._console;
+        var console = Renderer.Console;
         console.Write("\x1b[2J");
         InvokePrompt(null, console.WindowTop);
     }
@@ -483,14 +479,13 @@ public partial class PSConsoleReadLine
         if (toFind == '\0')
             // Should we prompt?
             toFind = ReadKey().KeyChar;
-
-        for (var i = _singleton._current + 1; i < _singleton._buffer.Length; i++)
-            if (_singleton._buffer[i] == toFind)
+        for (var i = _renderer.Current + 1; i < Singleton.buffer.Length; i++)
+            if (Singleton.buffer[i] == toFind)
             {
                 occurence -= 1;
                 if (occurence == 0)
                 {
-                    _singleton.MoveCursor(i);
+                    _renderer.MoveCursor(i);
                     break;
                 }
             }
@@ -516,14 +511,13 @@ public partial class PSConsoleReadLine
         if (toFind == '\0')
             // Should we prompt?
             toFind = ReadKey().KeyChar;
-
-        for (var i = _singleton._current - 1; i >= 0; i--)
-            if (_singleton._buffer[i] == toFind)
+        for (var i = _renderer.Current - 1; i >= 0; i--)
+            if (Singleton.buffer[i] == toFind)
             {
                 occurence -= 1;
                 if (occurence == 0)
                 {
-                    _singleton.MoveCursor(i);
+                    _renderer.MoveCursor(i);
                     return;
                 }
             }

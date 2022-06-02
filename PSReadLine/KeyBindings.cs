@@ -119,7 +119,7 @@ public partial class PSConsoleReadLine
 {
     private Dictionary<PSKeyInfo, Dictionary<PSKeyInfo, KeyHandler>> _chordDispatchTable;
 
-    private Dictionary<PSKeyInfo, KeyHandler> _dispatchTable;
+    internal Dictionary<PSKeyInfo, KeyHandler> _dispatchTable;
 
     private static KeyHandler MakeKeyHandler(Action<ConsoleKeyInfo?, object> action, string briefDescription,
         string longDescription = null, ScriptBlock scriptBlock = null)
@@ -169,8 +169,8 @@ public partial class PSConsoleReadLine
             {Keys.ShiftRightArrow, MakeKeyHandler(SelectForwardChar, "SelectForwardChar")},
             {Keys.CtrlShiftLeftArrow, MakeKeyHandler(SelectBackwardWord, "SelectBackwardWord")},
             {Keys.CtrlShiftRightArrow, MakeKeyHandler(SelectNextWord, "SelectNextWord")},
-            {Keys.UpArrow, MakeKeyHandler(PreviousHistory, "PreviousHistory")},
-            {Keys.DownArrow, MakeKeyHandler(NextHistory, "NextHistory")},
+            {Keys.UpArrow, MakeKeyHandler(History.PreviousHistory, "PreviousHistory")},
+            {Keys.DownArrow, MakeKeyHandler(History.NextHistory, "NextHistory")},
             {Keys.Home, MakeKeyHandler(BeginningOfLine, "BeginningOfLine")},
             {Keys.End, MakeKeyHandler(EndOfLine, "EndOfLine")},
             {Keys.ShiftHome, MakeKeyHandler(SelectBackwardsLine, "SelectBackwardsLine")},
@@ -183,8 +183,8 @@ public partial class PSConsoleReadLine
             {Keys.CtrlC, MakeKeyHandler(CopyOrCancelLine, "CopyOrCancelLine")},
             {Keys.CtrlShiftC, MakeKeyHandler(Copy, "Copy")},
             {Keys.CtrlL, MakeKeyHandler(ClearScreen, "ClearScreen")},
-            {Keys.CtrlR, MakeKeyHandler(ReverseSearchHistory, "ReverseSearchHistory")},
-            {Keys.CtrlS, MakeKeyHandler(ForwardSearchHistory, "ForwardSearchHistory")},
+            {Keys.CtrlR, MakeKeyHandler(HistorySearcherReadLine.ReverseSearchHistory, "ReverseSearchHistory")},
+            {Keys.CtrlS, MakeKeyHandler(HistorySearcherReadLine.ForwardSearchHistory, "ForwardSearchHistory")},
             {Keys.CtrlV, MakeKeyHandler(Paste, "Paste")},
             {Keys.ShiftInsert, MakeKeyHandler(Paste, "Paste")},
             {Keys.CtrlX, MakeKeyHandler(Cut, "Cut")},
@@ -211,8 +211,8 @@ public partial class PSConsoleReadLine
             {Keys.F2, MakeKeyHandler(SwitchPredictionView, "SwitchPredictionView")},
             {Keys.F3, MakeKeyHandler(CharacterSearch, "CharacterSearch")},
             {Keys.ShiftF3, MakeKeyHandler(CharacterSearchBackward, "CharacterSearchBackward")},
-            {Keys.F8, MakeKeyHandler(HistorySearchBackward, "HistorySearchBackward")},
-            {Keys.ShiftF8, MakeKeyHandler(HistorySearchForward, "HistorySearchForward")},
+            {Keys.F8, MakeKeyHandler(History.HistorySearchBackward, "HistorySearchBackward")},
+            {Keys.ShiftF8, MakeKeyHandler(History.HistorySearchForward, "HistorySearchForward")},
             // Added for xtermjs-based terminals that send different key combinations.
             {Keys.AltD, MakeKeyHandler(KillWord, "KillWord")},
             {Keys.CtrlAt, MakeKeyHandler(MenuComplete, "MenuComplete")},
@@ -225,17 +225,20 @@ public partial class PSConsoleReadLine
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
             _dispatchTable.Add(Keys.CtrlSpace, MakeKeyHandler(MenuComplete, "MenuComplete"));
-            _dispatchTable.Add(Keys.AltF7, MakeKeyHandler(ClearHistory, "ClearHistory"));
+            _dispatchTable.Add(Keys.AltF7, MakeKeyHandler(History.ClearHistory, "ClearHistory"));
             _dispatchTable.Add(Keys.CtrlDelete, MakeKeyHandler(KillWord, "KillWord"));
             _dispatchTable.Add(Keys.CtrlEnd, MakeKeyHandler(ForwardDeleteInput, "ForwardDeleteInput"));
             _dispatchTable.Add(Keys.CtrlH, MakeKeyHandler(BackwardDeleteChar, "BackwardDeleteChar"));
 
             // PageUp/PageDown and CtrlPageUp/CtrlPageDown bindings are supported on Windows only because they depend on the
             // API 'Console.SetWindowPosition', which throws 'PlatformNotSupportedException' on unix platforms.
-            _dispatchTable.Add(Keys.PageUp, MakeKeyHandler(ScrollDisplayUp, "ScrollDisplayUp"));
-            _dispatchTable.Add(Keys.PageDown, MakeKeyHandler(ScrollDisplayDown, "ScrollDisplayDown"));
-            _dispatchTable.Add(Keys.CtrlPageUp, MakeKeyHandler(ScrollDisplayUpLine, "ScrollDisplayUpLine"));
-            _dispatchTable.Add(Keys.CtrlPageDown, MakeKeyHandler(ScrollDisplayDownLine, "ScrollDisplayDownLine"));
+            _dispatchTable.Add(Keys.PageUp,
+                MakeKeyHandler(Renderer.ScrollDisplayUp, "ScrollDisplayUp"));
+            _dispatchTable.Add(Keys.PageDown, MakeKeyHandler(Renderer.ScrollDisplayDown, "ScrollDisplayDown"));
+            _dispatchTable.Add(Keys.CtrlPageUp,
+                MakeKeyHandler(Renderer.ScrollDisplayUpLine, "ScrollDisplayUpLine"));
+            _dispatchTable.Add(Keys.CtrlPageDown,
+                MakeKeyHandler(Renderer.ScrollDisplayDownLine, "ScrollDisplayDownLine"));
         }
 
         _chordDispatchTable = new Dictionary<PSKeyInfo, Dictionary<PSKeyInfo, KeyHandler>>();
@@ -252,10 +255,10 @@ public partial class PSConsoleReadLine
             {Keys.RightArrow, MakeKeyHandler(ForwardChar, "ForwardChar")},
             {Keys.ShiftLeftArrow, MakeKeyHandler(SelectBackwardChar, "SelectBackwardChar")},
             {Keys.ShiftRightArrow, MakeKeyHandler(SelectForwardChar, "SelectForwardChar")},
-            {Keys.UpArrow, MakeKeyHandler(PreviousHistory, "PreviousHistory")},
-            {Keys.DownArrow, MakeKeyHandler(NextHistory, "NextHistory")},
-            {Keys.AltLess, MakeKeyHandler(BeginningOfHistory, "BeginningOfHistory")},
-            {Keys.AltGreater, MakeKeyHandler(EndOfHistory, "EndOfHistory")},
+            {Keys.UpArrow, MakeKeyHandler(History.PreviousHistory, "PreviousHistory")},
+            {Keys.DownArrow, MakeKeyHandler(History.NextHistory, "NextHistory")},
+            {Keys.AltLess, MakeKeyHandler(History.BeginningOfHistory, "BeginningOfHistory")},
+            {Keys.AltGreater, MakeKeyHandler(History.EndOfHistory, "EndOfHistory")},
             {Keys.Home, MakeKeyHandler(BeginningOfLine, "BeginningOfLine")},
             {Keys.End, MakeKeyHandler(EndOfLine, "EndOfLine")},
             {Keys.ShiftHome, MakeKeyHandler(SelectBackwardsLine, "SelectBackwardsLine")},
@@ -273,11 +276,11 @@ public partial class PSConsoleReadLine
             {Keys.CtrlL, MakeKeyHandler(ClearScreen, "ClearScreen")},
             {Keys.CtrlK, MakeKeyHandler(KillLine, "KillLine")},
             {Keys.CtrlM, MakeKeyHandler(ValidateAndAcceptLine, "ValidateAndAcceptLine")},
-            {Keys.CtrlN, MakeKeyHandler(NextHistory, "NextHistory")},
+            {Keys.CtrlN, MakeKeyHandler(History.NextHistory, "NextHistory")},
             {Keys.CtrlO, MakeKeyHandler(AcceptAndGetNext, "AcceptAndGetNext")},
-            {Keys.CtrlP, MakeKeyHandler(PreviousHistory, "PreviousHistory")},
-            {Keys.CtrlR, MakeKeyHandler(ReverseSearchHistory, "ReverseSearchHistory")},
-            {Keys.CtrlS, MakeKeyHandler(ForwardSearchHistory, "ForwardSearchHistory")},
+            {Keys.CtrlP, MakeKeyHandler(History.PreviousHistory, "PreviousHistory")},
+            {Keys.CtrlR, MakeKeyHandler(HistorySearcherReadLine.ReverseSearchHistory, "ReverseSearchHistory")},
+            {Keys.CtrlS, MakeKeyHandler(HistorySearcherReadLine.ForwardSearchHistory, "ForwardSearchHistory")},
             {Keys.CtrlT, MakeKeyHandler(SwapCharacters, "SwapCharacters")},
             {Keys.CtrlU, MakeKeyHandler(BackwardKillInput, "BackwardKillInput")},
             {Keys.CtrlX, MakeKeyHandler(Chord, "ChordFirstKey")},
@@ -323,15 +326,19 @@ public partial class PSConsoleReadLine
         {
             _dispatchTable.Add(Keys.CtrlH, MakeKeyHandler(BackwardDeleteChar, "BackwardDeleteChar"));
             _dispatchTable.Add(Keys.CtrlSpace, MakeKeyHandler(MenuComplete, "MenuComplete"));
-            _dispatchTable.Add(Keys.CtrlEnd, MakeKeyHandler(ScrollDisplayToCursor, "ScrollDisplayToCursor"));
-            _dispatchTable.Add(Keys.CtrlHome, MakeKeyHandler(ScrollDisplayTop, "ScrollDisplayTop"));
+            _dispatchTable.Add(Keys.CtrlEnd,
+                MakeKeyHandler(Renderer.ScrollDisplayToCursor, "ScrollDisplayToCursor"));
+            _dispatchTable.Add(Keys.CtrlHome, MakeKeyHandler(Renderer.ScrollDisplayTop, "ScrollDisplayTop"));
 
             // PageUp/PageDown and CtrlPageUp/CtrlPageDown bindings are supported on Windows only because they depend on the
             // API 'Console.SetWindowPosition', which throws 'PlatformNotSupportedException' on unix platforms.
-            _dispatchTable.Add(Keys.PageUp, MakeKeyHandler(ScrollDisplayUp, "ScrollDisplayUp"));
-            _dispatchTable.Add(Keys.PageDown, MakeKeyHandler(ScrollDisplayDown, "ScrollDisplayDown"));
-            _dispatchTable.Add(Keys.CtrlPageUp, MakeKeyHandler(ScrollDisplayUpLine, "ScrollDisplayUpLine"));
-            _dispatchTable.Add(Keys.CtrlPageDown, MakeKeyHandler(ScrollDisplayDownLine, "ScrollDisplayDownLine"));
+            _dispatchTable.Add(Keys.PageUp,
+                MakeKeyHandler((key, arg) => Renderer.ScrollDisplayUp(key, arg), "ScrollDisplayUp"));
+            _dispatchTable.Add(Keys.PageDown, MakeKeyHandler(Renderer.ScrollDisplayDown, "ScrollDisplayDown"));
+            _dispatchTable.Add(Keys.CtrlPageUp,
+                MakeKeyHandler(Renderer.ScrollDisplayUpLine, "ScrollDisplayUpLine"));
+            _dispatchTable.Add(Keys.CtrlPageDown,
+                MakeKeyHandler(Renderer.ScrollDisplayDownLine, "ScrollDisplayDownLine"));
         }
         else
         {
@@ -508,15 +515,17 @@ public partial class PSConsoleReadLine
             case nameof(ViNextWord):
                 return KeyHandlerGroup.CursorMovement;
 
-            case nameof(BeginningOfHistory):
-            case nameof(ClearHistory):
-            case nameof(EndOfHistory):
-            case nameof(ForwardSearchHistory):
-            case nameof(HistorySearchBackward):
-            case nameof(HistorySearchForward):
-            case nameof(NextHistory):
-            case nameof(PreviousHistory):
-            case nameof(ReverseSearchHistory):
+            case nameof(History.BeginningOfHistory):
+            case nameof(History.ClearHistory):
+            case nameof(History.EndOfHistory):
+            case nameof(HistorySearcherReadLine.ForwardSearchHistory):
+            case nameof(HistorySearcherReadLine.ForwardSearchHistoryMultiKeyword):
+            case nameof(History.HistorySearchBackward):
+            case nameof(History.HistorySearchForward):
+            case nameof(History.NextHistory):
+            case nameof(History.PreviousHistory):
+            case nameof(HistorySearcherReadLine.ReverseSearchHistory):
+            case nameof(HistorySearcherReadLine.ReverseSearchHistoryMultiKeyword):
             case nameof(ViSearchHistoryBackward):
                 return KeyHandlerGroup.History;
 
@@ -540,12 +549,12 @@ public partial class PSConsoleReadLine
             case nameof(ClearScreen):
             case nameof(DigitArgument):
             case nameof(InvokePrompt):
-            case nameof(ScrollDisplayDown):
-            case nameof(ScrollDisplayDownLine):
-            case nameof(ScrollDisplayToCursor):
-            case nameof(ScrollDisplayTop):
-            case nameof(ScrollDisplayUp):
-            case nameof(ScrollDisplayUpLine):
+            case nameof(Renderer.ScrollDisplayDown):
+            case nameof(Renderer.ScrollDisplayDownLine):
+            case nameof(Renderer.ScrollDisplayToCursor):
+            case nameof(Renderer.ScrollDisplayTop):
+            case nameof(Renderer.ScrollDisplayUp):
+            case nameof(Renderer.ScrollDisplayUpLine):
             case nameof(SelfInsert):
             case nameof(ShowKeyBindings):
             case nameof(ViCommandMode):
@@ -599,7 +608,7 @@ public partial class PSConsoleReadLine
     {
         var buffer = new StringBuilder();
         var boundKeys = GetKeyHandlers(true, false);
-        var console = _singleton._console;
+        var console = Renderer.Console;
         foreach (var group in boundKeys.GroupBy(k => k.Group).OrderBy(k => k.Key))
         {
             var groupDescription = PowerShell.KeyHandler.GetGroupingDescription(group.Key);
@@ -625,19 +634,19 @@ public partial class PSConsoleReadLine
                 var description = boundKey.Description;
                 if (description.Length >= maxDescriptionLength)
                     description = description.Substring(0, maxDescriptionLength - 4) + "...";
-
                 buffer.AppendFormat(CultureInfo.InvariantCulture, fmtString, boundKey.Key, boundKey.Function,
                     description);
             }
         }
 
         // Don't overwrite any of the line - so move to first line after the end of our buffer.
-        var point = _singleton.ConvertOffsetToPoint(_singleton._buffer.Length);
+        var offset = Singleton.buffer.Length;
+        var point = _renderer.ConvertOffsetToPoint(offset);
         console.SetCursorPosition(point.X, point.Y);
         console.Write("\n");
 
         console.WriteLine(buffer.ToString());
-        InvokePrompt(null, _singleton._console.CursorTop);
+        InvokePrompt(null, Renderer.Console.CursorTop);
     }
 
     /// <summary>
@@ -645,15 +654,15 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void WhatIsKey(ConsoleKeyInfo? key = null, object arg = null)
     {
-        _singleton._statusLinePrompt = "what-is-key: ";
-        _singleton.Render();
+        _renderer.StatusLinePrompt = "what-is-key: ";
+        _renderer.Render();
         var toLookup = ReadKey();
         var buffer = new StringBuilder();
-        _singleton._dispatchTable.TryGetValue(toLookup, out var keyHandler);
+        Singleton._dispatchTable.TryGetValue(toLookup, out var keyHandler);
         buffer.Append(toLookup.KeyStr);
         if (keyHandler != null)
             if (keyHandler.BriefDescription == "ChordFirstKey")
-                if (_singleton._chordDispatchTable.TryGetValue(toLookup, out var secondKeyDispatchTable))
+                if (Singleton._chordDispatchTable.TryGetValue(toLookup, out var secondKeyDispatchTable))
                 {
                     toLookup = ReadKey();
                     secondKeyDispatchTable.TryGetValue(toLookup, out keyHandler);
@@ -682,11 +691,12 @@ public partial class PSConsoleReadLine
             buffer.Append(PSReadLineResources.KeyIsUnbound);
         }
 
-        _singleton.ClearStatusMessage(false);
+        Singleton.ClearStatusMessage(false);
 
-        var console = _singleton._console;
+        var console = Renderer.Console;
         // Don't overwrite any of the line - so move to first line after the end of our buffer.
-        var point = _singleton.ConvertOffsetToPoint(_singleton._buffer.Length);
+        var offset = Singleton.buffer.Length;
+        var point = _renderer.ConvertOffsetToPoint(offset);
         console.SetCursorPosition(point.X, point.Y);
         console.Write("\n");
 
@@ -694,7 +704,7 @@ public partial class PSConsoleReadLine
         InvokePrompt(null, console.CursorTop);
     }
 
-    private class KeyHandler
+    public class KeyHandler
     {
         private string _longDescription;
 

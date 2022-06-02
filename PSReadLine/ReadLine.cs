@@ -16,7 +16,6 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
-using Microsoft.PowerShell.Commands;
 using Microsoft.PowerShell.Internal;
 using Microsoft.PowerShell.PSReadLine;
 
@@ -35,10 +34,6 @@ public partial class PSConsoleReadLine : IPSConsoleReadLineMockableMethods
 {
     private const int ConsoleExiting = 1;
 
-    // *must* be initialized in the static ctor
-    // because the static member _clipboard depends upon it
-    // for its own initialization
-    private static readonly PSConsoleReadLine _singleton;
 
     // This is used by PowerShellEditorServices (the backend of the PowerShell VSCode extension)
     // so that it can call PSReadLine from a delegate and not hit nested pipeline issues.
@@ -50,62 +45,52 @@ public partial class PSConsoleReadLine : IPSConsoleReadLineMockableMethods
     // Save a fixed # of keys so we can reconstruct a repro after a crash
     private static readonly HistoryQueue<PSKeyInfo> _lastNKeys = new(200);
 
-    private readonly StringBuilder _buffer;
-    private readonly IConsole _console;
+    // *must* be initialized in the static ctor
+    // because the static member _clipboard depends upon it
+    // for its own initialization
+    internal static PSConsoleReadLine Singleton;
 
     private readonly IPSConsoleReadLineMockableMethods _mockableMethods;
-    private readonly Queue<PSKeyInfo> _queuedKeys;
-    private readonly StringBuilder _statusBuffer;
+    internal readonly Queue<PSKeyInfo> _queuedKeys;
+
+    public readonly StringBuilder buffer;
     private string _acceptedCommandLine;
-    private Ast _ast;
     private CancellationToken _cancelReadCancellationToken;
+
     private ICharMap _charMap;
     internal ManualResetEvent _closingWaitHandle;
 
     private bool _delayedOneTimeInitCompleted;
-    private int _editGroupStart;
-    private List<EditItem> _edits;
+    public int _editGroupStart;
+    public List<EditItem> _edits;
     private EngineIntrinsics _engineIntrinsics;
     private Encoding _initialOutputEncoding;
     private bool _inputAccepted;
     private AutoResetEvent _keyReadWaitHandle;
-    private Stopwatch _lastRenderTime;
-    private int _mark;
-    private ParseError[] _parseErrors;
+    internal int _mark;
     private Thread _readKeyThread;
     private AutoResetEvent _readKeyWaitHandle;
     private WaitHandle[] _requestKeyWaitHandles;
     private bool _skipOutputEncodingChange;
-    private bool _statusIsErrorMessage;
-    private string _statusLinePrompt;
+    internal bool _statusIsErrorMessage;
     private WaitHandle[] _threadProcWaitHandles;
-
-    // Tokens etc.
-    private Token[] _tokens;
-    private int _undoEditIndex;
+    public int _undoEditIndex;
 
     static PSConsoleReadLine()
     {
-        _singleton = new PSConsoleReadLine();
-        _viRegister = new ViRegister(_singleton);
+        Singleton = new PSConsoleReadLine();
+        _viRegister = new ViRegister(Singleton);
     }
 
     private PSConsoleReadLine()
     {
         _mockableMethods = this;
-        _console = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-            ? PlatformWindows.OneTimeInit(this)
-            : new VirtualTerminal();
         _charMap = new DotNetCharMap();
-
-        _buffer = new StringBuilder(8 * 1024);
-        _statusBuffer = new StringBuilder(256);
-        _savedCurrentLine = new HistoryItem();
+        buffer = new StringBuilder(8 * 1024);
         _queuedKeys = new Queue<PSKeyInfo>();
-
         string hostName = null;
         // This works mostly by luck - we're not doing anything to guarantee the constructor for our
-        // singleton is called on a thread with a runspace, but it is happening by coincidence.
+        // _s is called on a thread with a runspace, but it is happening by coincidence.
         using (var ps = System.Management.Automation.PowerShell.Create(RunspaceMode.CurrentRunspace))
         {
             try
@@ -119,11 +104,97 @@ public partial class PSConsoleReadLine : IPSConsoleReadLineMockableMethods
             }
         }
 
-        if (hostName == null) hostName = PSReadLine;
+        hostName ??= PSReadLine;
 
         Options = new PSConsoleReadLineOptions(hostName);
-        _prediction = new Prediction(this);
+        _Prediction = new Prediction(this);
         SetDefaultBindings(Options.EditMode);
+    }
+
+    internal Token[] Tokens
+    {
+        get
+        {
+            Parser.ParseInput(buffer.ToString(), out var _tokens, out _);
+            return (Token[]) _tokens.Clone();
+        }
+    }
+
+    public Ast RLAst => Parser.ParseInput(buffer.ToString(), out _, out _);
+
+    public ParseError[] ParseErrors
+    {
+        get
+        {
+            Parser.ParseInput(buffer.ToString(), out _, out var _parseErrors);
+            return _parseErrors;
+        }
+    }
+
+    public static string Prompt
+    {
+        get
+        {
+            string newPrompt = null;
+
+            try
+            {
+                if (Singleton._runspace?.Debugger != null && Singleton._runspace.Debugger.InBreakpoint)
+                {
+                    // Run prompt command in debugger API to ensure it is run correctly on the runspace.
+                    // This handles remote runspace debugging and nested debugger scenarios.
+                    var results = new PSDataCollection<PSObject>();
+                    var command = new PSCommand();
+                    command.AddCommand("prompt");
+                    Singleton._runspace.Debugger.ProcessCommand(
+                        command,
+                        results);
+
+                    if (results.Count == 1)
+                        newPrompt = results[0].BaseObject as string;
+                }
+                else
+                {
+                    var runspaceIsRemote = Singleton._mockableMethods.RunspaceIsRemote(Singleton._runspace);
+
+                    System.Management.Automation.PowerShell ps;
+                    if (!runspaceIsRemote)
+                    {
+                        ps = System.Management.Automation.PowerShell.Create(RunspaceMode.CurrentRunspace);
+                    }
+                    else
+                    {
+                        ps = System.Management.Automation.PowerShell.Create();
+                        ps.Runspace = Singleton._runspace;
+                    }
+
+                    using (ps)
+                    {
+                        ps.AddCommand("prompt");
+                        var result = ps.Invoke<string>();
+                        if (result.Count == 1)
+                        {
+                            newPrompt = result[0];
+
+                            if (runspaceIsRemote)
+                                if (!string.IsNullOrEmpty(Singleton._runspace?.ConnectionInfo?.ComputerName))
+                                    newPrompt = "[" + (Singleton._runspace?.ConnectionInfo).ComputerName + "]: " +
+                                                newPrompt;
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                // Catching all exceptions makes debugging problems a bit harder, but it avoids some noise if
+                // the remote doesn't define a prompt.
+            }
+
+            if (string.IsNullOrEmpty(newPrompt))
+                newPrompt = "PS>";
+
+            return newPrompt;
+        }
     }
 
     bool IPSConsoleReadLineMockableMethods.RunspaceIsRemote(Runspace runspace)
@@ -131,19 +202,66 @@ public partial class PSConsoleReadLine : IPSConsoleReadLineMockableMethods
         return runspace?.ConnectionInfo != null;
     }
 
+    [ExcludeFromCodeCoverage]
+    void IPSConsoleReadLineMockableMethods.Ding()
+    {
+        switch (Options.BellStyle)
+        {
+            case BellStyle.None:
+                break;
+            case BellStyle.Audible:
+                if (Options.DingDuration > 0)
+                {
+                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                        Console.Beep(Options.DingTone, Options.DingDuration);
+                    else
+                        Console.Beep();
+                }
+
+                break;
+            case BellStyle.Visual:
+                // TODO: flash prompt? command line?
+                break;
+        }
+    }
+
+    public void ClearStatusMessage(bool render)
+    {
+        _renderer.StatusBuffer.Clear();
+        _renderer.StatusLinePrompt = null;
+        _statusIsErrorMessage = false;
+        if (render) _renderer.RenderWithPredictionQueryPaused();
+    }
+
+    /// <summary>
+    ///     Notify the user based on their preference for notification.
+    /// </summary>
+    public static void Ding()
+    {
+        Singleton._mockableMethods.Ding();
+    }
+
     private void ReadOneOrMoreKeys()
     {
         _readkeyStopwatch.Restart();
-        while (_console.KeyAvailable)
+        while (Renderer.Console.KeyAvailable)
         {
             // _charMap is only guaranteed to accumulate input while KeyAvailable
             // returns false. Make sure to check KeyAvailable after every ProcessKey call,
             // and clear it in a loop in case the input was something like ^[[1 which can
             // be 3, 2, or part of 1 key depending on timing.
-            _charMap.ProcessKey(_console.ReadKey());
+            _charMap.ProcessKey(Renderer.Console.ReadKey());
             while (_charMap.KeyAvailable)
             {
-                var key = PSKeyInfo.FromConsoleKeyInfo(_charMap.ReadKey());
+                var keyInfo = _charMap.ReadKey();
+                if (_cancelReadCancellationToken.IsCancellationRequested)
+                    // If PSReadLine is running under a host that can cancel it, the
+                    // cancellation will come at a time when ReadKey is stuck waiting for input.
+                    // The next key press will be used to force it to return, and so we want to
+                    // discard this key since we were already canceled.
+                    continue;
+
+                var key = PSKeyInfo.FromConsoleKeyInfo(keyInfo);
                 _lastNKeys.Enqueue(key);
                 _queuedKeys.Enqueue(key);
             }
@@ -159,8 +277,8 @@ public partial class PSConsoleReadLine : IPSConsoleReadLineMockableMethods
                 // Don't want to block when there is an escape sequence being read.
                 if (_charMap.InEscapeSequence)
                 {
-                    if (_console.KeyAvailable)
-                        _charMap.ProcessKey(_console.ReadKey());
+                    if (Renderer.Console.KeyAvailable)
+                        _charMap.ProcessKey(Renderer.Console.ReadKey());
                     else
                         // We don't want to sleep for the whole escape timeout
                         // or the user will have a laggy console, but there's
@@ -172,7 +290,7 @@ public partial class PSConsoleReadLine : IPSConsoleReadLineMockableMethods
                 }
                 else
                 {
-                    _charMap.ProcessKey(_console.ReadKey());
+                    _charMap.ProcessKey(Renderer.Console.ReadKey());
                 }
 
             while (_charMap.KeyAvailable)
@@ -215,7 +333,7 @@ public partial class PSConsoleReadLine : IPSConsoleReadLineMockableMethods
         // be unblocked and instead blocks on events we control.
 
         // First, set an event so the thread to read a key actually attempts to read a key.
-        _singleton._readKeyWaitHandle.Set();
+        Singleton._readKeyWaitHandle.Set();
 
         int handleId;
         System.Management.Automation.PowerShell ps = null;
@@ -228,18 +346,18 @@ public partial class PSConsoleReadLine : IPSConsoleReadLineMockableMethods
                 //   - a key is pressed
                 //   - the console is exiting
                 //   - 300ms timeout - to process events if we're idle
-                handleId = WaitHandle.WaitAny(_singleton._requestKeyWaitHandles, 300);
+                handleId = WaitHandle.WaitAny(Singleton._requestKeyWaitHandles, 300);
                 if (handleId != WaitHandle.WaitTimeout) break;
 
                 if (_handleIdleOverride is not null)
                 {
-                    _handleIdleOverride(_singleton._cancelReadCancellationToken);
+                    _handleIdleOverride(Singleton._cancelReadCancellationToken);
                     continue;
                 }
 
                 // If we timed out, check for event subscribers (which is just
                 // a hint that there might be an event waiting to be processed.)
-                var eventSubscribers = _singleton._engineIntrinsics?.Events.Subscribers;
+                var eventSubscribers = Singleton._engineIntrinsics?.Events.Subscribers;
                 if (eventSubscribers?.Count > 0)
                 {
                     var runPipelineForEventProcessing = false;
@@ -248,13 +366,13 @@ public partial class PSConsoleReadLine : IPSConsoleReadLineMockableMethods
                         if (sub.SourceIdentifier.Equals(PSEngineEvent.OnIdle, StringComparison.OrdinalIgnoreCase))
                         {
                             // If the buffer is not empty, let's not consider we are idle because the user is in the middle of typing something.
-                            if (_singleton._buffer.Length > 0) continue;
+                            if (Singleton.buffer.Length > 0) continue;
 
                             // There is an OnIdle event subscriber and we are idle because we timed out and the buffer is empty.
                             // Normally PowerShell generates this event, but PowerShell assumes the engine is not idle because
                             // it called PSConsoleHostReadLine which isn't returning. So we generate the event instead.
                             runPipelineForEventProcessing = true;
-                            _singleton._engineIntrinsics.Events.GenerateEvent(PSEngineEvent.OnIdle, null, null,
+                            Singleton._engineIntrinsics.Events.GenerateEvent(PSEngineEvent.OnIdle, null, null,
                                 null);
 
                             // Break out so we don't genreate more than one 'OnIdle' event for a timeout.
@@ -276,13 +394,13 @@ public partial class PSConsoleReadLine : IPSConsoleReadLineMockableMethods
 
                         // To detect output during possible event processing, see if the cursor moved
                         // and rerender if so.
-                        var console = _singleton._console;
+                        var console = Renderer.Console;
                         var y = console.CursorTop;
                         ps.Invoke();
                         if (y != console.CursorTop)
                         {
-                            _singleton._initialY = console.CursorTop;
-                            _singleton.Render();
+                            _renderer.InitialY = console.CursorTop;
+                            _renderer.Render();
                         }
                     }
                 }
@@ -297,32 +415,32 @@ public partial class PSConsoleReadLine : IPSConsoleReadLineMockableMethods
         {
             // The console is exiting - throw an exception to unwind the stack to the point
             // where we can return from ReadLine.
-            if (_singleton.Options.HistorySaveStyle == HistorySaveStyle.SaveAtExit) _singleton.SaveHistoryAtExit();
+            if (Singleton.Options.HistorySaveStyle == HistorySaveStyle.SaveAtExit) _hs.SaveHistoryAtExit();
 
-            _singleton._historyFileMutex.Dispose();
+            _hs.HistoryFileMutex.Dispose();
 
             throw new OperationCanceledException();
         }
 
-        if (_singleton._cancelReadCancellationToken.IsCancellationRequested)
+        if (Singleton._cancelReadCancellationToken.IsCancellationRequested)
         {
             // ReadLine was cancelled. Dequeue the dummy input sent by the host, save the current
             // line to be restored next time ReadLine is called, clear the buffer and throw an
             // exception so we can return an empty string.
-            _singleton._queuedKeys.Dequeue();
-            _singleton.SaveCurrentLine();
-            _singleton._getNextHistoryIndex = _singleton._history.Count;
-            _singleton._current = 0;
-            _singleton._buffer.Clear();
-            _singleton.Render();
+            Singleton._queuedKeys.Dequeue();
+            SearcherReadLine.SaveCurrentLine();
+            _hs.GetNextHistoryIndex = _hs.Historys.Count;
+            _renderer.Current = 0;
+            Singleton.buffer.Clear();
+            _renderer.Render();
             throw new OperationCanceledException();
         }
 
-        var key = _singleton._queuedKeys.Dequeue();
+        var key = Singleton._queuedKeys.Dequeue();
         return key;
     }
 
-    private void PrependQueuedKeys(PSKeyInfo key)
+    internal void PrependQueuedKeys(PSKeyInfo key)
     {
         if (_queuedKeys.Count > 0)
         {
@@ -359,7 +477,7 @@ public partial class PSConsoleReadLine : IPSConsoleReadLineMockableMethods
         CancellationToken cancellationToken,
         bool? lastRunStatus)
     {
-        var console = _singleton._console;
+        var console = Renderer.Console;
 
         if (Console.IsInputRedirected || Console.IsOutputRedirected)
             // System.Console doesn't handle redirected input. It matches the behavior on Windows
@@ -374,7 +492,7 @@ public partial class PSConsoleReadLine : IPSConsoleReadLineMockableMethods
 
         var oldControlCAsInput = false;
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            PlatformWindows.Init(ref _singleton._charMap);
+            PlatformWindows.Init(ref Singleton._charMap);
         else
             try
             {
@@ -385,7 +503,7 @@ public partial class PSConsoleReadLine : IPSConsoleReadLineMockableMethods
             {
             }
 
-        if (lastRunStatus.HasValue) _singleton.ReportExecutionStatus(lastRunStatus.Value);
+        if (lastRunStatus.HasValue) Singleton.ReportExecutionStatus(lastRunStatus.Value);
 
         var firstTime = true;
         while (true)
@@ -394,11 +512,11 @@ public partial class PSConsoleReadLine : IPSConsoleReadLineMockableMethods
                 if (firstTime)
                 {
                     firstTime = false;
-                    _singleton.Initialize(runspace, engineIntrinsics);
+                    Singleton.Initialize(runspace, engineIntrinsics);
                 }
 
-                _singleton._cancelReadCancellationToken = cancellationToken;
-                return _singleton.InputLoop();
+                Singleton._cancelReadCancellationToken = cancellationToken;
+                return Singleton.InputLoop();
             }
             catch (OperationCanceledException)
             {
@@ -419,15 +537,15 @@ public partial class PSConsoleReadLine : IPSConsoleReadLineMockableMethods
                         e.InnerException.Message));
                 console.ForegroundColor = oldColor;
 
-                var lineBeforeCrash = _singleton._buffer.ToString();
-                _singleton.Initialize(runspace, _singleton._engineIntrinsics);
+                var lineBeforeCrash = Singleton.buffer.ToString();
+                Singleton.Initialize(runspace, Singleton._engineIntrinsics);
                 InvokePrompt();
                 Insert(lineBeforeCrash);
             }
             catch (Exception e)
             {
                 // If we're running tests, just throw.
-                if (_singleton._mockableMethods != _singleton) throw;
+                if (Singleton._mockableMethods != Singleton) throw;
 
                 while (e.InnerException != null) e = e.InnerException;
 
@@ -441,7 +559,7 @@ public partial class PSConsoleReadLine : IPSConsoleReadLineMockableMethods
                     sb.Append(' ');
                     sb.Append(_lastNKeys[i].KeyStr);
 
-                    if (_singleton._dispatchTable.TryGetValue(_lastNKeys[i], out var handler) &&
+                    if (Singleton._dispatchTable.TryGetValue(_lastNKeys[i], out var handler) &&
                         "AcceptLine".Equals(handler.BriefDescription, StringComparison.OrdinalIgnoreCase))
                         // Make it a little easier to see the keys
                         sb.Append('\n');
@@ -458,8 +576,8 @@ public partial class PSConsoleReadLine : IPSConsoleReadLineMockableMethods
                     PSReadLineResources.OopsAnErrorMessage2,
                     ourVersion, psVersion, osInfo, bufferWidth, bufferHeight,
                     _lastNKeys.Count, sb, e));
-                var lineBeforeCrash = _singleton._buffer.ToString();
-                _singleton.Initialize(runspace, _singleton._engineIntrinsics);
+                var lineBeforeCrash = Singleton.buffer.ToString();
+                Singleton.Initialize(runspace, Singleton._engineIntrinsics);
                 InvokePrompt();
                 Insert(lineBeforeCrash);
             }
@@ -469,21 +587,9 @@ public partial class PSConsoleReadLine : IPSConsoleReadLineMockableMethods
                 {
                     // If we are closing, restoring the old console settings isn't needed,
                     // and some operating systems, it can cause a hang.
-                    if (!_singleton._closingWaitHandle.WaitOne(0))
+                    if (!Singleton._closingWaitHandle.WaitOne(0))
                     {
-                        console.OutputEncoding = _singleton._initialOutputEncoding;
-
-                        bool IsValid(ConsoleColor color)
-                        {
-                            return color >= ConsoleColor.Black && color <= ConsoleColor.White;
-                        }
-
-                        if (IsValid(_singleton._initialForeground))
-                            console.ForegroundColor = _singleton._initialForeground;
-
-                        if (IsValid(_singleton._initialBackground))
-                            console.BackgroundColor = _singleton._initialBackground;
-
+                        console.OutputEncoding = Singleton._initialOutputEncoding;
                         if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                             Console.TreatControlCAsInput = oldControlCAsInput;
                     }
@@ -503,26 +609,25 @@ public partial class PSConsoleReadLine : IPSConsoleReadLineMockableMethods
             var killCommandCount = _killCommandCount;
             var yankCommandCount = _yankCommandCount;
             var tabCommandCount = _tabCommandCount;
-            var searchHistoryCommandCount = _searchHistoryCommandCount;
-            var recallHistoryCommandCount = _recallHistoryCommandCount;
-            var anyHistoryCommandCount = _anyHistoryCommandCount;
+            var searchHistoryCommandCount = _hs.SearchHistoryCommandCount;
+            var recallHistoryCommandCount = _hs.RecallHistoryCommandCount;
+            var anyHistoryCommandCount = _hs.AnyHistoryCommandCount;
             var yankLastArgCommandCount = _yankLastArgCommandCount;
             var visualSelectionCommandCount = _visualSelectionCommandCount;
             var moveToLineCommandCount = _moveToLineCommandCount;
             var moveToEndOfLineCommandCount = _moveToEndOfLineCommandCount;
-
             // We attempt to handle window resizing only once per a keybinding processing, because we assume the
             // window resizing cannot and shouldn't happen within the processing of a given keybinding.
-            _handlePotentialResizing = true;
+            _renderer._handlePotentialResizing = true;
 
             var key = ReadKey();
             ProcessOneKey(key, _dispatchTable, false, null);
             if (_inputAccepted)
             {
-                _acceptedCommandLine = _buffer.ToString();
-                MaybeAddToHistory(_acceptedCommandLine, _edits, _undoEditIndex);
+                _acceptedCommandLine = buffer.ToString();
+                _hs.MaybeAddToHistory(_acceptedCommandLine, _edits, _undoEditIndex);
 
-                _prediction.OnCommandLineAccepted(_acceptedCommandLine);
+                _Prediction.OnCommandLineAccepted(_acceptedCommandLine);
                 return _acceptedCommandLine;
             }
 
@@ -548,37 +653,36 @@ public partial class PSConsoleReadLine : IPSConsoleReadLineMockableMethods
                 _tabCompletions = null;
             }
 
-            if (searchHistoryCommandCount == _searchHistoryCommandCount)
+            if (searchHistoryCommandCount == _hs.SearchHistoryCommandCount)
             {
-                if (_searchHistoryCommandCount > 0)
+                if (_hs.SearchHistoryCommandCount > 0)
                 {
-                    _emphasisStart = -1;
-                    _emphasisLength = 0;
-                    RenderWithPredictionQueryPaused();
+                    EP.EmphasisInit();
+                    _renderer.RenderWithPredictionQueryPaused();
                 }
 
-                _searchHistoryCommandCount = 0;
-                _searchHistoryPrefix = null;
+                _hs.SearchHistoryCommandCount = 0;
+                _hs.SearchHistoryPrefix = null;
             }
 
-            if (recallHistoryCommandCount == _recallHistoryCommandCount) _recallHistoryCommandCount = 0;
+            if (recallHistoryCommandCount == _hs.RecallHistoryCommandCount) _hs.RecallHistoryCommandCount = 0;
 
-            if (anyHistoryCommandCount == _anyHistoryCommandCount)
+            if (anyHistoryCommandCount == _hs.AnyHistoryCommandCount)
             {
-                if (_anyHistoryCommandCount > 0)
+                if (_hs.AnyHistoryCommandCount > 0)
                 {
-                    ClearSavedCurrentLine();
-                    _hashedHistory = null;
-                    _currentHistoryIndex = _history.Count;
+                    SearcherReadLine.ClearSavedCurrentLine();
+                    _hs.HashedHistory = null;
+                    SearcherReadLine.ResetCurrentHistoryIndex();
                 }
 
-                _anyHistoryCommandCount = 0;
+                _hs.AnyHistoryCommandCount = 0;
             }
 
             if (visualSelectionCommandCount == _visualSelectionCommandCount && _visualSelectionCommandCount > 0)
             {
                 _visualSelectionCommandCount = 0;
-                RenderWithPredictionQueryPaused(); // Clears the visual selection
+                _renderer.RenderWithPredictionQueryPaused(); // Clears the visual selection
             }
 
             if (moveToLineCommandCount == _moveToLineCommandCount)
@@ -602,14 +706,14 @@ public partial class PSConsoleReadLine : IPSConsoleReadLineMockableMethods
     {
         try
         {
-            _console.OutputEncoding = _initialOutputEncoding;
+            Renderer.Console.OutputEncoding = _initialOutputEncoding;
             return RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
                 ? PlatformWindows.CallPossibleExternalApplication(func)
                 : func();
         }
         finally
         {
-            if (!_skipOutputEncodingChange) _console.OutputEncoding = Encoding.UTF8;
+            if (!_skipOutputEncodingChange) Renderer.Console.OutputEncoding = Encoding.UTF8;
         }
     }
 
@@ -663,38 +767,30 @@ public partial class PSConsoleReadLine : IPSConsoleReadLineMockableMethods
 
     private void Initialize(Runspace runspace, EngineIntrinsics engineIntrinsics)
     {
+        var previousRender = _renderer;
+        _renderer = new Renderer();
+        _renderer.PreviousRenderData.initialY = _renderer.InitialY + previousRender.InitialY;
+
         _engineIntrinsics = engineIntrinsics;
         _runspace = runspace;
-
         if (!_delayedOneTimeInitCompleted)
         {
             DelayedOneTimeInitialize();
             _delayedOneTimeInitCompleted = true;
         }
 
-        _buffer.Clear();
+        buffer.Clear();
         _edits = new List<EditItem>();
         _undoEditIndex = 0;
         _editGroupStart = -1;
-        _current = 0;
         _mark = 0;
-        _emphasisStart = -1;
-        _emphasisLength = 0;
-        _ast = null;
-        _tokens = null;
-        _parseErrors = null;
+
         _inputAccepted = false;
-        _initialX = _console.CursorLeft;
-        _initialY = _console.CursorTop;
-        _initialForeground = _console.ForegroundColor;
-        _initialBackground = _console.BackgroundColor;
-        _previousRender = _initialPrevRender;
-        _previousRender.UpdateConsoleInfo(_console);
-        _previousRender.initialY = _initialY;
+
         _statusIsErrorMessage = false;
 
-        _initialOutputEncoding = _console.OutputEncoding;
-        _prediction.Reset();
+        _initialOutputEncoding = Renderer.Console.OutputEncoding;
+        _Prediction.Reset();
 
         // Don't change the OutputEncoding if already UTF8, no console, or using raster font on Windows
         _skipOutputEncodingChange = _initialOutputEncoding == Encoding.UTF8
@@ -702,44 +798,43 @@ public partial class PSConsoleReadLine : IPSConsoleReadLineMockableMethods
                                     && PlatformWindows.IsConsoleInput()
                                     && PlatformWindows.IsUsingRasterFont();
 
-        if (!_skipOutputEncodingChange) _console.OutputEncoding = Encoding.UTF8;
-
-        _lastRenderTime = Stopwatch.StartNew();
+        if (!_skipOutputEncodingChange) Renderer.Console.OutputEncoding = Encoding.UTF8;
 
         _killCommandCount = 0;
         _yankCommandCount = 0;
         _yankLastArgCommandCount = 0;
         _tabCommandCount = 0;
-        _recallHistoryCommandCount = 0;
-        _anyHistoryCommandCount = 0;
         _visualSelectionCommandCount = 0;
-        _hashedHistory = null;
 
-        if (_getNextHistoryIndex > 0)
+        _hs.RecallHistoryCommandCount = 0;
+        _hs.AnyHistoryCommandCount = 0;
+        _hs.HashedHistory = null;
+        if (_hs.GetNextHistoryIndex > 0)
         {
-            _currentHistoryIndex = _getNextHistoryIndex;
-            UpdateFromHistory(HistoryMoveCursor.ToEnd);
-            _getNextHistoryIndex = 0;
-            if (_searchHistoryCommandCount > 0)
+            var val = _hs.GetNextHistoryIndex;
+            SearcherReadLine.CurrentHistoryIndex = val;
+            SearcherReadLine.UpdateBufferFromHistory(HistorySearcherReadLine.HistoryMoveCursor.ToEnd);
+            _hs.GetNextHistoryIndex = 0;
+            if (_hs.SearchHistoryCommandCount > 0)
             {
-                _searchHistoryPrefix = "";
-                if (Options.HistoryNoDuplicates) _hashedHistory = new Dictionary<string, int>();
+                _hs.SearchHistoryPrefix = "";
+                if (Options.HistoryNoDuplicates) _hs.HashedHistory = new Dictionary<string, int>();
             }
         }
         else
         {
-            _currentHistoryIndex = _history.Count;
-            _searchHistoryCommandCount = 0;
+            SearcherReadLine.ResetCurrentHistoryIndex();
+            _hs.SearchHistoryCommandCount = 0;
         }
 
-        if (_previousHistoryItem != null)
-            _previousHistoryItem.ApproximateElapsedTime = DateTime.UtcNow - _previousHistoryItem.StartTime;
+        if (_hs.PreviousHistoryItem != null)
+            _hs.PreviousHistoryItem.ApproximateElapsedTime = DateTime.UtcNow - _hs.PreviousHistoryItem.StartTime;
     }
 
     private void DelayedOneTimeInitialize()
     {
         // Delayed initialization is needed so that options can be set
-        // after the constuctor but have an affect before the user starts
+        // after the constructor but have an affect before the user starts
         // editing their first command line.  For example, if the user
         // specifies a custom history save file, we don't want to try reading
         // from the default one.
@@ -780,30 +875,7 @@ public partial class PSConsoleReadLine : IPSConsoleReadLineMockableMethods
             }
         }
 
-        _historyFileMutex = new Mutex(false, GetHistorySaveFileMutexName());
-
-        _history = new HistoryQueue<HistoryItem>(Options.MaximumHistoryCount);
-        _recentHistory = new HistoryQueue<string>(5);
-        _currentHistoryIndex = 0;
-
-        var readHistoryFile = true;
-        try
-        {
-            if (Options.HistorySaveStyle == HistorySaveStyle.SaveNothing && Runspace.DefaultRunspace != null)
-                using (var ps = System.Management.Automation.PowerShell.Create(RunspaceMode.CurrentRunspace))
-                {
-                    ps.AddCommand("Microsoft.PowerShell.Core\\Get-History");
-                    foreach (var historyInfo in ps.Invoke<HistoryInfo>()) AddToHistory(historyInfo.CommandLine);
-
-                    readHistoryFile = false;
-                }
-        }
-        catch
-        {
-        }
-
-        if (readHistoryFile) ReadHistoryFile();
-
+        _hs.DelayedInit();
         _killIndex = -1; // So first add indexes 0.
         _killRing = new List<string>(Options.MaximumKillRingCount);
 
@@ -811,7 +883,8 @@ public partial class PSConsoleReadLine : IPSConsoleReadLineMockableMethods
         _keyReadWaitHandle = new AutoResetEvent(false);
         _closingWaitHandle = new ManualResetEvent(false);
         _requestKeyWaitHandles = new WaitHandle[] {_keyReadWaitHandle, _closingWaitHandle};
-        _threadProcWaitHandles = new WaitHandle[] {_readKeyWaitHandle, _closingWaitHandle};
+        _threadProcWaitHandles = new WaitHandle[]
+            {_readKeyWaitHandle, _closingWaitHandle};
 
         // This is for a "being hosted in an alternate appdomain scenario" (the
         // DomainUnload event is not raised for the default appdomain). It allows us
@@ -824,19 +897,21 @@ public partial class PSConsoleReadLine : IPSConsoleReadLineMockableMethods
                 _readKeyThread.Join(); // may need to wait for history to be written
             };
 
-        _readKeyThread = new Thread(ReadKeyThreadProc) {IsBackground = true, Name = "PSReadLine ReadKey Thread"};
+        _readKeyThread = new Thread(ReadKeyThreadProc)
+            {IsBackground = true, Name = "PSReadLine ReadKey Thread"};
         _readKeyThread.Start();
     }
+
 
     private static void Chord(ConsoleKeyInfo? key = null, object arg = null)
     {
         if (!key.HasValue) throw new ArgumentNullException(nameof(key));
 
-        if (_singleton._chordDispatchTable.TryGetValue(PSKeyInfo.FromConsoleKeyInfo(key.Value),
+        if (Singleton._chordDispatchTable.TryGetValue(PSKeyInfo.FromConsoleKeyInfo(key.Value),
                 out var secondKeyDispatchTable))
         {
             var secondKey = ReadKey();
-            _singleton.ProcessOneKey(secondKey, secondKeyDispatchTable, true, arg);
+            Singleton.ProcessOneKey(secondKey, secondKeyDispatchTable, true, arg);
         }
     }
 
@@ -858,26 +933,26 @@ public partial class PSConsoleReadLine : IPSConsoleReadLineMockableMethods
             return;
         }
 
-        if (_singleton.Options.EditMode == EditMode.Vi && key.Value.KeyChar == '0')
+        if (Singleton.Options.EditMode == EditMode.Vi && key.Value.KeyChar == '0')
         {
             BeginningOfLine();
             return;
         }
 
         var sawDigit = false;
-        _singleton._statusLinePrompt = "digit-argument: ";
-        var argBuffer = _singleton._statusBuffer;
+        _renderer.StatusLinePrompt = "digit-argument: ";
+        var argBuffer = _renderer.StatusBuffer;
         argBuffer.Append(key.Value.KeyChar);
         if (key.Value.KeyChar == '-')
             argBuffer.Append('1');
         else
             sawDigit = true;
 
-        _singleton.RenderWithPredictionQueryPaused(); // Render prompt
+        _renderer.RenderWithPredictionQueryPaused(); // Render prompt
         while (true)
         {
             var nextKey = ReadKey();
-            if (_singleton._dispatchTable.TryGetValue(nextKey, out var handler))
+            if (Singleton._dispatchTable.TryGetValue(nextKey, out var handler))
             {
                 if (handler.Action == DigitArgument)
                 {
@@ -888,7 +963,7 @@ public partial class PSConsoleReadLine : IPSConsoleReadLineMockableMethods
                         else
                             argBuffer.Insert(0, '-');
 
-                        _singleton.RenderWithPredictionQueryPaused(); // Render prompt
+                        _renderer.RenderWithPredictionQueryPaused(); // Render prompt
                         continue;
                     }
 
@@ -901,7 +976,7 @@ public partial class PSConsoleReadLine : IPSConsoleReadLineMockableMethods
 
                         sawDigit = true;
                         argBuffer.Append(nextKey.KeyChar);
-                        _singleton.RenderWithPredictionQueryPaused(); // Render prompt
+                        _renderer.RenderWithPredictionQueryPaused(); // Render prompt
                         continue;
                     }
                 }
@@ -914,7 +989,7 @@ public partial class PSConsoleReadLine : IPSConsoleReadLineMockableMethods
             }
 
             if (int.TryParse(argBuffer.ToString(), out var intArg))
-                _singleton.ProcessOneKey(nextKey, _singleton._dispatchTable, false, intArg);
+                Singleton.ProcessOneKey(nextKey, Singleton._dispatchTable, false, intArg);
             else
                 Ding();
 
@@ -923,7 +998,7 @@ public partial class PSConsoleReadLine : IPSConsoleReadLineMockableMethods
 
         // Remove our status line
         argBuffer.Clear();
-        _singleton.ClearStatusMessage(true);
+        Singleton.ClearStatusMessage(true);
     }
 
 
@@ -934,7 +1009,7 @@ public partial class PSConsoleReadLine : IPSConsoleReadLineMockableMethods
     /// </summary>
     public static void InvokePrompt(ConsoleKeyInfo? key = null, object arg = null)
     {
-        var console = _singleton._console;
+        var console = Renderer.Console;
         console.CursorVisible = false;
 
         if (arg is int newY)
@@ -943,92 +1018,27 @@ public partial class PSConsoleReadLine : IPSConsoleReadLineMockableMethods
         }
         else
         {
-            newY = _singleton._initialY - _singleton.Options.ExtraPromptLineCount;
+            newY = _renderer.InitialY - Singleton.Options.ExtraPromptLineCount;
 
             console.SetCursorPosition(0, newY);
 
             // We need to rewrite the prompt, so blank out everything from a previous prompt invocation
             // in case the next one is shorter.
             var spaces = Spaces(console.BufferWidth);
-            for (var i = 0; i < _singleton.Options.ExtraPromptLineCount + 1; i++) console.Write(spaces);
+            for (var i = 0; i < Singleton.Options.ExtraPromptLineCount + 1; i++) console.Write(spaces);
 
             console.SetCursorPosition(0, newY);
         }
 
-        var newPrompt = GetPrompt();
+        console.Write(Prompt);
+        _renderer.InitialX = console.CursorLeft;
+        _renderer.InitialY = console.CursorTop;
+        _renderer.PreviousRenderData = Renderer.InitialPrevRender;
+        _renderer.PreviousRenderData.UpdateConsoleInfo(console);
+        _renderer.PreviousRenderData.initialY = _renderer.InitialY;
 
-        console.Write(newPrompt);
-        _singleton._initialX = console.CursorLeft;
-        _singleton._initialY = console.CursorTop;
-        _singleton._previousRender = _initialPrevRender;
-        _singleton._previousRender.UpdateConsoleInfo(console);
-        _singleton._previousRender.initialY = _singleton._initialY;
-
-        _singleton.Render();
+        _renderer.Render();
         console.CursorVisible = true;
-    }
-
-    private static string GetPrompt()
-    {
-        string newPrompt = null;
-
-        try
-        {
-            if (_singleton._runspace?.Debugger != null && _singleton._runspace.Debugger.InBreakpoint)
-            {
-                // Run prompt command in debugger API to ensure it is run correctly on the runspace.
-                // This handles remote runspace debugging and nested debugger scenarios.
-                var results = new PSDataCollection<PSObject>();
-                var command = new PSCommand();
-                command.AddCommand("prompt");
-                _singleton._runspace.Debugger.ProcessCommand(
-                    command,
-                    results);
-
-                if (results.Count == 1)
-                    newPrompt = results[0].BaseObject as string;
-            }
-            else
-            {
-                var runspaceIsRemote = _singleton._mockableMethods.RunspaceIsRemote(_singleton._runspace);
-
-                System.Management.Automation.PowerShell ps;
-                if (!runspaceIsRemote)
-                {
-                    ps = System.Management.Automation.PowerShell.Create(RunspaceMode.CurrentRunspace);
-                }
-                else
-                {
-                    ps = System.Management.Automation.PowerShell.Create();
-                    ps.Runspace = _singleton._runspace;
-                }
-
-                using (ps)
-                {
-                    ps.AddCommand("prompt");
-                    var result = ps.Invoke<string>();
-                    if (result.Count == 1)
-                    {
-                        newPrompt = result[0];
-
-                        if (runspaceIsRemote)
-                            if (!string.IsNullOrEmpty(_singleton._runspace?.ConnectionInfo?.ComputerName))
-                                newPrompt = "[" + (_singleton._runspace?.ConnectionInfo).ComputerName + "]: " +
-                                            newPrompt;
-                    }
-                }
-            }
-        }
-        catch
-        {
-            // Catching all exceptions makes debugging problems a bit harder, but it avoids some noise if
-            // the remote doesn't define a prompt.
-        }
-
-        if (string.IsNullOrEmpty(newPrompt))
-            newPrompt = "PS>";
-
-        return newPrompt;
     }
 
     internal static bool IsRunningCI(IConsole console)

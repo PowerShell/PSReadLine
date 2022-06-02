@@ -73,7 +73,7 @@ public partial class PSConsoleReadLine
             // GetDynamicHelpContent could scroll the screen, e.g. via Write-Progress. For example,
             // Get-Help for unknown command under the CloudShell Azure drive will show the progress bar while searching for command.
             // We need to update the _initialY in case the current cursor postion has changed.
-            if (_singleton._initialY > _console.CursorTop) _singleton._initialY = _console.CursorTop;
+            if (_renderer.InitialY > Renderer.Console.CursorTop) _renderer.InitialY = Renderer.Console.CursorTop;
         }
     }
 
@@ -83,7 +83,7 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void ShowCommandHelp(ConsoleKeyInfo? key = null, object arg = null)
     {
-        if (_singleton._console is PlatformWindows.LegacyWin32Console)
+        if (Renderer.Console is PlatformWindows.LegacyWin32Console)
         {
             var helpBlock = new Collection<string>
             {
@@ -91,12 +91,12 @@ public partial class PSConsoleReadLine
                 PSReadLineResources.FullHelpNotSupportedInLegacyConsole
             };
 
-            _singleton.WriteDynamicHelpBlock(helpBlock);
+            Singleton.WriteDynamicHelpBlock(helpBlock);
 
             return;
         }
 
-        _singleton.DynamicHelpImpl(true);
+        Singleton.DynamicHelpImpl(true);
     }
 
     /// <summary>
@@ -105,7 +105,7 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void ShowParameterHelp(ConsoleKeyInfo? key = null, object arg = null)
     {
-        _singleton.DynamicHelpImpl(false);
+        Singleton.DynamicHelpImpl(false);
     }
 
     private void WriteDynamicHelpContent(string commandName, string parameterName, bool isFullHelp)
@@ -130,14 +130,13 @@ public partial class PSConsoleReadLine
     {
         if (isFullHelp) _pager ??= new Pager();
 
-        var cursor = _singleton._current;
+        var cursor = _renderer.Current;
         string commandName = null;
         string parameterName = null;
 
-        // Simply return if nothing is rendered yet.
-        if (_singleton._tokens == null) return;
+        if (Singleton.Tokens == null) return;
 
-        foreach (var token in _singleton._tokens)
+        foreach (var token in Singleton.Tokens)
         {
             var extent = token.Extent;
 
@@ -213,7 +212,7 @@ public partial class PSConsoleReadLine
 
         public void DrawMultilineBlock()
         {
-            var console = Singleton._console;
+            var console = Renderer.Console;
 
             extraPhysicalLines = 0;
 
@@ -225,7 +224,7 @@ public partial class PSConsoleReadLine
 
             for (var index = 0; index < items.Count; index++)
             {
-                var itemLength = LengthInBufferCells(items[index]);
+                var itemLength = _renderer.LengthInBufferCells(items[index]);
 
                 var extra = 0;
                 if (itemLength > bufferWidth)
@@ -257,7 +256,7 @@ public partial class PSConsoleReadLine
 
         public void Clear()
         {
-            _singleton.WriteBlankLines(Top, ItemsToDisplay.Count + extraPhysicalLines);
+            PSConsoleReadLine.Singleton.WriteBlankLines(Top, ItemsToDisplay.Count + extraPhysicalLines);
         }
     }
 }

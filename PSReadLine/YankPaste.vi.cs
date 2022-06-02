@@ -24,7 +24,7 @@ public partial class PSConsoleReadLine
             return;
         }
 
-        _singleton.PasteAfterImpl();
+        Singleton.PasteAfterImpl();
     }
 
     /// <summary>
@@ -38,24 +38,24 @@ public partial class PSConsoleReadLine
             return;
         }
 
-        _singleton.PasteBeforeImpl();
+        Singleton.PasteBeforeImpl();
     }
 
     private void PasteAfterImpl()
     {
-        _current = _viRegister.PasteAfter(_buffer, _current);
-        Render();
+        _renderer.Current = _viRegister.PasteAfter(buffer, _renderer.Current);
+        _renderer.Render();
     }
 
     private void PasteBeforeImpl()
     {
-        _current = _viRegister.PasteBefore(_buffer, _current);
-        Render();
+        _renderer.Current = _viRegister.PasteBefore(buffer, _renderer.Current);
+        _renderer.Render();
     }
 
     private void SaveToClipboard(int startIndex, int length)
     {
-        _viRegister.Record(_buffer, startIndex, length);
+        _viRegister.Record(buffer, startIndex, length);
     }
 
     /// <summary>
@@ -66,8 +66,8 @@ public partial class PSConsoleReadLine
     /// <param name="lineCount">The number of lines to record to the unnamed register</param>
     private void SaveLinesToClipboard(int lineIndex, int lineCount)
     {
-        var range = _buffer.GetRange(lineIndex, lineCount);
-        _viRegister.LinewiseRecord(_buffer.ToString(range.Offset, range.Count));
+        var range = buffer.GetRange(lineIndex, lineCount);
+        _viRegister.LinewiseRecord(buffer.ToString(range.Offset, range.Count));
     }
 
     /// <summary>
@@ -83,21 +83,21 @@ public partial class PSConsoleReadLine
     ///     and for VI opeartions, we do NOT want to move the cursor to the end when undoing a
     ///     deletion.
     /// </param>
-    private void RemoveTextToViRegister(
+    public void RemoveTextToViRegister(
         int start,
         int count,
         Action<ConsoleKeyInfo?, object> instigator = null,
         object arg = null,
         bool moveCursorToEndWhenUndoDelete = false)
     {
-        _singleton.SaveToClipboard(start, count);
-        _singleton.SaveEditItem(EditItemDelete.Create(
+        Singleton.SaveToClipboard(start, count);
+        Singleton.SaveEditItem(EditItemDelete.Create(
             _viRegister.RawText,
             start,
             instigator,
             arg,
             moveCursorToEndWhenUndoDelete));
-        _singleton._buffer.Remove(start, count);
+        Singleton.buffer.Remove(start, count);
     }
 
     /// <summary>
@@ -106,8 +106,8 @@ public partial class PSConsoleReadLine
     public static void ViYankLine(ConsoleKeyInfo? key = null, object arg = null)
     {
         TryGetArgAsInt(arg, out var lineCount, 1);
-        var lineIndex = _singleton.GetLogicalLineNumber() - 1;
-        _singleton.SaveLinesToClipboard(lineIndex, lineCount);
+        var lineIndex = _renderer.GetLogicalLineNumber() - 1;
+        Singleton.SaveLinesToClipboard(lineIndex, lineCount);
     }
 
     /// <summary>
@@ -117,12 +117,12 @@ public partial class PSConsoleReadLine
     {
         if (!TryGetArgAsInt(arg, out var numericArg, 1)) return;
 
-        var start = _singleton._current;
+        var start = _renderer.Current;
         var length = 0;
 
         while (numericArg-- > 0) length++;
 
-        _singleton.SaveToClipboard(start, length);
+        Singleton.SaveToClipboard(start, length);
     }
 
     /// <summary>
@@ -132,10 +132,10 @@ public partial class PSConsoleReadLine
     {
         if (!TryGetArgAsInt(arg, out var numericArg, 1)) return;
 
-        var start = _singleton._current;
+        var start = _renderer.Current;
         if (start == 0)
         {
-            _singleton.SaveToClipboard(start, 1);
+            Singleton.SaveToClipboard(start, 1);
             return;
         }
 
@@ -148,7 +148,7 @@ public partial class PSConsoleReadLine
                 length++;
             }
 
-        _singleton.SaveToClipboard(start, length);
+        Singleton.SaveToClipboard(start, length);
     }
 
     /// <summary>
@@ -156,10 +156,10 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void ViYankToEndOfLine(ConsoleKeyInfo? key = null, object arg = null)
     {
-        var start = _singleton._current;
-        var end = GetEndOfLogicalLinePos(_singleton._current);
+        var start = _renderer.Current;
+        var end = GetEndOfLogicalLinePos(_renderer.Current);
         var length = end - start + 1;
-        if (length > 0) _singleton.SaveToClipboard(start, length);
+        if (length > 0) Singleton.SaveToClipboard(start, length);
     }
 
     /// <summary>
@@ -169,13 +169,12 @@ public partial class PSConsoleReadLine
     {
         if (!TryGetArgAsInt(arg, out var numericArg, 1)) return;
 
-        var start = _singleton._current;
+        var start = _renderer.Current;
 
-        while (numericArg-- > 0)
-            start = _singleton.ViFindPreviousWordPoint(start, _singleton.Options.WordDelimiters);
+        while (numericArg-- > 0) start = Singleton.ViFindPreviousWordPoint(start, Singleton.Options.WordDelimiters);
 
-        var length = _singleton._current - start;
-        if (length > 0) _singleton.SaveToClipboard(start, length);
+        var length = _renderer.Current - start;
+        if (length > 0) Singleton.SaveToClipboard(start, length);
     }
 
     /// <summary>
@@ -185,16 +184,16 @@ public partial class PSConsoleReadLine
     {
         if (!TryGetArgAsInt(arg, out var numericArg, 1)) return;
 
-        var end = _singleton._current;
+        var end = _renderer.Current;
 
-        while (numericArg-- > 0) end = _singleton.ViFindNextWordPoint(end, _singleton.Options.WordDelimiters);
+        while (numericArg-- > 0) end = Singleton.ViFindNextWordPoint(end, Singleton.Options.WordDelimiters);
 
-        var length = end - _singleton._current;
+        var length = end - _renderer.Current;
         //if (_singleton.IsAtEndOfLine(end))
         //{
         //    length++;
         //}
-        if (length > 0) _singleton.SaveToClipboard(_singleton._current, length);
+        if (length > 0) Singleton.SaveToClipboard(_renderer.Current, length);
     }
 
     /// <summary>
@@ -204,12 +203,12 @@ public partial class PSConsoleReadLine
     {
         if (!TryGetArgAsInt(arg, out var numericArg, 1)) return;
 
-        var end = _singleton._current;
+        var end = _renderer.Current;
 
-        while (numericArg-- > 0) end = _singleton.ViFindNextWordEnd(end, _singleton.Options.WordDelimiters);
+        while (numericArg-- > 0) end = Singleton.ViFindNextWordEnd(end, Singleton.Options.WordDelimiters);
 
-        var length = 1 + end - _singleton._current;
-        if (length > 0) _singleton.SaveToClipboard(_singleton._current, length);
+        var length = 1 + end - _renderer.Current;
+        if (length > 0) Singleton.SaveToClipboard(_renderer.Current, length);
     }
 
     /// <summary>
@@ -219,12 +218,12 @@ public partial class PSConsoleReadLine
     {
         if (!TryGetArgAsInt(arg, out var numericArg, 1)) return;
 
-        var end = _singleton._current;
+        var end = _renderer.Current;
 
-        while (numericArg-- > 0) end = _singleton.ViFindGlobEnd(end);
+        while (numericArg-- > 0) end = Singleton.ViFindGlobEnd(end);
 
-        var length = 1 + end - _singleton._current;
-        if (length > 0) _singleton.SaveToClipboard(_singleton._current, length);
+        var length = 1 + end - _renderer.Current;
+        if (length > 0) Singleton.SaveToClipboard(_renderer.Current, length);
     }
 
     /// <summary>
@@ -232,12 +231,12 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void ViYankBeginningOfLine(ConsoleKeyInfo? key = null, object arg = null)
     {
-        var start = GetBeginningOfLinePos(_singleton._current);
-        var length = _singleton._current - start;
+        var start = GetBeginningOfLinePos(_renderer.Current);
+        var length = _renderer.Current - start;
         if (length > 0)
         {
-            _singleton.SaveToClipboard(start, length);
-            _singleton.MoveCursor(start);
+            Singleton.SaveToClipboard(start, length);
+            _renderer.MoveCursor(start);
         }
     }
 
@@ -246,12 +245,12 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void ViYankToFirstChar(ConsoleKeyInfo? key = null, object arg = null)
     {
-        var start = GetFirstNonBlankOfLogicalLinePos(_singleton._current);
-        var length = _singleton._current - start;
+        var start = GetFirstNonBlankOfLogicalLinePos(_renderer.Current);
+        var length = _renderer.Current - start;
         if (length > 0)
         {
-            _singleton.SaveToClipboard(start, length);
-            _singleton.MoveCursor(start);
+            Singleton.SaveToClipboard(start, length);
+            _renderer.MoveCursor(start);
         }
     }
 
@@ -260,11 +259,11 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void ViYankPercent(ConsoleKeyInfo? key = null, object arg = null)
     {
-        var start = _singleton.ViFindBrace(_singleton._current);
-        if (_singleton._current < start)
-            _singleton.SaveToClipboard(_singleton._current, start - _singleton._current + 1);
-        else if (start < _singleton._current)
-            _singleton.SaveToClipboard(start, _singleton._current - start + 1);
+        var start = Singleton.ViFindBrace(_renderer.Current);
+        if (_renderer.Current < start)
+            Singleton.SaveToClipboard(_renderer.Current, start - _renderer.Current + 1);
+        else if (start < _renderer.Current)
+            Singleton.SaveToClipboard(start, _renderer.Current - start + 1);
         else
             Ding();
     }
@@ -276,11 +275,10 @@ public partial class PSConsoleReadLine
     {
         if (!TryGetArgAsInt(arg, out var numericArg, 1)) return;
 
-        var start = _singleton._current;
-        while (numericArg-- > 0) start = _singleton.ViFindPreviousGlob(start - 1);
-
-        if (start < _singleton._current)
-            _singleton.SaveToClipboard(start, _singleton._current - start);
+        var start = _renderer.Current;
+        while (numericArg-- > 0) start = Singleton.ViFindPreviousGlob(start - 1);
+        if (start < _renderer.Current)
+            Singleton.SaveToClipboard(start, _renderer.Current - start);
         else
             Ding();
     }
@@ -292,9 +290,8 @@ public partial class PSConsoleReadLine
     {
         if (!TryGetArgAsInt(arg, out var numericArg, 1)) return;
 
-        var end = _singleton._current;
-        while (numericArg-- > 0) end = _singleton.ViFindNextGlob(end);
-
-        _singleton.SaveToClipboard(_singleton._current, end - _singleton._current);
+        var end = _renderer.Current;
+        while (numericArg-- > 0) end = Singleton.ViFindNextGlob(end);
+        Singleton.SaveToClipboard(_renderer.Current, end - _renderer.Current);
     }
 }

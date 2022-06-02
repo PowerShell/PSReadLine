@@ -1,14 +1,3 @@
-### [2.2.5] - 2022-05-03
-
-- Re-package the `2.2.4-beta1` version to `2.2.5` as an offical servicing release.
-
-### [2.2.4-beta1] - 2022-04-27
-
-- Sync ReadKeyProc thread with pipeline thread (#3294)
-- Update build to use net462 (#3285)
-
-[2.2.4-beta1]: https://github.com/PowerShell/PSReadLine/compare/v2.2.3...v2.2.4-beta1
-
 ### [2.2.3] - 2022-04-20
 
 - Respect cancellation in `ReadOneOrMoreKeys()` (#3274, #3280)
@@ -349,7 +338,7 @@ There are known issues:
 * Some custom key bindings are broken (#580)
 
 Breaking changes:
-* Requires PowerShell V5 or later and .Net 4.6.1
+* Requires PowerShell V5 or later and .Net 4.6.2
 * Set-PSReadLineOption options have changed
   - To specify colors, use the new `-Color` parameter and pass a Hashtable
   - All other color options have been removed include `-ResetTokenColors`

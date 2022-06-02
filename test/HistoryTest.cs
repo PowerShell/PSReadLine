@@ -4,16 +4,39 @@ using System.Linq;
 using System.Management.Automation;
 using System.Reflection;
 using Microsoft.PowerShell;
+using Microsoft.PowerShell.PSReadLine;
+using UnitTestPSReadLine;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Test;
 
-public partial class ReadLine
+public class en_US_Windows_HistoryTest : HistoryTest, IClassFixture<ConsoleFixture>
 {
-    private void SetHistory(params string[] historyItems)
+    public en_US_Windows_HistoryTest(ConsoleFixture fixture, ITestOutputHelper output)
+        : base(fixture, output, "en-US", "windows")
     {
-        PSConsoleReadLine.ClearHistory();
-        foreach (var item in historyItems) PSConsoleReadLine.AddToHistory(item);
+    }
+}
+
+public class fr_FR_Windows_HistoryTest : HistoryTest, IClassFixture<ConsoleFixture>
+{
+    public fr_FR_Windows_HistoryTest(ConsoleFixture fixture, ITestOutputHelper output)
+        : base(fixture, output, "fr-FR", "windows")
+    {
+    }
+
+    internal override bool KeyboardHasLessThan => fr_FR_Windows_Options.KeyboardHasLessThan;
+    internal override bool KeyboardHasGreaterThan => fr_FR_Windows_Options.KeyboardHasGreaterThan;
+    internal override bool KeyboardHasCtrlRBracket => fr_FR_Windows_Options.KeyboardHasCtrlRBracket;
+    internal override bool KeyboardHasCtrlAt => fr_FR_Windows_Options.KeyboardHasCtrlAt;
+}
+
+public abstract class HistoryTest : MyReadLine
+{
+    public HistoryTest(ConsoleFixture fixture, ITestOutputHelper output, string lang, string os) : base(fixture, output,
+        lang, os)
+    {
     }
 
     [SkippableFact]
@@ -21,9 +44,7 @@ public partial class ReadLine
     {
         TestSetup(KeyMode.Cmd);
 
-        // No history
-        SetHistory();
-        Test("", Keys(_.UpArrow, _.DownArrow));
+        CleanHistory();
 
         SetHistory("dir c*", "ps p*");
 
@@ -64,7 +85,7 @@ public partial class ReadLine
             file.WriteLine("cd Downloads");
         }
 
-        PSConsoleReadLine.AddToHistory("cd Documents");
+        Microsoft.PowerShell.PSReadLine.History.AddToHistory("cd Documents");
 
         string[] expectedSavedLines = {"gcm help", "dir ~", "cd Downloads", "cd Documents"};
         text = File.ReadAllLines(historySavingFile);
@@ -72,7 +93,7 @@ public partial class ReadLine
         for (var i = 0; i < text.Length; i++) Assert.Equal(expectedSavedLines[i], text[i]);
 
         string[] expectedHistoryItems = {"dir ~", "cd Documents", "cd Downloads"};
-        var historyItems = PSConsoleReadLine.GetHistoryItems();
+        var historyItems = Microsoft.PowerShell.PSReadLine.History.GetHistoryItems();
         Assert.Equal(expectedHistoryItems.Length, historyItems.Length);
         for (var i = 0; i < historyItems.Length; i++)
             Assert.Equal(expectedHistoryItems[i], historyItems[i].CommandLine);
@@ -83,9 +104,7 @@ public partial class ReadLine
     {
         TestSetup(KeyMode.Cmd);
 
-        // No history
-        SetHistory();
-        Test("", Keys(_.UpArrow, _.DownArrow));
+        CleanHistory();
 
         var options = PSConsoleReadLine.GetOptions();
         var oldHistoryFilePath = options.HistorySavePath;
@@ -132,7 +151,7 @@ public partial class ReadLine
             SetHistory(expectedHistoryItems);
 
             // Sensitive input history should be kept in the internal history queue.
-            var historyItems = PSConsoleReadLine.GetHistoryItems();
+            var historyItems = Microsoft.PowerShell.PSReadLine.History.GetHistoryItems();
             Assert.Equal(expectedHistoryItems.Length, historyItems.Length);
             for (var i = 0; i < expectedHistoryItems.Length; i++)
                 Assert.Equal(expectedHistoryItems[i], historyItems[i].CommandLine);
@@ -155,8 +174,7 @@ public partial class ReadLine
     {
         TestSetup(KeyMode.Cmd);
 
-        // Clear history
-        SetHistory();
+        CleanHistory();
 
         var options = PSConsoleReadLine.GetOptions();
         var oldHistoryFilePath = options.HistorySavePath;
@@ -216,7 +234,7 @@ public partial class ReadLine
             SetHistory(expectedHistoryItems);
 
             // Sensitive input history should be kept in the internal history queue.
-            var historyItems = PSConsoleReadLine.GetHistoryItems();
+            var historyItems = Microsoft.PowerShell.PSReadLine.History.GetHistoryItems();
             Assert.Equal(expectedHistoryItems.Length, historyItems.Length);
             for (var i = 0; i < expectedHistoryItems.Length; i++)
                 Assert.Equal(expectedHistoryItems[i], historyItems[i].CommandLine);
@@ -239,9 +257,7 @@ public partial class ReadLine
     {
         TestSetup(KeyMode.Cmd);
 
-        // No history
-        SetHistory();
-        Test("", Keys(_.UpArrow, _.DownArrow));
+        CleanHistory();
 
         var options = PSConsoleReadLine.GetOptions();
         var oldHistoryFilePath = options.HistorySavePath;
@@ -294,10 +310,9 @@ public partial class ReadLine
             SetHistory(commandInputs);
 
             // All commands should be kept in the internal history queue.
-            var historyItems = PSConsoleReadLine.GetHistoryItems();
+            var historyItems = Microsoft.PowerShell.PSReadLine.History.GetHistoryItems();
             Assert.Equal(commandInputs.Length, historyItems.Length);
-            for (var i = 0; i < commandInputs.Length; i++)
-                Assert.Equal(commandInputs[i], historyItems[i].CommandLine);
+            for (var i = 0; i < commandInputs.Length; i++) Assert.Equal(commandInputs[i], historyItems[i].CommandLine);
 
             // All commands are saved to the history file when 'ScrubSensitiveHistory' is set to 'false'.
             var text = File.ReadAllLines(newHistoryFilePath);
@@ -314,7 +329,7 @@ public partial class ReadLine
             File.WriteAllText(newHistoryFilePath, string.Empty);
             SetHistory(commandInputs);
 
-            historyItems = PSConsoleReadLine.GetHistoryItems();
+            historyItems = Microsoft.PowerShell.PSReadLine.History.GetHistoryItems();
             Assert.Single(historyItems);
             Assert.Equal("gal dir", historyItems[0].CommandLine);
 
@@ -329,7 +344,7 @@ public partial class ReadLine
             File.WriteAllText(newHistoryFilePath, string.Empty);
             SetHistory(commandInputs);
 
-            historyItems = PSConsoleReadLine.GetHistoryItems();
+            historyItems = Microsoft.PowerShell.PSReadLine.History.GetHistoryItems();
             Assert.Equal(expectedQueuedItems.Length, historyItems.Length);
             for (var i = 0; i < expectedQueuedItems.Length; i++)
                 Assert.Equal(expectedQueuedItems[i], historyItems[i].CommandLine);
@@ -346,10 +361,9 @@ public partial class ReadLine
             File.WriteAllText(newHistoryFilePath, string.Empty);
             SetHistory(commandInputs);
 
-            historyItems = PSConsoleReadLine.GetHistoryItems();
+            historyItems = Microsoft.PowerShell.PSReadLine.History.GetHistoryItems();
             Assert.Equal(commandInputs.Length, historyItems.Length);
-            for (var i = 0; i < commandInputs.Length; i++)
-                Assert.Equal(commandInputs[i], historyItems[i].CommandLine);
+            for (var i = 0; i < commandInputs.Length; i++) Assert.Equal(commandInputs[i], historyItems[i].CommandLine);
 
             // All commands are saved to the history file when 'ScrubSensitiveHistory' is set to 'false'.
             text = File.ReadAllLines(newHistoryFilePath);
@@ -370,9 +384,7 @@ public partial class ReadLine
     {
         TestSetup(KeyMode.Cmd);
 
-        // No history
-        SetHistory();
-        Test("", Keys(_.UpArrow, _.DownArrow));
+        CleanHistory();
 
         var options = PSConsoleReadLine.GetOptions();
         var oldHistoryFilePath = options.HistorySavePath;
@@ -397,9 +409,8 @@ public partial class ReadLine
                     } else {
                         [Microsoft.PowerShell.AddToHistoryOption]::MemoryAndFile
                     }"));
-        var newAddToHistoryHandler_ReturnOther =
-            LanguagePrimitives.ConvertTo<Func<string, object>>(
-                ScriptBlock.Create(@"
+        var newAddToHistoryHandler_ReturnOther = LanguagePrimitives.ConvertTo<Func<string, object>>(
+            ScriptBlock.Create(@"
                     param([string]$line)
                     'string value'"));
 
@@ -436,10 +447,9 @@ public partial class ReadLine
             SetHistory(commandInputs);
 
             // All commands should be kept in the internal history queue.
-            var historyItems = PSConsoleReadLine.GetHistoryItems();
+            var historyItems = Microsoft.PowerShell.PSReadLine.History.GetHistoryItems();
             Assert.Equal(commandInputs.Length, historyItems.Length);
-            for (var i = 0; i < commandInputs.Length; i++)
-                Assert.Equal(commandInputs[i], historyItems[i].CommandLine);
+            for (var i = 0; i < commandInputs.Length; i++) Assert.Equal(commandInputs[i], historyItems[i].CommandLine);
 
             // All commands are saved to the history file when 'ScrubSensitiveHistory' is set to 'false'.
             var text = File.ReadAllLines(newHistoryFilePath);
@@ -456,7 +466,7 @@ public partial class ReadLine
             File.WriteAllText(newHistoryFilePath, string.Empty);
             SetHistory(commandInputs);
 
-            historyItems = PSConsoleReadLine.GetHistoryItems();
+            historyItems = Microsoft.PowerShell.PSReadLine.History.GetHistoryItems();
             Assert.Single(historyItems);
             Assert.Equal("gal dir", historyItems[0].CommandLine);
 
@@ -471,7 +481,7 @@ public partial class ReadLine
             File.WriteAllText(newHistoryFilePath, string.Empty);
             SetHistory(commandInputs);
 
-            historyItems = PSConsoleReadLine.GetHistoryItems();
+            historyItems = Microsoft.PowerShell.PSReadLine.History.GetHistoryItems();
             Assert.Equal(expectedQueuedItems.Length, historyItems.Length);
             for (var i = 0; i < expectedQueuedItems.Length; i++)
                 Assert.Equal(expectedQueuedItems[i], historyItems[i].CommandLine);
@@ -488,10 +498,9 @@ public partial class ReadLine
             File.WriteAllText(newHistoryFilePath, string.Empty);
             SetHistory(commandInputs);
 
-            historyItems = PSConsoleReadLine.GetHistoryItems();
+            historyItems = Microsoft.PowerShell.PSReadLine.History.GetHistoryItems();
             Assert.Equal(commandInputs.Length, historyItems.Length);
-            for (var i = 0; i < commandInputs.Length; i++)
-                Assert.Equal(commandInputs[i], historyItems[i].CommandLine);
+            for (var i = 0; i < commandInputs.Length; i++) Assert.Equal(commandInputs[i], historyItems[i].CommandLine);
 
             // All commands are saved to the history file when 'ScrubSensitiveHistory' is set to 'false'.
             text = File.ReadAllLines(newHistoryFilePath);
@@ -552,8 +561,8 @@ public partial class ReadLine
     public void HistorySearchCurrentLine()
     {
         TestSetup(KeyMode.Cmd,
-            new KeyHandler("UpArrow", PSConsoleReadLine.HistorySearchBackward),
-            new KeyHandler("DownArrow", PSConsoleReadLine.HistorySearchForward));
+            new KeyHandler("UpArrow", Microsoft.PowerShell.PSReadLine.History.HistorySearchBackward),
+            new KeyHandler("DownArrow", Microsoft.PowerShell.PSReadLine.History.HistorySearchForward));
 
         // Search history backward and forward.
         SetHistory("echo foo", "echo bar");
@@ -601,8 +610,8 @@ public partial class ReadLine
     public void HistorySavedCurrentLine()
     {
         TestSetup(KeyMode.Cmd,
-            new KeyHandler("F3", PSConsoleReadLine.BeginningOfHistory),
-            new KeyHandler("Shift+F3", PSConsoleReadLine.EndOfHistory));
+            new KeyHandler("F3", (key, arg) => Microsoft.PowerShell.PSReadLine.History.BeginningOfHistory(key, arg)),
+            new KeyHandler("Shift+F3", Microsoft.PowerShell.PSReadLine.History.EndOfHistory));
 
         // Mix different history commands to verify that the saved current line and
         // the history index stay the same while in a series of history commands.
@@ -676,16 +685,10 @@ public partial class ReadLine
     public void SearchHistory()
     {
         TestSetup(KeyMode.Cmd,
-            new KeyHandler("UpArrow", PSConsoleReadLine.HistorySearchBackward),
-            new KeyHandler("DownArrow", PSConsoleReadLine.HistorySearchForward));
+            new KeyHandler("UpArrow", Microsoft.PowerShell.PSReadLine.History.HistorySearchBackward),
+            new KeyHandler("DownArrow", Microsoft.PowerShell.PSReadLine.History.HistorySearchForward));
 
-        // No history
-        SetHistory();
-        Test("", Keys(_.UpArrow, _.DownArrow));
-
-        // Clear history in case the above added some history (but it shouldn't)
-        SetHistory();
-        Test(" ", Keys(' ', _.UpArrow, _.DownArrow));
+        CleanHistory();
 
         PSConsoleReadLine.SetOptions(new SetPSReadLineOption {HistorySearchCursorMovesToEnd = false});
         var emphasisColors = Tuple.Create(PSConsoleReadLineOptions.DefaultEmphasisColor, _console.BackgroundColor);
@@ -746,8 +749,8 @@ public partial class ReadLine
     public void HistorySearchCursorMovesToEnd()
     {
         TestSetup(KeyMode.Cmd,
-            new KeyHandler("UpArrow", PSConsoleReadLine.HistorySearchBackward),
-            new KeyHandler("DownArrow", PSConsoleReadLine.HistorySearchForward));
+            new KeyHandler("UpArrow", Microsoft.PowerShell.PSReadLine.History.HistorySearchBackward),
+            new KeyHandler("DownArrow", Microsoft.PowerShell.PSReadLine.History.HistorySearchForward));
 
         PSConsoleReadLine.SetOptions(new SetPSReadLineOption {HistorySearchCursorMovesToEnd = true});
         var emphasisColors = Tuple.Create(PSConsoleReadLineOptions.DefaultEmphasisColor, _console.BackgroundColor);
@@ -822,102 +825,127 @@ public partial class ReadLine
     public void InteractiveHistorySearch()
     {
         TestSetup(KeyMode.Emacs);
+        CleanHistory();
+        Test("", Keys(_.UpArrow, _.DownArrow));
+        Simple();
 
-        SetHistory("echo aaa");
-        Test("echo aaa", Keys(_.Ctrl_r, 'a'));
+        void Simple()
+        {
+            SetHistory("echo aaa");
+            Test("echo aaa", Keys(_.Ctrl_r, 'a'));
+        }
 
         var emphasisColors = Tuple.Create(PSConsoleReadLineOptions.DefaultEmphasisColor, _console.BackgroundColor);
         var statusColors = Tuple.Create(_console.ForegroundColor, _console.BackgroundColor);
 
-        // Test entering multiple characters and the line is updated with new matches
-        SetHistory("zz1", "echo abc", "zz2", "echo abb", "zz3", "echo aaa", "zz4");
-        Test("echo abc", Keys(_.Ctrl_r,
-            'a',
-            CheckThat(() => AssertScreenIs(2,
-                TokenClassification.Command, "echo",
-                TokenClassification.None, " ",
-                emphasisColors, 'a',
-                TokenClassification.None, "aa",
-                NextLine,
-                statusColors, "bck-i-search: a_")),
-            'b', CheckThat(() => AssertScreenIs(2,
-                TokenClassification.Command, "echo",
-                TokenClassification.None, " ",
-                emphasisColors, "ab",
-                TokenClassification.None, 'b',
-                NextLine,
-                statusColors, "bck-i-search: ab_")),
-            'c', CheckThat(() => AssertScreenIs(2,
-                TokenClassification.Command, "echo",
-                TokenClassification.None, " ",
-                emphasisColors, "abc",
-                NextLine,
-                statusColors, "bck-i-search: abc_"))));
+        UpdatedWithNewMatches();
 
-        // Test repeated Ctrl+r goes back through multiple matches
-        SetHistory("zz1", "echo abc", "zz2", "echo abb", "zz3", "echo aaa", "zz4");
-        Test("echo abc", Keys(_.Ctrl_r,
-            'a',
-            CheckThat(() => AssertScreenIs(2,
-                TokenClassification.Command, "echo",
-                TokenClassification.None, " ",
-                emphasisColors, 'a',
-                TokenClassification.None, "aa",
-                NextLine,
-                statusColors, "bck-i-search: a_")),
-            _.Ctrl_r, CheckThat(() => AssertScreenIs(2,
-                TokenClassification.Command, "echo",
-                TokenClassification.None, " ",
-                emphasisColors, 'a',
-                TokenClassification.None, "bb",
-                NextLine,
-                statusColors, "bck-i-search: a_")),
-            _.Ctrl_r, CheckThat(() => AssertScreenIs(2,
-                TokenClassification.Command, "echo",
-                TokenClassification.None, " ",
-                emphasisColors, 'a',
-                TokenClassification.None, "bc",
-                NextLine,
-                statusColors, "bck-i-search: a_"))));
+        void UpdatedWithNewMatches()
+        {
+            SetHistory("zz1", "echo abc", "zz2", "echo abb", "zz3", "echo aaa", "zz4");
+            Test("echo abc", Keys(_.Ctrl_r,
+                'a',
+                CheckThat(() => AssertScreenIs(2,
+                    TokenClassification.Command, "echo",
+                    TokenClassification.None, " ",
+                    emphasisColors, 'a',
+                    TokenClassification.None, "aa",
+                    NextLine,
+                    statusColors, "bck-i-search: a_")),
+                'b', CheckThat(() => AssertScreenIs(2,
+                    TokenClassification.Command, "echo",
+                    TokenClassification.None, " ",
+                    emphasisColors, "ab",
+                    TokenClassification.None, 'b',
+                    NextLine,
+                    statusColors, "bck-i-search: ab_")),
+                'c', CheckThat(() => AssertScreenIs(2,
+                    TokenClassification.Command, "echo",
+                    TokenClassification.None, " ",
+                    emphasisColors, "abc",
+                    NextLine,
+                    statusColors, "bck-i-search: abc_"))));
+        }
 
-        // Test that the current match doesn't change when typing
-        // additional characters, only emphasis should change.
-        SetHistory("zz1", "echo abzz", "echo abc", "zz2");
-        Test("echo abc", Keys(_.Ctrl_r,
-            'a',
-            CheckThat(() => AssertScreenIs(2,
-                TokenClassification.Command, "echo",
-                TokenClassification.None, " ",
-                emphasisColors, 'a',
-                TokenClassification.None, "bc",
-                NextLine,
-                statusColors, "bck-i-search: a_")),
-            'b',
-            CheckThat(() => AssertScreenIs(2,
-                TokenClassification.Command, "echo",
-                TokenClassification.None, " ",
-                emphasisColors, "ab",
-                TokenClassification.None, 'c',
-                NextLine,
-                statusColors, "bck-i-search: ab_"))));
+        RepeatedSearch();
 
-        // Test that abort restores line state before Ctrl+r
-        SetHistory("zz1", "echo abzz", "echo abc", "zz2");
-        Test("echo zed", Keys("echo zed", _.Ctrl_r,
-            'a',
-            CheckThat(() => AssertScreenIs(2,
-                TokenClassification.Command, "echo",
-                TokenClassification.None, " ",
-                emphasisColors, 'a',
-                TokenClassification.None, "bc",
-                NextLine,
-                statusColors, "bck-i-search: a_")),
-            _.Ctrl_g,
-            CheckThat(() => AssertScreenIs(2,
-                TokenClassification.Command, "echo",
-                TokenClassification.None, " ",
-                TokenClassification.None, "zed",
-                NextLine))));
+        void RepeatedSearch()
+        {
+            // Test repeated Ctrl+r goes back through multiple matches
+            SetHistory("zz1", "echo abc", "zz2", "echo abb", "zz3", "echo aaa", "zz4");
+            Test("echo abc", Keys(_.Ctrl_r,
+                'a',
+                CheckThat(() => AssertScreenIs(2,
+                    TokenClassification.Command, "echo",
+                    TokenClassification.None, " ",
+                    emphasisColors, 'a',
+                    TokenClassification.None, "aa",
+                    NextLine,
+                    statusColors, "bck-i-search: a_")),
+                _.Ctrl_r, CheckThat(() => AssertScreenIs(2,
+                    TokenClassification.Command, "echo",
+                    TokenClassification.None, " ",
+                    emphasisColors, 'a',
+                    TokenClassification.None, "bb",
+                    NextLine,
+                    statusColors, "bck-i-search: a_")),
+                _.Ctrl_r, CheckThat(() => AssertScreenIs(2,
+                    TokenClassification.Command, "echo",
+                    TokenClassification.None, " ",
+                    emphasisColors, 'a',
+                    TokenClassification.None, "bc",
+                    NextLine,
+                    statusColors, "bck-i-search: a_"))));
+        }
+
+        OnlyEmphasisChange();
+
+        void OnlyEmphasisChange()
+        {
+            // Test that the current match doesn't change when typing
+            // additional characters, only emphasis should change.
+            SetHistory("zz1", "echo abzz", "echo abc", "zz2");
+            Test("echo abc", Keys(_.Ctrl_r,
+                'a',
+                CheckThat(() => AssertScreenIs(2,
+                    TokenClassification.Command, "echo",
+                    TokenClassification.None, " ",
+                    emphasisColors, 'a',
+                    TokenClassification.None, "bc",
+                    NextLine,
+                    statusColors, "bck-i-search: a_")),
+                'b',
+                CheckThat(() => AssertScreenIs(2,
+                    TokenClassification.Command, "echo",
+                    TokenClassification.None, " ",
+                    emphasisColors, "ab",
+                    TokenClassification.None, 'c',
+                    NextLine,
+                    statusColors, "bck-i-search: ab_"))));
+        }
+
+        AbortRestoresBeforeSearch();
+
+        void AbortRestoresBeforeSearch()
+        {
+            SetHistory("zz1", "echo abzz", "echo abc", "zz2");
+            Test("echo zed", Keys("echo zed", _.Ctrl_r,
+                'a',
+                CheckThat(() => AssertScreenIs(2,
+                    TokenClassification.Command, "echo",
+                    TokenClassification.None, " ",
+                    emphasisColors, 'a',
+                    TokenClassification.None, "bc",
+                    NextLine,
+                    statusColors, "bck-i-search: a_")),
+                _.Ctrl_g,
+                CheckThat(() => AssertScreenIs(2,
+                    TokenClassification.Command, "echo",
+                    TokenClassification.None, " ",
+                    TokenClassification.None, "zed",
+                    NextLine))));
+        }
+
 
         // Test that a random function terminates the search and has an
         // effect on the line found in history
@@ -1058,6 +1086,63 @@ public partial class ReadLine
     }
 
     [SkippableFact]
+    public void InteractiveHistorySearchMultiKeyword()
+    {
+        var promptSuffix = "(MultiKeyword)";
+        //Only the parts different from InteractiveHistorySearch need to be tested
+        TestSetup(KeyMode.Emacs, new KeyHandler("Ctrl+o", HistorySearcherReadLine.ReverseSearchHistoryMultiKeyword));
+        CleanHistory();
+        Test("", Keys(_.UpArrow, _.DownArrow));
+
+        var emphasisColors = Tuple.Create(PSConsoleReadLineOptions.DefaultEmphasisColor, _console.BackgroundColor);
+        var statusColors = Tuple.Create(_console.ForegroundColor, _console.BackgroundColor);
+        SetHistory("write abcde", "echo abcde", "write abc", "echo abc");
+
+        UpdatedWithNewMatches();
+
+        void UpdatedWithNewMatches()
+        {
+            Test("echo abcde", Keys(_.Ctrl_o,
+                'e',
+                CheckThat(() => AssertScreenIs(2,
+                    emphasisColors, "e",
+                    TokenClassification.Command, "cho",
+                    TokenClassification.None, " ",
+                    TokenClassification.None, "abc",
+                    NextLine,
+                    statusColors, $"bck-i-search{promptSuffix}: e_")),
+                'c',
+                CheckThat(() => AssertScreenIs(2,
+                    emphasisColors, "ec",
+                    TokenClassification.Command, "ho",
+                    TokenClassification.None, " ",
+                    TokenClassification.None, "abc",
+                    NextLine,
+                    statusColors, $"bck-i-search{promptSuffix}: ec_")),
+                ' ',
+                CheckThat(() => AssertScreenIs(2,
+                    emphasisColors, "ec",
+                    TokenClassification.Command, "ho",
+                    TokenClassification.None, " ",
+                    TokenClassification.None, "abc",
+                    NextLine,
+                    statusColors, $"bck-i-search{promptSuffix}: ec _")),
+                'd',
+                CheckThat(() => AssertScreenIs(2,
+                    emphasisColors, "ec",
+                    TokenClassification.Command, "ho",
+                    TokenClassification.None, " ",
+                    TokenClassification.None, "abc",
+                    emphasisColors, "d",
+                    TokenClassification.None, "e",
+                    NextLine,
+                    statusColors, $"bck-i-search{promptSuffix}: ec d_"))
+            ));
+        }
+    }
+
+
+    [SkippableFact]
     public void AddToHistoryHandler()
     {
         TestSetup(KeyMode.Cmd);
@@ -1074,7 +1159,7 @@ public partial class ReadLine
         PSConsoleReadLine.SetOptions(new SetPSReadLineOption {HistoryNoDuplicates = false});
 
         SetHistory("zzzz", "aaaa", "bbbb", "bbbb", "cccc");
-        Assert.Equal(5, PSConsoleReadLine.GetHistoryItems().Length);
+        Assert.Equal(5, Microsoft.PowerShell.PSReadLine.History.GetHistoryItems().Length);
         Test("aaaa", Keys(Enumerable.Repeat(_.UpArrow, 4)));
 
         // Changing the option should affect existing history.
@@ -1082,7 +1167,7 @@ public partial class ReadLine
         Test("zzzz", Keys(Enumerable.Repeat(_.UpArrow, 4)));
 
         SetHistory("aaaa", "bbbb", "bbbb", "cccc");
-        Assert.Equal(3, PSConsoleReadLine.GetHistoryItems().Length);
+        Assert.Equal(3, Microsoft.PowerShell.PSReadLine.History.GetHistoryItems().Length);
         Test("aaaa", Keys(Enumerable.Repeat(_.UpArrow, 3)));
 
         SetHistory("aaaa", "bbbb", "bbbb", "cccc");
@@ -1091,6 +1176,11 @@ public partial class ReadLine
             Enumerable.Repeat(_.DownArrow, 2)));
 
 
+        CleanHistory();
+    }
+
+    private void CleanHistory()
+    {
         // No history
         SetHistory();
         Test("", Keys(_.UpArrow, _.DownArrow));
@@ -1100,8 +1190,8 @@ public partial class ReadLine
     public void HistorySearchNoDuplicates()
     {
         TestSetup(KeyMode.Cmd,
-            new KeyHandler("UpArrow", PSConsoleReadLine.HistorySearchBackward),
-            new KeyHandler("DownArrow", PSConsoleReadLine.HistorySearchForward));
+            new KeyHandler("UpArrow", Microsoft.PowerShell.PSReadLine.History.HistorySearchBackward),
+            new KeyHandler("DownArrow", Microsoft.PowerShell.PSReadLine.History.HistorySearchForward));
 
         PSConsoleReadLine.SetOptions(new SetPSReadLineOption {HistoryNoDuplicates = true});
         SetHistory("0000", "echo aaaa", "1111", "echo bbbb", "2222", "echo bbbb", "3333", "echo cccc", "4444");
@@ -1118,7 +1208,7 @@ public partial class ReadLine
     public void InteractiveHistorySearchNoDuplicates()
     {
         TestSetup(KeyMode.Emacs);
-
+        Test("", Keys("", _.UpArrow, _.DownArrow));
         PSConsoleReadLine.SetOptions(new SetPSReadLineOption {HistoryNoDuplicates = true});
         SetHistory("0000", "echo aaaa", "1111", "echo bbbb", "2222", "echo bbbb", "3333", "echo cccc", "4444");
         Test("echo aaaa", Keys(

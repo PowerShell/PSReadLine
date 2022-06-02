@@ -1,5 +1,6 @@
 using System;
 using Microsoft.PowerShell;
+using Microsoft.PowerShell.PSReadLine;
 using Xunit;
 
 namespace Test;
@@ -34,8 +35,7 @@ public partial class ReadLine
         var oldSource = options.PredictionSource;
         var oldView = options.PredictionViewStyle;
 
-        PSConsoleReadLine.SetOptions(
-            new SetPSReadLineOption {PredictionSource = source, PredictionViewStyle = view});
+        PSConsoleReadLine.SetOptions(new SetPSReadLineOption {PredictionSource = source, PredictionViewStyle = view});
         return new Disposable(() => PSConsoleReadLine.SetOptions(
             new SetPSReadLineOption {PredictionSource = oldSource, PredictionViewStyle = oldView}));
     }
@@ -71,8 +71,8 @@ public partial class ReadLine
     public void List_RenderSuggestion_NoMatching_HistorySearchBackwardForward()
     {
         TestSetup(KeyMode.Cmd,
-            new KeyHandler("Ctrl+p", PSConsoleReadLine.HistorySearchBackward),
-            new KeyHandler("Ctrl+l", PSConsoleReadLine.HistorySearchForward));
+            new KeyHandler("Ctrl+p", History.HistorySearchBackward),
+            new KeyHandler("Ctrl+l", History.HistorySearchForward));
         using var disp = SetPrediction(PredictionSource.History, PredictionViewStyle.ListView);
 
         // No matching history entry
@@ -165,7 +165,7 @@ public partial class ReadLine
     }
 
     [SkippableFact]
-    public void List_RenderSuggestion_NavigateInList_DefaultUpArrowDownArrow()
+    public void List_RenderSuggestion_NavigateInList()
     {
         TestSetup(KeyMode.Cmd);
         var listWidth = CheckWindowSize();
@@ -327,202 +327,6 @@ public partial class ReadLine
                 TokenClassification.None, ']'
             )),
             _.UpArrow,
-            CheckThat(() => AssertScreenIs(3,
-                TokenClassification.Command, 'e',
-                NextLine,
-                TokenClassification.ListPrediction, '>',
-                TokenClassification.None, ' ',
-                emphasisColors, 'e',
-                TokenClassification.None, "ca -zoo",
-                TokenClassification.None,
-                new string(' ', listWidth - 19), // 19 is the length of '> eca -zoo' plus '[History]'.
-                TokenClassification.None, '[',
-                TokenClassification.ListPrediction, "History",
-                TokenClassification.None, ']',
-                NextLine,
-                TokenClassification.ListPrediction, '>',
-                TokenClassification.None, ' ',
-                emphasisColors, 'e',
-                TokenClassification.None, "cho -bar",
-                TokenClassification.None,
-                new string(' ', listWidth - 20), // 20 is the length of '> echo -bar' plus '[History]'.
-                TokenClassification.None, '[',
-                TokenClassification.ListPrediction, "History",
-                TokenClassification.None, ']'
-            )),
-            // Once accepted, the list should be cleared.
-            _.Enter, CheckThat(() => AssertScreenIs(2,
-                TokenClassification.Command, "e",
-                NextLine,
-                NextLine))
-        ));
-    }
-
-    [SkippableFact]
-    public void List_RenderSuggestion_NavigateInList_HistorySearchBackwardForward()
-    {
-        TestSetup(KeyMode.Cmd,
-            new KeyHandler("Ctrl+p", PSConsoleReadLine.HistorySearchBackward),
-            new KeyHandler("Ctrl+l", PSConsoleReadLine.HistorySearchForward));
-        var listWidth = CheckWindowSize();
-        var emphasisColors = Tuple.Create(PSConsoleReadLineOptions.DefaultEmphasisColor, _console.BackgroundColor);
-        using var disp = SetPrediction(PredictionSource.History, PredictionViewStyle.ListView);
-
-        // Navigate up and down in the list
-        SetHistory("echo -bar", "eca -zoo");
-        Test("e", Keys(
-            'e', CheckThat(() => AssertScreenIs(3,
-                TokenClassification.Command, 'e',
-                NextLine,
-                TokenClassification.ListPrediction, '>',
-                TokenClassification.None, ' ',
-                emphasisColors, 'e',
-                TokenClassification.None, "ca -zoo",
-                TokenClassification.None,
-                new string(' ', listWidth - 19), // 19 is the length of '> eca -zoo' plus '[History]'.
-                TokenClassification.None, '[',
-                TokenClassification.ListPrediction, "History",
-                TokenClassification.None, ']',
-                NextLine,
-                TokenClassification.ListPrediction, '>',
-                TokenClassification.None, ' ',
-                emphasisColors, 'e',
-                TokenClassification.None, "cho -bar",
-                TokenClassification.None,
-                new string(' ', listWidth - 20), // 20 is the length of '> echo -bar' plus '[History]'.
-                TokenClassification.None, '[',
-                TokenClassification.ListPrediction, "History",
-                TokenClassification.None, ']'
-            )),
-            _.Ctrl_l,
-            CheckThat(() => AssertScreenIs(3,
-                TokenClassification.Command, "eca",
-                TokenClassification.None, ' ',
-                TokenClassification.Parameter, "-zoo",
-                NextLine,
-                TokenClassification.ListPrediction, '>',
-                TokenClassification.ListPredictionSelected, ' ',
-                emphasisColors, 'e',
-                TokenClassification.ListPredictionSelected, "ca -zoo",
-                TokenClassification.ListPredictionSelected,
-                new string(' ', listWidth - 19), // 19 is the length of '> eca -zoo' plus '[History]'.
-                TokenClassification.ListPredictionSelected, '[',
-                TokenClassification.ListPrediction, "History",
-                TokenClassification.ListPredictionSelected, ']',
-                NextLine,
-                TokenClassification.ListPrediction, '>',
-                TokenClassification.None, ' ',
-                emphasisColors, 'e',
-                TokenClassification.None, "cho -bar",
-                TokenClassification.None,
-                new string(' ', listWidth - 20), // 20 is the length of '> echo -bar' plus '[History]'.
-                TokenClassification.None, '[',
-                TokenClassification.ListPrediction, "History",
-                TokenClassification.None, ']'
-            )),
-            _.Ctrl_l,
-            CheckThat(() => AssertScreenIs(3,
-                TokenClassification.Command, "echo",
-                TokenClassification.None, ' ',
-                TokenClassification.Parameter, "-bar",
-                NextLine,
-                TokenClassification.ListPrediction, '>',
-                TokenClassification.None, ' ',
-                emphasisColors, 'e',
-                TokenClassification.None, "ca -zoo",
-                TokenClassification.None,
-                new string(' ', listWidth - 19), // 19 is the length of '> eca -zoo' plus '[History]'.
-                TokenClassification.None, '[',
-                TokenClassification.ListPrediction, "History",
-                TokenClassification.None, ']',
-                NextLine,
-                TokenClassification.ListPrediction, '>',
-                TokenClassification.ListPredictionSelected, ' ',
-                emphasisColors, 'e',
-                TokenClassification.ListPredictionSelected, "cho -bar",
-                TokenClassification.ListPredictionSelected,
-                new string(' ', listWidth - 20), // 20 is the length of '> echo -bar' plus '[History]'.
-                TokenClassification.ListPredictionSelected, '[',
-                TokenClassification.ListPrediction, "History",
-                TokenClassification.ListPredictionSelected, ']'
-            )),
-            _.Ctrl_l,
-            CheckThat(() => AssertScreenIs(3,
-                TokenClassification.Command, 'e',
-                NextLine,
-                TokenClassification.ListPrediction, '>',
-                TokenClassification.None, ' ',
-                emphasisColors, 'e',
-                TokenClassification.None, "ca -zoo",
-                TokenClassification.None,
-                new string(' ', listWidth - 19), // 19 is the length of '> eca -zoo' plus '[History]'.
-                TokenClassification.None, '[',
-                TokenClassification.ListPrediction, "History",
-                TokenClassification.None, ']',
-                NextLine,
-                TokenClassification.ListPrediction, '>',
-                TokenClassification.None, ' ',
-                emphasisColors, 'e',
-                TokenClassification.None, "cho -bar",
-                TokenClassification.None,
-                new string(' ', listWidth - 20), // 20 is the length of '> echo -bar' plus '[History]'.
-                TokenClassification.None, '[',
-                TokenClassification.ListPrediction, "History",
-                TokenClassification.None, ']'
-            )),
-            _.Ctrl_p,
-            CheckThat(() => AssertScreenIs(3,
-                TokenClassification.Command, "echo",
-                TokenClassification.None, ' ',
-                TokenClassification.Parameter, "-bar",
-                NextLine,
-                TokenClassification.ListPrediction, '>',
-                TokenClassification.None, ' ',
-                emphasisColors, 'e',
-                TokenClassification.None, "ca -zoo",
-                TokenClassification.None,
-                new string(' ', listWidth - 19), // 19 is the length of '> eca -zoo' plus '[History]'.
-                TokenClassification.None, '[',
-                TokenClassification.ListPrediction, "History",
-                TokenClassification.None, ']',
-                NextLine,
-                TokenClassification.ListPrediction, '>',
-                TokenClassification.ListPredictionSelected, ' ',
-                emphasisColors, 'e',
-                TokenClassification.ListPredictionSelected, "cho -bar",
-                TokenClassification.ListPredictionSelected,
-                new string(' ', listWidth - 20), // 20 is the length of '> echo -bar' plus '[History]'.
-                TokenClassification.ListPredictionSelected, '[',
-                TokenClassification.ListPrediction, "History",
-                TokenClassification.ListPredictionSelected, ']'
-            )),
-            _.Ctrl_p,
-            CheckThat(() => AssertScreenIs(3,
-                TokenClassification.Command, "eca",
-                TokenClassification.None, ' ',
-                TokenClassification.Parameter, "-zoo",
-                NextLine,
-                TokenClassification.ListPrediction, '>',
-                TokenClassification.ListPredictionSelected, ' ',
-                emphasisColors, 'e',
-                TokenClassification.ListPredictionSelected, "ca -zoo",
-                TokenClassification.ListPredictionSelected,
-                new string(' ', listWidth - 19), // 19 is the length of '> eca -zoo' plus '[History]'.
-                TokenClassification.ListPredictionSelected, '[',
-                TokenClassification.ListPrediction, "History",
-                TokenClassification.ListPredictionSelected, ']',
-                NextLine,
-                TokenClassification.ListPrediction, '>',
-                TokenClassification.None, ' ',
-                emphasisColors, 'e',
-                TokenClassification.None, "cho -bar",
-                TokenClassification.None,
-                new string(' ', listWidth - 20), // 20 is the length of '> echo -bar' plus '[History]'.
-                TokenClassification.None, '[',
-                TokenClassification.ListPrediction, "History",
-                TokenClassification.None, ']'
-            )),
-            _.Ctrl_p,
             CheckThat(() => AssertScreenIs(3,
                 TokenClassification.Command, 'e',
                 NextLine,
@@ -1221,8 +1025,7 @@ public partial class ReadLine
                 TokenClassification.None, " SOME TEXT BEFORE ",
                 emphasisColors, "ec",
                 TokenClassification.None,
-                new string(' ',
-                    listWidth - 36), // 36 is the length of '> SOME TEXT BEFORE ec' plus '[TestPredictor]'.
+                new string(' ', listWidth - 36), // 36 is the length of '> SOME TEXT BEFORE ec' plus '[TestPredictor]'.
                 TokenClassification.None, '[',
                 TokenClassification.ListPrediction, "TestPredictor",
                 TokenClassification.None, ']',
@@ -1232,8 +1035,7 @@ public partial class ReadLine
                 emphasisColors, "ec",
                 TokenClassification.None, " SOME TEXT AFTER",
                 TokenClassification.None,
-                new string(' ',
-                    listWidth - 35), // 35 is the length of '> ec SOME TEXT AFTER' plus '[TestPredictor]'.
+                new string(' ', listWidth - 35), // 35 is the length of '> ec SOME TEXT AFTER' plus '[TestPredictor]'.
                 TokenClassification.None, '[',
                 TokenClassification.ListPrediction, "TestPredictor",
                 TokenClassification.None, ']',
@@ -1262,8 +1064,7 @@ public partial class ReadLine
                 TokenClassification.ListPredictionSelected, " SOME TEXT BEFORE ",
                 emphasisColors, "ec",
                 TokenClassification.ListPredictionSelected,
-                new string(' ',
-                    listWidth - 36), // 36 is the length of '> SOME TEXT BEFORE ec' plus '[TestPredictor]'.
+                new string(' ', listWidth - 36), // 36 is the length of '> SOME TEXT BEFORE ec' plus '[TestPredictor]'.
                 TokenClassification.ListPredictionSelected, '[',
                 TokenClassification.ListPrediction, "TestPredictor",
                 TokenClassification.ListPredictionSelected, ']',
@@ -1273,8 +1074,7 @@ public partial class ReadLine
                 emphasisColors, "ec",
                 TokenClassification.None, " SOME TEXT AFTER",
                 TokenClassification.None,
-                new string(' ',
-                    listWidth - 35), // 35 is the length of '> ec SOME TEXT AFTER' plus '[TestPredictor]'.
+                new string(' ', listWidth - 35), // 35 is the length of '> ec SOME TEXT AFTER' plus '[TestPredictor]'.
                 TokenClassification.None, '[',
                 TokenClassification.ListPrediction, "TestPredictor",
                 TokenClassification.None, ']',
@@ -1300,8 +1100,7 @@ public partial class ReadLine
                 TokenClassification.ListPredictionSelected, " SOME TEXT BEFORE ",
                 emphasisColors, "ec",
                 TokenClassification.ListPredictionSelected,
-                new string(' ',
-                    listWidth - 36), // 36 is the length of '> SOME TEXT BEFORE ec' plus '[TestPredictor]'.
+                new string(' ', listWidth - 36), // 36 is the length of '> SOME TEXT BEFORE ec' plus '[TestPredictor]'.
                 TokenClassification.ListPredictionSelected, '[',
                 TokenClassification.ListPrediction, "TestPredictor",
                 TokenClassification.ListPredictionSelected, ']',
@@ -1311,8 +1110,7 @@ public partial class ReadLine
                 emphasisColors, "ec",
                 TokenClassification.None, " SOME TEXT AFTER",
                 TokenClassification.None,
-                new string(' ',
-                    listWidth - 35), // 35 is the length of '> ec SOME TEXT AFTER' plus '[TestPredictor]'.
+                new string(' ', listWidth - 35), // 35 is the length of '> ec SOME TEXT AFTER' plus '[TestPredictor]'.
                 TokenClassification.None, '[',
                 TokenClassification.ListPrediction, "TestPredictor",
                 TokenClassification.None, ']',
@@ -1338,8 +1136,7 @@ public partial class ReadLine
                 TokenClassification.None, " SOME TEXT BEFORE ",
                 emphasisColors, "j",
                 TokenClassification.None,
-                new string(' ',
-                    listWidth - 35), // 35 is the length of '> SOME TEXT BEFORE j' plus '[TestPredictor]'.
+                new string(' ', listWidth - 35), // 35 is the length of '> SOME TEXT BEFORE j' plus '[TestPredictor]'.
                 TokenClassification.None, '[',
                 TokenClassification.ListPrediction, "TestPredictor",
                 TokenClassification.None, ']',
@@ -1349,8 +1146,7 @@ public partial class ReadLine
                 emphasisColors, "j",
                 TokenClassification.None, " SOME TEXT AFTER",
                 TokenClassification.None,
-                new string(' ',
-                    listWidth - 34), // 34 is the length of '> j SOME TEXT AFTER' plus '[TestPredictor]'.
+                new string(' ', listWidth - 34), // 34 is the length of '> j SOME TEXT AFTER' plus '[TestPredictor]'.
                 TokenClassification.None, '[',
                 TokenClassification.ListPrediction, "TestPredictor",
                 TokenClassification.None, ']',
@@ -1384,8 +1180,7 @@ public partial class ReadLine
                 TokenClassification.None, " SOME TEXT BEFORE ",
                 emphasisColors, "j",
                 TokenClassification.None,
-                new string(' ',
-                    listWidth - 35), // 35 is the length of '> SOME TEXT BEFORE j' plus '[TestPredictor]'.
+                new string(' ', listWidth - 35), // 35 is the length of '> SOME TEXT BEFORE j' plus '[TestPredictor]'.
                 TokenClassification.None, '[',
                 TokenClassification.ListPrediction, "TestPredictor",
                 TokenClassification.None, ']',
@@ -1395,8 +1190,7 @@ public partial class ReadLine
                 emphasisColors, "j",
                 TokenClassification.None, " SOME TEXT AFTER",
                 TokenClassification.None,
-                new string(' ',
-                    listWidth - 34), // 34 is the length of '> j SOME TEXT AFTER' plus '[TestPredictor]'.
+                new string(' ', listWidth - 34), // 34 is the length of '> j SOME TEXT AFTER' plus '[TestPredictor]'.
                 TokenClassification.None, '[',
                 TokenClassification.ListPrediction, "TestPredictor",
                 TokenClassification.None, ']',
@@ -1424,8 +1218,7 @@ public partial class ReadLine
                 emphasisColors, "SOME NEW TEX",
                 TokenClassification.None,
                 new string(' ',
-                    listWidth -
-                    46), // 46 is the length of '> SOME TEXT BEFORE SOME NEW TEX' plus '[TestPredictor]'.
+                    listWidth - 46), // 46 is the length of '> SOME TEXT BEFORE SOME NEW TEX' plus '[TestPredictor]'.
                 TokenClassification.None, '[',
                 TokenClassification.ListPrediction, "TestPredictor",
                 TokenClassification.None, ']',
@@ -1472,8 +1265,7 @@ public partial class ReadLine
                 emphasisColors, "SOME NEW TEX",
                 TokenClassification.None,
                 new string(' ',
-                    listWidth -
-                    46), // 46 is the length of '> SOME TEXT BEFORE SOME NEW TEX' plus '[TestPredictor]'.
+                    listWidth - 46), // 46 is the length of '> SOME TEXT BEFORE SOME NEW TEX' plus '[TestPredictor]'.
                 TokenClassification.None, '[',
                 TokenClassification.ListPrediction, "TestPredictor",
                 TokenClassification.None, ']',
@@ -1562,8 +1354,7 @@ public partial class ReadLine
                 TokenClassification.None, " SOME TEXT BEFORE ",
                 emphasisColors, "ec",
                 TokenClassification.None,
-                new string(' ',
-                    listWidth - 36), // 36 is the length of '> SOME TEXT BEFORE ec' plus '[TestPredictor]'.
+                new string(' ', listWidth - 36), // 36 is the length of '> SOME TEXT BEFORE ec' plus '[TestPredictor]'.
                 TokenClassification.None, '[',
                 TokenClassification.ListPrediction, "TestPredictor",
                 TokenClassification.None, ']',
@@ -1573,8 +1364,7 @@ public partial class ReadLine
                 emphasisColors, "ec",
                 TokenClassification.None, " SOME TEXT AFTER",
                 TokenClassification.None,
-                new string(' ',
-                    listWidth - 35), // 35 is the length of '> ec SOME TEXT AFTER' plus '[TestPredictor]'.
+                new string(' ', listWidth - 35), // 35 is the length of '> ec SOME TEXT AFTER' plus '[TestPredictor]'.
                 TokenClassification.None, '[',
                 TokenClassification.ListPrediction, "TestPredictor",
                 TokenClassification.None, ']',
@@ -1622,8 +1412,7 @@ public partial class ReadLine
                 TokenClassification.None, " SOME TEXT BEFORE ",
                 emphasisColors, "ec",
                 TokenClassification.None,
-                new string(' ',
-                    listWidth - 36), // 36 is the length of '> SOME TEXT BEFORE ec' plus '[TestPredictor]'.
+                new string(' ', listWidth - 36), // 36 is the length of '> SOME TEXT BEFORE ec' plus '[TestPredictor]'.
                 TokenClassification.None, '[',
                 TokenClassification.ListPrediction, "TestPredictor",
                 TokenClassification.None, ']',
@@ -1633,8 +1422,7 @@ public partial class ReadLine
                 emphasisColors, "ec",
                 TokenClassification.None, " SOME TEXT AFTER",
                 TokenClassification.None,
-                new string(' ',
-                    listWidth - 35), // 35 is the length of '> ec SOME TEXT AFTER' plus '[TestPredictor]'.
+                new string(' ', listWidth - 35), // 35 is the length of '> ec SOME TEXT AFTER' plus '[TestPredictor]'.
                 TokenClassification.None, '[',
                 TokenClassification.ListPrediction, "TestPredictor",
                 TokenClassification.None, ']',
@@ -1669,8 +1457,7 @@ public partial class ReadLine
                 TokenClassification.None, " SOME TEXT BEFORE ",
                 emphasisColors, "j",
                 TokenClassification.None,
-                new string(' ',
-                    listWidth - 35), // 35 is the length of '> SOME TEXT BEFORE j' plus '[TestPredictor]'.
+                new string(' ', listWidth - 35), // 35 is the length of '> SOME TEXT BEFORE j' plus '[TestPredictor]'.
                 TokenClassification.None, '[',
                 TokenClassification.ListPrediction, "TestPredictor",
                 TokenClassification.None, ']',
@@ -1680,8 +1467,7 @@ public partial class ReadLine
                 emphasisColors, "j",
                 TokenClassification.None, " SOME TEXT AFTER",
                 TokenClassification.None,
-                new string(' ',
-                    listWidth - 34), // 34 is the length of '> j SOME TEXT AFTER' plus '[TestPredictor]'.
+                new string(' ', listWidth - 34), // 34 is the length of '> j SOME TEXT AFTER' plus '[TestPredictor]'.
                 TokenClassification.None, '[',
                 TokenClassification.ListPrediction, "TestPredictor",
                 TokenClassification.None, ']',
@@ -1724,8 +1510,7 @@ public partial class ReadLine
                 TokenClassification.None, " SOME TEXT BEFORE ",
                 emphasisColors, "j",
                 TokenClassification.None,
-                new string(' ',
-                    listWidth - 35), // 35 is the length of '> SOME TEXT BEFORE j' plus '[TestPredictor]'.
+                new string(' ', listWidth - 35), // 35 is the length of '> SOME TEXT BEFORE j' plus '[TestPredictor]'.
                 TokenClassification.None, '[',
                 TokenClassification.ListPrediction, "TestPredictor",
                 TokenClassification.None, ']',
@@ -1735,8 +1520,7 @@ public partial class ReadLine
                 emphasisColors, "j",
                 TokenClassification.None, " SOME TEXT AFTER",
                 TokenClassification.None,
-                new string(' ',
-                    listWidth - 34), // 34 is the length of '> j SOME TEXT AFTER' plus '[TestPredictor]'.
+                new string(' ', listWidth - 34), // 34 is the length of '> j SOME TEXT AFTER' plus '[TestPredictor]'.
                 TokenClassification.None, '[',
                 TokenClassification.ListPrediction, "TestPredictor",
                 TokenClassification.None, ']',
@@ -1764,8 +1548,7 @@ public partial class ReadLine
                 emphasisColors, "SOME NEW TEX",
                 TokenClassification.None,
                 new string(' ',
-                    listWidth -
-                    46), // 46 is the length of '> SOME TEXT BEFORE SOME NEW TEX' plus '[TestPredictor]'.
+                    listWidth - 46), // 46 is the length of '> SOME TEXT BEFORE SOME NEW TEX' plus '[TestPredictor]'.
                 TokenClassification.None, '[',
                 TokenClassification.ListPrediction, "TestPredictor",
                 TokenClassification.None, ']',
@@ -1812,8 +1595,7 @@ public partial class ReadLine
                 emphasisColors, "SOME NEW TEX",
                 TokenClassification.None,
                 new string(' ',
-                    listWidth -
-                    46), // 46 is the length of '> SOME TEXT BEFORE SOME NEW TEX' plus '[TestPredictor]'.
+                    listWidth - 46), // 46 is the length of '> SOME TEXT BEFORE SOME NEW TEX' plus '[TestPredictor]'.
                 TokenClassification.None, '[',
                 TokenClassification.ListPrediction, "TestPredictor",
                 TokenClassification.None, ']',

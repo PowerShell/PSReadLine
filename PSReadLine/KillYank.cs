@@ -18,10 +18,9 @@ public partial class PSConsoleReadLine
 
     // Yank/Kill state
     private List<string> _killRing;
-    private int _visualSelectionCommandCount;
+    internal int _visualSelectionCommandCount;
     private int _yankCommandCount;
     private int _yankLastArgCommandCount;
-
     private YankLastArgState _yankLastArgState;
     private int _yankStartPoint;
 
@@ -30,7 +29,7 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void SetMark(ConsoleKeyInfo? key = null, object arg = null)
     {
-        _singleton._mark = _singleton._current;
+        Singleton._mark = _renderer.Current;
     }
 
     /// <summary>
@@ -39,9 +38,9 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void ExchangePointAndMark(ConsoleKeyInfo? key = null, object arg = null)
     {
-        var tmp = _singleton._mark;
-        _singleton._mark = _singleton._current;
-        _singleton.MoveCursor(Math.Min(tmp, _singleton._buffer.Length));
+        var tmp = Singleton._mark;
+        Singleton._mark = _renderer.Current;
+        _renderer.MoveCursor(Math.Min(tmp, Singleton.buffer.Length));
     }
 
     /// <summary>
@@ -49,8 +48,8 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void ClearKillRing()
     {
-        _singleton._killRing?.Clear();
-        _singleton._killIndex = -1; // So first add indexes 0.
+        Singleton._killRing?.Clear();
+        Singleton._killIndex = -1; // So first add indexes 0.
     }
 
     private void Kill(int start, int length, bool prepend)
@@ -66,11 +65,11 @@ public partial class PSConsoleReadLine
             return;
         }
 
-        var killText = _buffer.ToString(start, length);
+        var killText = buffer.ToString(start, length);
         SaveEditItem(EditItemDelete.Create(killText, start));
-        _buffer.Remove(start, length);
-        _current = start;
-        Render();
+        buffer.Remove(start, length);
+        _renderer.Current = start;
+        _renderer.Render();
         if (_killCommandCount > 0)
         {
             if (prepend)
@@ -89,7 +88,6 @@ public partial class PSConsoleReadLine
             {
                 _killIndex += 1;
                 if (_killIndex == _killRing.Count) _killIndex = 0;
-
                 _killRing[_killIndex] = killText;
             }
         }
@@ -103,7 +101,7 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void KillLine(ConsoleKeyInfo? key = null, object arg = null)
     {
-        _singleton.Kill(_singleton._current, _singleton._buffer.Length - _singleton._current, false);
+        Singleton.Kill(_renderer.Current, Singleton.buffer.Length - _renderer.Current, false);
     }
 
     /// <summary>
@@ -112,7 +110,7 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void BackwardKillInput(ConsoleKeyInfo? key = null, object arg = null)
     {
-        _singleton.Kill(0, _singleton._current, true);
+        Singleton.Kill(0, _renderer.Current, true);
     }
 
     /// <summary>
@@ -121,8 +119,8 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void BackwardKillLine(ConsoleKeyInfo? key = null, object arg = null)
     {
-        var start = GetBeginningOfLinePos(_singleton._current);
-        _singleton.Kill(start, _singleton._current, true);
+        var start = GetBeginningOfLinePos(_renderer.Current);
+        Singleton.Kill(start, _renderer.Current, true);
     }
 
     /// <summary>
@@ -132,8 +130,8 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void KillWord(ConsoleKeyInfo? key = null, object arg = null)
     {
-        var i = _singleton.FindForwardWordPoint(_singleton.Options.WordDelimiters);
-        _singleton.Kill(_singleton._current, i - _singleton._current, false);
+        var i = Singleton.FindForwardWordPoint(Singleton.Options.WordDelimiters);
+        Singleton.Kill(_renderer.Current, i - _renderer.Current, false);
     }
 
     /// <summary>
@@ -143,11 +141,11 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void ShellKillWord(ConsoleKeyInfo? key = null, object arg = null)
     {
-        var token = _singleton.FindToken(_singleton._current, FindTokenMode.CurrentOrNext);
+        var token = Singleton.FindToken(_renderer.Current, FindTokenMode.CurrentOrNext);
         var end = token.Kind == TokenKind.EndOfInput
-            ? _singleton._buffer.Length
+            ? Singleton.buffer.Length
             : token.Extent.EndOffset;
-        _singleton.Kill(_singleton._current, end - _singleton._current, false);
+        Singleton.Kill(_renderer.Current, end - _renderer.Current, false);
     }
 
     /// <summary>
@@ -157,8 +155,8 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void BackwardKillWord(ConsoleKeyInfo? key = null, object arg = null)
     {
-        var i = _singleton.FindBackwardWordPoint(_singleton.Options.WordDelimiters);
-        _singleton.Kill(i, _singleton._current - i, true);
+        var i = Singleton.FindBackwardWordPoint(Singleton.Options.WordDelimiters);
+        Singleton.Kill(i, _renderer.Current - i, true);
     }
 
     /// <summary>
@@ -168,8 +166,8 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void UnixWordRubout(ConsoleKeyInfo? key = null, object arg = null)
     {
-        var i = _singleton.FindBackwardWordPoint("");
-        _singleton.Kill(i, _singleton._current - i, true);
+        var i = Singleton.FindBackwardWordPoint("");
+        Singleton.Kill(i, _renderer.Current - i, true);
     }
 
     /// <summary>
@@ -179,9 +177,9 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void ShellBackwardKillWord(ConsoleKeyInfo? key = null, object arg = null)
     {
-        var token = _singleton.FindToken(_singleton._current, FindTokenMode.Previous);
+        var token = Singleton.FindToken(_renderer.Current, FindTokenMode.Previous);
         var start = token?.Extent.StartOffset ?? 0;
-        _singleton.Kill(start, _singleton._current - start, true);
+        Singleton.Kill(start, _renderer.Current - start, true);
     }
 
     /// <summary>
@@ -189,8 +187,8 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void KillRegion(ConsoleKeyInfo? key = null, object arg = null)
     {
-        _singleton.GetRegion(out var start, out var length);
-        _singleton.Kill(start, length, true);
+        _renderer.GetRegion(out var start, out var length);
+        Singleton.Kill(start, length, true);
     }
 
     private void YankImpl()
@@ -200,7 +198,7 @@ public partial class PSConsoleReadLine
 
         // Starting a yank session, yank the last thing killed and
         // remember where we started.
-        _mark = _yankStartPoint = _current;
+        _mark = _yankStartPoint = _renderer.Current;
         Insert(_killRing[_killIndex]);
 
         _yankCommandCount += 1;
@@ -211,7 +209,7 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void Yank(ConsoleKeyInfo? key = null, object arg = null)
     {
-        _singleton.YankImpl();
+        Singleton.YankImpl();
     }
 
     private void YankPopImpl()
@@ -221,9 +219,8 @@ public partial class PSConsoleReadLine
 
         _killIndex -= 1;
         if (_killIndex < 0) _killIndex = _killRing.Count - 1;
-
         var yankText = _killRing[_killIndex];
-        Replace(_yankStartPoint, _current - _yankStartPoint, yankText);
+        Replace(_yankStartPoint, _renderer.Current - _yankStartPoint, yankText);
         _yankCommandCount += 1;
     }
 
@@ -233,18 +230,18 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void YankPop(ConsoleKeyInfo? key = null, object arg = null)
     {
-        _singleton.YankPopImpl();
+        Singleton.YankPopImpl();
     }
 
     private void YankArgImpl(YankLastArgState yankLastArgState)
     {
-        if (yankLastArgState.historyIndex < 0 || yankLastArgState.historyIndex >= _history.Count)
+        if (yankLastArgState.historyIndex < 0 || yankLastArgState.historyIndex >= _hs.Historys.Count)
         {
             Ding();
             return;
         }
 
-        var buffer = _history[yankLastArgState.historyIndex];
+        var buffer = _hs.Historys[yankLastArgState.historyIndex];
         Parser.ParseInput(buffer.CommandLine, out var tokens, out var unused);
 
         var arg = yankLastArgState.argument < 0
@@ -259,12 +256,12 @@ public partial class PSConsoleReadLine
         var argText = tokens[arg].Text;
         if (yankLastArgState.startPoint < 0)
         {
-            yankLastArgState.startPoint = _current;
+            yankLastArgState.startPoint = _renderer.Current;
             Insert(argText);
         }
         else
         {
-            Replace(yankLastArgState.startPoint, _current - yankLastArgState.startPoint, argText);
+            Replace(yankLastArgState.startPoint, _renderer.Current - yankLastArgState.startPoint, argText);
         }
     }
 
@@ -278,9 +275,9 @@ public partial class PSConsoleReadLine
         var yankLastArgState = new YankLastArgState
         {
             argument = arg as int? ?? 1,
-            historyIndex = _singleton._currentHistoryIndex - 1
+            historyIndex = SearcherReadLine.CurrentHistoryIndex - 1
         };
-        _singleton.YankArgImpl(yankLastArgState);
+        Singleton.YankArgImpl(yankLastArgState);
     }
 
     /// <summary>
@@ -297,22 +294,22 @@ public partial class PSConsoleReadLine
             return;
         }
 
-        _singleton._yankLastArgCommandCount += 1;
+        Singleton._yankLastArgCommandCount += 1;
 
-        if (_singleton._yankLastArgCommandCount == 1)
+        if (Singleton._yankLastArgCommandCount == 1)
         {
-            _singleton._yankLastArgState = new YankLastArgState
+            Singleton._yankLastArgState = new YankLastArgState
             {
                 argument = (int?) arg ?? -1,
                 historyIncrement = -1,
-                historyIndex = _singleton._currentHistoryIndex - 1
+                historyIndex = SearcherReadLine.CurrentHistoryIndex - 1
             };
 
-            _singleton.YankArgImpl(_singleton._yankLastArgState);
+            Singleton.YankArgImpl(Singleton._yankLastArgState);
             return;
         }
 
-        var yankLastArgState = _singleton._yankLastArgState;
+        var yankLastArgState = Singleton._yankLastArgState;
 
         if ((int?) arg < 0) yankLastArgState.historyIncrement = -yankLastArgState.historyIncrement;
 
@@ -324,24 +321,23 @@ public partial class PSConsoleReadLine
             Ding();
             yankLastArgState.historyIndex = 0;
         }
-        else if (yankLastArgState.historyIndex >= _singleton._history.Count)
+        else if (yankLastArgState.historyIndex >= _hs.Historys.Count)
         {
             Ding();
-            yankLastArgState.historyIndex = _singleton._history.Count - 1;
+            yankLastArgState.historyIndex = _hs.Historys.Count - 1;
         }
         else
         {
-            _singleton.YankArgImpl(yankLastArgState);
+            Singleton.YankArgImpl(yankLastArgState);
         }
     }
 
     private void VisualSelectionCommon(Action action, bool forceSetMark = false)
     {
-        if (_singleton._visualSelectionCommandCount == 0 || forceSetMark) SetMark();
-
-        _singleton._visualSelectionCommandCount += 1;
+        if (Singleton._visualSelectionCommandCount == 0 || forceSetMark) SetMark();
+        Singleton._visualSelectionCommandCount += 1;
         action();
-        _singleton.RenderWithPredictionQueryPaused();
+        _renderer.RenderWithPredictionQueryPaused();
     }
 
     /// <summary>
@@ -349,7 +345,7 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void SelectBackwardChar(ConsoleKeyInfo? key = null, object arg = null)
     {
-        _singleton.VisualSelectionCommon(() => BackwardChar(key, arg));
+        Singleton.VisualSelectionCommon(() => BackwardChar(key, arg));
     }
 
     /// <summary>
@@ -357,7 +353,7 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void SelectForwardChar(ConsoleKeyInfo? key = null, object arg = null)
     {
-        _singleton.VisualSelectionCommon(() => ForwardChar(key, arg));
+        Singleton.VisualSelectionCommon(() => ForwardChar(key, arg));
     }
 
     /// <summary>
@@ -365,7 +361,7 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void SelectBackwardWord(ConsoleKeyInfo? key = null, object arg = null)
     {
-        _singleton.VisualSelectionCommon(() => BackwardWord(key, arg));
+        Singleton.VisualSelectionCommon(() => BackwardWord(key, arg));
     }
 
     /// <summary>
@@ -373,7 +369,7 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void SelectNextWord(ConsoleKeyInfo? key = null, object arg = null)
     {
-        _singleton.VisualSelectionCommon(() => NextWord(key, arg));
+        Singleton.VisualSelectionCommon(() => NextWord(key, arg));
     }
 
     /// <summary>
@@ -381,7 +377,7 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void SelectForwardWord(ConsoleKeyInfo? key = null, object arg = null)
     {
-        _singleton.VisualSelectionCommon(() => ForwardWord(key, arg));
+        Singleton.VisualSelectionCommon(() => ForwardWord(key, arg));
     }
 
     /// <summary>
@@ -389,7 +385,7 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void SelectShellForwardWord(ConsoleKeyInfo? key = null, object arg = null)
     {
-        _singleton.VisualSelectionCommon(() => ShellForwardWord(key, arg));
+        Singleton.VisualSelectionCommon(() => ShellForwardWord(key, arg));
     }
 
     /// <summary>
@@ -397,7 +393,7 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void SelectShellNextWord(ConsoleKeyInfo? key = null, object arg = null)
     {
-        _singleton.VisualSelectionCommon(() => ShellNextWord(key, arg));
+        Singleton.VisualSelectionCommon(() => ShellNextWord(key, arg));
     }
 
     /// <summary>
@@ -405,7 +401,7 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void SelectShellBackwardWord(ConsoleKeyInfo? key = null, object arg = null)
     {
-        _singleton.VisualSelectionCommon(() => ShellBackwardWord(key, arg));
+        Singleton.VisualSelectionCommon(() => ShellBackwardWord(key, arg));
     }
 
     /// <summary>
@@ -413,10 +409,11 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void SelectAll(ConsoleKeyInfo? key = null, object arg = null)
     {
-        _singleton._visualSelectionCommandCount += 1;
-        _singleton._mark = 0;
-        _singleton._current = _singleton._buffer.Length;
-        _singleton.RenderWithPredictionQueryPaused();
+        Singleton._visualSelectionCommandCount += 1;
+        Singleton._mark = 0;
+        var val = Singleton.buffer.Length;
+        _renderer.Current = val;
+        _renderer.RenderWithPredictionQueryPaused();
     }
 
     /// <summary>
@@ -424,7 +421,7 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void SelectLine(ConsoleKeyInfo? key = null, object arg = null)
     {
-        _singleton.VisualSelectionCommon(() => EndOfLine(key, arg));
+        Singleton.VisualSelectionCommon(() => EndOfLine(key, arg));
     }
 
     /// <summary>
@@ -432,7 +429,7 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void SelectBackwardsLine(ConsoleKeyInfo? key = null, object arg = null)
     {
-        _singleton.VisualSelectionCommon(() => BeginningOfLine(key, arg));
+        Singleton.VisualSelectionCommon(() => BeginningOfLine(key, arg));
     }
 
     /// <summary>
@@ -443,11 +440,9 @@ public partial class PSConsoleReadLine
     {
         if (!TryGetArgAsInt(arg, out var numericArg, 0)) return;
 
-        _singleton.MaybeParseInput();
-
-        var cursor = _singleton._current;
+        var cursor = _renderer.Current;
         int prev = -1, curr = -1, next = -1;
-        var sbAsts = _singleton._ast.FindAll(GetScriptBlockAst, true).ToList();
+        var sbAsts = Singleton.RLAst.FindAll(GetScriptBlockAst, true).ToList();
         var arguments = new List<ExpressionAst>();
 
         // We start searching for command arguments from the most nested script block.
@@ -474,7 +469,6 @@ public partial class PSConsoleReadLine
                         var end = argument.Extent.EndOffset;
 
                         if (end <= cursor) prev = arguments.Count - 1;
-
                         if (curr == -1 && start <= cursor && end > cursor)
                             curr = arguments.Count - 1;
                         else if (next == -1 && start > cursor) next = arguments.Count - 1;
@@ -490,13 +484,11 @@ public partial class PSConsoleReadLine
         if (count == 0) return;
 
         if (prev == -1) prev = count - 1;
-
         if (next == -1) next = 0;
-
         if (curr == -1) curr = numericArg > 0 ? prev : next;
 
         int newStartCursor, newEndCursor;
-        var selectCount = _singleton._visualSelectionCommandCount;
+        var selectCount = Singleton._visualSelectionCommandCount;
 
         // When an argument is already visually selected by the previous run of this function, the cursor would have past the selected argument.
         // In this case, if a user wants to move backward to an argument that is before the currently selected argument by having numericArg < 0,
@@ -508,7 +500,7 @@ public partial class PSConsoleReadLine
         if (count > 1 && numericArg < 0 && curr == next && selectCount > 0)
         {
             var prevArg = arguments[prev];
-            if (_singleton._mark == prevArg.Extent.StartOffset && cursor == prevArg.Extent.EndOffset) numericArg--;
+            if (Singleton._mark == prevArg.Extent.StartOffset && cursor == prevArg.Extent.EndOffset) numericArg--;
         }
 
         while (true)
@@ -561,7 +553,7 @@ public partial class PSConsoleReadLine
             //    arguments, so it's possible that the same argument gets chosen.
             // In this case, we should select the next argument.
             if (numericArg == 0 && count > 1 && selectCount > 0 &&
-                _singleton._mark == newStartCursor && cursor == newEndCursor)
+                Singleton._mark == newStartCursor && cursor == newEndCursor)
             {
                 curr = next;
                 continue;
@@ -573,7 +565,7 @@ public partial class PSConsoleReadLine
         // Move cursor to the start of the argument.
         SetCursorPosition(newStartCursor);
         // Make the intended range visually selected.
-        _singleton.VisualSelectionCommon(() => SetCursorPosition(newEndCursor), true);
+        Singleton.VisualSelectionCommon(() => SetCursorPosition(newEndCursor), true);
 
 
         // Get the script block AST's whose extent contains the cursor.
@@ -605,9 +597,9 @@ public partial class PSConsoleReadLine
         {
             textToPaste = textToPaste.Replace("\r", "");
             textToPaste = textToPaste.Replace("\t", "    ");
-            if (_singleton._visualSelectionCommandCount > 0)
+            if (Singleton._visualSelectionCommandCount > 0)
             {
-                _singleton.GetRegion(out var start, out var length);
+                _renderer.GetRegion(out var start, out var length);
                 Replace(start, length, textToPaste);
             }
             else
@@ -623,14 +615,14 @@ public partial class PSConsoleReadLine
     public static void Copy(ConsoleKeyInfo? key = null, object arg = null)
     {
         string textToSet;
-        if (_singleton._visualSelectionCommandCount > 0)
+        if (Singleton._visualSelectionCommandCount > 0)
         {
-            _singleton.GetRegion(out var start, out var length);
-            textToSet = _singleton._buffer.ToString(start, length);
+            _renderer.GetRegion(out var start, out var length);
+            textToSet = Singleton.buffer.ToString(start, length);
         }
         else
         {
-            textToSet = _singleton._buffer.ToString();
+            textToSet = Singleton.buffer.ToString();
         }
 
         if (!string.IsNullOrEmpty(textToSet)) Clipboard.SetText(textToSet);
@@ -641,7 +633,7 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void CopyOrCancelLine(ConsoleKeyInfo? key = null, object arg = null)
     {
-        if (_singleton._visualSelectionCommandCount > 0)
+        if (Singleton._visualSelectionCommandCount > 0)
             Copy(key, arg);
         else
             CancelLine(key, arg);
@@ -652,10 +644,10 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void Cut(ConsoleKeyInfo? key = null, object arg = null)
     {
-        if (_singleton._visualSelectionCommandCount > 0)
+        if (Singleton._visualSelectionCommandCount > 0)
         {
-            _singleton.GetRegion(out var start, out var length);
-            Clipboard.SetText(_singleton._buffer.ToString(start, length));
+            _renderer.GetRegion(out var start, out var length);
+            Clipboard.SetText(Singleton.buffer.ToString(start, length));
             Delete(start, length);
         }
     }

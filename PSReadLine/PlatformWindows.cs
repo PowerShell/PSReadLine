@@ -12,16 +12,6 @@ using Microsoft.Win32.SafeHandles;
 
 internal static class PlatformWindows
 {
-    public enum ConsoleBreakSignal : uint
-    {
-        CtrlC = 0,
-        CtrlBreak = 1,
-        Close = 2,
-        Logoff = 5,
-        Shutdown = 6,
-        None = 255
-    }
-
     public enum StandardHandleId : uint
     {
         Error = unchecked((uint) -12),
@@ -43,9 +33,7 @@ internal static class PlatformWindows
 
     internal const uint SPI_GETSCREENREADER = 0x0046;
 
-    internal static readonly IntPtr INVALID_HANDLE_VALUE = new(-1); // WinBase.h
-
-    private static PSConsoleReadLine _singleton;
+    private static readonly IntPtr INVALID_HANDLE_VALUE = new(-1); // WinBase.h
 
     private static uint _prePSReadLineConsoleInputMode;
 
@@ -97,8 +85,10 @@ internal static class PlatformWindows
         return new SafeFileHandle(handle, true);
     });
 
+    private static PSConsoleReadLine _singleton;
+
     [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
-    public static extern IntPtr CreateFile
+    private static extern IntPtr CreateFile
     (
         string fileName,
         uint desiredAccess,
@@ -110,7 +100,7 @@ internal static class PlatformWindows
     );
 
     [DllImport("kernel32.dll", SetLastError = true)]
-    internal static extern int GetFileType(IntPtr handle);
+    private static extern int GetFileType(IntPtr handle);
 
     [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
     internal static extern IntPtr GetStdHandle(uint handleId);
@@ -141,9 +131,9 @@ internal static class PlatformWindows
         return result && (fontInfo.FontFamily & FontFamily.LOWORDER_BITS) == 0;
     }
 
-    internal static IConsole OneTimeInit(PSConsoleReadLine singleton)
+    internal static IConsole OneTimeInit(PSConsoleReadLine psConsoleReadLine)
     {
-        _singleton = singleton;
+        _singleton = psConsoleReadLine;
         var breakHandlerGcHandle = GCHandle.Alloc(new BreakHandler(OnBreak));
         SetConsoleCtrlHandler((BreakHandler) breakHandlerGcHandle.Target, true);
         _enableVtOutput = !Console.IsOutputRedirected && SetConsoleOutputVirtualTerminalProcessing();
@@ -188,7 +178,7 @@ internal static class PlatformWindows
         }
     }
 
-    internal static void SetOurInputMode()
+    private static void SetOurInputMode()
     {
         // Clear a couple flags so we can actually receive certain keys:
         //     ENABLE_PROCESSED_INPUT - enables Ctrl+C
@@ -308,16 +298,12 @@ internal static class PlatformWindows
     public static bool IsConsoleApiAvailable(bool input, bool output)
     {
         if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) return false;
-
         // If both input and output are false, we don't care about a specific
         // stream, just whether we're in a console or not.
         if (!input && !output) return !IsHandleRedirected(true) || !IsHandleRedirected(false);
-
         // Otherwise, we need to check the specific stream(s) that were requested.
         if (input && IsHandleRedirected(true)) return false;
-
         if (output && IsHandleRedirected(false)) return false;
-
         return true;
     }
 
@@ -325,15 +311,25 @@ internal static class PlatformWindows
     [return: MarshalAs(UnmanagedType.Bool)]
     internal static extern bool SystemParametersInfo(uint uiAction, uint uiParam, ref bool pvParam, uint fWinIni);
 
+    private enum ConsoleBreakSignal : uint
+    {
+        CtrlC = 0,
+        CtrlBreak = 1,
+        Close = 2,
+        Logoff = 5,
+        Shutdown = 6,
+        None = 255
+    }
+
     [Flags]
-    internal enum AccessQualifiers : uint
+    private enum AccessQualifiers : uint
     {
         // From winnt.h
         GenericRead = 0x80000000,
         GenericWrite = 0x40000000
     }
 
-    internal enum CreationDisposition : uint
+    private enum CreationDisposition : uint
     {
         // From winbase.h
         CreateNew = 1,
@@ -344,7 +340,7 @@ internal static class PlatformWindows
     }
 
     [Flags]
-    internal enum ShareModes : uint
+    private enum ShareModes : uint
     {
         // From winnt.h
         ShareRead = 0x00000001,
@@ -506,7 +502,6 @@ internal static class PlatformWindows
                                 Console.CursorVisible = false;
                                 Console.SetCursorPosition(0, Console.WindowTop + Console.WindowHeight - 1);
                                 for (var k = 0; k < toScroll; k++) Console.WriteLine();
-
                                 Console.SetCursorPosition(left, Console.WindowTop + toScroll - 1);
                                 Console.CursorVisible = cursorVisible;
                             }

@@ -5,6 +5,7 @@ Copyright (c) Microsoft Corporation.  All rights reserved.
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using Microsoft.PowerShell.PSReadLine;
 
 namespace Microsoft.PowerShell;
 
@@ -108,41 +109,41 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void DeleteToEnd(ConsoleKeyInfo? key = null, object arg = null)
     {
-        if (_singleton._current >= _singleton._buffer.Length)
+        if (_renderer.Current >= Singleton.buffer.Length)
         {
             Ding();
             return;
         }
 
-        var lineCount = _singleton.GetLogicalLineCount();
-        var lineIndex = _singleton.GetLogicalLineNumber() - 1;
+        var lineCount = _renderer.GetLogicalLineCount();
+        var lineIndex = _renderer.GetLogicalLineNumber() - 1;
 
         if (TryGetArgAsInt(arg, out var requestedLineCount, 1))
         {
             var targetLineIndex = lineIndex + requestedLineCount - 1;
             if (targetLineIndex >= lineCount) targetLineIndex = lineCount - 1;
 
-            var startPosition = _singleton._current;
+            var startPosition = _renderer.Current;
             var endPosition = GetEndOfNthLogicalLinePos(targetLineIndex);
 
             var length = endPosition - startPosition + 1;
             if (length > 0)
             {
-                _singleton.RemoveTextToViRegister(
+                Singleton.RemoveTextToViRegister(
                     startPosition,
                     length,
                     DeleteToEnd,
                     arg);
 
                 // the cursor will go back one character, unless at the beginning of the line
-                var endOfLineCursorPos = GetEndOfLogicalLinePos(_singleton._current) - 1;
-                var beginningOfLinePos = GetBeginningOfLinePos(_singleton._current);
+                var endOfLineCursorPos = GetEndOfLogicalLinePos(_renderer.Current) - 1;
+                var beginningOfLinePos = GetBeginningOfLinePos(_renderer.Current);
 
-                _singleton._current = Math.Max(
+                _renderer.Current = Math.Max(
                     beginningOfLinePos,
-                    Math.Min(_singleton._current, endOfLineCursorPos));
+                    Math.Min(_renderer.Current, endOfLineCursorPos));
 
-                _singleton.Render();
+                _renderer.Render();
             }
         }
     }
@@ -153,11 +154,11 @@ public partial class PSConsoleReadLine
     public static void DeleteWord(ConsoleKeyInfo? key = null, object arg = null)
     {
         var qty = arg as int? ?? 1;
-        var endPoint = _singleton._current;
+        var endPoint = _renderer.Current;
         for (var i = 0; i < qty; i++)
-            endPoint = _singleton.ViFindNextWordPoint(endPoint, _singleton.Options.WordDelimiters);
+            endPoint = Singleton.ViFindNextWordPoint(endPoint, Singleton.Options.WordDelimiters);
 
-        if (endPoint <= _singleton._current)
+        if (endPoint <= _renderer.Current)
         {
             Ding();
             return;
@@ -168,31 +169,30 @@ public partial class PSConsoleReadLine
 
     private static void DeleteToEndPoint(object arg, int endPoint, Action<ConsoleKeyInfo?, object> instigator)
     {
-        _singleton.RemoveTextToViRegister(
-            _singleton._current,
-            endPoint - _singleton._current,
+        Singleton.RemoveTextToViRegister(
+            _renderer.Current,
+            endPoint - _renderer.Current,
             instigator,
             arg);
 
-        if (_singleton._current >= _singleton._buffer.Length)
-            _singleton._current = Math.Max(0, _singleton._buffer.Length - 1);
-
-        _singleton.Render();
+        if (_renderer.Current >= Singleton.buffer.Length)
+            _renderer.Current = Math.Max(0, Singleton.buffer.Length - 1);
+        _renderer.Render();
     }
 
     private static void DeleteBackwardToEndPoint(object arg, int endPoint,
         Action<ConsoleKeyInfo?, object> instigator)
     {
-        var deleteLength = _singleton._current - endPoint;
+        var deleteLength = _renderer.Current - endPoint;
 
-        _singleton.RemoveTextToViRegister(
+        Singleton.RemoveTextToViRegister(
             endPoint,
             deleteLength,
             instigator,
             arg);
 
-        _singleton._current = endPoint;
-        _singleton.Render();
+        _renderer.Current = endPoint;
+        _renderer.Render();
     }
 
     /// <summary>
@@ -201,8 +201,8 @@ public partial class PSConsoleReadLine
     public static void ViDeleteGlob(ConsoleKeyInfo? key = null, object arg = null)
     {
         var qty = arg as int? ?? 1;
-        var endPoint = _singleton._current;
-        while (qty-- > 0) endPoint = _singleton.ViFindNextGlob(endPoint);
+        var endPoint = _renderer.Current;
+        while (qty-- > 0) endPoint = Singleton.ViFindNextGlob(endPoint);
 
         DeleteToEndPoint(arg, endPoint, ViDeleteGlob);
     }
@@ -213,11 +213,11 @@ public partial class PSConsoleReadLine
     public static void DeleteEndOfWord(ConsoleKeyInfo? key = null, object arg = null)
     {
         var qty = arg as int? ?? 1;
-        var endPoint = _singleton._current;
+        var endPoint = _renderer.Current;
         for (var i = 0; i < qty; i++)
-            endPoint = _singleton.ViFindNextWordEnd(endPoint, _singleton.Options.WordDelimiters);
+            endPoint = Singleton.ViFindNextWordEnd(endPoint, Singleton.Options.WordDelimiters);
 
-        if (endPoint <= _singleton._current)
+        if (endPoint <= _renderer.Current)
         {
             Ding();
             return;
@@ -232,8 +232,8 @@ public partial class PSConsoleReadLine
     public static void ViDeleteEndOfGlob(ConsoleKeyInfo? key = null, object arg = null)
     {
         var qty = arg as int? ?? 1;
-        var endPoint = _singleton._current;
-        for (var i = 0; i < qty; i++) endPoint = _singleton.ViFindGlobEnd(endPoint);
+        var endPoint = _renderer.Current;
+        for (var i = 0; i < qty; i++) endPoint = Singleton.ViFindGlobEnd(endPoint);
 
         DeleteToEndPoint(arg, 1 + endPoint, ViDeleteEndOfGlob);
     }
@@ -253,8 +253,7 @@ public partial class PSConsoleReadLine
     public static void ViDeleteToChar(char keyChar, ConsoleKeyInfo? key = null, object arg = null)
     {
         ViCharacterSearcher.Set(keyChar, false, false);
-        ViCharacterSearcher.SearchDelete(keyChar, arg, false,
-            (_key, _arg) => ViDeleteToChar(keyChar, _key, _arg));
+        ViCharacterSearcher.SearchDelete(keyChar, arg, false, (_key, _arg) => ViDeleteToChar(keyChar, _key, _arg));
     }
 
     /// <summary>
@@ -269,7 +268,7 @@ public partial class PSConsoleReadLine
     /// <summary>
     ///     Deletes backwards until given character.
     /// </summary>
-    public static void ViDeleteToCharBack(char keyChar, ConsoleKeyInfo? key = null, object arg = null)
+    private static void ViDeleteToCharBack(char keyChar, ConsoleKeyInfo? key = null, object arg = null)
     {
         ViCharacterSearcher.SearchBackwardDelete(keyChar, arg, false,
             (_key, _arg) => ViDeleteToCharBack(keyChar, _key, _arg));
@@ -323,12 +322,11 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void ViCommandMode(ConsoleKeyInfo? key = null, object arg = null)
     {
-        if (_singleton._editGroupStart >= 0) _singleton._groupUndoHelper.EndGroup();
-
-        _singleton._dispatchTable = _viCmdKeyMap;
-        _singleton._chordDispatchTable = _viCmdChordTable;
+        if (Singleton._editGroupStart >= 0) Singleton._groupUndoHelper.EndGroup();
+        Singleton._dispatchTable = _viCmdKeyMap;
+        Singleton._chordDispatchTable = _viCmdChordTable;
         ViBackwardChar();
-        _singleton.ViIndicateCommandMode();
+        Singleton.ViIndicateCommandMode();
     }
 
     /// <summary>
@@ -336,17 +334,17 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void ViInsertMode(ConsoleKeyInfo? key = null, object arg = null)
     {
-        _singleton._dispatchTable = _viInsKeyMap;
-        _singleton._chordDispatchTable = _viInsChordTable;
-        _singleton.ViIndicateInsertMode();
+        Singleton._dispatchTable = _viInsKeyMap;
+        Singleton._chordDispatchTable = _viInsChordTable;
+        Singleton.ViIndicateInsertMode();
     }
 
     /// <summary>
     ///     Returns true if in Vi edit mode, otherwise false.
     /// </summary>
-    internal static bool InViEditMode()
+    public static bool InViEditMode()
     {
-        return _singleton.Options.EditMode == EditMode.Vi;
+        return Singleton.Options.EditMode == EditMode.Vi;
     }
 
     /// <summary>
@@ -354,15 +352,15 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static bool InViCommandMode()
     {
-        return _singleton._dispatchTable == _viCmdKeyMap;
+        return Singleton._dispatchTable == _viCmdKeyMap;
     }
 
     /// <summary>
     ///     Returns true if in Vi Insert mode, otherwise false.
     /// </summary>
-    public static bool InViInsertMode()
+    private static bool InViInsertMode()
     {
-        return _singleton._dispatchTable == _viInsKeyMap;
+        return Singleton._dispatchTable == _viInsKeyMap;
     }
 
     /// <summary>
@@ -370,16 +368,16 @@ public partial class PSConsoleReadLine
     /// </summary>
     internal static IDisposable UseViCommandModeTables()
     {
-        var oldDispatchTable = _singleton._dispatchTable;
-        var oldChordDispatchTable = _singleton._chordDispatchTable;
+        var oldDispatchTable = Singleton._dispatchTable;
+        var oldChordDispatchTable = Singleton._chordDispatchTable;
 
-        _singleton._dispatchTable = _viCmdKeyMap;
-        _singleton._chordDispatchTable = _viCmdChordTable;
+        Singleton._dispatchTable = _viCmdKeyMap;
+        Singleton._chordDispatchTable = _viCmdChordTable;
 
         return new Disposable(() =>
         {
-            _singleton._dispatchTable = oldDispatchTable;
-            _singleton._chordDispatchTable = oldChordDispatchTable;
+            Singleton._dispatchTable = oldDispatchTable;
+            Singleton._chordDispatchTable = oldChordDispatchTable;
         });
     }
 
@@ -388,34 +386,34 @@ public partial class PSConsoleReadLine
     /// </summary>
     internal static IDisposable UseViInsertModeTables()
     {
-        var oldDispatchTable = _singleton._dispatchTable;
-        var oldChordDispatchTable = _singleton._chordDispatchTable;
+        var oldDispatchTable = Singleton._dispatchTable;
+        var oldChordDispatchTable = Singleton._chordDispatchTable;
 
-        _singleton._dispatchTable = _viInsKeyMap;
-        _singleton._chordDispatchTable = _viInsChordTable;
+        Singleton._dispatchTable = _viInsKeyMap;
+        Singleton._chordDispatchTable = _viInsChordTable;
 
         return new Disposable(() =>
         {
-            _singleton._dispatchTable = oldDispatchTable;
-            _singleton._chordDispatchTable = oldChordDispatchTable;
+            Singleton._dispatchTable = oldDispatchTable;
+            Singleton._chordDispatchTable = oldChordDispatchTable;
         });
     }
 
     private void ViIndicateCommandMode()
     {
         // Show suggestion in 'InsertMode' but not 'CommandMode'.
-        _prediction.DisableGlobal(false);
+        _Prediction.DisableGlobal(false);
 
         if (Options.ViModeIndicator == ViModeStyle.Cursor)
         {
-            _console.CursorSize = _normalCursorSize < 50 ? 100 : 25;
+            Renderer.Console.CursorSize = _normalCursorSize < 50 ? 100 : 25;
         }
         else if (Options.ViModeIndicator == ViModeStyle.Prompt)
         {
-            var savedBackground = _console.BackgroundColor;
-            _console.BackgroundColor = AlternateBackground(_console.BackgroundColor);
+            var savedBackground = Renderer.Console.BackgroundColor;
+            Renderer.Console.BackgroundColor = AlternateBackground(Renderer.Console.BackgroundColor);
             InvokePrompt();
-            _console.BackgroundColor = savedBackground;
+            Renderer.Console.BackgroundColor = savedBackground;
         }
         else if (Options.ViModeIndicator == ViModeStyle.Script && Options.ViModeChangeHandler != null)
         {
@@ -426,10 +424,10 @@ public partial class PSConsoleReadLine
     private void ViIndicateInsertMode()
     {
         // Show suggestion in 'InsertMode' but not 'CommandMode'.
-        _prediction.EnableGlobal();
+        _Prediction.EnableGlobal();
 
         if (Options.ViModeIndicator == ViModeStyle.Cursor)
-            _console.CursorSize = _normalCursorSize;
+            Renderer.Console.CursorSize = _normalCursorSize;
         else if (Options.ViModeIndicator == ViModeStyle.Prompt)
             InvokePrompt();
         else if (Options.ViModeIndicator == ViModeStyle.Script && Options.ViModeChangeHandler != null)
@@ -468,7 +466,7 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void ViInsertWithDelete(ConsoleKeyInfo? key = null, object arg = null)
     {
-        _singleton._groupUndoHelper.StartGroup(ViInsertWithDelete, arg);
+        Singleton._groupUndoHelper.StartGroup(ViInsertWithDelete, arg);
 
         ViInsertMode(key, arg);
         DeleteChar(key, arg);
@@ -498,7 +496,7 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void InvertCase(ConsoleKeyInfo? key = null, object arg = null)
     {
-        if (_singleton._current >= _singleton._buffer.Length)
+        if (_renderer.Current >= Singleton.buffer.Length)
         {
             Ding();
             return;
@@ -506,9 +504,9 @@ public partial class PSConsoleReadLine
 
         var qty = arg as int? ?? 1;
 
-        for (; qty > 0 && _singleton._current < _singleton._buffer.Length; qty--)
+        for (; qty > 0 && _renderer.Current < Singleton.buffer.Length; qty--)
         {
-            var c = _singleton._buffer[_singleton._current];
+            var c = Singleton.buffer[_renderer.Current];
             if (char.IsLetter(c))
             {
                 var newChar = char.IsUpper(c)
@@ -516,13 +514,13 @@ public partial class PSConsoleReadLine
                     : char.ToUpper(c, CultureInfo.CurrentCulture);
                 var delEditItem = EditItemDelete.Create(
                     c.ToString(),
-                    _singleton._current,
+                    _renderer.Current,
                     InvertCase,
                     arg,
                     false);
 
-                var insEditItem = EditItemInsertChar.Create(newChar, _singleton._current);
-                _singleton.SaveEditItem(GroupedEdit.Create(new List<EditItem>
+                var insEditItem = EditItemInsertChar.Create(newChar, _renderer.Current);
+                Singleton.SaveEditItem(GroupedEdit.Create(new List<EditItem>
                     {
                         delEditItem,
                         insEditItem
@@ -531,13 +529,13 @@ public partial class PSConsoleReadLine
                     arg
                 ));
 
-                _singleton._buffer[_singleton._current] = newChar;
+                Singleton.buffer[_renderer.Current] = newChar;
             }
 
-            _singleton.MoveCursor(Math.Min(_singleton._current + 1, _singleton._buffer.Length));
+            _renderer.MoveCursor(Math.Min(_renderer.Current + 1, Singleton.buffer.Length));
         }
 
-        _singleton.Render();
+        _renderer.Render();
     }
 
     /// <summary>
@@ -546,32 +544,32 @@ public partial class PSConsoleReadLine
     public static void SwapCharacters(ConsoleKeyInfo? key = null, object arg = null)
     {
         // if in vi command mode, the cursor can't go as far
-        var bufferLength = _singleton._buffer.Length;
+        var bufferLength = Singleton.buffer.Length;
         var cursorRightLimit = bufferLength + ViEndOfLineFactor;
-        if (_singleton._current <= 0 || bufferLength < 2 || _singleton._current > cursorRightLimit)
+        if (_renderer.Current <= 0 || bufferLength < 2 || _renderer.Current > cursorRightLimit)
         {
             Ding();
             return;
         }
 
-        var cursor = _singleton._current;
+        var cursor = _renderer.Current;
         if (cursor == bufferLength)
             --cursor; // if at end of line, swap previous two chars
 
-        _singleton.SaveEditItem(EditItemSwapCharacters.Create(cursor));
-        _singleton.SwapCharactersImpl(cursor);
+        Singleton.SaveEditItem(EditItemSwapCharacters.Create(cursor));
+        Singleton.SwapCharactersImpl(cursor);
 
-        _singleton.MoveCursor(Math.Min(cursor + 1, cursorRightLimit));
-        _singleton.Render();
+        _renderer.MoveCursor(Math.Min(cursor + 1, cursorRightLimit));
+        _renderer.Render();
     }
 
     private void SwapCharactersImpl(int cursor)
     {
-        var current = _buffer[cursor];
-        var previous = _buffer[cursor - 1];
+        var current = buffer[cursor];
+        var previous = buffer[cursor - 1];
 
-        _buffer[cursor] = previous;
-        _buffer[cursor - 1] = current;
+        buffer[cursor] = previous;
+        buffer[cursor - 1] = current;
     }
 
     /// <summary>
@@ -579,18 +577,18 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void DeleteLineToFirstChar(ConsoleKeyInfo? key = null, object arg = null)
     {
-        if (_singleton._current > 0)
+        if (_renderer.Current > 0)
         {
-            var i = GetFirstNonBlankOfLogicalLinePos(_singleton._current);
+            var i = GetFirstNonBlankOfLogicalLinePos(_renderer.Current);
 
-            _singleton.RemoveTextToViRegister(
+            Singleton.RemoveTextToViRegister(
                 i,
-                _singleton._current - i,
+                _renderer.Current - i,
                 DeleteLineToFirstChar,
                 arg);
 
-            _singleton._current = i;
-            _singleton.Render();
+            _renderer.Current = i;
+            _renderer.Render();
         }
         else
         {
@@ -603,8 +601,8 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void DeleteLine(ConsoleKeyInfo? key = null, object arg = null)
     {
-        var lineCount = _singleton.GetLogicalLineCount();
-        var lineIndex = _singleton.GetLogicalLineNumber() - 1;
+        var lineCount = _renderer.GetLogicalLineCount();
+        var lineIndex = _renderer.GetLogicalLineNumber() - 1;
 
         TryGetArgAsInt(arg, out var requestedLineCount, 1);
 
@@ -615,11 +613,11 @@ public partial class PSConsoleReadLine
 
         if (lineIndex + requestedLineCount >= lineCount)
             // if the delete operation has removed all the remaining lines
-            // goto the first character of the previous logical line 
+            // goto the first character of the previous logical line
             newCurrent = GetBeginningOfLinePos(deletePosition);
 
-        _singleton._current = newCurrent;
-        _singleton.Render();
+        _renderer.Current = newCurrent;
+        _renderer.Render();
     }
 
     /// <summary>
@@ -630,18 +628,18 @@ public partial class PSConsoleReadLine
     /// <returns></returns>
     private static int DeleteLineImpl(int lineIndex, int lineCount)
     {
-        var range = _singleton._buffer.GetRange(lineIndex, lineCount);
+        var range = Singleton.buffer.GetRange(lineIndex, lineCount);
 
-        var deleteText = _singleton._buffer.ToString(range.Offset, range.Count);
+        var deleteText = Singleton.buffer.ToString(range.Offset, range.Count);
 
         _viRegister.LinewiseRecord(deleteText);
 
         var deletePosition = range.Offset;
-        var anchor = _singleton._current;
+        var anchor = _renderer.Current;
 
-        _singleton._buffer.Remove(range.Offset, range.Count);
+        Singleton.buffer.Remove(range.Offset, range.Count);
 
-        _singleton.SaveEditItem(
+        Singleton.SaveEditItem(
             EditItemDeleteLines.Create(
                 deleteText,
                 deletePosition,
@@ -655,8 +653,8 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void DeleteEndOfBuffer(ConsoleKeyInfo? key = null, object arg = null)
     {
-        var lineIndex = _singleton.GetLogicalLineNumber() - 1;
-        var lineCount = _singleton.GetLogicalLineCount() - lineIndex;
+        var lineIndex = _renderer.GetLogicalLineNumber() - 1;
+        var lineCount = _renderer.GetLogicalLineCount() - lineIndex;
 
         DeleteLineImpl(lineIndex, lineCount);
 
@@ -664,8 +662,8 @@ public partial class PSConsoleReadLine
         var previousLineIndex = Math.Max(0, lineIndex - 1);
         var newPosition = GetBeginningOfNthLinePos(previousLineIndex);
 
-        _singleton._current = newPosition;
-        _singleton.Render();
+        _renderer.Current = newPosition;
+        _renderer.Render();
     }
 
     /// <summary>
@@ -683,18 +681,18 @@ public partial class PSConsoleReadLine
     {
         if (TryGetArgAsInt(arg, out var requestedLineCount, 1))
         {
-            var currentLineIndex = _singleton.GetLogicalLineNumber() - 1;
+            var currentLineIndex = _renderer.GetLogicalLineNumber() - 1;
             var startLineIndex = Math.Max(0, currentLineIndex - requestedLineCount);
 
             DeleteLineImpl(startLineIndex, currentLineIndex - startLineIndex + 1);
 
             // go the beginning of the line at index 'startLineIndex'
             // or at the beginning of the last line
-            startLineIndex = Math.Min(startLineIndex, _singleton.GetLogicalLineCount() - 1);
+            startLineIndex = Math.Min(startLineIndex, _renderer.GetLogicalLineCount() - 1);
             var newCurrent = GetBeginningOfNthLinePos(startLineIndex);
 
-            _singleton._current = newCurrent;
-            _singleton.Render();
+            _renderer.Current = newCurrent;
+            _renderer.Render();
         }
     }
 
@@ -705,11 +703,11 @@ public partial class PSConsoleReadLine
     {
         if (TryGetArgAsInt(arg, out var requestedLineNumber, 1))
         {
-            var currentLineIndex = _singleton.GetLogicalLineNumber() - 1;
+            var currentLineIndex = _renderer.GetLogicalLineNumber() - 1;
             var requestedLineIndex = requestedLineNumber - 1;
             if (requestedLineIndex < 0) requestedLineIndex = 0;
 
-            var logicalLineCount = _singleton.GetLogicalLineCount();
+            var logicalLineCount = _renderer.GetLogicalLineCount();
             if (requestedLineIndex >= logicalLineCount) requestedLineIndex = logicalLineCount - 1;
 
             var requestedLineCount = requestedLineIndex - currentLineIndex;
@@ -726,24 +724,23 @@ public partial class PSConsoleReadLine
     public static void BackwardDeleteWord(ConsoleKeyInfo? key = null, object arg = null)
     {
         var qty = arg as int? ?? 1;
-        var deletePoint = _singleton._current;
+        var deletePoint = _renderer.Current;
         for (var i = 0; i < qty; i++)
-            deletePoint = _singleton.ViFindPreviousWordPoint(deletePoint, _singleton.Options.WordDelimiters);
-
-        if (deletePoint == _singleton._current)
+            deletePoint = Singleton.ViFindPreviousWordPoint(deletePoint, Singleton.Options.WordDelimiters);
+        if (deletePoint == _renderer.Current)
         {
             Ding();
             return;
         }
 
-        _singleton.RemoveTextToViRegister(
+        Singleton.RemoveTextToViRegister(
             deletePoint,
-            _singleton._current - deletePoint,
+            _renderer.Current - deletePoint,
             BackwardDeleteWord,
             arg);
 
-        _singleton._current = deletePoint;
-        _singleton.Render();
+        _renderer.Current = deletePoint;
+        _renderer.Render();
     }
 
     /// <summary>
@@ -751,31 +748,30 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void ViBackwardDeleteGlob(ConsoleKeyInfo? key = null, object arg = null)
     {
-        if (_singleton._current == 0)
+        if (_renderer.Current == 0)
         {
             Ding();
             return;
         }
 
         var qty = arg as int? ?? 1;
-        var deletePoint = _singleton._current;
+        var deletePoint = _renderer.Current;
         for (var i = 0; i < qty && deletePoint > 0; i++)
-            deletePoint = _singleton.ViFindPreviousGlob(deletePoint - 1);
-
-        if (deletePoint == _singleton._current)
+            deletePoint = Singleton.ViFindPreviousGlob(deletePoint - 1);
+        if (deletePoint == _renderer.Current)
         {
             Ding();
             return;
         }
 
-        _singleton.RemoveTextToViRegister(
+        Singleton.RemoveTextToViRegister(
             deletePoint,
-            _singleton._current - deletePoint,
+            _renderer.Current - deletePoint,
             BackwardDeleteWord,
             arg);
 
-        _singleton._current = deletePoint;
-        _singleton.Render();
+        _renderer.Current = deletePoint;
+        _renderer.Render();
     }
 
     /// <summary>
@@ -783,12 +779,12 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void ViDeleteBrace(ConsoleKeyInfo? key = null, object arg = null)
     {
-        var newCursor = _singleton.ViFindBrace(_singleton._current);
+        var newCursor = Singleton.ViFindBrace(_renderer.Current);
 
-        if (_singleton._current < newCursor)
-            DeleteRange(_singleton._current, newCursor, ViDeleteBrace);
-        else if (newCursor < _singleton._current)
-            DeleteRange(newCursor, _singleton._current, ViDeleteBrace);
+        if (_renderer.Current < newCursor)
+            DeleteRange(_renderer.Current, newCursor, ViDeleteBrace);
+        else if (newCursor < _renderer.Current)
+            DeleteRange(newCursor, _renderer.Current, ViDeleteBrace);
         else
             Ding();
     }
@@ -803,13 +799,13 @@ public partial class PSConsoleReadLine
     {
         var length = last - first + 1;
 
-        _singleton.RemoveTextToViRegister(
+        Singleton.RemoveTextToViRegister(
             first,
             length,
             action);
 
-        _singleton._current = first;
-        _singleton.Render();
+        _renderer.Current = first;
+        _renderer.Render();
     }
 
 
@@ -818,8 +814,8 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void ViSearchHistoryBackward(ConsoleKeyInfo? key = null, object arg = null)
     {
-        _singleton.SaveCurrentLine();
-        _singleton.StartSearch(true);
+        SearcherReadLine.SaveCurrentLine();
+        Singleton.StartSearch(true);
     }
 
     /// <summary>
@@ -827,8 +823,8 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void SearchForward(ConsoleKeyInfo? key = null, object arg = null)
     {
-        _singleton.SaveCurrentLine();
-        _singleton.StartSearch(false);
+        SearcherReadLine.SaveCurrentLine();
+        Singleton.StartSearch(false);
     }
 
     /// <summary>
@@ -836,14 +832,14 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void RepeatSearch(ConsoleKeyInfo? key = null, object arg = null)
     {
-        if (string.IsNullOrEmpty(_singleton._searchHistoryPrefix))
+        if (string.IsNullOrEmpty(_hs.SearchHistoryPrefix))
         {
             Ding();
             return;
         }
 
-        _singleton._anyHistoryCommandCount++;
-        _singleton.HistorySearch();
+        _hs.AnyHistoryCommandCount++;
+        Singleton.HistorySearch();
     }
 
     /// <summary>
@@ -851,9 +847,9 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void RepeatSearchBackward(ConsoleKeyInfo? key = null, object arg = null)
     {
-        _singleton._searchHistoryBackward = !_singleton._searchHistoryBackward;
+        Singleton._searchHistoryBackward = !Singleton._searchHistoryBackward;
         RepeatSearch();
-        _singleton._searchHistoryBackward = !_singleton._searchHistoryBackward;
+        Singleton._searchHistoryBackward = !Singleton._searchHistoryBackward;
     }
 
     /// <summary>
@@ -862,29 +858,28 @@ public partial class PSConsoleReadLine
     /// <param name="backward">True for searching backward in the history.</param>
     private void StartSearch(bool backward)
     {
-        _statusLinePrompt = "find: ";
-        var argBuffer = _statusBuffer;
-        Render(); // Render prompt
+        _renderer.StatusLinePrompt = "find: ";
+        var argBuffer = _renderer.StatusBuffer;
+        _renderer.Render(); // Render prompt
 
         while (true)
         {
             var nextKey = ReadKey();
             if (nextKey == Keys.Enter || nextKey == Keys.Tab)
             {
-                _searchHistoryPrefix = argBuffer.ToString();
+                _hs.SearchHistoryPrefix = argBuffer.ToString();
                 _searchHistoryBackward = backward;
                 HistorySearch();
                 break;
             }
 
             if (nextKey == Keys.Escape) break;
-
             if (nextKey == Keys.Backspace)
             {
                 if (argBuffer.Length > 0)
                 {
                     argBuffer.Remove(argBuffer.Length - 1, 1);
-                    Render(); // Render prompt
+                    _renderer.Render(); // Render prompt
                     continue;
                 }
 
@@ -892,13 +887,13 @@ public partial class PSConsoleReadLine
             }
 
             argBuffer.Append(nextKey.KeyChar);
-            Render(); // Render prompt
+            _renderer.Render(); // Render prompt
         }
 
         // Remove our status line
         argBuffer.Clear();
-        _statusLinePrompt = null;
-        Render(); // Render prompt
+        _renderer.StatusLinePrompt = null;
+        _renderer.Render(); // Render prompt
     }
 
     /// <summary>
@@ -906,28 +901,28 @@ public partial class PSConsoleReadLine
     /// </summary>
     private void HistorySearch()
     {
-        _searchHistoryCommandCount++;
+        _hs.SearchHistoryCommandCount++;
 
         var incr = _searchHistoryBackward ? -1 : +1;
         var moveCursor = Options.HistorySearchCursorMovesToEnd
-            ? HistoryMoveCursor.ToEnd
-            : HistoryMoveCursor.DontMove;
-        for (var i = _currentHistoryIndex + incr; i >= 0 && i < _history.Count; i += incr)
+            ? HistorySearcherReadLine.HistoryMoveCursor.ToEnd
+            : HistorySearcherReadLine.HistoryMoveCursor.DontMove;
+        for (var i = SearcherReadLine.CurrentHistoryIndex + incr; i >= 0 && i < _hs.Historys.Count; i += incr)
             if (Options.HistoryStringComparison.HasFlag(StringComparison.OrdinalIgnoreCase))
             {
-                if (_history[i].CommandLine.ToLower().Contains(_searchHistoryPrefix.ToLower()))
+                if (_hs.Historys[i].CommandLine.ToLower().Contains(_hs.SearchHistoryPrefix.ToLower()))
                 {
-                    _currentHistoryIndex = i;
-                    UpdateFromHistory(moveCursor);
+                    SearcherReadLine.CurrentHistoryIndex = i;
+                    SearcherReadLine.UpdateBufferFromHistory(moveCursor);
                     return;
                 }
             }
             else
             {
-                if (_history[i].CommandLine.Contains(_searchHistoryPrefix))
+                if (_hs.Historys[i].CommandLine.Contains(_hs.SearchHistoryPrefix))
                 {
-                    _currentHistoryIndex = i;
-                    UpdateFromHistory(moveCursor);
+                    SearcherReadLine.CurrentHistoryIndex = i;
+                    SearcherReadLine.UpdateBufferFromHistory(moveCursor);
                     return;
                 }
             }
@@ -940,9 +935,9 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void RepeatLastCommand(ConsoleKeyInfo? key = null, object arg = null)
     {
-        if (_singleton._undoEditIndex > 0)
+        if (Singleton._undoEditIndex > 0)
         {
-            var editItem = _singleton._edits[_singleton._undoEditIndex - 1];
+            var editItem = Singleton._edits[Singleton._undoEditIndex - 1];
             if (editItem._instigator != null)
             {
                 editItem._instigator(key, editItem._instigatorArg);
@@ -959,16 +954,14 @@ public partial class PSConsoleReadLine
     private static void ViChord(ConsoleKeyInfo? key = null, object arg = null)
     {
         if (!key.HasValue) throw new ArgumentNullException(nameof(key));
-
         if (arg != null)
         {
             Chord(key, arg);
             return;
         }
 
-        if (_singleton._chordDispatchTable.TryGetValue(PSKeyInfo.FromConsoleKeyInfo(key.Value),
-                out var secondKeyDispatchTable))
-            ViChordHandler(secondKeyDispatchTable, arg);
+        if (Singleton._chordDispatchTable.TryGetValue(PSKeyInfo.FromConsoleKeyInfo(key.Value),
+                out var secondKeyDispatchTable)) ViChordHandler(secondKeyDispatchTable, arg);
     }
 
     private static void ViChordHandler(Dictionary<PSKeyInfo, KeyHandler> secondKeyDispatchTable, object arg = null)
@@ -976,33 +969,31 @@ public partial class PSConsoleReadLine
         var secondKey = ReadKey();
         if (secondKeyDispatchTable.TryGetValue(secondKey, out var handler))
         {
-            _singleton.ProcessOneKey(secondKey, secondKeyDispatchTable, true, arg);
+            Singleton.ProcessOneKey(secondKey, secondKeyDispatchTable, true, arg);
         }
         else if (!IsNumeric(secondKey))
         {
-            _singleton.ProcessOneKey(secondKey, secondKeyDispatchTable, true, arg);
+            Singleton.ProcessOneKey(secondKey, secondKeyDispatchTable, true, arg);
         }
         else
         {
-            var argBuffer = _singleton._statusBuffer;
+            var argBuffer = _renderer.StatusBuffer;
             argBuffer.Clear();
-            _singleton._statusLinePrompt = "digit-argument: ";
+            _renderer.StatusLinePrompt = "digit-argument: ";
             while (IsNumeric(secondKey))
             {
                 argBuffer.Append(secondKey.KeyChar);
-                _singleton.Render();
+                _renderer.Render();
                 secondKey = ReadKey();
             }
 
             var numericArg = int.Parse(argBuffer.ToString());
             if (secondKeyDispatchTable.TryGetValue(secondKey, out handler))
-                _singleton.ProcessOneKey(secondKey, secondKeyDispatchTable, true,
-                    numericArg);
+                Singleton.ProcessOneKey(secondKey, secondKeyDispatchTable, true, numericArg);
             else
                 Ding();
-
             argBuffer.Clear();
-            _singleton.ClearStatusMessage(true);
+            Singleton.ClearStatusMessage(true);
         }
     }
 
@@ -1029,26 +1020,26 @@ public partial class PSConsoleReadLine
             return;
         }
 
-        if (_singleton.Options.EditMode == EditMode.Vi && key.Value.KeyChar == '0')
+        if (Singleton.Options.EditMode == EditMode.Vi && key.Value.KeyChar == '0')
         {
             BeginningOfLine();
             return;
         }
 
         var sawDigit = false;
-        _singleton._statusLinePrompt = "digit-argument: ";
-        var argBuffer = _singleton._statusBuffer;
+        _renderer.StatusLinePrompt = "digit-argument: ";
+        var argBuffer = _renderer.StatusBuffer;
         argBuffer.Append(key.Value.KeyChar);
         if (key.Value.KeyChar == '-')
             argBuffer.Append('1');
         else
             sawDigit = true;
 
-        _singleton.Render(); // Render prompt
+        _renderer.Render(); // Render prompt
         while (true)
         {
             var nextKey = ReadKey();
-            if (_singleton._dispatchTable.TryGetValue(nextKey, out var handler) && handler.Action == DigitArgument)
+            if (Singleton._dispatchTable.TryGetValue(nextKey, out var handler) && handler.Action == DigitArgument)
             {
                 if (nextKey == Keys.Minus)
                 {
@@ -1056,8 +1047,7 @@ public partial class PSConsoleReadLine
                         argBuffer.Remove(0, 1);
                     else
                         argBuffer.Insert(0, '-');
-
-                    _singleton.Render(); // Render prompt
+                    _renderer.Render(); // Render prompt
                     continue;
                 }
 
@@ -1067,19 +1057,17 @@ public partial class PSConsoleReadLine
                         // Buffer is either '-1' or '1' from one or more Alt+- keys
                         // but no digits yet.  Remove the '1'.
                         argBuffer.Length -= 1;
-
                     sawDigit = true;
                     argBuffer.Append(nextKey.KeyChar);
-                    _singleton.Render(); // Render prompt
+                    _renderer.Render(); // Render prompt
                     continue;
                 }
             }
 
             if (int.TryParse(argBuffer.ToString(), out var intArg))
-                _singleton.ProcessOneKey(nextKey, _singleton._dispatchTable, false, intArg);
+                Singleton.ProcessOneKey(nextKey, Singleton._dispatchTable, false, intArg);
             else
                 Ding();
-
             break;
         }
     }
@@ -1089,10 +1077,10 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void ViAcceptLineOrExit(ConsoleKeyInfo? key = null, object arg = null)
     {
-        if (_singleton._buffer.Length > 0)
+        if (Singleton.buffer.Length > 0)
         {
             ViInsertMode(key, arg);
-            _singleton.AcceptLineImpl(false);
+            Singleton.AcceptLineImpl(false);
         }
         else
         {
@@ -1105,26 +1093,24 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void ViInsertLine(ConsoleKeyInfo? key = null, object arg = null)
     {
-        _singleton._groupUndoHelper.StartGroup(ViInsertLine, arg);
-        _singleton.MoveToBeginningOfPhrase();
-        _singleton._buffer.Insert(_singleton._current, '\n');
+        Singleton._groupUndoHelper.StartGroup(ViInsertLine, arg);
+        Singleton.MoveToBeginningOfPhrase();
+        Singleton.buffer.Insert(_renderer.Current, '\n');
         //_singleton._current = Math.Max(0, _singleton._current - 1);
-        _singleton.SaveEditItem(EditItemInsertChar.Create('\n', _singleton._current));
-        _singleton.Render();
+        Singleton.SaveEditItem(EditItemInsertChar.Create('\n', _renderer.Current));
+        _renderer.Render();
         ViInsertMode();
     }
 
     private void MoveToBeginningOfPhrase()
     {
-        while (!IsAtBeginningOfPhrase()) _current--;
+        while (!IsAtBeginningOfPhrase()) _renderer.Current--;
     }
 
     private bool IsAtBeginningOfPhrase()
     {
-        if (_current == 0) return true;
-
-        if (_buffer[_current - 1] == '\n') return true;
-
+        if (_renderer.Current == 0) return true;
+        if (buffer[_renderer.Current - 1] == '\n') return true;
         return false;
     }
 
@@ -1133,39 +1119,36 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void ViAppendLine(ConsoleKeyInfo? key = null, object arg = null)
     {
-        _singleton._groupUndoHelper.StartGroup(ViInsertLine, arg);
-        _singleton.MoveToEndOfPhrase();
+        Singleton._groupUndoHelper.StartGroup(ViInsertLine, arg);
+        Singleton.MoveToEndOfPhrase();
         var insertPoint = 0;
-        if (_singleton.IsAtEndOfLine(_singleton._current))
+        if (Singleton.IsAtEndOfLine(_renderer.Current))
         {
-            insertPoint = _singleton._buffer.Length;
-            _singleton._buffer.Append('\n');
-            _singleton._current = insertPoint;
+            insertPoint = Singleton.buffer.Length;
+            Singleton.buffer.Append('\n');
+            _renderer.Current = insertPoint;
         }
         else
         {
-            insertPoint = _singleton._current + 1;
-            _singleton._buffer.Insert(insertPoint, '\n');
+            insertPoint = _renderer.Current + 1;
+            Singleton.buffer.Insert(insertPoint, '\n');
         }
 
-        _singleton.SaveEditItem(EditItemInsertChar.Create('\n', insertPoint));
-        _singleton.Render();
+        Singleton.SaveEditItem(EditItemInsertChar.Create('\n', insertPoint));
+        _renderer.Render();
         ViInsertWithAppend();
     }
 
     private void MoveToEndOfPhrase()
     {
-        while (!IsAtEndOfPhrase()) _current++;
+        while (!IsAtEndOfPhrase()) _renderer.Current++;
     }
 
     private bool IsAtEndOfPhrase()
     {
-        if (_buffer.Length == 0 || _current == _buffer.Length + ViEndOfLineFactor) return true;
-
-        if (_current == _buffer.Length && _buffer[_current - 1] == '\n') return true;
-
-        if (_buffer[_current] == '\n') return true;
-
+        if (buffer.Length == 0 || _renderer.Current == buffer.Length + ViEndOfLineFactor) return true;
+        if (_renderer.Current == buffer.Length && buffer[_renderer.Current - 1] == '\n') return true;
+        if (buffer[_renderer.Current] == '\n') return true;
         return false;
     }
 
@@ -1174,31 +1157,31 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void ViJoinLines(ConsoleKeyInfo? key = null, object arg = null)
     {
-        _singleton.MoveToEndOfPhrase();
-        if (_singleton.IsAtEndOfLine(_singleton._current))
+        Singleton.MoveToEndOfPhrase();
+        if (Singleton.IsAtEndOfLine(_renderer.Current))
         {
             Ding();
         }
         else
         {
-            _singleton._buffer[_singleton._current] = ' ';
-            _singleton._groupUndoHelper.StartGroup(ViJoinLines, arg);
-            _singleton.SaveEditItem(EditItemDelete.Create(
+            Singleton.buffer[_renderer.Current] = ' ';
+            Singleton._groupUndoHelper.StartGroup(ViJoinLines, arg);
+            Singleton.SaveEditItem(EditItemDelete.Create(
                 "\n",
-                _singleton._current,
+                _renderer.Current,
                 ViJoinLines,
                 arg,
                 false));
 
-            _singleton.SaveEditItem(EditItemInsertChar.Create(' ', _singleton._current));
-            _singleton._groupUndoHelper.EndGroup();
-            _singleton.Render();
+            Singleton.SaveEditItem(EditItemInsertChar.Create(' ', _renderer.Current));
+            Singleton._groupUndoHelper.EndGroup();
+            _renderer.Render();
         }
     }
 
     private class ViCharacterSearcher
     {
-        public static readonly ViCharacterSearcher instance = new();
+        private static readonly ViCharacterSearcher instance = new();
         private char searchChar = '\0';
         private bool wasBackoff;
         private bool wasBackward;
@@ -1219,13 +1202,13 @@ public partial class PSConsoleReadLine
         {
             var qty = arg as int? ?? 1;
 
-            for (var i = _singleton._current + 1; i < _singleton._buffer.Length; i++)
-                if (_singleton._buffer[i] == keyChar)
+            for (var i = _renderer.Current + 1; i < Singleton.buffer.Length; i++)
+                if (Singleton.buffer[i] == keyChar)
                 {
                     qty -= 1;
                     if (qty == 0)
                     {
-                        _singleton.MoveCursor(backoff ? i - 1 : i);
+                        _renderer.MoveCursor(backoff ? i - 1 : i);
                         return;
                     }
                 }
@@ -1238,8 +1221,8 @@ public partial class PSConsoleReadLine
         {
             var qty = arg as int? ?? 1;
 
-            for (var i = _singleton._current + 1; i < _singleton._buffer.Length; i++)
-                if (_singleton._buffer[i] == keyChar)
+            for (var i = _renderer.Current + 1; i < Singleton.buffer.Length; i++)
+                if (Singleton.buffer[i] == keyChar)
                 {
                     qty -= 1;
                     if (qty == 0)
@@ -1257,13 +1240,13 @@ public partial class PSConsoleReadLine
         {
             var qty = arg as int? ?? 1;
 
-            for (var i = _singleton._current - 1; i >= 0; i--)
-                if (_singleton._buffer[i] == keyChar)
+            for (var i = _renderer.Current - 1; i >= 0; i--)
+                if (Singleton.buffer[i] == keyChar)
                 {
                     qty -= 1;
                     if (qty == 0)
                     {
-                        _singleton.MoveCursor(backoff ? i + 1 : i);
+                        _renderer.MoveCursor(backoff ? i + 1 : i);
                         return;
                     }
                 }
@@ -1277,8 +1260,8 @@ public partial class PSConsoleReadLine
             Set(keyChar, true, backoff);
             var qty = arg as int? ?? 1;
 
-            for (var i = _singleton._current - 1; i >= 0; i--)
-                if (_singleton._buffer[i] == keyChar)
+            for (var i = _renderer.Current - 1; i >= 0; i--)
+                if (Singleton.buffer[i] == keyChar)
                 {
                     qty -= 1;
                     if (qty == 0)

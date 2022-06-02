@@ -14,7 +14,7 @@ public partial class PSConsoleReadLine
     {
         var i = Math.Max(0, current);
         while (i > 0)
-            if (_singleton._buffer[--i] == '\n')
+            if (Singleton.buffer[--i] == '\n')
             {
                 i += 1;
                 break;
@@ -29,13 +29,13 @@ public partial class PSConsoleReadLine
     /// </summary>
     private static int GetBeginningOfNthLinePos(int lineIndex)
     {
-        Debug.Assert(lineIndex >= 0 || lineIndex < _singleton.GetLogicalLineCount());
+        Debug.Assert(lineIndex >= 0 || lineIndex < _renderer.GetLogicalLineCount());
 
         var nth = 0;
         var index = 0;
         var result = 0;
 
-        for (; index < _singleton._buffer.Length; index++)
+        for (; index < Singleton.buffer.Length; index++)
         {
             if (nth == lineIndex)
             {
@@ -43,7 +43,7 @@ public partial class PSConsoleReadLine
                 break;
             }
 
-            if (_singleton._buffer[index] == '\n') nth++;
+            if (Singleton.buffer[index] == '\n') nth++;
         }
 
         if (nth == lineIndex) result = index;
@@ -62,9 +62,9 @@ public partial class PSConsoleReadLine
     {
         var newCurrent = current;
 
-        for (var position = current; position < _singleton._buffer.Length; position++)
+        for (var position = current; position < Singleton.buffer.Length; position++)
         {
-            if (_singleton._buffer[position] == '\n') break;
+            if (Singleton.buffer[position] == '\n') break;
 
             newCurrent = position;
         }
@@ -93,14 +93,14 @@ public partial class PSConsoleReadLine
 
         var newCurrent = beginningOfLine;
 
-        while (newCurrent < _singleton._buffer.Length && IsVisibleBlank(newCurrent)) newCurrent++;
+        while (newCurrent < Singleton.buffer.Length && IsVisibleBlank(newCurrent)) newCurrent++;
 
         return newCurrent;
     }
 
     private static bool IsVisibleBlank(int newCurrent)
     {
-        var c = _singleton._buffer[newCurrent];
+        var c = Singleton.buffer[newCurrent];
 
         // [:blank:] of vim's pattern matching behavior
         // defines blanks as SPACE and TAB characters.

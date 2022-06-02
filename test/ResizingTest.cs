@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
 using Microsoft.PowerShell;
 using Newtonsoft.Json;
 using Test.Resizing;
@@ -83,8 +82,7 @@ namespace Test
 
         private PSConsoleReadLine GetPSConsoleReadLineSingleton()
         {
-            return (PSConsoleReadLine) typeof(PSConsoleReadLine)
-                .GetField("_singleton", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
+            return _rl;
         }
 
         [Fact]
@@ -95,7 +93,7 @@ namespace Test
 
             foreach (var test in s_resizingTestData)
             {
-                RenderData renderData = new()
+                Renderer.RenderData renderData = new()
                 {
                     lines = new RenderedLineData[test.Lines.Count],
                     bufferWidth = test.OldBufferWidth
@@ -111,7 +109,8 @@ namespace Test
                     renderData.cursorTop = context.OldCursor.Y;
 
                     var offset =
-                        instance.ConvertPointToRenderDataOffset(context.OldInitial.X, context.OldInitial.Y, renderData);
+                        _renderer.ConvertPointToRenderDataOffset(context.OldInitial.X, context.OldInitial.Y,
+                            renderData);
                     Assert.True(
                         context.Offset.LineIndex == offset.LogicalLineIndex &&
                         context.Offset.CharIndex == offset.VisibleCharIndex,
@@ -128,7 +127,7 @@ namespace Test
 
             foreach (var test in s_resizingTestData)
             {
-                RenderData renderData = new()
+                Renderer.RenderData renderData = new()
                 {
                     lines = new RenderedLineData[test.Lines.Count],
                     bufferWidth = test.OldBufferWidth
@@ -145,8 +144,8 @@ namespace Test
                         renderData.cursorLeft = context.OldCursor.X;
                         renderData.cursorTop = context.OldCursor.Y;
 
-                        var offset = new RenderDataOffset(context.Offset.LineIndex, context.Offset.CharIndex);
-                        var newCursor = instance.ConvertRenderDataOffsetToPoint(context.NewInitial.X,
+                        var offset = new Renderer.RenderDataOffset(context.Offset.LineIndex, context.Offset.CharIndex);
+                        var newCursor = _renderer.ConvertRenderDataOffsetToPoint(context.NewInitial.X,
                             context.NewInitial.Y, test.NewBufferWidth, renderData, offset);
                         Assert.True(
                             context.NewCursor.X == newCursor.X &&

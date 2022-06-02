@@ -472,8 +472,8 @@ public partial class ReadLine
         ));
 
         Test("Ins delete", Keys(
-            "Ins x delete", _.LeftArrow, _.LeftArrow, _.LeftArrow, _.LeftArrow, _.LeftArrow, _.LeftArrow,
-            _.LeftArrow, _.LeftArrow,
+            "Ins x delete", _.LeftArrow, _.LeftArrow, _.LeftArrow, _.LeftArrow, _.LeftArrow, _.LeftArrow, _.LeftArrow,
+            _.LeftArrow,
             _.Delete, _.Delete, CheckThat(() => AssertCursorLeftIs(4))
         ));
 
@@ -776,8 +776,7 @@ public partial class ReadLine
         Test("(1{3[5)7}9)b]", Keys(
             "(1{3[5)7}9)b]c", _.Escape, CheckThat(() => AssertLineIs("(1{3[5)7}9)b]c")),
             CheckThat(() => AssertCursorLeftIs(13)),
-            "hhhd", _.Percent, CheckThat(() => AssertLineIs("(1{3[5)7}9)b]c")),
-            CheckThat(() => AssertCursorLeftIs(10)),
+            "hhhd", _.Percent, CheckThat(() => AssertLineIs("(1{3[5)7}9)b]c")), CheckThat(() => AssertCursorLeftIs(10)),
             "u", CheckThat(() => AssertLineIs("(1{3[5)7}9)b]")), CheckThat(() => AssertCursorLeftIs(12))
         ));
 
@@ -801,8 +800,7 @@ public partial class ReadLine
             CheckThat(() => AssertCursorLeftIs(13)),
             "hhh", CheckThat(() => AssertCursorLeftIs(10)),
             _.Percent, CheckThat(() => AssertCursorLeftIs(10)),
-            "d", _.Percent, CheckThat(() => AssertLineIs("(1{3[5)7}9)b]c")),
-            CheckThat(() => AssertCursorLeftIs(10)),
+            "d", _.Percent, CheckThat(() => AssertLineIs("(1{3[5)7}9)b]c")), CheckThat(() => AssertCursorLeftIs(10)),
             "u", CheckThat(() => AssertLineIs("(1{3[5)7}9)b]")), CheckThat(() => AssertCursorLeftIs(12))
         ));
 
@@ -1025,8 +1023,7 @@ public partial class ReadLine
 
         Test("", Keys(
             "line2", _.Escape, CheckThat(() => AssertLineIs("line2")),
-            "Oline1", _.Escape, CheckThat(() => AssertLineIs("line1\nline2")),
-            CheckThat(() => AssertCursorLeftIs(4)),
+            "Oline1", _.Escape, CheckThat(() => AssertLineIs("line1\nline2")), CheckThat(() => AssertCursorLeftIs(4)),
             "joline3", _.Escape, CheckThat(() => AssertLineIs("line1\nline2\nline3")),
             'u', CheckThat(() => AssertLineIs("line1\nline2")),
             'u', CheckThat(() => AssertLineIs("line2")),

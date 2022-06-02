@@ -23,7 +23,7 @@ public partial class PSConsoleReadLine
             return;
         }
 
-        if (!(_singleton._engineIntrinsics?.InvokeCommand.GetCommand(editor, CommandTypes.Application) is
+        if (!(Singleton._engineIntrinsics?.InvokeCommand.GetCommand(editor, CommandTypes.Application) is
                 ApplicationInfo editorCommand))
         {
             Ding();
@@ -35,7 +35,7 @@ public partial class PSConsoleReadLine
         {
             using (TextWriter tw = new StreamWriter(fs))
             {
-                tw.Write(_singleton._buffer.ToString());
+                tw.Write(Singleton.buffer.ToString());
             }
         }
 
@@ -47,12 +47,12 @@ public partial class PSConsoleReadLine
             RedirectStandardInput = false,
             RedirectStandardOutput = false
         };
-        var pi = _singleton.CallPossibleExternalApplication(() => Process.Start(si));
+        var pi = Singleton.CallPossibleExternalApplication(() => Process.Start(si));
         if (pi != null)
         {
             pi.WaitForExit();
             InvokePrompt();
-            _singleton.ProcessViVisualEditing(tempPowerShellFile);
+            Singleton.ProcessViVisualEditing(tempPowerShellFile);
         }
         else
         {
@@ -85,12 +85,11 @@ public partial class PSConsoleReadLine
         {
             while (editedCommand.Length > 0 && char.IsWhiteSpace(editedCommand[editedCommand.Length - 1]))
                 editedCommand = editedCommand.Substring(0, editedCommand.Length - 1);
-
             editedCommand = editedCommand.Replace(Environment.NewLine, "\n");
-            Replace(0, _buffer.Length, editedCommand);
-            _current = _buffer.Length;
-            if (Options.EditMode == EditMode.Vi) _current -= 1;
-            Render();
+            Replace(0, buffer.Length, editedCommand);
+            _renderer.Current = buffer.Length;
+            if (Options.EditMode == EditMode.Vi) _renderer.Current = _renderer.Current - 1;
+            _renderer.Render();
         }
     }
 

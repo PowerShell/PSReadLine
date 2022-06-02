@@ -65,10 +65,8 @@ public class KeyInfo
             Tuple.Create("Shift+Alt", ConsoleModifiers.Alt | ConsoleModifiers.Shift),
             Tuple.Create("Alt+Shift", ConsoleModifiers.Alt | ConsoleModifiers.Shift),
             Tuple.Create("Alt+Shift", ConsoleModifiers.Alt | ConsoleModifiers.Shift),
-            Tuple.Create("Ctrl+Shift+Alt",
-                ConsoleModifiers.Alt | ConsoleModifiers.Shift | ConsoleModifiers.Control),
-            Tuple.Create("Control+Shift+Alt",
-                ConsoleModifiers.Alt | ConsoleModifiers.Shift | ConsoleModifiers.Control)
+            Tuple.Create("Ctrl+Shift+Alt", ConsoleModifiers.Alt | ConsoleModifiers.Shift | ConsoleModifiers.Control),
+            Tuple.Create("Control+Shift+Alt", ConsoleModifiers.Alt | ConsoleModifiers.Shift | ConsoleModifiers.Control)
         };
 
         void TestOne(string s)

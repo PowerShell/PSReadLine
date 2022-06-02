@@ -16,7 +16,7 @@ public partial class PSConsoleReadLine
     /// <summary>
     ///     The base type of the prediction view.
     /// </summary>
-    private abstract class PredictionViewBase
+    internal abstract class PredictionViewBase
     {
         protected readonly PSConsoleReadLine _singleton;
         private List<SuggestionEntry> _cacheHistoryList;
@@ -88,7 +88,7 @@ public partial class PSConsoleReadLine
         /// </summary>
         protected string GetOneHistorySuggestion(string text)
         {
-            var history = _singleton._history;
+            var history = _hs.Historys;
             var comparison = _singleton.Options.HistoryStringComparison;
 
             for (var index = history.Count - 1; index >= 0; index--)
@@ -117,7 +117,7 @@ public partial class PSConsoleReadLine
             List<SuggestionEntry> results = null;
             var remainingCount = count;
 
-            var history = _singleton._history;
+            var history = _hs.Historys;
             var comparison = _singleton.Options.HistoryStringComparison;
             var comparer = _singleton.Options.HistoryStringComparer;
 
@@ -164,7 +164,7 @@ public partial class PSConsoleReadLine
         /// </summary>
         protected void PredictInput()
         {
-            _predictionTask = _singleton._mockableMethods.PredictInputAsync(_singleton._ast, _singleton._tokens);
+            _predictionTask = _singleton._mockableMethods.PredictInputAsync(_singleton.RLAst, _singleton.Tokens);
         }
 
         /// <summary>
@@ -221,7 +221,7 @@ public partial class PSConsoleReadLine
         {
             get
             {
-                var console = _singleton._console;
+                var console = Renderer.Console;
                 return console.WindowWidth >= MinWindowWidth && console.WindowHeight >= MinWindowHeight;
             }
         }
@@ -274,7 +274,7 @@ public partial class PSConsoleReadLine
 
             _inputText = userInput;
             SelectedItemIndex = -1;
-            _listItemWidth = Math.Min(_singleton._console.BufferWidth, ListMaxWidth);
+            _listItemWidth = Math.Min(Renderer.Console.BufferWidth, ListMaxWidth);
 
             if (inputUnchanged)
                 // This could happen when the user types 'ctrl+z' (undo) while looping through the suggestion list.
@@ -419,7 +419,7 @@ public partial class PSConsoleReadLine
             {
                 currentLogicalLine += 1;
                 if (currentLogicalLine == consoleBufferLines.Count)
-                    consoleBufferLines.Add(new StringBuilder(COMMON_WIDEST_CONSOLE_WIDTH));
+                    consoleBufferLines.Add(new StringBuilder(PSConsoleReadLineOptions.CommonWidestConsoleWidth));
 
                 var itemSelected = i == SelectedItemIndex;
                 var currentLineBuffer = consoleBufferLines[currentLogicalLine];
@@ -455,8 +455,8 @@ public partial class PSConsoleReadLine
             if (_listItems == null) return;
 
             var top = cursorAtEol
-                ? _singleton._console.CursorTop
-                : _singleton.ConvertOffsetToPoint(_inputText.Length).Y;
+                ? Renderer.Console.CursorTop
+                : _renderer.ConvertOffsetToPoint(_inputText.Length).Y;
 
             _singleton.WriteBlankLines(top + 1, _listItemHeight);
             Reset();
@@ -587,8 +587,8 @@ public partial class PSConsoleReadLine
             var totalLength = SuggestionText.Length;
 
             // Get the maximum buffer cells that could be available to the current command line.
-            var maxBufferCells = _singleton._console.BufferHeight * _singleton._console.BufferWidth -
-                                 _singleton._initialX;
+            var maxBufferCells = Renderer.Console.BufferHeight * Renderer.Console.BufferWidth -
+                                 _renderer.InitialX;
             var skipRendering = false;
 
             // Assuming the suggestion text contains wide characters only (1 character takes up 2 buffer cells),
@@ -659,7 +659,7 @@ public partial class PSConsoleReadLine
                 // Clear the suggestion only if we actually rendered it.
                 int left, top;
                 var inputLen = _inputText.Length;
-                var console = _singleton._console;
+                var console = Renderer.Console;
 
                 if (cursorAtEol)
                 {
@@ -669,14 +669,14 @@ public partial class PSConsoleReadLine
                 }
                 else
                 {
-                    var bufferEndPoint = _singleton.ConvertOffsetToPoint(inputLen);
+                    var bufferEndPoint = _renderer.ConvertOffsetToPoint(inputLen);
                     left = bufferEndPoint.X;
                     top = bufferEndPoint.Y;
                     _singleton.WriteBlankRestOfLine(left, top);
                 }
 
                 var bufferWidth = console.BufferWidth;
-                var columns = LengthInBufferCells(SuggestionText, inputLen, _renderedLength);
+                var columns = _renderer.LengthInBufferCells(SuggestionText, inputLen, _renderedLength);
 
                 var remainingLenInCells = bufferWidth - left;
                 columns -= remainingLenInCells;
@@ -707,7 +707,7 @@ public partial class PSConsoleReadLine
         internal int FindForwardSuggestionWordPoint(int currentIndex, string wordDelimiters)
         {
             Debug.Assert(
-                SuggestionText != null && SuggestionText.Length > _singleton._buffer.Length,
+                SuggestionText != null && SuggestionText.Length > _singleton.buffer.Length,
                 "Caller needs to make sure the suggestion text exist.");
 
             if (currentIndex >= SuggestionText.Length) return SuggestionText.Length;

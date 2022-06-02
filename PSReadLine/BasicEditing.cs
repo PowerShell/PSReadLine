@@ -34,9 +34,9 @@ public partial class PSConsoleReadLine
             count = 1;
         }
 
-        if (_singleton._visualSelectionCommandCount > 0)
+        if (Singleton._visualSelectionCommandCount > 0)
         {
-            _singleton.GetRegion(out var start, out var length);
+            _renderer.GetRegion(out var start, out var length);
             Replace(start, length, new string(keyChar, count));
         }
         else if (count > 1)
@@ -54,19 +54,19 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void RevertLine(ConsoleKeyInfo? key = null, object arg = null)
     {
-        if (_singleton._prediction.RevertSuggestion()) return;
+        if (Singleton._Prediction.RevertSuggestion()) return;
 
-        if (_singleton._statusIsErrorMessage)
+        if (Singleton._statusIsErrorMessage)
             // After an edit, clear the error message
-            _singleton.ClearStatusMessage(false);
+            Singleton.ClearStatusMessage(false);
 
-        while (_singleton._undoEditIndex > 0)
+        while (Singleton._undoEditIndex > 0)
         {
-            _singleton._edits[_singleton._undoEditIndex - 1].Undo();
-            _singleton._undoEditIndex--;
+            Singleton._edits[Singleton._undoEditIndex - 1].Undo();
+            Singleton._undoEditIndex--;
         }
 
-        _singleton.Render();
+        _renderer.Render();
     }
 
     /// <summary>
@@ -75,18 +75,19 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void CancelLine(ConsoleKeyInfo? key = null, object arg = null)
     {
-        _singleton.ClearStatusMessage(false);
-        _singleton._current = _singleton._buffer.Length;
+        Singleton.ClearStatusMessage(false);
+        var val = Singleton.buffer.Length;
+        _renderer.Current = val;
 
-        using var _ = _singleton._prediction.DisableScoped();
-        _singleton.ForceRender();
+        using var _ = Singleton._Prediction.DisableScoped();
+        _renderer.ForceRender();
 
-        _singleton._console.Write("\x1b[91m^C\x1b[0m");
+        Renderer.Console.Write("\x1b[91m^C\x1b[0m");
 
-        _singleton._buffer.Clear(); // Clear so we don't actually run the input
-        _singleton._current = 0; // If Render is called, _current must be correct.
-        _singleton._currentHistoryIndex = _singleton._history.Count;
-        _singleton._inputAccepted = true;
+        Singleton.buffer.Clear(); // Clear so we don't actually run the input
+        _renderer.Current = 0; // If Render is called, _current must be correct.
+        SearcherReadLine.ResetCurrentHistoryIndex();
+        Singleton._inputAccepted = true;
     }
 
     /// <summary>
@@ -95,7 +96,7 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void ForwardDeleteInput(ConsoleKeyInfo? key = null, object arg = null)
     {
-        ForwardDeleteImpl(_singleton._buffer.Length, ForwardDeleteInput);
+        ForwardDeleteImpl(Singleton.buffer.Length, ForwardDeleteInput);
     }
 
     /// <summary>
@@ -104,7 +105,7 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void ForwardDeleteLine(ConsoleKeyInfo? key = null, object arg = null)
     {
-        ForwardDeleteImpl(GetEndOfLogicalLinePos(_singleton._current) + 1, ForwardDeleteLine);
+        ForwardDeleteImpl(GetEndOfLogicalLinePos(_renderer.Current) + 1, ForwardDeleteLine);
     }
 
     /// <summary>
@@ -114,15 +115,15 @@ public partial class PSConsoleReadLine
     /// <param name="endPosition">0-based offset to one character past the end of the text.</param>
     private static void ForwardDeleteImpl(int endPosition, Action<ConsoleKeyInfo?, object> instigator)
     {
-        var current = _singleton._current;
-        var buffer = _singleton._buffer;
+        var current = _renderer.Current;
+        var buffer = Singleton.buffer;
 
         if (buffer.Length > 0 && current < endPosition)
         {
             var length = endPosition - current;
             var str = buffer.ToString(current, length);
 
-            _singleton.SaveEditItem(
+            Singleton.SaveEditItem(
                 EditItemDelete.Create(
                     str,
                     current,
@@ -131,7 +132,7 @@ public partial class PSConsoleReadLine
                     !InViEditMode()));
 
             buffer.Remove(current, length);
-            _singleton.Render();
+            _renderer.Render();
         }
     }
 
@@ -149,19 +150,19 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void BackwardDeleteLine(ConsoleKeyInfo? key = null, object arg = null)
     {
-        var position = GetBeginningOfLinePos(_singleton._current);
+        var position = GetBeginningOfLinePos(_renderer.Current);
         BackwardDeleteSubstring(position, BackwardDeleteLine);
     }
 
     private static void BackwardDeleteSubstring(int position, Action<ConsoleKeyInfo?, object> instigator)
     {
-        if (_singleton._current > position)
+        if (_renderer.Current > position)
         {
-            var count = _singleton._current - position;
+            var count = _renderer.Current - position;
 
-            _singleton.RemoveTextToViRegister(position, count, instigator, null, !InViEditMode());
-            _singleton._current = position;
-            _singleton.Render();
+            Singleton.RemoveTextToViRegister(position, count, instigator, null, !InViEditMode());
+            _renderer.Current = position;
+            _renderer.Render();
         }
     }
 
@@ -170,24 +171,24 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void BackwardDeleteChar(ConsoleKeyInfo? key = null, object arg = null)
     {
-        if (_singleton._visualSelectionCommandCount > 0)
+        if (Singleton._visualSelectionCommandCount > 0)
         {
-            _singleton.GetRegion(out var start, out var length);
+            _renderer.GetRegion(out var start, out var length);
             Delete(start, length);
             return;
         }
 
-        if (_singleton._buffer.Length > 0 && _singleton._current > 0)
+        if (Singleton.buffer.Length > 0 && _renderer.Current > 0)
         {
             var qty = arg as int? ?? 1;
             if (qty < 1) return; // Ignore useless counts
-            qty = Math.Min(qty, _singleton._current);
+            qty = Math.Min(qty, _renderer.Current);
 
-            var startDeleteIndex = _singleton._current - qty;
+            var startDeleteIndex = _renderer.Current - qty;
 
-            _singleton.RemoveTextToViRegister(startDeleteIndex, qty, BackwardDeleteChar, arg, !InViEditMode());
-            _singleton._current = startDeleteIndex;
-            _singleton.Render();
+            Singleton.RemoveTextToViRegister(startDeleteIndex, qty, BackwardDeleteChar, arg, !InViEditMode());
+            _renderer.Current = startDeleteIndex;
+            _renderer.Render();
         }
     }
 
@@ -195,21 +196,21 @@ public partial class PSConsoleReadLine
     {
         if (_visualSelectionCommandCount > 0)
         {
-            GetRegion(out var start, out var length);
+            _renderer.GetRegion(out var start, out var length);
             Delete(start, length);
             return;
         }
 
-        if (_buffer.Length > 0)
+        if (buffer.Length > 0)
         {
-            if (_current < _buffer.Length)
+            if (_renderer.Current < buffer.Length)
             {
-                qty = Math.Min(qty, _singleton._buffer.Length - _singleton._current);
+                qty = Math.Min(qty, Singleton.buffer.Length - _renderer.Current);
 
-                RemoveTextToViRegister(_current, qty, DeleteChar, qty, !InViEditMode());
-                if (_current >= _buffer.Length) _current = Math.Max(0, _buffer.Length + ViEndOfLineFactor);
-
-                Render();
+                RemoveTextToViRegister(_renderer.Current, qty, DeleteChar, qty, !InViEditMode());
+                if (_renderer.Current >= buffer.Length)
+                    _renderer.Current = Math.Max(0, buffer.Length + ViEndOfLineFactor);
+                _renderer.Render();
             }
         }
         else if (orExit)
@@ -226,7 +227,7 @@ public partial class PSConsoleReadLine
         var qty = arg as int? ?? 1;
         if (qty < 1) return; // Ignore useless counts
 
-        _singleton.DeleteCharImpl(qty, false);
+        Singleton.DeleteCharImpl(qty, false);
     }
 
     /// <summary>
@@ -234,15 +235,15 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void DeleteCharOrExit(ConsoleKeyInfo? key = null, object arg = null)
     {
-        _singleton.DeleteCharImpl(1, true);
+        Singleton.DeleteCharImpl(1, true);
     }
 
     private bool AcceptLineImpl(bool validate)
     {
-        using var _ = _prediction.DisableScoped();
+        using var _ = _Prediction.DisableScoped();
 
-        ParseInput();
-        if (_parseErrors.Any(e => e.IncompleteInput))
+        buffer.ToString();
+        if (ParseErrors.Any(e => e.IncompleteInput))
         {
             Insert('\n');
             return false;
@@ -253,20 +254,20 @@ public partial class PSConsoleReadLine
         //
         // Also - if there was an emphasis, we want to clear that before accepting
         // and that requires rendering.
-        var renderNeeded = _emphasisStart >= 0 || _queuedKeys.Count > 0;
+        var renderNeeded = EP.IsNotEmphasisEmpty() || _queuedKeys.Count > 0;
 
-        _emphasisStart = -1;
-        _emphasisLength = 0;
+        EP.EmphasisInit();
 
-        if (renderNeeded) ForceRender();
+
+        if (renderNeeded) _renderer.ForceRender();
 
         // Only run validation if we haven't before.  If we have and status line shows an error,
         // treat that as a -Force and accept the input so it is added to history, and PowerShell
         // can report an error as it normally does.
         if (validate && !_statusIsErrorMessage)
         {
-            var insertionPoint = _current;
-            var errorMessage = Validate(_ast);
+            var insertionPoint = _renderer.Current;
+            var errorMessage = Validate(RLAst);
             if (!string.IsNullOrWhiteSpace(errorMessage))
             {
                 // If there are more keys, assume the user pasted with a right click and
@@ -281,10 +282,10 @@ public partial class PSConsoleReadLine
                     Insert('\n');
                 }
 
-                _statusLinePrompt = "";
-                _statusBuffer.Append(errorMessage);
+                _renderer.StatusLinePrompt = "";
+                _renderer.StatusBuffer.Append(errorMessage);
                 _statusIsErrorMessage = true;
-                Render();
+                _renderer.Render();
                 return false;
             }
         }
@@ -292,32 +293,32 @@ public partial class PSConsoleReadLine
         if (_statusIsErrorMessage) ClearStatusMessage(true);
 
         // Make sure cursor is at the end before writing the line.
-        if (_current != _buffer.Length)
+        if (_renderer.Current != _rl.buffer.Length)
         {
             // Let public API set cursor to end of line incase end of line is end of buffer.
-            _current = _buffer.Length;
-            SetCursorPosition(_current);
+            _renderer.Current = _rl.buffer.Length;
+            SetCursorPosition(_renderer.Current);
         }
 
-        if (_prediction.ActiveView is PredictionListView listView)
+        if (_Prediction.ActiveView is PredictionListView listView)
             // Send feedback to prediction plugin if a list item is accepted as the final command line.
             listView.OnSuggestionAccepted();
 
         // Clear the prediction view if there is one.
-        _prediction.ActiveView.Clear(true);
+        _Prediction.ActiveView.Clear(true);
 
-        _console.Write("\n");
+        Renderer.Console.Write("\n");
         _inputAccepted = true;
         return true;
     }
 
     private string Validate(Ast rootAst)
     {
-        if (_parseErrors != null && _parseErrors.Length > 0)
+        if (ParseErrors != null && ParseErrors.Length > 0)
         {
             // Move the cursor to the point of error
-            _current = _parseErrors[0].Extent.EndOffset;
-            return _parseErrors[0].Message;
+            _renderer.Current = ParseErrors[0].Extent.EndOffset;
+            return ParseErrors[0].Message;
         }
 
         var validationVisitor = new CommandValidationVisitor(rootAst);
@@ -386,7 +387,6 @@ public partial class PSConsoleReadLine
                     // NestedPromptLevel is good enough though - it's rare to be in a nested.
                     var nestedPromptLevel = _engineIntrinsics.SessionState.PSVariable.GetValue("NestedPromptLevel");
                     if (nestedPromptLevel is int) return (int) nestedPromptLevel > 0;
-
                     break;
             }
 
@@ -401,7 +401,7 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void AcceptLine(ConsoleKeyInfo? key = null, object arg = null)
     {
-        _singleton.AcceptLineImpl(false);
+        Singleton.AcceptLineImpl(false);
     }
 
     /// <summary>
@@ -412,7 +412,7 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void ValidateAndAcceptLine(ConsoleKeyInfo? key = null, object arg = null)
     {
-        _singleton.AcceptLineImpl(true);
+        Singleton.AcceptLineImpl(true);
     }
 
     /// <summary>
@@ -421,10 +421,10 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void AcceptAndGetNext(ConsoleKeyInfo? key = null, object arg = null)
     {
-        if (_singleton.AcceptLineImpl(false))
+        if (Singleton.AcceptLineImpl(false))
         {
-            if (_singleton._currentHistoryIndex < _singleton._history.Count - 1)
-                _singleton._getNextHistoryIndex = _singleton._currentHistoryIndex + 1;
+            if (SearcherReadLine.CurrentHistoryIndex < _hs.Historys.Count - 1)
+                _hs.GetNextHistoryIndex = SearcherReadLine.CurrentHistoryIndex + 1;
             else
                 Ding();
         }
@@ -447,7 +447,7 @@ public partial class PSConsoleReadLine
     public static void InsertLineAbove(ConsoleKeyInfo? key = null, object arg = null)
     {
         // Move the current position to the beginning of the current line and only the current line.
-        _singleton._current = GetBeginningOfLinePos(_singleton._current);
+        _renderer.Current = GetBeginningOfLinePos(_renderer.Current);
         Insert('\n');
         PreviousLine();
     }
@@ -458,12 +458,12 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void InsertLineBelow(ConsoleKeyInfo? key = null, object arg = null)
     {
-        var i = _singleton._current;
-        for (; i < _singleton._buffer.Length; i++)
-            if (_singleton._buffer[i] == '\n')
+        var i = _renderer.Current;
+        for (; i < Singleton.buffer.Length; i++)
+            if (Singleton.buffer[i] == '\n')
                 break;
 
-        _singleton._current = i;
+        _renderer.Current = i;
 
         Insert('\n');
     }
@@ -483,13 +483,13 @@ public partial class PSConsoleReadLine
             var commandName = commandAst.GetCommandName();
             if (commandName != null)
             {
-                if (_singleton._engineIntrinsics != null)
+                if (Singleton._engineIntrinsics != null)
                 {
                     var commandInfo =
-                        _singleton._engineIntrinsics.InvokeCommand.GetCommand(commandName, CommandTypes.All);
-                    if (commandInfo == null && !_singleton.UnresolvedCommandCouldSucceed(commandName, _rootAst))
+                        Singleton._engineIntrinsics.InvokeCommand.GetCommand(commandName, CommandTypes.All);
+                    if (commandInfo == null && !Singleton.UnresolvedCommandCouldSucceed(commandName, _rootAst))
                     {
-                        _singleton._current = commandAst.CommandElements[0].Extent.EndOffset;
+                        _renderer.Current = commandAst.CommandElements[0].Extent.EndOffset;
                         detectedError = string.Format(CultureInfo.CurrentCulture,
                             PSReadLineResources.CommandNotFoundError, commandName);
                         return AstVisitAction.StopVisit;
@@ -497,15 +497,15 @@ public partial class PSConsoleReadLine
                 }
 
                 if (commandAst.CommandElements.Any(e => e is ScriptBlockExpressionAst))
-                    if (_singleton.Options.CommandsToValidateScriptBlockArguments == null ||
-                        !_singleton.Options.CommandsToValidateScriptBlockArguments.Contains(commandName))
+                    if (Singleton.Options.CommandsToValidateScriptBlockArguments == null ||
+                        !Singleton.Options.CommandsToValidateScriptBlockArguments.Contains(commandName))
                         return AstVisitAction.SkipChildren;
             }
 
-            if (_singleton.Options.CommandValidationHandler != null)
+            if (Singleton.Options.CommandValidationHandler != null)
                 try
                 {
-                    _singleton.Options.CommandValidationHandler(commandAst);
+                    Singleton.Options.CommandValidationHandler(commandAst);
                 }
                 catch (Exception e)
                 {

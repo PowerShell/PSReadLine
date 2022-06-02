@@ -17,28 +17,28 @@ public partial class PSConsoleReadLine
 
         protected void MoveCursorDown(int cnt)
         {
-            var console = Singleton._console;
+            var console = Renderer.Console;
             while (cnt-- > 0) console.Write("\n");
         }
 
-        protected void AdjustForActualScroll(int scrollCnt)
+        private void AdjustForActualScroll(int scrollCnt)
         {
             if (scrollCnt > 0)
             {
                 Top -= scrollCnt;
-                _singleton._initialY -= scrollCnt;
+                _renderer.InitialY = _renderer.InitialY - scrollCnt;
                 _savedCursorTop -= scrollCnt;
             }
         }
 
         protected void AdjustForPossibleScroll(int cnt)
         {
-            var console = Singleton._console;
+            var console = Renderer.Console;
             var scrollCnt = console.CursorTop + cnt + 1 - console.BufferHeight;
             if (scrollCnt > 0)
             {
                 Top -= scrollCnt;
-                _singleton._initialY -= scrollCnt;
+                _renderer.InitialY = _renderer.InitialY - scrollCnt;
                 _savedCursorTop -= scrollCnt;
             }
         }
@@ -46,7 +46,7 @@ public partial class PSConsoleReadLine
         protected void MoveCursorToStartDrawingPosition(IConsole console)
         {
             // Calculate the coord to place the cursor at the end of current input.
-            var bufferEndPoint = Singleton.ConvertOffsetToPoint(Singleton._buffer.Length);
+            var bufferEndPoint = _renderer.ConvertOffsetToPoint(Singleton.buffer.Length);
             // Top must be initialized before any possible adjustion by 'AdjustForPossibleScroll' or 'AdjustForActualScroll',
             // otherwise its value would be corrupted and cause rendering issue.
             Top = bufferEndPoint.Y + 1;
@@ -73,14 +73,14 @@ public partial class PSConsoleReadLine
 
         public void SaveCursor()
         {
-            var console = Singleton._console;
+            var console = Renderer.Console;
             _savedCursorLeft = console.CursorLeft;
             _savedCursorTop = console.CursorTop;
         }
 
         public void RestoreCursor()
         {
-            Singleton._console.SetCursorPosition(_savedCursorLeft, _savedCursorTop);
+            Renderer.Console.SetCursorPosition(_savedCursorLeft, _savedCursorTop);
         }
     }
 }

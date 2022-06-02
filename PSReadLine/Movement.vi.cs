@@ -12,7 +12,7 @@ public partial class PSConsoleReadLine
     ///     Returns 0 if the cursor is allowed to go past the last character in the line, -1 otherwise.
     /// </summary>
     /// <seealso cref="ForwardChar" />
-    private static int ViEndOfLineFactor => InViCommandMode() ? -1 : 0;
+    public static int ViEndOfLineFactor => InViCommandMode() ? -1 : 0;
 
     /// <summary>
     ///     Move the cursor forward to the start of the next word.
@@ -30,10 +30,9 @@ public partial class PSConsoleReadLine
 
         while (numericArg-- > 0)
         {
-            var i = _singleton.ViFindNextWordPoint(_singleton.Options.WordDelimiters);
-            if (i >= _singleton._buffer.Length) i += ViEndOfLineFactor;
-
-            _singleton.MoveCursor(Math.Max(i, 0));
+            var i = Singleton.ViFindNextWordPoint(Singleton.Options.WordDelimiters);
+            if (i >= Singleton.buffer.Length) i += ViEndOfLineFactor;
+            _renderer.MoveCursor(Math.Max(i, 0));
         }
     }
 
@@ -53,7 +52,7 @@ public partial class PSConsoleReadLine
         }
 
         while (numericArg-- > 0)
-            _singleton.MoveCursor(_singleton.ViFindPreviousWordPoint(_singleton.Options.WordDelimiters));
+            _renderer.MoveCursor(Singleton.ViFindPreviousWordPoint(Singleton.Options.WordDelimiters));
     }
 
     /// <summary>
@@ -63,10 +62,9 @@ public partial class PSConsoleReadLine
     {
         if (!TryGetArgAsInt(arg, out var numericArg, 1)) return;
 
-        var i = _singleton._current;
-        while (numericArg-- > 0) i = _singleton.ViFindPreviousGlob(i - 1);
-
-        _singleton.MoveCursor(i);
+        var i = _renderer.Current;
+        while (numericArg-- > 0) i = Singleton.ViFindPreviousGlob(i - 1);
+        _renderer.MoveCursor(i);
     }
 
     /// <summary>
@@ -76,12 +74,12 @@ public partial class PSConsoleReadLine
     {
         if (!TryGetArgAsInt(arg, out var numericArg, 1)) return;
 
-        var i = _singleton._current;
-        while (numericArg-- > 0) i = _singleton.ViFindNextGlob(i);
+        var i = _renderer.Current;
+        while (numericArg-- > 0) i = Singleton.ViFindNextGlob(i);
 
-        var newPosition = Math.Min(i, Math.Max(0, _singleton._buffer.Length - 1));
-        if (newPosition != _singleton._current)
-            _singleton.MoveCursor(newPosition);
+        var newPosition = Math.Min(i, Math.Max(0, Singleton.buffer.Length - 1));
+        if (newPosition != _renderer.Current)
+            _renderer.MoveCursor(newPosition);
         else
             Ding();
     }
@@ -99,7 +97,7 @@ public partial class PSConsoleReadLine
             return;
         }
 
-        while (numericArg-- > 0) _singleton.MoveCursor(_singleton.ViFindEndOfGlob());
+        while (numericArg-- > 0) _renderer.MoveCursor(Singleton.ViFindEndOfGlob());
     }
 
     /// <summary>
@@ -115,7 +113,7 @@ public partial class PSConsoleReadLine
             return;
         }
 
-        while (numericArg-- > 0) _singleton.MoveCursor(_singleton.ViFindEndOfPreviousGlob());
+        while (numericArg-- > 0) _renderer.MoveCursor(Singleton.ViFindEndOfPreviousGlob());
     }
 
     /// <summary>
@@ -123,11 +121,10 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void MoveToEndOfLine(ConsoleKeyInfo? key = null, object arg = null)
     {
-        var eol = GetEndOfLogicalLinePos(_singleton._current);
-        if (eol != _singleton._current) _singleton.MoveCursor(eol);
-
-        _singleton._moveToEndOfLineCommandCount++;
-        _singleton._moveToLineDesiredColumn = int.MaxValue;
+        var eol = GetEndOfLogicalLinePos(_renderer.Current);
+        if (eol != _renderer.Current) _renderer.MoveCursor(eol);
+        Singleton._moveToEndOfLineCommandCount++;
+        Singleton._moveToLineDesiredColumn = int.MaxValue;
     }
 
     /// <summary>
@@ -138,8 +135,8 @@ public partial class PSConsoleReadLine
     public static void NextWordEnd(ConsoleKeyInfo? key = null, object arg = null)
     {
         var qty = arg as int? ?? 1;
-        for (; qty > 0 && _singleton._current < _singleton._buffer.Length - 1; qty--)
-            _singleton.MoveCursor(_singleton.ViFindNextWordEnd(_singleton.Options.WordDelimiters));
+        for (; qty > 0 && _renderer.Current < Singleton.buffer.Length - 1; qty--)
+            _renderer.MoveCursor(Singleton.ViFindNextWordEnd(Singleton.Options.WordDelimiters));
     }
 
     /// <summary>
@@ -154,13 +151,13 @@ public partial class PSConsoleReadLine
             return;
         }
 
-        if (col < _singleton._buffer.Length + ViEndOfLineFactor)
+        if (col < Singleton.buffer.Length + ViEndOfLineFactor)
         {
-            _singleton.MoveCursor(Math.Min(col, _singleton._buffer.Length) - 1);
+            _renderer.MoveCursor(Math.Min(col, Singleton.buffer.Length) - 1);
         }
         else
         {
-            _singleton.MoveCursor(_singleton._buffer.Length + ViEndOfLineFactor);
+            _renderer.MoveCursor(Singleton.buffer.Length + ViEndOfLineFactor);
             Ding();
         }
     }
@@ -170,8 +167,8 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void GotoFirstNonBlankOfLine(ConsoleKeyInfo? key = null, object arg = null)
     {
-        var newCurrent = GetFirstNonBlankOfLogicalLinePos(_singleton._current);
-        if (newCurrent != _singleton._current) _singleton.MoveCursor(newCurrent);
+        var newCurrent = GetFirstNonBlankOfLogicalLinePos(_renderer.Current);
+        if (newCurrent != _renderer.Current) _renderer.MoveCursor(newCurrent);
     }
 
     /// <summary>
@@ -179,21 +176,21 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void ViGotoBrace(ConsoleKeyInfo? key = null, object arg = null)
     {
-        var i = _singleton.ViFindBrace(_singleton._current);
-        if (i == _singleton._current)
+        var i = Singleton.ViFindBrace(_renderer.Current);
+        if (i == _renderer.Current)
         {
             Ding();
             return;
         }
 
-        _singleton.MoveCursor(i);
+        _renderer.MoveCursor(i);
     }
 
     private int ViFindBrace(int i)
     {
-        if (_buffer.Length == 0) return i;
+        if (buffer.Length == 0) return i;
 
-        switch (_buffer[i])
+        switch (buffer[i])
         {
             case '{':
                 return ViFindForward(i, '}', '{');
@@ -215,40 +212,32 @@ public partial class PSConsoleReadLine
     private int ViFindBackward(int start, char target, char withoutPassing)
     {
         if (start == 0) return start;
-
         var i = start - 1;
         var withoutPassingCount = 0;
-        while (i != 0 && !(_buffer[i] == target && withoutPassingCount == 0))
+        while (i != 0 && !(buffer[i] == target && withoutPassingCount == 0))
         {
-            if (_buffer[i] == withoutPassing) withoutPassingCount++;
-
-            if (_buffer[i] == target) withoutPassingCount--;
-
+            if (buffer[i] == withoutPassing) withoutPassingCount++;
+            if (buffer[i] == target) withoutPassingCount--;
             i--;
         }
 
-        if (_buffer[i] == target && withoutPassingCount == 0) return i;
-
+        if (buffer[i] == target && withoutPassingCount == 0) return i;
         return start;
     }
 
     private int ViFindForward(int start, char target, char withoutPassing)
     {
         if (IsAtEndOfLine(start)) return start;
-
         var i = start + 1;
         var withoutPassingCount = 0;
-        while (!IsAtEndOfLine(i) && !(_buffer[i] == target && withoutPassingCount == 0))
+        while (!IsAtEndOfLine(i) && !(buffer[i] == target && withoutPassingCount == 0))
         {
-            if (_buffer[i] == withoutPassing) withoutPassingCount++;
-
-            if (_buffer[i] == target) withoutPassingCount--;
-
+            if (buffer[i] == withoutPassing) withoutPassingCount++;
+            if (buffer[i] == target) withoutPassingCount--;
             i++;
         }
 
-        if (_buffer[i] == target && withoutPassingCount == 0) return i;
-
+        if (buffer[i] == target && withoutPassingCount == 0) return i;
         return start;
     }
 }

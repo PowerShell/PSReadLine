@@ -36,12 +36,10 @@ public partial class ReadLine
             _.Alt_1, _.Alt_Minus, _.Ctrl_z, CheckThat(() => Assert.Equal(-1, argValue)),
             _.Alt_1, _.Alt_2, _.Alt_Minus, _.Ctrl_z, CheckThat(() => Assert.Equal(-12, argValue)),
             _.Alt_2, _.Alt_Minus, _.Alt_3, _.Alt_4, _.Ctrl_z, CheckThat(() => Assert.Equal(-234, argValue)),
-            _.Alt_3, _.Alt_4, _.Alt_Minus, _.Alt_5, _.Alt_6, _.Ctrl_z,
-            CheckThat(() => Assert.Equal(-3456, argValue)),
+            _.Alt_3, _.Alt_4, _.Alt_Minus, _.Alt_5, _.Alt_6, _.Ctrl_z, CheckThat(() => Assert.Equal(-3456, argValue)),
             _.Alt_4, _.Alt_5, _.Alt_6, _.Alt_Minus, _.Alt_7, _.Alt_8, _.Ctrl_z,
             CheckThat(() => Assert.Equal(-45678, argValue)),
-            _.Alt_9, _.Alt_Minus, _.Alt_Minus, _.Alt_7, _.Alt_8, _.Ctrl_z,
-            CheckThat(() => Assert.Equal(978, argValue)),
+            _.Alt_9, _.Alt_Minus, _.Alt_Minus, _.Alt_7, _.Alt_8, _.Ctrl_z, CheckThat(() => Assert.Equal(978, argValue)),
             _.Alt_Minus, _.Alt_Minus, _.Alt_7, _.Alt_8, _.Ctrl_z, CheckThat(() => Assert.Equal(78, argValue))
         ));
     }

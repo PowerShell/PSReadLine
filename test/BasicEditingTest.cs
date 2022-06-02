@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.PowerShell;
+using Microsoft.PowerShell.PSReadLine;
 using Xunit;
 
 namespace Test;
@@ -287,8 +288,8 @@ public partial class ReadLine
     public void AcceptAndGetNextWithHistorySearch()
     {
         TestSetup(KeyMode.Emacs,
-            new KeyHandler("UpArrow", PSConsoleReadLine.HistorySearchBackward),
-            new KeyHandler("DownArrow", PSConsoleReadLine.HistorySearchForward));
+            new KeyHandler("UpArrow", History.HistorySearchBackward),
+            new KeyHandler("DownArrow", History.HistorySearchForward));
 
         // Test that after AcceptAndGetNext, the previous search is not applied
         SetHistory("echo 1", "echo 2", "zzz");

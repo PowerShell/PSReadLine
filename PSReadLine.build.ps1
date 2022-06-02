@@ -143,7 +143,7 @@ task LayoutModule BuildPolyfiller, BuildMainModule, {
     $binPath = "PSReadLine/bin/$Configuration/$Framework/publish"
     Copy-Item $binPath/Microsoft.PowerShell.PSReadLine2.dll $targetDir
     Copy-Item $binPath/Microsoft.PowerShell.Pager.dll $targetDir
-
+ 
     if ($Configuration -eq 'Debug') {
         Copy-Item $binPath/*.pdb $targetDir
     }

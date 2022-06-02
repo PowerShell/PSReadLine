@@ -2,10 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.PowerShell.Internal;
+using UnitTestPSReadLine;
 
 namespace Test;
 
-internal struct CHAR_INFO
+public struct CHAR_INFO
 {
     public ushort UnicodeChar;
     public ushort Attributes;
@@ -53,11 +54,11 @@ internal struct CHAR_INFO
     }
 }
 
-internal class TestConsole : IConsole
+public class TestConsole : IConsole
 {
     protected static readonly char[] endEscapeChars = {'m', 'J'};
-    private static readonly ConsoleColor DefaultForeground = ReadLine.Colors[0];
-    private static readonly ConsoleColor DefaultBackground = ReadLine.BackgroundColors[0];
+    private static readonly ConsoleColor DefaultForeground = ReadLineBase.Colors[0];
+    private static readonly ConsoleColor DefaultBackground = ReadLineBase.BackgroundColors[0];
 
     protected static readonly Dictionary<string, Action<TestConsole>> EscapeSequenceActions = new()
     {
@@ -143,8 +144,8 @@ internal class TestConsole : IConsole
 
     protected TestConsole(int width, int height, bool mimicScrolling)
     {
-        BackgroundColor = ReadLine.BackgroundColors[0];
-        ForegroundColor = ReadLine.Colors[0];
+        BackgroundColor = ReadLineBase.BackgroundColors[0];
+        ForegroundColor = ReadLineBase.Colors[0];
         CursorLeft = 0;
         CursorTop = 0;
         _bufferWidth = _windowWidth = width;
@@ -162,7 +163,6 @@ internal class TestConsole : IConsole
         {
             var item = inputOrValidateItems[index++];
             if (item is ConsoleKeyInfo consoleKeyInfo) return consoleKeyInfo;
-
             try
             {
                 ((Action) item)();
@@ -171,7 +171,6 @@ internal class TestConsole : IConsole
             {
                 // Just remember the first exception
                 if (validationFailure == null) validationFailure = e;
-
                 // In the hopes of avoiding additional failures, try cancelling via Ctrl+C.
                 return _keyboardLayout.Ctrl_c;
             }
@@ -269,7 +268,6 @@ internal class TestConsole : IConsole
                 var len = endSequence - i - (s[endSequence] != 'm' ? 1 : 2);
                 var escapeSequence = s.Substring(i + 2, len);
                 foreach (var subsequence in escapeSequence.Split(';')) EscapeSequenceActions[subsequence](this);
-
                 i = endSequence;
                 continue;
             }
@@ -430,7 +428,6 @@ internal class BasicScrollingConsole : TestConsole
                 var len = endSequence - i - (s[endSequence] != 'm' ? 1 : 2);
                 var escapeSequence = s.Substring(i + 2, len);
                 foreach (var subsequence in escapeSequence.Split(';')) EscapeSequenceActions[subsequence](this);
-
                 i = endSequence;
                 continue;
             }

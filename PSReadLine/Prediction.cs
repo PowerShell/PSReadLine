@@ -19,7 +19,7 @@ public partial class PSConsoleReadLine
     private const string PSReadLine = "PSReadLine";
     private static readonly PredictionClient s_predictionClient = new(PSReadLine, PredictionClientKind.Terminal);
 
-    private readonly Prediction _prediction;
+    internal readonly Prediction _Prediction;
 
     // Stub helper methods so prediction can be mocked
     [ExcludeFromCodeCoverage]
@@ -59,7 +59,7 @@ public partial class PSConsoleReadLine
     /// <param name="success">Whether the execution was successful.</param>
     private void ReportExecutionStatus(bool success)
     {
-        _prediction.OnCommandLineExecuted(_acceptedCommandLine, success);
+        _Prediction.OnCommandLineExecuted(_acceptedCommandLine, success);
     }
 
     /// <summary>
@@ -67,18 +67,19 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void AcceptSuggestion(ConsoleKeyInfo? key = null, object arg = null)
     {
-        var prediction = _singleton._prediction;
+        var prediction = Singleton._Prediction;
         if (prediction.ActiveView is PredictionInlineView inlineView && inlineView.HasActiveSuggestion)
         {
             // Ignore the visual selection.
-            _singleton._visualSelectionCommandCount = 0;
+            Singleton._visualSelectionCommandCount = 0;
 
             inlineView.OnSuggestionAccepted();
 
             using var _ = prediction.DisableScoped();
 
-            _singleton._current = _singleton._buffer.Length;
-            Insert(inlineView.SuggestionText.Substring(_singleton._current));
+            var val = Singleton.buffer.Length;
+            _renderer.Current = val;
+            Insert(inlineView.SuggestionText.Substring(_renderer.Current));
         }
     }
 
@@ -97,19 +98,19 @@ public partial class PSConsoleReadLine
     /// </summary>
     private static void AcceptNextSuggestionWord(int numericArg)
     {
-        if (_singleton._prediction.ActiveView is PredictionInlineView inlineView && inlineView.HasActiveSuggestion)
+        if (Singleton._Prediction.ActiveView is PredictionInlineView inlineView && inlineView.HasActiveSuggestion)
         {
             // Ignore the visual selection.
-            _singleton._visualSelectionCommandCount = 0;
+            Singleton._visualSelectionCommandCount = 0;
 
-            var start = _singleton._buffer.Length;
+            var start = Singleton.buffer.Length;
             var index = start;
             while (numericArg-- > 0 && index < inlineView.SuggestionText.Length)
-                index = inlineView.FindForwardSuggestionWordPoint(index, _singleton.Options.WordDelimiters);
+                index = inlineView.FindForwardSuggestionWordPoint(index, Singleton.Options.WordDelimiters);
 
             inlineView.OnSuggestionAccepted();
 
-            _singleton._current = start;
+            _renderer.Current = start;
             Insert(inlineView.SuggestionText.Substring(start, index - start));
         }
     }
@@ -137,12 +138,12 @@ public partial class PSConsoleReadLine
     /// <summary>
     ///     Implementation for updating the selected item in list view.
     /// </summary>
-    private static bool UpdateListSelection(int numericArg)
+    public static bool UpdateListSelection(int numericArg)
     {
-        if (_singleton._prediction.ActiveView is PredictionListView listView && listView.HasActiveSuggestion)
+        if (Singleton._Prediction.ActiveView is PredictionListView listView && listView.HasActiveSuggestion)
         {
             // Ignore the visual selection.
-            _singleton._visualSelectionCommandCount = 0;
+            Singleton._visualSelectionCommandCount = 0;
 
             listView.UpdateListSelection(numericArg);
             ReplaceSelection(listView.SelectedItemText);
@@ -164,32 +165,32 @@ public partial class PSConsoleReadLine
         var insertStringItem = EditItemInsertString.Create(selectedItemText, 0);
         insertStringItem.Replaceable = true;
 
-        if (_singleton.IsLastEditItemReplaceable)
+        if (Singleton.IsLastEditItemReplaceable)
         {
-            _singleton.SaveEditItem(insertStringItem);
-            _singleton._buffer.Clear();
-            _singleton._buffer.Append(selectedItemText);
-            _singleton._current = selectedItemText.Length;
+            Singleton.SaveEditItem(insertStringItem);
+            Singleton.buffer.Clear();
+            Singleton.buffer.Append(selectedItemText);
+            _renderer.Current = selectedItemText.Length;
 
-            _singleton.Render();
+            _renderer.Render();
             return;
         }
 
-        var useEditGroup = _singleton._editGroupStart == -1;
-        if (useEditGroup) _singleton.StartEditGroup();
+        var useEditGroup = Singleton._editGroupStart == -1;
+        if (useEditGroup) Singleton.StartEditGroup();
 
-        var str = _singleton._buffer.ToString();
-        _singleton.SaveEditItem(EditItemDelete.Create(str, 0));
-        _singleton._buffer.Clear();
+        var str = Singleton.buffer.ToString();
+        Singleton.SaveEditItem(EditItemDelete.Create(str, 0));
+        Singleton.buffer.Clear();
 
-        _singleton.SaveEditItem(insertStringItem);
-        _singleton._buffer.Append(selectedItemText);
-        _singleton._current = selectedItemText.Length;
+        Singleton.SaveEditItem(insertStringItem);
+        Singleton.buffer.Append(selectedItemText);
+        _renderer.Current = selectedItemText.Length;
 
         if (useEditGroup)
         {
-            _singleton.EndEditGroup(); // Instigator is needed for VI undo
-            _singleton.Render();
+            Singleton.EndEditGroup(); // Instigator is needed for VI undo
+            _renderer.Render();
         }
     }
 
@@ -199,12 +200,12 @@ public partial class PSConsoleReadLine
     public static void SwitchPredictionView(ConsoleKeyInfo? key = null, object arg = null)
     {
         var count = Enum.GetNames(typeof(PredictionViewStyle)).Length;
-        var value = (int) _singleton.Options.PredictionViewStyle;
+        var value = (int) Singleton.Options.PredictionViewStyle;
         var style = (PredictionViewStyle) ((value + 1) % count);
 
-        _singleton.Options.PredictionViewStyle = style;
-        _singleton._prediction.SetViewStyle(style);
-        _singleton.Render();
+        Singleton.Options.PredictionViewStyle = style;
+        Singleton._Prediction.SetViewStyle(style);
+        _renderer.Render();
     }
 
     /// <summary>
@@ -214,7 +215,7 @@ public partial class PSConsoleReadLine
     {
         if (viewStyle != PredictionViewStyle.ListView) return;
 
-        var console = _singleton._console;
+        var console = Renderer.Console;
         var minWidth = PredictionListView.MinWindowWidth;
         var minHeight = PredictionListView.MinWindowHeight;
 
@@ -226,7 +227,7 @@ public partial class PSConsoleReadLine
     /// <summary>
     ///     The type that controls the predictive suggestion feature and exposes the active view.
     /// </summary>
-    private class Prediction
+    internal class Prediction
     {
         private readonly PSConsoleReadLine _singleton;
         private PredictionInlineView _inlineView;
@@ -374,7 +375,7 @@ public partial class PSConsoleReadLine
 
                 retValue = true;
                 using var _ = DisableScoped();
-                _singleton.Render();
+                _renderer.Render();
             }
 
             return retValue;
@@ -386,7 +387,7 @@ public partial class PSConsoleReadLine
         internal void OnCommandLineAccepted(string commandLine)
         {
             if (ActiveView.UsePlugin && !string.IsNullOrWhiteSpace(commandLine))
-                _singleton._mockableMethods.OnCommandLineAccepted(_singleton._recentHistory.ToArray());
+                _singleton._mockableMethods.OnCommandLineAccepted(_hs.RecentHistory.ToArray());
         }
 
         /// <summary>

@@ -74,16 +74,15 @@ namespace Microsoft.PowerShell
         /// <param name="c">Character to insert</param>
         public static void Insert(char c)
         {
-            _singleton.SaveEditItem(EditItemInsertChar.Create(c, _singleton._current));
+            Singleton.SaveEditItem(EditItemInsertChar.Create(c, _renderer.Current));
 
             // Use Append if possible because Insert at end makes StringBuilder quite slow.
-            if (_singleton._current == _singleton._buffer.Length)
-                _singleton._buffer.Append(c);
+            if (_renderer.Current == Singleton.buffer.Length)
+                Singleton.buffer.Append(c);
             else
-                _singleton._buffer.Insert(_singleton._current, c);
-
-            _singleton._current += 1;
-            _singleton.Render();
+                Singleton.buffer.Insert(_renderer.Current, c);
+            _renderer.Current = _renderer.Current + 1;
+            _renderer.Render();
         }
 
         /// <summary>
@@ -92,16 +91,15 @@ namespace Microsoft.PowerShell
         /// <param name="s">String to insert</param>
         public static void Insert(string s)
         {
-            _singleton.SaveEditItem(EditItemInsertString.Create(s, _singleton._current));
+            Singleton.SaveEditItem(EditItemInsertString.Create(s, _renderer.Current));
 
             // Use Append if possible because Insert at end makes StringBuilder quite slow.
-            if (_singleton._current == _singleton._buffer.Length)
-                _singleton._buffer.Append(s);
+            if (_renderer.Current == Singleton.buffer.Length)
+                Singleton.buffer.Append(s);
             else
-                _singleton._buffer.Insert(_singleton._current, s);
-
-            _singleton._current += s.Length;
-            _singleton.Render();
+                Singleton.buffer.Insert(_renderer.Current, s);
+            _renderer.Current = _renderer.Current + s.Length;
+            _renderer.Render();
         }
 
         /// <summary>
@@ -125,34 +123,33 @@ namespace Microsoft.PowerShell
         public static void Replace(int start, int length, string replacement,
             Action<ConsoleKeyInfo?, object> instigator = null, object instigatorArg = null)
         {
-            if (start < 0 || start > _singleton._buffer.Length)
+            if (start < 0 || start > Singleton.buffer.Length)
                 throw new ArgumentException(PSReadLineResources.StartOutOfRange, nameof(start));
-
-            if (length > _singleton._buffer.Length - start || length < 0)
+            if (length > Singleton.buffer.Length - start || length < 0)
                 throw new ArgumentException(PSReadLineResources.ReplacementLengthInvalid, nameof(length));
 
-            var useEditGroup = _singleton._editGroupStart == -1;
+            var useEditGroup = Singleton._editGroupStart == -1;
 
-            if (useEditGroup) _singleton.StartEditGroup();
+            if (useEditGroup) Singleton.StartEditGroup();
 
-            var str = _singleton._buffer.ToString(start, length);
-            _singleton.SaveEditItem(EditItemDelete.Create(str, start));
-            _singleton._buffer.Remove(start, length);
+            var str = Singleton.buffer.ToString(start, length);
+            Singleton.SaveEditItem(EditItemDelete.Create(str, start));
+            Singleton.buffer.Remove(start, length);
             if (replacement != null)
             {
-                _singleton.SaveEditItem(EditItemInsertString.Create(replacement, start));
-                _singleton._buffer.Insert(start, replacement);
-                _singleton._current = start + replacement.Length;
+                Singleton.SaveEditItem(EditItemInsertString.Create(replacement, start));
+                Singleton.buffer.Insert(start, replacement);
+                _renderer.Current = start + replacement.Length;
             }
             else
             {
-                _singleton._current = start;
+                _renderer.Current = start;
             }
 
             if (useEditGroup)
             {
-                _singleton.EndEditGroup(instigator, instigatorArg); // Instigator is needed for VI undo
-                _singleton.Render();
+                Singleton.EndEditGroup(instigator, instigatorArg); // Instigator is needed for VI undo
+                _renderer.Render();
             }
         }
 
@@ -161,8 +158,8 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void GetBufferState(out string input, out int cursor)
         {
-            input = _singleton._buffer.ToString();
-            cursor = _singleton._current;
+            input = Singleton.buffer.ToString();
+            cursor = _renderer.Current;
         }
 
         /// <summary>
@@ -170,11 +167,12 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void GetBufferState(out Ast ast, out Token[] tokens, out ParseError[] parseErrors, out int cursor)
         {
-            _singleton.ParseInput();
-            ast = _singleton._ast;
-            tokens = _singleton._tokens;
-            parseErrors = _singleton._parseErrors;
-            cursor = _singleton._current;
+            var tempQualifier = Singleton;
+            tempQualifier.buffer.ToString();
+            ast = Singleton.RLAst;
+            tokens = Singleton.Tokens;
+            parseErrors = Singleton.ParseErrors;
+            cursor = _renderer.Current;
         }
 
         /// <summary>
@@ -184,14 +182,14 @@ namespace Microsoft.PowerShell
         /// <param name="length">The length of the current selection or -1 if nothing is selected.</param>
         public static void GetSelectionState(out int start, out int length)
         {
-            if (_singleton._visualSelectionCommandCount == 0)
+            if (Singleton._visualSelectionCommandCount == 0)
             {
                 start = -1;
                 length = -1;
             }
             else
             {
-                _singleton.GetRegion(out start, out length);
+                _renderer.GetRegion(out start, out length);
             }
         }
 
@@ -200,12 +198,11 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void SetCursorPosition(int cursor)
         {
-            if (cursor > _singleton._buffer.Length + ViEndOfLineFactor)
-                cursor = _singleton._buffer.Length + ViEndOfLineFactor;
-
+            if (cursor > Singleton.buffer.Length + ViEndOfLineFactor)
+                cursor = Singleton.buffer.Length + ViEndOfLineFactor;
             if (cursor < 0) cursor = 0;
 
-            _singleton.MoveCursor(cursor);
+            _renderer.MoveCursor(cursor);
         }
 
         /// <summary>

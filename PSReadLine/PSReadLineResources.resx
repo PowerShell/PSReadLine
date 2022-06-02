@@ -59,8 +59,7 @@
               : using a System.ComponentModel.TypeConverter
               : and then encoded with base64 encoding.
       -->
-    <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata"
-                id="root"
+    <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata" id="root"
                 xmlns="">
         <xsd:import namespace="http://www.w3.org/XML/1998/namespace"/>
         <xsd:element name="root" msdata:IsDataSet="true">
@@ -861,7 +860,7 @@ Or not saving history with:
     <data name="SelectCommandArgumentDescription" xml:space="preserve">
     <value>Make visual selection of the command arguments.</value>
   </data>
-    <data name="FailedToConvertPointToRenderDataOffset" xml:space="preserve">
+  <data name="FailedToConvertPointToRenderDataOffset" xml:space="preserve">
     <value>Cannot locate the offset in the rendered text that was pointed by the original cursor. Initial Coord: ({0}, {1}) Buffer: ({2}, {3}) Cursor: ({4}, {5})</value>
   </data>
 </root>

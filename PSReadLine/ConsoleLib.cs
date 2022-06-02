@@ -36,9 +36,7 @@ internal class VirtualTerminal : IConsole
 
     public virtual int CursorSize
     {
-        get => PlatformWindows.IsConsoleApiAvailable(false, true)
-            ? Console.CursorSize
-            : _unixCursorSize;
+        get => PlatformWindows.IsConsoleApiAvailable(false, true) ? Console.CursorSize : _unixCursorSize;
         set
         {
             if (PlatformWindows.IsConsoleApiAvailable(false, true))

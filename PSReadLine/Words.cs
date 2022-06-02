@@ -44,14 +44,12 @@ public partial class PSConsoleReadLine
         {
             case FindTokenMode.CurrentOrNext:
                 if (token == null && i + 1 < tokens.Count) token = tokens[i + 1];
-
                 break;
             case FindTokenMode.Next:
                 if (!foundNestedToken)
                     // If there is no next token, return null (happens with nested
                     // tokens where there is no EOF/EOS token).
                     token = i + 1 < tokens.Count ? tokens[i + 1] : null;
-
                 break;
             case FindTokenMode.Previous:
                 if (token == null)
@@ -71,13 +69,12 @@ public partial class PSConsoleReadLine
 
     private Token FindToken(int current, FindTokenMode mode)
     {
-        MaybeParseInput();
-        return FindNestedToken(current, _tokens, mode);
+        return FindNestedToken(current, Tokens, mode);
     }
 
     private bool InWord(int index, string wordDelimiters)
     {
-        var c = _buffer[index];
+        var c = buffer[index];
         return InWord(c, wordDelimiters);
     }
 
@@ -91,22 +88,20 @@ public partial class PSConsoleReadLine
     /// </summary>
     private int FindForwardWordPoint(string wordDelimiters)
     {
-        var i = _current;
-        if (i == _buffer.Length) return i;
+        var i = _renderer.Current;
+        if (i == buffer.Length) return i;
 
         if (!InWord(i, wordDelimiters))
             // Scan to end of current non-word region
-            while (i < _buffer.Length)
+            while (i < buffer.Length)
             {
                 if (InWord(i, wordDelimiters)) break;
-
                 i += 1;
             }
 
-        while (i < _buffer.Length)
+        while (i < buffer.Length)
         {
             if (!InWord(i, wordDelimiters)) break;
-
             i += 1;
         }
 
@@ -118,22 +113,20 @@ public partial class PSConsoleReadLine
     /// </summary>
     private int FindNextWordPoint(string wordDelimiters)
     {
-        var i = _singleton._current;
-        if (i == _singleton._buffer.Length) return i;
+        var i = _renderer.Current;
+        if (i == Singleton.buffer.Length) return i;
 
         if (InWord(i, wordDelimiters))
             // Scan to end of current word region
-            while (i < _singleton._buffer.Length)
+            while (i < Singleton.buffer.Length)
             {
                 if (!InWord(i, wordDelimiters)) break;
-
                 i += 1;
             }
 
-        while (i < _singleton._buffer.Length)
+        while (i < Singleton.buffer.Length)
         {
             if (InWord(i, wordDelimiters)) break;
-
             i += 1;
         }
 
@@ -145,7 +138,7 @@ public partial class PSConsoleReadLine
     /// </summary>
     private int FindBackwardWordPoint(string wordDelimiters)
     {
-        var i = _current - 1;
+        var i = _renderer.Current - 1;
         if (i < 0) return 0;
 
         if (!InWord(i, wordDelimiters))
@@ -153,7 +146,6 @@ public partial class PSConsoleReadLine
             while (i > 0)
             {
                 if (InWord(i, wordDelimiters)) break;
-
                 i -= 1;
             }
 

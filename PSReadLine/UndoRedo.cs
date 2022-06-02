@@ -105,19 +105,17 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void Undo(ConsoleKeyInfo? key = null, object arg = null)
     {
-        if (_singleton._undoEditIndex > 0)
+        if (Singleton._undoEditIndex > 0)
         {
-            if (_singleton._statusIsErrorMessage)
+            if (Singleton._statusIsErrorMessage)
                 // After an edit, clear the error message
-                _singleton.ClearStatusMessage(false);
+                Singleton.ClearStatusMessage(false);
+            Singleton._edits[Singleton._undoEditIndex - 1].Undo();
+            Singleton._undoEditIndex--;
 
-            _singleton._edits[_singleton._undoEditIndex - 1].Undo();
-            _singleton._undoEditIndex--;
-
-            if (_singleton.Options.EditMode == EditMode.Vi && _singleton._current >= _singleton._buffer.Length)
-                _singleton._current = Math.Max(0, _singleton._buffer.Length + ViEndOfLineFactor);
-
-            _singleton.Render();
+            if (Singleton.Options.EditMode == EditMode.Vi && _renderer.Current >= Singleton.buffer.Length)
+                _renderer.Current = Math.Max(0, Singleton.buffer.Length + ViEndOfLineFactor);
+            _renderer.Render();
         }
         else
         {
@@ -130,26 +128,16 @@ public partial class PSConsoleReadLine
     /// </summary>
     public static void Redo(ConsoleKeyInfo? key = null, object arg = null)
     {
-        if (_singleton._undoEditIndex < _singleton._edits.Count)
+        if (Singleton._undoEditIndex < Singleton._edits.Count)
         {
-            _singleton._edits[_singleton._undoEditIndex].Redo();
-            _singleton._undoEditIndex++;
-            _singleton.Render();
+            Singleton._edits[Singleton._undoEditIndex].Redo();
+            Singleton._undoEditIndex++;
+            _renderer.Render();
         }
         else
         {
             Ding();
         }
-    }
-
-    internal abstract class EditItem
-    {
-        public Action<ConsoleKeyInfo?, object> _instigator;
-        public object _instigatorArg;
-        public virtual bool Replaceable { get; set; }
-
-        public abstract void Undo();
-        public abstract void Redo();
     }
 
     [DebuggerDisplay("Insert '{_insertedCharacter}' ({_insertStartPosition})")]
@@ -170,21 +158,21 @@ public partial class PSConsoleReadLine
 
         public override void Undo()
         {
-            Debug.Assert(_singleton._buffer[_insertStartPosition] == _insertedCharacter,
+            Debug.Assert(Singleton.buffer[_insertStartPosition] == _insertedCharacter,
                 "Character to undo is not what it should be");
-            _singleton._buffer.Remove(_insertStartPosition, 1);
-            _singleton._current = _insertStartPosition;
+            Singleton.buffer.Remove(_insertStartPosition, 1);
+            _renderer.Current = _insertStartPosition;
         }
 
         public override void Redo()
         {
-            _singleton._buffer.Insert(_insertStartPosition, _insertedCharacter);
-            _singleton._current++;
+            Singleton.buffer.Insert(_insertStartPosition, _insertedCharacter);
+            _renderer.Current++;
         }
     }
 
     [DebuggerDisplay("Insert '{_insertedString}' ({_insertStartPosition})")]
-    private class EditItemInsertString : EditItem
+    public class EditItemInsertString : EditItem
     {
         // The string inserted tells us the length to delete on undo.
         // The contents of the string are only needed for redo.
@@ -205,16 +193,16 @@ public partial class PSConsoleReadLine
         public override void Undo()
         {
             Debug.Assert(
-                _singleton._buffer.ToString(_insertStartPosition, _insertedString.Length).Equals(_insertedString),
+                Singleton.buffer.ToString(_insertStartPosition, _insertedString.Length).Equals(_insertedString),
                 "Character to undo is not what it should be");
-            _singleton._buffer.Remove(_insertStartPosition, _insertedString.Length);
-            _singleton._current = _insertStartPosition;
+            Singleton.buffer.Remove(_insertStartPosition, _insertedString.Length);
+            _renderer.Current = _insertStartPosition;
         }
 
         public override void Redo()
         {
-            _singleton._buffer.Insert(_insertStartPosition, _insertedString);
-            _singleton._current += _insertedString.Length;
+            Singleton.buffer.Insert(_insertStartPosition, _insertedString);
+            _renderer.Current = _renderer.Current + _insertedString.Length;
         }
     }
 
@@ -240,7 +228,7 @@ public partial class PSConsoleReadLine
         public override void Undo()
         {
             base.Undo();
-            _singleton._current = _insertAnchor;
+            _renderer.Current = _insertAnchor;
         }
     }
 
@@ -281,16 +269,16 @@ public partial class PSConsoleReadLine
 
         public override void Undo()
         {
-            _singleton._buffer.Insert(_deleteStartPosition, _deletedString);
-            _singleton._current = _moveCursorToEndWhenUndo
+            Singleton.buffer.Insert(_deleteStartPosition, _deletedString);
+            _renderer.Current = _moveCursorToEndWhenUndo
                 ? _deleteStartPosition + _deletedString.Length
                 : _deleteStartPosition;
         }
 
         public override void Redo()
         {
-            _singleton._buffer.Remove(_deleteStartPosition, _deletedString.Length);
-            _singleton._current = _deleteStartPosition;
+            Singleton.buffer.Remove(_deleteStartPosition, _deletedString.Length);
+            _renderer.Current = _deleteStartPosition;
         }
     }
 
@@ -318,7 +306,7 @@ public partial class PSConsoleReadLine
         public override void Undo()
         {
             base.Undo();
-            _singleton._current = _deleteAnchor;
+            _renderer.Current = _deleteAnchor;
         }
     }
 
@@ -339,12 +327,12 @@ public partial class PSConsoleReadLine
 
         public override void Redo()
         {
-            _singleton.SwapCharactersImpl(_swapPosition);
+            Singleton.SwapCharactersImpl(_swapPosition);
         }
 
         public override void Undo()
         {
-            _singleton.SwapCharactersImpl(_swapPosition);
+            Singleton.SwapCharactersImpl(_swapPosition);
         }
     }
 

@@ -155,7 +155,6 @@ internal class WindowsAnsiCharMap : ICharMap
                 // If there are more than two, we would have processed the sequence
                 // before if it was valid.
                 if (_addKeyIndex == 2) ProcessAltSequence();
-
                 _readKeyIndexTo = _addKeyIndex;
                 return true;
             }
@@ -175,7 +174,6 @@ internal class WindowsAnsiCharMap : ICharMap
             if (++_readKeyIndexFrom == _readKeyIndexTo)
             {
                 for (var i = _readKeyIndexTo; i < _addKeyIndex; i++) SetKey(i - _readKeyIndexTo, _pendingKeys[i]);
-
                 _addKeyIndex -= _readKeyIndexTo;
                 _readKeyIndexFrom = _readKeyIndexTo = 0;
             }
@@ -294,12 +292,10 @@ internal class WindowsAnsiCharMap : ICharMap
         // Only return valid key indexes for this scan.
         // None of the valid sequence characters have a KeyChar of '\0'.
         if (i >= _pendingKeys.Count || i >= _addKeyIndex) return '\0';
-
         var ch = _pendingKeys[i].KeyChar;
         // These characters can't be preceded by Esc (from showkey -a).
         //         Esc            Tab/^I        ^Enter/^J      Non-ASCII
         if (ch == '\x1b' || ch == '\x09' || ch == '\x0a' || ch >= '\x7f') return '\0';
-
         return ch;
     }
 
@@ -326,7 +322,6 @@ internal class WindowsAnsiCharMap : ICharMap
         _readKeyIndexTo = 1;
         _readKeyIndexFrom = 0;
         for (var i = 1; i < _addKeyIndex; i++) SetKey(i, _pendingKeys[i + 1]);
-
         return true;
     }
 
@@ -344,7 +339,6 @@ internal class WindowsAnsiCharMap : ICharMap
             // sequence. Either way, we want to read everything up to the
             // escape that was just processed.
             if (_pendingKeys[0].KeyChar == '\x1b') ProcessAltSequence();
-
             _readKeyIndexFrom = 0;
             _readKeyIndexTo = _addKeyIndex - 1;
             _escTimeoutStopwatch.Restart();
@@ -366,7 +360,6 @@ internal class WindowsAnsiCharMap : ICharMap
             // characters, that means the first two which were entered
             // before the timer expiring could be an alt sequence.
             if (_addKeyIndex >= 3) ProcessAltSequence();
-
             _readKeyIndexFrom = 0;
             _readKeyIndexTo = _addKeyIndex;
         }
@@ -422,7 +415,6 @@ internal class WindowsAnsiCharMap : ICharMap
             // Completed ^[[x sequence (if the lookup succeeds).
             var index = Array.BinarySearch(_escBracketChars, ch);
             if (index < 0) return false;
-
             SetKey(0, new ConsoleKeyInfo('\0', _escBracketConsoleKeys[index], false, false, false));
             CondenseState();
             return true;
@@ -435,7 +427,6 @@ internal class WindowsAnsiCharMap : ICharMap
             ch = GetSeqChar(2);
             var index = Array.BinarySearch(_escOOrBracket1Chars, ch);
             if (index < 0) return false;
-
             SetKey(0, new ConsoleKeyInfo('\0', _escBracketConsoleKeys[index], false, false, false));
             CondenseState();
             return true;
@@ -450,26 +441,21 @@ internal class WindowsAnsiCharMap : ICharMap
         if (_addKeyIndex == 3)
             // Have ^[[1
             return true;
-
         if (GetSeqChar(3) != ';')
             // Expected ';', found something else.
             // If it's a number, it may be a sequence of the form ^[[1n~
             return ProcessBracketNTildeSequence();
-
         if (_addKeyIndex == 4)
             // Have ^[[1;
             return true;
-
         var ch = GetSeqChar(4);
         var modifierIndex = ch - '2';
         if (ch < '2' || ch > '8')
             // Modifiers only defined for 2-8.
             return false;
-
         if (_addKeyIndex == 5)
             // Have ^[[1;n - waiting for the last char.
             return true;
-
         ch = GetSeqChar(5);
         var charIndex = Array.BinarySearch(_escOOrBracket1Chars, ch);
         if (charIndex < 0) return false;
@@ -495,7 +481,6 @@ internal class WindowsAnsiCharMap : ICharMap
         if (_addKeyIndex == 3)
             // ^[[n - incomplete
             return true;
-
         var n = GetSeqChar(2) - '0';
         // Some variable length parts are allowed - 1 or 2 digits, possible
         // ";n" modifier sequence, so we need to track the current character index.
@@ -509,7 +494,6 @@ internal class WindowsAnsiCharMap : ICharMap
             if (_addKeyIndex == chIndex)
                 // Incomplete, still need possible modifiers and a final '~'.
                 return true;
-
             // Complete the two digit number.
             n = n * 10 + (ch - '0');
             ch = GetSeqChar(chIndex);
@@ -522,7 +506,6 @@ internal class WindowsAnsiCharMap : ICharMap
         {
             ++chIndex;
             if (_addKeyIndex == chIndex) return true;
-
             ch = GetSeqChar(chIndex);
             if (ch >= '2' && ch <= '8')
                 modifiers = _escBracketModifiers[ch - '2'];
@@ -532,7 +515,6 @@ internal class WindowsAnsiCharMap : ICharMap
 
             ++chIndex;
             if (_addKeyIndex == chIndex) return true;
-
             ch = GetSeqChar(chIndex);
         }
 

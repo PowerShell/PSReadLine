@@ -15,8 +15,7 @@ public class KeyboardLayout : DynamicObject
     public KeyboardLayout(string lang, string os)
     {
         var keyInfos = File.ReadAllText($"KeyInfo-{lang}-{os}.json");
-        foreach (var keyInfo in JsonConvert.DeserializeObject<List<KeyInfo>>(
-                     keyInfos))
+        foreach (var keyInfo in JsonConvert.DeserializeObject<List<KeyInfo>>(keyInfos))
         {
             var propName = keyInfo.KeyAsPropertyName();
             var consoleKeyInfo = keyInfo.AsConsoleKeyInfo();
@@ -151,7 +150,6 @@ public class KeyboardLayout : DynamicObject
                 case '8':
                 case '9':
                     if (Key.Length == 1) alt = CharAsPropertyName(lastChar);
-
                     break;
 
                 default:
@@ -168,7 +166,6 @@ public class KeyboardLayout : DynamicObject
         public ConsoleKeyInfo AsConsoleKeyInfo()
         {
             if (!Enum.TryParse<ConsoleKey>(ConsoleKey, out var consoleKey)) throw new InvalidCastException();
-
             return new ConsoleKeyInfo(KeyChar[0], consoleKey,
                 Modifiers.Contains("Shift"),
                 Modifiers.Contains("Alt"),

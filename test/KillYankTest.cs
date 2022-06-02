@@ -521,7 +521,6 @@ public partial class ReadLine
     public void Debug()
     {
         while (!Debugger.IsAttached) Thread.Sleep(200);
-
         Debugger.Break();
     }
 

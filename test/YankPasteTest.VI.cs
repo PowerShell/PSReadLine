@@ -253,12 +253,9 @@ public partial class ReadLine
 
         Test("012 456", Keys(
             "012 456", _.Escape,
-            "by", _.Spacebar, "P", CheckThat(() => AssertLineIs("012 4456")),
-            CheckThat(() => AssertCursorLeftIs(4)),
-            "u2y", _.Spacebar, "P", CheckThat(() => AssertLineIs("012 45456")),
-            CheckThat(() => AssertCursorLeftIs(5)),
-            "ully", _.Spacebar, "p", CheckThat(() => AssertLineIs("012 4566")),
-            CheckThat(() => AssertCursorLeftIs(7)),
+            "by", _.Spacebar, "P", CheckThat(() => AssertLineIs("012 4456")), CheckThat(() => AssertCursorLeftIs(4)),
+            "u2y", _.Spacebar, "P", CheckThat(() => AssertLineIs("012 45456")), CheckThat(() => AssertCursorLeftIs(5)),
+            "ully", _.Spacebar, "p", CheckThat(() => AssertLineIs("012 4566")), CheckThat(() => AssertCursorLeftIs(7)),
             "u"
         ));
 
@@ -272,8 +269,7 @@ public partial class ReadLine
 
         Test("012 456", Keys(
             "012 456", _.Escape,
-            "by", _.Dollar, "P", CheckThat(() => AssertLineIs("012 456456")),
-            CheckThat(() => AssertCursorLeftIs(6)),
+            "by", _.Dollar, "P", CheckThat(() => AssertLineIs("012 456456")), CheckThat(() => AssertCursorLeftIs(6)),
             "u", _.Dollar, "y", _.Dollar, "P", CheckThat(() => AssertLineIs("012 4566")),
             CheckThat(() => AssertCursorLeftIs(6)),
             "u", CheckThat(() => AssertLineIs("012 456")), CheckThat(() => AssertCursorLeftIs(6))

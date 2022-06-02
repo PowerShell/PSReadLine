@@ -2,12 +2,40 @@
 using System.Management.Automation;
 using System.Text;
 using Microsoft.PowerShell;
+using UnitTestPSReadLine;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Test;
 
-public partial class ReadLine
+public class en_US_Windows_RenderTest : RenderTest, IClassFixture<ConsoleFixture>
 {
+    public en_US_Windows_RenderTest(ConsoleFixture fixture, ITestOutputHelper output)
+        : base(fixture, output, "en-US", "windows")
+    {
+    }
+}
+
+public class fr_FR_Windows_RenderTest : RenderTest, IClassFixture<ConsoleFixture>
+{
+    public fr_FR_Windows_RenderTest(ConsoleFixture fixture, ITestOutputHelper output)
+        : base(fixture, output, "fr-FR", "windows")
+    {
+    }
+
+    internal override bool KeyboardHasLessThan => fr_FR_Windows_Options.KeyboardHasLessThan;
+    internal override bool KeyboardHasGreaterThan => fr_FR_Windows_Options.KeyboardHasGreaterThan;
+    internal override bool KeyboardHasCtrlRBracket => fr_FR_Windows_Options.KeyboardHasCtrlRBracket;
+    internal override bool KeyboardHasCtrlAt => fr_FR_Windows_Options.KeyboardHasCtrlAt;
+}
+
+public abstract class RenderTest : MyReadLine
+{
+    public RenderTest(ConsoleFixture fixture, ITestOutputHelper output, string lang, string os) : base(fixture, output,
+        lang, os)
+    {
+    }
+
     [SkippableFact]
     public void ClearScreen()
     {
@@ -312,8 +340,7 @@ public partial class ReadLine
         // Tricky prompt - writes to console directly with colors, uses ^H trick to eliminate trailng space.
         using (var ps = PowerShell.Create(RunspaceMode.CurrentRunspace))
         {
-            ps.AddCommand("New-Variable").AddParameter("Name", "__console").AddParameter("Value", _console)
-                .Invoke();
+            ps.AddCommand("New-Variable").AddParameter("Name", "__console").AddParameter("Value", _console).Invoke();
             ps.Commands.Clear();
             ps.AddScript(@"
 function prompt {

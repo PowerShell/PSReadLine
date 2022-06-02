@@ -14,7 +14,7 @@ public partial class PSConsoleReadLine
     /// </summary>
     private int ViFindNextWordPoint(string wordDelimiters)
     {
-        return ViFindNextWordPoint(_current, wordDelimiters);
+        return ViFindNextWordPoint(_renderer.Current, wordDelimiters);
     }
 
     /// <summary>
@@ -23,25 +23,20 @@ public partial class PSConsoleReadLine
     private int ViFindNextWordPoint(int i, string wordDelimiters)
     {
         if (IsAtEndOfLine(i)) return i;
-
         if (InWord(i, wordDelimiters)) return ViFindNextWordFromWord(i, wordDelimiters);
-
         if (IsDelimiter(i, wordDelimiters)) return ViFindNextWordFromDelimiter(i, wordDelimiters);
-
         return ViFindNextWordFromWhiteSpace(i, wordDelimiters);
     }
 
     private int ViFindNextWordFromWhiteSpace(int i, string wordDelimiters)
     {
         while (!IsAtEndOfLine(i) && IsWhiteSpace(i)) i++;
-
         return i;
     }
 
     private int ViFindNextWordFromDelimiter(int i, string wordDelimiters)
     {
         while (!IsAtEndOfLine(i) && IsDelimiter(i, wordDelimiters)) i++;
-
         if (IsAtEndOfLine(i))
         {
             if (IsDelimiter(i, wordDelimiters))
@@ -54,19 +49,17 @@ public partial class PSConsoleReadLine
         }
 
         while (!IsAtEndOfLine(i) && IsWhiteSpace(i)) i++;
-
         return i;
     }
 
     private bool IsAtEndOfLine(int i)
     {
-        return i >= _buffer.Length - 1;
+        return i >= buffer.Length - 1;
     }
 
     private int ViFindNextWordFromWord(int i, string wordDelimiters)
     {
         while (!IsAtEndOfLine(i) && InWord(i, wordDelimiters)) i++;
-
         if (IsAtEndOfLine(i) && InWord(i, wordDelimiters))
         {
             _shouldAppend = true;
@@ -75,15 +68,13 @@ public partial class PSConsoleReadLine
 
         if (IsDelimiter(i, wordDelimiters))
         {
-            _lastWordDelimiter = _buffer[i];
+            _lastWordDelimiter = buffer[i];
             return i;
         }
 
         while (!IsAtEndOfLine(i) && IsWhiteSpace(i)) i++;
-
         if (IsAtEndOfLine(i) && !InWord(i, wordDelimiters)) return i + 1;
-
-        _lastWordDelimiter = _buffer[i - 1];
+        _lastWordDelimiter = buffer[i - 1];
         return i;
     }
 
@@ -95,7 +86,7 @@ public partial class PSConsoleReadLine
         // Treat just beyond the end of buffer as whitespace because
         // it looks like whitespace to the user even though they haven't
         // entered a character yet.
-        return i >= _buffer.Length || char.IsWhiteSpace(_buffer[i]);
+        return i >= buffer.Length || char.IsWhiteSpace(buffer[i]);
     }
 
     /// <summary>
@@ -103,7 +94,7 @@ public partial class PSConsoleReadLine
     /// </summary>
     private int ViFindPreviousWordPoint(string wordDelimiters)
     {
-        return ViFindPreviousWordPoint(_current, wordDelimiters);
+        return ViFindPreviousWordPoint(_renderer.Current, wordDelimiters);
     }
 
     /// <summary>
@@ -119,7 +110,6 @@ public partial class PSConsoleReadLine
         if (IsWhiteSpace(i))
             return FindPreviousWordFromWhiteSpace(i, wordDelimiters);
         if (InWord(i, wordDelimiters)) return FindPreviousWordFromWord(i, wordDelimiters);
-
         return FindPreviousWordFromDelimiter(i, wordDelimiters);
     }
 
@@ -132,30 +122,22 @@ public partial class PSConsoleReadLine
         if (InWord(i, wordDelimiters))
         {
             while (i > 0 && InWord(i, wordDelimiters)) i--;
-
             if (i == 0 && InWord(i, wordDelimiters)) return i;
-
             return i + 1;
         }
 
         if (IsWhiteSpace(i))
         {
             while (i > 0 && IsWhiteSpace(i)) i--;
-
             if (i == 0) return i;
-
             if (InWord(i, wordDelimiters) && InWord(i - 1, wordDelimiters))
                 return FindPreviousWordFromWord(i, wordDelimiters);
-
             if (IsDelimiter(i - 1, wordDelimiters)) FindPreviousWordFromDelimiter(i, wordDelimiters);
-
             return i;
         }
 
         while (i > 0 && IsDelimiter(i, wordDelimiters)) i--;
-
         if (i == 0 && IsDelimiter(i, wordDelimiters)) return i;
-
         return i + 1;
     }
 
@@ -164,7 +146,7 @@ public partial class PSConsoleReadLine
     /// </summary>
     private bool IsDelimiter(int i, string wordDelimiters)
     {
-        return wordDelimiters.IndexOf(_buffer[i]) >= 0;
+        return wordDelimiters.IndexOf(buffer[i]) >= 0;
     }
 
     /// <summary>
@@ -175,7 +157,6 @@ public partial class PSConsoleReadLine
         foreach (var delimiter in wordDelimiters)
             if (c == delimiter)
                 return true;
-
         return false;
     }
 
@@ -188,11 +169,8 @@ public partial class PSConsoleReadLine
         if (IsDelimiter(i, wordDelimiters))
         {
             while (i > 0 && IsDelimiter(i, wordDelimiters)) i--;
-
             if (i == 0 && !IsDelimiter(i, wordDelimiters)) return i + 1;
-
             if (!IsWhiteSpace(i)) return i + 1;
-
             return i;
         }
 
@@ -206,10 +184,8 @@ public partial class PSConsoleReadLine
     private int FindPreviousWordFromWhiteSpace(int i, string wordDelimiters)
     {
         while (IsWhiteSpace(i) && i > 0) i--;
-
         var j = i - 1;
-        if (j < 0 || !InWord(i, wordDelimiters) || char.IsWhiteSpace(_buffer[j])) return i;
-
+        if (j < 0 || !InWord(i, wordDelimiters) || char.IsWhiteSpace(buffer[j])) return i;
         return ViFindPreviousWordPoint(i, wordDelimiters);
     }
 
@@ -223,31 +199,22 @@ public partial class PSConsoleReadLine
         if (!IsWhiteSpace(i))
         {
             while (i > 0 && !IsWhiteSpace(i)) i--;
-
             if (!IsWhiteSpace(i)) return i;
-
             return i + 1;
         }
 
         while (i > 0 && IsWhiteSpace(i)) i--;
-
         if (i == 0) return i;
-
         return ViFindPreviousGlob(i);
     }
 
     private int ViFindNextGlob(int i)
     {
-        if (i >= _buffer.Length) return i;
-
+        if (i >= buffer.Length) return i;
         while (!IsAtEndOfLine(i) && !IsWhiteSpace(i)) i++;
-
         if (IsAtEndOfLine(i) && !IsWhiteSpace(i)) return i + 1;
-
         while (!IsAtEndOfLine(i) && IsWhiteSpace(i)) i++;
-
         if (IsAtEndOfLine(i) && IsWhiteSpace(i)) return i + 1;
-
         return i;
     }
 
@@ -256,7 +223,7 @@ public partial class PSConsoleReadLine
     /// </summary>
     private int ViFindEndOfGlob()
     {
-        return ViFindGlobEnd(_current);
+        return ViFindGlobEnd(_renderer.Current);
     }
 
     /// <summary>
@@ -264,7 +231,7 @@ public partial class PSConsoleReadLine
     /// </summary>
     private int ViFindNextWordEnd(string wordDelimiters)
     {
-        var i = _current;
+        var i = _renderer.Current;
 
         return ViFindNextWordEnd(i, wordDelimiters);
     }
@@ -294,13 +261,11 @@ public partial class PSConsoleReadLine
         if (IsDelimiter(i, wordDelimiters))
         {
             while (!IsAtEndOfLine(i) && IsDelimiter(i, wordDelimiters)) i++;
-
             if (!IsDelimiter(i, wordDelimiters)) return i - 1;
         }
         else
         {
             while (!IsAtEndOfLine(i) && InWord(i, wordDelimiters)) i++;
-
             if (!InWord(i, wordDelimiters)) return i - 1;
         }
 
@@ -313,24 +278,18 @@ public partial class PSConsoleReadLine
     private int ViFindGlobEnd(int i)
     {
         if (IsAtEndOfLine(i)) return i;
-
         i++;
         if (IsAtEndOfLine(i)) return i;
-
         while (!IsAtEndOfLine(i) && IsWhiteSpace(i)) i++;
-
         if (IsAtEndOfLine(i)) return i;
-
         while (!IsAtEndOfLine(i) && !IsWhiteSpace(i)) i++;
-
         if (IsWhiteSpace(i)) return i - 1;
-
         return i;
     }
 
     private int ViFindEndOfPreviousGlob()
     {
-        var i = _current;
+        var i = _renderer.Current;
 
         return ViFindEndOfPreviousGlob(i);
     }
@@ -340,12 +299,10 @@ public partial class PSConsoleReadLine
         if (IsWhiteSpace(i))
         {
             while (i > 0 && IsWhiteSpace(i)) i--;
-
             return i;
         }
 
         while (i > 0 && !IsWhiteSpace(i)) i--;
-
         return ViFindEndOfPreviousGlob(i);
     }
 }

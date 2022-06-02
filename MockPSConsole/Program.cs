@@ -4,6 +4,7 @@ using System.Management.Automation;
 using System.Management.Automation.Runspaces;
 using System.Runtime.InteropServices;
 using Microsoft.PowerShell;
+using Microsoft.PowerShell.PSReadLine;
 
 namespace MockPSConsole
 {
@@ -62,10 +63,8 @@ namespace MockPSConsole
                 "ShellBackwardWord", "");
             PSConsoleReadLine.SetKeyHandler(new[] {"Ctrl+RightArrow"}, PSConsoleReadLine.ShellNextWord, "ShellNextWord",
                 "");
-            PSConsoleReadLine.SetKeyHandler(new[] {"F4"}, PSConsoleReadLine.HistorySearchBackward,
-                "HistorySearchBackward", "");
-            PSConsoleReadLine.SetKeyHandler(new[] {"F5"}, PSConsoleReadLine.HistorySearchForward,
-                "HistorySearchForward", "");
+            PSConsoleReadLine.SetKeyHandler(new[] {"F4"}, History.HistorySearchBackward, "HistorySearchBackward", "");
+            PSConsoleReadLine.SetKeyHandler(new[] {"F5"}, History.HistorySearchForward, "HistorySearchForward", "");
             PSConsoleReadLine.SetKeyHandler(new[] {"Ctrl+d,Ctrl+c"}, PSConsoleReadLine.CaptureScreen, "CaptureScreen",
                 "");
             PSConsoleReadLine.SetKeyHandler(new[] {"Ctrl+d,Ctrl+p"}, PSConsoleReadLine.InvokePrompt, "InvokePrompt",

@@ -12,22 +12,23 @@ public partial class PSConsoleReadLine
     /// <param name="arg" />
     public void MoveToFirstLine(ConsoleKeyInfo? key = null, object arg = null)
     {
-        if (!LineIsMultiLine())
+        if (!_renderer.LineIsMultiLine())
         {
             Ding(key, arg);
             return;
         }
 
-        var currentLine = GetLogicalLineNumber();
+        var currentLine = _renderer.GetLogicalLineNumber();
 
-        var pos = ConvertOffsetToPoint(_singleton._current);
+        var offset = _renderer.Current;
+        var pos = _renderer.ConvertOffsetToPoint(offset);
 
         pos.Y -= currentLine - 1;
 
-        var newCurrent = ConvertLineAndColumnToOffset(pos);
+        var newCurrent = _renderer.ConvertLineAndColumnToOffset(pos);
         var position = GetBeginningOfLinePos(newCurrent);
 
-        _singleton.MoveCursor(position);
+        _renderer.MoveCursor(position);
     }
 
     /// <summary>
@@ -38,23 +39,24 @@ public partial class PSConsoleReadLine
     /// <param name="arg" />
     public void MoveToLastLine(ConsoleKeyInfo? key = null, object arg = null)
     {
-        var count = GetLogicalLineCount();
+        var count = _renderer.GetLogicalLineCount();
         if (count == 1)
         {
             Ding(key, arg);
             return;
         }
 
-        var currentLine = GetLogicalLineNumber();
+        var currentLine = _renderer.GetLogicalLineNumber();
 
-        var pos = ConvertOffsetToPoint(_singleton._current);
+        var offset = _renderer.Current;
+        var pos = _renderer.ConvertOffsetToPoint(offset);
 
         pos.Y += count - currentLine;
 
-        var newCurrent = ConvertLineAndColumnToOffset(pos);
+        var newCurrent = _renderer.ConvertLineAndColumnToOffset(pos);
         var position = GetBeginningOfLinePos(newCurrent);
 
-        _singleton.MoveCursor(position);
+        _renderer.MoveCursor(position);
     }
 
     private void ViMoveToLine(int lineOffset)
@@ -85,18 +87,18 @@ public partial class PSConsoleReadLine
 
         if (_moveToLineCommandCount == 1 && _moveToLineDesiredColumn == -1)
         {
-            var startOfLine = GetBeginningOfLinePos(_current);
-            _moveToLineDesiredColumn = _current - startOfLine;
+            var startOfLine = GetBeginningOfLinePos(_renderer.Current);
+            _moveToLineDesiredColumn = _renderer.Current - startOfLine;
         }
 
         // Nothing needs to be done when:
         //  - actually not moving the line, or
         //  - moving the line down when it's at the end of the last logical line.
-        if (lineOffset == 0 || lineOffset > 0 && _current == _buffer.Length) return;
+        if (lineOffset == 0 || lineOffset > 0 && _renderer.Current == buffer.Length) return;
 
         int targetLineOffset;
 
-        var currentLineIndex = _singleton.GetLogicalLineNumber() - 1;
+        var currentLineIndex = _renderer.GetLogicalLineNumber() - 1;
 
         if (lineOffset < 0)
         {
@@ -104,7 +106,7 @@ public partial class PSConsoleReadLine
         }
         else
         {
-            var lastLineIndex = _singleton.GetLogicalLineCount() - 1;
+            var lastLineIndex = _renderer.GetLogicalLineCount() - 1;
             targetLineOffset = Math.Min(lastLineIndex, currentLineIndex + lineOffset);
         }
 
@@ -115,6 +117,6 @@ public partial class PSConsoleReadLine
             ? endOfTargetLinePos
             : Math.Min(startOfTargetLinePos + _moveToLineDesiredColumn, endOfTargetLinePos);
 
-        MoveCursor(newCurrent);
+        _renderer.MoveCursor(newCurrent);
     }
 }

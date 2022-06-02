@@ -745,8 +745,7 @@ public partial class ReadLine
         //   Get-Many2   Get-Many5   Get-Many8   Get-Many11  Get-Many14
 
         var basicScrollingConsole = new BasicScrollingConsole(keyboardLayout: _, width: 60, height: 10);
-        TestSetup(basicScrollingConsole, KeyMode.Cmd,
-            new KeyHandler("Ctrl+Spacebar", PSConsoleReadLine.MenuComplete));
+        TestSetup(basicScrollingConsole, KeyMode.Cmd, new KeyHandler("Ctrl+Spacebar", PSConsoleReadLine.MenuComplete));
 
         // Write 12 new-lines, so that the next input will be at the last line of the screen buffer.
         basicScrollingConsole.Write(new string('\n', 12));
@@ -979,8 +978,7 @@ public partial class ReadLine
                 TokenClassification.None, "reBook -Kind Fiction -FlatCover",
                 TokenClassification.None,
                 new string(' ',
-                    listWidth -
-                    48), // 48 is the length of '> Get-MoreBook -Kind Fiction -FlatCover' plus '[History]'.
+                    listWidth - 48), // 48 is the length of '> Get-MoreBook -Kind Fiction -FlatCover' plus '[History]'.
                 TokenClassification.None, '[',
                 TokenClassification.ListPrediction, "History",
                 TokenClassification.None, ']',
@@ -991,8 +989,7 @@ public partial class ReadLine
                 TokenClassification.None, "cha -AddMilk -AddSugur -ExtraCup",
                 TokenClassification.None,
                 new string(' ',
-                    listWidth -
-                    49), // 49 is the length of '> Get-Mocha -AddMilk -AddSugur -ExtraCup' plus '[History]'.
+                    listWidth - 49), // 49 is the length of '> Get-Mocha -AddMilk -AddSugur -ExtraCup' plus '[History]'.
                 TokenClassification.None, '[',
                 TokenClassification.ListPrediction, "History",
                 TokenClassification.None, ']')),
@@ -1026,8 +1023,7 @@ public partial class ReadLine
     {
         // This test case covers the fix to https://github.com/PowerShell/PSReadLine/issues/2928.
         var basicScrollingConsole = new BasicScrollingConsole(keyboardLayout: _, width: 133, height: 10);
-        TestSetup(basicScrollingConsole, KeyMode.Cmd,
-            new KeyHandler("Ctrl+Spacebar", PSConsoleReadLine.MenuComplete));
+        TestSetup(basicScrollingConsole, KeyMode.Cmd, new KeyHandler("Ctrl+Spacebar", PSConsoleReadLine.MenuComplete));
 
         // Write 12 new-lines, so that the next input will be at the last line of the screen buffer.
         basicScrollingConsole.Write(new string('\n', 12));
@@ -1126,8 +1122,7 @@ public partial class ReadLine
     {
         // This test case covers the fix to https://github.com/PowerShell/PSReadLine/issues/2948.
         var basicScrollingConsole = new BasicScrollingConsole(keyboardLayout: _, width: 133, height: 10);
-        TestSetup(basicScrollingConsole, KeyMode.Cmd,
-            new KeyHandler("Ctrl+Spacebar", PSConsoleReadLine.MenuComplete));
+        TestSetup(basicScrollingConsole, KeyMode.Cmd, new KeyHandler("Ctrl+Spacebar", PSConsoleReadLine.MenuComplete));
 
         // Write 12 new-lines, so that the next input will be at the last line of the screen buffer.
         basicScrollingConsole.Write(new string('\n', 12));
@@ -1366,13 +1361,11 @@ public partial class ReadLine
                 replacementIndex = 0;
                 replacementLength = 8;
                 for (var i = 0; i < 15; i++) completions.Add(new CompletionResult("Get-Many" + i));
-
                 break;
             case "Get-Less":
                 replacementIndex = 0;
                 replacementLength = 8;
                 for (var i = 0; i < 13; i++) completions.Add(new CompletionResult("Get-Less" + i));
-
                 break;
             case "Get-New":
                 replacementIndex = 0;

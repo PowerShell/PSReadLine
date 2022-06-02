@@ -25,7 +25,7 @@ internal sealed class QueueDebugView<T>
 
 [DebuggerDisplay("Count = {" + nameof(Count) + "}")]
 [DebuggerTypeProxy(typeof(QueueDebugView<>))]
-internal class HistoryQueue<T>
+public class HistoryQueue<T>
 {
     private readonly T[] _array;
     private int _head;
@@ -58,7 +58,6 @@ internal class HistoryQueue<T>
     public void Clear()
     {
         for (var i = 0; i < Count; i++) this[i] = default;
-
         _head = _tail = Count = 0;
     }
 
@@ -81,7 +80,6 @@ internal class HistoryQueue<T>
     public void Enqueue(T item)
     {
         if (Count == _array.Length) Dequeue();
-
         _array[_tail] = item;
         _tail = (_tail + 1) % _array.Length;
         Count += 1;

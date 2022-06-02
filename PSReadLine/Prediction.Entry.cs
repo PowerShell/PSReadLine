@@ -12,7 +12,7 @@ public partial class PSConsoleReadLine
     /// <summary>
     ///     This type represents an individual suggestion entry.
     /// </summary>
-    private struct SuggestionEntry
+    internal struct SuggestionEntry
     {
         internal readonly Guid PredictorId;
         internal readonly uint? PredictorSession;
@@ -66,7 +66,7 @@ public partial class PSConsoleReadLine
 
             // Calculate the 'SOURCE' portion to be rendered.
             var sourceStrLen = Source.Length;
-            var sourceWidth = LengthInBufferCells(Source);
+            var sourceWidth = _renderer.LengthInBufferCells(Source);
             if (sourceWidth > PredictionListView.SourceMaxWidth)
             {
                 sourceWidth = PredictionListView.SourceMaxWidth;
@@ -76,7 +76,7 @@ public partial class PSConsoleReadLine
             // Calculate the remaining width after deducting the ' [SOURCE]' portion and the leading '> ' part.
             // 5 is the length of the decoration characters: "> ", " [", and ']'.
             var textWidth = width - sourceWidth - 5;
-            var textMetadataColor = _singleton.Options._listPredictionColor;
+            var textMetadataColor = Singleton.Options._listPredictionColor;
 
             var line = new StringBuilder(width)
                 .Append(selectionHighlighting)
@@ -85,7 +85,7 @@ public partial class PSConsoleReadLine
                 .EndColorSection(selectionHighlighting)
                 .Append(' ');
 
-            var textLengthInCells = LengthInBufferCells(SuggestionText);
+            var textLengthInCells = _renderer.LengthInBufferCells(SuggestionText);
             if (textLengthInCells <= textWidth)
             {
                 // Things are easy when the suggestion text can fit in the text width.
@@ -100,7 +100,7 @@ public partial class PSConsoleReadLine
                         var start = InputMatchIndex + input.Length;
                         var length = SuggestionText.Length - start;
                         line.Append(SuggestionText, 0, InputMatchIndex)
-                            .Append(_singleton.Options.EmphasisColor)
+                            .Append(Singleton.Options.EmphasisColor)
                             .Append(SuggestionText, InputMatchIndex, input.Length)
                             .EndColorSection(selectionHighlighting)
                             .Append(SuggestionText, start, length);
@@ -130,13 +130,13 @@ public partial class PSConsoleReadLine
                     {
                         // The suggestion text starts with the user input, so we can divide the suggestion text into
                         // the user input (left portion) and the prediction text (right portion).
-                        var inputLenInCells = LengthInBufferCells(input);
+                        var inputLenInCells = _renderer.LengthInBufferCells(input);
                         if (inputLenInCells < textWidth / 2)
                         {
                             // If the user input portion takes less than half of the text width,
                             // then we just truncate the suggestion text at the end.
                             var length = SubstringLengthByCells(SuggestionText, textWidth - ellipsisLength);
-                            line.Append(_singleton.Options.EmphasisColor)
+                            line.Append(Singleton.Options.EmphasisColor)
                                 .Append(SuggestionText, 0, input.Length)
                                 .EndColorSection(selectionHighlighting)
                                 .Append(SuggestionText, input.Length, length - input.Length)
@@ -145,8 +145,8 @@ public partial class PSConsoleReadLine
                         else
                         {
                             // We want to reserve 5 cells at least to display the trailing characters of the user input (the left portion).
-                            var rightLenInCells =
-                                LengthInBufferCells(SuggestionText, input.Length, SuggestionText.Length);
+                            var rightLenInCells = _renderer.LengthInBufferCells(SuggestionText, input.Length,
+                                SuggestionText.Length);
                             if (rightLenInCells <= textWidth - ellipsisLength - 5)
                             {
                                 // If the prediction text (the right portion) can fit in the rest width, the list item
@@ -154,7 +154,7 @@ public partial class PSConsoleReadLine
                                 var remainingLenInCells = textWidth - ellipsisLength - rightLenInCells;
                                 var length = SubstringLengthByCellsFromEnd(SuggestionText, input.Length - 1,
                                     remainingLenInCells);
-                                line.Append(_singleton.Options.EmphasisColor)
+                                line.Append(Singleton.Options.EmphasisColor)
                                     .Append(ellipsis)
                                     .Append(SuggestionText, input.Length - length, length)
                                     .EndColorSection(selectionHighlighting)
@@ -168,7 +168,7 @@ public partial class PSConsoleReadLine
                                 var startIndex = input.Length - leftStrLen;
                                 var totalStrLen = SubstringLengthByCells(SuggestionText, startIndex,
                                     textWidth - ellipsisLength * 2);
-                                line.Append(_singleton.Options.EmphasisColor)
+                                line.Append(Singleton.Options.EmphasisColor)
                                     .Append(ellipsis)
                                     .Append(SuggestionText, startIndex, leftStrLen)
                                     .EndColorSection(selectionHighlighting)
@@ -187,8 +187,8 @@ public partial class PSConsoleReadLine
                         //  - prediction text on the left of the user input (left portion);
                         //  - user input (mid portion);
                         //  - prediction text on the right of the user input (right portion).
-                        var leftMidLenInCells =
-                            LengthInBufferCells(SuggestionText, 0, InputMatchIndex + input.Length);
+                        var end = InputMatchIndex + input.Length;
+                        var leftMidLenInCells = _renderer.LengthInBufferCells(SuggestionText, 0, end);
                         var rightStartindex = InputMatchIndex + input.Length;
                         // Round up the 2/3 of the text width and use that as the threshold.
                         var threshold = DivideAndRoundUp(textWidth * 2, 3);
@@ -198,7 +198,7 @@ public partial class PSConsoleReadLine
                             var rightStrLen = SubstringLengthByCells(SuggestionText, rightStartindex,
                                 textWidth - leftMidLenInCells - ellipsisLength);
                             line.Append(SuggestionText, 0, InputMatchIndex)
-                                .Append(_singleton.Options.EmphasisColor)
+                                .Append(Singleton.Options.EmphasisColor)
                                 .Append(SuggestionText, InputMatchIndex, input.Length)
                                 .EndColorSection(selectionHighlighting)
                                 .Append(SuggestionText, rightStartindex, rightStrLen)
@@ -206,8 +206,8 @@ public partial class PSConsoleReadLine
                             break;
                         }
 
-                        var midRightLenInCells =
-                            LengthInBufferCells(SuggestionText, InputMatchIndex, SuggestionText.Length);
+                        var midRightLenInCells = _renderer.LengthInBufferCells(SuggestionText, InputMatchIndex,
+                            SuggestionText.Length);
                         if (midRightLenInCells <= threshold)
                         {
                             // Otherwise, if the (mid+right) portions take up to 2/3 of the text width, we just truncate the suggestion text at the beginning.
@@ -215,15 +215,15 @@ public partial class PSConsoleReadLine
                                 textWidth - midRightLenInCells - ellipsisLength);
                             line.Append(ellipsis)
                                 .Append(SuggestionText, InputMatchIndex - leftStrLen, leftStrLen)
-                                .Append(_singleton.Options.EmphasisColor)
+                                .Append(Singleton.Options.EmphasisColor)
                                 .Append(SuggestionText, InputMatchIndex, input.Length)
                                 .EndColorSection(selectionHighlighting)
                                 .Append(SuggestionText, rightStartindex, SuggestionText.Length - rightStartindex);
                             break;
                         }
 
-                        var midLenInCells = LengthInBufferCells(SuggestionText, InputMatchIndex,
-                            InputMatchIndex + input.Length);
+                        var end1 = InputMatchIndex + input.Length;
+                        var midLenInCells = _renderer.LengthInBufferCells(SuggestionText, InputMatchIndex, end1);
                         // Round up the 1/3 of the text width and use that as the threshold.
                         threshold = DivideAndRoundUp(textWidth, 3);
                         if (midLenInCells <= threshold)
@@ -240,7 +240,7 @@ public partial class PSConsoleReadLine
 
                             line.Append(ellipsis)
                                 .Append(SuggestionText, InputMatchIndex - leftStrLen, leftStrLen)
-                                .Append(_singleton.Options.EmphasisColor)
+                                .Append(Singleton.Options.EmphasisColor)
                                 .Append(SuggestionText, InputMatchIndex, input.Length)
                                 .EndColorSection(selectionHighlighting)
                                 .Append(SuggestionText, rightStartindex, rightStrLen)
@@ -264,7 +264,7 @@ public partial class PSConsoleReadLine
                                 midRightCellLen);
 
                             line.Append(SuggestionText, 0, InputMatchIndex)
-                                .Append(_singleton.Options.EmphasisColor)
+                                .Append(Singleton.Options.EmphasisColor)
                                 .Append(SuggestionText, InputMatchIndex, midLeftStrLen)
                                 .Append(ellipsis)
                                 .Append(SuggestionText, rightStartindex - midRightStrLen, midRightStrLen)
@@ -295,7 +295,7 @@ public partial class PSConsoleReadLine
                                 midRemainingLenInCells);
 
                             line.Append(SuggestionText, 0, InputMatchIndex)
-                                .Append(_singleton.Options.EmphasisColor)
+                                .Append(Singleton.Options.EmphasisColor)
                                 .Append(SuggestionText, InputMatchIndex, midLeftStrLen)
                                 .Append(ellipsis)
                                 .Append(SuggestionText, rightStartindex - midRightStrLen, midRightStrLen)
@@ -323,7 +323,7 @@ public partial class PSConsoleReadLine
 
                             line.Append(ellipsis)
                                 .Append(SuggestionText, InputMatchIndex - leftStrLen, leftStrLen)
-                                .Append(_singleton.Options.EmphasisColor)
+                                .Append(Singleton.Options.EmphasisColor)
                                 .Append(SuggestionText, InputMatchIndex, midLeftStrLen)
                                 .Append(ellipsis)
                                 .Append(SuggestionText, rightStartindex - midRightStrLen, midRightStrLen)
@@ -353,7 +353,7 @@ public partial class PSConsoleReadLine
 
                             line.Append(ellipsis)
                                 .Append(SuggestionText, InputMatchIndex - leftStrLen, leftStrLen)
-                                .Append(_singleton.Options.EmphasisColor)
+                                .Append(Singleton.Options.EmphasisColor)
                                 .Append(SuggestionText, InputMatchIndex, midLeftStrLen)
                                 .Append(ellipsis)
                                 .Append(SuggestionText, rightStartindex - midRightStrLen, midRightStrLen)

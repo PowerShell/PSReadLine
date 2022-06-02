@@ -105,7 +105,6 @@ public static class ConsoleKeyChordConverter
                 if ((mods & thisMod) != 0)
                     // Found a duplicate modifier
                     throw CantConvert(PSReadLineResources.InvalidModifier, thisMod, chord);
-
                 mods |= thisMod;
 
                 if (start >= chord.Length)
@@ -129,7 +128,6 @@ public static class ConsoleKeyChordConverter
                 input = chord.Substring(start);
             else
                 input = chord.Substring(start, comma - start);
-
             start += input.Length;
 
             if (!MapKeyChar(input, ref mods, out var key, out var keyChar))
@@ -239,12 +237,10 @@ public static class ConsoleKeyChordConverter
                     case '_':
                         keyChar = '\x1f';
                         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) mods |= ConsoleModifiers.Shift;
-
                         break;
                     case '^':
                         keyChar = '\x1e';
                         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) mods |= ConsoleModifiers.Shift;
-
                         break;
                 }
 
@@ -261,7 +257,6 @@ public static class ConsoleKeyChordConverter
                     : '\x08';
             else
                 keyChar = keyPair.KeyChar;
-
             return true;
         }
 

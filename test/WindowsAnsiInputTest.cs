@@ -31,8 +31,7 @@ public partial class ReadLine
         Assert.Equal(ConsoleModifiers.Control, processedKey.Modifiers);
     }
 
-    private void CheckEscapeInput(ICharMap map, ConsoleKeyInfo intended, ConsoleKeyInfo[] keys,
-        bool inputOnly = false)
+    private void CheckEscapeInput(ICharMap map, ConsoleKeyInfo intended, ConsoleKeyInfo[] keys, bool inputOnly = false)
     {
         for (var i = 0; i < keys.Length; i++)
         {
@@ -141,7 +140,6 @@ public partial class ReadLine
         // ^[O^[ = Alt+O Esc
         var consoleKeys = StringToCKI("\x1bO\x1b");
         foreach (var ck in consoleKeys) map.ProcessKey(ck);
-
         Assert.True(map.KeyAvailable);
         processedKey = map.ReadKey();
         // Alt+O
@@ -158,7 +156,6 @@ public partial class ReadLine
         // ^[^[ = Esc Esc, not Alt+Esc.
         consoleKeys = StringToCKI("\x1b\x1b");
         foreach (var ck in consoleKeys) map.ProcessKey(ck);
-
         Assert.True(map.KeyAvailable);
         map.ReadKey();
         map.EscapeTimeout = 0;

@@ -55,8 +55,7 @@ public partial class ReadLine
         ));
 
         Test(@"vim .\xx\VisualEditing.vi.cs", Keys(
-            "vim ", _.Period, _.Backslash, "PSReadLine", _.Backslash, "VisualEditing", _.Period, "vi", _.Period,
-            "cs",
+            "vim ", _.Period, _.Backslash, "PSReadLine", _.Backslash, "VisualEditing", _.Period, "vi", _.Period, "cs",
             CheckThat(() => AssertLineIs(@"vim .\PSReadLine\VisualEditing.vi.cs")),
             _.Escape, "Bll", CheckThat(() => AssertCursorLeftIs(6)),
             "cw", _.Escape, CheckThat(() => AssertCursorLeftIs(5)),
@@ -67,8 +66,7 @@ public partial class ReadLine
         ));
 
         Test("$response.Headers['location']", Keys(
-            _.Dollar, "response", _.Period, "Headers", _.LBracket, _.SQuote, "location", _.SQuote, _.RBracket,
-            _.Escape,
+            _.Dollar, "response", _.Period, "Headers", _.LBracket, _.SQuote, "location", _.SQuote, _.RBracket, _.Escape,
             CheckThat(() => AssertLineIs("$response.Headers['location']")),
             "bb", CheckThat(() => AssertCursorLeftIs(19)),
             "cw", CheckThat(() => AssertLineIs("$response.Headers['']")),

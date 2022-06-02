@@ -18,6 +18,7 @@ internal static class Clipboard
 
     private const uint CF_TEXT = 1;
     private const uint CF_UNICODETEXT = 13;
+
     private static bool? _clipboardSupported;
 
     // Used if an external clipboard is not available, e.g. if xclip is missing.
@@ -308,7 +309,6 @@ internal static class Clipboard
         finally
         {
             if (data != IntPtr.Zero) Marshal.FreeHGlobal(data);
-
             if (hGlobal != IntPtr.Zero) GlobalFree(hGlobal);
         }
 
