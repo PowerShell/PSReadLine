@@ -11,29 +11,29 @@
         <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
         <TargetFrameworks>net462;net6.0</TargetFrameworks>
         <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
-        <LangVersion>9.0</LangVersion>
+        <LangVersion>10</LangVersion>
     </PropertyGroup>
 
     <ItemGroup Condition="'$(TargetFramework)' == 'net462'">
-        <PackageReference Include="PowerShellStandard.Library" version="5.1.0"/>
-        <PackageReference Include="Microsoft.CSharp" version="4.7.0"/>
-        <PackageReference Include="System.Runtime.InteropServices.RuntimeInformation" version="4.3.0"/>
-        <ProjectReference Include="..\Polyfill\Polyfill.csproj"/>
+        <PackageReference Include="PowerShellStandard.Library" version="5.1.0" />
+        <PackageReference Include="Microsoft.CSharp" version="4.7.0" />
+        <PackageReference Include="System.Runtime.InteropServices.RuntimeInformation" version="4.3.0" />
+        <ProjectReference Include="..\Polyfill\Polyfill.csproj" />
     </ItemGroup>
 
     <ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
-        <PackageReference Include="System.Management.Automation" Version="7.2.0"/>
+        <PackageReference Include="System.Management.Automation" Version="7.2.0" />
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.PowerShell.Pager" version="1.0.0"/>
+        <PackageReference Include="Microsoft.PowerShell.Pager" version="1.0.0" />
     </ItemGroup>
 
     <ItemGroup>
-        <None Include="PSReadLine.psd1" CopyToOutputDirectory="PreserveNewest"/>
-        <None Include="PSReadLine.psm1" CopyToOutputDirectory="PreserveNewest"/>
-        <None Include="PSReadLine.format.ps1xml" CopyToOutputDirectory="PreserveNewest"/>
-        <None Include="SamplePSReadLineProfile.ps1"/>
-        <None Include="Changes.txt"/>
+        <None Include="PSReadLine.psd1" CopyToOutputDirectory="PreserveNewest" />
+        <None Include="PSReadLine.psm1" CopyToOutputDirectory="PreserveNewest" />
+        <None Include="PSReadLine.format.ps1xml" CopyToOutputDirectory="PreserveNewest" />
+        <None Include="SamplePSReadLineProfile.ps1" />
+        <None Include="Changes.txt" />
     </ItemGroup>
 </Project>
