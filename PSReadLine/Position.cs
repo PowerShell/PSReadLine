@@ -1,111 +1,110 @@
 ﻿using System;
 using System.Diagnostics;
 
-namespace Microsoft.PowerShell
+namespace Microsoft.PowerShell;
+
+public partial class PSConsoleReadLine
 {
-    public partial class PSConsoleReadLine
+    /// <summary>
+    ///     Returns the position of the beginning of line
+    ///     starting from the specified "current" position.
+    /// </summary>
+    /// <param name="current">The position in the current logical line.</param>
+    private static int GetBeginningOfLinePos(int current)
     {
-        /// <summary>
-        ///     Returns the position of the beginning of line
-        ///     starting from the specified "current" position.
-        /// </summary>
-        /// <param name="current">The position in the current logical line.</param>
-        private static int GetBeginningOfLinePos(int current)
-        {
-            var i = Math.Max(0, current);
-            while (i > 0)
-                if (_singleton._buffer[--i] == '\n')
-                {
-                    i += 1;
-                    break;
-                }
-
-            return i;
-        }
-
-        /// <summary>
-        ///     Returns the position of the beginning of line
-        ///     for the 0-based specified line number.
-        /// </summary>
-        private static int GetBeginningOfNthLinePos(int lineIndex)
-        {
-            Debug.Assert(lineIndex >= 0 || lineIndex < _singleton.GetLogicalLineCount());
-
-            var nth = 0;
-            var index = 0;
-            var result = 0;
-
-            for (; index < _singleton._buffer.Length; index++)
+        var i = Math.Max(0, current);
+        while (i > 0)
+            if (_singleton._buffer[--i] == '\n')
             {
-                if (nth == lineIndex)
-                {
-                    result = index;
-                    break;
-                }
-
-                if (_singleton._buffer[index] == '\n') nth++;
+                i += 1;
+                break;
             }
 
-            if (nth == lineIndex) result = index;
+        return i;
+    }
 
+    /// <summary>
+    ///     Returns the position of the beginning of line
+    ///     for the 0-based specified line number.
+    /// </summary>
+    private static int GetBeginningOfNthLinePos(int lineIndex)
+    {
+        Debug.Assert(lineIndex >= 0 || lineIndex < _singleton.GetLogicalLineCount());
 
-            return result;
-        }
+        var nth = 0;
+        var index = 0;
+        var result = 0;
 
-        /// <summary>
-        ///     Returns the position of the end of the logical line
-        ///     as specified by the "current" position.
-        /// </summary>
-        /// <param name="current"></param>
-        /// <returns></returns>
-        private static int GetEndOfLogicalLinePos(int current)
+        for (; index < _singleton._buffer.Length; index++)
         {
-            var newCurrent = current;
-
-            for (var position = current; position < _singleton._buffer.Length; position++)
+            if (nth == lineIndex)
             {
-                if (_singleton._buffer[position] == '\n') break;
-
-                newCurrent = position;
+                result = index;
+                break;
             }
 
-            return newCurrent;
+            if (_singleton._buffer[index] == '\n') nth++;
         }
 
-        /// <summary>
-        ///     Returns the position of the end of the logical line
-        ///     for the 0-based specified line number.
-        /// </summary>
-        private static int GetEndOfNthLogicalLinePos(int lineIndex)
+        if (nth == lineIndex) result = index;
+
+
+        return result;
+    }
+
+    /// <summary>
+    ///     Returns the position of the end of the logical line
+    ///     as specified by the "current" position.
+    /// </summary>
+    /// <param name="current"></param>
+    /// <returns></returns>
+    private static int GetEndOfLogicalLinePos(int current)
+    {
+        var newCurrent = current;
+
+        for (var position = current; position < _singleton._buffer.Length; position++)
         {
-            return GetEndOfLogicalLinePos(
-                GetBeginningOfNthLinePos(lineIndex));
+            if (_singleton._buffer[position] == '\n') break;
+
+            newCurrent = position;
         }
 
-        /// <summary>
-        ///     Returns the position of the first non whitespace character in
-        ///     the current logical line as specified by the "current" position.
-        /// </summary>
-        /// <param name="current">The position in the current logical line.</param>
-        private static int GetFirstNonBlankOfLogicalLinePos(int current)
-        {
-            var beginningOfLine = GetBeginningOfLinePos(current);
+        return newCurrent;
+    }
 
-            var newCurrent = beginningOfLine;
+    /// <summary>
+    ///     Returns the position of the end of the logical line
+    ///     for the 0-based specified line number.
+    /// </summary>
+    private static int GetEndOfNthLogicalLinePos(int lineIndex)
+    {
+        return GetEndOfLogicalLinePos(
+            GetBeginningOfNthLinePos(lineIndex));
+    }
 
-            while (newCurrent < _singleton._buffer.Length && IsVisibleBlank(newCurrent)) newCurrent++;
+    /// <summary>
+    ///     Returns the position of the first non whitespace character in
+    ///     the current logical line as specified by the "current" position.
+    /// </summary>
+    /// <param name="current">The position in the current logical line.</param>
+    private static int GetFirstNonBlankOfLogicalLinePos(int current)
+    {
+        var beginningOfLine = GetBeginningOfLinePos(current);
 
-            return newCurrent;
-        }
+        var newCurrent = beginningOfLine;
 
-        private static bool IsVisibleBlank(int newCurrent)
-        {
-            var c = _singleton._buffer[newCurrent];
+        while (newCurrent < _singleton._buffer.Length && IsVisibleBlank(newCurrent)) newCurrent++;
 
-            // [:blank:] of vim's pattern matching behavior
-            // defines blanks as SPACE and TAB characters.
+        return newCurrent;
+    }
 
-            return c == ' ' || c == '\t';
-        }
+    private static bool IsVisibleBlank(int newCurrent)
+    {
+        var c = _singleton._buffer[newCurrent];
+
+        // [:blank:] of vim's pattern matching behavior
+        // defines blanks as SPACE and TAB characters.
+
+        return c == ' ' || c == '\t';
     }
 }

@@ -2,53 +2,52 @@
 using Microsoft.PowerShell;
 using Xunit;
 
-namespace Test
+namespace Test;
+
+public sealed class StringBuilderLinewiseExtensionsTests
 {
-    public sealed class StringBuilderLinewiseExtensionsTests
+    [Fact]
+    public void StringBuilderLinewiseExtensions_LinewiseYank_Fragment()
     {
-        [Fact]
-        public void StringBuilderLinewiseExtensions_LinewiseYank_Fragment()
-        {
-            var buffer = new StringBuilder("line1\nline2");
+        var buffer = new StringBuilder("line1\nline2");
 
-            // system under test
+        // system under test
 
-            var range = buffer.GetRange(1, 42);
+        var range = buffer.GetRange(1, 42);
 
-            // assert
+        // assert
 
-            Assert.Equal(5, range.Offset);
-            Assert.Equal(6, range.Count);
-        }
+        Assert.Equal(5, range.Offset);
+        Assert.Equal(6, range.Count);
+    }
 
-        [Fact]
-        public void StringBuilderLinewiseExtensions_LinewiseYank_Line()
-        {
-            var buffer = new StringBuilder("line1\nline2\n");
+    [Fact]
+    public void StringBuilderLinewiseExtensions_LinewiseYank_Line()
+    {
+        var buffer = new StringBuilder("line1\nline2\n");
 
-            // system under test
+        // system under test
 
-            var range = buffer.GetRange(1, 42);
+        var range = buffer.GetRange(1, 42);
 
-            // assert
+        // assert
 
-            Assert.Equal(5, range.Offset);
-            Assert.Equal(7, range.Count);
-        }
+        Assert.Equal(5, range.Offset);
+        Assert.Equal(7, range.Count);
+    }
 
-        [Fact]
-        public void StringBuilderLinewiseExtensions_LinewiseYank_Lines()
-        {
-            var buffer = new StringBuilder("line1\nline2\nline3\nline4");
+    [Fact]
+    public void StringBuilderLinewiseExtensions_LinewiseYank_Lines()
+    {
+        var buffer = new StringBuilder("line1\nline2\nline3\nline4");
 
-            // system under test
+        // system under test
 
-            var range = buffer.GetRange(1, 2);
+        var range = buffer.GetRange(1, 2);
 
-            // assert
+        // assert
 
-            Assert.Equal(5, range.Offset);
-            Assert.Equal(12, range.Count);
-        }
+        Assert.Equal(5, range.Offset);
+        Assert.Equal(12, range.Count);
     }
 }

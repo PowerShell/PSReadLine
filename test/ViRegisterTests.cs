@@ -2,155 +2,154 @@
 using Microsoft.PowerShell;
 using Xunit;
 
-namespace Test
+namespace Test;
+
+public sealed class ViRegisterTests
 {
-    public sealed class ViRegisterTests
+    [Fact]
+    public void ViRegister_Empty_LinewisePasteBefore()
     {
-        [Fact]
-        public void ViRegister_Empty_LinewisePasteBefore()
-        {
-            const string yanked = "line1";
+        const string yanked = "line1";
 
-            var register = new PSConsoleReadLine.ViRegister(null);
-            register.LinewiseRecord(yanked);
+        var register = new PSConsoleReadLine.ViRegister(null);
+        register.LinewiseRecord(yanked);
 
-            // system under test
+        // system under test
 
-            var buffer = new StringBuilder();
-            const int position = 2;
+        var buffer = new StringBuilder();
+        const int position = 2;
 
-            var newPosition = register.PasteBefore(buffer, position);
+        var newPosition = register.PasteBefore(buffer, position);
 
-            // assert expectations
+        // assert expectations
 
-            Assert.Equal("line1\n", buffer.ToString());
-            Assert.Equal(0, newPosition);
-        }
+        Assert.Equal("line1\n", buffer.ToString());
+        Assert.Equal(0, newPosition);
+    }
 
-        [Fact]
-        public void ViRegister_Fragment_LinewisePasteBefore()
-        {
-            const string yanked = "line1";
+    [Fact]
+    public void ViRegister_Fragment_LinewisePasteBefore()
+    {
+        const string yanked = "line1";
 
-            var register = new PSConsoleReadLine.ViRegister(null);
-            register.LinewiseRecord(yanked);
+        var register = new PSConsoleReadLine.ViRegister(null);
+        register.LinewiseRecord(yanked);
 
-            // system under test
+        // system under test
 
-            var buffer = new StringBuilder("line2");
-            const int position = 2;
+        var buffer = new StringBuilder("line2");
+        const int position = 2;
 
-            var newPosition = register.PasteBefore(buffer, position);
+        var newPosition = register.PasteBefore(buffer, position);
 
-            // assert expectations
+        // assert expectations
 
-            Assert.Equal("line1\nline2", buffer.ToString());
-            Assert.Equal(0, newPosition);
-        }
+        Assert.Equal("line1\nline2", buffer.ToString());
+        Assert.Equal(0, newPosition);
+    }
 
-        [Fact]
-        public void ViRegister_Lines_LinewisePasteBefore()
-        {
-            const string yanked = "\nline1\nline2";
+    [Fact]
+    public void ViRegister_Lines_LinewisePasteBefore()
+    {
+        const string yanked = "\nline1\nline2";
 
-            var register = new PSConsoleReadLine.ViRegister(null);
-            register.LinewiseRecord(yanked);
+        var register = new PSConsoleReadLine.ViRegister(null);
+        register.LinewiseRecord(yanked);
 
-            // system under test
+        // system under test
 
-            var buffer = new StringBuilder("\nline3");
-            const int position = 2;
+        var buffer = new StringBuilder("\nline3");
+        const int position = 2;
 
-            var newPosition = register.PasteBefore(buffer, position);
+        var newPosition = register.PasteBefore(buffer, position);
 
-            // assert expectations
+        // assert expectations
 
-            Assert.Equal("\nline1\nline2\nline3", buffer.ToString());
-            Assert.Equal(1, newPosition);
-        }
+        Assert.Equal("\nline1\nline2\nline3", buffer.ToString());
+        Assert.Equal(1, newPosition);
+    }
 
-        [Fact]
-        public void ViRegister_Fragment_LinewisePasteAfter_Fragment()
-        {
-            const string yanked = "line2";
+    [Fact]
+    public void ViRegister_Fragment_LinewisePasteAfter_Fragment()
+    {
+        const string yanked = "line2";
 
-            var register = new PSConsoleReadLine.ViRegister(null);
-            register.LinewiseRecord(yanked);
+        var register = new PSConsoleReadLine.ViRegister(null);
+        register.LinewiseRecord(yanked);
 
-            // system under test
+        // system under test
 
-            var buffer = new StringBuilder("line1");
-            const int position = 2;
+        var buffer = new StringBuilder("line1");
+        const int position = 2;
 
-            var newPosition = register.PasteAfter(buffer, position);
+        var newPosition = register.PasteAfter(buffer, position);
 
-            // assert expectations
+        // assert expectations
 
-            Assert.Equal("line1\nline2", buffer.ToString());
-            Assert.Equal(6, newPosition);
-        }
+        Assert.Equal("line1\nline2", buffer.ToString());
+        Assert.Equal(6, newPosition);
+    }
 
-        [Fact]
-        public void ViRegister_Fragment_LinewisePasteAfter_Lines()
-        {
-            const string yanked = "line2";
+    [Fact]
+    public void ViRegister_Fragment_LinewisePasteAfter_Lines()
+    {
+        const string yanked = "line2";
 
-            var register = new PSConsoleReadLine.ViRegister(null);
-            register.LinewiseRecord(yanked);
+        var register = new PSConsoleReadLine.ViRegister(null);
+        register.LinewiseRecord(yanked);
 
-            // system under test
+        // system under test
 
-            var buffer = new StringBuilder("line1\n");
-            const int position = 2;
+        var buffer = new StringBuilder("line1\n");
+        const int position = 2;
 
-            var newPosition = register.PasteAfter(buffer, position);
+        var newPosition = register.PasteAfter(buffer, position);
 
-            // assert expectations
+        // assert expectations
 
-            Assert.Equal("line1\nline2\n", buffer.ToString());
-            Assert.Equal(6, newPosition);
-        }
+        Assert.Equal("line1\nline2\n", buffer.ToString());
+        Assert.Equal(6, newPosition);
+    }
 
-        [Fact]
-        public void ViRegister_Lines_LinewisePasteAfter_Fragment()
-        {
-            const string yanked = "\nline2\nline3";
+    [Fact]
+    public void ViRegister_Lines_LinewisePasteAfter_Fragment()
+    {
+        const string yanked = "\nline2\nline3";
 
-            var register = new PSConsoleReadLine.ViRegister(null);
-            register.LinewiseRecord(yanked);
+        var register = new PSConsoleReadLine.ViRegister(null);
+        register.LinewiseRecord(yanked);
 
-            // system under test
+        // system under test
 
-            var buffer = new StringBuilder("line1");
-            const int position = 2;
+        var buffer = new StringBuilder("line1");
+        const int position = 2;
 
-            var newPosition = register.PasteAfter(buffer, position);
+        var newPosition = register.PasteAfter(buffer, position);
 
-            // assert expectations
+        // assert expectations
 
-            Assert.Equal("line1\nline2\nline3", buffer.ToString());
-            Assert.Equal(6, newPosition);
-        }
+        Assert.Equal("line1\nline2\nline3", buffer.ToString());
+        Assert.Equal(6, newPosition);
+    }
 
-        [Fact]
-        public void ViRegister_Lines_LinewisePasteAfter_Lines()
-        {
-            const string yanked = "\nline2\nline3";
+    [Fact]
+    public void ViRegister_Lines_LinewisePasteAfter_Lines()
+    {
+        const string yanked = "\nline2\nline3";
 
-            var register = new PSConsoleReadLine.ViRegister(null);
-            register.LinewiseRecord(yanked);
+        var register = new PSConsoleReadLine.ViRegister(null);
+        register.LinewiseRecord(yanked);
 
-            // system under test
+        // system under test
 
-            var buffer = new StringBuilder("line1\n");
-            const int position = 2;
+        var buffer = new StringBuilder("line1\n");
+        const int position = 2;
 
-            var newPosition = register.PasteAfter(buffer, position);
+        var newPosition = register.PasteAfter(buffer, position);
 
-            // assert expectations
+        // assert expectations
 
-            Assert.Equal("line1\nline2\nline3\n", buffer.ToString());
-            Assert.Equal(6, newPosition);
-        }
+        Assert.Equal("line1\nline2\nline3\n", buffer.ToString());
+        Assert.Equal(6, newPosition);
     }
 }

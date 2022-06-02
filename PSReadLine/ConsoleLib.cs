@@ -5,160 +5,159 @@ Copyright (c) Microsoft Corporation.  All rights reserved.
 using System;
 using System.Text;
 
-namespace Microsoft.PowerShell.Internal
+namespace Microsoft.PowerShell.Internal;
+
+internal class VirtualTerminal : IConsole
 {
-    internal class VirtualTerminal : IConsole
-    {
-        // These two fields are used by PowerShellEditorServices to inject a
-        // custom ReadKey implementation. This is not a public API, but it is
-        // part of a private contract with that project.
+    // These two fields are used by PowerShellEditorServices to inject a
+    // custom ReadKey implementation. This is not a public API, but it is
+    // part of a private contract with that project.
 #pragma warning disable CS0649
-        private static Func<bool, ConsoleKeyInfo> _readKeyOverride;
+    private static Func<bool, ConsoleKeyInfo> _readKeyOverride;
 #pragma warning restore CS0649
 
-        private static readonly Lazy<Func<bool, ConsoleKeyInfo>> _readKeyMethod = new(
-            () => _readKeyOverride == null ? Console.ReadKey : _readKeyOverride);
+    private static readonly Lazy<Func<bool, ConsoleKeyInfo>> _readKeyMethod = new(
+        () => _readKeyOverride == null ? Console.ReadKey : _readKeyOverride);
 
-        // .NET doesn't implement this API, so we fake it with a commonly supported escape sequence.
-        protected int _unixCursorSize = 25;
+    // .NET doesn't implement this API, so we fake it with a commonly supported escape sequence.
+    protected int _unixCursorSize = 25;
 
-        public int CursorLeft
+    public int CursorLeft
+    {
+        get => Console.CursorLeft;
+        set => Console.CursorLeft = value;
+    }
+
+    public int CursorTop
+    {
+        get => Console.CursorTop;
+        set => Console.CursorTop = value;
+    }
+
+    public virtual int CursorSize
+    {
+        get => PlatformWindows.IsConsoleApiAvailable(false, true)
+            ? Console.CursorSize
+            : _unixCursorSize;
+        set
         {
-            get => Console.CursorLeft;
-            set => Console.CursorLeft = value;
-        }
-
-        public int CursorTop
-        {
-            get => Console.CursorTop;
-            set => Console.CursorTop = value;
-        }
-
-        public virtual int CursorSize
-        {
-            get => PlatformWindows.IsConsoleApiAvailable(false, true)
-                ? Console.CursorSize
-                : _unixCursorSize;
-            set
+            if (PlatformWindows.IsConsoleApiAvailable(false, true))
             {
-                if (PlatformWindows.IsConsoleApiAvailable(false, true))
-                {
-                    Console.CursorSize = value;
-                }
-                else
-                {
-                    _unixCursorSize = value;
-                    // Solid blinking block or blinking vertical bar
-                    Write(value > 50 ? "\x1b[2 q" : "\x1b[5 q");
-                }
+                Console.CursorSize = value;
+            }
+            else
+            {
+                _unixCursorSize = value;
+                // Solid blinking block or blinking vertical bar
+                Write(value > 50 ? "\x1b[2 q" : "\x1b[5 q");
             }
         }
+    }
 
-        public bool CursorVisible
-        {
-            get => Console.CursorVisible;
-            set => Console.CursorVisible = value;
-        }
+    public bool CursorVisible
+    {
+        get => Console.CursorVisible;
+        set => Console.CursorVisible = value;
+    }
 
-        public int BufferWidth
-        {
-            get => Console.BufferWidth;
-            set => Console.BufferWidth = value;
-        }
+    public int BufferWidth
+    {
+        get => Console.BufferWidth;
+        set => Console.BufferWidth = value;
+    }
 
-        public int BufferHeight
-        {
-            get => Console.BufferHeight;
-            set => Console.BufferHeight = value;
-        }
+    public int BufferHeight
+    {
+        get => Console.BufferHeight;
+        set => Console.BufferHeight = value;
+    }
 
-        public int WindowWidth
-        {
-            get => Console.WindowWidth;
-            set => Console.WindowWidth = value;
-        }
+    public int WindowWidth
+    {
+        get => Console.WindowWidth;
+        set => Console.WindowWidth = value;
+    }
 
-        public int WindowHeight
-        {
-            get => Console.WindowHeight;
-            set => Console.WindowHeight = value;
-        }
+    public int WindowHeight
+    {
+        get => Console.WindowHeight;
+        set => Console.WindowHeight = value;
+    }
 
-        public int WindowTop
-        {
-            get => Console.WindowTop;
-            set => Console.WindowTop = value;
-        }
+    public int WindowTop
+    {
+        get => Console.WindowTop;
+        set => Console.WindowTop = value;
+    }
 
-        public ConsoleColor BackgroundColor
-        {
-            get => Console.BackgroundColor;
-            set => Console.BackgroundColor = value;
-        }
+    public ConsoleColor BackgroundColor
+    {
+        get => Console.BackgroundColor;
+        set => Console.BackgroundColor = value;
+    }
 
-        public ConsoleColor ForegroundColor
-        {
-            get => Console.ForegroundColor;
-            set => Console.ForegroundColor = value;
-        }
+    public ConsoleColor ForegroundColor
+    {
+        get => Console.ForegroundColor;
+        set => Console.ForegroundColor = value;
+    }
 
-        public Encoding OutputEncoding
+    public Encoding OutputEncoding
+    {
+        // Catch and ignore exceptions - if we can't change the encoding, output is
+        // probably redirected, but it can also happen with the legacy console on Windows.
+        get
         {
-            // Catch and ignore exceptions - if we can't change the encoding, output is
-            // probably redirected, but it can also happen with the legacy console on Windows.
-            get
+            try
             {
-                try
-                {
-                    return Console.OutputEncoding;
-                }
-                catch
-                {
-                    return Encoding.Default;
-                }
+                return Console.OutputEncoding;
             }
-            set
+            catch
             {
-                try
-                {
-                    Console.OutputEncoding = value;
-                }
-                catch
-                {
-                }
+                return Encoding.Default;
             }
         }
-
-        public ConsoleKeyInfo ReadKey()
+        set
         {
-            return _readKeyMethod.Value(true);
+            try
+            {
+                Console.OutputEncoding = value;
+            }
+            catch
+            {
+            }
         }
+    }
 
-        public bool KeyAvailable => Console.KeyAvailable;
+    public ConsoleKeyInfo ReadKey()
+    {
+        return _readKeyMethod.Value(true);
+    }
 
-        public void SetWindowPosition(int left, int top)
-        {
-            Console.SetWindowPosition(left, top);
-        }
+    public bool KeyAvailable => Console.KeyAvailable;
 
-        public void SetCursorPosition(int left, int top)
-        {
-            Console.SetCursorPosition(left, top);
-        }
+    public void SetWindowPosition(int left, int top)
+    {
+        Console.SetWindowPosition(left, top);
+    }
 
-        public virtual void Write(string value)
-        {
-            Console.Write(value);
-        }
+    public void SetCursorPosition(int left, int top)
+    {
+        Console.SetCursorPosition(left, top);
+    }
 
-        public virtual void WriteLine(string value)
-        {
-            Console.WriteLine(value);
-        }
+    public virtual void Write(string value)
+    {
+        Console.Write(value);
+    }
 
-        public virtual void BlankRestOfLine()
-        {
-            Console.Write("\x1b[K");
-        }
+    public virtual void WriteLine(string value)
+    {
+        Console.WriteLine(value);
+    }
+
+    public virtual void BlankRestOfLine()
+    {
+        Console.Write("\x1b[K");
     }
 }
