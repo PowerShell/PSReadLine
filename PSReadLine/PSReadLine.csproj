@@ -1,39 +1,39 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <OutputType>Library</OutputType>
-    <RootNamespace>Microsoft.PowerShell.PSReadLine</RootNamespace>
-    <AssemblyName>Microsoft.PowerShell.PSReadLine2</AssemblyName>
-    <NoWarn>$(NoWarn);CA1416</NoWarn>
-    <AssemblyVersion>2.2.5.0</AssemblyVersion>
-    <FileVersion>2.2.5</FileVersion>
-    <InformationalVersion>2.2.5</InformationalVersion>
-    <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
-    <TargetFrameworks>net462;net6.0</TargetFrameworks>
-    <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
-    <LangVersion>9.0</LangVersion>
-  </PropertyGroup>
+    <PropertyGroup>
+        <OutputType>Library</OutputType>
+        <RootNamespace>Microsoft.PowerShell.PSReadLine</RootNamespace>
+        <AssemblyName>Microsoft.PowerShell.PSReadLine2</AssemblyName>
+        <NoWarn>$(NoWarn);CA1416</NoWarn>
+        <AssemblyVersion>2.2.5.0</AssemblyVersion>
+        <FileVersion>2.2.5</FileVersion>
+        <InformationalVersion>2.2.5</InformationalVersion>
+        <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
+        <TargetFrameworks>net462;net6.0</TargetFrameworks>
+        <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
+        <LangVersion>9.0</LangVersion>
+    </PropertyGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net462'">
-    <PackageReference Include="PowerShellStandard.Library" version="5.1.0" />
-    <PackageReference Include="Microsoft.CSharp" version="4.7.0" />
-    <PackageReference Include="System.Runtime.InteropServices.RuntimeInformation" version="4.3.0" />
-    <ProjectReference Include="..\Polyfill\Polyfill.csproj" />
-  </ItemGroup>
+    <ItemGroup Condition="'$(TargetFramework)' == 'net462'">
+        <PackageReference Include="PowerShellStandard.Library" version="5.1.0"/>
+        <PackageReference Include="Microsoft.CSharp" version="4.7.0"/>
+        <PackageReference Include="System.Runtime.InteropServices.RuntimeInformation" version="4.3.0"/>
+        <ProjectReference Include="..\Polyfill\Polyfill.csproj"/>
+    </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
-    <PackageReference Include="System.Management.Automation" Version="7.2.0" />
-  </ItemGroup>
+    <ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
+        <PackageReference Include="System.Management.Automation" Version="7.2.0"/>
+    </ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.PowerShell.Pager" version="1.0.0" />
-  </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Microsoft.PowerShell.Pager" version="1.0.0"/>
+    </ItemGroup>
 
-  <ItemGroup>
-    <None Include="PSReadLine.psd1" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="PSReadLine.psm1" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="PSReadLine.format.ps1xml" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="SamplePSReadLineProfile.ps1" />
-    <None Include="Changes.txt" />
-  </ItemGroup>
+    <ItemGroup>
+        <None Include="PSReadLine.psd1" CopyToOutputDirectory="PreserveNewest"/>
+        <None Include="PSReadLine.psm1" CopyToOutputDirectory="PreserveNewest"/>
+        <None Include="PSReadLine.format.ps1xml" CopyToOutputDirectory="PreserveNewest"/>
+        <None Include="SamplePSReadLineProfile.ps1"/>
+        <None Include="Changes.txt"/>
+    </ItemGroup>
 </Project>

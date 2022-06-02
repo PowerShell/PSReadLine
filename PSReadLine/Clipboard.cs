@@ -3,18 +3,27 @@ Copyright (c) Microsoft Corporation.  All rights reserved.
 --********************************************************************/
 
 using System;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
 
 namespace Microsoft.PowerShell.Internal
 {
-    static class Clipboard
+    internal static class Clipboard
     {
+        private const uint GMEM_MOVEABLE = 0x0002;
+        private const uint GMEM_ZEROINIT = 0x0040;
+        private const uint GHND = GMEM_MOVEABLE | GMEM_ZEROINIT;
+
+        private const uint CF_TEXT = 1;
+        private const uint CF_UNICODETEXT = 13;
         private static bool? _clipboardSupported;
+
         // Used if an external clipboard is not available, e.g. if xclip is missing.
         // This is useful for testing in CI as well.
         private static string _internalClipboard;
+        private static uint CF_RTF;
 
         private static string StartProcess(
             string tool,
@@ -22,7 +31,7 @@ namespace Microsoft.PowerShell.Internal
             string stdin = ""
         )
         {
-            ProcessStartInfo startInfo = new ProcessStartInfo();
+            var startInfo = new ProcessStartInfo();
             startInfo.UseShellExecute = false;
             startInfo.RedirectStandardInput = true;
             startInfo.RedirectStandardOutput = true;
@@ -31,14 +40,14 @@ namespace Microsoft.PowerShell.Internal
             startInfo.Arguments = args;
             string stdout;
 
-            using (Process process = new Process())
+            using (var process = new Process())
             {
                 process.StartInfo = startInfo;
                 try
                 {
                     process.Start();
                 }
-                catch (System.ComponentModel.Win32Exception)
+                catch (Win32Exception)
                 {
                     _clipboardSupported = false;
                     PSConsoleReadLine.Ding();
@@ -50,6 +59,7 @@ namespace Microsoft.PowerShell.Internal
                     process.StandardInput.Write(stdin);
                     process.StandardInput.Close();
                 }
+
                 stdout = process.StandardOutput.ReadToEnd();
                 process.WaitForExit(250);
 
@@ -67,15 +77,16 @@ namespace Microsoft.PowerShell.Internal
                 return _internalClipboard ?? "";
             }
 
-            string tool = "";
-            string args = "";
+            var tool = "";
+            var args = "";
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                string clipboardText = "";
+                var clipboardText = "";
                 ExecuteOnStaThread(() => GetTextImpl(out clipboardText));
                 return clipboardText;
             }
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
                 tool = "xclip";
                 args = "-selection clipboard -out";
@@ -105,14 +116,15 @@ namespace Microsoft.PowerShell.Internal
                 return;
             }
 
-            string tool = "";
-            string args = "";
+            var tool = "";
+            var args = "";
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 ExecuteOnStaThread(() => SetClipboardData(Tuple.Create(text, CF_UNICODETEXT)));
                 return;
             }
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
                 tool = "xclip";
                 args = "-selection clipboard -in";
@@ -129,10 +141,7 @@ namespace Microsoft.PowerShell.Internal
             }
 
             StartProcess(tool, args, text);
-            if (_clipboardSupported == false)
-            {
-                _internalClipboard = text;
-            }
+            if (_clipboardSupported == false) _internalClipboard = text;
         }
 
         public static void SetRtf(string plainText, string rtfText)
@@ -143,19 +152,12 @@ namespace Microsoft.PowerShell.Internal
                 return;
             }
 
-            if (CF_RTF == 0)
-            {
-                CF_RTF = RegisterClipboardFormat("Rich Text Format");
-            }
+            if (CF_RTF == 0) CF_RTF = RegisterClipboardFormat("Rich Text Format");
 
             ExecuteOnStaThread(() => SetClipboardData(
                 Tuple.Create(plainText, CF_UNICODETEXT),
                 Tuple.Create(rtfText, CF_RTF)));
         }
-
-        private const uint GMEM_MOVEABLE = 0x0002;
-        private const uint GMEM_ZEROINIT = 0x0040;
-        const uint GHND = GMEM_MOVEABLE | GMEM_ZEROINIT;
 
         [DllImport("kernel32.dll")]
         private static extern IntPtr GlobalAlloc(uint uFlags, UIntPtr dwBytes);
@@ -190,17 +192,13 @@ namespace Microsoft.PowerShell.Internal
         private static extern bool EmptyClipboard();
 
         [DllImport("user32.dll", SetLastError = true)]
-        static extern IntPtr GetClipboardData(uint uFormat);
+        private static extern IntPtr GetClipboardData(uint uFormat);
 
         [DllImport("user32.dll")]
         private static extern IntPtr SetClipboardData(uint uFormat, IntPtr data);
 
-        [DllImport("user32.dll", SetLastError=true)]
-        static extern uint RegisterClipboardFormat(string lpszFormat);
-
-        private const uint CF_TEXT = 1;
-        private const uint CF_UNICODETEXT = 13;
-        private static uint CF_RTF;
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern uint RegisterClipboardFormat(string lpszFormat);
 
         private static bool GetTextImpl(out string text)
         {
@@ -255,10 +253,8 @@ namespace Microsoft.PowerShell.Internal
                 EmptyClipboard();
 
                 foreach (var d in data)
-                {
                     if (!SetSingleClipboardData(d.Item1, d.Item2))
                         return false;
-                }
             }
             finally
             {
@@ -270,16 +266,15 @@ namespace Microsoft.PowerShell.Internal
 
         private static bool SetSingleClipboardData(string text, uint format)
         {
-            IntPtr hGlobal = IntPtr.Zero;
-            IntPtr data = IntPtr.Zero;
+            var hGlobal = IntPtr.Zero;
+            var data = IntPtr.Zero;
 
             try
             {
-
                 uint bytes;
                 if (format == CF_RTF || format == CF_TEXT)
                 {
-                    bytes = (uint)(text.Length + 1);
+                    bytes = (uint) (text.Length + 1);
                     data = Marshal.StringToHGlobalAnsi(text);
                 }
                 else if (format == CF_UNICODETEXT)
@@ -298,30 +293,23 @@ namespace Microsoft.PowerShell.Internal
                 hGlobal = GlobalAlloc(GHND, (UIntPtr) bytes);
                 if (hGlobal == IntPtr.Zero) return false;
 
-                IntPtr dataCopy = GlobalLock(hGlobal);
+                var dataCopy = GlobalLock(hGlobal);
                 if (dataCopy == IntPtr.Zero) return false;
                 CopyMemory(dataCopy, data, bytes);
                 GlobalUnlock(hGlobal);
 
                 if (SetClipboardData(format, hGlobal) != IntPtr.Zero)
-                {
                     // The clipboard owns this memory now, so don't free it.
                     hGlobal = IntPtr.Zero;
-                }
             }
             catch
             {
             }
             finally
             {
-                if (data != IntPtr.Zero)
-                {
-                    Marshal.FreeHGlobal(data);
-                }
-                if (hGlobal != IntPtr.Zero)
-                {
-                    GlobalFree(hGlobal);
-                }
+                if (data != IntPtr.Zero) Marshal.FreeHGlobal(data);
+
+                if (hGlobal != IntPtr.Zero) GlobalFree(hGlobal);
             }
 
             return true;
@@ -330,7 +318,7 @@ namespace Microsoft.PowerShell.Internal
         private static void ExecuteOnStaThread(Func<bool> action)
         {
             const int retryCount = 5;
-            int tries = 0;
+            var tries = 0;
 
             if (Thread.CurrentThread.GetApartmentState() == ApartmentState.STA)
             {
@@ -357,10 +345,7 @@ namespace Microsoft.PowerShell.Internal
             thread.Start();
             thread.Join();
 
-            if (exception != null)
-            {
-                throw exception;
-            }
+            if (exception != null) throw exception;
         }
     }
 }

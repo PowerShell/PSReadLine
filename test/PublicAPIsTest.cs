@@ -45,25 +45,53 @@ namespace Test
                 "echo foobar",
                 CheckThat(() => PSConsoleReadLine.Replace(5, 6, "zzz"))));
 
-            bool throws = false;
+            var throws = false;
             Test("echo", Keys(
                 "echo",
                 CheckThat(() =>
                 {
-                    try { PSConsoleReadLine.Replace(-1, 6, "zzz"); }
-                    catch (ArgumentException) { throws = true; }
+                    try
+                    {
+                        PSConsoleReadLine.Replace(-1, 6, "zzz");
+                    }
+                    catch (ArgumentException)
+                    {
+                        throws = true;
+                    }
+
                     Assert.True(throws, "Negative start should throw");
 
-                    try { PSConsoleReadLine.Replace(11, 6, "zzz"); }
-                    catch (ArgumentException) { throws = true; }
+                    try
+                    {
+                        PSConsoleReadLine.Replace(11, 6, "zzz");
+                    }
+                    catch (ArgumentException)
+                    {
+                        throws = true;
+                    }
+
                     Assert.True(throws, "Start beyond end of buffer should throw");
 
-                    try { PSConsoleReadLine.Replace(0, 12, "zzz"); }
-                    catch (ArgumentException) { throws = true; }
+                    try
+                    {
+                        PSConsoleReadLine.Replace(0, 12, "zzz");
+                    }
+                    catch (ArgumentException)
+                    {
+                        throws = true;
+                    }
+
                     Assert.True(throws, "Length too long should throw");
 
-                    try { PSConsoleReadLine.Replace(0, -1, "zzz"); }
-                    catch (ArgumentException) { throws = true; }
+                    try
+                    {
+                        PSConsoleReadLine.Replace(0, -1, "zzz");
+                    }
+                    catch (ArgumentException)
+                    {
+                        throws = true;
+                    }
+
                     Assert.True(throws, "Negative length should throw");
                 })));
         }
@@ -84,7 +112,7 @@ namespace Test
                     PSConsoleReadLine.GetBufferState(out var ast, out var tokens, out var parseErrors, out cursor);
                     Assert.NotNull(ast);
                     Assert.True(ast is ScriptBlockAst sbast && sbast.EndBlock.Statements.Count == 1);
-                    Assert.Equal(TokenFlags.CommandName, (tokens[0].TokenFlags & TokenFlags.CommandName));
+                    Assert.Equal(TokenFlags.CommandName, tokens[0].TokenFlags & TokenFlags.CommandName);
                     Assert.Empty(parseErrors);
                     Assert.Equal(4, cursor);
                 })));
@@ -130,7 +158,7 @@ namespace Test
                 "ho",
                 CheckThat(() => PSConsoleReadLine.SetCursorPosition(100)),
                 "bc"
-                ));
+            ));
         }
     }
 }

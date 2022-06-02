@@ -1,5 +1,4 @@
 ﻿using System.Linq;
-using Microsoft.PowerShell;
 using Xunit;
 
 namespace Test
@@ -23,8 +22,9 @@ namespace Test
 
             Test("", Keys(
                 _.Alt_Question, _.LeftArrow,
-                CheckThat(() => AssertScreenIs(2, NextLine, "LeftArrow: BackwardChar - Move the cursor back one character"))
-                ));
+                CheckThat(() =>
+                    AssertScreenIs(2, NextLine, "LeftArrow: BackwardChar - Move the cursor back one character"))
+            ));
 
             TestSetup(KeyMode.Emacs);
             Test("", Keys(

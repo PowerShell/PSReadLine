@@ -1,402 +1,407 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
-  <!--
-    Microsoft ResX Schema
+    <!--
+      Microsoft ResX Schema
 
-    Version 2.0
+      Version 2.0
 
-    The primary goals of this format is to allow a simple XML format
-    that is mostly human readable. The generation and parsing of the
-    various data types are done through the TypeConverter classes
-    associated with the data types.
+      The primary goals of this format is to allow a simple XML format
+      that is mostly human readable. The generation and parsing of the
+      various data types are done through the TypeConverter classes
+      associated with the data types.
 
-    Example:
+      Example:
 
-    ... ado.net/XML headers & schema ...
-    <resheader name="resmimetype">text/microsoft-resx</resheader>
-    <resheader name="version">2.0</resheader>
-    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
-    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
-    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
-    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
-    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
-        <value>[base64 mime encoded serialized .NET Framework object]</value>
-    </data>
-    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
-        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
-        <comment>This is a comment</comment>
-    </data>
+      ... ado.net/XML headers & schema ...
+      <resheader name="resmimetype">text/microsoft-resx</resheader>
+      <resheader name="version">2.0</resheader>
+      <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+      <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+      <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+      <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+      <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+          <value>[base64 mime encoded serialized .NET Framework object]</value>
+      </data>
+      <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+          <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+          <comment>This is a comment</comment>
+      </data>
 
-    There are any number of "resheader" rows that contain simple
-    name/value pairs.
+      There are any number of "resheader" rows that contain simple
+      name/value pairs.
 
-    Each data row contains a name, and value. The row also contains a
-    type or mimetype. Type corresponds to a .NET class that support
-    text/value conversion through the TypeConverter architecture.
-    Classes that don't support this are serialized and stored with the
-    mimetype set.
+      Each data row contains a name, and value. The row also contains a
+      type or mimetype. Type corresponds to a .NET class that support
+      text/value conversion through the TypeConverter architecture.
+      Classes that don't support this are serialized and stored with the
+      mimetype set.
 
-    The mimetype is used for serialized objects, and tells the
-    ResXResourceReader how to depersist the object. This is currently not
-    extensible. For a given mimetype the value must be set accordingly:
+      The mimetype is used for serialized objects, and tells the
+      ResXResourceReader how to depersist the object. This is currently not
+      extensible. For a given mimetype the value must be set accordingly:
 
-    Note - application/x-microsoft.net.object.binary.base64 is the format
-    that the ResXResourceWriter will generate, however the reader can
-    read any of the formats listed below.
+      Note - application/x-microsoft.net.object.binary.base64 is the format
+      that the ResXResourceWriter will generate, however the reader can
+      read any of the formats listed below.
 
-    mimetype: application/x-microsoft.net.object.binary.base64
-    value   : The object must be serialized with
-            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
-            : and then encoded with base64 encoding.
+      mimetype: application/x-microsoft.net.object.binary.base64
+      value   : The object must be serialized with
+              : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+              : and then encoded with base64 encoding.
 
-    mimetype: application/x-microsoft.net.object.soap.base64
-    value   : The object must be serialized with
-            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
-            : and then encoded with base64 encoding.
+      mimetype: application/x-microsoft.net.object.soap.base64
+      value   : The object must be serialized with
+              : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+              : and then encoded with base64 encoding.
 
-    mimetype: application/x-microsoft.net.object.bytearray.base64
-    value   : The object must be serialized into a byte array
-            : using a System.ComponentModel.TypeConverter
-            : and then encoded with base64 encoding.
-    -->
-  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
-    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
-    <xsd:element name="root" msdata:IsDataSet="true">
-      <xsd:complexType>
-        <xsd:choice maxOccurs="unbounded">
-          <xsd:element name="metadata">
+      mimetype: application/x-microsoft.net.object.bytearray.base64
+      value   : The object must be serialized into a byte array
+              : using a System.ComponentModel.TypeConverter
+              : and then encoded with base64 encoding.
+      -->
+    <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata" id="root"
+                xmlns="">
+        <xsd:import namespace="http://www.w3.org/XML/1998/namespace"/>
+        <xsd:element name="root" msdata:IsDataSet="true">
             <xsd:complexType>
-              <xsd:sequence>
-                <xsd:element name="value" type="xsd:string" minOccurs="0" />
-              </xsd:sequence>
-              <xsd:attribute name="name" use="required" type="xsd:string" />
-              <xsd:attribute name="type" type="xsd:string" />
-              <xsd:attribute name="mimetype" type="xsd:string" />
-              <xsd:attribute ref="xml:space" />
+                <xsd:choice maxOccurs="unbounded">
+                    <xsd:element name="metadata">
+                        <xsd:complexType>
+                            <xsd:sequence>
+                                <xsd:element name="value" type="xsd:string" minOccurs="0"/>
+                            </xsd:sequence>
+                            <xsd:attribute name="name" use="required" type="xsd:string"/>
+                            <xsd:attribute name="type" type="xsd:string"/>
+                            <xsd:attribute name="mimetype" type="xsd:string"/>
+                            <xsd:attribute ref="xml:space"/>
+                        </xsd:complexType>
+                    </xsd:element>
+                    <xsd:element name="assembly">
+                        <xsd:complexType>
+                            <xsd:attribute name="alias" type="xsd:string"/>
+                            <xsd:attribute name="name" type="xsd:string"/>
+                        </xsd:complexType>
+                    </xsd:element>
+                    <xsd:element name="data">
+                        <xsd:complexType>
+                            <xsd:sequence>
+                                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1"/>
+                                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2"/>
+                            </xsd:sequence>
+                            <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1"/>
+                            <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3"/>
+                            <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4"/>
+                            <xsd:attribute ref="xml:space"/>
+                        </xsd:complexType>
+                    </xsd:element>
+                    <xsd:element name="resheader">
+                        <xsd:complexType>
+                            <xsd:sequence>
+                                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1"/>
+                            </xsd:sequence>
+                            <xsd:attribute name="name" type="xsd:string" use="required"/>
+                        </xsd:complexType>
+                    </xsd:element>
+                </xsd:choice>
             </xsd:complexType>
-          </xsd:element>
-          <xsd:element name="assembly">
-            <xsd:complexType>
-              <xsd:attribute name="alias" type="xsd:string" />
-              <xsd:attribute name="name" type="xsd:string" />
-            </xsd:complexType>
-          </xsd:element>
-          <xsd:element name="data">
-            <xsd:complexType>
-              <xsd:sequence>
-                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
-                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
-              </xsd:sequence>
-              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
-              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
-              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
-              <xsd:attribute ref="xml:space" />
-            </xsd:complexType>
-          </xsd:element>
-          <xsd:element name="resheader">
-            <xsd:complexType>
-              <xsd:sequence>
-                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
-              </xsd:sequence>
-              <xsd:attribute name="name" type="xsd:string" use="required" />
-            </xsd:complexType>
-          </xsd:element>
-        </xsd:choice>
-      </xsd:complexType>
-    </xsd:element>
-  </xsd:schema>
-  <resheader name="resmimetype">
-    <value>text/microsoft-resx</value>
-  </resheader>
-  <resheader name="version">
-    <value>2.0</value>
-  </resheader>
-  <resheader name="reader">
-    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </resheader>
-  <resheader name="writer">
-    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </resheader>
-  <data name="AcceptLineDescription" xml:space="preserve">
+        </xsd:element>
+    </xsd:schema>
+    <resheader name="resmimetype">
+        <value>text/microsoft-resx</value>
+    </resheader>
+    <resheader name="version">
+        <value>2.0</value>
+    </resheader>
+    <resheader name="reader">
+        <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral,
+            PublicKeyToken=b77a5c561934e089
+        </value>
+    </resheader>
+    <resheader name="writer">
+        <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral,
+            PublicKeyToken=b77a5c561934e089
+        </value>
+    </resheader>
+    <data name="AcceptLineDescription" xml:space="preserve">
     <value>Accept the input or move to the next line if input is missing a closing token.</value>
   </data>
-  <data name="AddLineDescription" xml:space="preserve">
+    <data name="AddLineDescription" xml:space="preserve">
     <value>Move the cursor to the next line without attempting to execute the input</value>
   </data>
-  <data name="BackwardCharDescription" xml:space="preserve">
+    <data name="BackwardCharDescription" xml:space="preserve">
     <value>Move the cursor back one character</value>
   </data>
-  <data name="BackwardDeleteCharDescription" xml:space="preserve">
+    <data name="BackwardDeleteCharDescription" xml:space="preserve">
     <value>Delete the character before the cursor</value>
   </data>
-  <data name="BackwardDeleteInputDescription" xml:space="preserve">
+    <data name="BackwardDeleteInputDescription" xml:space="preserve">
     <value>Delete text from the cursor to the start of the input</value>
   </data>
-  <data name="BackwardDeleteLineDescription" xml:space="preserve">
+    <data name="BackwardDeleteLineDescription" xml:space="preserve">
     <value>Delete text from the cursor to the start of the current logical line</value>
   </data>
-  <data name="BackwardKillInputDescription" xml:space="preserve">
+    <data name="BackwardKillInputDescription" xml:space="preserve">
     <value>Move the text from the cursor to the beginning of the input to the kill ring</value>
   </data>
-  <data name="BackwardKillLineDescription" xml:space="preserve">
+    <data name="BackwardKillLineDescription" xml:space="preserve">
     <value>Move the text from the start of the current logical line to the cursor to the kill ring</value>
   </data>
-  <data name="BeginningOfHistoryDescription" xml:space="preserve">
+    <data name="BeginningOfHistoryDescription" xml:space="preserve">
     <value>Move to the first item in the history</value>
   </data>
-  <data name="BeginningOfLineDescription" xml:space="preserve">
+    <data name="BeginningOfLineDescription" xml:space="preserve">
     <value>Move the cursor to the beginning of the line</value>
   </data>
-  <data name="CancelLineDescription" xml:space="preserve">
+    <data name="CancelLineDescription" xml:space="preserve">
     <value>Abort editing the current line and re-evaluate the prompt</value>
   </data>
-  <data name="ClearKillRingDescription" xml:space="preserve">
+    <data name="ClearKillRingDescription" xml:space="preserve">
     <value>Remove all items from the kill ring</value>
   </data>
-  <data name="ClearHistoryDescription" xml:space="preserve">
+    <data name="ClearHistoryDescription" xml:space="preserve">
     <value>Remove all items from the command line history (not PowerShell history)</value>
   </data>
-  <data name="CompleteDescription" xml:space="preserve">
+    <data name="CompleteDescription" xml:space="preserve">
     <value>Complete the input if there is a single completion, otherwise complete the input with common prefix for all completions.  Show possible completions if pressed a second time.</value>
   </data>
-  <data name="CustomActionDescription" xml:space="preserve">
+    <data name="CustomActionDescription" xml:space="preserve">
     <value>User defined action</value>
   </data>
-  <data name="DeleteCharDescription" xml:space="preserve">
+    <data name="DeleteCharDescription" xml:space="preserve">
     <value>Delete the character under the cursor</value>
   </data>
-  <data name="ShellBackwardWordDescription" xml:space="preserve">
+    <data name="ShellBackwardWordDescription" xml:space="preserve">
     <value>Move the cursor to the beginning of the current or previous token or start of the line</value>
   </data>
-  <data name="EmacsCtrlXDescription" xml:space="preserve">
+    <data name="EmacsCtrlXDescription" xml:space="preserve">
     <value>String is not used in the UI</value>
   </data>
-  <data name="EmacsMetaDescription" xml:space="preserve">
+    <data name="EmacsMetaDescription" xml:space="preserve">
     <value>String is not used in the UI</value>
   </data>
-  <data name="EndOfHistoryDescription" xml:space="preserve">
+    <data name="EndOfHistoryDescription" xml:space="preserve">
     <value>Move to the last item (the current input) in the history</value>
   </data>
-  <data name="EndOfLineDescription" xml:space="preserve">
+    <data name="EndOfLineDescription" xml:space="preserve">
     <value>Move the cursor to the end of the line</value>
   </data>
-  <data name="ExchangePointAndMarkDescription" xml:space="preserve">
+    <data name="ExchangePointAndMarkDescription" xml:space="preserve">
     <value>Mark the location of the cursor and move the cursor to the position of the previous mark</value>
   </data>
-  <data name="ForwardCharDescription" xml:space="preserve">
+    <data name="ForwardCharDescription" xml:space="preserve">
     <value>Move the cursor forward one character</value>
   </data>
-  <data name="ForwardDeleteInputDescription" xml:space="preserve">
+    <data name="ForwardDeleteInputDescription" xml:space="preserve">
     <value>Delete text from the cursor to the end of the input</value>
   </data>
-  <data name="ForwardDeleteLineDescription" xml:space="preserve">
+    <data name="ForwardDeleteLineDescription" xml:space="preserve">
     <value>Delete text from the cursor to the end of the current logical line</value>
   </data>
-  <data name="ShellForwardWordDescription" xml:space="preserve">
+    <data name="ShellForwardWordDescription" xml:space="preserve">
     <value>Move the cursor to the beginning of the next token or end of line</value>
   </data>
-  <data name="HistorySearchBackwardDescription" xml:space="preserve">
+    <data name="HistorySearchBackwardDescription" xml:space="preserve">
     <value>Search for the previous item in the history that starts with the current input - like PreviousHistory if the input is empty</value>
   </data>
-  <data name="HistorySearchForwardDescription" xml:space="preserve">
+    <data name="HistorySearchForwardDescription" xml:space="preserve">
     <value>Search for the next item in the history that starts with the current input - like NextHistory if the input is empty</value>
   </data>
-  <data name="IgnoreDescription" xml:space="preserve">
+    <data name="IgnoreDescription" xml:space="preserve">
     <value>String is not used in the UI</value>
   </data>
-  <data name="ShellBackwardKillWordDescription" xml:space="preserve">
+    <data name="ShellBackwardKillWordDescription" xml:space="preserve">
     <value>Move the text from the cursor to the start of the current or previous token to the kill ring</value>
   </data>
-  <data name="KillLineDescription" xml:space="preserve">
+    <data name="KillLineDescription" xml:space="preserve">
     <value>Move the text from the cursor to the end of the input to the kill ring</value>
   </data>
-  <data name="ShellKillWordDescription" xml:space="preserve">
+    <data name="ShellKillWordDescription" xml:space="preserve">
     <value>Move the text from the cursor to the end of the current or next token to the kill ring</value>
   </data>
-  <data name="NextHistoryDescription" xml:space="preserve">
+    <data name="NextHistoryDescription" xml:space="preserve">
     <value>Replace the input with the next item in the history</value>
   </data>
-  <data name="PasteDescription" xml:space="preserve">
+    <data name="PasteDescription" xml:space="preserve">
     <value>Paste text from the system clipboard</value>
   </data>
-  <data name="PossibleCompletionsDescription" xml:space="preserve">
+    <data name="PossibleCompletionsDescription" xml:space="preserve">
     <value>Display the possible completions without changing the input</value>
   </data>
-  <data name="PreviousHistoryDescription" xml:space="preserve">
+    <data name="PreviousHistoryDescription" xml:space="preserve">
     <value>Replace the input with the previous item in the history</value>
   </data>
-  <data name="RedoDescription" xml:space="preserve">
+    <data name="RedoDescription" xml:space="preserve">
     <value>Redo an undo</value>
   </data>
-  <data name="RevertLineDescription" xml:space="preserve">
+    <data name="RevertLineDescription" xml:space="preserve">
     <value>Equivalent to undo all edits (clears the line except lines imported from history)</value>
   </data>
-  <data name="SetMarkDescription" xml:space="preserve">
+    <data name="SetMarkDescription" xml:space="preserve">
     <value>Mark the location of the cursor</value>
   </data>
-  <data name="TabCompleteNextDescription" xml:space="preserve">
+    <data name="TabCompleteNextDescription" xml:space="preserve">
     <value>Complete the input using the next completion</value>
   </data>
-  <data name="TabCompletePreviousDescription" xml:space="preserve">
+    <data name="TabCompletePreviousDescription" xml:space="preserve">
     <value>Complete the input using the previous completion</value>
   </data>
-  <data name="UndoDescription" xml:space="preserve">
+    <data name="UndoDescription" xml:space="preserve">
     <value>Undo a previous edit</value>
   </data>
-  <data name="YankDescription" xml:space="preserve">
+    <data name="YankDescription" xml:space="preserve">
     <value>Copy the text from the current kill ring position to the input</value>
   </data>
-  <data name="YankPopDescription" xml:space="preserve">
+    <data name="YankPopDescription" xml:space="preserve">
     <value>Replace the previously yanked text with the text from the next kill ring position</value>
   </data>
-  <data name="StartOutOfRange" xml:space="preserve">
+    <data name="StartOutOfRange" xml:space="preserve">
     <value>'start' cannot be less than zero or greater than the length of the buffer</value>
   </data>
-  <data name="ReplacementLengthInvalid" xml:space="preserve">
+    <data name="ReplacementLengthInvalid" xml:space="preserve">
     <value>length is not valid</value>
   </data>
-  <data name="DisplayAllPossibilities" xml:space="preserve">
+    <data name="DisplayAllPossibilities" xml:space="preserve">
     <value>Display all {0} possibilities? (y or n) _</value>
   </data>
-  <data name="ClearScreenDescription" xml:space="preserve">
+    <data name="ClearScreenDescription" xml:space="preserve">
     <value>Clear the screen and redraw the current line at the top of the screen</value>
   </data>
-  <data name="GotoBraceDescription" xml:space="preserve">
+    <data name="GotoBraceDescription" xml:space="preserve">
     <value>Go to matching brace</value>
   </data>
-  <data name="AbortDescription" xml:space="preserve">
+    <data name="AbortDescription" xml:space="preserve">
     <value>Abort the current operation, e.g. incremental history search</value>
   </data>
-  <data name="ForwardSearchHistoryDescription" xml:space="preserve">
+    <data name="ForwardSearchHistoryDescription" xml:space="preserve">
     <value>Search history forward interactively</value>
   </data>
-  <data name="ReverseSearchHistoryDescription" xml:space="preserve">
+    <data name="ReverseSearchHistoryDescription" xml:space="preserve">
     <value>Search history backwards interactively</value>
   </data>
-  <data name="BackwardKillWordDescription" xml:space="preserve">
+    <data name="BackwardKillWordDescription" xml:space="preserve">
     <value>Move the text from the start of the current or previous word to the cursor to the kill ring</value>
   </data>
-  <data name="BackwardWordDescription" xml:space="preserve">
+    <data name="BackwardWordDescription" xml:space="preserve">
     <value>Move the cursor to the beginning of the current or previous word</value>
   </data>
-  <data name="ForwardWordDescription" xml:space="preserve">
+    <data name="ForwardWordDescription" xml:space="preserve">
     <value>Move the cursor forward to the end of the current word, or if between words, to the end of the next word. </value>
   </data>
-  <data name="KillWordDescription" xml:space="preserve">
+    <data name="KillWordDescription" xml:space="preserve">
     <value>Move the text from the cursor to the end of the current or next word to the kill ring</value>
   </data>
-  <data name="NextWordDescription" xml:space="preserve">
+    <data name="NextWordDescription" xml:space="preserve">
     <value>Move the cursor forward to the start of the next word</value>
   </data>
-  <data name="UnixWordRuboutDescription" xml:space="preserve">
+    <data name="UnixWordRuboutDescription" xml:space="preserve">
     <value>Move the text from the cursor to the start of the current or previous whitespace delimited word to the kill ring</value>
   </data>
-  <data name="CharacterSearchBackwardDescription" xml:space="preserve">
+    <data name="CharacterSearchBackwardDescription" xml:space="preserve">
     <value>Read a character and move the cursor to the previous occurence of that character</value>
   </data>
-  <data name="CharacterSearchDescription" xml:space="preserve">
+    <data name="CharacterSearchDescription" xml:space="preserve">
     <value>Read a character and move the cursor to the next occurence of that character</value>
   </data>
-  <data name="DigitArgumentDescription" xml:space="preserve">
+    <data name="DigitArgumentDescription" xml:space="preserve">
     <value>Start or accumulate a numeric argument to other functions</value>
   </data>
-  <data name="YankLastArgDescription" xml:space="preserve">
+    <data name="YankLastArgDescription" xml:space="preserve">
     <value>Copy the text of the last argument to the input</value>
   </data>
-  <data name="YankNthArgDescription" xml:space="preserve">
+    <data name="YankNthArgDescription" xml:space="preserve">
     <value>Copy the text of the first argument to the input</value>
   </data>
-  <data name="AcceptAndGetNextDescription" xml:space="preserve">
+    <data name="AcceptAndGetNextDescription" xml:space="preserve">
     <value>Accept the current line and recall the next line from history after the current line finishes executing</value>
   </data>
-  <data name="KeyIsUnbound" xml:space="preserve">
+    <data name="KeyIsUnbound" xml:space="preserve">
     <value>Key is unbound</value>
   </data>
-  <data name="SelfInsertDescription" xml:space="preserve">
+    <data name="SelfInsertDescription" xml:space="preserve">
     <value>Insert the key typed</value>
   </data>
-  <data name="ShowKeyBindingsDescription" xml:space="preserve">
+    <data name="ShowKeyBindingsDescription" xml:space="preserve">
     <value>Show all key bindings</value>
   </data>
-  <data name="WhatIsKeyDescription" xml:space="preserve">
+    <data name="WhatIsKeyDescription" xml:space="preserve">
     <value>Show the key binding for the next chord entered</value>
   </data>
-  <data name="CopyDescription" xml:space="preserve">
+    <data name="CopyDescription" xml:space="preserve">
     <value>Copy selected region to the system clipboard.  If no region is selected, copy the whole line</value>
   </data>
-  <data name="CutDescription" xml:space="preserve">
+    <data name="CutDescription" xml:space="preserve">
     <value>Delete selected region placing deleted text in the system clipboard</value>
   </data>
-  <data name="KillRegionDescription" xml:space="preserve">
+    <data name="KillRegionDescription" xml:space="preserve">
     <value>Kill the text between the cursor and the mark</value>
   </data>
-  <data name="SelectBackwardCharDescription" xml:space="preserve">
+    <data name="SelectBackwardCharDescription" xml:space="preserve">
     <value>Adjust the current selection to include the previous character</value>
   </data>
-  <data name="SelectBackwardWordDescription" xml:space="preserve">
+    <data name="SelectBackwardWordDescription" xml:space="preserve">
     <value>Adjust the current selection to include the previous word</value>
   </data>
-  <data name="SelectForwardCharDescription" xml:space="preserve">
+    <data name="SelectForwardCharDescription" xml:space="preserve">
     <value>Adjust the current selection to include the next character</value>
   </data>
-  <data name="SelectForwardWordDescription" xml:space="preserve">
+    <data name="SelectForwardWordDescription" xml:space="preserve">
     <value>Adjust the current selection to include the next word using ForwardWord</value>
   </data>
-  <data name="SelectNextWordDescription" xml:space="preserve">
+    <data name="SelectNextWordDescription" xml:space="preserve">
     <value>Adjust the current selection to include the next word</value>
   </data>
-  <data name="SelectShellBackwardWordDescription" xml:space="preserve">
+    <data name="SelectShellBackwardWordDescription" xml:space="preserve">
     <value>Adjust the current selection to include the previous word using ShellBackwardWord</value>
   </data>
-  <data name="SelectShellForwardWordDescription" xml:space="preserve">
+    <data name="SelectShellForwardWordDescription" xml:space="preserve">
     <value>Adjust the current selection to include the next word using ShellForwardWord</value>
   </data>
-  <data name="CaptureScreenDescription" xml:space="preserve">
+    <data name="CaptureScreenDescription" xml:space="preserve">
     <value>Allows you to select multiple lines from the console using Shift+UpArrow/DownArrow and copy the selected lines to clipboard by pressing Enter.</value>
   </data>
-  <data name="InvokePromptDescription" xml:space="preserve">
+    <data name="InvokePromptDescription" xml:space="preserve">
     <value>Erases the current prompt and calls the prompt function to redisplay the prompt</value>
   </data>
-  <data name="ScrollDisplayDownDescription" xml:space="preserve">
+    <data name="ScrollDisplayDownDescription" xml:space="preserve">
     <value>Scroll the display down one screen</value>
   </data>
-  <data name="ScrollDisplayDownLineDescription" xml:space="preserve">
+    <data name="ScrollDisplayDownLineDescription" xml:space="preserve">
     <value>Scroll the display down one line</value>
   </data>
-  <data name="ScrollDisplayToCursorDescription" xml:space="preserve">
+    <data name="ScrollDisplayToCursorDescription" xml:space="preserve">
     <value>Scroll the display to the cursor</value>
   </data>
-  <data name="ScrollDisplayTopDescription" xml:space="preserve">
+    <data name="ScrollDisplayTopDescription" xml:space="preserve">
     <value>Scroll the display to the top</value>
   </data>
-  <data name="ScrollDisplayUpDescription" xml:space="preserve">
+    <data name="ScrollDisplayUpDescription" xml:space="preserve">
     <value>Scroll the display up one screen</value>
   </data>
-  <data name="ScrollDisplayUpLineDescription" xml:space="preserve">
+    <data name="ScrollDisplayUpLineDescription" xml:space="preserve">
     <value>Scroll the display up one line</value>
   </data>
-  <data name="SelectShellNextWordDescription" xml:space="preserve">
+    <data name="SelectShellNextWordDescription" xml:space="preserve">
     <value>Adjust the current selection to include the next word using ShellNextWord</value>
   </data>
-  <data name="ShellNextWordDescription" xml:space="preserve">
+    <data name="ShellNextWordDescription" xml:space="preserve">
     <value>Move the cursor to the end of the current token</value>
   </data>
-  <data name="SelectBackwardsLineDescription" xml:space="preserve">
+    <data name="SelectBackwardsLineDescription" xml:space="preserve">
     <value>Adjust the current selection to include from the cursor to the start of the line</value>
   </data>
-  <data name="SelectLineDescription" xml:space="preserve">
+    <data name="SelectLineDescription" xml:space="preserve">
     <value>Adjust the current selection to include from the cursor to the end of the line</value>
   </data>
-  <data name="SelectAllDescription" xml:space="preserve">
+    <data name="SelectAllDescription" xml:space="preserve">
     <value>Select the entire line. Moves the cursor to the end of the line</value>
   </data>
-  <data name="CopyOrCancelLineDescription" xml:space="preserve">
+    <data name="CopyOrCancelLineDescription" xml:space="preserve">
     <value>Either copy selected text to the clipboard, or if no text is selected, cancel editing the line with CancelLine.</value>
   </data>
-  <data name="MenuCompleteDescription" xml:space="preserve">
+    <data name="MenuCompleteDescription" xml:space="preserve">
     <value>Complete the input if there is a single completion, otherwise complete the input by selecting from a menu of possible completions.</value>
   </data>
-  <data name="OopsAnErrorMessage1" xml:space="preserve">
+    <data name="OopsAnErrorMessage1" xml:space="preserve">
     <value>
 Oops, something went wrong.
 Please report this bug with ALL the details below, including both the 'Environment' and 'Exception' sections.
@@ -404,7 +409,7 @@ Please report on GitHub: https://github.com/PowerShell/PSReadLine/issues/new?tem
 Thank you!
 </value>
   </data>
-  <data name="OopsAnErrorMessage2" xml:space="preserve">
+    <data name="OopsAnErrorMessage2" xml:space="preserve">
     <value>### Environment
 PSReadLine: {0}
 PowerShell: {1}
@@ -422,440 +427,440 @@ Last {5} Keys:
 
 </value>
   </data>
-  <data name="NextLineDescription" xml:space="preserve">
+    <data name="NextLineDescription" xml:space="preserve">
     <value>Move the cursor to the next line if the input has multiple lines.</value>
   </data>
-  <data name="PreviousLineDescription" xml:space="preserve">
+    <data name="PreviousLineDescription" xml:space="preserve">
     <value>Move the cursor to the previous line if the input has multiple lines.</value>
   </data>
-  <data name="CommandNotFoundError" xml:space="preserve">
+    <data name="CommandNotFoundError" xml:space="preserve">
     <value>Command '{0}' cannot be found.</value>
   </data>
-  <data name="ValidateAndAcceptLineDescription" xml:space="preserve">
+    <data name="ValidateAndAcceptLineDescription" xml:space="preserve">
     <value>Accept the input or move to the next line if input is missing a closing token.
 If there are other parse errors, unresolved commands, or incorrect parameters, show the error and continue editing.</value>
   </data>
-  <data name="DeleteCharOrExitDescription" xml:space="preserve">
+    <data name="DeleteCharOrExitDescription" xml:space="preserve">
     <value>Delete the character under the cursor, or if the line is empty, exit the process.</value>
   </data>
-  <data name="CantTranslateKey" xml:space="preserve">
+    <data name="CantTranslateKey" xml:space="preserve">
     <value>Unable to translate '{0}' to virtual key code: {1}.</value>
   </data>
-  <data name="ChordWithTooManyKeys" xml:space="preserve">
+    <data name="ChordWithTooManyKeys" xml:space="preserve">
     <value>Chord can have at most two keys.</value>
   </data>
-  <data name="InvalidModifier" xml:space="preserve">
+    <data name="InvalidModifier" xml:space="preserve">
     <value>Duplicate or invalid modifier token '{0}' for key '{1}'.</value>
   </data>
-  <data name="InvalidSequence" xml:space="preserve">
+    <data name="InvalidSequence" xml:space="preserve">
     <value>Invalid sequence '{0}'.</value>
   </data>
-  <data name="UnrecognizedKey" xml:space="preserve">
+    <data name="UnrecognizedKey" xml:space="preserve">
     <value>Unrecognized key '{0}'. Please use a character literal or a well-known key name from the System.ConsoleKey enumeration.</value>
   </data>
-  <data name="ViAcceptLineDescription" xml:space="preserve">
+    <data name="ViAcceptLineDescription" xml:space="preserve">
     <value>Accept the line and switch to Vi's insert mode.</value>
   </data>
-  <data name="BackwardDeleteWordDescription" xml:space="preserve">
+    <data name="BackwardDeleteWordDescription" xml:space="preserve">
     <value>Delete the previous word in the line.</value>
   </data>
-  <data name="ViCommandModeDescription" xml:space="preserve">
+    <data name="ViCommandModeDescription" xml:space="preserve">
     <value>Switch to VI's command mode.</value>
   </data>
-  <data name="MoveToEndOfLineDescription" xml:space="preserve">
+    <data name="MoveToEndOfLineDescription" xml:space="preserve">
     <value>Move to the end of the line.</value>
   </data>
-  <data name="ViInsertWithAppendDescription" xml:space="preserve">
+    <data name="ViInsertWithAppendDescription" xml:space="preserve">
     <value>Switch to insert mode, appending at the current line position.</value>
   </data>
-  <data name="SwapCharactersDescription" xml:space="preserve">
+    <data name="SwapCharactersDescription" xml:space="preserve">
     <value>Swap the current character with the character before it.</value>
   </data>
-  <data name="RepeatLastSearchDescription" xml:space="preserve">
+    <data name="RepeatLastSearchDescription" xml:space="preserve">
     <value>Repeats the last search.</value>
   </data>
-  <data name="SearchBackwardCharDescription" xml:space="preserve">
+    <data name="SearchBackwardCharDescription" xml:space="preserve">
     <value>Searches backward for the prescribed character.</value>
   </data>
-  <data name="SearchDescription" xml:space="preserve">
+    <data name="SearchDescription" xml:space="preserve">
     <value>Searches for the prescribed character in the prescribed direction.</value>
   </data>
-  <data name="ViAppendAtEndDescription" xml:space="preserve">
+    <data name="ViAppendAtEndDescription" xml:space="preserve">
     <value>Switches to insert mode after positioning the cursor past the end of the line.</value>
   </data>
-  <data name="DeleteLineToFirstCharDescription" xml:space="preserve">
+    <data name="DeleteLineToFirstCharDescription" xml:space="preserve">
     <value>Deletes from the first non blank character of the current logical line in a multiline buffer.</value>
   </data>
-  <data name="BackwardReplaceCharDescription" xml:space="preserve">
+    <data name="BackwardReplaceCharDescription" xml:space="preserve">
     <value>Replaces the character in front of the cursor.</value>
   </data>
-  <data name="ViBackwardReplaceLineDescription" xml:space="preserve">
+    <data name="ViBackwardReplaceLineDescription" xml:space="preserve">
     <value>Replaces the line left of the cursor and all of the way to the beginning.</value>
   </data>
-  <data name="ViBackwardReplaceLineToFirstCharDescription" xml:space="preserve">
+    <data name="ViBackwardReplaceLineToFirstCharDescription" xml:space="preserve">
     <value>Replaces the line left of the cursor and all but one character to the beginning of the line.</value>
   </data>
-  <data name="PrependAndAcceptDescription" xml:space="preserve">
+    <data name="PrependAndAcceptDescription" xml:space="preserve">
     <value>Inserts the entered character at the beginning and accepts the line.</value>
   </data>
-  <data name="DeleteLineDescription" xml:space="preserve">
+    <data name="DeleteLineDescription" xml:space="preserve">
     <value>Deletes the current line.</value>
   </data>
-  <data name="DeleteToEndDescription" xml:space="preserve">
+    <data name="DeleteToEndDescription" xml:space="preserve">
     <value>Deletes from the cursor to the end of the line.</value>
   </data>
-  <data name="DeleteToEndOfWordDescription" xml:space="preserve">
+    <data name="DeleteToEndOfWordDescription" xml:space="preserve">
     <value>Deletes from the cursor to the end of the current word.</value>
   </data>
-  <data name="DeleteWordDescription" xml:space="preserve">
+    <data name="DeleteWordDescription" xml:space="preserve">
     <value>Deletes the current word.</value>
   </data>
-  <data name="GotoFirstNonBlankOfLineDescription" xml:space="preserve">
+    <data name="GotoFirstNonBlankOfLineDescription" xml:space="preserve">
     <value>Positions the cursor at the first non-blank character.</value>
   </data>
-  <data name="NextWordEndDescription" xml:space="preserve">
+    <data name="NextWordEndDescription" xml:space="preserve">
     <value>Moves the cursor forward to the end of the next word.</value>
   </data>
-  <data name="GotoColumnDescription" xml:space="preserve">
+    <data name="GotoColumnDescription" xml:space="preserve">
     <value>Moves the cursor to the prescribed column.</value>
   </data>
-  <data name="ViInsertModeDescription" xml:space="preserve">
+    <data name="ViInsertModeDescription" xml:space="preserve">
     <value>Switches to insert mode.</value>
   </data>
-  <data name="ViInsertAtBeginingDescription" xml:space="preserve">
+    <data name="ViInsertAtBeginingDescription" xml:space="preserve">
     <value>Moves the cursor to the beginning of the line and switches to insert mode.</value>
   </data>
-  <data name="ViInsertAtEndDescription" xml:space="preserve">
+    <data name="ViInsertAtEndDescription" xml:space="preserve">
     <value>Moves the cursor to the end of the line and switches to insert mode.</value>
   </data>
-  <data name="ViInsertWithDeleteDescription" xml:space="preserve">
+    <data name="ViInsertWithDeleteDescription" xml:space="preserve">
     <value>Deletes the current character and switches to insert mode.</value>
   </data>
-  <data name="InvertCaseDescription" xml:space="preserve">
+    <data name="InvertCaseDescription" xml:space="preserve">
     <value>Inverts the case of the current character and advances the cursor.</value>
   </data>
-  <data name="RepeatLastCommandDescription" xml:space="preserve">
+    <data name="RepeatLastCommandDescription" xml:space="preserve">
     <value>Repeats the last modification command.</value>
   </data>
-  <data name="RepeatSearchBackwardDescription" xml:space="preserve">
+    <data name="RepeatSearchBackwardDescription" xml:space="preserve">
     <value>Repeat the last search, but in the opposite direction.</value>
   </data>
-  <data name="RepeatSearchDescription" xml:space="preserve">
+    <data name="RepeatSearchDescription" xml:space="preserve">
     <value>Repeat the last search.</value>
   </data>
-  <data name="ViReplaceBraceDescription" xml:space="preserve">
+    <data name="ViReplaceBraceDescription" xml:space="preserve">
     <value>Replace all characters between the current brace character and it's matching partner.</value>
   </data>
-  <data name="ReplaceCharDescription" xml:space="preserve">
+    <data name="ReplaceCharDescription" xml:space="preserve">
     <value>Replace the current character with the next set of characters typed.</value>
   </data>
-  <data name="ReplaceCharInPlaceDescription" xml:space="preserve">
+    <data name="ReplaceCharInPlaceDescription" xml:space="preserve">
     <value>Replace the current character with only one character.</value>
   </data>
-  <data name="ViReplaceLineDescription" xml:space="preserve">
+    <data name="ViReplaceLineDescription" xml:space="preserve">
     <value>Repace the current line with the next set of characters typed.</value>
   </data>
-  <data name="ViReplaceToEndDescription" xml:space="preserve">
+    <data name="ViReplaceToEndDescription" xml:space="preserve">
     <value>Replace the characters from the cursor position to the end of the line.</value>
   </data>
-  <data name="ViReplaceUntilEscDescription" xml:space="preserve">
+    <data name="ViReplaceUntilEscDescription" xml:space="preserve">
     <value>Replace the current character until an escape is entered or the line is accepted.</value>
   </data>
-  <data name="ViReplaceWordDescription" xml:space="preserve">
+    <data name="ViReplaceWordDescription" xml:space="preserve">
     <value>Replace the current word.</value>
   </data>
-  <data name="InsertCharacterDescription" xml:space="preserve">
+    <data name="InsertCharacterDescription" xml:space="preserve">
     <value>Delete the current character and insert the next character.</value>
   </data>
-  <data name="ViSearchHistoryBackwardDescription" xml:space="preserve">
+    <data name="ViSearchHistoryBackwardDescription" xml:space="preserve">
     <value>Starts a new search backward in the history.</value>
   </data>
-  <data name="ViTransposeCharsDescription" xml:space="preserve">
+    <data name="ViTransposeCharsDescription" xml:space="preserve">
     <value>Transposes the current character with the next character in the line.</value>
   </data>
-  <data name="UndoAllDescription" xml:space="preserve">
+    <data name="UndoAllDescription" xml:space="preserve">
     <value>Undoes all commands for this line.</value>
   </data>
-  <data name="SearchForwardDescription" xml:space="preserve">
+    <data name="SearchForwardDescription" xml:space="preserve">
     <value>Prompts for a search string and initiates a search upon AcceptLine.</value>
   </data>
-  <data name="RepeatLastCharSearchBackwardsDescription" xml:space="preserve">
+    <data name="RepeatLastCharSearchBackwardsDescription" xml:space="preserve">
     <value>Repeat the last recorded character search in the opposite direction.</value>
   </data>
-  <data name="RepeatLastCharSearchDescription" xml:space="preserve">
+    <data name="RepeatLastCharSearchDescription" xml:space="preserve">
     <value>Repeat the last recorded character search.</value>
   </data>
-  <data name="SearchCharBackwardDescription" xml:space="preserve">
+    <data name="SearchCharBackwardDescription" xml:space="preserve">
     <value>Move to the previous occurrence of the specified character.</value>
   </data>
-  <data name="SearchCharBackwardWithBackoffDescription" xml:space="preserve">
+    <data name="SearchCharBackwardWithBackoffDescription" xml:space="preserve">
     <value>Move to the previous occurrence of the specified character and then forward one character.</value>
   </data>
-  <data name="SearchCharDescription" xml:space="preserve">
+    <data name="SearchCharDescription" xml:space="preserve">
     <value>Move to the next occurrence of the specified character.</value>
   </data>
-  <data name="SearchCharWithBackoffDescription" xml:space="preserve">
+    <data name="SearchCharWithBackoffDescription" xml:space="preserve">
     <value>Move to he next occurrence of the specified character and then back one character.</value>
   </data>
-  <data name="ViBackwardReplaceWordDescription" xml:space="preserve">
+    <data name="ViBackwardReplaceWordDescription" xml:space="preserve">
     <value>Replace the previous word.</value>
   </data>
-  <data name="ViBackwardWordDescription" xml:space="preserve">
+    <data name="ViBackwardWordDescription" xml:space="preserve">
     <value>Delete backward to the beginning of the previous word, as delimited by white space and common delimiters, and enter insert mode.</value>
   </data>
-  <data name="ViBackwardCharDescription" xml:space="preserve">
+    <data name="ViBackwardCharDescription" xml:space="preserve">
     <value>Move the cursor back one character in the Vi edit mode.</value>
   </data>
-  <data name="ViForwardCharDescription" xml:space="preserve">
+    <data name="ViForwardCharDescription" xml:space="preserve">
     <value>Move the cursor forward one character in the Vi edit mode.</value>
   </data>
-  <data name="PasteAfterDescription" xml:space="preserve">
+    <data name="PasteAfterDescription" xml:space="preserve">
     <value>Write the contents of the local clipboard after the cursor.</value>
   </data>
-  <data name="ViNextWordDescription" xml:space="preserve">
+    <data name="ViNextWordDescription" xml:space="preserve">
     <value>Move the cursor to the beginning of the next word, as delimited by white space and common delimiters.</value>
   </data>
-  <data name="ViBackwardGlobDescription" xml:space="preserve">
+    <data name="ViBackwardGlobDescription" xml:space="preserve">
     <value>Move the cursor to the beginning of the previous word, as delimited by white space.</value>
   </data>
-  <data name="ViEndOfGlobDescription" xml:space="preserve">
+    <data name="ViEndOfGlobDescription" xml:space="preserve">
     <value>Move the cursor to the end this word, as delimited by white space.</value>
   </data>
-  <data name="PasteBeforeDescription" xml:space="preserve">
+    <data name="PasteBeforeDescription" xml:space="preserve">
     <value>Write the contents of the local clipboard before the cursor.</value>
   </data>
-  <data name="ViNextGlobDescription" xml:space="preserve">
+    <data name="ViNextGlobDescription" xml:space="preserve">
     <value>Move the cursor to the beginning of the next word, as delimited by white space.</value>
   </data>
-  <data name="ViGotoBraceDescription" xml:space="preserve">
+    <data name="ViGotoBraceDescription" xml:space="preserve">
     <value>Move the cursor to the matching brace.</value>
   </data>
-  <data name="ViBackwardDeleteGlobDescription" xml:space="preserve">
+    <data name="ViBackwardDeleteGlobDescription" xml:space="preserve">
     <value>Delete backward to the beginning of the previous word, as delimited by white space.</value>
   </data>
-  <data name="ViDeleteGlobDescription" xml:space="preserve">
+    <data name="ViDeleteGlobDescription" xml:space="preserve">
     <value>Delete the current word, as delimited by white space.</value>
   </data>
-  <data name="DeleteEndOfWordDescription" xml:space="preserve">
+    <data name="DeleteEndOfWordDescription" xml:space="preserve">
     <value>Delete to the end of the current word, as delimited by white space and common delimiters.</value>
   </data>
-  <data name="ViDeleteEndOfGlobDescription" xml:space="preserve">
+    <data name="ViDeleteEndOfGlobDescription" xml:space="preserve">
     <value>Delete to the end of this word, as delimited by white space.</value>
   </data>
-  <data name="ViBackwardReplaceGlobDescription" xml:space="preserve">
+    <data name="ViBackwardReplaceGlobDescription" xml:space="preserve">
     <value>Delete backward to the beginning of the previous word, as delimited by white space, and enter insert mode.</value>
   </data>
-  <data name="ViReplaceGlobDescription" xml:space="preserve">
+    <data name="ViReplaceGlobDescription" xml:space="preserve">
     <value>Delete to the beginning of the next word, as delimited by white space, and enter insert mode.</value>
   </data>
-  <data name="ViReplaceEndOfWordDescription" xml:space="preserve">
+    <data name="ViReplaceEndOfWordDescription" xml:space="preserve">
     <value>Delete to the end of the word, as delimited by white space and common delimiters, and enter insert mode.</value>
   </data>
-  <data name="ViReplaceEndOfGlobDescription" xml:space="preserve">
+    <data name="ViReplaceEndOfGlobDescription" xml:space="preserve">
     <value>Delete to the end of the word, as delimited by white space, and enter insert mode.</value>
   </data>
-  <data name="ViYankLineDescription" xml:space="preserve">
+    <data name="ViYankLineDescription" xml:space="preserve">
     <value>Place all characters in the current line into the local clipboard.</value>
   </data>
-  <data name="ViYankToEndOfLineDescription" xml:space="preserve">
+    <data name="ViYankToEndOfLineDescription" xml:space="preserve">
     <value>Place all characters at and after the cursor into the local clipboard.</value>
   </data>
-  <data name="ViYankPreviousWordDescription" xml:space="preserve">
+    <data name="ViYankPreviousWordDescription" xml:space="preserve">
     <value>Place all characters from before the cursor to the beginning of the previous word, as delimited by white space and common delimiters, into the local clipboard.</value>
   </data>
-  <data name="ViYankPreviousGlobDescription" xml:space="preserve">
+    <data name="ViYankPreviousGlobDescription" xml:space="preserve">
     <value>Place all characters from before the cursor to the beginning of the previous word, as delimited by white space, into the local clipboard.</value>
   </data>
-  <data name="ViYankNextWordDescription" xml:space="preserve">
+    <data name="ViYankNextWordDescription" xml:space="preserve">
     <value>Place all characters from the cursor to the end of the word, as delimited by white space and common delimiters, into the local clipboard.</value>
   </data>
-  <data name="ViYankNextGlobDescription" xml:space="preserve">
+    <data name="ViYankNextGlobDescription" xml:space="preserve">
     <value>Place all characters from the cursor to the end of the word, as delimited by white space, into the local clipboard.</value>
   </data>
-  <data name="ViYankEndOfWordDescription" xml:space="preserve">
+    <data name="ViYankEndOfWordDescription" xml:space="preserve">
     <value>Place the characters from the cursor to the end of the next word, as delimited by white space and common delimiters, into the local clipboard.</value>
   </data>
-  <data name="ViYankEndOfGlobDescription" xml:space="preserve">
+    <data name="ViYankEndOfGlobDescription" xml:space="preserve">
     <value>Place the characters from the cursor to the end of the next white space delimited word into the local clipboard.</value>
   </data>
-  <data name="ViYankLeftDescription" xml:space="preserve">
+    <data name="ViYankLeftDescription" xml:space="preserve">
     <value>Place the character to the left of the cursor into the local clipboard.</value>
   </data>
-  <data name="ViYankRightDescription" xml:space="preserve">
+    <data name="ViYankRightDescription" xml:space="preserve">
     <value>Place the character at the cursor into the local clipboard.</value>
   </data>
-  <data name="ViYankBeginningOfLineDescription" xml:space="preserve">
+    <data name="ViYankBeginningOfLineDescription" xml:space="preserve">
     <value>Place the characters before the cursor into the local clipboard.</value>
   </data>
-  <data name="ViYankToFirstCharDescription" xml:space="preserve">
+    <data name="ViYankToFirstCharDescription" xml:space="preserve">
     <value>Place all characters before the cursor and to the 1st non-white space character into the local clipboard.</value>
   </data>
-  <data name="ViYankPercentDescription" xml:space="preserve">
+    <data name="ViYankPercentDescription" xml:space="preserve">
     <value>Place all characters between the matching brace and the cursor into the local clipboard.</value>
   </data>
-  <data name="ViDeleteBraceDescription" xml:space="preserve">
+    <data name="ViDeleteBraceDescription" xml:space="preserve">
     <value>Deletes all characters between the cursor and the matching brace.</value>
   </data>
-  <data name="ViAcceptLineOrExitDescription" xml:space="preserve">
+    <data name="ViAcceptLineOrExitDescription" xml:space="preserve">
     <value>If the line is empty, exit, otherwise accept the line as input.</value>
   </data>
-  <data name="ViDigitArgumentInChordDescription" xml:space="preserve">
+    <data name="ViDigitArgumentInChordDescription" xml:space="preserve">
     <value>Handles the processing of a number argument after the first key of a chord.</value>
   </data>
-  <data name="ViExitDescription" xml:space="preserve">
+    <data name="ViExitDescription" xml:space="preserve">
     <value>Exit the shell.</value>
   </data>
-  <data name="ViTabCompleteNextDescription" xml:space="preserve">
+    <data name="ViTabCompleteNextDescription" xml:space="preserve">
     <value>Invokes TabCompleteNext after doing some vi-specific clean up.</value>
   </data>
-  <data name="ViTabCompletePreviousDescription" xml:space="preserve">
+    <data name="ViTabCompletePreviousDescription" xml:space="preserve">
     <value>Invokes TabCompletePrevious after doing some vi-specific clean up.</value>
   </data>
-  <data name="ViEditVisuallyDescription" xml:space="preserve">
+    <data name="ViEditVisuallyDescription" xml:space="preserve">
     <value>Invokes the console compatible editor specified by $env:VISUAL or $env:EDITOR on the current command line.</value>
   </data>
-  <data name="ViAppendLineDescription" xml:space="preserve">
+    <data name="ViAppendLineDescription" xml:space="preserve">
     <value>Appends a new multi-line edit mode line to the current line.</value>
   </data>
-  <data name="ViInsertLineDescription" xml:space="preserve">
+    <data name="ViInsertLineDescription" xml:space="preserve">
     <value>Inserts a new multi-line edit mode line in front of the current line.</value>
   </data>
-  <data name="ViJoinLinesDescription" xml:space="preserve">
+    <data name="ViJoinLinesDescription" xml:space="preserve">
     <value>Joins the current multi-line edit mode line with the next.</value>
   </data>
-  <data name="ViDeleteToBeforeCharDescription" xml:space="preserve">
+    <data name="ViDeleteToBeforeCharDescription" xml:space="preserve">
     <value>Deletes until given character.</value>
   </data>
-  <data name="ViDeleteToBeforeCharBackwardDescription" xml:space="preserve">
+    <data name="ViDeleteToBeforeCharBackwardDescription" xml:space="preserve">
     <value>Deletes until given character.</value>
   </data>
-  <data name="ViDeleteToCharDescription" xml:space="preserve">
+    <data name="ViDeleteToCharDescription" xml:space="preserve">
     <value>Deletes until given character.</value>
   </data>
-  <data name="ViDeleteToCharBackwardDescription" xml:space="preserve">
+    <data name="ViDeleteToCharBackwardDescription" xml:space="preserve">
     <value>Deletes backwards until given character.</value>
   </data>
-  <data name="ViReplaceToBeforeCharDescription" xml:space="preserve">
+    <data name="ViReplaceToBeforeCharDescription" xml:space="preserve">
     <value>Replaces until given character.</value>
   </data>
-  <data name="ViReplaceToBeforeCharBackwardDescription" xml:space="preserve">
+    <data name="ViReplaceToBeforeCharBackwardDescription" xml:space="preserve">
     <value>Replaces until given character.</value>
   </data>
-  <data name="ViReplaceToCharDescription" xml:space="preserve">
+    <data name="ViReplaceToCharDescription" xml:space="preserve">
     <value>Deletes until given character.</value>
   </data>
-  <data name="ViReplaceToCharBackwardDescription" xml:space="preserve">
+    <data name="ViReplaceToCharBackwardDescription" xml:space="preserve">
     <value>Replaces until given character.</value>
   </data>
-  <data name="ViEndOfPreviousGlobDescription" xml:space="preserve">
+    <data name="ViEndOfPreviousGlobDescription" xml:space="preserve">
     <value>Moves to the end of the previous word, using only white space as a word delimiter.</value>
   </data>
-  <data name="NotInViMode" xml:space="preserve">
+    <data name="NotInViMode" xml:space="preserve">
     <value>The -ViMode parameter was used, but the current EditMode is not Vi.</value>
   </data>
-  <data name="InsertLineAboveDescription" xml:space="preserve">
+    <data name="InsertLineAboveDescription" xml:space="preserve">
     <value>Inserts a new empty line above the current line without attempting to execute the input</value>
   </data>
-  <data name="InsertLineBelowDescription" xml:space="preserve">
+    <data name="InsertLineBelowDescription" xml:space="preserve">
     <value>Inserts a new empty line below the current line without attempting to execute the input</value>
   </data>
-  <data name="AcceptSuggestionDescription" xml:space="preserve">
+    <data name="AcceptSuggestionDescription" xml:space="preserve">
     <value>Accept the current inline or selected suggestion</value>
   </data>
-  <data name="AcceptNextSuggestionWordDescription" xml:space="preserve">
+    <data name="AcceptNextSuggestionWordDescription" xml:space="preserve">
     <value>Accept the next word of the inline or selected suggestion</value>
   </data>
-  <data name="HistoryFileErrorMessage" xml:space="preserve">
+    <data name="HistoryFileErrorMessage" xml:space="preserve">
     <value>Error reading or writing history file '{0}': {1}</value>
   </data>
-  <data name="HistoryFileErrorFinalMessage" xml:space="preserve">
+    <data name="HistoryFileErrorFinalMessage" xml:space="preserve">
     <value>This error will not be reported again in this session. Consider using a different path with:
     Set-PSReadLineOption -HistorySavePath &lt;Path&gt;
 Or not saving history with:
     Set-PSReadLineOption -HistorySaveStyle SaveNothing</value>
   </data>
-  <data name="OopsCustomHandlerException" xml:space="preserve">
+    <data name="OopsCustomHandlerException" xml:space="preserve">
     <value>An exception occurred in custom key handler, see $error for more information: {0}</value>
   </data>
-  <data name="BasicGrouping" xml:space="preserve">
+    <data name="BasicGrouping" xml:space="preserve">
     <value>Basic editing functions</value>
   </data>
-  <data name="CursorMovementGrouping" xml:space="preserve">
+    <data name="CursorMovementGrouping" xml:space="preserve">
     <value>Cursor movement functions</value>
   </data>
-  <data name="HistoryGrouping" xml:space="preserve">
+    <data name="HistoryGrouping" xml:space="preserve">
     <value>History functions</value>
   </data>
-  <data name="CompletionGrouping" xml:space="preserve">
+    <data name="CompletionGrouping" xml:space="preserve">
     <value>Completion functions</value>
   </data>
-  <data name="PredictionGrouping" xml:space="preserve">
+    <data name="PredictionGrouping" xml:space="preserve">
     <value>Prediction functions</value>
   </data>
-  <data name="MiscellaneousGrouping" xml:space="preserve">
+    <data name="MiscellaneousGrouping" xml:space="preserve">
     <value>Miscellaneous functions</value>
   </data>
-  <data name="SelectionGrouping" xml:space="preserve">
+    <data name="SelectionGrouping" xml:space="preserve">
     <value>Selection functions</value>
   </data>
-  <data name="SearchGrouping" xml:space="preserve">
+    <data name="SearchGrouping" xml:space="preserve">
     <value>Search functions</value>
   </data>
-  <data name="CustomGrouping" xml:space="preserve">
+    <data name="CustomGrouping" xml:space="preserve">
     <value>User defined functions</value>
   </data>
-  <data name="InvalidColorValue" xml:space="preserve">
+    <data name="InvalidColorValue" xml:space="preserve">
     <value>'{0}' is not a valid color value.  It must be a ConsoleColor, ANSI escape sequence, or RGB value with optional leading '#'.</value>
   </data>
-  <data name="InvalidColorProperty" xml:space="preserve">
+    <data name="InvalidColorProperty" xml:space="preserve">
     <value>'{0}' is not a valid color property</value>
   </data>
-  <data name="PredictiveSuggestionNotSupported" xml:space="preserve">
+    <data name="PredictiveSuggestionNotSupported" xml:space="preserve">
     <value>The predictive suggestion feature cannot be enabled because the console output doesn't support virtual terminal processing or it's redirected.</value>
   </data>
-  <data name="PredictionPluginNotSupported" xml:space="preserve">
+    <data name="PredictionPluginNotSupported" xml:space="preserve">
     <value>The prediction plugin source is not supported in this version of PowerShell. The 7.2 or a higher version of PowerShell is required to use this source.</value>
   </data>
-  <data name="DeleteEndOfBufferDescription" xml:space="preserve">
+    <data name="DeleteEndOfBufferDescription" xml:space="preserve">
     <value>Delete the current logical line and up to the end of the multiline buffer</value>
   </data>
-  <data name="DeletePreviousLinesDescription" xml:space="preserve">
+    <data name="DeletePreviousLinesDescription" xml:space="preserve">
     <value>Deletes from the previous n logical lines in a multiline buffer to the current logical line included.</value>
   </data>
-  <data name="DeleteNextLinesDescription" xml:space="preserve">
+    <data name="DeleteNextLinesDescription" xml:space="preserve">
     <value>Deletes the current and next n logical lines in a multiline buffer</value>
   </data>
-  <data name="DeleteRelativeLinesDescription" xml:space="preserve">
+    <data name="DeleteRelativeLinesDescription" xml:space="preserve">
     <value>Delete from the current logical line to the n-th requested logical line in a multiline buffer</value>
   </data>
-  <data name="NextSuggestionDescription" xml:space="preserve">
+    <data name="NextSuggestionDescription" xml:space="preserve">
     <value>Select the next suggestion item shown in the list view.</value>
   </data>
-  <data name="PreviousSuggestionDescription" xml:space="preserve">
+    <data name="PreviousSuggestionDescription" xml:space="preserve">
     <value>Select the previous suggestion item shown in the list view.</value>
   </data>
-  <data name="SwitchPredictionViewDescription" xml:space="preserve">
+    <data name="SwitchPredictionViewDescription" xml:space="preserve">
     <value>Switch between the inline and list prediction views.</value>
   </data>
-  <data name="WindowSizeTooSmallForListView" xml:space="preserve">
+    <data name="WindowSizeTooSmallForListView" xml:space="preserve">
     <value>The prediction 'ListView' is temporarily disabled because the current window size of the console is too small. To use the 'ListView', please make sure the 'WindowWidth' is not less than '{0}' and the 'WindowHeight' is not less than '{1}'.</value>
   </data>
-  <data name="NeedsUpdateHelp" xml:space="preserve">
+    <data name="NeedsUpdateHelp" xml:space="preserve">
     <value>No help content available. Please use Update-Help to download the latest help content.</value>
   </data>
-  <data name="FullHelpNotSupportedInLegacyConsole" xml:space="preserve">
+    <data name="FullHelpNotSupportedInLegacyConsole" xml:space="preserve">
     <value>Displaying help content is not supported on this console as it does not support alternate screen buffer.</value>
   </data>
-  <data name="ShowCommandHelpDescription" xml:space="preserve">
+    <data name="ShowCommandHelpDescription" xml:space="preserve">
     <value>Shows help for the command at the cursor in an alternate screen buffer.</value>
   </data>
-  <data name="ShowParameterHelpDescription" xml:space="preserve">
+    <data name="ShowParameterHelpDescription" xml:space="preserve">
     <value>Shows help for the parameter at the cursor.</value>
   </data>
-  <data name="SelectCommandArgumentDescription" xml:space="preserve">
+    <data name="SelectCommandArgumentDescription" xml:space="preserve">
     <value>Make visual selection of the command arguments.</value>
   </data>
-  <data name="FailedToConvertPointToRenderDataOffset" xml:space="preserve">
+    <data name="FailedToConvertPointToRenderDataOffset" xml:space="preserve">
     <value>Cannot locate the offset in the rendered text that was pointed by the original cursor. Initial Coord: ({0}, {1}) Buffer: ({2}, {3}) Cursor: ({4}, {5})</value>
   </data>
 </root>

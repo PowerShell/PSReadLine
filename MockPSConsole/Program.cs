@@ -9,13 +9,16 @@ namespace MockPSConsole
 {
     public enum StandardHandleId : uint
     {
-        Error  = unchecked((uint)-12),
-        Output = unchecked((uint)-11),
-        Input  = unchecked((uint)-10),
+        Error = unchecked((uint) -12),
+        Output = unchecked((uint) -11),
+        Input = unchecked((uint) -10)
     }
 
-    class Program
+    internal class Program
     {
+        public const uint ENABLE_VIRTUAL_TERMINAL_PROCESSING = 0x04;
+        public const uint ENABLE_VIRTUAL_TERMINAL_INPUT = 0x0200;
+
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         public static extern bool GetConsoleMode(IntPtr hConsoleOutput, out uint dwMode);
 
@@ -25,18 +28,15 @@ namespace MockPSConsole
         [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
         public static extern IntPtr GetStdHandle(uint handleId);
 
-        static void CauseCrash(ConsoleKeyInfo? key = null, object arg = null)
+        private static void CauseCrash(ConsoleKeyInfo? key = null, object arg = null)
         {
             throw new Exception("intentional crash for test purposes");
         }
 
-        public const uint ENABLE_VIRTUAL_TERMINAL_PROCESSING = 0x04;
-        public const uint ENABLE_VIRTUAL_TERMINAL_INPUT = 0x0200;
-
         [STAThread]
-        static void Main()
+        private static void Main()
         {
-            var handle = GetStdHandle((uint)StandardHandleId.Output);
+            var handle = GetStdHandle((uint) StandardHandleId.Output);
             GetConsoleMode(handle, out var mode);
             var vtEnabled = SetConsoleMode(handle, mode | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
 
@@ -48,7 +48,7 @@ namespace MockPSConsole
             PSConsoleReadLine.SetOptions(new SetPSReadLineOption
             {
                 EditMode = EditMode.Emacs,
-                HistoryNoDuplicates = false,
+                HistoryNoDuplicates = false
             });
 
             if (vtEnabled)
@@ -57,16 +57,25 @@ namespace MockPSConsole
                 options.CommandColor = "#8181f7";
                 options.StringColor = "\x1b[38;5;100m";
             }
-            PSConsoleReadLine.SetKeyHandler(new[] {"Ctrl+LeftArrow"}, PSConsoleReadLine.ShellBackwardWord, "ShellBackwardWord", "");
-            PSConsoleReadLine.SetKeyHandler(new[] {"Ctrl+RightArrow"}, PSConsoleReadLine.ShellNextWord, "ShellNextWord", "");
-            PSConsoleReadLine.SetKeyHandler(new[] {"F4"}, PSConsoleReadLine.HistorySearchBackward, "HistorySearchBackward", "");
-            PSConsoleReadLine.SetKeyHandler(new[] {"F5"}, PSConsoleReadLine.HistorySearchForward, "HistorySearchForward", "");
-            PSConsoleReadLine.SetKeyHandler(new[] {"Ctrl+d,Ctrl+c"}, PSConsoleReadLine.CaptureScreen, "CaptureScreen", "");
-            PSConsoleReadLine.SetKeyHandler(new[] {"Ctrl+d,Ctrl+p"}, PSConsoleReadLine.InvokePrompt, "InvokePrompt", "");
-            PSConsoleReadLine.SetKeyHandler(new[] {"Ctrl+d,Ctrl+x"}, CauseCrash, "CauseCrash", "Throw exception to test error handling");
+
+            PSConsoleReadLine.SetKeyHandler(new[] {"Ctrl+LeftArrow"}, PSConsoleReadLine.ShellBackwardWord,
+                "ShellBackwardWord", "");
+            PSConsoleReadLine.SetKeyHandler(new[] {"Ctrl+RightArrow"}, PSConsoleReadLine.ShellNextWord, "ShellNextWord",
+                "");
+            PSConsoleReadLine.SetKeyHandler(new[] {"F4"}, PSConsoleReadLine.HistorySearchBackward,
+                "HistorySearchBackward", "");
+            PSConsoleReadLine.SetKeyHandler(new[] {"F5"}, PSConsoleReadLine.HistorySearchForward,
+                "HistorySearchForward", "");
+            PSConsoleReadLine.SetKeyHandler(new[] {"Ctrl+d,Ctrl+c"}, PSConsoleReadLine.CaptureScreen, "CaptureScreen",
+                "");
+            PSConsoleReadLine.SetKeyHandler(new[] {"Ctrl+d,Ctrl+p"}, PSConsoleReadLine.InvokePrompt, "InvokePrompt",
+                "");
+            PSConsoleReadLine.SetKeyHandler(new[] {"Ctrl+d,Ctrl+x"}, CauseCrash, "CauseCrash",
+                "Throw exception to test error handling");
             PSConsoleReadLine.SetKeyHandler(new[] {"F6"}, PSConsoleReadLine.PreviousLine, "PreviousLine", "");
             PSConsoleReadLine.SetKeyHandler(new[] {"F7"}, PSConsoleReadLine.NextLine, "NextLine", "");
-            PSConsoleReadLine.SetKeyHandler(new[] {"F2"}, PSConsoleReadLine.ValidateAndAcceptLine, "ValidateAndAcceptLine", "");
+            PSConsoleReadLine.SetKeyHandler(new[] {"F2"}, PSConsoleReadLine.ValidateAndAcceptLine,
+                "ValidateAndAcceptLine", "");
             PSConsoleReadLine.SetKeyHandler(new[] {"Enter"}, PSConsoleReadLine.AcceptLine, "AcceptLine", "");
 
             using (var ps = PowerShell.Create(RunspaceMode.CurrentRunspace))
@@ -75,16 +84,12 @@ namespace MockPSConsole
 
                 // Detect if the read loop will enter VT input mode.
                 var vtInputEnvVar = Environment.GetEnvironmentVariable("PSREADLINE_VTINPUT");
-                var stdin = GetStdHandle((uint)StandardHandleId.Input);
+                var stdin = GetStdHandle((uint) StandardHandleId.Input);
                 GetConsoleMode(stdin, out var inputMode);
                 if (vtInputEnvVar == "1" || (inputMode & ENABLE_VIRTUAL_TERMINAL_INPUT) != 0)
-                {
                     Console.WriteLine("\x1b[33mDefault input mode = virtual terminal\x1b[m");
-                }
                 else
-                {
                     Console.WriteLine("\x1b[33mDefault input mode = Windows\x1b[m");
-                }
 
                 // This is a workaround to ensure the command analysis cache has been created before
                 // we enter into ReadLine.  It's a little slow and infrequently needed, so just
@@ -99,7 +104,7 @@ namespace MockPSConsole
                     ps.Commands.Clear();
                     Console.Write(string.Join("", ps.AddCommand("prompt").Invoke<string>()));
 
-                    var line = PSConsoleReadLine.ReadLine(rs, executionContext, lastRunStatus: null);
+                    var line = PSConsoleReadLine.ReadLine(rs, executionContext, null);
                     Console.WriteLine(line);
                     line = line.Trim();
                     if (line.Equals("exit"))

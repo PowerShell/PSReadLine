@@ -16,7 +16,7 @@ namespace Test
                 "02cwabcdef", _.Escape, CheckThat(() => AssertLineIs("abcdef")),
                 "u03cwghi klm", _.Escape, CheckThat(() => AssertLineIs("ghi klm")),
                 'u'
-                ));
+            ));
 
             Test("012 45", Keys(
                 "012 45", _.Escape,
@@ -25,7 +25,7 @@ namespace Test
                 "02cwabcdef", _.Escape, CheckThat(() => AssertLineIs("abcdef")),
                 "u03cwghi klm", _.Escape, CheckThat(() => AssertLineIs("ghi klm")),
                 'u'
-                ));
+            ));
 
             Test("test()b", Keys(
                 "test()b", _.Escape, CheckThat(() => AssertLineIs("test()b")), CheckThat(() => AssertCursorLeftIs(6)),
@@ -33,7 +33,7 @@ namespace Test
                 "cw", CheckThat(() => AssertCursorLeftIs(4)),
                 "[]", _.Escape, CheckThat(() => AssertLineIs("test[]b")),
                 'u'
-                ));
+            ));
 
             Test("test()", Keys(
                 "test()", CheckThat(() => AssertLineIs("test()")),
@@ -42,7 +42,7 @@ namespace Test
                 "cw", CheckThat(() => AssertLineIs("test")),
                 "[]", _.Escape, CheckThat(() => AssertLineIs("test[]")),
                 'u'
-                ));
+            ));
 
             Test("test()", Keys(
                 "test()", CheckThat(() => AssertLineIs("test()")),
@@ -52,26 +52,30 @@ namespace Test
                 "ulbcw", CheckThat(() => AssertLineIs("test")),
                 "[]", _.Escape, CheckThat(() => AssertLineIs("test[]")),
                 'u'
-                ));
+            ));
 
             Test(@"vim .\xx\VisualEditing.vi.cs", Keys(
-                "vim ", _.Period, _.Backslash, "PSReadLine", _.Backslash, "VisualEditing", _.Period, "vi", _.Period, "cs",
+                "vim ", _.Period, _.Backslash, "PSReadLine", _.Backslash, "VisualEditing", _.Period, "vi", _.Period,
+                "cs",
                 CheckThat(() => AssertLineIs(@"vim .\PSReadLine\VisualEditing.vi.cs")),
                 _.Escape, "Bll", CheckThat(() => AssertCursorLeftIs(6)),
-                "cw", _.Escape, CheckThat(() => AssertCursorLeftIs(5)), CheckThat(() => AssertLineIs(@"vim .\\VisualEditing.vi.cs")),
-                'u', CheckThat(() => AssertCursorLeftIs(6)), CheckThat(() => AssertLineIs(@"vim .\PSReadLine\VisualEditing.vi.cs")),
+                "cw", _.Escape, CheckThat(() => AssertCursorLeftIs(5)),
+                CheckThat(() => AssertLineIs(@"vim .\\VisualEditing.vi.cs")),
+                'u', CheckThat(() => AssertCursorLeftIs(6)),
+                CheckThat(() => AssertLineIs(@"vim .\PSReadLine\VisualEditing.vi.cs")),
                 "cwxx", _.Escape, CheckThat(() => AssertCursorLeftIs(7))
-                ));
+            ));
 
             Test("$response.Headers['location']", Keys(
-                _.Dollar, "response", _.Period, "Headers", _.LBracket, _.SQuote, "location", _.SQuote, _.RBracket, _.Escape,
+                _.Dollar, "response", _.Period, "Headers", _.LBracket, _.SQuote, "location", _.SQuote, _.RBracket,
+                _.Escape,
                 CheckThat(() => AssertLineIs("$response.Headers['location']")),
                 "bb", CheckThat(() => AssertCursorLeftIs(19)),
                 "cw", CheckThat(() => AssertLineIs("$response.Headers['']")),
                 "territory", CheckThat(() => AssertLineIs("$response.Headers['territory']")),
                 _.Escape, CheckThat(() => AssertCursorLeftIs(27)),
                 'u'
-                ));
+            ));
 
 
             Test("test(int)", Keys(
@@ -81,7 +85,7 @@ namespace Test
                 "cw", CheckThat(() => AssertLineIs("test()")), CheckThat(() => AssertCursorLeftIs(5)),
                 "float", CheckThat(() => AssertLineIs("test(float)")),
                 _.Escape, 'u'
-                ));
+            ));
         }
     }
 }

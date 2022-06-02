@@ -15,6 +15,8 @@ namespace Microsoft.PowerShell
 {
     public partial class PSConsoleReadLine
     {
+        private Pager _pager;
+
         // Stub helper methods so dynamic help can be mocked
         [ExcludeFromCodeCoverage]
         void IPSConsoleReadLineMockableMethods.RenderFullHelp(string content, string regexPatternToScrollTo)
@@ -23,12 +25,10 @@ namespace Microsoft.PowerShell
         }
 
         [ExcludeFromCodeCoverage]
-        object IPSConsoleReadLineMockableMethods.GetDynamicHelpContent(string commandName, string parameterName, bool isFullHelp)
+        object IPSConsoleReadLineMockableMethods.GetDynamicHelpContent(string commandName, string parameterName,
+            bool isFullHelp)
         {
-            if (string.IsNullOrEmpty(commandName))
-            {
-                return null;
-            }
+            if (string.IsNullOrEmpty(commandName)) return null;
 
             System.Management.Automation.PowerShell ps = null;
 
@@ -45,20 +45,15 @@ namespace Microsoft.PowerShell
                 }
 
                 if (isFullHelp)
-                {
                     return ps
-                        .AddCommand($"Microsoft.PowerShell.Core\\Get-Help")
+                        .AddCommand("Microsoft.PowerShell.Core\\Get-Help")
                         .AddParameter("Name", commandName)
-                        .AddParameter("Full", value: true)
-                        .AddCommand($"Microsoft.PowerShell.Utility\\Out-String")
+                        .AddParameter("Full", true)
+                        .AddCommand("Microsoft.PowerShell.Utility\\Out-String")
                         .Invoke<string>()
                         .FirstOrDefault();
-                }
 
-                if (string.IsNullOrEmpty(parameterName))
-                {
-                    return null;
-                }
+                if (string.IsNullOrEmpty(parameterName)) return null;
 
                 return ps
                     .AddCommand("Microsoft.PowerShell.Core\\Get-Help")
@@ -66,7 +61,6 @@ namespace Microsoft.PowerShell
                     .AddParameter("Parameter", parameterName)
                     .Invoke<PSObject>()
                     .FirstOrDefault();
-
             }
             catch (Exception)
             {
@@ -79,24 +73,19 @@ namespace Microsoft.PowerShell
                 // GetDynamicHelpContent could scroll the screen, e.g. via Write-Progress. For example,
                 // Get-Help for unknown command under the CloudShell Azure drive will show the progress bar while searching for command.
                 // We need to update the _initialY in case the current cursor postion has changed.
-                if (_singleton._initialY > _console.CursorTop)
-                {
-                    _singleton._initialY = _console.CursorTop;
-                }
+                if (_singleton._initialY > _console.CursorTop) _singleton._initialY = _console.CursorTop;
             }
         }
 
-        private Pager _pager;
-
         /// <summary>
-        /// Attempt to show help content.
-        /// Show the full help for the command on the alternate screen buffer.
+        ///     Attempt to show help content.
+        ///     Show the full help for the command on the alternate screen buffer.
         /// </summary>
         public static void ShowCommandHelp(ConsoleKeyInfo? key = null, object arg = null)
         {
             if (_singleton._console is PlatformWindows.LegacyWin32Console)
             {
-                Collection<string> helpBlock = new Collection<string>()
+                var helpBlock = new Collection<string>
                 {
                     string.Empty,
                     PSReadLineResources.FullHelpNotSupportedInLegacyConsole
@@ -107,16 +96,16 @@ namespace Microsoft.PowerShell
                 return;
             }
 
-            _singleton.DynamicHelpImpl(isFullHelp: true);
+            _singleton.DynamicHelpImpl(true);
         }
 
         /// <summary>
-        /// Attempt to show help content.
-        /// Show the short help of the parameter next to the cursor.
+        ///     Attempt to show help content.
+        ///     Show the short help of the parameter next to the cursor.
         /// </summary>
         public static void ShowParameterHelp(ConsoleKeyInfo? key = null, object arg = null)
         {
-            _singleton.DynamicHelpImpl(isFullHelp: false);
+            _singleton.DynamicHelpImpl(false);
         }
 
         private void WriteDynamicHelpContent(string commandName, string parameterName, bool isFullHelp)
@@ -127,10 +116,7 @@ namespace Microsoft.PowerShell
             {
                 string regexPatternToScrollTo = null;
 
-                if (!string.IsNullOrEmpty(parameterName))
-                {
-                    regexPatternToScrollTo = $"-{parameterName} [<|\\[]";
-                }
+                if (!string.IsNullOrEmpty(parameterName)) regexPatternToScrollTo = $"-{parameterName} [<|\\[]";
 
                 _mockableMethods.RenderFullHelp(fullHelp, regexPatternToScrollTo);
             }
@@ -142,40 +128,29 @@ namespace Microsoft.PowerShell
 
         private void DynamicHelpImpl(bool isFullHelp)
         {
-            if (isFullHelp)
-            {
-                _pager ??= new Pager();
-            }
+            if (isFullHelp) _pager ??= new Pager();
 
-            int cursor = _singleton._current;
+            var cursor = _singleton._current;
             string commandName = null;
             string parameterName = null;
 
             // Simply return if nothing is rendered yet.
-            if (_singleton._tokens == null) { return; }
+            if (_singleton._tokens == null) return;
 
-            foreach(var token in _singleton._tokens)
+            foreach (var token in _singleton._tokens)
             {
                 var extent = token.Extent;
 
-                if (extent.StartOffset > cursor)
-                {
-                    break;
-                }
+                if (extent.StartOffset > cursor) break;
 
-                if (token.TokenFlags == TokenFlags.CommandName)
-                {
-                    commandName = token.Text;
-                }
+                if (token.TokenFlags == TokenFlags.CommandName) commandName = token.Text;
 
                 if (extent.StartOffset <= cursor && extent.EndOffset >= cursor)
-                {
                     if (token.Kind == TokenKind.Parameter)
                     {
-                        parameterName = ((ParameterToken)token).ParameterName;
+                        parameterName = ((ParameterToken) token).ParameterName;
                         break;
                     }
-                }
             }
 
             WriteDynamicHelpContent(commandName, parameterName, isFullHelp);
@@ -200,21 +175,22 @@ namespace Microsoft.PowerShell
 
             if (string.IsNullOrEmpty(helpContent?.Description?[0]?.Text))
             {
-                helpBlock = new Collection<string>()
+                helpBlock = new Collection<string>
                 {
-                    String.Empty,
+                    string.Empty,
                     PSReadLineResources.NeedsUpdateHelp
                 };
             }
             else
             {
-                string syntax = $"-{helpContent.name} <{helpContent.type.name}>";
+                var syntax = $"-{helpContent.name} <{helpContent.type.name}>";
                 string desc = "DESC: " + helpContent.Description[0].Text;
 
                 // trim new line characters as some help content has it at the end of the first list on the description.
                 desc = desc.Trim('\r', '\n');
 
-                string details = $"Required: {helpContent.required}, Position: {helpContent.position}, Default Value: {helpContent.defaultValue}, Pipeline Input: {helpContent.pipelineInput}, WildCard: {helpContent.globbing}";
+                var details =
+                    $"Required: {helpContent.required}, Position: {helpContent.position}, Default Value: {helpContent.defaultValue}, Pipeline Input: {helpContent.pipelineInput}, WildCard: {helpContent.globbing}";
 
                 helpBlock = new Collection<string>
                 {
@@ -231,14 +207,13 @@ namespace Microsoft.PowerShell
 
         private class MultilineDisplayBlock : DisplayBlockBase
         {
-            internal Collection<string> ItemsToDisplay;
-
             // Keep track of the number of extra physical lines due to multi-line text.
-            private int extraPhysicalLines = 0;
+            private int extraPhysicalLines;
+            internal Collection<string> ItemsToDisplay;
 
             public void DrawMultilineBlock()
             {
-                IConsole console = Singleton._console;
+                var console = Singleton._console;
 
                 extraPhysicalLines = 0;
 
@@ -252,14 +227,11 @@ namespace Microsoft.PowerShell
                 {
                     var itemLength = LengthInBufferCells(items[index]);
 
-                    int extra = 0;
+                    var extra = 0;
                     if (itemLength > bufferWidth)
                     {
                         extra = itemLength / bufferWidth;
-                        if (itemLength % bufferWidth == 0)
-                        {
-                            extra--;
-                        }
+                        if (itemLength % bufferWidth == 0) extra--;
                     }
 
                     if (extra > 0)
@@ -273,7 +245,7 @@ namespace Microsoft.PowerShell
 
                     // Explicit newline so consoles see each row as distinct lines, but skip the
                     // last line so we don't scroll.
-                    if (index != (items.Count - 1))
+                    if (index != items.Count - 1)
                     {
                         AdjustForPossibleScroll(1);
                         MoveCursorDown(1);

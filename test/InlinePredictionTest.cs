@@ -11,11 +11,15 @@ namespace Test
 {
     public partial class ReadLine
     {
+        private const uint MiniSessionId = 56;
+        private static readonly Guid predictorId_1 = Guid.Parse("b45b5fbe-90fa-486c-9c87-e7940fdd6273");
+        private static readonly Guid predictorId_2 = Guid.Parse("74a86463-033b-44a3-b386-41ee191c94be");
+
         [SkippableFact]
         public void Inline_RenderSuggestion()
         {
             TestSetup(KeyMode.Cmd,
-                      new KeyHandler("Ctrl+f", PSConsoleReadLine.ForwardWord));
+                new KeyHandler("Ctrl+f", PSConsoleReadLine.ForwardWord));
             using var disp = SetPrediction(PredictionSource.History, PredictionViewStyle.InlineView);
             _mockedMethods.ClearPredictionFields();
 
@@ -37,17 +41,17 @@ namespace Test
             SetHistory("echo -bar", "eca -zoo");
             Test("ech", Keys(
                 'e', CheckThat(() => AssertScreenIs(1,
-                        TokenClassification.Command, 'e',
-                        TokenClassification.InlinePrediction, "ca -zoo")),
+                    TokenClassification.Command, 'e',
+                    TokenClassification.InlinePrediction, "ca -zoo")),
                 'c', CheckThat(() => AssertScreenIs(1,
-                        TokenClassification.Command, "ec",
-                        TokenClassification.InlinePrediction, "a -zoo")),
+                    TokenClassification.Command, "ec",
+                    TokenClassification.InlinePrediction, "a -zoo")),
                 'h', CheckThat(() => AssertScreenIs(1,
-                        TokenClassification.Command, "ech",
-                        TokenClassification.InlinePrediction, "o -bar")),
+                    TokenClassification.Command, "ech",
+                    TokenClassification.InlinePrediction, "o -bar")),
                 // Once accepted, the suggestion text should be blanked out.
                 _.Enter, CheckThat(() => AssertScreenIs(1,
-                        TokenClassification.Command, "ech"))
+                    TokenClassification.Command, "ech"))
             ));
 
             // The 'OnXXXAccepted' callback won't be hit when 'History' is the only source.
@@ -59,28 +63,28 @@ namespace Test
             SetHistory("echo -bar", "eca -zoo");
             Test("eca ", Keys(
                 'e', CheckThat(() => AssertScreenIs(1,
-                        TokenClassification.Command, 'e',
-                        TokenClassification.InlinePrediction, "ca -zoo")),
+                    TokenClassification.Command, 'e',
+                    TokenClassification.InlinePrediction, "ca -zoo")),
                 _.RightArrow, CheckThat(() => AssertScreenIs(1,
-                        TokenClassification.Command, "eca",
-                        TokenClassification.None, ' ',
-                        TokenClassification.Parameter, "-zoo")),
+                    TokenClassification.Command, "eca",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Parameter, "-zoo")),
                 _.Ctrl_z, CheckThat(() => AssertScreenIs(1,
-                        TokenClassification.Command, 'e',
-                        TokenClassification.InlinePrediction, "ca -zoo")),
+                    TokenClassification.Command, 'e',
+                    TokenClassification.InlinePrediction, "ca -zoo")),
                 _.Ctrl_f, CheckThat(() => AssertScreenIs(1,
-                        TokenClassification.Command, "eca",
-                        TokenClassification.None, ' ',
-                        TokenClassification.InlinePrediction, "-zoo")),
+                    TokenClassification.Command, "eca",
+                    TokenClassification.None, ' ',
+                    TokenClassification.InlinePrediction, "-zoo")),
                 CheckThat(() => AssertCursorLeftIs(4)),
                 _.Ctrl_f, CheckThat(() => AssertScreenIs(1,
-                        TokenClassification.Command, "eca",
-                        TokenClassification.None, ' ',
-                        TokenClassification.Parameter, "-zoo")),
+                    TokenClassification.Command, "eca",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Parameter, "-zoo")),
                 _.Ctrl_z, CheckThat(() => AssertScreenIs(1,
-                        TokenClassification.Command, "eca",
-                        TokenClassification.None, ' ',
-                        TokenClassification.InlinePrediction, "-zoo"))
+                    TokenClassification.Command, "eca",
+                    TokenClassification.None, ' ',
+                    TokenClassification.InlinePrediction, "-zoo"))
             ));
 
             // The 'OnXXXAccepted' callback won't be hit when 'History' is the only source.
@@ -93,39 +97,39 @@ namespace Test
         public void Inline_CustomKeyBindingsToAcceptSuggestion()
         {
             TestSetup(KeyMode.Cmd,
-                      new KeyHandler("Alt+g", PSConsoleReadLine.AcceptSuggestion),
-                      new KeyHandler("Alt+f", PSConsoleReadLine.AcceptNextSuggestionWord));
+                new KeyHandler("Alt+g", PSConsoleReadLine.AcceptSuggestion),
+                new KeyHandler("Alt+f", PSConsoleReadLine.AcceptNextSuggestionWord));
             using var disp = SetPrediction(PredictionSource.History, PredictionViewStyle.InlineView);
 
             SetHistory("echo -bar", "eca -zoo");
             Test("eca ", Keys(
                 "ec", CheckThat(() => AssertScreenIs(1,
-                        TokenClassification.Command, "ec",
-                        TokenClassification.InlinePrediction, "a -zoo")),
+                    TokenClassification.Command, "ec",
+                    TokenClassification.InlinePrediction, "a -zoo")),
                 CheckThat(() => AssertCursorLeftIs(2)),
                 _.Alt_g, CheckThat(() => AssertScreenIs(1,
-                        TokenClassification.Command, "eca",
-                        TokenClassification.None, ' ',
-                        TokenClassification.Parameter, "-zoo")),
+                    TokenClassification.Command, "eca",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Parameter, "-zoo")),
                 CheckThat(() => AssertCursorLeftIs(8)),
                 _.Ctrl_z, CheckThat(() => AssertScreenIs(1,
-                        TokenClassification.Command, "ec",
-                        TokenClassification.InlinePrediction, "a -zoo")),
+                    TokenClassification.Command, "ec",
+                    TokenClassification.InlinePrediction, "a -zoo")),
                 CheckThat(() => AssertCursorLeftIs(2)),
                 _.Alt_f, CheckThat(() => AssertScreenIs(1,
-                        TokenClassification.Command, "eca",
-                        TokenClassification.None, ' ',
-                        TokenClassification.InlinePrediction, "-zoo")),
+                    TokenClassification.Command, "eca",
+                    TokenClassification.None, ' ',
+                    TokenClassification.InlinePrediction, "-zoo")),
                 CheckThat(() => AssertCursorLeftIs(4)),
                 _.Alt_f, CheckThat(() => AssertScreenIs(1,
-                        TokenClassification.Command, "eca",
-                        TokenClassification.None, ' ',
-                        TokenClassification.Parameter, "-zoo")),
+                    TokenClassification.Command, "eca",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Parameter, "-zoo")),
                 CheckThat(() => AssertCursorLeftIs(8)),
                 _.Ctrl_z, CheckThat(() => AssertScreenIs(1,
-                        TokenClassification.Command, "eca",
-                        TokenClassification.None, ' ',
-                        TokenClassification.InlinePrediction, "-zoo")),
+                    TokenClassification.Command, "eca",
+                    TokenClassification.None, ' ',
+                    TokenClassification.InlinePrediction, "-zoo")),
                 CheckThat(() => AssertCursorLeftIs(4)),
 
                 // Revert back to 'ec'.
@@ -134,21 +138,21 @@ namespace Test
                 _.LeftArrow, _.LeftArrow,
                 CheckThat(() => AssertCursorLeftIs(0)),
                 _.Alt_g, CheckThat(() => AssertScreenIs(1,
-                        TokenClassification.Command, "eca",
-                        TokenClassification.None, ' ',
-                        TokenClassification.Parameter, "-zoo")),
+                    TokenClassification.Command, "eca",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Parameter, "-zoo")),
                 CheckThat(() => AssertCursorLeftIs(8)),
                 _.Ctrl_z, CheckThat(() => AssertScreenIs(1,
-                        TokenClassification.Command, "ec",
-                        TokenClassification.InlinePrediction, "a -zoo")),
+                    TokenClassification.Command, "ec",
+                    TokenClassification.InlinePrediction, "a -zoo")),
                 CheckThat(() => AssertCursorLeftIs(2)),
                 // Move cursor to column 0 again.
                 _.LeftArrow, _.LeftArrow,
                 CheckThat(() => AssertCursorLeftIs(0)),
                 _.Alt_f, CheckThat(() => AssertScreenIs(1,
-                        TokenClassification.Command, "eca",
-                        TokenClassification.None, ' ',
-                        TokenClassification.InlinePrediction, "-zoo")),
+                    TokenClassification.Command, "eca",
+                    TokenClassification.None, ' ',
+                    TokenClassification.InlinePrediction, "-zoo")),
                 CheckThat(() => AssertCursorLeftIs(4))
             ));
         }
@@ -157,35 +161,35 @@ namespace Test
         public void Inline_AcceptNextSuggestionWordCanAcceptMoreThanOneWords()
         {
             TestSetup(KeyMode.Cmd,
-                      new KeyHandler("Ctrl+f", PSConsoleReadLine.ForwardWord),
-                      new KeyHandler("Alt+f", PSConsoleReadLine.AcceptNextSuggestionWord));
+                new KeyHandler("Ctrl+f", PSConsoleReadLine.ForwardWord),
+                new KeyHandler("Alt+f", PSConsoleReadLine.AcceptNextSuggestionWord));
             using var disp = SetPrediction(PredictionSource.History, PredictionViewStyle.InlineView);
 
             SetHistory("abc def ghi jkl");
             Test("abc def ghi jkl", Keys(
                 'a', CheckThat(() => AssertScreenIs(1,
-                        TokenClassification.Command, 'a',
-                        TokenClassification.InlinePrediction, "bc def ghi jkl")),
+                    TokenClassification.Command, 'a',
+                    TokenClassification.InlinePrediction, "bc def ghi jkl")),
                 _.Alt_3, _.Ctrl_f,
                 CheckThat(() => AssertScreenIs(1,
-                        TokenClassification.Command, "abc",
-                        TokenClassification.None, " def ghi ",
-                        TokenClassification.InlinePrediction, "jkl")),
+                    TokenClassification.Command, "abc",
+                    TokenClassification.None, " def ghi ",
+                    TokenClassification.InlinePrediction, "jkl")),
                 _.Ctrl_z, CheckThat(() => AssertScreenIs(1,
-                        TokenClassification.Command, 'a',
-                        TokenClassification.InlinePrediction, "bc def ghi jkl")),
+                    TokenClassification.Command, 'a',
+                    TokenClassification.InlinePrediction, "bc def ghi jkl")),
                 _.Alt_3, _.Alt_f,
                 CheckThat(() => AssertScreenIs(1,
-                        TokenClassification.Command, "abc",
-                        TokenClassification.None, " def ghi ",
-                        TokenClassification.InlinePrediction, "jkl")),
+                    TokenClassification.Command, "abc",
+                    TokenClassification.None, " def ghi ",
+                    TokenClassification.InlinePrediction, "jkl")),
                 _.Ctrl_z, CheckThat(() => AssertScreenIs(1,
-                        TokenClassification.Command, 'a',
-                        TokenClassification.InlinePrediction, "bc def ghi jkl")),
+                    TokenClassification.Command, 'a',
+                    TokenClassification.InlinePrediction, "bc def ghi jkl")),
                 _.Alt_8, _.Alt_f,
                 CheckThat(() => AssertScreenIs(1,
-                        TokenClassification.Command, "abc",
-                        TokenClassification.None, " def ghi jkl"))
+                    TokenClassification.Command, "abc",
+                    TokenClassification.None, " def ghi jkl"))
             ));
         }
 
@@ -193,27 +197,27 @@ namespace Test
         public void Inline_AcceptSuggestionWithSelection()
         {
             TestSetup(KeyMode.Cmd,
-                      new KeyHandler("Ctrl+f", PSConsoleReadLine.ForwardWord));
+                new KeyHandler("Ctrl+f", PSConsoleReadLine.ForwardWord));
             using var disp = SetPrediction(PredictionSource.History, PredictionViewStyle.InlineView);
 
             SetHistory("git diff --cached", "git diff");
             Test("git diff", Keys(
                 "git", CheckThat(() => AssertScreenIs(1,
-                        TokenClassification.Command, "git",
-                        TokenClassification.InlinePrediction, " diff")),
+                    TokenClassification.Command, "git",
+                    TokenClassification.InlinePrediction, " diff")),
                 _.RightArrow, CheckThat(() => AssertScreenIs(1,
-                        TokenClassification.Command, "git",
-                        TokenClassification.None, " diff")),
+                    TokenClassification.Command, "git",
+                    TokenClassification.None, " diff")),
                 _.Ctrl_z, CheckThat(() => AssertCursorLeftIs(3)),
                 _.Ctrl_f, CheckThat(() => AssertScreenIs(1,
-                        TokenClassification.Command, "git",
-                        TokenClassification.None, " diff",
-                        TokenClassification.InlinePrediction, " --cached")),
+                    TokenClassification.Command, "git",
+                    TokenClassification.None, " diff",
+                    TokenClassification.InlinePrediction, " --cached")),
 
                 // Perform visual selection and then accept suggestion.
                 _.Ctrl_z, CheckThat(() => AssertScreenIs(1,
-                        TokenClassification.Command, "git",
-                        TokenClassification.InlinePrediction, " diff")),
+                    TokenClassification.Command, "git",
+                    TokenClassification.InlinePrediction, " diff")),
                 _.LeftArrow, _.Shift_RightArrow,
                 CheckThat(() =>
                 {
@@ -222,13 +226,13 @@ namespace Test
                     Assert.Equal(1, length);
                 }),
                 _.RightArrow, CheckThat(() => AssertScreenIs(1,
-                        TokenClassification.Command, "git",
-                        TokenClassification.None, " diff")),
+                    TokenClassification.Command, "git",
+                    TokenClassification.None, " diff")),
 
                 // Perform visual selection and then accept next suggestion word.
                 _.Ctrl_z, CheckThat(() => AssertScreenIs(1,
-                        TokenClassification.Command, "git",
-                        TokenClassification.InlinePrediction, " diff")),
+                    TokenClassification.Command, "git",
+                    TokenClassification.InlinePrediction, " diff")),
                 _.LeftArrow, _.Shift_RightArrow,
                 CheckThat(() =>
                 {
@@ -237,9 +241,9 @@ namespace Test
                     Assert.Equal(1, length);
                 }),
                 _.Ctrl_f, CheckThat(() => AssertScreenIs(1,
-                        TokenClassification.Command, "git",
-                        TokenClassification.None, " diff",
-                        TokenClassification.InlinePrediction, " --cached"))
+                    TokenClassification.Command, "git",
+                    TokenClassification.None, " diff",
+                    TokenClassification.InlinePrediction, " --cached"))
             ));
         }
 
@@ -266,22 +270,23 @@ namespace Test
             var predictionColorToCheck = Tuple.Create(ConsoleColor.DarkYellow, ConsoleColor.Yellow);
 
             using var disp = SetPrediction(PredictionSource.History, PredictionViewStyle.InlineView);
-            PSConsoleReadLine.SetOptions(new SetPSReadLineOption { Colors = new Hashtable() { { "InlinePrediction", predictionColor } } });
+            PSConsoleReadLine.SetOptions(new SetPSReadLineOption
+                {Colors = new Hashtable {{"InlinePrediction", predictionColor}}});
 
             SetHistory("echo -bar", "eca -zoo");
             Test("ech", Keys(
-                'e', CheckThat(() => AssertScreenIs(1, 
-                        TokenClassification.Command, 'e',
-                        predictionColorToCheck, "ca -zoo")),
-                'c', CheckThat(() => AssertScreenIs(1, 
-                        TokenClassification.Command, "ec",
-                        predictionColorToCheck, "a -zoo")),
-                'h', CheckThat(() => AssertScreenIs(1, 
-                        TokenClassification.Command, "ech",
-                        predictionColorToCheck, "o -bar")),
+                'e', CheckThat(() => AssertScreenIs(1,
+                    TokenClassification.Command, 'e',
+                    predictionColorToCheck, "ca -zoo")),
+                'c', CheckThat(() => AssertScreenIs(1,
+                    TokenClassification.Command, "ec",
+                    predictionColorToCheck, "a -zoo")),
+                'h', CheckThat(() => AssertScreenIs(1,
+                    TokenClassification.Command, "ech",
+                    predictionColorToCheck, "o -bar")),
                 // Once accepted, the suggestion text should be blanked out.
                 _.Enter, CheckThat(() => AssertScreenIs(1,
-                        TokenClassification.Command, "ech"))
+                    TokenClassification.Command, "ech"))
             ));
         }
 
@@ -289,7 +294,7 @@ namespace Test
         public void Inline_HistoryEditsCanUndoProperly()
         {
             TestSetup(KeyMode.Cmd,
-                      new KeyHandler("Ctrl+f", PSConsoleReadLine.ForwardWord));
+                new KeyHandler("Ctrl+f", PSConsoleReadLine.ForwardWord));
             SetHistory("git checkout -b branch origin/bbbb");
             using var disp = SetPrediction(PredictionSource.History, PredictionViewStyle.InlineView);
 
@@ -326,40 +331,38 @@ namespace Test
             SetHistory("echo -bar", "eca -zoo");
             Test("echo", Keys(
                 'e', CheckThat(() => AssertScreenIs(1,
-                        TokenClassification.Command, 'e',
-                        TokenClassification.InlinePrediction, "ca -zoo")),
+                    TokenClassification.Command, 'e',
+                    TokenClassification.InlinePrediction, "ca -zoo")),
                 'c', CheckThat(() => AssertScreenIs(1,
-                        TokenClassification.Command, "ec",
-                        TokenClassification.InlinePrediction, "a -zoo")),
+                    TokenClassification.Command, "ec",
+                    TokenClassification.InlinePrediction, "a -zoo")),
                 'h', CheckThat(() => AssertScreenIs(1,
-                        TokenClassification.Command, "ech",
-                        TokenClassification.InlinePrediction, "o -bar")),
+                    TokenClassification.Command, "ech",
+                    TokenClassification.InlinePrediction, "o -bar")),
                 CheckThat(() => AssertCursorLeftIs(3)),
                 _.RightArrow, CheckThat(() => AssertScreenIs(1,
-                        TokenClassification.Command, "echo",
-                        TokenClassification.None, ' ',
-                        TokenClassification.Parameter, "-bar")),
+                    TokenClassification.Command, "echo",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Parameter, "-bar")),
                 CheckThat(() => AssertCursorLeftIs(9)),
                 _.Ctrl_z, CheckThat(() => AssertScreenIs(1,
-                        TokenClassification.Command, "ech",
-                        TokenClassification.InlinePrediction, "o -bar")),
+                    TokenClassification.Command, "ech",
+                    TokenClassification.InlinePrediction, "o -bar")),
                 CheckThat(() => AssertCursorLeftIs(3)),
 
                 // Suggestion should be cleared when switching to the command mode.
                 _.Escape, CheckThat(() => AssertScreenIs(1,
-                        TokenClassification.Command, "ech")),
+                    TokenClassification.Command, "ech")),
                 CheckThat(() => AssertCursorLeftIs(2)),
-
                 'i', _.RightArrow, 'o',
                 CheckThat(() => AssertScreenIs(1,
-                        TokenClassification.Command, "echo",
-                        TokenClassification.InlinePrediction, " -bar")),
+                    TokenClassification.Command, "echo",
+                    TokenClassification.InlinePrediction, " -bar")),
                 CheckThat(() => AssertCursorLeftIs(4)),
-
                 _.RightArrow, _.Escape,
                 CheckThat(() => AssertCursorLeftIs(8)),
                 _.Ctrl_z, CheckThat(() => AssertScreenIs(1,
-                        TokenClassification.Command, "echo")),
+                    TokenClassification.Command, "echo")),
                 CheckThat(() => AssertCursorLeftIs(3))
             ));
         }
@@ -394,41 +397,34 @@ namespace Test
                     TokenClassification.InlinePrediction, "o -bar"))));
         }
 
-        private const uint MiniSessionId = 56;
-        private static readonly Guid predictorId_1 = Guid.Parse("b45b5fbe-90fa-486c-9c87-e7940fdd6273");
-        private static readonly Guid predictorId_2 = Guid.Parse("74a86463-033b-44a3-b386-41ee191c94be");
-
         /// <summary>
-        /// Mocked implementation of 'PredictInput'.
+        ///     Mocked implementation of 'PredictInput'.
         /// </summary>
         internal static List<PredictionResult> MockedPredictInput(Ast ast, Token[] tokens)
         {
             var ctor = typeof(PredictionResult).GetConstructor(
                 BindingFlags.NonPublic | BindingFlags.Instance, null,
-                new[] { typeof(Guid), typeof(string), typeof(uint), typeof(List<PredictiveSuggestion>) }, null);
+                new[] {typeof(Guid), typeof(string), typeof(uint), typeof(List<PredictiveSuggestion>)}, null);
 
             var input = ast.Extent.Text;
-            if (input == "netsh")
-            {
-                return null;
-            }
+            if (input == "netsh") return null;
 
             var suggestions_1 = new List<PredictiveSuggestion>
             {
-                new PredictiveSuggestion($"SOME TEXT BEFORE {input}"),
-                new PredictiveSuggestion($"{input} SOME TEXT AFTER"),
+                new($"SOME TEXT BEFORE {input}"),
+                new($"{input} SOME TEXT AFTER")
             };
             var suggestions_2 = new List<PredictiveSuggestion>
             {
-                new PredictiveSuggestion($"SOME NEW TEXT"),
+                new("SOME NEW TEXT")
             };
 
             return new List<PredictionResult>
             {
-                (PredictionResult)ctor.Invoke(
-                    new object[] { predictorId_1, "TestPredictor", MiniSessionId, suggestions_1 }),
-                (PredictionResult)ctor.Invoke(
-                    new object[] { predictorId_2, "LongNamePredictor", MiniSessionId, suggestions_2 }),
+                (PredictionResult) ctor.Invoke(
+                    new object[] {predictorId_1, "TestPredictor", MiniSessionId, suggestions_1}),
+                (PredictionResult) ctor.Invoke(
+                    new object[] {predictorId_2, "LongNamePredictor", MiniSessionId, suggestions_2})
             };
         }
 
@@ -437,7 +433,7 @@ namespace Test
         {
             // Using the 'Plugin' source will make PSReadLine get prediction from the plugin only.
             TestSetup(KeyMode.Cmd,
-                      new KeyHandler("Ctrl+f", PSConsoleReadLine.ForwardWord));
+                new KeyHandler("Ctrl+f", PSConsoleReadLine.ForwardWord));
             using var disp = SetPrediction(PredictionSource.Plugin, PredictionViewStyle.InlineView);
             _mockedMethods.ClearPredictionFields();
 
@@ -448,7 +444,7 @@ namespace Test
                     TokenClassification.Command, "git",
                     TokenClassification.InlinePrediction, " SOME TEXT AFTER")),
                 // `OnSuggestionDisplayed` should be fired for only one predictor because we are in 'inline' view.
-                CheckThat(() => AssertDisplayedSuggestions(count: 1, predictorId_1, MiniSessionId, -1)),
+                CheckThat(() => AssertDisplayedSuggestions(1, predictorId_1, MiniSessionId, -1)),
                 CheckThat(() => _mockedMethods.ClearPredictionFields()),
                 // 'ctrl+f' will trigger 'OnSuggestionAccepted'.
                 _.Ctrl_f, CheckThat(() => AssertScreenIs(1,
@@ -497,7 +493,7 @@ namespace Test
 
             // 'Enter' will trigger 'OnCommandLineAccepted', because plugin is in use.
             // Also, we still have `OnSuggestionDisplayed` fired, from the typing of each character of `nets`.
-            AssertDisplayedSuggestions(count: 1, predictorId_1, MiniSessionId, -1);
+            AssertDisplayedSuggestions(1, predictorId_1, MiniSessionId, -1);
             Assert.Equal(Guid.Empty, _mockedMethods.acceptedPredictorId);
             Assert.Null(_mockedMethods.acceptedSuggestion);
             Assert.NotNull(_mockedMethods.commandHistory);
@@ -512,7 +508,7 @@ namespace Test
             // Using the 'HistoryAndPlugin' source will make PSReadLine get prediction from the plugin and history,
             // and plugin takes precedence.
             TestSetup(KeyMode.Cmd,
-                      new KeyHandler("Ctrl+f", PSConsoleReadLine.ForwardWord));
+                new KeyHandler("Ctrl+f", PSConsoleReadLine.ForwardWord));
             using var disp = SetPrediction(PredictionSource.HistoryAndPlugin, PredictionViewStyle.InlineView);
             _mockedMethods.ClearPredictionFields();
 
@@ -523,7 +519,7 @@ namespace Test
                     TokenClassification.Command, "git",
                     TokenClassification.InlinePrediction, " SOME TEXT AFTER")),
                 // `OnSuggestionDisplayed` should be fired for only one predictor because we are in 'inline' view.
-                CheckThat(() => AssertDisplayedSuggestions(count: 1, predictorId_1, MiniSessionId, -1)),
+                CheckThat(() => AssertDisplayedSuggestions(1, predictorId_1, MiniSessionId, -1)),
                 CheckThat(() => _mockedMethods.ClearPredictionFields()),
                 _.Ctrl_f, CheckThat(() => AssertScreenIs(1,
                     TokenClassification.Command, "git",
@@ -568,7 +564,7 @@ namespace Test
                     TokenClassification.Command, "netsh",
                     TokenClassification.InlinePrediction, " show me")),
                 // Yeah, we still have `OnSuggestionDisplayed` fired, from the typing of each character of `nets`.
-                CheckThat(() => AssertDisplayedSuggestions(count: 1, predictorId_1, MiniSessionId, -1)),
+                CheckThat(() => AssertDisplayedSuggestions(1, predictorId_1, MiniSessionId, -1)),
                 CheckThat(() => _mockedMethods.ClearPredictionFields()),
                 // 'ctrl+f' won't trigger 'OnSuggestionAccepted' as the suggestion is from history.
                 _.Ctrl_f, CheckThat(() => AssertScreenIs(1,
@@ -738,16 +734,16 @@ namespace Test
             SetHistory(new string('v', 25));
             Test("vv", Keys(
                 'v', CheckThat(() => AssertScreenIs(2,
-                        TokenClassification.Command, 'v',
-                        TokenClassification.InlinePrediction, new string('v', 9),
-                        TokenClassification.InlinePrediction, new string('v', 6) + "...")),
+                    TokenClassification.Command, 'v',
+                    TokenClassification.InlinePrediction, new string('v', 9),
+                    TokenClassification.InlinePrediction, new string('v', 6) + "...")),
                 'v', CheckThat(() => AssertScreenIs(2,
-                        TokenClassification.Command, "vv",
-                        TokenClassification.InlinePrediction, new string('v', 8),
-                        TokenClassification.InlinePrediction, new string('v', 6) + "...")),
+                    TokenClassification.Command, "vv",
+                    TokenClassification.InlinePrediction, new string('v', 8),
+                    TokenClassification.InlinePrediction, new string('v', 6) + "...")),
                 // Once accepted, the suggestion text should be blanked out.
                 _.Enter, CheckThat(() => AssertScreenIs(1,
-                        TokenClassification.Command, "vv"))
+                    TokenClassification.Command, "vv"))
             ));
         }
     }

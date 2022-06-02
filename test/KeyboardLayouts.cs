@@ -2,11 +2,77 @@
 using System.Collections.Generic;
 using System.Dynamic;
 using System.IO;
+using Newtonsoft.Json;
 
 namespace Test
 {
     public class KeyboardLayout : DynamicObject
     {
+        private readonly Dictionary<string, ConsoleKeyInfo> _keyMap = new();
+
+        private readonly string _layout;
+
+        public KeyboardLayout(string lang, string os)
+        {
+            var keyInfos = File.ReadAllText($"KeyInfo-{lang}-{os}.json");
+            foreach (var keyInfo in JsonConvert.DeserializeObject<List<KeyInfo>>(
+                         keyInfos))
+            {
+                var propName = keyInfo.KeyAsPropertyName();
+                var consoleKeyInfo = keyInfo.AsConsoleKeyInfo();
+                _keyMap.Add(propName, consoleKeyInfo);
+            }
+
+            _layout = lang;
+        }
+
+        public override string ToString()
+        {
+            return _layout;
+        }
+
+        public override bool TryGetMember(GetMemberBinder binder, out object result)
+        {
+            if (_keyMap.TryGetValue(binder.Name, out var keyInfo))
+            {
+                result = keyInfo;
+                return true;
+            }
+
+            switch (binder.Name)
+            {
+                case "VolumeUp":
+                    result = new ConsoleKeyInfo('\0', ConsoleKey.VolumeUp, false, false, false);
+                    return true;
+                case "VolumeDown":
+                    result = new ConsoleKeyInfo('\0', ConsoleKey.VolumeDown, false, false, false);
+                    return true;
+                case "VolumeMute":
+                    result = new ConsoleKeyInfo('\0', ConsoleKey.VolumeMute, false, false, false);
+                    return true;
+            }
+
+            result = null;
+            return false;
+        }
+
+        public override bool TryGetIndex(GetIndexBinder binder, object[] indexes, out object result)
+        {
+            result = null;
+            if (indexes.Length == 1)
+                if (indexes[0] is char c)
+                {
+                    var propName = KeyInfo.CharAsPropertyName(c) ?? c.ToString();
+                    if (_keyMap.TryGetValue(propName, out var keyInfo))
+                    {
+                        result = keyInfo;
+                        return true;
+                    }
+                }
+
+            return false;
+        }
+
         public class KeyInfo
         {
             public string Key { get; set; }
@@ -71,21 +137,29 @@ namespace Test
             public string KeyAsPropertyName()
             {
                 string alt = null;
-                char lastChar = Key[Key.Length - 1];
-                switch (lastChar) {
-                    case '0': case '1': case '2': case '3': case '4':
-                    case '5': case '6': case '7': case '8': case '9':
-                        if (Key.Length == 1)
-                        {
-                            alt = CharAsPropertyName(lastChar);
-                        }
+                var lastChar = Key[Key.Length - 1];
+                switch (lastChar)
+                {
+                    case '0':
+                    case '1':
+                    case '2':
+                    case '3':
+                    case '4':
+                    case '5':
+                    case '6':
+                    case '7':
+                    case '8':
+                    case '9':
+                        if (Key.Length == 1) alt = CharAsPropertyName(lastChar);
+
                         break;
 
                     default:
                         alt = CharAsPropertyName(lastChar);
                         break;
                 }
-                var key = (alt != null)
+
+                var key = alt != null
                     ? Key.Substring(0, Key.Length - 1) + alt
                     : Key;
                 return key.Replace('+', '_');
@@ -93,75 +167,13 @@ namespace Test
 
             public ConsoleKeyInfo AsConsoleKeyInfo()
             {
-                if (!Enum.TryParse<ConsoleKey>(ConsoleKey, out var consoleKey)) {
-                    throw new InvalidCastException();
-                }
+                if (!Enum.TryParse<ConsoleKey>(ConsoleKey, out var consoleKey)) throw new InvalidCastException();
+
                 return new ConsoleKeyInfo(KeyChar[0], consoleKey,
-                    shift: Modifiers.Contains("Shift"),
-                    alt: Modifiers.Contains("Alt"),
-                    control: Modifiers.Contains("Control"));
+                    Modifiers.Contains("Shift"),
+                    Modifiers.Contains("Alt"),
+                    Modifiers.Contains("Control"));
             }
-        }
-
-        public override string ToString()
-        {
-            return _layout;
-        }
-
-        private readonly string _layout;
-        private readonly Dictionary<string, ConsoleKeyInfo> _keyMap = new Dictionary<string, ConsoleKeyInfo>();
-
-        public KeyboardLayout(string lang, string os)
-        {
-            var keyInfos = File.ReadAllText($"KeyInfo-{lang}-{os}.json");
-            foreach (var keyInfo in Newtonsoft.Json.JsonConvert.DeserializeObject<List<Test.KeyboardLayout.KeyInfo>>(keyInfos))
-            {
-                var propName = keyInfo.KeyAsPropertyName();
-                var consoleKeyInfo = keyInfo.AsConsoleKeyInfo();
-                _keyMap.Add(propName, consoleKeyInfo);
-            }
-
-            _layout = lang;
-        }
-
-        public override bool TryGetMember(GetMemberBinder binder, out object result)
-        {
-            if (_keyMap.TryGetValue(binder.Name, out var keyInfo)) {
-                result = keyInfo;
-                return true;
-            }
-            switch (binder.Name) {
-                case "VolumeUp":
-                    result = new ConsoleKeyInfo('\0', ConsoleKey.VolumeUp, false, false, false);
-                    return true;
-                case "VolumeDown":
-                    result = new ConsoleKeyInfo('\0', ConsoleKey.VolumeDown, false, false, false);
-                    return true;
-                case "VolumeMute":
-                    result = new ConsoleKeyInfo('\0', ConsoleKey.VolumeMute, false, false, false);
-                    return true;
-            }
-
-            result = null;
-            return false;
-        }
-
-        public override bool TryGetIndex(GetIndexBinder binder, object[] indexes, out object result)
-        {
-            result = null;
-            if (indexes.Length == 1)
-            {
-                if (indexes[0] is char c)
-                {
-                    var propName = KeyInfo.CharAsPropertyName(c) ?? c.ToString();
-                    if (_keyMap.TryGetValue(propName, out var keyInfo))
-                    {
-                        result = keyInfo;
-                        return true;
-                    }
-                }
-            }
-            return false;
         }
     }
 }

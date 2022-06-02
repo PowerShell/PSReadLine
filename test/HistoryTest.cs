@@ -13,10 +13,7 @@ namespace Test
         private void SetHistory(params string[] historyItems)
         {
             PSConsoleReadLine.ClearHistory();
-            foreach (var item in historyItems)
-            {
-                PSConsoleReadLine.AddToHistory(item);
-            }
+            foreach (var item in historyItems) PSConsoleReadLine.AddToHistory(item);
         }
 
         [SkippableFact]
@@ -39,10 +36,11 @@ namespace Test
         {
             TestSetup(KeyMode.Cmd);
 
-            string historySavingFile = Path.GetTempFileName();
-            var options = new SetPSReadLineOption {
+            var historySavingFile = Path.GetTempFileName();
+            var options = new SetPSReadLineOption
+            {
                 HistorySaveStyle = HistorySaveStyle.SaveIncrementally,
-                MaximumHistoryCount = 3,
+                MaximumHistoryCount = 3
             };
 
             typeof(SetPSReadLineOption)
@@ -52,16 +50,13 @@ namespace Test
             PSConsoleReadLine.SetOptions(options);
 
             // Set the initial history items.
-            string[] initialHistoryItems = new[] { "gcm help", "dir ~" };
+            string[] initialHistoryItems = {"gcm help", "dir ~"};
             SetHistory(initialHistoryItems);
 
             // The initial history items should be saved to file.
-            string[] text = File.ReadAllLines(historySavingFile);
+            var text = File.ReadAllLines(historySavingFile);
             Assert.Equal(initialHistoryItems.Length, text.Length);
-            for (int i = 0; i < text.Length; i++)
-            {
-                Assert.Equal(initialHistoryItems[i], text[i]);
-            }
+            for (var i = 0; i < text.Length; i++) Assert.Equal(initialHistoryItems[i], text[i]);
 
             // Add another line to the file to mimic the new history saving from a different session.
             using (var file = File.AppendText(historySavingFile))
@@ -71,21 +66,16 @@ namespace Test
 
             PSConsoleReadLine.AddToHistory("cd Documents");
 
-            string[] expectedSavedLines = new[] { "gcm help", "dir ~", "cd Downloads", "cd Documents" };
+            string[] expectedSavedLines = {"gcm help", "dir ~", "cd Downloads", "cd Documents"};
             text = File.ReadAllLines(historySavingFile);
             Assert.Equal(expectedSavedLines.Length, text.Length);
-            for (int i = 0; i < text.Length; i++)
-            {
-                Assert.Equal(expectedSavedLines[i], text[i]);
-            }
+            for (var i = 0; i < text.Length; i++) Assert.Equal(expectedSavedLines[i], text[i]);
 
-            string[] expectedHistoryItems = new[] { "dir ~", "cd Documents", "cd Downloads" };
+            string[] expectedHistoryItems = {"dir ~", "cd Documents", "cd Downloads"};
             var historyItems = PSConsoleReadLine.GetHistoryItems();
             Assert.Equal(expectedHistoryItems.Length, historyItems.Length);
-            for (int i = 0; i < historyItems.Length; i++)
-            {
+            for (var i = 0; i < historyItems.Length; i++)
                 Assert.Equal(expectedHistoryItems[i], historyItems[i].CommandLine);
-            }
         }
 
         [SkippableFact]
@@ -107,7 +97,8 @@ namespace Test
             var newHistoryFilePath = Path.GetTempFileName();
             var newHistorySaveStyle = HistorySaveStyle.SaveIncrementally;
 
-            string[] expectedHistoryItems = new[] {
+            string[] expectedHistoryItems =
+            {
                 "gcm c*",
                 "ConvertTo-SecureString -AsPlainText -String abc -Force",
                 "dir p*",
@@ -123,7 +114,8 @@ namespace Test
                 "gcm p*"
             };
 
-            string[] expectedSavedItems = new[] {
+            string[] expectedSavedItems =
+            {
                 "gcm c*",
                 "dir p*",
                 "ps c*",
@@ -142,18 +134,13 @@ namespace Test
                 // Sensitive input history should be kept in the internal history queue.
                 var historyItems = PSConsoleReadLine.GetHistoryItems();
                 Assert.Equal(expectedHistoryItems.Length, historyItems.Length);
-                for (int i = 0; i < expectedHistoryItems.Length; i++)
-                {
+                for (var i = 0; i < expectedHistoryItems.Length; i++)
                     Assert.Equal(expectedHistoryItems[i], historyItems[i].CommandLine);
-                }
 
                 // Sensitive input history should NOT be saved to the history file.
-                string[] text = File.ReadAllLines(newHistoryFilePath);
+                var text = File.ReadAllLines(newHistoryFilePath);
                 Assert.Equal(expectedSavedItems.Length, text.Length);
-                for (int i = 0; i < text.Length; i++)
-                {
-                    Assert.Equal(expectedSavedItems[i], text[i]);
-                }
+                for (var i = 0; i < text.Length; i++) Assert.Equal(expectedSavedItems[i], text[i]);
             }
             finally
             {
@@ -181,7 +168,8 @@ namespace Test
             var newHistoryFilePath = Path.GetTempFileName();
             var newHistorySaveStyle = HistorySaveStyle.SaveIncrementally;
 
-            string[] expectedHistoryItems = new[] {
+            string[] expectedHistoryItems =
+            {
                 "$token = 'abcd'", // Assign expr-value to sensitive variable. Not saved to file.
                 "Set-Secret abc $mySecret", // 'Set-Secret' will not be save to file.
                 "ConvertTo-SecureString stringValue -AsPlainText", // '-AsPlainText' is an alert. Not saved to file.
@@ -205,7 +193,8 @@ namespace Test
                 "$environment -brand $brand -userBitWardenEmail $bwuser -userBitWardenPassword $bwpass" // '-userBitWardenPassword' matches sensitive pattern and it has parsing error. Not save to file.
             };
 
-            string[] expectedSavedItems = new[] {
+            string[] expectedSavedItems =
+            {
                 "Get-Secret PSGalleryApiKey -AsPlainText",
                 "$token = Get-Secret -Name github-token -Vault MySecret",
                 "[MyType]::CallRestAPI($token, $url, $args)",
@@ -217,7 +206,7 @@ namespace Test
                 "Send-HeartBeat -password $pass -SavePassword",
                 "Get-SecretInfo -Name mytoken; Get-SecretVault; Register-SecretVault; Remove-Secret apikey",
                 "Set-SecretInfo -Name apikey; Set-SecretVaultDefault; Test-SecretVault; Unlock-SecretVault -password $pwd; Unregister-SecretVault -SecretVault vaultInfo",
-                "Get-ResultFromTwo -Secret1 (Get-Secret -Name blah -AsPlainText) -Secret2 $secret2",
+                "Get-ResultFromTwo -Secret1 (Get-Secret -Name blah -AsPlainText) -Secret2 $secret2"
             };
 
             try
@@ -229,18 +218,13 @@ namespace Test
                 // Sensitive input history should be kept in the internal history queue.
                 var historyItems = PSConsoleReadLine.GetHistoryItems();
                 Assert.Equal(expectedHistoryItems.Length, historyItems.Length);
-                for (int i = 0; i < expectedHistoryItems.Length; i++)
-                {
+                for (var i = 0; i < expectedHistoryItems.Length; i++)
                     Assert.Equal(expectedHistoryItems[i], historyItems[i].CommandLine);
-                }
 
                 // Sensitive input history should NOT be saved to the history file.
-                string[] text = File.ReadAllLines(newHistoryFilePath);
+                var text = File.ReadAllLines(newHistoryFilePath);
                 Assert.Equal(expectedSavedItems.Length, text.Length);
-                for (int i = 0; i < text.Length; i++)
-                {
-                    Assert.Equal(expectedSavedItems[i], text[i]);
-                }
+                for (var i = 0; i < text.Length; i++) Assert.Equal(expectedSavedItems[i], text[i]);
             }
             finally
             {
@@ -277,20 +261,23 @@ namespace Test
                         : AddToHistoryOption.MemoryAndFile;
             Func<string, object> newAddToHistoryHandler_ReturnOther = s => "string value";
 
-            string[] commandInputs = new[] {
+            string[] commandInputs =
+            {
                 "gmo p*",
                 "gcm c*",
                 "gal dir",
                 "ConvertTo-SecureString -AsPlainText -String abc -Force"
             };
 
-            string[] expectedQueuedItems = new[] {
+            string[] expectedQueuedItems =
+            {
                 "gcm c*",
                 "gal dir",
                 "ConvertTo-SecureString -AsPlainText -String abc -Force"
             };
 
-            string[] expectedSavedItems = new[] {
+            string[] expectedSavedItems =
+            {
                 "gcm c*",
                 "ConvertTo-SecureString -AsPlainText -String abc -Force"
             };
@@ -309,18 +296,13 @@ namespace Test
                 // All commands should be kept in the internal history queue.
                 var historyItems = PSConsoleReadLine.GetHistoryItems();
                 Assert.Equal(commandInputs.Length, historyItems.Length);
-                for (int i = 0; i < commandInputs.Length; i++)
-                {
+                for (var i = 0; i < commandInputs.Length; i++)
                     Assert.Equal(commandInputs[i], historyItems[i].CommandLine);
-                }
 
                 // All commands are saved to the history file when 'ScrubSensitiveHistory' is set to 'false'.
-                string[] text = File.ReadAllLines(newHistoryFilePath);
+                var text = File.ReadAllLines(newHistoryFilePath);
                 Assert.Equal(commandInputs.Length, text.Length);
-                for (int i = 0; i < text.Length; i++)
-                {
-                    Assert.Equal(commandInputs[i], text[i]);
-                }
+                for (var i = 0; i < text.Length; i++) Assert.Equal(commandInputs[i], text[i]);
 
                 //
                 // Use a handler that return boolean value.
@@ -349,17 +331,12 @@ namespace Test
 
                 historyItems = PSConsoleReadLine.GetHistoryItems();
                 Assert.Equal(expectedQueuedItems.Length, historyItems.Length);
-                for (int i = 0; i < expectedQueuedItems.Length; i++)
-                {
+                for (var i = 0; i < expectedQueuedItems.Length; i++)
                     Assert.Equal(expectedQueuedItems[i], historyItems[i].CommandLine);
-                }
 
                 text = File.ReadAllLines(newHistoryFilePath);
                 Assert.Equal(expectedSavedItems.Length, text.Length);
-                for (int i = 0; i < text.Length; i++)
-                {
-                    Assert.Equal(expectedSavedItems[i], text[i]);
-                }
+                for (var i = 0; i < text.Length; i++) Assert.Equal(expectedSavedItems[i], text[i]);
 
                 //
                 // Use a handler that return unexpected value.
@@ -371,18 +348,13 @@ namespace Test
 
                 historyItems = PSConsoleReadLine.GetHistoryItems();
                 Assert.Equal(commandInputs.Length, historyItems.Length);
-                for (int i = 0; i < commandInputs.Length; i++)
-                {
+                for (var i = 0; i < commandInputs.Length; i++)
                     Assert.Equal(commandInputs[i], historyItems[i].CommandLine);
-                }
 
                 // All commands are saved to the history file when 'ScrubSensitiveHistory' is set to 'false'.
                 text = File.ReadAllLines(newHistoryFilePath);
                 Assert.Equal(commandInputs.Length, text.Length);
-                for (int i = 0; i < text.Length; i++)
-                {
-                    Assert.Equal(commandInputs[i], text[i]);
-                }
+                for (var i = 0; i < text.Length; i++) Assert.Equal(commandInputs[i], text[i]);
             }
             finally
             {
@@ -411,11 +383,11 @@ namespace Test
 
             var newHistoryFilePath = Path.GetTempFileName();
             var newHistorySaveStyle = HistorySaveStyle.SaveIncrementally;
-            Func<string, object> newAddToHistoryHandler_ReturnBool = LanguagePrimitives.ConvertTo<Func<string, object>>(
+            var newAddToHistoryHandler_ReturnBool = LanguagePrimitives.ConvertTo<Func<string, object>>(
                 ScriptBlock.Create(@"
                     param([string]$line)
                     $line.Contains('gal')"));
-            Func<string, object> newAddToHistoryHandler_ReturnEnum = LanguagePrimitives.ConvertTo<Func<string, object>>(
+            var newAddToHistoryHandler_ReturnEnum = LanguagePrimitives.ConvertTo<Func<string, object>>(
                 ScriptBlock.Create(@"
                     param([string]$line)
                     if ($line.Contains('gal')) {
@@ -425,25 +397,29 @@ namespace Test
                     } else {
                         [Microsoft.PowerShell.AddToHistoryOption]::MemoryAndFile
                     }"));
-            Func<string, object> newAddToHistoryHandler_ReturnOther = LanguagePrimitives.ConvertTo<Func<string, object>>(
-                ScriptBlock.Create(@"
+            var newAddToHistoryHandler_ReturnOther =
+                LanguagePrimitives.ConvertTo<Func<string, object>>(
+                    ScriptBlock.Create(@"
                     param([string]$line)
                     'string value'"));
 
-            string[] commandInputs = new[] {
+            string[] commandInputs =
+            {
                 "gmo p*",
                 "gcm c*",
                 "gal dir",
                 "ConvertTo-SecureString -AsPlainText -String abc -Force"
             };
 
-            string[] expectedQueuedItems = new[] {
+            string[] expectedQueuedItems =
+            {
                 "gcm c*",
                 "gal dir",
                 "ConvertTo-SecureString -AsPlainText -String abc -Force"
             };
 
-            string[] expectedSavedItems = new[] {
+            string[] expectedSavedItems =
+            {
                 "gcm c*",
                 "ConvertTo-SecureString -AsPlainText -String abc -Force"
             };
@@ -462,18 +438,13 @@ namespace Test
                 // All commands should be kept in the internal history queue.
                 var historyItems = PSConsoleReadLine.GetHistoryItems();
                 Assert.Equal(commandInputs.Length, historyItems.Length);
-                for (int i = 0; i < commandInputs.Length; i++)
-                {
+                for (var i = 0; i < commandInputs.Length; i++)
                     Assert.Equal(commandInputs[i], historyItems[i].CommandLine);
-                }
 
                 // All commands are saved to the history file when 'ScrubSensitiveHistory' is set to 'false'.
-                string[] text = File.ReadAllLines(newHistoryFilePath);
+                var text = File.ReadAllLines(newHistoryFilePath);
                 Assert.Equal(commandInputs.Length, text.Length);
-                for (int i = 0; i < text.Length; i++)
-                {
-                    Assert.Equal(commandInputs[i], text[i]);
-                }
+                for (var i = 0; i < text.Length; i++) Assert.Equal(commandInputs[i], text[i]);
 
                 //
                 // Use a handler that return boolean value.
@@ -502,17 +473,12 @@ namespace Test
 
                 historyItems = PSConsoleReadLine.GetHistoryItems();
                 Assert.Equal(expectedQueuedItems.Length, historyItems.Length);
-                for (int i = 0; i < expectedQueuedItems.Length; i++)
-                {
+                for (var i = 0; i < expectedQueuedItems.Length; i++)
                     Assert.Equal(expectedQueuedItems[i], historyItems[i].CommandLine);
-                }
 
                 text = File.ReadAllLines(newHistoryFilePath);
                 Assert.Equal(expectedSavedItems.Length, text.Length);
-                for (int i = 0; i < text.Length; i++)
-                {
-                    Assert.Equal(expectedSavedItems[i], text[i]);
-                }
+                for (var i = 0; i < text.Length; i++) Assert.Equal(expectedSavedItems[i], text[i]);
 
                 //
                 // Use a handler that return unexpected value.
@@ -524,18 +490,13 @@ namespace Test
 
                 historyItems = PSConsoleReadLine.GetHistoryItems();
                 Assert.Equal(commandInputs.Length, historyItems.Length);
-                for (int i = 0; i < commandInputs.Length; i++)
-                {
+                for (var i = 0; i < commandInputs.Length; i++)
                     Assert.Equal(commandInputs[i], historyItems[i].CommandLine);
-                }
 
                 // All commands are saved to the history file when 'ScrubSensitiveHistory' is set to 'false'.
                 text = File.ReadAllLines(newHistoryFilePath);
                 Assert.Equal(commandInputs.Length, text.Length);
-                for (int i = 0; i < text.Length; i++)
-                {
-                    Assert.Equal(commandInputs[i], text[i]);
-                }
+                for (var i = 0; i < text.Length; i++) Assert.Equal(commandInputs[i], text[i]);
             }
             finally
             {
@@ -591,8 +552,8 @@ namespace Test
         public void HistorySearchCurrentLine()
         {
             TestSetup(KeyMode.Cmd,
-                      new KeyHandler("UpArrow", PSConsoleReadLine.HistorySearchBackward),
-                      new KeyHandler("DownArrow", PSConsoleReadLine.HistorySearchForward));
+                new KeyHandler("UpArrow", PSConsoleReadLine.HistorySearchBackward),
+                new KeyHandler("DownArrow", PSConsoleReadLine.HistorySearchForward));
 
             // Search history backward and forward.
             SetHistory("echo foo", "echo bar");
@@ -640,8 +601,8 @@ namespace Test
         public void HistorySavedCurrentLine()
         {
             TestSetup(KeyMode.Cmd,
-                      new KeyHandler("F3", PSConsoleReadLine.BeginningOfHistory),
-                      new KeyHandler("Shift+F3", PSConsoleReadLine.EndOfHistory));
+                new KeyHandler("F3", PSConsoleReadLine.BeginningOfHistory),
+                new KeyHandler("Shift+F3", PSConsoleReadLine.EndOfHistory));
 
             // Mix different history commands to verify that the saved current line and
             // the history index stay the same while in a series of history commands.
@@ -715,8 +676,8 @@ namespace Test
         public void SearchHistory()
         {
             TestSetup(KeyMode.Cmd,
-                      new KeyHandler("UpArrow", PSConsoleReadLine.HistorySearchBackward),
-                      new KeyHandler("DownArrow", PSConsoleReadLine.HistorySearchForward));
+                new KeyHandler("UpArrow", PSConsoleReadLine.HistorySearchBackward),
+                new KeyHandler("DownArrow", PSConsoleReadLine.HistorySearchForward));
 
             // No history
             SetHistory();
@@ -732,42 +693,47 @@ namespace Test
             SetHistory("dosomething", "ps p*", "dir", "echo zzz");
             Test("dosomething", Keys(
                 "d",
-                _.UpArrow,   CheckThat(() => {
+                _.UpArrow, CheckThat(() =>
+                {
                     AssertScreenIs(1,
                         emphasisColors, 'd',
                         TokenClassification.Command, "ir");
                     AssertCursorLeftIs(1);
                 }),
-                _.UpArrow,   CheckThat(() => {
+                _.UpArrow, CheckThat(() =>
+                {
                     AssertScreenIs(1,
                         emphasisColors, 'd',
                         TokenClassification.Command, "osomething");
                     AssertCursorLeftIs(1);
-            })));
+                })));
 
             PSConsoleReadLine.SetOptions(new SetPSReadLineOption {HistorySearchCursorMovesToEnd = true});
             SetHistory("dosomething", "ps p*", "dir", "echo zzz");
             Test("dosomething", Keys(
                 "d",
-                _.UpArrow,   CheckThat(() => {
+                _.UpArrow, CheckThat(() =>
+                {
                     AssertScreenIs(1,
                         emphasisColors, 'd',
                         TokenClassification.Command, "ir");
                     AssertCursorLeftIs(3);
                 }),
-                _.UpArrow,   CheckThat(() => {
+                _.UpArrow, CheckThat(() =>
+                {
                     AssertScreenIs(1,
                         emphasisColors, 'd',
                         TokenClassification.Command, "osomething");
                     AssertCursorLeftIs(11);
                 }),
-                _.DownArrow, CheckThat(() => {
+                _.DownArrow, CheckThat(() =>
+                {
                     AssertScreenIs(1,
                         emphasisColors, 'd',
                         TokenClassification.Command, "ir");
                     AssertCursorLeftIs(3);
                 }),
-                _.UpArrow,   CheckThat(() =>
+                _.UpArrow, CheckThat(() =>
                 {
                     AssertScreenIs(1,
                         emphasisColors, 'd',
@@ -780,8 +746,8 @@ namespace Test
         public void HistorySearchCursorMovesToEnd()
         {
             TestSetup(KeyMode.Cmd,
-                      new KeyHandler("UpArrow", PSConsoleReadLine.HistorySearchBackward),
-                      new KeyHandler("DownArrow", PSConsoleReadLine.HistorySearchForward));
+                new KeyHandler("UpArrow", PSConsoleReadLine.HistorySearchBackward),
+                new KeyHandler("DownArrow", PSConsoleReadLine.HistorySearchForward));
 
             PSConsoleReadLine.SetOptions(new SetPSReadLineOption {HistorySearchCursorMovesToEnd = true});
             var emphasisColors = Tuple.Create(PSConsoleReadLineOptions.DefaultEmphasisColor, _console.BackgroundColor);
@@ -789,25 +755,28 @@ namespace Test
             SetHistory("dosomething", "ps p*", "dir", "echo zzz");
             Test("dosomething", Keys(
                 "d",
-                _.UpArrow,   CheckThat(() => {
+                _.UpArrow, CheckThat(() =>
+                {
                     AssertScreenIs(1,
                         emphasisColors, 'd',
                         TokenClassification.Command, "ir");
                     AssertCursorLeftIs(3);
                 }),
-                _.UpArrow,   CheckThat(() => {
+                _.UpArrow, CheckThat(() =>
+                {
                     AssertScreenIs(1,
                         emphasisColors, 'd',
                         TokenClassification.Command, "osomething");
                     AssertCursorLeftIs(11);
                 }),
-                _.DownArrow, CheckThat(() => {
+                _.DownArrow, CheckThat(() =>
+                {
                     AssertScreenIs(1,
                         emphasisColors, 'd',
                         TokenClassification.Command, "ir");
                     AssertCursorLeftIs(3);
                 }),
-                _.UpArrow,   CheckThat(() =>
+                _.UpArrow, CheckThat(() =>
                 {
                     AssertScreenIs(1,
                         emphasisColors, 'd',
@@ -982,7 +951,7 @@ namespace Test
             // the correct line
             SetHistory("zz1", "echo abc", "zz2", "echo abb", "zz3", "echo aaa", "zz4");
             Test("echo aaa", Keys(_.Ctrl_r,
-                _.Backspace,  // Try backspace on empty search string
+                _.Backspace, // Try backspace on empty search string
                 "ab", CheckThat(() => AssertScreenIs(2,
                     TokenClassification.Command, "echo",
                     TokenClassification.None, " ",
@@ -1043,7 +1012,7 @@ namespace Test
                     emphasisColors, "a1",
                     NextLine,
                     statusColors, "bck-i-search: a1_"))
-                ));
+            ));
 
             // Test that searching works after backspace after a successful search
             SetHistory("echo aa1", "echo bb1", "echo bb2", "echo aa2");
@@ -1131,8 +1100,8 @@ namespace Test
         public void HistorySearchNoDuplicates()
         {
             TestSetup(KeyMode.Cmd,
-                      new KeyHandler("UpArrow", PSConsoleReadLine.HistorySearchBackward),
-                      new KeyHandler("DownArrow", PSConsoleReadLine.HistorySearchForward));
+                new KeyHandler("UpArrow", PSConsoleReadLine.HistorySearchBackward),
+                new KeyHandler("DownArrow", PSConsoleReadLine.HistorySearchForward));
 
             PSConsoleReadLine.SetOptions(new SetPSReadLineOption {HistoryNoDuplicates = true});
             SetHistory("0000", "echo aaaa", "1111", "echo bbbb", "2222", "echo bbbb", "3333", "echo cccc", "4444");

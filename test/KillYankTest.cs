@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using Microsoft.PowerShell;
 using Xunit;
 
@@ -30,8 +32,8 @@ namespace Test
                 _.Alt_Backspace, // Test on empty line
                 "echo abc def",
                 Enumerable.Repeat(_.LeftArrow, 3),
-                _.Alt_Backspace,    // Kill 'abc '
-                _.End, _.Ctrl_y));  // Yank 'abc ' at the end
+                _.Alt_Backspace, // Kill 'abc '
+                _.End, _.Ctrl_y)); // Yank 'abc ' at the end
         }
 
         [SkippableFact]
@@ -62,14 +64,14 @@ namespace Test
             Test("z", Keys(_.Ctrl_y, _.Alt_y, _.z));
 
             // Fill the kill ring plus some extra.
-            for (int i = 0; i < PSConsoleReadLineOptions.DefaultMaximumKillRingCount + 2; i++)
+            for (var i = 0; i < PSConsoleReadLineOptions.DefaultMaximumKillRingCount + 2; i++)
             {
-                var c = (char)('a' + i);
+                var c = (char) ('a' + i);
                 killedText.Add(c + "zz");
                 Test("", Keys(c, "zz", _.Ctrl_u));
             }
 
-            int killRingIndex = killedText.Count - 1;
+            var killRingIndex = killedText.Count - 1;
             Test(killedText[killRingIndex], Keys(_.Ctrl_y));
 
             Test(killedText[killRingIndex] + killedText[killRingIndex],
@@ -116,7 +118,7 @@ namespace Test
         {
             TestSetup(KeyMode.Emacs);
 
-            PSConsoleReadLine.SetKeyHandler(new[] { "Shift+Tab" }, PSConsoleReadLine.BackwardKillLine, "", "");
+            PSConsoleReadLine.SetKeyHandler(new[] {"Shift+Tab"}, PSConsoleReadLine.BackwardKillLine, "", "");
 
             Test("", Keys("dir", _.Shift_Tab));
         }
@@ -205,8 +207,8 @@ namespace Test
                 _.Alt_Backspace, // Test on empty line
                 "echo abc def",
                 Enumerable.Repeat(_.LeftArrow, 3),
-                _.Alt_Backspace,    // Kill 'abc '
-                _.End, _.Ctrl_y));  // Yank 'abc ' at the end
+                _.Alt_Backspace, // Kill 'abc '
+                _.End, _.Ctrl_y)); // Yank 'abc ' at the end
 
             Test("echo foo ", Keys("echo foo 'a b c'", _.Alt_Backspace));
         }
@@ -217,7 +219,7 @@ namespace Test
             Skip.IfNot(KeyboardHasCtrlAt);
 
             TestSetup(KeyMode.Emacs,
-                      new KeyHandler("Ctrl+z", PSConsoleReadLine.ExchangePointAndMark));
+                new KeyHandler("Ctrl+z", PSConsoleReadLine.ExchangePointAndMark));
 
             var exchangePointAndMark = _.Ctrl_z;
             var setMark = _.Ctrl_At;
@@ -233,13 +235,13 @@ namespace Test
                 CheckThat(() => AssertCursorLeftIs(3)),
                 exchangePointAndMark,
                 CheckThat(() => AssertCursorLeftIs(1))
-                ));
+            ));
 
             Test("abc", Keys(
                 "abc",
                 exchangePointAndMark,
                 CheckThat(() => AssertCursorLeftIs(0))
-                ));
+            ));
         }
 
         [SkippableFact]
@@ -303,7 +305,7 @@ namespace Test
                 _.Alt_Period, _.Alt_Period, _.Alt_Minus, _.Alt_Period, _.Alt_Period));
 
             // Somewhat silly test to make sure invalid args are handled reasonably.
-            TestSetup(KeyMode.Emacs, new[] {new KeyHandler("Ctrl+z", (key,arg) => PSConsoleReadLine.YankLastArg(null, "zz"))});
+            TestSetup(KeyMode.Emacs, new KeyHandler("Ctrl+z", (key, arg) => PSConsoleReadLine.YankLastArg(null, "zz")));
             SetHistory("echo a", "echo a");
             TestMustDing("", Keys(_.Ctrl_z));
             TestMustDing("a", Keys(_.Alt_Period, _.Ctrl_z));
@@ -518,11 +520,9 @@ namespace Test
 
         public void Debug()
         {
-            while (!System.Diagnostics.Debugger.IsAttached)
-            {
-                System.Threading.Thread.Sleep(200);
-            }
-            System.Diagnostics.Debugger.Break();
+            while (!Debugger.IsAttached) Thread.Sleep(200);
+
+            Debugger.Break();
         }
 
         [SkippableFact]
@@ -560,7 +560,6 @@ namespace Test
                     TokenClassification.Parameter, "-p2",
                     TokenClassification.None, ' ',
                     TokenClassification.Variable, "$false")),
-
                 _.Alt_a, CheckThat(() => AssertScreenIs(1,
                     TokenClassification.Command, "Test-Sca",
                     TokenClassification.None, " abc ",
@@ -772,7 +771,6 @@ namespace Test
                     TokenClassification.None, " xxx } ",
                     TokenClassification.Parameter, "-p2",
                     TokenClassification.None, " a2")),
-
                 _.Alt_a, CheckThat(() => AssertScreenIs(1,
                     TokenClassification.Command, "Test-Sca",
                     TokenClassification.None, " abc ",
@@ -785,7 +783,6 @@ namespace Test
                     TokenClassification.None, " xxx } ",
                     TokenClassification.Parameter, "-p2",
                     TokenClassification.None, " a2")),
-
                 _.Alt_a, CheckThat(() => AssertScreenIs(1,
                     TokenClassification.Command, "Test-Sca",
                     TokenClassification.None, " abc ",
@@ -795,7 +792,6 @@ namespace Test
                     TokenClassification.None, ' ',
                     TokenClassification.Parameter, "-p2",
                     TokenClassification.None, " a2")),
-
                 _.Alt_a, CheckThat(() => AssertScreenIs(1,
                     TokenClassification.Command, "Test-Sca",
                     TokenClassification.None, " abc ",
@@ -869,7 +865,6 @@ namespace Test
                     TokenClassification.None, " xxx } ",
                     TokenClassification.Parameter, "-p2",
                     TokenClassification.None, " a2")),
-
                 _.Alt_a, CheckThat(() => AssertScreenIs(1,
                     TokenClassification.Command, "Test-Sca",
                     TokenClassification.None, " abc ",
@@ -883,7 +878,6 @@ namespace Test
                     TokenClassification.None, " } ",
                     TokenClassification.Parameter, "-p2",
                     TokenClassification.None, " a2")),
-
                 _.Alt_a, CheckThat(() => AssertScreenIs(1,
                     TokenClassification.Command, "Test-Sca",
                     TokenClassification.None, " abc ",
@@ -897,7 +891,6 @@ namespace Test
                     TokenClassification.None, " xxx } ",
                     TokenClassification.Parameter, "-p2",
                     TokenClassification.None, " a2")),
-
                 _.Escape));
         }
 
@@ -1043,7 +1036,6 @@ namespace Test
                     TokenClassification.Parameter, "-p",
                     TokenClassification.None, ' ',
                     TokenClassification.Selection, "cccc")),
-
                 _.Escape));
         }
     }

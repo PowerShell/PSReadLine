@@ -27,7 +27,9 @@ namespace Microsoft.PowerShell
 {
     [SuppressMessage("Microsoft.Design", "CA1032:ImplementStandardExceptionConstructors")]
     [SuppressMessage("Microsoft.Usage", "CA2237:MarkISerializableTypesWithSerializable")]
-    class ExitException : Exception { }
+    internal class ExitException : Exception
+    {
+    }
 
     public partial class PSConsoleReadLine : IPSConsoleReadLineMockableMethods
     {
@@ -40,47 +42,89 @@ namespace Microsoft.PowerShell
 
         // This is used by PowerShellEditorServices (the backend of the PowerShell VSCode extension)
         // so that it can call PSReadLine from a delegate and not hit nested pipeline issues.
-        #pragma warning disable CS0649
+#pragma warning disable CS0649
         private static Action<CancellationToken> _handleIdleOverride;
-        #pragma warning restore CS0649
-
-        private bool _delayedOneTimeInitCompleted;
-
-        private IPSConsoleReadLineMockableMethods _mockableMethods;
-        private IConsole _console;
-        private ICharMap _charMap;
-        private Encoding _initialOutputEncoding;
-        private bool _skipOutputEncodingChange;
-        private EngineIntrinsics _engineIntrinsics;
-        private Thread _readKeyThread;
-        private AutoResetEvent _readKeyWaitHandle;
-        private AutoResetEvent _keyReadWaitHandle;
-        private CancellationToken _cancelReadCancellationToken;
-        internal ManualResetEvent _closingWaitHandle;
-        private WaitHandle[] _threadProcWaitHandles;
-        private WaitHandle[] _requestKeyWaitHandles;
-
-        private readonly StringBuilder _buffer;
-        private readonly StringBuilder _statusBuffer;
-        private bool _statusIsErrorMessage;
-        private string _statusLinePrompt;
-        private string _acceptedCommandLine;
-        private List<EditItem> _edits;
-        private int _editGroupStart;
-        private int _undoEditIndex;
-        private int _mark;
-        private bool _inputAccepted;
-        private readonly Queue<PSKeyInfo> _queuedKeys;
-        private Stopwatch _lastRenderTime;
-        private static readonly Stopwatch _readkeyStopwatch = new Stopwatch();
+#pragma warning restore CS0649
+        private static readonly Stopwatch _readkeyStopwatch = new();
 
         // Save a fixed # of keys so we can reconstruct a repro after a crash
-        private static readonly HistoryQueue<PSKeyInfo> _lastNKeys = new HistoryQueue<PSKeyInfo>(200);
+        private static readonly HistoryQueue<PSKeyInfo> _lastNKeys = new(200);
+
+        private readonly StringBuilder _buffer;
+        private readonly Queue<PSKeyInfo> _queuedKeys;
+        private readonly StringBuilder _statusBuffer;
+        private string _acceptedCommandLine;
+        private Ast _ast;
+        private CancellationToken _cancelReadCancellationToken;
+        private ICharMap _charMap;
+        internal ManualResetEvent _closingWaitHandle;
+        private readonly IConsole _console;
+
+        private bool _delayedOneTimeInitCompleted;
+        private int _editGroupStart;
+        private List<EditItem> _edits;
+        private EngineIntrinsics _engineIntrinsics;
+        private Encoding _initialOutputEncoding;
+        private bool _inputAccepted;
+        private AutoResetEvent _keyReadWaitHandle;
+        private Stopwatch _lastRenderTime;
+        private int _mark;
+
+        private readonly IPSConsoleReadLineMockableMethods _mockableMethods;
+        private ParseError[] _parseErrors;
+        private Thread _readKeyThread;
+        private AutoResetEvent _readKeyWaitHandle;
+        private WaitHandle[] _requestKeyWaitHandles;
+        private bool _skipOutputEncodingChange;
+        private bool _statusIsErrorMessage;
+        private string _statusLinePrompt;
+        private WaitHandle[] _threadProcWaitHandles;
 
         // Tokens etc.
         private Token[] _tokens;
-        private Ast _ast;
-        private ParseError[] _parseErrors;
+        private int _undoEditIndex;
+
+        static PSConsoleReadLine()
+        {
+            _singleton = new PSConsoleReadLine();
+            _viRegister = new ViRegister(_singleton);
+        }
+
+        private PSConsoleReadLine()
+        {
+            _mockableMethods = this;
+            _console = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                ? PlatformWindows.OneTimeInit(this)
+                : new VirtualTerminal();
+            _charMap = new DotNetCharMap();
+
+            _buffer = new StringBuilder(8 * 1024);
+            _statusBuffer = new StringBuilder(256);
+            _savedCurrentLine = new HistoryItem();
+            _queuedKeys = new Queue<PSKeyInfo>();
+
+            string hostName = null;
+            // This works mostly by luck - we're not doing anything to guarantee the constructor for our
+            // singleton is called on a thread with a runspace, but it is happening by coincidence.
+            using (var ps = System.Management.Automation.PowerShell.Create(RunspaceMode.CurrentRunspace))
+            {
+                try
+                {
+                    var results = ps.AddScript("$Host", true).Invoke<PSHost>();
+                    var host = results.Count == 1 ? results[0] : null;
+                    hostName = host?.Name;
+                }
+                catch
+                {
+                }
+            }
+
+            if (hostName == null) hostName = PSReadLine;
+
+            Options = new PSConsoleReadLineOptions(hostName);
+            _prediction = new Prediction(this);
+            SetDefaultBindings(Options.EditMode);
+        }
 
         bool IPSConsoleReadLineMockableMethods.RunspaceIsRemote(Runspace runspace)
         {
@@ -103,26 +147,21 @@ namespace Microsoft.PowerShell
                     _lastNKeys.Enqueue(key);
                     _queuedKeys.Enqueue(key);
                 }
+
                 if (_readkeyStopwatch.ElapsedMilliseconds > 2)
-                {
                     // Don't spend too long in this loop if there are lots of queued keys
                     break;
-                }
             }
 
             if (_queuedKeys.Count == 0)
             {
                 while (!_charMap.KeyAvailable)
-                {
                     // Don't want to block when there is an escape sequence being read.
                     if (_charMap.InEscapeSequence)
                     {
                         if (_console.KeyAvailable)
-                        {
                             _charMap.ProcessKey(_console.ReadKey());
-                        }
                         else
-                        {
                             // We don't want to sleep for the whole escape timeout
                             // or the user will have a laggy console, but there's
                             // nothing to block on at this point either, so do a
@@ -130,13 +169,12 @@ namespace Microsoft.PowerShell
                             // to decide what the input was. This will only run
                             // if there are no keys waiting to be read.
                             Thread.Sleep(5);
-                        }
                     }
                     else
                     {
                         _charMap.ProcessKey(_console.ReadKey());
                     }
-                }
+
                 while (_charMap.KeyAvailable)
                 {
                     var key = PSKeyInfo.FromConsoleKeyInfo(_charMap.ReadKey());
@@ -151,7 +189,7 @@ namespace Microsoft.PowerShell
             while (true)
             {
                 // Wait until ReadKey tells us to read a key (or it's time to exit).
-                int handleId = WaitHandle.WaitAny(_threadProcWaitHandles);
+                var handleId = WaitHandle.WaitAny(_threadProcWaitHandles);
                 if (handleId == 1) // It was the _closingWaitHandle that was signaled.
                     break;
 
@@ -191,10 +229,7 @@ namespace Microsoft.PowerShell
                     //   - the console is exiting
                     //   - 300ms timeout - to process events if we're idle
                     handleId = WaitHandle.WaitAny(_singleton._requestKeyWaitHandles, 300);
-                    if (handleId != WaitHandle.WaitTimeout)
-                    {
-                        break;
-                    }
+                    if (handleId != WaitHandle.WaitTimeout) break;
 
                     if (_handleIdleOverride is not null)
                     {
@@ -207,22 +242,20 @@ namespace Microsoft.PowerShell
                     var eventSubscribers = _singleton._engineIntrinsics?.Events.Subscribers;
                     if (eventSubscribers?.Count > 0)
                     {
-                        bool runPipelineForEventProcessing = false;
+                        var runPipelineForEventProcessing = false;
                         foreach (var sub in eventSubscribers)
                         {
                             if (sub.SourceIdentifier.Equals(PSEngineEvent.OnIdle, StringComparison.OrdinalIgnoreCase))
                             {
                                 // If the buffer is not empty, let's not consider we are idle because the user is in the middle of typing something.
-                                if (_singleton._buffer.Length > 0)
-                                {
-                                    continue;
-                                }
+                                if (_singleton._buffer.Length > 0) continue;
 
                                 // There is an OnIdle event subscriber and we are idle because we timed out and the buffer is empty.
                                 // Normally PowerShell generates this event, but PowerShell assumes the engine is not idle because
                                 // it called PSConsoleHostReadLine which isn't returning. So we generate the event instead.
                                 runPipelineForEventProcessing = true;
-                                _singleton._engineIntrinsics.Events.GenerateEvent(PSEngineEvent.OnIdle, null, null, null);
+                                _singleton._engineIntrinsics.Events.GenerateEvent(PSEngineEvent.OnIdle, null, null,
+                                    null);
 
                                 // Break out so we don't genreate more than one 'OnIdle' event for a timeout.
                                 break;
@@ -238,7 +271,7 @@ namespace Microsoft.PowerShell
                             if (ps == null)
                             {
                                 ps = System.Management.Automation.PowerShell.Create(RunspaceMode.CurrentRunspace);
-                                ps.AddScript("0", useLocalScope: true);
+                                ps.AddScript("0", true);
                             }
 
                             // To detect output during possible event processing, see if the cursor moved
@@ -264,10 +297,8 @@ namespace Microsoft.PowerShell
             {
                 // The console is exiting - throw an exception to unwind the stack to the point
                 // where we can return from ReadLine.
-                if (_singleton.Options.HistorySaveStyle == HistorySaveStyle.SaveAtExit)
-                {
-                    _singleton.SaveHistoryAtExit();
-                }
+                if (_singleton.Options.HistorySaveStyle == HistorySaveStyle.SaveAtExit) _singleton.SaveHistoryAtExit();
+
                 _singleton._historyFileMutex.Dispose();
 
                 throw new OperationCanceledException();
@@ -308,8 +339,8 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Entry point - called from the PowerShell function PSConsoleHostReadLine
-        /// after the prompt has been displayed.
+        ///     Entry point - called from the PowerShell function PSConsoleHostReadLine
+        ///     after the prompt has been displayed.
         /// </summary>
         /// <returns>The complete command line.</returns>
         public static string ReadLine(Runspace runspace, EngineIntrinsics engineIntrinsics, bool? lastRunStatus)
@@ -318,8 +349,8 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Entry point - called by custom PSHost implementations that require the
-        /// ability to cancel ReadLine.
+        ///     Entry point - called by custom PSHost implementations that require the
+        ///     ability to cancel ReadLine.
         /// </summary>
         /// <returns>The complete command line.</returns>
         public static string ReadLine(
@@ -331,7 +362,6 @@ namespace Microsoft.PowerShell
             var console = _singleton._console;
 
             if (Console.IsInputRedirected || Console.IsOutputRedirected)
-            {
                 // System.Console doesn't handle redirected input. It matches the behavior on Windows
                 // by throwing an "InvalidOperationException".
                 // Therefore, if either stdin or stdout is redirected, PSReadLine doesn't really work,
@@ -340,34 +370,25 @@ namespace Microsoft.PowerShell
                 // Some CI environments redirect stdin/stdout, but that doesn't affect our test runs
                 // because the console is mocked, so we can skip the exception.
                 if (!IsRunningCI(console))
-                {
                     throw new NotSupportedException();
-                }
-            }
 
             var oldControlCAsInput = false;
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
                 PlatformWindows.Init(ref _singleton._charMap);
-            }
             else
-            {
                 try
                 {
                     oldControlCAsInput = Console.TreatControlCAsInput;
                     Console.TreatControlCAsInput = true;
                 }
-                catch {}
-            }
+                catch
+                {
+                }
 
-            if (lastRunStatus.HasValue)
-            {
-                _singleton.ReportExecutionStatus(lastRunStatus.Value);
-            }
+            if (lastRunStatus.HasValue) _singleton.ReportExecutionStatus(lastRunStatus.Value);
 
-            bool firstTime = true;
+            var firstTime = true;
             while (true)
-            {
                 try
                 {
                     if (firstTime)
@@ -394,7 +415,8 @@ namespace Microsoft.PowerShell
                     var oldColor = console.ForegroundColor;
                     console.ForegroundColor = ConsoleColor.Red;
                     console.WriteLine(
-                        string.Format(CultureInfo.CurrentUICulture, PSReadLineResources.OopsCustomHandlerException, e.InnerException.Message));
+                        string.Format(CultureInfo.CurrentUICulture, PSReadLineResources.OopsCustomHandlerException,
+                            e.InnerException.Message));
                     console.ForegroundColor = oldColor;
 
                     var lineBeforeCrash = _singleton._buffer.ToString();
@@ -405,40 +427,35 @@ namespace Microsoft.PowerShell
                 catch (Exception e)
                 {
                     // If we're running tests, just throw.
-                    if (_singleton._mockableMethods != _singleton)
-                    {
-                        throw;
-                    }
+                    if (_singleton._mockableMethods != _singleton) throw;
 
-                    while (e.InnerException != null)
-                    {
-                        e = e.InnerException;
-                    }
+                    while (e.InnerException != null) e = e.InnerException;
+
                     var oldColor = console.ForegroundColor;
                     console.ForegroundColor = ConsoleColor.Red;
                     console.WriteLine(PSReadLineResources.OopsAnErrorMessage1);
                     console.ForegroundColor = oldColor;
                     var sb = new StringBuilder();
-                    for (int i = 0; i < _lastNKeys.Count; i++)
+                    for (var i = 0; i < _lastNKeys.Count; i++)
                     {
                         sb.Append(' ');
                         sb.Append(_lastNKeys[i].KeyStr);
 
                         if (_singleton._dispatchTable.TryGetValue(_lastNKeys[i], out var handler) &&
                             "AcceptLine".Equals(handler.BriefDescription, StringComparison.OrdinalIgnoreCase))
-                        {
                             // Make it a little easier to see the keys
                             sb.Append('\n');
-                        }
                     }
 
                     var psVersion = PSObject.AsPSObject(engineIntrinsics.Host.Version).ToString();
-                    var ourVersion = typeof(PSConsoleReadLine).Assembly.GetCustomAttributes<AssemblyInformationalVersionAttribute>().First().InformationalVersion;
+                    var ourVersion = typeof(PSConsoleReadLine).Assembly
+                        .GetCustomAttributes<AssemblyInformationalVersionAttribute>().First().InformationalVersion;
                     var osInfo = RuntimeInformation.OSDescription;
                     var bufferWidth = console.BufferWidth;
                     var bufferHeight = console.BufferHeight;
 
-                    console.WriteLine(string.Format(CultureInfo.CurrentUICulture, PSReadLineResources.OopsAnErrorMessage2,
+                    console.WriteLine(string.Format(CultureInfo.CurrentUICulture,
+                        PSReadLineResources.OopsAnErrorMessage2,
                         ourVersion, psVersion, osInfo, bufferWidth, bufferHeight,
                         _lastNKeys.Count, sb, e));
                     var lineBeforeCrash = _singleton._buffer.ToString();
@@ -461,26 +478,22 @@ namespace Microsoft.PowerShell
                                 return color >= ConsoleColor.Black && color <= ConsoleColor.White;
                             }
 
-                            if (IsValid(_singleton._initialForeground)) {
+                            if (IsValid(_singleton._initialForeground))
                                 console.ForegroundColor = _singleton._initialForeground;
-                            }
-                            if (IsValid(_singleton._initialBackground)) {
+
+                            if (IsValid(_singleton._initialBackground))
                                 console.BackgroundColor = _singleton._initialBackground;
-                            }
+
                             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                            {
                                 Console.TreatControlCAsInput = oldControlCAsInput;
-                            }
                         }
                     }
-                    catch { }
-
-                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                    catch
                     {
-                        PlatformWindows.Complete();
                     }
+
+                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) PlatformWindows.Complete();
                 }
-            }
         }
 
         private string InputLoop()
@@ -503,7 +516,7 @@ namespace Microsoft.PowerShell
                 _handlePotentialResizing = true;
 
                 var key = ReadKey();
-                ProcessOneKey(key, _dispatchTable, ignoreIfNoAction: false, arg: null);
+                ProcessOneKey(key, _dispatchTable, false, null);
                 if (_inputAccepted)
                 {
                     _acceptedCommandLine = _buffer.ToString();
@@ -514,27 +527,27 @@ namespace Microsoft.PowerShell
                 }
 
                 if (killCommandCount == _killCommandCount)
-                {
                     // Reset kill command count if it didn't change
                     _killCommandCount = 0;
-                }
+
                 if (yankCommandCount == _yankCommandCount)
-                {
                     // Reset yank command count if it didn't change
                     _yankCommandCount = 0;
-                }
+
                 if (yankLastArgCommandCount == _yankLastArgCommandCount)
                 {
                     // Reset yank last arg command count if it didn't change
                     _yankLastArgCommandCount = 0;
                     _yankLastArgState = null;
                 }
+
                 if (tabCommandCount == _tabCommandCount)
                 {
                     // Reset tab command count if it didn't change
                     _tabCommandCount = 0;
                     _tabCompletions = null;
                 }
+
                 if (searchHistoryCommandCount == _searchHistoryCommandCount)
                 {
                     if (_searchHistoryCommandCount > 0)
@@ -543,13 +556,13 @@ namespace Microsoft.PowerShell
                         _emphasisLength = 0;
                         RenderWithPredictionQueryPaused();
                     }
+
                     _searchHistoryCommandCount = 0;
                     _searchHistoryPrefix = null;
                 }
-                if (recallHistoryCommandCount == _recallHistoryCommandCount)
-                {
-                    _recallHistoryCommandCount = 0;
-                }
+
+                if (recallHistoryCommandCount == _recallHistoryCommandCount) _recallHistoryCommandCount = 0;
+
                 if (anyHistoryCommandCount == _anyHistoryCommandCount)
                 {
                     if (_anyHistoryCommandCount > 0)
@@ -558,13 +571,16 @@ namespace Microsoft.PowerShell
                         _hashedHistory = null;
                         _currentHistoryIndex = _history.Count;
                     }
+
                     _anyHistoryCommandCount = 0;
                 }
+
                 if (visualSelectionCommandCount == _visualSelectionCommandCount && _visualSelectionCommandCount > 0)
                 {
                     _visualSelectionCommandCount = 0;
-                    RenderWithPredictionQueryPaused();  // Clears the visual selection
+                    RenderWithPredictionQueryPaused(); // Clears the visual selection
                 }
+
                 if (moveToLineCommandCount == _moveToLineCommandCount)
                 {
                     _moveToLineCommandCount = 0;
@@ -582,7 +598,7 @@ namespace Microsoft.PowerShell
             }
         }
 
-        T CallPossibleExternalApplication<T>(Func<T> func)
+        private T CallPossibleExternalApplication<T>(Func<T> func)
         {
             try
             {
@@ -593,19 +609,22 @@ namespace Microsoft.PowerShell
             }
             finally
             {
-                if (!_skipOutputEncodingChange)
-                {
-                    _console.OutputEncoding = Encoding.UTF8;
-                }
+                if (!_skipOutputEncodingChange) _console.OutputEncoding = Encoding.UTF8;
             }
         }
 
-        void CallPossibleExternalApplication(Action action)
+        private void CallPossibleExternalApplication(Action action)
         {
-            CallPossibleExternalApplication<object>(() => { action(); return null; });
+            CallPossibleExternalApplication<object>(() =>
+            {
+                action();
+                return null;
+            });
         }
 
-        void ProcessOneKey(PSKeyInfo key, Dictionary<PSKeyInfo, KeyHandler> dispatchTable, bool ignoreIfNoAction, object arg)
+        private void ProcessOneKey(PSKeyInfo key, Dictionary<PSKeyInfo, KeyHandler> dispatchTable,
+            bool ignoreIfNoAction,
+            object arg)
         {
             var consoleKey = key.AsConsoleKeyInfo();
 
@@ -617,7 +636,6 @@ namespace Microsoft.PowerShell
             // That said, we first look up exactly what we get from Console.ReadKey - that will fail
             // most of the time, and when it does, we normalize the key.
             if (!dispatchTable.TryGetValue(key, out var handler))
-            {
                 // If we see a control character where Ctrl wasn't used but shift was, treat that like
                 // shift hadn't be pressed.  This cleanly allows Shift+Backspace without adding a key binding.
                 if (key.Shift && !key.Control && !key.Alt)
@@ -629,66 +647,18 @@ namespace Microsoft.PowerShell
                         dispatchTable.TryGetValue(key, out handler);
                     }
                 }
-            }
 
             if (handler != null)
             {
                 if (handler.ScriptBlock != null)
-                {
                     CallPossibleExternalApplication(() => handler.Action(consoleKey, arg));
-                }
                 else
-                {
                     handler.Action(consoleKey, arg);
-                }
             }
             else if (!ignoreIfNoAction)
             {
                 SelfInsert(consoleKey, arg);
             }
-        }
-
-        static PSConsoleReadLine()
-        {
-            _singleton = new PSConsoleReadLine();
-            _viRegister = new ViRegister(_singleton);
-        }
-
-        private PSConsoleReadLine()
-        {
-            _mockableMethods = this;
-            _console = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-                ? PlatformWindows.OneTimeInit(this)
-                : new VirtualTerminal();
-            _charMap = new DotNetCharMap();
-
-            _buffer = new StringBuilder(8 * 1024);
-            _statusBuffer = new StringBuilder(256);
-            _savedCurrentLine = new HistoryItem();
-            _queuedKeys = new Queue<PSKeyInfo>();
-
-            string hostName = null;
-            // This works mostly by luck - we're not doing anything to guarantee the constructor for our
-            // singleton is called on a thread with a runspace, but it is happening by coincidence.
-            using (var ps = System.Management.Automation.PowerShell.Create(RunspaceMode.CurrentRunspace))
-            {
-                try
-                {
-                    var results = ps.AddScript("$Host", useLocalScope: true).Invoke<PSHost>();
-                    PSHost host = results.Count == 1 ? results[0] : null;
-                    hostName = host?.Name;
-                }
-                catch
-                {
-                }
-            }
-            if (hostName == null)
-            {
-                hostName = PSReadLine;
-            }
-            _options = new PSConsoleReadLineOptions(hostName);
-            _prediction = new Prediction(this);
-            SetDefaultBindings(_options.EditMode);
         }
 
         private void Initialize(Runspace runspace, EngineIntrinsics engineIntrinsics)
@@ -728,13 +698,11 @@ namespace Microsoft.PowerShell
 
             // Don't change the OutputEncoding if already UTF8, no console, or using raster font on Windows
             _skipOutputEncodingChange = _initialOutputEncoding == Encoding.UTF8
-                || (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-                    && PlatformWindows.IsConsoleInput()
-                    && PlatformWindows.IsUsingRasterFont());
+                                        || RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                                        && PlatformWindows.IsConsoleInput()
+                                        && PlatformWindows.IsUsingRasterFont();
 
-            if (!_skipOutputEncodingChange) {
-                _console.OutputEncoding = Encoding.UTF8;
-            }
+            if (!_skipOutputEncodingChange) _console.OutputEncoding = Encoding.UTF8;
 
             _lastRenderTime = Stopwatch.StartNew();
 
@@ -755,10 +723,7 @@ namespace Microsoft.PowerShell
                 if (_searchHistoryCommandCount > 0)
                 {
                     _searchHistoryPrefix = "";
-                    if (Options.HistoryNoDuplicates)
-                    {
-                        _hashedHistory = new Dictionary<string, int>();
-                    }
+                    if (Options.HistoryNoDuplicates) _hashedHistory = new Dictionary<string, int>();
                 }
             }
             else
@@ -766,10 +731,9 @@ namespace Microsoft.PowerShell
                 _currentHistoryIndex = _history.Count;
                 _searchHistoryCommandCount = 0;
             }
+
             if (_previousHistoryItem != null)
-            {
                 _previousHistoryItem.ApproximateElapsedTime = DateTime.UtcNow - _previousHistoryItem.StartTime;
-            }
         }
 
         private void DelayedOneTimeInitialize()
@@ -780,42 +744,38 @@ namespace Microsoft.PowerShell
             // specifies a custom history save file, we don't want to try reading
             // from the default one.
 
-            if (_options.MaximumHistoryCount == 0)
+            if (Options.MaximumHistoryCount == 0)
             {
                 // Initialize 'MaximumHistoryCount' if it's not defined in user's profile.
                 var historyCountVar = _engineIntrinsics?.SessionState.PSVariable.Get("MaximumHistoryCount");
-                _options.MaximumHistoryCount = (historyCountVar?.Value is int historyCountValue)
+                Options.MaximumHistoryCount = historyCountVar?.Value is int historyCountValue
                     ? historyCountValue
                     : PSConsoleReadLineOptions.DefaultMaximumHistoryCount;
             }
 
-            if (_options.PromptText == null &&
-                _engineIntrinsics?.InvokeCommand.GetCommand("prompt", CommandTypes.Function) is FunctionInfo promptCommand)
+            if (Options.PromptText == null &&
+                _engineIntrinsics?.InvokeCommand.GetCommand("prompt", CommandTypes.Function) is FunctionInfo
+                    promptCommand)
             {
                 var promptIsPure = null ==
-                    promptCommand.ScriptBlock.Ast.Find(ast => ast is CommandAst ||
-                                                      ast is InvokeMemberExpressionAst,
-                                               searchNestedScriptBlocks: true);
+                                   promptCommand.ScriptBlock.Ast.Find(ast => ast is CommandAst ||
+                                                                             ast is InvokeMemberExpressionAst,
+                                       true);
                 if (promptIsPure)
                 {
                     var res = promptCommand.ScriptBlock.InvokeReturnAsIs(Array.Empty<object>());
-                    string evaluatedPrompt = res as string;
+                    var evaluatedPrompt = res as string;
                     if (evaluatedPrompt == null && res is PSObject psobject)
-                    {
                         evaluatedPrompt = psobject.BaseObject as string;
-                    }
+
                     if (evaluatedPrompt != null)
                     {
                         int i;
                         for (i = evaluatedPrompt.Length - 1; i >= 0; i--)
-                        {
-                            if (!char.IsWhiteSpace(evaluatedPrompt[i])) break;
-                        }
+                            if (!char.IsWhiteSpace(evaluatedPrompt[i]))
+                                break;
 
-                        if (i >= 0)
-                        {
-                            _options.PromptText = new [] { evaluatedPrompt.Substring(i) };
-                        }
+                        if (i >= 0) Options.PromptText = new[] {evaluatedPrompt.Substring(i)};
                     }
                 }
             }
@@ -823,33 +783,26 @@ namespace Microsoft.PowerShell
             _historyFileMutex = new Mutex(false, GetHistorySaveFileMutexName());
 
             _history = new HistoryQueue<HistoryItem>(Options.MaximumHistoryCount);
-            _recentHistory = new HistoryQueue<string>(capacity: 5);
+            _recentHistory = new HistoryQueue<string>(5);
             _currentHistoryIndex = 0;
 
-            bool readHistoryFile = true;
+            var readHistoryFile = true;
             try
             {
-                if (_options.HistorySaveStyle == HistorySaveStyle.SaveNothing && Runspace.DefaultRunspace != null)
-                {
+                if (Options.HistorySaveStyle == HistorySaveStyle.SaveNothing && Runspace.DefaultRunspace != null)
                     using (var ps = System.Management.Automation.PowerShell.Create(RunspaceMode.CurrentRunspace))
                     {
                         ps.AddCommand("Microsoft.PowerShell.Core\\Get-History");
-                        foreach (var historyInfo in ps.Invoke<HistoryInfo>())
-                        {
-                            AddToHistory(historyInfo.CommandLine);
-                        }
+                        foreach (var historyInfo in ps.Invoke<HistoryInfo>()) AddToHistory(historyInfo.CommandLine);
+
                         readHistoryFile = false;
                     }
-                }
             }
             catch
             {
             }
 
-            if (readHistoryFile)
-            {
-                ReadHistoryFile();
-            }
+            if (readHistoryFile) ReadHistoryFile();
 
             _killIndex = -1; // So first add indexes 0.
             _killRing = new List<string>(Options.MaximumKillRingCount);
@@ -865,13 +818,11 @@ namespace Microsoft.PowerShell
             // to exit cleanly when the appdomain is unloaded but the process is not going
             // away.
             if (!AppDomain.CurrentDomain.IsDefaultAppDomain())
-            {
                 AppDomain.CurrentDomain.DomainUnload += (x, y) =>
                 {
                     _closingWaitHandle.Set();
                     _readKeyThread.Join(); // may need to wait for history to be written
                 };
-            }
 
             _readKeyThread = new Thread(ReadKeyThreadProc) {IsBackground = true, Name = "PSReadLine ReadKey Thread"};
             _readKeyThread.Start();
@@ -879,27 +830,25 @@ namespace Microsoft.PowerShell
 
         private static void Chord(ConsoleKeyInfo? key = null, object arg = null)
         {
-            if (!key.HasValue)
-            {
-                throw new ArgumentNullException(nameof(key));
-            }
+            if (!key.HasValue) throw new ArgumentNullException(nameof(key));
 
-            if (_singleton._chordDispatchTable.TryGetValue(PSKeyInfo.FromConsoleKeyInfo(key.Value), out var secondKeyDispatchTable))
+            if (_singleton._chordDispatchTable.TryGetValue(PSKeyInfo.FromConsoleKeyInfo(key.Value),
+                    out var secondKeyDispatchTable))
             {
                 var secondKey = ReadKey();
-                _singleton.ProcessOneKey(secondKey, secondKeyDispatchTable, ignoreIfNoAction: true, arg: arg);
+                _singleton.ProcessOneKey(secondKey, secondKeyDispatchTable, true, arg);
             }
         }
 
         /// <summary>
-        /// Abort current action, e.g. incremental history search.
+        ///     Abort current action, e.g. incremental history search.
         /// </summary>
         public static void Abort(ConsoleKeyInfo? key = null, object arg = null)
         {
         }
 
         /// <summary>
-        /// Start a new digit argument to pass to other functions.
+        ///     Start a new digit argument to pass to other functions.
         /// </summary>
         public static void DigitArgument(ConsoleKeyInfo? key = null, object arg = null)
         {
@@ -909,24 +858,20 @@ namespace Microsoft.PowerShell
                 return;
             }
 
-            if (_singleton._options.EditMode == EditMode.Vi && key.Value.KeyChar == '0')
+            if (_singleton.Options.EditMode == EditMode.Vi && key.Value.KeyChar == '0')
             {
                 BeginningOfLine();
                 return;
             }
 
-            bool sawDigit = false;
+            var sawDigit = false;
             _singleton._statusLinePrompt = "digit-argument: ";
             var argBuffer = _singleton._statusBuffer;
             argBuffer.Append(key.Value.KeyChar);
             if (key.Value.KeyChar == '-')
-            {
                 argBuffer.Append('1');
-            }
             else
-            {
                 sawDigit = true;
-            }
 
             _singleton.RenderWithPredictionQueryPaused(); // Render prompt
             while (true)
@@ -939,13 +884,10 @@ namespace Microsoft.PowerShell
                         if (nextKey.KeyChar == '-')
                         {
                             if (argBuffer[0] == '-')
-                            {
                                 argBuffer.Remove(0, 1);
-                            }
                             else
-                            {
                                 argBuffer.Insert(0, '-');
-                            }
+
                             _singleton.RenderWithPredictionQueryPaused(); // Render prompt
                             continue;
                         }
@@ -953,11 +895,10 @@ namespace Microsoft.PowerShell
                         if (nextKey.KeyChar >= '0' && nextKey.KeyChar <= '9')
                         {
                             if (!sawDigit && argBuffer.Length > 0)
-                            {
                                 // Buffer is either '-1' or '1' from one or more Alt+- keys
                                 // but no digits yet.  Remove the '1'.
                                 argBuffer.Length -= 1;
-                            }
+
                             sawDigit = true;
                             argBuffer.Append(nextKey.KeyChar);
                             _singleton.RenderWithPredictionQueryPaused(); // Render prompt
@@ -973,26 +914,23 @@ namespace Microsoft.PowerShell
                 }
 
                 if (int.TryParse(argBuffer.ToString(), out var intArg))
-                {
-                    _singleton.ProcessOneKey(nextKey, _singleton._dispatchTable, ignoreIfNoAction: false, arg: intArg);
-                }
+                    _singleton.ProcessOneKey(nextKey, _singleton._dispatchTable, false, intArg);
                 else
-                {
                     Ding();
-                }
+
                 break;
             }
 
             // Remove our status line
             argBuffer.Clear();
-            _singleton.ClearStatusMessage(render: true);
+            _singleton.ClearStatusMessage(true);
         }
 
 
         /// <summary>
-        /// Erases the current prompt and calls the prompt function to redisplay
-        /// the prompt.  Useful for custom key handlers that change state, e.g.
-        /// change the current directory.
+        ///     Erases the current prompt and calls the prompt function to redisplay
+        ///     the prompt.  Useful for custom key handlers that change state, e.g.
+        ///     change the current directory.
         /// </summary>
         public static void InvokePrompt(ConsoleKeyInfo? key = null, object arg = null)
         {
@@ -1005,22 +943,19 @@ namespace Microsoft.PowerShell
             }
             else
             {
-                newY = _singleton._initialY - _singleton._options.ExtraPromptLineCount;
+                newY = _singleton._initialY - _singleton.Options.ExtraPromptLineCount;
 
                 console.SetCursorPosition(0, newY);
 
                 // We need to rewrite the prompt, so blank out everything from a previous prompt invocation
                 // in case the next one is shorter.
                 var spaces = Spaces(console.BufferWidth);
-                for (int i = 0; i < _singleton._options.ExtraPromptLineCount + 1; i++)
-                {
-                    console.Write(spaces);
-                }
+                for (var i = 0; i < _singleton.Options.ExtraPromptLineCount + 1; i++) console.Write(spaces);
 
                 console.SetCursorPosition(0, newY);
             }
 
-            string newPrompt = GetPrompt();
+            var newPrompt = GetPrompt();
 
             console.Write(newPrompt);
             _singleton._initialX = console.CursorLeft;
@@ -1043,7 +978,7 @@ namespace Microsoft.PowerShell
                 {
                     // Run prompt command in debugger API to ensure it is run correctly on the runspace.
                     // This handles remote runspace debugging and nested debugger scenarios.
-                    PSDataCollection<PSObject> results = new PSDataCollection<PSObject>();
+                    var results = new PSDataCollection<PSObject>();
                     var command = new PSCommand();
                     command.AddCommand("prompt");
                     _singleton._runspace.Debugger.ProcessCommand(
@@ -1077,16 +1012,12 @@ namespace Microsoft.PowerShell
                             newPrompt = result[0];
 
                             if (runspaceIsRemote)
-                            {
                                 if (!string.IsNullOrEmpty(_singleton._runspace?.ConnectionInfo?.ComputerName))
-                                {
-                                    newPrompt = "[" + (_singleton._runspace?.ConnectionInfo).ComputerName + "]: " + newPrompt;
-                                }
-                            }
+                                    newPrompt = "[" + (_singleton._runspace?.ConnectionInfo).ComputerName + "]: " +
+                                                newPrompt;
                         }
                     }
                 }
-
             }
             catch
             {
@@ -1102,9 +1033,9 @@ namespace Microsoft.PowerShell
 
         internal static bool IsRunningCI(IConsole console)
         {
-            Type consoleType = console.GetType();
+            var consoleType = console.GetType();
             return consoleType.FullName == "Test.TestConsole"
-                || consoleType.BaseType.FullName == "Test.TestConsole";
+                   || consoleType.BaseType.FullName == "Test.TestConsole";
         }
     }
 }

@@ -64,11 +64,11 @@ namespace Test
 
             var input = "echo   abc  def  ghi  jkl";
             Test(input, Keys(
-                 input, _.Home, _.Alt_f,
-                 CheckThat(() => AssertCursorLeftIs(4)),
-                 _.RightArrow, _.Alt_f,
-                 CheckThat(() => AssertCursorLeftIs(10))
-                ));
+                input, _.Home, _.Alt_f,
+                CheckThat(() => AssertCursorLeftIs(4)),
+                _.RightArrow, _.Alt_f,
+                CheckThat(() => AssertCursorLeftIs(10))
+            ));
 
             // Test with digit arguments
             Test(input, Keys(
@@ -129,7 +129,7 @@ namespace Test
                 _.Home,
                 _.Alt_4, _.Ctrl_RightArrow, CheckThat(() => AssertCursorLeftIs(23)),
                 _.Alt_Minus, _.Alt_3, _.Ctrl_RightArrow, CheckThat(() => AssertCursorLeftIs(5))
-                ));
+            ));
         }
 
         [SkippableFact]
@@ -138,7 +138,7 @@ namespace Test
             TestSetup(KeyMode.Emacs,
                 new KeyHandler("Alt+f", PSConsoleReadLine.ShellForwardWord));
 
-            string input = "aaa  bbb  ccc";
+            var input = "aaa  bbb  ccc";
             Test(input, Keys(
                 _.Alt_f, CheckThat(() => AssertCursorLeftIs(0)),
                 input,

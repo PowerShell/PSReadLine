@@ -4,9 +4,8 @@ namespace Microsoft.PowerShell
 {
     internal sealed class Disposable : IDisposable
     {
+        internal static readonly Disposable NonOp = new();
         private Action m_onDispose;
-
-        internal static readonly Disposable NonOp = new Disposable();
 
         private Disposable()
         {
@@ -28,4 +27,3 @@ namespace Microsoft.PowerShell
         }
     }
 }
-

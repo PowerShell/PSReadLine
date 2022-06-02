@@ -9,22 +9,15 @@ namespace Microsoft.PowerShell
 {
     public partial class PSConsoleReadLine
     {
-        private enum FindTokenMode
+        private static bool OffsetWithinToken(int offset, Token token)
         {
-            CurrentOrNext,
-            Next,
-            Previous,
-        }
-
-        static bool OffsetWithinToken(int offset, Token token)
-        {
-           return offset < token.Extent.EndOffset && offset >= token.Extent.StartOffset;
+            return offset < token.Extent.EndOffset && offset >= token.Extent.StartOffset;
         }
 
         private Token FindNestedToken(int offset, IList<Token> tokens, FindTokenMode mode)
         {
             Token token = null;
-            bool foundNestedToken = false;
+            var foundNestedToken = false;
             int i;
             for (i = tokens.Count - 1; i >= 0; i--)
             {
@@ -40,43 +33,37 @@ namespace Microsoft.PowerShell
                             foundNestedToken = true;
                         }
                     }
+
                     break;
                 }
-                if (offset >= tokens[i].Extent.EndOffset)
-                {
-                    break;
-                }
+
+                if (offset >= tokens[i].Extent.EndOffset) break;
             }
 
             switch (mode)
             {
-            case FindTokenMode.CurrentOrNext:
-                if (token == null && (i + 1) < tokens.Count)
-                {
-                    token = tokens[i + 1];
-                }
-                break;
-            case FindTokenMode.Next:
-                if (!foundNestedToken)
-                {
-                    // If there is no next token, return null (happens with nested
-                    // tokens where there is no EOF/EOS token).
-                    token = ((i + 1) < tokens.Count) ? tokens[i + 1] : null;
-                }
-                break;
-            case FindTokenMode.Previous:
-                if (token == null)
-                {
-                    if (i >= 0)
+                case FindTokenMode.CurrentOrNext:
+                    if (token == null && i + 1 < tokens.Count) token = tokens[i + 1];
+
+                    break;
+                case FindTokenMode.Next:
+                    if (!foundNestedToken)
+                        // If there is no next token, return null (happens with nested
+                        // tokens where there is no EOF/EOS token).
+                        token = i + 1 < tokens.Count ? tokens[i + 1] : null;
+
+                    break;
+                case FindTokenMode.Previous:
+                    if (token == null)
                     {
-                        token = tokens[i];
+                        if (i >= 0) token = tokens[i];
                     }
-                }
-                else if (offset == token.Extent.StartOffset)
-                {
-                    token = i > 0 ? tokens[i - 1] : null;
-                }
-                break;
+                    else if (offset == token.Extent.StartOffset)
+                    {
+                        token = i > 0 ? tokens[i - 1] : null;
+                    }
+
+                    break;
             }
 
             return token;
@@ -90,7 +77,7 @@ namespace Microsoft.PowerShell
 
         private bool InWord(int index, string wordDelimiters)
         {
-            char c = _buffer[index];
+            var c = _buffer[index];
             return InWord(c, wordDelimiters);
         }
 
@@ -100,97 +87,76 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Find the end of the current/next word as defined by wordDelimiters and whitespace.
+        ///     Find the end of the current/next word as defined by wordDelimiters and whitespace.
         /// </summary>
         private int FindForwardWordPoint(string wordDelimiters)
         {
-            int i = _current;
-            if (i == _buffer.Length)
-            {
-                return i;
-            }
+            var i = _current;
+            if (i == _buffer.Length) return i;
 
             if (!InWord(i, wordDelimiters))
-            {
                 // Scan to end of current non-word region
                 while (i < _buffer.Length)
                 {
-                    if (InWord(i, wordDelimiters))
-                    {
-                        break;
-                    }
+                    if (InWord(i, wordDelimiters)) break;
+
                     i += 1;
                 }
-            }
+
             while (i < _buffer.Length)
             {
-                if (!InWord(i, wordDelimiters))
-                {
-                    break;
-                }
+                if (!InWord(i, wordDelimiters)) break;
+
                 i += 1;
             }
+
             return i;
         }
 
         /// <summary>
-        /// Find the start of the next word.
+        ///     Find the start of the next word.
         /// </summary>
         private int FindNextWordPoint(string wordDelimiters)
         {
-            int i = _singleton._current;
-            if (i == _singleton._buffer.Length)
-            {
-                return i;
-            }
+            var i = _singleton._current;
+            if (i == _singleton._buffer.Length) return i;
 
             if (InWord(i, wordDelimiters))
-            {
                 // Scan to end of current word region
                 while (i < _singleton._buffer.Length)
                 {
-                    if (!InWord(i, wordDelimiters))
-                    {
-                        break;
-                    }
+                    if (!InWord(i, wordDelimiters)) break;
+
                     i += 1;
                 }
-            }
 
             while (i < _singleton._buffer.Length)
             {
-                if (InWord(i, wordDelimiters))
-                {
-                    break;
-                }
+                if (InWord(i, wordDelimiters)) break;
+
                 i += 1;
             }
+
             return i;
         }
 
         /// <summary>
-        /// Find the beginning of the previous word.
+        ///     Find the beginning of the previous word.
         /// </summary>
         private int FindBackwardWordPoint(string wordDelimiters)
         {
-            int i = _current - 1;
-            if (i < 0)
-            {
-                return 0;
-            }
+            var i = _current - 1;
+            if (i < 0) return 0;
 
             if (!InWord(i, wordDelimiters))
-            {
                 // Scan backwards until we are at the end of the previous word.
                 while (i > 0)
                 {
-                    if (InWord(i, wordDelimiters))
-                    {
-                        break;
-                    }
+                    if (InWord(i, wordDelimiters)) break;
+
                     i -= 1;
                 }
-            }
+
             while (i > 0)
             {
                 if (!InWord(i, wordDelimiters))
@@ -198,11 +164,18 @@ namespace Microsoft.PowerShell
                     i += 1;
                     break;
                 }
+
                 i -= 1;
             }
+
             return i;
         }
 
-
+        private enum FindTokenMode
+        {
+            CurrentOrNext,
+            Next,
+            Previous
+        }
     }
 }

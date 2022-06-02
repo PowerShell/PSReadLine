@@ -8,9 +8,9 @@ namespace Test
         [SkippableFact]
         public void DigitArgumentValues()
         {
-            int argValue = 0;
+            var argValue = 0;
             TestSetup(KeyMode.Emacs,
-                new KeyHandler("Ctrl+z", (key, arg) => argValue = (int)arg));
+                new KeyHandler("Ctrl+z", (key, arg) => argValue = (int) arg));
 
             Test("", Keys(
                 _.Alt_1, _.Ctrl_z, CheckThat(() => Assert.Equal(1, argValue)),
@@ -36,11 +36,14 @@ namespace Test
                 _.Alt_1, _.Alt_Minus, _.Ctrl_z, CheckThat(() => Assert.Equal(-1, argValue)),
                 _.Alt_1, _.Alt_2, _.Alt_Minus, _.Ctrl_z, CheckThat(() => Assert.Equal(-12, argValue)),
                 _.Alt_2, _.Alt_Minus, _.Alt_3, _.Alt_4, _.Ctrl_z, CheckThat(() => Assert.Equal(-234, argValue)),
-                _.Alt_3, _.Alt_4, _.Alt_Minus, _.Alt_5, _.Alt_6, _.Ctrl_z, CheckThat(() => Assert.Equal(-3456, argValue)),
-                _.Alt_4, _.Alt_5, _.Alt_6, _.Alt_Minus, _.Alt_7, _.Alt_8, _.Ctrl_z, CheckThat(() => Assert.Equal(-45678, argValue)),
-                _.Alt_9, _.Alt_Minus, _.Alt_Minus, _.Alt_7, _.Alt_8, _.Ctrl_z, CheckThat(() => Assert.Equal(978, argValue)),
+                _.Alt_3, _.Alt_4, _.Alt_Minus, _.Alt_5, _.Alt_6, _.Ctrl_z,
+                CheckThat(() => Assert.Equal(-3456, argValue)),
+                _.Alt_4, _.Alt_5, _.Alt_6, _.Alt_Minus, _.Alt_7, _.Alt_8, _.Ctrl_z,
+                CheckThat(() => Assert.Equal(-45678, argValue)),
+                _.Alt_9, _.Alt_Minus, _.Alt_Minus, _.Alt_7, _.Alt_8, _.Ctrl_z,
+                CheckThat(() => Assert.Equal(978, argValue)),
                 _.Alt_Minus, _.Alt_Minus, _.Alt_7, _.Alt_8, _.Ctrl_z, CheckThat(() => Assert.Equal(78, argValue))
-                ));
+            ));
         }
 
         [SkippableFact]
@@ -62,7 +65,7 @@ namespace Test
                 _.Alt_2, _.Alt_Minus, CheckThat(() => AssertScreenIs(2, NextLine, "digit-argument: -2")),
                 _.Ctrl_g,
                 _.Alt_2, _.Alt_Minus, _.Alt_Minus, CheckThat(() => AssertScreenIs(2, NextLine, "digit-argument: 2"))
-                ));
+            ));
         }
 
         [SkippableFact]
@@ -72,7 +75,8 @@ namespace Test
 
             ConsoleKeyInfo GetDigitArgKey(int i)
             {
-                switch (i) {
+                switch (i)
+                {
                     case 0: return _.Alt_0;
                     case 1: return _.Alt_1;
                     case 2: return _.Alt_2;
@@ -84,10 +88,11 @@ namespace Test
                     case 8: return _.Alt_8;
                     case 9: return _.Alt_9;
                 }
+
                 throw new Exception("Invalid digit argument key");
             }
 
-            for (int i = 0; i < 9; i++)
+            for (var i = 0; i < 9; i++)
             {
                 var line = new string('a', i);
                 var digitArgKey = GetDigitArgKey(i);

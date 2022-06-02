@@ -5,8 +5,8 @@ namespace Microsoft.PowerShell
     public partial class PSConsoleReadLine
     {
         /// <summary>
-        /// Moves the cursor to the beginning of the first logical line
-        /// of a multi-line buffer.
+        ///     Moves the cursor to the beginning of the first logical line
+        ///     of a multi-line buffer.
         /// </summary>
         /// <param name="key" />
         /// <param name="arg" />
@@ -18,11 +18,11 @@ namespace Microsoft.PowerShell
                 return;
             }
 
-            var currentLine =  GetLogicalLineNumber(); 
+            var currentLine = GetLogicalLineNumber();
 
             var pos = ConvertOffsetToPoint(_singleton._current);
 
-            pos.Y -= currentLine -1;
+            pos.Y -= currentLine - 1;
 
             var newCurrent = ConvertLineAndColumnToOffset(pos);
             var position = GetBeginningOfLinePos(newCurrent);
@@ -31,8 +31,8 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Moves the cursor to the beginning of the last logical logical line.
-        /// of a multi-line buffer.
+        ///     Moves the cursor to the beginning of the last logical logical line.
+        ///     of a multi-line buffer.
         /// </summary>
         /// <param name="key" />
         /// <param name="arg" />
@@ -49,7 +49,7 @@ namespace Microsoft.PowerShell
 
             var pos = ConvertOffsetToPoint(_singleton._current);
 
-            pos.Y += (count - currentLine);
+            pos.Y += count - currentLine;
 
             var newCurrent = ConvertLineAndColumnToOffset(pos);
             var position = GetBeginningOfLinePos(newCurrent);
@@ -92,10 +92,7 @@ namespace Microsoft.PowerShell
             // Nothing needs to be done when:
             //  - actually not moving the line, or
             //  - moving the line down when it's at the end of the last logical line.
-            if (lineOffset == 0 || (lineOffset > 0 && _current == _buffer.Length))
-            {
-                return;
-            }
+            if (lineOffset == 0 || lineOffset > 0 && _current == _buffer.Length) return;
 
             int targetLineOffset;
 

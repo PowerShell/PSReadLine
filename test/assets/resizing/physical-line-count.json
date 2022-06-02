@@ -50,7 +50,6 @@
       }
     ]
   },
-
   {
     "Name": "BasicTest_2",
     // The continuation prompt and input used are actually:
@@ -96,7 +95,6 @@
       }
     ]
   },
-
   {
     "Name": "BasicTest_3",
     // Empty prompt, and the input contains no visible character.
@@ -117,7 +115,6 @@
       }
     ]
   },
-
   {
     "Name": "BasicTest_4",
     // Empty prompt, and the input contains no visible character.
@@ -138,7 +135,6 @@
       }
     ]
   },
-
   {
     "Name": "BasicTest_5",
     // Continuation prompt followed by an empty line.
@@ -159,7 +155,6 @@
       }
     ]
   },
-
   {
     "Name": "BasicTest_6",
     // Input is: dir *.psd1 -Recurse | sls -SimpleMatch Desktop-ab
@@ -180,7 +175,6 @@
       }
     ]
   },
-
   {
     "Name": "BasicTest_7",
     // Input is: dir *.psd1 -Recurse | sls -SimpleMatch Desktop-有
@@ -201,7 +195,6 @@
       }
     ]
   },
-
   {
     "Name": "BasicTest_8",
     // dir *.psd1 -Recurse | sls -SimpleMatch Desktop-有人

@@ -4,11 +4,11 @@ Copyright (c) Microsoft Corporation.  All rights reserved.
 
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
+using System.Diagnostics.CodeAnalysis;
 using System.Management.Automation;
 using System.Management.Automation.Language;
 using System.Management.Automation.Subsystem.Prediction;
-using System.Diagnostics.CodeAnalysis;
+using System.Threading.Tasks;
 using Microsoft.PowerShell.Internal;
 using Microsoft.PowerShell.PSReadLine;
 
@@ -17,7 +17,9 @@ namespace Microsoft.PowerShell
     public partial class PSConsoleReadLine
     {
         private const string PSReadLine = "PSReadLine";
-        private static PredictionClient s_predictionClient = new(PSReadLine, PredictionClientKind.Terminal);
+        private static readonly PredictionClient s_predictionClient = new(PSReadLine, PredictionClientKind.Terminal);
+
+        private readonly Prediction _prediction;
 
         // Stub helper methods so prediction can be mocked
         [ExcludeFromCodeCoverage]
@@ -33,7 +35,8 @@ namespace Microsoft.PowerShell
         }
 
         [ExcludeFromCodeCoverage]
-        void IPSConsoleReadLineMockableMethods.OnSuggestionAccepted(Guid predictorId, uint session, string suggestionText)
+        void IPSConsoleReadLineMockableMethods.OnSuggestionAccepted(Guid predictorId, uint session,
+            string suggestionText)
         {
             CommandPrediction.OnSuggestionAccepted(s_predictionClient, predictorId, session, suggestionText);
         }
@@ -50,10 +53,8 @@ namespace Microsoft.PowerShell
             CommandPrediction.OnCommandLineExecuted(s_predictionClient, commandLine, success);
         }
 
-        private readonly Prediction _prediction;
-
         /// <summary>
-        /// Report the execution result (success or failure) of the last accepted command line.
+        ///     Report the execution result (success or failure) of the last accepted command line.
         /// </summary>
         /// <param name="success">Whether the execution was successful.</param>
         private void ReportExecutionStatus(bool success)
@@ -62,11 +63,11 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Accept the suggestion text if there is one.
+        ///     Accept the suggestion text if there is one.
         /// </summary>
         public static void AcceptSuggestion(ConsoleKeyInfo? key = null, object arg = null)
         {
-            Prediction prediction = _singleton._prediction;
+            var prediction = _singleton._prediction;
             if (prediction.ActiveView is PredictionInlineView inlineView && inlineView.HasActiveSuggestion)
             {
                 // Ignore the visual selection.
@@ -82,23 +83,17 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Accept the current or the next suggestion text word.
+        ///     Accept the current or the next suggestion text word.
         /// </summary>
         public static void AcceptNextSuggestionWord(ConsoleKeyInfo? key = null, object arg = null)
         {
-            if (!TryGetArgAsInt(arg, out var numericArg, 1))
-            {
-                return;
-            }
+            if (!TryGetArgAsInt(arg, out var numericArg, 1)) return;
 
-            if (numericArg > 0)
-            {
-                AcceptNextSuggestionWord(numericArg);
-            }
+            if (numericArg > 0) AcceptNextSuggestionWord(numericArg);
         }
 
         /// <summary>
-        /// Implementation for accepting the current or the next suggestion text word.
+        ///     Implementation for accepting the current or the next suggestion text word.
         /// </summary>
         private static void AcceptNextSuggestionWord(int numericArg)
         {
@@ -107,12 +102,10 @@ namespace Microsoft.PowerShell
                 // Ignore the visual selection.
                 _singleton._visualSelectionCommandCount = 0;
 
-                int start = _singleton._buffer.Length;
-                int index = start;
+                var start = _singleton._buffer.Length;
+                var index = start;
                 while (numericArg-- > 0 && index < inlineView.SuggestionText.Length)
-                {
                     index = inlineView.FindForwardSuggestionWordPoint(index, _singleton.Options.WordDelimiters);
-                }
 
                 inlineView.OnSuggestionAccepted();
 
@@ -122,7 +115,7 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Select the next suggestion item in the list view.
+        ///     Select the next suggestion item in the list view.
         /// </summary>
         public static void NextSuggestion(ConsoleKeyInfo? key = null, object arg = null)
         {
@@ -131,21 +124,18 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Select the previous suggestion item in the list view.
+        ///     Select the previous suggestion item in the list view.
         /// </summary>
         public static void PreviousSuggestion(ConsoleKeyInfo? key = null, object arg = null)
         {
             TryGetArgAsInt(arg, out var numericArg, -1);
-            if (numericArg > 0)
-            {
-                numericArg = -numericArg;
-            }
+            if (numericArg > 0) numericArg = -numericArg;
 
             UpdateListSelection(numericArg);
         }
 
         /// <summary>
-        /// Implementation for updating the selected item in list view.
+        ///     Implementation for updating the selected item in list view.
         /// </summary>
         private static bool UpdateListSelection(int numericArg)
         {
@@ -154,7 +144,7 @@ namespace Microsoft.PowerShell
                 // Ignore the visual selection.
                 _singleton._visualSelectionCommandCount = 0;
 
-                listView.UpdateListSelection(move: numericArg);
+                listView.UpdateListSelection(numericArg);
                 ReplaceSelection(listView.SelectedItemText);
 
                 return true;
@@ -164,14 +154,14 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Replace current buffer with the selected list item text.
-        /// The replacement is done in a way that allows further selection updates for the same list view
-        /// to override the previous update in the undo/redo stack, so that 'undo' always get back to the
-        /// original user input that triggers the current list view.
+        ///     Replace current buffer with the selected list item text.
+        ///     The replacement is done in a way that allows further selection updates for the same list view
+        ///     to override the previous update in the undo/redo stack, so that 'undo' always get back to the
+        ///     original user input that triggers the current list view.
         /// </summary>
         private static void ReplaceSelection(string selectedItemText)
         {
-            var insertStringItem = EditItemInsertString.Create(selectedItemText, position: 0);
+            var insertStringItem = EditItemInsertString.Create(selectedItemText, 0);
             insertStringItem.Replaceable = true;
 
             if (_singleton.IsLastEditItemReplaceable)
@@ -185,14 +175,11 @@ namespace Microsoft.PowerShell
                 return;
             }
 
-            bool useEditGroup = _singleton._editGroupStart == -1;
-            if (useEditGroup)
-            {
-                _singleton.StartEditGroup();
-            }
+            var useEditGroup = _singleton._editGroupStart == -1;
+            if (useEditGroup) _singleton.StartEditGroup();
 
             var str = _singleton._buffer.ToString();
-            _singleton.SaveEditItem(EditItemDelete.Create(str, position: 0));
+            _singleton.SaveEditItem(EditItemDelete.Create(str, 0));
             _singleton._buffer.Clear();
 
             _singleton.SaveEditItem(insertStringItem);
@@ -207,60 +194,46 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Switch to the other prediction view.
+        ///     Switch to the other prediction view.
         /// </summary>
         public static void SwitchPredictionView(ConsoleKeyInfo? key = null, object arg = null)
         {
-            int count = Enum.GetNames(typeof(PredictionViewStyle)).Length;
-            int value = (int)_singleton._options.PredictionViewStyle;
-            var style = (PredictionViewStyle)((value + 1) % count);
+            var count = Enum.GetNames(typeof(PredictionViewStyle)).Length;
+            var value = (int) _singleton.Options.PredictionViewStyle;
+            var style = (PredictionViewStyle) ((value + 1) % count);
 
-            _singleton._options.PredictionViewStyle = style;
+            _singleton.Options.PredictionViewStyle = style;
             _singleton._prediction.SetViewStyle(style);
             _singleton.Render();
         }
 
         /// <summary>
-        /// Write a warning message if the current window size is too small for the specified prediction view.
+        ///     Write a warning message if the current window size is too small for the specified prediction view.
         /// </summary>
         internal static void WarnWhenWindowSizeTooSmallForView(PredictionViewStyle viewStyle, PSCmdlet cmdlet)
         {
-            if (viewStyle != PredictionViewStyle.ListView)
-            {
-                return;
-            }
+            if (viewStyle != PredictionViewStyle.ListView) return;
 
             var console = _singleton._console;
             var minWidth = PredictionListView.MinWindowWidth;
             var minHeight = PredictionListView.MinWindowHeight;
 
             if (console.WindowWidth < minWidth || console.WindowHeight < minHeight)
-            {
-                cmdlet.WriteWarning(string.Format(PSReadLineResources.WindowSizeTooSmallForListView, minWidth, minHeight));
-            }
+                cmdlet.WriteWarning(string.Format(PSReadLineResources.WindowSizeTooSmallForListView, minWidth,
+                    minHeight));
         }
 
         /// <summary>
-        /// The type that controls the predictive suggestion feature and exposes the active view.
+        ///     The type that controls the predictive suggestion feature and exposes the active view.
         /// </summary>
         private class Prediction
         {
             private readonly PSConsoleReadLine _singleton;
+            private PredictionInlineView _inlineView;
+            private PredictionListView _listView;
+            private bool _pauseQuery;
 
             private bool _showPrediction = true;
-            private bool _pauseQuery = false;
-            private PredictionListView _listView;
-            private PredictionInlineView _inlineView;
-
-            /// <summary>
-            /// Gets indication on whether the prediction feature is on.
-            /// </summary>
-            private bool IsPredictionOn => _singleton._options.PredictionSource != PredictionSource.None && _showPrediction;
-
-            /// <summary>
-            /// Gets the active prediction view.
-            /// </summary>
-            internal PredictionViewBase ActiveView { get; private set; }
 
             internal Prediction(PSConsoleReadLine singleton)
             {
@@ -269,7 +242,18 @@ namespace Microsoft.PowerShell
             }
 
             /// <summary>
-            /// Set the active prediction view style.
+            ///     Gets indication on whether the prediction feature is on.
+            /// </summary>
+            private bool IsPredictionOn =>
+                _singleton.Options.PredictionSource != PredictionSource.None && _showPrediction;
+
+            /// <summary>
+            ///     Gets the active prediction view.
+            /// </summary>
+            internal PredictionViewBase ActiveView { get; private set; }
+
+            /// <summary>
+            ///     Set the active prediction view style.
             /// </summary>
             internal void SetViewStyle(PredictionViewStyle style)
             {
@@ -293,7 +277,7 @@ namespace Microsoft.PowerShell
             }
 
             /// <summary>
-            /// Reset the prediction component on 'ReadLine' initialization.
+            ///     Reset the prediction component on 'ReadLine' initialization.
             /// </summary>
             internal void Reset()
             {
@@ -304,19 +288,17 @@ namespace Microsoft.PowerShell
             }
 
             /// <summary>
-            /// Pause the query for predictive suggestions within the calling scope. 
-            /// Note: the calling method need to use this method with the 'using' statement/variable,
-            /// so that the suggestion feature can be properly restored.
+            ///     Pause the query for predictive suggestions within the calling scope.
+            ///     Note: the calling method need to use this method with the 'using' statement/variable,
+            ///     so that the suggestion feature can be properly restored.
             /// </summary>
             internal IDisposable PauseQuery()
             {
                 if (!IsPredictionOn)
-                {
                     // If the prediction is off, there is no need to pause the prediction query in the
                     // caller's lexical scope. So we return a non-op disposable object to avoid unneeded
                     // allocation.
                     return Disposable.NonOp;
-                }
 
                 var saved = _pauseQuery;
                 _pauseQuery = true;
@@ -325,18 +307,16 @@ namespace Microsoft.PowerShell
             }
 
             /// <summary>
-            /// Turn off the prediction feature within the calling scope.
-            /// Note: the calling method need to use this method with the 'using' statement/variable,
-            /// so that the suggestion feature can be properly restored.
+            ///     Turn off the prediction feature within the calling scope.
+            ///     Note: the calling method need to use this method with the 'using' statement/variable,
+            ///     so that the suggestion feature can be properly restored.
             /// </summary>
             internal IDisposable DisableScoped()
             {
-                if (_singleton._options.PredictionSource == PredictionSource.None)
-                {
+                if (_singleton.Options.PredictionSource == PredictionSource.None)
                     // If the prediction source is set to 'None', then the prediction feature is already
                     // disabled. So we return a non-op disposable object to avoid unneeded allocation.
                     return Disposable.NonOp;
-                }
 
                 var saved = _showPrediction;
                 _showPrediction = false;
@@ -345,7 +325,7 @@ namespace Microsoft.PowerShell
             }
 
             /// <summary>
-            /// Turn off the prediction feature globally and also clear the current prediction view.
+            ///     Turn off the prediction feature globally and also clear the current prediction view.
             /// </summary>
             internal void DisableGlobal(bool cursorAtEol)
             {
@@ -354,7 +334,7 @@ namespace Microsoft.PowerShell
             }
 
             /// <summary>
-            /// Turn on the prediction feature globally.
+            ///     Turn on the prediction feature globally.
             /// </summary>
             internal void EnableGlobal()
             {
@@ -362,14 +342,11 @@ namespace Microsoft.PowerShell
             }
 
             /// <summary>
-            /// Query for predictive suggestions.
+            ///     Query for predictive suggestions.
             /// </summary>
             internal void QueryForSuggestion(string userInput)
             {
-                if (IsPredictionOn && (_pauseQuery || ActiveView.HasPendingUpdate))
-                {
-                    return;
-                }
+                if (IsPredictionOn && (_pauseQuery || ActiveView.HasPendingUpdate)) return;
 
                 if (!IsPredictionOn || string.IsNullOrWhiteSpace(userInput) || userInput.IndexOf('\n') != -1)
                 {
@@ -381,12 +358,12 @@ namespace Microsoft.PowerShell
             }
 
             /// <summary>
-            /// Revert the list view suggestion.
-            /// Namely, clear the list view and revert the buffer to the original user input.
+            ///     Revert the list view suggestion.
+            ///     Namely, clear the list view and revert the buffer to the original user input.
             /// </summary>
             internal bool RevertSuggestion()
             {
-                bool retValue = false;
+                var retValue = false;
                 if (ActiveView is PredictionListView listView && listView.HasActiveSuggestion)
                 {
                     if (listView.SelectedItemIndex > -1 && _singleton._undoEditIndex > 0)
@@ -404,25 +381,21 @@ namespace Microsoft.PowerShell
             }
 
             /// <summary>
-            /// Get called when a command line is accepted.
+            ///     Get called when a command line is accepted.
             /// </summary>
             internal void OnCommandLineAccepted(string commandLine)
             {
                 if (ActiveView.UsePlugin && !string.IsNullOrWhiteSpace(commandLine))
-                {
                     _singleton._mockableMethods.OnCommandLineAccepted(_singleton._recentHistory.ToArray());
-                }
             }
 
             /// <summary>
-            /// Get called when the last accepted command line finished execution.
+            ///     Get called when the last accepted command line finished execution.
             /// </summary>
             internal void OnCommandLineExecuted(string commandLine, bool success)
             {
                 if (ActiveView.UsePlugin && !string.IsNullOrWhiteSpace(commandLine))
-                {
                     _singleton._mockableMethods.OnCommandLineExecuted(commandLine, success);
-                }
             }
         }
     }

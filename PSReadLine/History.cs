@@ -8,17 +8,17 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Management.Automation;
+using System.Management.Automation.Language;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
-using System.Management.Automation.Language;
 using Microsoft.PowerShell.PSReadLine;
 
 namespace Microsoft.PowerShell
 {
     /// <summary>
-    /// FNV-1a hashing algorithm: http://www.isthe.com/chongo/tech/comp/fnv/#FNV-1a
+    ///     FNV-1a hashing algorithm: http://www.isthe.com/chongo/tech/comp/fnv/#FNV-1a
     /// </summary>
     internal class FNV1a32Hash
     {
@@ -31,13 +31,13 @@ namespace Microsoft.PowerShell
             char ch;
             uint hash = FNV32_OFFSETBASIS, lowByte, highByte;
 
-            for (int i = 0; i < input.Length; i++)
+            for (var i = 0; i < input.Length; i++)
             {
                 ch = input[i];
-                lowByte = (uint)(ch & 0x00FF);
+                lowByte = (uint) (ch & 0x00FF);
                 hash = unchecked((hash ^ lowByte) * FNV32_PRIME);
 
-                highByte = (uint)(ch >> 8);
+                highByte = (uint) (ch >> 8);
                 hash = unchecked((hash ^ highByte) * FNV32_PRIME);
             }
 
@@ -47,73 +47,13 @@ namespace Microsoft.PowerShell
 
     public partial class PSConsoleReadLine
     {
-        /// <summary>
-        /// History details including the command line, source, and start and approximate execution time.
-        /// </summary>
-        [DebuggerDisplay("{" + nameof(CommandLine) + "}")]
-        public class HistoryItem
-        {
-            /// <summary>
-            /// The command line, or if multiple lines, the lines joined
-            /// with a newline.
-            /// </summary>
-            public string CommandLine { get; internal set; }
-
-            /// <summary>
-            /// The time at which the command was added to history in UTC.
-            /// </summary>
-            public DateTime StartTime { get; internal set; }
-
-            /// <summary>
-            /// The approximate elapsed time (includes time to invoke Prompt).
-            /// The value can be 0 ticks if if accessed before PSReadLine
-            /// gets a chance to set it.
-            /// </summary>
-            public TimeSpan ApproximateElapsedTime { get; internal set; }
-
-            /// <summary>
-            /// True if the command was from another running session
-            /// (as opposed to read from the history file at startup.)
-            /// </summary>
-            public bool FromOtherSession { get; internal set; }
-
-            /// <summary>
-            /// True if the command was read in from the history file at startup.
-            /// </summary>
-            public bool FromHistoryFile { get; internal set; }
-
-            internal bool _saved;
-            internal bool _sensitive;
-            internal List<EditItem> _edits;
-            internal int _undoEditIndex;
-            internal int _editGroupStart;
-        }
-
-        // History state
-        private HistoryQueue<HistoryItem> _history;
-        private HistoryQueue<string> _recentHistory;
-        private HistoryItem _previousHistoryItem;
-        private Dictionary<string, int> _hashedHistory;
-        private int _currentHistoryIndex;
-        private int _getNextHistoryIndex;
-        private int _searchHistoryCommandCount;
-        private int _recallHistoryCommandCount;
-        private int _anyHistoryCommandCount;
-        private string _searchHistoryPrefix;
-        // When cycling through history, the current line (not yet added to history)
-        // is saved here so it can be restored.
-        private readonly HistoryItem _savedCurrentLine;
-
-        private Mutex _historyFileMutex;
-        private long _historyFileLastSavedSize;
-
         private const string _forwardISearchPrompt = "fwd-i-search: ";
         private const string _backwardISearchPrompt = "bck-i-search: ";
         private const string _failedForwardISearchPrompt = "failed-fwd-i-search: ";
         private const string _failedBackwardISearchPrompt = "failed-bck-i-search: ";
 
         // Pattern used to check for sensitive inputs.
-        private static readonly Regex s_sensitivePattern = new Regex(
+        private static readonly Regex s_sensitivePattern = new(
             "password|asplaintext|token|apikey|secret",
             RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
@@ -131,6 +71,28 @@ namespace Microsoft.PowerShell
             "Unregister-SecretVault"
         };
 
+        // When cycling through history, the current line (not yet added to history)
+        // is saved here so it can be restored.
+        private readonly HistoryItem _savedCurrentLine;
+        private int _anyHistoryCommandCount;
+        private int _currentHistoryIndex;
+        private int _getNextHistoryIndex;
+        private Dictionary<string, int> _hashedHistory;
+
+        // History state
+        private HistoryQueue<HistoryItem> _history;
+        private long _historyFileLastSavedSize;
+
+        private Mutex _historyFileMutex;
+        private HistoryItem _previousHistoryItem;
+        private int _recallHistoryCommandCount;
+        private HistoryQueue<string> _recentHistory;
+        private int _searchHistoryCommandCount;
+
+        private string _searchHistoryPrefix;
+
+        private int historyErrorReportedCount;
+
         private void ClearSavedCurrentLine()
         {
             _savedCurrentLine.CommandLine = null;
@@ -142,54 +104,33 @@ namespace Microsoft.PowerShell
         private AddToHistoryOption GetAddToHistoryOption(string line)
         {
             // Whitespace only is useless, never add.
-            if (string.IsNullOrWhiteSpace(line))
-            {
-                return AddToHistoryOption.SkipAdding;
-            }
+            if (string.IsNullOrWhiteSpace(line)) return AddToHistoryOption.SkipAdding;
 
             // Under "no dupes" (which is on by default), immediately drop dupes of the previous line.
             if (Options.HistoryNoDuplicates && _history.Count > 0 &&
                 string.Equals(_history[_history.Count - 1].CommandLine, line, StringComparison.Ordinal))
-            {
                 return AddToHistoryOption.SkipAdding;
-            }
 
             if (Options.AddToHistoryHandler != null)
             {
                 if (Options.AddToHistoryHandler == PSConsoleReadLineOptions.DefaultAddToHistoryHandler)
-                {
                     // Avoid boxing if it's the default handler.
                     return GetDefaultAddToHistoryOption(line);
-                }
 
-                object value = Options.AddToHistoryHandler(line);
-                if (value is PSObject psObj)
-                {
-                    value = psObj.BaseObject;
-                }
+                var value = Options.AddToHistoryHandler(line);
+                if (value is PSObject psObj) value = psObj.BaseObject;
 
                 if (value is bool boolValue)
-                {
                     return boolValue ? AddToHistoryOption.MemoryAndFile : AddToHistoryOption.SkipAdding;
-                }
 
-                if (value is AddToHistoryOption enumValue)
-                {
-                    return enumValue;
-                }
+                if (value is AddToHistoryOption enumValue) return enumValue;
 
-                if (value is string strValue && Enum.TryParse(strValue, out enumValue))
-                {
-                    return enumValue;
-                }
+                if (value is string strValue && Enum.TryParse(strValue, out enumValue)) return enumValue;
 
                 // 'TryConvertTo' incurs exception handling when the value cannot be converted to the target type.
                 // It's expensive, especially when we need to process lots of history items from file during the
                 // initialization. So do the conversion as the last resort.
-                if (LanguagePrimitives.TryConvertTo(value, out enumValue))
-                {
-                    return enumValue;
-                }
+                if (LanguagePrimitives.TryConvertTo(value, out enumValue)) return enumValue;
             }
 
             // Add to both history queue and file by default.
@@ -215,7 +156,7 @@ namespace Microsoft.PowerShell
                     _editGroupStart = -1,
                     _saved = fromHistoryFile,
                     FromOtherSession = fromDifferentSession,
-                    FromHistoryFile = fromInitialRead,
+                    FromHistoryFile = fromInitialRead
                 };
 
                 if (!fromHistoryFile)
@@ -231,10 +172,8 @@ namespace Microsoft.PowerShell
 
                 _currentHistoryIndex = _history.Count;
 
-                if (_options.HistorySaveStyle == HistorySaveStyle.SaveIncrementally && !fromHistoryFile)
-                {
+                if (Options.HistorySaveStyle == HistorySaveStyle.SaveIncrementally && !fromHistoryFile)
                     IncrementalHistoryWrite();
-                }
             }
             else
             {
@@ -244,10 +183,8 @@ namespace Microsoft.PowerShell
             // Clear the saved line unless we used AcceptAndGetNext in which
             // case we're really still in middle of history and might want
             // to recall the saved line.
-            if (_getNextHistoryIndex == 0)
-            {
-                ClearSavedCurrentLine();
-            }
+            if (_getNextHistoryIndex == 0) ClearSavedCurrentLine();
+
             return result;
         }
 
@@ -255,12 +192,12 @@ namespace Microsoft.PowerShell
         {
             // Return a reasonably unique name - it's not too important as there will rarely
             // be any contention.
-            uint hashFromPath = FNV1a32Hash.ComputeHash(
+            var hashFromPath = FNV1a32Hash.ComputeHash(
                 RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-                    ? _options.HistorySavePath.ToLower()
-                    : _options.HistorySavePath);
+                    ? Options.HistorySavePath.ToLower()
+                    : Options.HistorySavePath);
 
-            return "PSReadLineHistoryFile_" + hashFromPath.ToString();
+            return "PSReadLineHistoryFile_" + hashFromPath;
         }
 
         private void IncrementalHistoryWrite()
@@ -268,46 +205,40 @@ namespace Microsoft.PowerShell
             var i = _currentHistoryIndex - 1;
             while (i >= 0)
             {
-                if (_history[i]._saved)
-                {
-                    break;
-                }
+                if (_history[i]._saved) break;
+
                 i -= 1;
             }
 
-            WriteHistoryRange(i + 1, _history.Count - 1, overwritten: false);
+            WriteHistoryRange(i + 1, _history.Count - 1, false);
         }
 
         private void SaveHistoryAtExit()
         {
-            WriteHistoryRange(0, _history.Count - 1, overwritten: true);
+            WriteHistoryRange(0, _history.Count - 1, true);
         }
 
-        private int historyErrorReportedCount;
         private void ReportHistoryFileError(Exception e)
         {
             if (historyErrorReportedCount == 2)
                 return;
 
             historyErrorReportedCount += 1;
-            Console.Write(_options._errorColor);
+            Console.Write(Options._errorColor);
             Console.WriteLine(PSReadLineResources.HistoryFileErrorMessage, Options.HistorySavePath, e.Message);
-            if (historyErrorReportedCount == 2)
-            {
-                Console.WriteLine(PSReadLineResources.HistoryFileErrorFinalMessage);
-            }
+            if (historyErrorReportedCount == 2) Console.WriteLine(PSReadLineResources.HistoryFileErrorFinalMessage);
+
             Console.Write("\x1b0m");
         }
 
         private bool WithHistoryFileMutexDo(int timeout, Action action)
         {
-            int retryCount = 0;
+            var retryCount = 0;
             do
             {
                 try
                 {
                     if (_historyFileMutex.WaitOne(timeout))
-                    {
                         try
                         {
                             action();
@@ -327,7 +258,6 @@ namespace Microsoft.PowerShell
                         {
                             _historyFileMutex.ReleaseMutex();
                         }
-                    }
 
                     // Consider it a failure if we timed out on the mutex.
                     return false;
@@ -352,29 +282,32 @@ namespace Microsoft.PowerShell
         {
             WithHistoryFileMutexDo(100, () =>
             {
-                bool retry = true;
+                var retry = true;
                 // Get the new content since the last sync.
-                List<string> historyLines = overwritten ? null : ReadHistoryFileIncrementally();
+                var historyLines = overwritten ? null : ReadHistoryFileIncrementally();
 
                 try
                 {
                     retry_after_creating_directory:
                     try
                     {
-                        using (var file = overwritten ? File.CreateText(Options.HistorySavePath) : File.AppendText(Options.HistorySavePath))
+                        using (var file = overwritten
+                                   ? File.CreateText(Options.HistorySavePath)
+                                   : File.AppendText(Options.HistorySavePath))
                         {
                             for (var i = start; i <= end; i++)
                             {
-                                HistoryItem item = _history[i];
+                                var item = _history[i];
                                 item._saved = true;
 
                                 // Actually, skip writing sensitive items to file.
-                                if (item._sensitive) { continue; }
+                                if (item._sensitive) continue;
 
                                 var line = item.CommandLine.Replace("\n", "`\n");
                                 file.WriteLine(line);
                             }
                         }
+
                         var fileInfo = new FileInfo(Options.HistorySavePath);
                         _historyFileLastSavedSize = fileInfo.Length;
                     }
@@ -392,20 +325,18 @@ namespace Microsoft.PowerShell
                 finally
                 {
                     if (historyLines != null)
-                    {
                         // Populate new history from other sessions to the history queue after we are done
                         // with writing the specified range to the file.
                         // We do it at this point to make sure the range of history items from 'start' to
                         // 'end' do not get changed before the writing to the file.
-                        UpdateHistoryFromFile(historyLines, fromDifferentSession: true, fromInitialRead: false);
-                    }
+                        UpdateHistoryFromFile(historyLines, true, false);
                 }
             });
         }
 
         /// <summary>
-        /// Helper method to read the incremental part of the history file.
-        /// Note: the call to this method should be guarded by the mutex that protects the history file.
+        ///     Helper method to read the incremental part of the history file.
+        ///     Note: the call to this method should be guarded by the mutex that protects the history file.
         /// </summary>
         private List<string> ReadHistoryFileIncrementally()
         {
@@ -418,10 +349,7 @@ namespace Microsoft.PowerShell
                 {
                     fs.Seek(_historyFileLastSavedSize, SeekOrigin.Begin);
 
-                    while (!sr.EndOfStream)
-                    {
-                        historyLines.Add(sr.ReadLine());
-                    }
+                    while (!sr.EndOfStream) historyLines.Add(sr.ReadLine());
                 }
 
                 _historyFileLastSavedSize = fileInfo.Length;
@@ -434,16 +362,11 @@ namespace Microsoft.PowerShell
         private bool MaybeReadHistoryFile()
         {
             if (Options.HistorySaveStyle == HistorySaveStyle.SaveIncrementally)
-            {
                 return WithHistoryFileMutexDo(1000, () =>
                 {
-                    List<string> historyLines = ReadHistoryFileIncrementally();
-                    if (historyLines != null)
-                    {
-                        UpdateHistoryFromFile(historyLines, fromDifferentSession: true, fromInitialRead: false);
-                    }
+                    var historyLines = ReadHistoryFileIncrementally();
+                    if (historyLines != null) UpdateHistoryFromFile(historyLines, true, false);
                 });
-            }
 
             // true means no errors, not that we actually read the file
             return true;
@@ -452,22 +375,20 @@ namespace Microsoft.PowerShell
         private void ReadHistoryFile()
         {
             if (File.Exists(Options.HistorySavePath))
-            {
                 WithHistoryFileMutexDo(1000, () =>
                 {
                     var historyLines = File.ReadAllLines(Options.HistorySavePath);
-                    UpdateHistoryFromFile(historyLines, fromDifferentSession: false, fromInitialRead: true);
+                    UpdateHistoryFromFile(historyLines, false, true);
                     var fileInfo = new FileInfo(Options.HistorySavePath);
                     _historyFileLastSavedSize = fileInfo.Length;
                 });
-            }
         }
 
-        void UpdateHistoryFromFile(IEnumerable<string> historyLines, bool fromDifferentSession, bool fromInitialRead)
+        private void UpdateHistoryFromFile(IEnumerable<string> historyLines, bool fromDifferentSession,
+            bool fromInitialRead)
         {
             var sb = new StringBuilder();
             foreach (var line in historyLines)
-            {
                 if (line.EndsWith("`", StringComparison.Ordinal))
                 {
                     sb.Append(line, 0, line.Length - 1);
@@ -486,12 +407,11 @@ namespace Microsoft.PowerShell
                     var editItems = new List<EditItem> {EditItemInsertString.Create(line, 0)};
                     MaybeAddToHistory(line, editItems, 1, fromDifferentSession, fromInitialRead);
                 }
-            }
         }
 
         private static bool IsOnLeftSideOfAnAssignment(Ast ast, out Ast rhs)
         {
-            bool result = false;
+            var result = false;
             rhs = null;
 
             do
@@ -505,95 +425,75 @@ namespace Microsoft.PowerShell
                 }
 
                 ast = ast.Parent;
-            }
-            while (ast.Parent is not null);
+            } while (ast.Parent is not null);
 
             return result;
         }
 
         private static bool IsSecretMgmtCommand(StringConstantExpressionAst strConst, out CommandAst command)
         {
-            bool result = false;
+            var result = false;
             command = strConst.Parent as CommandAst;
 
             if (command is not null)
-            {
                 result = ReferenceEquals(command.CommandElements[0], strConst)
-                    && s_SecretMgmtCommands.Contains(strConst.Value);
-            }
+                         && s_SecretMgmtCommands.Contains(strConst.Value);
 
             return result;
         }
 
         private static ExpressionAst GetArgumentForParameter(CommandParameterAst param)
         {
-            if (param.Argument is not null)
-            {
-                return param.Argument;
-            }
+            if (param.Argument is not null) return param.Argument;
 
-            var command = (CommandAst)param.Parent;
-            int index = 1;
+            var command = (CommandAst) param.Parent;
+            var index = 1;
             for (; index < command.CommandElements.Count; index++)
-            {
                 if (ReferenceEquals(command.CommandElements[index], param))
-                {
                     break;
-                }
-            }
 
-            int argIndex = index + 1;
+            var argIndex = index + 1;
             if (argIndex < command.CommandElements.Count
                 && command.CommandElements[argIndex] is ExpressionAst arg)
-            {
                 return arg;
-            }
 
             return null;
         }
 
         public static AddToHistoryOption GetDefaultAddToHistoryOption(string line)
         {
-            if (string.IsNullOrEmpty(line))
-            {
-                return AddToHistoryOption.SkipAdding;
-            }
+            if (string.IsNullOrEmpty(line)) return AddToHistoryOption.SkipAdding;
 
-            Match match = s_sensitivePattern.Match(line);
-            if (ReferenceEquals(match, Match.Empty))
-            {
-                return AddToHistoryOption.MemoryAndFile;
-            }
+            var match = s_sensitivePattern.Match(line);
+            if (ReferenceEquals(match, Match.Empty)) return AddToHistoryOption.MemoryAndFile;
 
             // The input contains at least one match of some sensitive patterns, so now we need to further
             // analyze the input using the ASTs to see if it should actually be considered sensitive.
-            bool isSensitive = false;
-            ParseError[] parseErrors = _singleton._parseErrors;
+            var isSensitive = false;
+            var parseErrors = _singleton._parseErrors;
 
             // We need to compare the text here, instead of simply checking whether or not '_ast' is null.
             // This is because we may need to update from history file in the middle of editing an input,
             // and in that case, the '_ast' may be not-null, but it was not parsed from 'line'.
-            Ast ast = string.Equals(_singleton._ast?.Extent.Text, line)
+            var ast = string.Equals(_singleton._ast?.Extent.Text, line)
                 ? _singleton._ast
                 : Parser.ParseInput(line, out _, out parseErrors);
 
             if (parseErrors != null && parseErrors.Length > 0)
-            {
                 // If the input has any parsing errors, we cannot reliably analyze the AST. We just consider
                 // it sensitive in this case, given that it contains matches of our sensitive pattern.
                 return AddToHistoryOption.MemoryOnly;
-            }
 
             do
             {
-                int start = match.Index;
-                int end = start + match.Length;
+                var start = match.Index;
+                var end = start + match.Length;
 
-                IEnumerable<Ast> asts = ast.FindAll(
+                var asts = ast.FindAll(
                     ast => ast.Extent.StartOffset <= start && ast.Extent.EndOffset >= end,
-                    searchNestedScriptBlocks: true);
+                    true);
 
-                Ast innerAst = asts.Last();
+                var innerAst = asts.Last();
                 switch (innerAst)
                 {
                     case VariableExpressionAst:
@@ -602,25 +502,22 @@ namespace Microsoft.PowerShell
                         // If it appears on the left-hand-side of an assignment, and the right-hand-side is
                         // not a command invocation, we consider it sensitive.
                         // e.g. `$token = Get-Secret` vs. `$token = 'token-text'` or `$token, $url = ...`
-                        isSensitive = IsOnLeftSideOfAnAssignment(innerAst, out Ast rhs)
-                            && rhs is not PipelineAst;
+                        isSensitive = IsOnLeftSideOfAnAssignment(innerAst, out var rhs)
+                                      && rhs is not PipelineAst;
 
-                        if (!isSensitive)
-                        {
-                            match = match.NextMatch();
-                        }
+                        if (!isSensitive) match = match.NextMatch();
+
                         break;
 
                     case StringConstantExpressionAst strConst:
                         // If it's not a command name, or it's not one of the secret management commands that
                         // we can ignore, we consider it sensitive.
-                        isSensitive = !IsSecretMgmtCommand(strConst, out CommandAst command);
+                        isSensitive = !IsSecretMgmtCommand(strConst, out var command);
 
                         if (!isSensitive)
-                        {
                             // We can safely skip the whole command text.
                             match = s_sensitivePattern.Match(line, command.Extent.EndOffset);
-                        }
+
                         break;
 
                     case CommandParameterAst param:
@@ -631,46 +528,38 @@ namespace Microsoft.PowerShell
                             break;
                         }
 
-                        ExpressionAst arg = GetArgumentForParameter(param);
+                        var arg = GetArgumentForParameter(param);
                         if (arg is null)
-                        {
                             // If no argument is found following the parameter, then it could be a switching parameter
                             // such as '-UseDefaultPassword' or '-SaveToken', which we assume will not expose sensitive information.
                             match = match.NextMatch();
-                        }
                         else if (arg is VariableExpressionAst)
-                        {
                             // Argument is a variable. It's fine to use a variable for a senstive parameter.
                             // e.g. `Invoke-WebRequest -Token $token`
                             match = s_sensitivePattern.Match(line, arg.Extent.EndOffset);
-                        }
                         else if (arg is ParenExpressionAst paren
-                            && paren.Pipeline is PipelineAst pipeline
-                            && pipeline.PipelineElements[0] is not CommandExpressionAst)
-                        {
+                                 && paren.Pipeline is PipelineAst pipeline
+                                 && pipeline.PipelineElements[0] is not CommandExpressionAst)
                             // Argument is a command invocation, such as `Invoke-WebRequest -Token (Get-Secret)`.
                             match = match.NextMatch();
-                        }
                         else
-                        {
                             // We consider all other arguments sensitive.
                             isSensitive = true;
-                        }
+
                         break;
 
                     default:
                         isSensitive = true;
                         break;
                 }
-            }
-            while (!isSensitive && !ReferenceEquals(match, Match.Empty));
+            } while (!isSensitive && !ReferenceEquals(match, Match.Empty));
 
             return isSensitive ? AddToHistoryOption.MemoryOnly : AddToHistoryOption.MemoryAndFile;
         }
 
         /// <summary>
-        /// Add a command to the history - typically used to restore
-        /// history from a previous session.
+        ///     Add a command to the history - typically used to restore
+        ///     history from a previous session.
         /// </summary>
         public static void AddToHistory(string command)
         {
@@ -680,7 +569,7 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Clears history in PSReadLine.  This does not affect PowerShell history.
+        ///     Clears history in PSReadLine.  This does not affect PowerShell history.
         /// </summary>
         public static void ClearHistory(ConsoleKeyInfo? key = null, object arg = null)
         {
@@ -690,14 +579,12 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Return a collection of history items.
+        ///     Return a collection of history items.
         /// </summary>
         public static HistoryItem[] GetHistoryItems()
         {
             return _singleton._history.ToArray();
         }
-
-        enum HistoryMoveCursor { ToEnd, ToBeginning, DontMove }
 
         private void UpdateFromHistory(HistoryMoveCursor moveCursor)
         {
@@ -716,6 +603,7 @@ namespace Microsoft.PowerShell
                 _undoEditIndex = _history[_currentHistoryIndex]._undoEditIndex;
                 _editGroupStart = _history[_currentHistoryIndex]._editGroupStart;
             }
+
             _buffer.Clear();
             _buffer.Append(line);
 
@@ -728,10 +616,8 @@ namespace Microsoft.PowerShell
                     _current = 0;
                     break;
                 default:
-                    if (_current > _buffer.Length)
-                    {
-                        _current = Math.Max(0, _buffer.Length + ViEndOfLineFactor);
-                    }
+                    if (_current > _buffer.Length) _current = Math.Max(0, _buffer.Length + ViEndOfLineFactor);
+
                     break;
             }
 
@@ -764,25 +650,17 @@ namespace Microsoft.PowerShell
             }
 
             if (Options.HistoryNoDuplicates && _recallHistoryCommandCount == 0)
-            {
                 _hashedHistory = new Dictionary<string, int>();
-            }
 
-            int count = Math.Abs(direction);
+            var count = Math.Abs(direction);
             direction = direction < 0 ? -1 : +1;
-            int newHistoryIndex = _currentHistoryIndex;
+            var newHistoryIndex = _currentHistoryIndex;
             while (count > 0)
             {
                 newHistoryIndex += direction;
-                if (newHistoryIndex < 0 || newHistoryIndex >= _history.Count)
-                {
-                    break;
-                }
+                if (newHistoryIndex < 0 || newHistoryIndex >= _history.Count) break;
 
-                if (_history[newHistoryIndex].FromOtherSession)
-                {
-                    continue;
-                }
+                if (_history[newHistoryIndex].FromOtherSession) continue;
 
                 if (Options.HistoryNoDuplicates)
                 {
@@ -802,11 +680,12 @@ namespace Microsoft.PowerShell
                     --count;
                 }
             }
+
             _recallHistoryCommandCount += 1;
             if (newHistoryIndex >= 0 && newHistoryIndex <= _history.Count)
             {
                 _currentHistoryIndex = newHistoryIndex;
-                var moveCursor = InViCommandMode() && !_options.HistorySearchCursorMovesToEnd
+                var moveCursor = InViCommandMode() && !Options.HistorySearchCursorMovesToEnd
                     ? HistoryMoveCursor.ToBeginning
                     : HistoryMoveCursor.ToEnd;
                 UpdateFromHistory(moveCursor);
@@ -814,35 +693,26 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Replace the current input with the 'previous' item from PSReadLine history.
+        ///     Replace the current input with the 'previous' item from PSReadLine history.
         /// </summary>
         public static void PreviousHistory(ConsoleKeyInfo? key = null, object arg = null)
         {
             TryGetArgAsInt(arg, out var numericArg, -1);
-            if (numericArg > 0)
-            {
-                numericArg = -numericArg;
-            }
+            if (numericArg > 0) numericArg = -numericArg;
 
-            if (UpdateListSelection(numericArg))
-            {
-                return;
-            }
+            if (UpdateListSelection(numericArg)) return;
 
             _singleton.SaveCurrentLine();
             _singleton.HistoryRecall(numericArg);
         }
 
         /// <summary>
-        /// Replace the current input with the 'next' item from PSReadLine history.
+        ///     Replace the current input with the 'next' item from PSReadLine history.
         /// </summary>
         public static void NextHistory(ConsoleKeyInfo? key = null, object arg = null)
         {
             TryGetArgAsInt(arg, out var numericArg, +1);
-            if (UpdateListSelection(numericArg))
-            {
-                return;
-            }
+            if (UpdateListSelection(numericArg)) return;
 
             _singleton.SaveCurrentLine();
             _singleton.HistoryRecall(numericArg);
@@ -861,28 +731,20 @@ namespace Microsoft.PowerShell
                 _searchHistoryPrefix = _buffer.ToString(0, _current);
                 _emphasisStart = 0;
                 _emphasisLength = _current;
-                if (Options.HistoryNoDuplicates)
-                {
-                    _hashedHistory = new Dictionary<string, int>();
-                }
+                if (Options.HistoryNoDuplicates) _hashedHistory = new Dictionary<string, int>();
             }
+
             _searchHistoryCommandCount += 1;
 
-            int count = Math.Abs(direction);
+            var count = Math.Abs(direction);
             direction = direction < 0 ? -1 : +1;
-            int newHistoryIndex = _currentHistoryIndex;
+            var newHistoryIndex = _currentHistoryIndex;
             while (count > 0)
             {
                 newHistoryIndex += direction;
-                if (newHistoryIndex < 0 || newHistoryIndex >= _history.Count)
-                {
-                    break;
-                }
+                if (newHistoryIndex < 0 || newHistoryIndex >= _history.Count) break;
 
-                if (_history[newHistoryIndex].FromOtherSession && _searchHistoryPrefix.Length == 0)
-                {
-                    continue;
-                }
+                if (_history[newHistoryIndex].FromOtherSession && _searchHistoryPrefix.Length == 0) continue;
 
                 var line = _history[newHistoryIndex].CommandLine;
                 if (line.StartsWith(_searchHistoryPrefix, Options.HistoryStringComparison))
@@ -922,7 +784,7 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Move to the first item in the history.
+        ///     Move to the first item in the history.
         /// </summary>
         public static void BeginningOfHistory(ConsoleKeyInfo? key = null, object arg = null)
         {
@@ -932,7 +794,7 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Move to the last item (the current input) in the history.
+        ///     Move to the last item (the current input) in the history.
         /// </summary>
         public static void EndOfHistory(ConsoleKeyInfo? key = null, object arg = null)
         {
@@ -947,37 +809,28 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Replace the current input with the 'previous' item from PSReadLine history
-        /// that matches the characters between the start and the input and the cursor.
+        ///     Replace the current input with the 'previous' item from PSReadLine history
+        ///     that matches the characters between the start and the input and the cursor.
         /// </summary>
         public static void HistorySearchBackward(ConsoleKeyInfo? key = null, object arg = null)
         {
             TryGetArgAsInt(arg, out var numericArg, -1);
-            if (numericArg > 0)
-            {
-                numericArg = -numericArg;
-            }
+            if (numericArg > 0) numericArg = -numericArg;
 
-            if (UpdateListSelection(numericArg))
-            {
-                return;
-            }
+            if (UpdateListSelection(numericArg)) return;
 
             _singleton.SaveCurrentLine();
             _singleton.HistorySearch(numericArg);
         }
 
         /// <summary>
-        /// Replace the current input with the 'next' item from PSReadLine history
-        /// that matches the characters between the start and the input and the cursor.
+        ///     Replace the current input with the 'next' item from PSReadLine history
+        ///     that matches the characters between the start and the input and the cursor.
         /// </summary>
         public static void HistorySearchForward(ConsoleKeyInfo? key = null, object arg = null)
         {
             TryGetArgAsInt(arg, out var numericArg, +1);
-            if (UpdateListSelection(numericArg))
-            {
-                return;
-            }
+            if (UpdateListSelection(numericArg)) return;
 
             _singleton.SaveCurrentLine();
             _singleton.HistorySearch(numericArg);
@@ -995,14 +848,10 @@ namespace Microsoft.PowerShell
                     if (Options.HistoryNoDuplicates)
                     {
                         if (!_hashedHistory.TryGetValue(line, out var index))
-                        {
                             _hashedHistory.Add(line, searchFromPoint);
-                        }
-                        else if (index != searchFromPoint)
-                        {
-                            continue;
-                        }
+                        else if (index != searchFromPoint) continue;
                     }
+
                     _statusLinePrompt = direction > 0 ? _forwardISearchPrompt : _backwardISearchPrompt;
                     _current = startIndex;
                     _emphasisStart = startIndex;
@@ -1035,10 +884,7 @@ namespace Microsoft.PowerShell
             var searchPositions = new Stack<int>();
             searchPositions.Push(_currentHistoryIndex);
 
-            if (Options.HistoryNoDuplicates)
-            {
-                _hashedHistory = new Dictionary<string, int>();
-            }
+            if (Options.HistoryNoDuplicates) _hashedHistory = new Dictionary<string, int>();
 
             var toMatch = new StringBuilder(64);
             while (true)
@@ -1055,8 +901,8 @@ namespace Microsoft.PowerShell
                     UpdateHistoryDuringInteractiveSearch(toMatch.ToString(), +1, ref searchFromPoint);
                 }
                 else if (function == BackwardDeleteChar
-                    || key == Keys.Backspace
-                    || key == Keys.CtrlH)
+                         || key == Keys.Backspace
+                         || key == Keys.CtrlH)
                 {
                     if (toMatch.Length > 0)
                     {
@@ -1070,18 +916,12 @@ namespace Microsoft.PowerShell
                         UpdateFromHistory(moveCursor);
 
                         if (_hashedHistory != null)
-                        {
                             // Remove any entries with index < searchFromPoint because
                             // we are starting the search from this new index - we always
                             // want to find the latest entry that matches the search string
                             foreach (var pair in _hashedHistory.ToArray())
-                            {
                                 if (pair.Value < searchFromPoint)
-                                {
                                     _hashedHistory.Remove(pair.Key);
-                                }
-                            }
-                        }
 
                         // Prompt may need to have 'failed-' removed.
                         var toMatchStr = toMatch.ToString();
@@ -1113,12 +953,13 @@ namespace Microsoft.PowerShell
                 }
                 else
                 {
-                    char toAppend = key.KeyChar;
+                    var toAppend = key.KeyChar;
                     if (char.IsControl(toAppend))
                     {
                         PrependQueuedKeys(key);
                         break;
                     }
+
                     toMatch.Append(toAppend);
                     _statusBuffer.Insert(_statusBuffer.Length - 1, toAppend);
 
@@ -1135,6 +976,7 @@ namespace Microsoft.PowerShell
                         _emphasisLength = toMatch.Length;
                         Render();
                     }
+
                     searchPositions.Push(_currentHistoryIndex);
                 }
             }
@@ -1156,11 +998,11 @@ namespace Microsoft.PowerShell
             _emphasisLength = 0;
 
             // Remove our status line, this will render
-            ClearStatusMessage(render: true);
+            ClearStatusMessage(true);
         }
 
         /// <summary>
-        /// Perform an incremental forward search through history.
+        ///     Perform an incremental forward search through history.
         /// </summary>
         public static void ForwardSearchHistory(ConsoleKeyInfo? key = null, object arg = null)
         {
@@ -1168,11 +1010,61 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Perform an incremental backward search through history.
+        ///     Perform an incremental backward search through history.
         /// </summary>
         public static void ReverseSearchHistory(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.InteractiveHistorySearch(-1);
+        }
+
+        /// <summary>
+        ///     History details including the command line, source, and start and approximate execution time.
+        /// </summary>
+        [DebuggerDisplay("{" + nameof(CommandLine) + "}")]
+        public class HistoryItem
+        {
+            internal int _editGroupStart;
+            internal List<EditItem> _edits;
+
+            internal bool _saved;
+            internal bool _sensitive;
+            internal int _undoEditIndex;
+
+            /// <summary>
+            ///     The command line, or if multiple lines, the lines joined
+            ///     with a newline.
+            /// </summary>
+            public string CommandLine { get; internal set; }
+
+            /// <summary>
+            ///     The time at which the command was added to history in UTC.
+            /// </summary>
+            public DateTime StartTime { get; internal set; }
+
+            /// <summary>
+            ///     The approximate elapsed time (includes time to invoke Prompt).
+            ///     The value can be 0 ticks if if accessed before PSReadLine
+            ///     gets a chance to set it.
+            /// </summary>
+            public TimeSpan ApproximateElapsedTime { get; internal set; }
+
+            /// <summary>
+            ///     True if the command was from another running session
+            ///     (as opposed to read from the history file at startup.)
+            /// </summary>
+            public bool FromOtherSession { get; internal set; }
+
+            /// <summary>
+            ///     True if the command was read in from the history file at startup.
+            /// </summary>
+            public bool FromHistoryFile { get; internal set; }
+        }
+
+        private enum HistoryMoveCursor
+        {
+            ToEnd,
+            ToBeginning,
+            DontMove
         }
     }
 }

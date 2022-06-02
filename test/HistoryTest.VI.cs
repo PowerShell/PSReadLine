@@ -67,8 +67,8 @@ namespace Test
             Test("dosomething", Keys(
                 _.Escape, _.Slash, "some", _.Enter, CheckThat(() => AssertLineIs("dosomething")),
                 _.Question, "yah", _.Enter, CheckThat(() => AssertLineIs("yah way")),
-                _.Slash, "some", _.Enter, 'h'   // need 'h' here to avoid bogus failure
-                ));
+                _.Slash, "some", _.Enter, 'h' // need 'h' here to avoid bogus failure
+            ));
 
             SetHistory("someway", "noway", "yahway");
 
@@ -173,16 +173,16 @@ namespace Test
             TestSetup(KeyMode.Vi);
             // Clear history in case the above added some history (but it shouldn't)
             SetHistory();
-            Test( " ", Keys( ' ', _.UpArrow, _.DownArrow ) );
+            Test(" ", Keys(' ', _.UpArrow, _.DownArrow));
 
-            SetHistory( "dosomething", "this way", "that way", "anyway", "no way", "yah way" );
-            Test( "anyway", Keys(
-                _.Escape, _.Slash, "way", _.Enter, CheckThat( () => AssertLineIs( "yah way" ) ),
-                "nn", CheckThat( () => AssertLineIs( "anyway" ) ),
-                "N", CheckThat( () => AssertLineIs( "no way" ) ),
-                "N", CheckThat( () => AssertLineIs( "yah way" ) ),
+            SetHistory("dosomething", "this way", "that way", "anyway", "no way", "yah way");
+            Test("anyway", Keys(
+                _.Escape, _.Slash, "way", _.Enter, CheckThat(() => AssertLineIs("yah way")),
+                "nn", CheckThat(() => AssertLineIs("anyway")),
+                "N", CheckThat(() => AssertLineIs("no way")),
+                "N", CheckThat(() => AssertLineIs("yah way")),
                 "nn"
-                ) );
+            ));
 
             Test("anyway", Keys(
                 _.Escape, _.Slash, "way", _.Tab, CheckThat(() => AssertLineIs("anyway")),
@@ -190,7 +190,7 @@ namespace Test
                 "N", CheckThat(() => AssertLineIs("anyway")),
                 "N", CheckThat(() => AssertLineIs("no way")),
                 "n"
-                ));
+            ));
         }
 
         [SkippableFact]
@@ -200,7 +200,7 @@ namespace Test
 
             // Clear history in case the above added some history (but it shouldn't)
             SetHistory();
-            Test( " ", Keys( ' ', _.UpArrow, _.DownArrow ) );
+            Test(" ", Keys(' ', _.UpArrow, _.DownArrow));
 
             // Mix history search, repeat, and recall.
             // Mix different history commands to verify that the saved current line and
@@ -229,13 +229,13 @@ namespace Test
         public void ViMovementAfterHistory()
         {
             TestSetup(KeyMode.Vi);
-            PSConsoleReadLine.SetOptions(new SetPSReadLineOption { HistorySearchCursorMovesToEnd = true });
+            PSConsoleReadLine.SetOptions(new SetPSReadLineOption {HistorySearchCursorMovesToEnd = true});
 
             SetHistory("abc def ghi", "012 456 890");
 
             Test("012 456 890", Keys(
                 _.Escape, "k", CheckThat(() => AssertCursorLeftIs(10))
-                ));
+            ));
         }
 
         [SkippableFact]
@@ -248,7 +248,7 @@ namespace Test
             Test("xyz", Keys(
                 _.Escape, "kj", CheckThat(() => AssertLineIs("")),
                 "clxyz", _.Escape
-                ));
+            ));
         }
 
         [SkippableFact]
@@ -261,27 +261,26 @@ namespace Test
             Test("xyz", Keys(
                 _.Escape, "kj", CheckThat(() => AssertLineIs("")),
                 "axyz", _.Escape
-                ));
+            ));
 
             Test("xyz", Keys(
                 _.Escape, "kj", CheckThat(() => AssertLineIs("")),
                 "Axyz", _.Escape
-                ));
+            ));
         }
 
         [SkippableFact]
         public void ViHistoryCursorPosition()
         {
             TestSetup(KeyMode.Vi);
-            PSConsoleReadLine.SetOptions(new SetPSReadLineOption { HistorySearchCursorMovesToEnd = false });
+            PSConsoleReadLine.SetOptions(new SetPSReadLineOption {HistorySearchCursorMovesToEnd = false});
 
             SetHistory("abc def ghi", "012 456 890");
 
             Test("012 456 890", Keys(
                 _.Escape, "k", CheckThat(() => AssertLineIs("012 456 890")),
                 CheckThat(() => AssertCursorLeftIs(0))
-                ));
-
+            ));
         }
     }
 }

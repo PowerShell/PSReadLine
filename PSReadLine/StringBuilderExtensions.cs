@@ -1,5 +1,4 @@
-﻿using System;
-using System.Text;
+﻿using System.Text;
 
 namespace Microsoft.PowerShell
 {
@@ -10,6 +9,7 @@ namespace Microsoft.PowerShell
             Offset = offset;
             Count = count;
         }
+
         internal int Offset { get; }
         internal int Count { get; }
     }
@@ -17,9 +17,9 @@ namespace Microsoft.PowerShell
     internal static class StringBuilderLinewiseExtensions
     {
         /// <summary>
-        /// Determines the offset and the length of the fragment
-        /// in the specified buffer that corresponds to a
-        /// given number of lines starting from the specified line index
+        ///     Determines the offset and the length of the fragment
+        ///     in the specified buffer that corresponds to a
+        ///     given number of lines starting from the specified line index
         /// </summary>
         /// <param name="buffer" />
         /// <param name="lineIndex" />
@@ -48,7 +48,6 @@ namespace Microsoft.PowerShell
             }
 
             for (var position = 0; position < length; position++)
-            {
                 if (buffer[position] == '\n')
                 {
                     currentLine++;
@@ -65,12 +64,11 @@ namespace Microsoft.PowerShell
                         break;
                     }
                 }
-            }
 
             return new Range(
                 startPosition,
                 endPosition - startPosition + 1
-                );
+            );
         }
     }
 

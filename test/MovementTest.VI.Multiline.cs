@@ -115,7 +115,7 @@ namespace Test
         public void ViMoveToLastLogicalLine_MustDing_ForEmptyLine()
         {
             const string buffer = "";
-            var keys = new object[] {"", _.Escape, 'G',};
+            var keys = new object[] {"", _.Escape, 'G'};
             ViJumpMustDing(buffer, keys);
         }
 
@@ -123,7 +123,7 @@ namespace Test
         public void ViMoveToFirstLogicalLine_MustDing_ForEmptyLine()
         {
             const string buffer = "";
-            var keys = new object[] {"", _.Escape, "gg",};
+            var keys = new object[] {"", _.Escape, "gg"};
             ViJumpMustDing(buffer, keys);
         }
 
@@ -131,7 +131,7 @@ namespace Test
         public void ViMoveToLastLogicalLine_MustDing_ForSingleLine()
         {
             const string buffer = "Ding";
-            var keys = new object[] {"Ding", _.Escape, 'G',};
+            var keys = new object[] {"Ding", _.Escape, 'G'};
             ViJumpMustDing(buffer, keys);
         }
 
@@ -139,7 +139,7 @@ namespace Test
         public void ViMoveToFirstLogicalLine_MustDing_ForSingleLine()
         {
             const string buffer = "Ding";
-            var keys = new object[] {"Ding", _.Escape, "gg",};
+            var keys = new object[] {"Ding", _.Escape, "gg"};
             ViJumpMustDing(buffer, keys);
         }
 
@@ -153,13 +153,14 @@ namespace Test
             const string buffer = "\"\n  line\"";
 
             Test(buffer, Keys(
-                _.DQuote, _.Enter, "  line", _.DQuote, _.Escape, CheckThat(() => AssertCursorLeftIs(continuationPrefixLength + 6)),
+                _.DQuote, _.Enter, "  line", _.DQuote, _.Escape,
+                CheckThat(() => AssertCursorLeftIs(continuationPrefixLength + 6)),
                 _.Underbar, CheckThat(() => AssertCursorLeftTopIs(continuationPrefixLength + 2, 1)),
                 _.Dollar, CheckThat(() => AssertCursorLeftTopIs(continuationPrefixLength + 6, 1)),
                 // also works forward
                 '0', CheckThat(() => AssertCursorLeftTopIs(continuationPrefixLength, 1)),
                 _.Underbar, CheckThat(() => AssertCursorLeftTopIs(continuationPrefixLength + 2, 1))
-                ));
+            ));
         }
 
         [SkippableFact]
@@ -185,7 +186,7 @@ namespace Test
 
             Test("", Keys(
                 _.Escape, _.Underbar
-                ));
+            ));
         }
 
         [SkippableFact]

@@ -22,13 +22,13 @@ namespace Test
             AssertCursorTopIs(3);
             Test("echo foo", Keys(
                 "echo foo"
-                ), resetCursor: false);
+            ), false);
             AssertCursorTopIs(4);
             Test("echo zed", Keys(
                 "echo zed",
                 _.Ctrl_l,
                 CheckThat(() => AssertCursorTopIs(0))
-                ), resetCursor: false);
+            ), resetCursor: false);
         }
 
         [SkippableFact]
@@ -59,7 +59,7 @@ namespace Test
                         TokenClassification.None, ")")),
                 _.Ctrl_c,
                 InputAcceptedNow
-                ));
+            ));
 
             // This tests for priority to highlight a command regardless of token kind and nested tokens potential to bleed the parent token color to the next token
             Test("", Keys(
@@ -76,7 +76,7 @@ namespace Test
                         TokenClassification.Parameter, "-def")),
                 _.Ctrl_c,
                 InputAcceptedNow
-                ));
+            ));
 
             // Additional test for priority to highlight a command regardless of token kind and nested tokens potential to bleed the parent token color to the next token
             Test("", Keys(
@@ -92,7 +92,7 @@ namespace Test
                         TokenClassification.Parameter, "-def")),
                 _.Ctrl_c,
                 InputAcceptedNow
-                ));
+            ));
 
             // test that rendering doesn't cause an exception in a potential missing "EOS" token case.
             // this case could be a moving target, if the PowerShell parser is changed such as to eliminate the case.
@@ -106,7 +106,7 @@ namespace Test
                         TokenClassification.None, "\\name | def")),
                 _.Ctrl_c,
                 InputAcceptedNow
-                ));
+            ));
 
             Test("", Keys(
                 "process out put",
@@ -116,7 +116,7 @@ namespace Test
                         TokenClassification.None, " out put")),
                 _.Ctrl_c,
                 InputAcceptedNow
-                ));
+            ));
 
             Test("", Keys(
                 "\"$([int];\"_$(1+2)\")\"",
@@ -138,7 +138,7 @@ namespace Test
                         TokenClassification.String, "\"")),
                 _.Ctrl_c,
                 InputAcceptedNow
-                ));
+            ));
 
             Test("", Keys(
                 "\"a $b c $d e\"",
@@ -151,7 +151,7 @@ namespace Test
                         TokenClassification.String, " e\"")),
                 _.Ctrl_c,
                 InputAcceptedNow
-                ));
+            ));
 
             Test("{}", Keys(
                 '{', _.Enter,
@@ -159,15 +159,15 @@ namespace Test
                 '}'));
 
             _console.Clear();
-            string promptLine = "PS> ";
+            var promptLine = "PS> ";
             Test("\"\"", Keys(
                 '"',
                 CheckThat(() => AssertScreenIs(1,
-                                   TokenClassification.None,
-                                   promptLine.Substring(0, promptLine.IndexOf('>')),
-                                   Tuple.Create(ConsoleColor.Red, ConsoleColor.DarkRed), "> ",
-                                   TokenClassification.String, "\"")),
-                '"'), prompt: promptLine);
+                    TokenClassification.None,
+                    promptLine.Substring(0, promptLine.IndexOf('>')),
+                    Tuple.Create(ConsoleColor.Red, ConsoleColor.DarkRed), "> ",
+                    TokenClassification.String, "\"")),
+                '"'), promptLine);
         }
 
         [SkippableFact]
@@ -185,13 +185,13 @@ namespace Test
             var continationPrefixLength = PSConsoleReadLineOptions.DefaultContinuationPrompt.Length;
             Test("{\n\nd\n}", Keys(
                 '{',
-                _.Enter,      CheckThat(() => AssertCursorTopIs(1)),
+                _.Enter, CheckThat(() => AssertCursorTopIs(1)),
                 'd',
-                _.Enter,      CheckThat(() => AssertCursorTopIs(2)),
+                _.Enter, CheckThat(() => AssertCursorTopIs(2)),
                 _.Home,
                 _.RightArrow, CheckThat(() => AssertCursorLeftTopIs(1, 0)),
-                _.Enter,      CheckThat(() => AssertCursorLeftTopIs(continationPrefixLength, 1)),
-                _.End,        CheckThat(() => AssertCursorLeftTopIs(continationPrefixLength, 3)),
+                _.Enter, CheckThat(() => AssertCursorLeftTopIs(continationPrefixLength, 1)),
+                _.End, CheckThat(() => AssertCursorLeftTopIs(continationPrefixLength, 3)),
                 '}'));
 
             // Make sure <ENTER> when input successfully parses accepts the input regardless
@@ -212,49 +212,49 @@ namespace Test
             var defaultContinuationPromptColors = Tuple.Create(_console.ForegroundColor, _console.BackgroundColor);
 
             Test("@'\n\n hello\n\n world\n'@",
-                 Keys(
-                    "@'",     _.Enter, _.Enter,
+                Keys(
+                    "@'", _.Enter, _.Enter,
                     " hello", _.Enter, _.Enter,
                     " world", _.Enter, "'@",
-                        CheckThat(() => AssertScreenIs(6,
-                            TokenClassification.String, "@'",
-                            NextLine,
-                            defaultContinuationPromptColors, defaultContinuationPrompt,
-                            NextLine,
-                            defaultContinuationPromptColors, defaultContinuationPrompt,
-                            TokenClassification.String, " hello",
-                            NextLine,
-                            defaultContinuationPromptColors, defaultContinuationPrompt,
-                            NextLine,
-                            defaultContinuationPromptColors, defaultContinuationPrompt,
-                            TokenClassification.String, " world",
-                            NextLine,
-                            defaultContinuationPromptColors, defaultContinuationPrompt,
-                            TokenClassification.String, "'@"))
-                 ));
+                    CheckThat(() => AssertScreenIs(6,
+                        TokenClassification.String, "@'",
+                        NextLine,
+                        defaultContinuationPromptColors, defaultContinuationPrompt,
+                        NextLine,
+                        defaultContinuationPromptColors, defaultContinuationPrompt,
+                        TokenClassification.String, " hello",
+                        NextLine,
+                        defaultContinuationPromptColors, defaultContinuationPrompt,
+                        NextLine,
+                        defaultContinuationPromptColors, defaultContinuationPrompt,
+                        TokenClassification.String, " world",
+                        NextLine,
+                        defaultContinuationPromptColors, defaultContinuationPrompt,
+                        TokenClassification.String, "'@"))
+                ));
 
             // Set the continuation prompt to be an empty string.
-            var setOption = new SetPSReadLineOption { ContinuationPrompt = string.Empty };
+            var setOption = new SetPSReadLineOption {ContinuationPrompt = string.Empty};
             PSConsoleReadLine.SetOptions(setOption);
 
             try
             {
                 Test("@'\n\n hello\n\n world\n'@",
-                     Keys(
+                    Keys(
                         "@'", _.Enter, _.Enter,
                         " hello", _.Enter, _.Enter,
                         " world", _.Enter, "'@",
-                            CheckThat(() => AssertScreenIs(6,
-                                TokenClassification.String, "@'",
-                                NextLine,
-                                NextLine,
-                                TokenClassification.String, " hello",
-                                NextLine,
-                                NextLine,
-                                TokenClassification.String, " world",
-                                NextLine,
-                                TokenClassification.String, "'@"))
-                 ));
+                        CheckThat(() => AssertScreenIs(6,
+                            TokenClassification.String, "@'",
+                            NextLine,
+                            NextLine,
+                            TokenClassification.String, " hello",
+                            NextLine,
+                            NextLine,
+                            TokenClassification.String, " world",
+                            NextLine,
+                            TokenClassification.String, "'@"))
+                    ));
             }
             finally
             {
@@ -289,6 +289,7 @@ namespace Test
                 ps.AddScript(@"function prompt {}");
                 ps.Invoke();
             }
+
             Test("dir", Keys(
                 "dir", _.Ctrl_z,
                 CheckThat(() => AssertScreenIs(1,
@@ -301,6 +302,7 @@ namespace Test
                 ps.AddScript(@"function prompt { 'PSREADLINE> ' }");
                 ps.Invoke();
             }
+
             Test("dir", Keys(
                 "dir", _.Ctrl_z,
                 CheckThat(() => AssertScreenIs(1,
@@ -310,7 +312,8 @@ namespace Test
             // Tricky prompt - writes to console directly with colors, uses ^H trick to eliminate trailng space.
             using (var ps = PowerShell.Create(RunspaceMode.CurrentRunspace))
             {
-                ps.AddCommand("New-Variable").AddParameter("Name", "__console").AddParameter("Value", _console).Invoke();
+                ps.AddCommand("New-Variable").AddParameter("Name", "__console").AddParameter("Value", _console)
+                    .Invoke();
                 ps.Commands.Clear();
                 ps.AddScript(@"
 function prompt {
@@ -325,6 +328,7 @@ function prompt {
 }");
                 ps.Invoke();
             }
+
             Test("dir", Keys(
                 "dir", _.Ctrl_z,
                 CheckThat(() => AssertScreenIs(1,

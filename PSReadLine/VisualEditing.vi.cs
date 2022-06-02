@@ -12,11 +12,11 @@ namespace Microsoft.PowerShell
     public partial class PSConsoleReadLine
     {
         /// <summary>
-        /// Edit the command line in a text editor specified by $env:EDITOR or $env:VISUAL.
+        ///     Edit the command line in a text editor specified by $env:EDITOR or $env:VISUAL.
         /// </summary>
         public static void ViEditVisually(ConsoleKeyInfo? key = null, object arg = null)
         {
-            string editor = GetPreferredEditor();
+            var editor = GetPreferredEditor();
             if (string.IsNullOrWhiteSpace(editor))
             {
                 Ding();
@@ -24,14 +24,14 @@ namespace Microsoft.PowerShell
             }
 
             if (!(_singleton._engineIntrinsics?.InvokeCommand.GetCommand(editor, CommandTypes.Application) is
-                ApplicationInfo editorCommand))
+                    ApplicationInfo editorCommand))
             {
                 Ding();
                 return;
             }
 
             var tempPowerShellFile = GetTemporaryPowerShellFile();
-            using (FileStream fs = File.OpenWrite(tempPowerShellFile))
+            using (var fs = File.OpenWrite(tempPowerShellFile))
             {
                 using (TextWriter tw = new StreamWriter(fs))
                 {
@@ -78,18 +78,18 @@ namespace Microsoft.PowerShell
             {
                 editedCommand = tr.ReadToEnd();
             }
+
             File.Delete(tempFileName);
 
             if (!string.IsNullOrWhiteSpace(editedCommand))
             {
                 while (editedCommand.Length > 0 && char.IsWhiteSpace(editedCommand[editedCommand.Length - 1]))
-                {
                     editedCommand = editedCommand.Substring(0, editedCommand.Length - 1);
-                }
+
                 editedCommand = editedCommand.Replace(Environment.NewLine, "\n");
                 Replace(0, _buffer.Length, editedCommand);
                 _current = _buffer.Length;
-                if (_options.EditMode == EditMode.Vi) _current -= 1;
+                if (Options.EditMode == EditMode.Vi) _current -= 1;
                 Render();
             }
         }

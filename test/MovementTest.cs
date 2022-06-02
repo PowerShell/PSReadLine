@@ -10,7 +10,7 @@ namespace Test
         {
             TestSetup(KeyMode.Cmd);
 
-            Test("", Keys( _.End, CheckThat(() => AssertCursorLeftIs(0)) ));
+            Test("", Keys(_.End, CheckThat(() => AssertCursorLeftIs(0))));
 
             Test(_emptyLine, Keys(
                 _emptyLine,
@@ -18,7 +18,7 @@ namespace Test
                 CheckThat(() => AssertCursorLeftIs(0)),
                 _.End,
                 CheckThat(() => AssertCursorLeftTopIs(0, 1))
-                ));
+            ));
 
             var buffer = new string(' ', _console.BufferWidth + 5);
             Test(buffer, Keys(
@@ -27,7 +27,7 @@ namespace Test
                 CheckThat(() => AssertCursorLeftIs(0)),
                 _.End,
                 CheckThat(() => AssertCursorLeftTopIs(5, 1))
-                ));
+            ));
         }
 
         [SkippableFact]
@@ -35,25 +35,29 @@ namespace Test
         {
             TestSetup(KeyMode.Cmd);
 
-            int continutationPromptLength = PSConsoleReadLineOptions.DefaultContinuationPrompt.Length;
-            string line_0 = "4444";
-            string line_1 = "33";
-            string line_2 = "666666";
-            string line_3 = "777";
+            var continutationPromptLength = PSConsoleReadLineOptions.DefaultContinuationPrompt.Length;
+            var line_0 = "4444";
+            var line_1 = "33";
+            var line_2 = "666666";
+            var line_3 = "777";
 
-            int wrappedLength_1 = 9;
-            int wrappedLength_2 = 2;
-            string wrappedLine_1 = new string('8', _console.BufferWidth - continutationPromptLength + wrappedLength_1); // Take 2 physical lines
-            string wrappedLine_2 = new string('6', _console.BufferWidth - continutationPromptLength + wrappedLength_2); // Take 2 physical lines
+            var wrappedLength_1 = 9;
+            var wrappedLength_2 = 2;
+            var wrappedLine_1 =
+                new string('8',
+                    _console.BufferWidth - continutationPromptLength + wrappedLength_1); // Take 2 physical lines
+            var wrappedLine_2 =
+                new string('6',
+                    _console.BufferWidth - continutationPromptLength + wrappedLength_2); // Take 2 physical lines
 
             Test("", Keys(
-                "",     _.Shift_Enter,        // physical line 0
-                line_0, _.Shift_Enter,        // physical line 1
-                line_1, _.Shift_Enter,        // physical line 2
-                line_2, _.Shift_Enter,        // physical line 3
+                "", _.Shift_Enter, // physical line 0
+                line_0, _.Shift_Enter, // physical line 1
+                line_1, _.Shift_Enter, // physical line 2
+                line_2, _.Shift_Enter, // physical line 3
                 wrappedLine_1, _.Shift_Enter, // physical line 4,5
                 wrappedLine_2, _.Shift_Enter, // physical line 6,7
-                line_3,                       // physical line 8
+                line_3, // physical line 8
 
                 // Starting at the end of the last line.
                 // Verify that UpArrow goes to the end of the previous logical line.
@@ -61,20 +65,20 @@ namespace Test
                 _.DownArrow, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength + line_3.Length, 8)),
                 _.DownArrow, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength + line_3.Length, 8)),
                 // Press Up/Down/Up
-                _.UpArrow,   CheckThat(() => AssertCursorLeftTopIs(wrappedLength_2, 7)),
+                _.UpArrow, CheckThat(() => AssertCursorLeftTopIs(wrappedLength_2, 7)),
                 _.DownArrow, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength + line_3.Length, 8)),
-                _.UpArrow,   CheckThat(() => AssertCursorLeftTopIs(wrappedLength_2, 7)),
+                _.UpArrow, CheckThat(() => AssertCursorLeftTopIs(wrappedLength_2, 7)),
                 // Press Up/Down/Up
-                _.UpArrow,   CheckThat(() => AssertCursorLeftTopIs(wrappedLength_1, 5)),
+                _.UpArrow, CheckThat(() => AssertCursorLeftTopIs(wrappedLength_1, 5)),
                 _.DownArrow, CheckThat(() => AssertCursorLeftTopIs(wrappedLength_2, 7)),
-                _.UpArrow,   CheckThat(() => AssertCursorLeftTopIs(wrappedLength_1, 5)),
+                _.UpArrow, CheckThat(() => AssertCursorLeftTopIs(wrappedLength_1, 5)),
                 // Press Up/Down/Up
-                _.UpArrow,   CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength + line_2.Length, 3)),
+                _.UpArrow, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength + line_2.Length, 3)),
                 _.DownArrow, CheckThat(() => AssertCursorLeftTopIs(wrappedLength_1, 5)),
-                _.UpArrow,   CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength + line_2.Length, 3)),
+                _.UpArrow, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength + line_2.Length, 3)),
                 // Press Up/Up
-                _.UpArrow,   CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength + line_1.Length, 2)),
-                _.UpArrow,   CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength + line_0.Length, 1)),
+                _.UpArrow, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength + line_1.Length, 2)),
+                _.UpArrow, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength + line_0.Length, 1)),
 
                 // Move to left for 1 character, so the cursor now is not at the end of line.
                 // Verify that DownArrow/UpArrow goes to the previous logical line at the same column.
@@ -99,7 +103,7 @@ namespace Test
 
                 // Clear the input, we were just testing movement
                 _.Escape
-                ));
+            ));
         }
 
         [SkippableFact]
@@ -125,7 +129,6 @@ namespace Test
                 // and the second End goes to the end of the input.
                 _.End, CheckThat(() => AssertCursorLeftTopIs(4, 0)),
                 _.End, CheckThat(() => AssertCursorLeftTopIs(0 + continutationPromptLength, 5)),
-
                 _.Home, _.Home,
                 _.DownArrow, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 1)),
                 _.DownArrow, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 2)),
@@ -136,7 +139,8 @@ namespace Test
                 _.UpArrow, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 3)),
                 _.UpArrow, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 2)),
                 _.UpArrow, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 1)),
-                _.UpArrow, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 0)),    // was (4,0), but seems wrong
+                _.UpArrow,
+                CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 0)), // was (4,0), but seems wrong
 
                 // Make sure that movement between lines stays at the end of a line if it starts
                 // at the end of a line
@@ -151,7 +155,6 @@ namespace Test
                 _.DownArrow, CheckThat(() => AssertCursorLeftTopIs(6 + continutationPromptLength, 3)),
                 _.DownArrow, CheckThat(() => AssertCursorLeftTopIs(4 + continutationPromptLength, 4)),
                 _.DownArrow, CheckThat(() => AssertCursorLeftTopIs(0 + continutationPromptLength, 5)),
-
                 _.Escape,
                 _.Shift_Enter,
                 "88888888", _.Shift_Enter,
@@ -176,11 +179,11 @@ namespace Test
                 _.Home, _.Home, CheckThat(() => AssertCursorLeftTopIs(0, 0)),
                 _.DownArrow, CheckThat(() => AssertCursorLeftTopIs(8 + continutationPromptLength, 1)),
                 _.Home, CheckThat(() => AssertCursorLeftTopIs(continutationPromptLength, 1)),
-                _.Home, CheckThat(() => AssertCursorLeftTopIs(0,0)),
+                _.Home, CheckThat(() => AssertCursorLeftTopIs(0, 0)),
 
                 // Clear the input, we were just testing movement
                 _.Escape
-                ));
+            ));
         }
 
         [SkippableFact]
@@ -197,7 +200,7 @@ namespace Test
                 _.LeftArrow, CheckThat(() => AssertCursorLeftIs(2)),
                 _.LeftArrow, CheckThat(() => AssertCursorLeftIs(1)),
                 'b'
-                ));
+            ));
 
             // Test with digit arguments
             var input = "0123456789";
@@ -225,12 +228,15 @@ namespace Test
             Test("$a[11]", Keys("$a[11]", _.LeftArrow, _.Ctrl_RBracket, CheckThat(() => AssertCursorLeftIs(2))));
             Test("{11}", Keys("{11}", _.LeftArrow, _.Ctrl_RBracket, CheckThat(() => AssertCursorLeftIs(0))));
             Test("(11)", Keys("(11)", _.Home, _.Ctrl_RBracket, CheckThat(() => AssertCursorLeftIs(3))));
-            Test("$a[11]", Keys("$a[11]", _.Home, _.RightArrow, _.RightArrow, _.Ctrl_RBracket, CheckThat(() => AssertCursorLeftIs(5))));
+            Test("$a[11]",
+                Keys("$a[11]", _.Home, _.RightArrow, _.RightArrow, _.Ctrl_RBracket,
+                    CheckThat(() => AssertCursorLeftIs(5))));
             Test("{11}", Keys("{11}", _.Home, _.Ctrl_RBracket, CheckThat(() => AssertCursorLeftIs(3))));
 
             // Test multiples, make sure we go to the right one.
             Test("((11))", Keys("((11))", _.LeftArrow, _.Ctrl_RBracket, CheckThat(() => AssertCursorLeftIs(0))));
-            Test("((11))", Keys("((11))", _.LeftArrow, _.LeftArrow, _.Ctrl_RBracket, CheckThat(() => AssertCursorLeftIs(1))));
+            Test("((11))",
+                Keys("((11))", _.LeftArrow, _.LeftArrow, _.Ctrl_RBracket, CheckThat(() => AssertCursorLeftIs(1))));
 
             // Make sure we don't match inside a string
             TestMustDing("", Keys(
@@ -239,12 +245,10 @@ namespace Test
                 _.Ctrl_c, InputAcceptedNow));
 
             foreach (var c in new[] {'(', ')', '{', '}', '[', ']'})
-            {
                 TestMustDing("", Keys(
                     'a', c, _.LeftArrow,
                     _.Ctrl_RBracket, CheckThat(() => AssertCursorLeftIs(1)),
                     _.Ctrl_c, InputAcceptedNow));
-            }
         }
 
         [SkippableFact]
@@ -282,9 +286,9 @@ namespace Test
         [SkippableFact]
         public void CharacterSearchApi()
         {
-            int i = 0;
+            var i = 0;
             TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+z",
-                (key, count) => PSConsoleReadLine.CharacterSearch(null, i++ == 0 ? (object)'|' : "|")));
+                (key, count) => PSConsoleReadLine.CharacterSearch(null, i++ == 0 ? '|' : "|")));
 
             Test("cmd1 | cmd2 | cmd3", Keys(
                 "cmd1 | cmd2 | cmd3",
@@ -328,9 +332,9 @@ namespace Test
         [SkippableFact]
         public void CharacterSearchBackwardApi()
         {
-            int i = 0;
+            var i = 0;
             TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+z",
-                (key, count) => PSConsoleReadLine.CharacterSearchBackward(null, i++ == 0 ? (object)'|' : "|")));
+                (key, count) => PSConsoleReadLine.CharacterSearchBackward(null, i++ == 0 ? '|' : "|")));
 
             Test("cmd1 | cmd2 | cmd3", Keys(
                 "cmd1 | cmd2 | cmd3",

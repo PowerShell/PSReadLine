@@ -10,12 +10,10 @@ namespace Microsoft.PowerShell.Internal
     {
         internal static bool IsScreenReaderActive()
         {
-            bool returnValue = false;
+            var returnValue = false;
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
                 PlatformWindows.SystemParametersInfo(PlatformWindows.SPI_GETSCREENREADER, 0, ref returnValue, 0);
-            }
 
             return returnValue;
         }

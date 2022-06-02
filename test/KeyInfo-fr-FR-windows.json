@@ -1,1654 +1,1654 @@
 [
-    {
-        "Key":  "\u0027",
-        "KeyChar":  "\u0027",
-        "ConsoleKey":  "D4",
-        "Modifiers":  "0",
-        "Investigate":  false
-    },
-    {
-        "Key":  "-",
-        "KeyChar":  "-",
-        "ConsoleKey":  "D6",
-        "Modifiers":  "0",
-        "Investigate":  false
-    },
-    {
-        "Key":  "!",
-        "KeyChar":  "!",
-        "ConsoleKey":  "Oem8",
-        "Modifiers":  "0",
-        "Investigate":  false
-    },
-    {
-        "Key":  "\"",
-        "KeyChar":  "\"",
-        "ConsoleKey":  "D3",
-        "Modifiers":  "0",
-        "Investigate":  false
-    },
-    {
-        "Key":  "#",
-        "KeyChar":  "#",
-        "ConsoleKey":  "D3",
-        "Modifiers":  "Alt, Control",
-        "Investigate":  false
-    },
-    {
-        "Key":  "$",
-        "KeyChar":  "$",
-        "ConsoleKey":  "Oem1",
-        "Modifiers":  "0",
-        "Investigate":  false
-    },
-    {
-        "Key":  "%",
-        "KeyChar":  "%",
-        "ConsoleKey":  "Oem3",
-        "Modifiers":  "Shift",
-        "Investigate":  false
-    },
-    {
-        "Key":  "\u0026",
-        "KeyChar":  "\u0026",
-        "ConsoleKey":  "D1",
-        "Modifiers":  "0",
-        "Investigate":  false
-    },
-    {
-        "Key":  "(",
-        "KeyChar":  "(",
-        "ConsoleKey":  "D5",
-        "Modifiers":  "0",
-        "Investigate":  false
-    },
-    {
-        "Key":  ")",
-        "KeyChar":  ")",
-        "ConsoleKey":  "Oem4",
-        "Modifiers":  "0",
-        "Investigate":  false
-    },
-    {
-        "Key":  "*",
-        "KeyChar":  "*",
-        "ConsoleKey":  "Oem5",
-        "Modifiers":  "0",
-        "Investigate":  false
-    },
-    {
-        "Key":  ",",
-        "KeyChar":  ",",
-        "ConsoleKey":  "OemComma",
-        "Modifiers":  "0",
-        "Investigate":  false
-    },
-    {
-        "Key":  ".",
-        "KeyChar":  ".",
-        "ConsoleKey":  "OemPeriod",
-        "Modifiers":  "Shift",
-        "Investigate":  false
-    },
-    {
-        "Key":  "/",
-        "KeyChar":  "/",
-        "ConsoleKey":  "Oem2",
-        "Modifiers":  "Shift",
-        "Investigate":  false
-    },
-    {
-        "Key":  ":",
-        "KeyChar":  ":",
-        "ConsoleKey":  "Oem2",
-        "Modifiers":  "0",
-        "Investigate":  false
-    },
-    {
-        "Key":  ";",
-        "KeyChar":  ";",
-        "ConsoleKey":  "OemPeriod",
-        "Modifiers":  "0",
-        "Investigate":  false
-    },
-    {
-        "Key":  "?",
-        "KeyChar":  "?",
-        "ConsoleKey":  "OemComma",
-        "Modifiers":  "Shift",
-        "Investigate":  false
-    },
-    {
-        "Key":  "@",
-        "KeyChar":  "@",
-        "ConsoleKey":  "D0",
-        "Modifiers":  "Alt, Control",
-        "Investigate":  false
-    },
-    {
-        "Key":  "[",
-        "KeyChar":  "[",
-        "ConsoleKey":  "D5",
-        "Modifiers":  "Alt, Control",
-        "Investigate":  false
-    },
-    {
-        "Key":  "\\",
-        "KeyChar":  "\\",
-        "ConsoleKey":  "D8",
-        "Modifiers":  "Alt, Control",
-        "Investigate":  false
-    },
-    {
-        "Key":  "]",
-        "KeyChar":  "]",
-        "ConsoleKey":  "Oem4",
-        "Modifiers":  "Alt, Control",
-        "Investigate":  false
-    },
-    {
-        "Key":  "^",
-        "KeyChar":  "^",
-        "ConsoleKey":  "Oem6",
-        "Modifiers":  "0",
-        "Investigate":  false
-    },
-    {
-        "Key":  "_",
-        "KeyChar":  "_",
-        "ConsoleKey":  "D8",
-        "Modifiers":  "0",
-        "Investigate":  false
-    },
-    {
-        "Key":  "`",
-        "KeyChar":  "`",
-        "ConsoleKey":  "D7",
-        "Modifiers":  "Alt, Control",
-        "Investigate":  true
-    },
-    {
-        "Key":  "{",
-        "KeyChar":  "{",
-        "ConsoleKey":  "D4",
-        "Modifiers":  "Alt, Control",
-        "Investigate":  false
-    },
-    {
-        "Key":  "|",
-        "KeyChar":  "|",
-        "ConsoleKey":  "D6",
-        "Modifiers":  "Alt, Control",
-        "Investigate":  false
-    },
-    {
-        "Key":  "}",
-        "KeyChar":  "}",
-        "ConsoleKey":  "OemPlus",
-        "Modifiers":  "Alt, Control",
-        "Investigate":  false
-    },
-    {
-        "Key":  "~",
-        "KeyChar":  "~",
-        "ConsoleKey":  "D2",
-        "Modifiers":  "Alt, Control",
-        "Investigate":  true
-    },
-    {
-        "Key":  "+",
-        "KeyChar":  "+",
-        "ConsoleKey":  "OemPlus",
-        "Modifiers":  "Shift",
-        "Investigate":  false
-    },
-    {
-        "Key":  "\u003c",
-        "KeyChar":  "\u003c",
-        "ConsoleKey":  "18",
-        "Modifiers":  "0",
-        "Investigate":  false
-    },
-    {
-        "Key":  "=",
-        "KeyChar":  "=",
-        "ConsoleKey":  "OemPlus",
-        "Modifiers":  "0",
-        "Investigate":  false
-    },
-    {
-        "Key":  "\u003e",
-        "KeyChar":  "\u003e",
-        "ConsoleKey":  "18",
-        "Modifiers":  "0",
-        "Investigate":  false
-    },
-    {
-        "Key":  "0",
-        "KeyChar":  "0",
-        "ConsoleKey":  "D0",
-        "Modifiers":  "Shift",
-        "Investigate":  false
-    },
-    {
-        "Key":  "1",
-        "KeyChar":  "1",
-        "ConsoleKey":  "D1",
-        "Modifiers":  "Shift",
-        "Investigate":  false
-    },
-    {
-        "Key":  "2",
-        "KeyChar":  "2",
-        "ConsoleKey":  "D2",
-        "Modifiers":  "Shift",
-        "Investigate":  false
-    },
-    {
-        "Key":  "3",
-        "KeyChar":  "3",
-        "ConsoleKey":  "D3",
-        "Modifiers":  "Shift",
-        "Investigate":  false
-    },
-    {
-        "Key":  "4",
-        "KeyChar":  "4",
-        "ConsoleKey":  "D4",
-        "Modifiers":  "Shift",
-        "Investigate":  false
-    },
-    {
-        "Key":  "5",
-        "KeyChar":  "5",
-        "ConsoleKey":  "D5",
-        "Modifiers":  "Shift",
-        "Investigate":  false
-    },
-    {
-        "Key":  "6",
-        "KeyChar":  "6",
-        "ConsoleKey":  "D6",
-        "Modifiers":  "Shift",
-        "Investigate":  false
-    },
-    {
-        "Key":  "7",
-        "KeyChar":  "7",
-        "ConsoleKey":  "D7",
-        "Modifiers":  "Shift",
-        "Investigate":  false
-    },
-    {
-        "Key":  "8",
-        "KeyChar":  "8",
-        "ConsoleKey":  "D8",
-        "Modifiers":  "Shift",
-        "Investigate":  false
-    },
-    {
-        "Key":  "9",
-        "KeyChar":  "9",
-        "ConsoleKey":  "D9",
-        "Modifiers":  "Shift",
-        "Investigate":  false
-    },
-    {
-        "Key":  "a",
-        "KeyChar":  "a",
-        "ConsoleKey":  "A",
-        "Modifiers":  "0",
-        "Investigate":  false
-    },
-    {
-        "Key":  "A",
-        "KeyChar":  "A",
-        "ConsoleKey":  "A",
-        "Modifiers":  "Shift",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Alt+-",
-        "KeyChar":  "-",
-        "ConsoleKey":  "D6",
-        "Modifiers":  "Alt",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Alt+.",
-        "KeyChar":  ".",
-        "ConsoleKey":  "OemPeriod",
-        "Modifiers":  "Alt, Shift",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Alt+?",
-        "KeyChar":  "?",
-        "ConsoleKey":  "OemComma",
-        "Modifiers":  "Alt, Shift",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Alt+_",
-        "KeyChar":  "8",
-        "ConsoleKey":  "D8",
-        "Modifiers":  "Alt, Shift",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Alt+=",
-        "KeyChar":  "=",
-        "ConsoleKey":  "OemPlus",
-        "Modifiers":  "Alt",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Alt+0",
-        "KeyChar":  "0",
-        "ConsoleKey":  "D0",
-        "Modifiers":  "Alt, Shift",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Alt+1",
-        "KeyChar":  "1",
-        "ConsoleKey":  "D1",
-        "Modifiers":  "Alt, Shift",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Alt+2",
-        "KeyChar":  "2",
-        "ConsoleKey":  "D2",
-        "Modifiers":  "Alt, Shift",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Alt+3",
-        "KeyChar":  "3",
-        "ConsoleKey":  "D3",
-        "Modifiers":  "Alt, Shift",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Alt+4",
-        "KeyChar":  "4",
-        "ConsoleKey":  "D4",
-        "Modifiers":  "Alt, Shift",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Alt+5",
-        "KeyChar":  "5",
-        "ConsoleKey":  "D5",
-        "Modifiers":  "Alt, Shift",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Alt+6",
-        "KeyChar":  "6",
-        "ConsoleKey":  "D6",
-        "Modifiers":  "Alt, Shift",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Alt+7",
-        "KeyChar":  "7",
-        "ConsoleKey":  "D7",
-        "Modifiers":  "Alt, Shift",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Alt+8",
-        "KeyChar":  "8",
-        "ConsoleKey":  "D8",
-        "Modifiers":  "Alt, Shift",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Alt+9",
-        "KeyChar":  "9",
-        "ConsoleKey":  "D9",
-        "Modifiers":  "Alt, Shift",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Alt+a",
-        "KeyChar":  "a",
-        "ConsoleKey":  "A",
-        "Modifiers":  "Alt",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Alt+b",
-        "KeyChar":  "b",
-        "ConsoleKey":  "B",
-        "Modifiers":  "Alt",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Alt+B",
-        "KeyChar":  "B",
-        "ConsoleKey":  "B",
-        "Modifiers":  "Alt, Shift",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Alt+Backspace",
-        "KeyChar":  "\b",
-        "ConsoleKey":  "Backspace",
-        "Modifiers":  "Alt",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Alt+c",
-        "KeyChar":  "c",
-        "ConsoleKey":  "C",
-        "Modifiers":  "Alt",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Alt+d",
-        "KeyChar":  "d",
-        "ConsoleKey":  "D",
-        "Modifiers":  "Alt",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Alt+e",
-        "KeyChar":  "e",
-        "ConsoleKey":  "E",
-        "Modifiers":  "Alt",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Alt+F",
-        "KeyChar":  "F",
-        "ConsoleKey":  "F",
-        "Modifiers":  "Alt, Shift",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Alt+f",
-        "KeyChar":  "f",
-        "ConsoleKey":  "F",
-        "Modifiers":  "Alt",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Alt+F1",
-        "KeyChar":  "\u0000",
-        "ConsoleKey":  "F1",
-        "Modifiers":  "Alt",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Alt+F2",
-        "KeyChar":  "\u0000",
-        "ConsoleKey":  "F2",
-        "Modifiers":  "Alt",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Alt+F3",
-        "KeyChar":  "\u0000",
-        "ConsoleKey":  "F3",
-        "Modifiers":  "Alt",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Alt+F4",
-        "KeyChar":  "\u0000",
-        "ConsoleKey":  "F4",
-        "Modifiers":  "Alt",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Alt+F5",
-        "KeyChar":  "\u0000",
-        "ConsoleKey":  "F5",
-        "Modifiers":  "Alt",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Alt+F6",
-        "KeyChar":  "\u0000",
-        "ConsoleKey":  "F6",
-        "Modifiers":  "Alt",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Alt+F7",
-        "KeyChar":  "\u0000",
-        "ConsoleKey":  "F7",
-        "Modifiers":  "Alt, Control",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Alt+F8",
-        "KeyChar":  "\u0000",
-        "ConsoleKey":  "F8",
-        "Modifiers":  "Alt",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Alt+F9",
-        "KeyChar":  "\u0000",
-        "ConsoleKey":  "F9",
-        "Modifiers":  "Alt",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Alt+g",
-        "KeyChar":  "g",
-        "ConsoleKey":  "G",
-        "Modifiers":  "Alt",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Alt+h",
-        "KeyChar":  "h",
-        "ConsoleKey":  "H",
-        "Modifiers":  "Alt",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Alt+i",
-        "KeyChar":  "i",
-        "ConsoleKey":  "I",
-        "Modifiers":  "Alt",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Alt+j",
-        "KeyChar":  "j",
-        "ConsoleKey":  "J",
-        "Modifiers":  "Alt",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Alt+k",
-        "KeyChar":  "k",
-        "ConsoleKey":  "K",
-        "Modifiers":  "Alt",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Alt+l",
-        "KeyChar":  "l",
-        "ConsoleKey":  "L",
-        "Modifiers":  "Alt",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Alt+m",
-        "KeyChar":  "m",
-        "ConsoleKey":  "M",
-        "Modifiers":  "Alt",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Alt+n",
-        "KeyChar":  "n",
-        "ConsoleKey":  "N",
-        "Modifiers":  "Alt",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Alt+o",
-        "KeyChar":  "o",
-        "ConsoleKey":  "O",
-        "Modifiers":  "Alt",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Alt+p",
-        "KeyChar":  "p",
-        "ConsoleKey":  "P",
-        "Modifiers":  "Alt",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Alt+q",
-        "KeyChar":  "q",
-        "ConsoleKey":  "Q",
-        "Modifiers":  "Alt",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Alt+r",
-        "KeyChar":  "r",
-        "ConsoleKey":  "R",
-        "Modifiers":  "Alt",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Alt+s",
-        "KeyChar":  "s",
-        "ConsoleKey":  "S",
-        "Modifiers":  "Alt",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Alt+Spacebar",
-        "KeyChar":  "\r",
-        "ConsoleKey":  "Enter",
-        "Modifiers":  "0",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Alt+t",
-        "KeyChar":  "t",
-        "ConsoleKey":  "T",
-        "Modifiers":  "Alt",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Alt+u",
-        "KeyChar":  "u",
-        "ConsoleKey":  "U",
-        "Modifiers":  "Alt",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Alt+v",
-        "KeyChar":  "v",
-        "ConsoleKey":  "V",
-        "Modifiers":  "Alt",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Alt+w",
-        "KeyChar":  "w",
-        "ConsoleKey":  "W",
-        "Modifiers":  "Alt",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Alt+x",
-        "KeyChar":  "x",
-        "ConsoleKey":  "X",
-        "Modifiers":  "Alt",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Alt+y",
-        "KeyChar":  "y",
-        "ConsoleKey":  "Y",
-        "Modifiers":  "Alt",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Alt+z",
-        "KeyChar":  "z",
-        "ConsoleKey":  "Z",
-        "Modifiers":  "Alt",
-        "Investigate":  false
-    },
-    {
-        "Key":  "B",
-        "KeyChar":  "B",
-        "ConsoleKey":  "B",
-        "Modifiers":  "Shift",
-        "Investigate":  false
-    },
-    {
-        "Key":  "b",
-        "KeyChar":  "b",
-        "ConsoleKey":  "B",
-        "Modifiers":  "0",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Backspace",
-        "KeyChar":  "\b",
-        "ConsoleKey":  "Backspace",
-        "Modifiers":  "0",
-        "Investigate":  false
-    },
-    {
-        "Key":  "c",
-        "KeyChar":  "c",
-        "ConsoleKey":  "C",
-        "Modifiers":  "0",
-        "Investigate":  false
-    },
-    {
-        "Key":  "C",
-        "KeyChar":  "C",
-        "ConsoleKey":  "C",
-        "Modifiers":  "Shift",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Ctrl+@",
-        "KeyChar":  "@",
-        "ConsoleKey":  "D0",
-        "Modifiers":  "Alt, Control",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Ctrl+[",
-        "KeyChar":  "[",
-        "ConsoleKey":  "D5",
-        "Modifiers":  "Alt, Control",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Ctrl+\\",
-        "KeyChar":  "\\",
-        "ConsoleKey":  "D8",
-        "Modifiers":  "Alt, Control",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Ctrl+]",
-        "KeyChar":  "]",
-        "ConsoleKey":  "Oem4",
-        "Modifiers":  "Alt, Control",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Ctrl+^",
-        "KeyChar":  "^",
-        "ConsoleKey":  "D9",
-        "Modifiers":  "Alt, Control",
-        "Investigate":  true
-    },
-    {
-        "Key":  "Ctrl+_",
-        "KeyChar":  "\u0000",
-        "ConsoleKey":  "D8",
-        "Modifiers":  "Control",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Ctrl+a",
-        "KeyChar":  "\u0001",
-        "ConsoleKey":  "A",
-        "Modifiers":  "Control",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Ctrl+Alt+?",
-        "KeyChar":  "\u0000",
-        "ConsoleKey":  "OemComma",
-        "Modifiers":  "Alt, Shift, Control",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Ctrl+Alt+]",
-        "KeyChar":  "]",
-        "ConsoleKey":  "Oem4",
-        "Modifiers":  "Alt, Control",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Ctrl+Alt+y",
-        "KeyChar":  "\u0000",
-        "ConsoleKey":  "Y",
-        "Modifiers":  "Alt, Control",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Ctrl+b",
-        "KeyChar":  "\u0002",
-        "ConsoleKey":  "B",
-        "Modifiers":  "Control",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Ctrl+Backspace",
-        "KeyChar":  "",
-        "ConsoleKey":  "Backspace",
-        "Modifiers":  "Control",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Ctrl+C",
-        "KeyChar":  "\u0003",
-        "ConsoleKey":  "C",
-        "Modifiers":  "Shift, Control",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Ctrl+c",
-        "KeyChar":  "\u0003",
-        "ConsoleKey":  "C",
-        "Modifiers":  "Control",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Ctrl+d",
-        "KeyChar":  "\u0004",
-        "ConsoleKey":  "D",
-        "Modifiers":  "Control",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Ctrl+Delete",
-        "KeyChar":  "\u0000",
-        "ConsoleKey":  "Delete",
-        "Modifiers":  "Control",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Ctrl+e",
-        "KeyChar":  "\u0005",
-        "ConsoleKey":  "E",
-        "Modifiers":  "Control",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Ctrl+End",
-        "KeyChar":  "\u0000",
-        "ConsoleKey":  "End",
-        "Modifiers":  "Control",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Ctrl+Enter",
-        "KeyChar":  "\n",
-        "ConsoleKey":  "Enter",
-        "Modifiers":  "Control",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Ctrl+f",
-        "KeyChar":  "\u0006",
-        "ConsoleKey":  "F",
-        "Modifiers":  "Control",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Ctrl+g",
-        "KeyChar":  "\u0007",
-        "ConsoleKey":  "G",
-        "Modifiers":  "Control",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Ctrl+h",
-        "KeyChar":  "\b",
-        "ConsoleKey":  "H",
-        "Modifiers":  "Control",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Ctrl+Home",
-        "KeyChar":  "\u0000",
-        "ConsoleKey":  "Home",
-        "Modifiers":  "Control",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Ctrl+i",
-        "KeyChar":  "\t",
-        "ConsoleKey":  "I",
-        "Modifiers":  "Control",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Ctrl+j",
-        "KeyChar":  "\n",
-        "ConsoleKey":  "J",
-        "Modifiers":  "Control",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Ctrl+k",
-        "KeyChar":  "\u000b",
-        "ConsoleKey":  "K",
-        "Modifiers":  "Control",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Ctrl+l",
-        "KeyChar":  "\f",
-        "ConsoleKey":  "L",
-        "Modifiers":  "Control",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Ctrl+LeftArrow",
-        "KeyChar":  "\u0000",
-        "ConsoleKey":  "LeftArrow",
-        "Modifiers":  "Control",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Ctrl+m",
-        "KeyChar":  "\r",
-        "ConsoleKey":  "M",
-        "Modifiers":  "Control",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Ctrl+n",
-        "KeyChar":  "\u000e",
-        "ConsoleKey":  "N",
-        "Modifiers":  "Control",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Ctrl+o",
-        "KeyChar":  "\u000f",
-        "ConsoleKey":  "O",
-        "Modifiers":  "Control",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Ctrl+p",
-        "KeyChar":  "\u0010",
-        "ConsoleKey":  "P",
-        "Modifiers":  "Control",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Ctrl+PageDown",
-        "KeyChar":  "\u0000",
-        "ConsoleKey":  "PageDown",
-        "Modifiers":  "Control",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Ctrl+PageUp",
-        "KeyChar":  "\u0000",
-        "ConsoleKey":  "PageUp",
-        "Modifiers":  "Control",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Ctrl+q",
-        "KeyChar":  "\u0011",
-        "ConsoleKey":  "Q",
-        "Modifiers":  "Control",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Ctrl+r",
-        "KeyChar":  "\u0012",
-        "ConsoleKey":  "R",
-        "Modifiers":  "Control",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Ctrl+RightArrow",
-        "KeyChar":  "\u0000",
-        "ConsoleKey":  "RightArrow",
-        "Modifiers":  "Control",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Ctrl+s",
-        "KeyChar":  "\u0013",
-        "ConsoleKey":  "S",
-        "Modifiers":  "Control",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Ctrl+Shift+Enter",
-        "KeyChar":  "\u0000",
-        "ConsoleKey":  "Enter",
-        "Modifiers":  "Shift, Control",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Ctrl+Shift+LeftArrow",
-        "KeyChar":  "\u0000",
-        "ConsoleKey":  "LeftArrow",
-        "Modifiers":  "Shift, Control",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Ctrl+Shift+RightArrow",
-        "KeyChar":  "\u0000",
-        "ConsoleKey":  "RightArrow",
-        "Modifiers":  "Shift, Control",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Ctrl+Spacebar",
-        "KeyChar":  " ",
-        "ConsoleKey":  "Spacebar",
-        "Modifiers":  "Control",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Ctrl+t",
-        "KeyChar":  "\u0014",
-        "ConsoleKey":  "T",
-        "Modifiers":  "Control",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Ctrl+u",
-        "KeyChar":  "\u0015",
-        "ConsoleKey":  "U",
-        "Modifiers":  "Control",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Ctrl+v",
-        "KeyChar":  "\u0016",
-        "ConsoleKey":  "V",
-        "Modifiers":  "Control",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Ctrl+w",
-        "KeyChar":  "\u0017",
-        "ConsoleKey":  "W",
-        "Modifiers":  "Control",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Ctrl+x",
-        "KeyChar":  "\u0018",
-        "ConsoleKey":  "X",
-        "Modifiers":  "Control",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Ctrl+y",
-        "KeyChar":  "\u0019",
-        "ConsoleKey":  "Y",
-        "Modifiers":  "Control",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Ctrl+z",
-        "KeyChar":  "\u001a",
-        "ConsoleKey":  "Z",
-        "Modifiers":  "Control",
-        "Investigate":  false
-    },
-    {
-        "Key":  "D",
-        "KeyChar":  "D",
-        "ConsoleKey":  "D",
-        "Modifiers":  "Shift",
-        "Investigate":  false
-    },
-    {
-        "Key":  "d",
-        "KeyChar":  "d",
-        "ConsoleKey":  "D",
-        "Modifiers":  "0",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Delete",
-        "KeyChar":  "\u0000",
-        "ConsoleKey":  "Delete",
-        "Modifiers":  "0",
-        "Investigate":  false
-    },
-    {
-        "Key":  "DownArrow",
-        "KeyChar":  "\u0000",
-        "ConsoleKey":  "DownArrow",
-        "Modifiers":  "0",
-        "Investigate":  false
-    },
-    {
-        "Key":  "E",
-        "KeyChar":  "E",
-        "ConsoleKey":  "E",
-        "Modifiers":  "Shift",
-        "Investigate":  false
-    },
-    {
-        "Key":  "e",
-        "KeyChar":  "e",
-        "ConsoleKey":  "E",
-        "Modifiers":  "0",
-        "Investigate":  false
-    },
-    {
-        "Key":  "End",
-        "KeyChar":  "\u0000",
-        "ConsoleKey":  "End",
-        "Modifiers":  "0",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Enter",
-        "KeyChar":  "\r",
-        "ConsoleKey":  "Enter",
-        "Modifiers":  "0",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Escape",
-        "KeyChar":  "\u001b",
-        "ConsoleKey":  "Escape",
-        "Modifiers":  "0",
-        "Investigate":  false
-    },
-    {
-        "Key":  "F",
-        "KeyChar":  "F",
-        "ConsoleKey":  "F",
-        "Modifiers":  "Shift",
-        "Investigate":  false
-    },
-    {
-        "Key":  "f",
-        "KeyChar":  "f",
-        "ConsoleKey":  "F",
-        "Modifiers":  "0",
-        "Investigate":  false
-    },
-    {
-        "Key":  "F1",
-        "KeyChar":  "\u0000",
-        "ConsoleKey":  "F1",
-        "Modifiers":  "0",
-        "Investigate":  false
-    },
-    {
-        "Key":  "F2",
-        "KeyChar":  "\u0000",
-        "ConsoleKey":  "F2",
-        "Modifiers":  "0",
-        "Investigate":  false
-    },
-    {
-        "Key":  "F3",
-        "KeyChar":  "\u0000",
-        "ConsoleKey":  "F3",
-        "Modifiers":  "0",
-        "Investigate":  false
-    },
-    {
-        "Key":  "F4",
-        "KeyChar":  "\u0000",
-        "ConsoleKey":  "F4",
-        "Modifiers":  "0",
-        "Investigate":  false
-    },
-    {
-        "Key":  "F5",
-        "KeyChar":  "\u0000",
-        "ConsoleKey":  "F5",
-        "Modifiers":  "0",
-        "Investigate":  false
-    },
-    {
-        "Key":  "F6",
-        "KeyChar":  "\u0000",
-        "ConsoleKey":  "F6",
-        "Modifiers":  "0",
-        "Investigate":  false
-    },
-    {
-        "Key":  "F7",
-        "KeyChar":  "\u0000",
-        "ConsoleKey":  "F7",
-        "Modifiers":  "0",
-        "Investigate":  false
-    },
-    {
-        "Key":  "F8",
-        "KeyChar":  "\u0000",
-        "ConsoleKey":  "F8",
-        "Modifiers":  "0",
-        "Investigate":  false
-    },
-    {
-        "Key":  "F9",
-        "KeyChar":  "\u0000",
-        "ConsoleKey":  "F9",
-        "Modifiers":  "0",
-        "Investigate":  false
-    },
-    {
-        "Key":  "g",
-        "KeyChar":  "g",
-        "ConsoleKey":  "G",
-        "Modifiers":  "0",
-        "Investigate":  false
-    },
-    {
-        "Key":  "G",
-        "KeyChar":  "G",
-        "ConsoleKey":  "G",
-        "Modifiers":  "Shift",
-        "Investigate":  false
-    },
-    {
-        "Key":  "h",
-        "KeyChar":  "h",
-        "ConsoleKey":  "H",
-        "Modifiers":  "0",
-        "Investigate":  false
-    },
-    {
-        "Key":  "H",
-        "KeyChar":  "H",
-        "ConsoleKey":  "H",
-        "Modifiers":  "Shift",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Home",
-        "KeyChar":  "\u0000",
-        "ConsoleKey":  "Home",
-        "Modifiers":  "0",
-        "Investigate":  false
-    },
-    {
-        "Key":  "I",
-        "KeyChar":  "I",
-        "ConsoleKey":  "I",
-        "Modifiers":  "Shift",
-        "Investigate":  false
-    },
-    {
-        "Key":  "i",
-        "KeyChar":  "i",
-        "ConsoleKey":  "I",
-        "Modifiers":  "0",
-        "Investigate":  false
-    },
-    {
-        "Key":  "j",
-        "KeyChar":  "j",
-        "ConsoleKey":  "J",
-        "Modifiers":  "0",
-        "Investigate":  false
-    },
-    {
-        "Key":  "J",
-        "KeyChar":  "J",
-        "ConsoleKey":  "J",
-        "Modifiers":  "Shift",
-        "Investigate":  false
-    },
-    {
-        "Key":  "K",
-        "KeyChar":  "K",
-        "ConsoleKey":  "K",
-        "Modifiers":  "Shift",
-        "Investigate":  false
-    },
-    {
-        "Key":  "k",
-        "KeyChar":  "k",
-        "ConsoleKey":  "K",
-        "Modifiers":  "0",
-        "Investigate":  false
-    },
-    {
-        "Key":  "l",
-        "KeyChar":  "l",
-        "ConsoleKey":  "L",
-        "Modifiers":  "0",
-        "Investigate":  false
-    },
-    {
-        "Key":  "L",
-        "KeyChar":  "L",
-        "ConsoleKey":  "L",
-        "Modifiers":  "Shift",
-        "Investigate":  false
-    },
-    {
-        "Key":  "LeftArrow",
-        "KeyChar":  "\u0000",
-        "ConsoleKey":  "LeftArrow",
-        "Modifiers":  "0",
-        "Investigate":  false
-    },
-    {
-        "Key":  "M",
-        "KeyChar":  "M",
-        "ConsoleKey":  "M",
-        "Modifiers":  "Shift",
-        "Investigate":  false
-    },
-    {
-        "Key":  "m",
-        "KeyChar":  "m",
-        "ConsoleKey":  "M",
-        "Modifiers":  "0",
-        "Investigate":  false
-    },
-    {
-        "Key":  "N",
-        "KeyChar":  "N",
-        "ConsoleKey":  "N",
-        "Modifiers":  "Shift",
-        "Investigate":  false
-    },
-    {
-        "Key":  "n",
-        "KeyChar":  "n",
-        "ConsoleKey":  "N",
-        "Modifiers":  "0",
-        "Investigate":  false
-    },
-    {
-        "Key":  "O",
-        "KeyChar":  "O",
-        "ConsoleKey":  "O",
-        "Modifiers":  "Shift",
-        "Investigate":  false
-    },
-    {
-        "Key":  "o",
-        "KeyChar":  "o",
-        "ConsoleKey":  "O",
-        "Modifiers":  "0",
-        "Investigate":  false
-    },
-    {
-        "Key":  "p",
-        "KeyChar":  "p",
-        "ConsoleKey":  "P",
-        "Modifiers":  "0",
-        "Investigate":  false
-    },
-    {
-        "Key":  "P",
-        "KeyChar":  "P",
-        "ConsoleKey":  "P",
-        "Modifiers":  "Shift",
-        "Investigate":  false
-    },
-    {
-        "Key":  "PageDown",
-        "KeyChar":  "\u0000",
-        "ConsoleKey":  "PageDown",
-        "Modifiers":  "0",
-        "Investigate":  false
-    },
-    {
-        "Key":  "PageUp",
-        "KeyChar":  "\u0000",
-        "ConsoleKey":  "PageUp",
-        "Modifiers":  "0",
-        "Investigate":  false
-    },
-    {
-        "Key":  "q",
-        "KeyChar":  "q",
-        "ConsoleKey":  "Q",
-        "Modifiers":  "0",
-        "Investigate":  false
-    },
-    {
-        "Key":  "r",
-        "KeyChar":  "r",
-        "ConsoleKey":  "R",
-        "Modifiers":  "0",
-        "Investigate":  false
-    },
-    {
-        "Key":  "R",
-        "KeyChar":  "R",
-        "ConsoleKey":  "R",
-        "Modifiers":  "Shift",
-        "Investigate":  false
-    },
-    {
-        "Key":  "RightArrow",
-        "KeyChar":  "\u0000",
-        "ConsoleKey":  "RightArrow",
-        "Modifiers":  "0",
-        "Investigate":  false
-    },
-    {
-        "Key":  "s",
-        "KeyChar":  "s",
-        "ConsoleKey":  "S",
-        "Modifiers":  "0",
-        "Investigate":  false
-    },
-    {
-        "Key":  "S",
-        "KeyChar":  "S",
-        "ConsoleKey":  "S",
-        "Modifiers":  "Shift",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Shift+DownArrow",
-        "KeyChar":  "\u0000",
-        "ConsoleKey":  "DownArrow",
-        "Modifiers":  "Shift",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Shift+End",
-        "KeyChar":  "\u0000",
-        "ConsoleKey":  "End",
-        "Modifiers":  "Shift",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Shift+Enter",
-        "KeyChar":  "\r",
-        "ConsoleKey":  "Enter",
-        "Modifiers":  "Shift",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Shift+F3",
-        "KeyChar":  "\u0000",
-        "ConsoleKey":  "F3",
-        "Modifiers":  "Shift",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Shift+F8",
-        "KeyChar":  "\u0000",
-        "ConsoleKey":  "F8",
-        "Modifiers":  "Shift",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Shift+Home",
-        "KeyChar":  "\u0000",
-        "ConsoleKey":  "Home",
-        "Modifiers":  "Shift",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Shift+Insert",
-        "KeyChar":  "\u0000",
-        "ConsoleKey":  "Insert",
-        "Modifiers":  "Shift",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Shift+LeftArrow",
-        "KeyChar":  "\u0000",
-        "ConsoleKey":  "LeftArrow",
-        "Modifiers":  "Shift",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Shift+PageDown",
-        "KeyChar":  "\u0000",
-        "ConsoleKey":  "PageDown",
-        "Modifiers":  "Shift",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Shift+PageUp",
-        "KeyChar":  "\u0000",
-        "ConsoleKey":  "PageUp",
-        "Modifiers":  "Shift",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Shift+RightArrow",
-        "KeyChar":  "\u0000",
-        "ConsoleKey":  "RightArrow",
-        "Modifiers":  "Shift",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Shift+Tab",
-        "KeyChar":  "\t",
-        "ConsoleKey":  "Tab",
-        "Modifiers":  "Shift",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Shift+Backspace",
-        "KeyChar":  "\b",
-        "ConsoleKey":  "Backspace",
-        "Modifiers":  "Shift",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Shift+Escape",
-        "KeyChar":  "\u001b",
-        "ConsoleKey":  "Escape",
-        "Modifiers":  "Shift",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Shift+UpArrow",
-        "KeyChar":  "\u0000",
-        "ConsoleKey":  "UpArrow",
-        "Modifiers":  "Shift",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Spacebar",
-        "KeyChar":  " ",
-        "ConsoleKey":  "Spacebar",
-        "Modifiers":  "0",
-        "Investigate":  false
-    },
-    {
-        "Key":  "t",
-        "KeyChar":  "t",
-        "ConsoleKey":  "T",
-        "Modifiers":  "0",
-        "Investigate":  false
-    },
-    {
-        "Key":  "T",
-        "KeyChar":  "T",
-        "ConsoleKey":  "T",
-        "Modifiers":  "Shift",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Tab",
-        "KeyChar":  "\t",
-        "ConsoleKey":  "Tab",
-        "Modifiers":  "0",
-        "Investigate":  false
-    },
-    {
-        "Key":  "U",
-        "KeyChar":  "U",
-        "ConsoleKey":  "U",
-        "Modifiers":  "Shift",
-        "Investigate":  false
-    },
-    {
-        "Key":  "u",
-        "KeyChar":  "u",
-        "ConsoleKey":  "U",
-        "Modifiers":  "0",
-        "Investigate":  false
-    },
-    {
-        "Key":  "UpArrow",
-        "KeyChar":  "\u0000",
-        "ConsoleKey":  "UpArrow",
-        "Modifiers":  "0",
-        "Investigate":  false
-    },
-    {
-        "Key":  "V",
-        "KeyChar":  "V",
-        "ConsoleKey":  "V",
-        "Modifiers":  "Shift",
-        "Investigate":  false
-    },
-    {
-        "Key":  "v",
-        "KeyChar":  "v",
-        "ConsoleKey":  "V",
-        "Modifiers":  "0",
-        "Investigate":  false
-    },
-    {
-        "Key":  "W",
-        "KeyChar":  "W",
-        "ConsoleKey":  "W",
-        "Modifiers":  "Shift",
-        "Investigate":  false
-    },
-    {
-        "Key":  "w",
-        "KeyChar":  "w",
-        "ConsoleKey":  "W",
-        "Modifiers":  "0",
-        "Investigate":  false
-    },
-    {
-        "Key":  "X",
-        "KeyChar":  "X",
-        "ConsoleKey":  "X",
-        "Modifiers":  "Shift",
-        "Investigate":  false
-    },
-    {
-        "Key":  "x",
-        "KeyChar":  "x",
-        "ConsoleKey":  "X",
-        "Modifiers":  "0",
-        "Investigate":  false
-    },
-    {
-        "Key":  "y",
-        "KeyChar":  "y",
-        "ConsoleKey":  "Y",
-        "Modifiers":  "0",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Y",
-        "KeyChar":  "Y",
-        "ConsoleKey":  "Y",
-        "Modifiers":  "Shift",
-        "Investigate":  false
-    },
-    {
-        "Key":  "Z",
-        "KeyChar":  "Z",
-        "ConsoleKey":  "Z",
-        "Modifiers":  "Shift",
-        "Investigate":  false
-    },
-    {
-        "Key":  "z",
-        "KeyChar":  "z",
-        "ConsoleKey":  "Z",
-        "Modifiers":  "0",
-        "Investigate":  false
-    },
-    {
-        "Key":  "DeadKey_Caret",
-        "KeyChar":  "\u0000",
-        "ConsoleKey":  "Oem6",
-        "Modifiers":  "0",
-        "Investigate":  false
-    },
-    {
-        "Key":  "DeadKey_Caret+A",
-        "KeyChar":  "\u00e2",
-        "ConsoleKey":  "A",
-        "Modifiers":  "0",
-        "Investigate":  false
-    }
+  {
+    "Key": "\u0027",
+    "KeyChar": "\u0027",
+    "ConsoleKey": "D4",
+    "Modifiers": "0",
+    "Investigate": false
+  },
+  {
+    "Key": "-",
+    "KeyChar": "-",
+    "ConsoleKey": "D6",
+    "Modifiers": "0",
+    "Investigate": false
+  },
+  {
+    "Key": "!",
+    "KeyChar": "!",
+    "ConsoleKey": "Oem8",
+    "Modifiers": "0",
+    "Investigate": false
+  },
+  {
+    "Key": "\"",
+    "KeyChar": "\"",
+    "ConsoleKey": "D3",
+    "Modifiers": "0",
+    "Investigate": false
+  },
+  {
+    "Key": "#",
+    "KeyChar": "#",
+    "ConsoleKey": "D3",
+    "Modifiers": "Alt, Control",
+    "Investigate": false
+  },
+  {
+    "Key": "$",
+    "KeyChar": "$",
+    "ConsoleKey": "Oem1",
+    "Modifiers": "0",
+    "Investigate": false
+  },
+  {
+    "Key": "%",
+    "KeyChar": "%",
+    "ConsoleKey": "Oem3",
+    "Modifiers": "Shift",
+    "Investigate": false
+  },
+  {
+    "Key": "\u0026",
+    "KeyChar": "\u0026",
+    "ConsoleKey": "D1",
+    "Modifiers": "0",
+    "Investigate": false
+  },
+  {
+    "Key": "(",
+    "KeyChar": "(",
+    "ConsoleKey": "D5",
+    "Modifiers": "0",
+    "Investigate": false
+  },
+  {
+    "Key": ")",
+    "KeyChar": ")",
+    "ConsoleKey": "Oem4",
+    "Modifiers": "0",
+    "Investigate": false
+  },
+  {
+    "Key": "*",
+    "KeyChar": "*",
+    "ConsoleKey": "Oem5",
+    "Modifiers": "0",
+    "Investigate": false
+  },
+  {
+    "Key": ",",
+    "KeyChar": ",",
+    "ConsoleKey": "OemComma",
+    "Modifiers": "0",
+    "Investigate": false
+  },
+  {
+    "Key": ".",
+    "KeyChar": ".",
+    "ConsoleKey": "OemPeriod",
+    "Modifiers": "Shift",
+    "Investigate": false
+  },
+  {
+    "Key": "/",
+    "KeyChar": "/",
+    "ConsoleKey": "Oem2",
+    "Modifiers": "Shift",
+    "Investigate": false
+  },
+  {
+    "Key": ":",
+    "KeyChar": ":",
+    "ConsoleKey": "Oem2",
+    "Modifiers": "0",
+    "Investigate": false
+  },
+  {
+    "Key": ";",
+    "KeyChar": ";",
+    "ConsoleKey": "OemPeriod",
+    "Modifiers": "0",
+    "Investigate": false
+  },
+  {
+    "Key": "?",
+    "KeyChar": "?",
+    "ConsoleKey": "OemComma",
+    "Modifiers": "Shift",
+    "Investigate": false
+  },
+  {
+    "Key": "@",
+    "KeyChar": "@",
+    "ConsoleKey": "D0",
+    "Modifiers": "Alt, Control",
+    "Investigate": false
+  },
+  {
+    "Key": "[",
+    "KeyChar": "[",
+    "ConsoleKey": "D5",
+    "Modifiers": "Alt, Control",
+    "Investigate": false
+  },
+  {
+    "Key": "\\",
+    "KeyChar": "\\",
+    "ConsoleKey": "D8",
+    "Modifiers": "Alt, Control",
+    "Investigate": false
+  },
+  {
+    "Key": "]",
+    "KeyChar": "]",
+    "ConsoleKey": "Oem4",
+    "Modifiers": "Alt, Control",
+    "Investigate": false
+  },
+  {
+    "Key": "^",
+    "KeyChar": "^",
+    "ConsoleKey": "Oem6",
+    "Modifiers": "0",
+    "Investigate": false
+  },
+  {
+    "Key": "_",
+    "KeyChar": "_",
+    "ConsoleKey": "D8",
+    "Modifiers": "0",
+    "Investigate": false
+  },
+  {
+    "Key": "`",
+    "KeyChar": "`",
+    "ConsoleKey": "D7",
+    "Modifiers": "Alt, Control",
+    "Investigate": true
+  },
+  {
+    "Key": "{",
+    "KeyChar": "{",
+    "ConsoleKey": "D4",
+    "Modifiers": "Alt, Control",
+    "Investigate": false
+  },
+  {
+    "Key": "|",
+    "KeyChar": "|",
+    "ConsoleKey": "D6",
+    "Modifiers": "Alt, Control",
+    "Investigate": false
+  },
+  {
+    "Key": "}",
+    "KeyChar": "}",
+    "ConsoleKey": "OemPlus",
+    "Modifiers": "Alt, Control",
+    "Investigate": false
+  },
+  {
+    "Key": "~",
+    "KeyChar": "~",
+    "ConsoleKey": "D2",
+    "Modifiers": "Alt, Control",
+    "Investigate": true
+  },
+  {
+    "Key": "+",
+    "KeyChar": "+",
+    "ConsoleKey": "OemPlus",
+    "Modifiers": "Shift",
+    "Investigate": false
+  },
+  {
+    "Key": "\u003c",
+    "KeyChar": "\u003c",
+    "ConsoleKey": "18",
+    "Modifiers": "0",
+    "Investigate": false
+  },
+  {
+    "Key": "=",
+    "KeyChar": "=",
+    "ConsoleKey": "OemPlus",
+    "Modifiers": "0",
+    "Investigate": false
+  },
+  {
+    "Key": "\u003e",
+    "KeyChar": "\u003e",
+    "ConsoleKey": "18",
+    "Modifiers": "0",
+    "Investigate": false
+  },
+  {
+    "Key": "0",
+    "KeyChar": "0",
+    "ConsoleKey": "D0",
+    "Modifiers": "Shift",
+    "Investigate": false
+  },
+  {
+    "Key": "1",
+    "KeyChar": "1",
+    "ConsoleKey": "D1",
+    "Modifiers": "Shift",
+    "Investigate": false
+  },
+  {
+    "Key": "2",
+    "KeyChar": "2",
+    "ConsoleKey": "D2",
+    "Modifiers": "Shift",
+    "Investigate": false
+  },
+  {
+    "Key": "3",
+    "KeyChar": "3",
+    "ConsoleKey": "D3",
+    "Modifiers": "Shift",
+    "Investigate": false
+  },
+  {
+    "Key": "4",
+    "KeyChar": "4",
+    "ConsoleKey": "D4",
+    "Modifiers": "Shift",
+    "Investigate": false
+  },
+  {
+    "Key": "5",
+    "KeyChar": "5",
+    "ConsoleKey": "D5",
+    "Modifiers": "Shift",
+    "Investigate": false
+  },
+  {
+    "Key": "6",
+    "KeyChar": "6",
+    "ConsoleKey": "D6",
+    "Modifiers": "Shift",
+    "Investigate": false
+  },
+  {
+    "Key": "7",
+    "KeyChar": "7",
+    "ConsoleKey": "D7",
+    "Modifiers": "Shift",
+    "Investigate": false
+  },
+  {
+    "Key": "8",
+    "KeyChar": "8",
+    "ConsoleKey": "D8",
+    "Modifiers": "Shift",
+    "Investigate": false
+  },
+  {
+    "Key": "9",
+    "KeyChar": "9",
+    "ConsoleKey": "D9",
+    "Modifiers": "Shift",
+    "Investigate": false
+  },
+  {
+    "Key": "a",
+    "KeyChar": "a",
+    "ConsoleKey": "A",
+    "Modifiers": "0",
+    "Investigate": false
+  },
+  {
+    "Key": "A",
+    "KeyChar": "A",
+    "ConsoleKey": "A",
+    "Modifiers": "Shift",
+    "Investigate": false
+  },
+  {
+    "Key": "Alt+-",
+    "KeyChar": "-",
+    "ConsoleKey": "D6",
+    "Modifiers": "Alt",
+    "Investigate": false
+  },
+  {
+    "Key": "Alt+.",
+    "KeyChar": ".",
+    "ConsoleKey": "OemPeriod",
+    "Modifiers": "Alt, Shift",
+    "Investigate": false
+  },
+  {
+    "Key": "Alt+?",
+    "KeyChar": "?",
+    "ConsoleKey": "OemComma",
+    "Modifiers": "Alt, Shift",
+    "Investigate": false
+  },
+  {
+    "Key": "Alt+_",
+    "KeyChar": "8",
+    "ConsoleKey": "D8",
+    "Modifiers": "Alt, Shift",
+    "Investigate": false
+  },
+  {
+    "Key": "Alt+=",
+    "KeyChar": "=",
+    "ConsoleKey": "OemPlus",
+    "Modifiers": "Alt",
+    "Investigate": false
+  },
+  {
+    "Key": "Alt+0",
+    "KeyChar": "0",
+    "ConsoleKey": "D0",
+    "Modifiers": "Alt, Shift",
+    "Investigate": false
+  },
+  {
+    "Key": "Alt+1",
+    "KeyChar": "1",
+    "ConsoleKey": "D1",
+    "Modifiers": "Alt, Shift",
+    "Investigate": false
+  },
+  {
+    "Key": "Alt+2",
+    "KeyChar": "2",
+    "ConsoleKey": "D2",
+    "Modifiers": "Alt, Shift",
+    "Investigate": false
+  },
+  {
+    "Key": "Alt+3",
+    "KeyChar": "3",
+    "ConsoleKey": "D3",
+    "Modifiers": "Alt, Shift",
+    "Investigate": false
+  },
+  {
+    "Key": "Alt+4",
+    "KeyChar": "4",
+    "ConsoleKey": "D4",
+    "Modifiers": "Alt, Shift",
+    "Investigate": false
+  },
+  {
+    "Key": "Alt+5",
+    "KeyChar": "5",
+    "ConsoleKey": "D5",
+    "Modifiers": "Alt, Shift",
+    "Investigate": false
+  },
+  {
+    "Key": "Alt+6",
+    "KeyChar": "6",
+    "ConsoleKey": "D6",
+    "Modifiers": "Alt, Shift",
+    "Investigate": false
+  },
+  {
+    "Key": "Alt+7",
+    "KeyChar": "7",
+    "ConsoleKey": "D7",
+    "Modifiers": "Alt, Shift",
+    "Investigate": false
+  },
+  {
+    "Key": "Alt+8",
+    "KeyChar": "8",
+    "ConsoleKey": "D8",
+    "Modifiers": "Alt, Shift",
+    "Investigate": false
+  },
+  {
+    "Key": "Alt+9",
+    "KeyChar": "9",
+    "ConsoleKey": "D9",
+    "Modifiers": "Alt, Shift",
+    "Investigate": false
+  },
+  {
+    "Key": "Alt+a",
+    "KeyChar": "a",
+    "ConsoleKey": "A",
+    "Modifiers": "Alt",
+    "Investigate": false
+  },
+  {
+    "Key": "Alt+b",
+    "KeyChar": "b",
+    "ConsoleKey": "B",
+    "Modifiers": "Alt",
+    "Investigate": false
+  },
+  {
+    "Key": "Alt+B",
+    "KeyChar": "B",
+    "ConsoleKey": "B",
+    "Modifiers": "Alt, Shift",
+    "Investigate": false
+  },
+  {
+    "Key": "Alt+Backspace",
+    "KeyChar": "\b",
+    "ConsoleKey": "Backspace",
+    "Modifiers": "Alt",
+    "Investigate": false
+  },
+  {
+    "Key": "Alt+c",
+    "KeyChar": "c",
+    "ConsoleKey": "C",
+    "Modifiers": "Alt",
+    "Investigate": false
+  },
+  {
+    "Key": "Alt+d",
+    "KeyChar": "d",
+    "ConsoleKey": "D",
+    "Modifiers": "Alt",
+    "Investigate": false
+  },
+  {
+    "Key": "Alt+e",
+    "KeyChar": "e",
+    "ConsoleKey": "E",
+    "Modifiers": "Alt",
+    "Investigate": false
+  },
+  {
+    "Key": "Alt+F",
+    "KeyChar": "F",
+    "ConsoleKey": "F",
+    "Modifiers": "Alt, Shift",
+    "Investigate": false
+  },
+  {
+    "Key": "Alt+f",
+    "KeyChar": "f",
+    "ConsoleKey": "F",
+    "Modifiers": "Alt",
+    "Investigate": false
+  },
+  {
+    "Key": "Alt+F1",
+    "KeyChar": "\u0000",
+    "ConsoleKey": "F1",
+    "Modifiers": "Alt",
+    "Investigate": false
+  },
+  {
+    "Key": "Alt+F2",
+    "KeyChar": "\u0000",
+    "ConsoleKey": "F2",
+    "Modifiers": "Alt",
+    "Investigate": false
+  },
+  {
+    "Key": "Alt+F3",
+    "KeyChar": "\u0000",
+    "ConsoleKey": "F3",
+    "Modifiers": "Alt",
+    "Investigate": false
+  },
+  {
+    "Key": "Alt+F4",
+    "KeyChar": "\u0000",
+    "ConsoleKey": "F4",
+    "Modifiers": "Alt",
+    "Investigate": false
+  },
+  {
+    "Key": "Alt+F5",
+    "KeyChar": "\u0000",
+    "ConsoleKey": "F5",
+    "Modifiers": "Alt",
+    "Investigate": false
+  },
+  {
+    "Key": "Alt+F6",
+    "KeyChar": "\u0000",
+    "ConsoleKey": "F6",
+    "Modifiers": "Alt",
+    "Investigate": false
+  },
+  {
+    "Key": "Alt+F7",
+    "KeyChar": "\u0000",
+    "ConsoleKey": "F7",
+    "Modifiers": "Alt, Control",
+    "Investigate": false
+  },
+  {
+    "Key": "Alt+F8",
+    "KeyChar": "\u0000",
+    "ConsoleKey": "F8",
+    "Modifiers": "Alt",
+    "Investigate": false
+  },
+  {
+    "Key": "Alt+F9",
+    "KeyChar": "\u0000",
+    "ConsoleKey": "F9",
+    "Modifiers": "Alt",
+    "Investigate": false
+  },
+  {
+    "Key": "Alt+g",
+    "KeyChar": "g",
+    "ConsoleKey": "G",
+    "Modifiers": "Alt",
+    "Investigate": false
+  },
+  {
+    "Key": "Alt+h",
+    "KeyChar": "h",
+    "ConsoleKey": "H",
+    "Modifiers": "Alt",
+    "Investigate": false
+  },
+  {
+    "Key": "Alt+i",
+    "KeyChar": "i",
+    "ConsoleKey": "I",
+    "Modifiers": "Alt",
+    "Investigate": false
+  },
+  {
+    "Key": "Alt+j",
+    "KeyChar": "j",
+    "ConsoleKey": "J",
+    "Modifiers": "Alt",
+    "Investigate": false
+  },
+  {
+    "Key": "Alt+k",
+    "KeyChar": "k",
+    "ConsoleKey": "K",
+    "Modifiers": "Alt",
+    "Investigate": false
+  },
+  {
+    "Key": "Alt+l",
+    "KeyChar": "l",
+    "ConsoleKey": "L",
+    "Modifiers": "Alt",
+    "Investigate": false
+  },
+  {
+    "Key": "Alt+m",
+    "KeyChar": "m",
+    "ConsoleKey": "M",
+    "Modifiers": "Alt",
+    "Investigate": false
+  },
+  {
+    "Key": "Alt+n",
+    "KeyChar": "n",
+    "ConsoleKey": "N",
+    "Modifiers": "Alt",
+    "Investigate": false
+  },
+  {
+    "Key": "Alt+o",
+    "KeyChar": "o",
+    "ConsoleKey": "O",
+    "Modifiers": "Alt",
+    "Investigate": false
+  },
+  {
+    "Key": "Alt+p",
+    "KeyChar": "p",
+    "ConsoleKey": "P",
+    "Modifiers": "Alt",
+    "Investigate": false
+  },
+  {
+    "Key": "Alt+q",
+    "KeyChar": "q",
+    "ConsoleKey": "Q",
+    "Modifiers": "Alt",
+    "Investigate": false
+  },
+  {
+    "Key": "Alt+r",
+    "KeyChar": "r",
+    "ConsoleKey": "R",
+    "Modifiers": "Alt",
+    "Investigate": false
+  },
+  {
+    "Key": "Alt+s",
+    "KeyChar": "s",
+    "ConsoleKey": "S",
+    "Modifiers": "Alt",
+    "Investigate": false
+  },
+  {
+    "Key": "Alt+Spacebar",
+    "KeyChar": "\r",
+    "ConsoleKey": "Enter",
+    "Modifiers": "0",
+    "Investigate": false
+  },
+  {
+    "Key": "Alt+t",
+    "KeyChar": "t",
+    "ConsoleKey": "T",
+    "Modifiers": "Alt",
+    "Investigate": false
+  },
+  {
+    "Key": "Alt+u",
+    "KeyChar": "u",
+    "ConsoleKey": "U",
+    "Modifiers": "Alt",
+    "Investigate": false
+  },
+  {
+    "Key": "Alt+v",
+    "KeyChar": "v",
+    "ConsoleKey": "V",
+    "Modifiers": "Alt",
+    "Investigate": false
+  },
+  {
+    "Key": "Alt+w",
+    "KeyChar": "w",
+    "ConsoleKey": "W",
+    "Modifiers": "Alt",
+    "Investigate": false
+  },
+  {
+    "Key": "Alt+x",
+    "KeyChar": "x",
+    "ConsoleKey": "X",
+    "Modifiers": "Alt",
+    "Investigate": false
+  },
+  {
+    "Key": "Alt+y",
+    "KeyChar": "y",
+    "ConsoleKey": "Y",
+    "Modifiers": "Alt",
+    "Investigate": false
+  },
+  {
+    "Key": "Alt+z",
+    "KeyChar": "z",
+    "ConsoleKey": "Z",
+    "Modifiers": "Alt",
+    "Investigate": false
+  },
+  {
+    "Key": "B",
+    "KeyChar": "B",
+    "ConsoleKey": "B",
+    "Modifiers": "Shift",
+    "Investigate": false
+  },
+  {
+    "Key": "b",
+    "KeyChar": "b",
+    "ConsoleKey": "B",
+    "Modifiers": "0",
+    "Investigate": false
+  },
+  {
+    "Key": "Backspace",
+    "KeyChar": "\b",
+    "ConsoleKey": "Backspace",
+    "Modifiers": "0",
+    "Investigate": false
+  },
+  {
+    "Key": "c",
+    "KeyChar": "c",
+    "ConsoleKey": "C",
+    "Modifiers": "0",
+    "Investigate": false
+  },
+  {
+    "Key": "C",
+    "KeyChar": "C",
+    "ConsoleKey": "C",
+    "Modifiers": "Shift",
+    "Investigate": false
+  },
+  {
+    "Key": "Ctrl+@",
+    "KeyChar": "@",
+    "ConsoleKey": "D0",
+    "Modifiers": "Alt, Control",
+    "Investigate": false
+  },
+  {
+    "Key": "Ctrl+[",
+    "KeyChar": "[",
+    "ConsoleKey": "D5",
+    "Modifiers": "Alt, Control",
+    "Investigate": false
+  },
+  {
+    "Key": "Ctrl+\\",
+    "KeyChar": "\\",
+    "ConsoleKey": "D8",
+    "Modifiers": "Alt, Control",
+    "Investigate": false
+  },
+  {
+    "Key": "Ctrl+]",
+    "KeyChar": "]",
+    "ConsoleKey": "Oem4",
+    "Modifiers": "Alt, Control",
+    "Investigate": false
+  },
+  {
+    "Key": "Ctrl+^",
+    "KeyChar": "^",
+    "ConsoleKey": "D9",
+    "Modifiers": "Alt, Control",
+    "Investigate": true
+  },
+  {
+    "Key": "Ctrl+_",
+    "KeyChar": "\u0000",
+    "ConsoleKey": "D8",
+    "Modifiers": "Control",
+    "Investigate": false
+  },
+  {
+    "Key": "Ctrl+a",
+    "KeyChar": "\u0001",
+    "ConsoleKey": "A",
+    "Modifiers": "Control",
+    "Investigate": false
+  },
+  {
+    "Key": "Ctrl+Alt+?",
+    "KeyChar": "\u0000",
+    "ConsoleKey": "OemComma",
+    "Modifiers": "Alt, Shift, Control",
+    "Investigate": false
+  },
+  {
+    "Key": "Ctrl+Alt+]",
+    "KeyChar": "]",
+    "ConsoleKey": "Oem4",
+    "Modifiers": "Alt, Control",
+    "Investigate": false
+  },
+  {
+    "Key": "Ctrl+Alt+y",
+    "KeyChar": "\u0000",
+    "ConsoleKey": "Y",
+    "Modifiers": "Alt, Control",
+    "Investigate": false
+  },
+  {
+    "Key": "Ctrl+b",
+    "KeyChar": "\u0002",
+    "ConsoleKey": "B",
+    "Modifiers": "Control",
+    "Investigate": false
+  },
+  {
+    "Key": "Ctrl+Backspace",
+    "KeyChar": "",
+    "ConsoleKey": "Backspace",
+    "Modifiers": "Control",
+    "Investigate": false
+  },
+  {
+    "Key": "Ctrl+C",
+    "KeyChar": "\u0003",
+    "ConsoleKey": "C",
+    "Modifiers": "Shift, Control",
+    "Investigate": false
+  },
+  {
+    "Key": "Ctrl+c",
+    "KeyChar": "\u0003",
+    "ConsoleKey": "C",
+    "Modifiers": "Control",
+    "Investigate": false
+  },
+  {
+    "Key": "Ctrl+d",
+    "KeyChar": "\u0004",
+    "ConsoleKey": "D",
+    "Modifiers": "Control",
+    "Investigate": false
+  },
+  {
+    "Key": "Ctrl+Delete",
+    "KeyChar": "\u0000",
+    "ConsoleKey": "Delete",
+    "Modifiers": "Control",
+    "Investigate": false
+  },
+  {
+    "Key": "Ctrl+e",
+    "KeyChar": "\u0005",
+    "ConsoleKey": "E",
+    "Modifiers": "Control",
+    "Investigate": false
+  },
+  {
+    "Key": "Ctrl+End",
+    "KeyChar": "\u0000",
+    "ConsoleKey": "End",
+    "Modifiers": "Control",
+    "Investigate": false
+  },
+  {
+    "Key": "Ctrl+Enter",
+    "KeyChar": "\n",
+    "ConsoleKey": "Enter",
+    "Modifiers": "Control",
+    "Investigate": false
+  },
+  {
+    "Key": "Ctrl+f",
+    "KeyChar": "\u0006",
+    "ConsoleKey": "F",
+    "Modifiers": "Control",
+    "Investigate": false
+  },
+  {
+    "Key": "Ctrl+g",
+    "KeyChar": "\u0007",
+    "ConsoleKey": "G",
+    "Modifiers": "Control",
+    "Investigate": false
+  },
+  {
+    "Key": "Ctrl+h",
+    "KeyChar": "\b",
+    "ConsoleKey": "H",
+    "Modifiers": "Control",
+    "Investigate": false
+  },
+  {
+    "Key": "Ctrl+Home",
+    "KeyChar": "\u0000",
+    "ConsoleKey": "Home",
+    "Modifiers": "Control",
+    "Investigate": false
+  },
+  {
+    "Key": "Ctrl+i",
+    "KeyChar": "\t",
+    "ConsoleKey": "I",
+    "Modifiers": "Control",
+    "Investigate": false
+  },
+  {
+    "Key": "Ctrl+j",
+    "KeyChar": "\n",
+    "ConsoleKey": "J",
+    "Modifiers": "Control",
+    "Investigate": false
+  },
+  {
+    "Key": "Ctrl+k",
+    "KeyChar": "\u000b",
+    "ConsoleKey": "K",
+    "Modifiers": "Control",
+    "Investigate": false
+  },
+  {
+    "Key": "Ctrl+l",
+    "KeyChar": "\f",
+    "ConsoleKey": "L",
+    "Modifiers": "Control",
+    "Investigate": false
+  },
+  {
+    "Key": "Ctrl+LeftArrow",
+    "KeyChar": "\u0000",
+    "ConsoleKey": "LeftArrow",
+    "Modifiers": "Control",
+    "Investigate": false
+  },
+  {
+    "Key": "Ctrl+m",
+    "KeyChar": "\r",
+    "ConsoleKey": "M",
+    "Modifiers": "Control",
+    "Investigate": false
+  },
+  {
+    "Key": "Ctrl+n",
+    "KeyChar": "\u000e",
+    "ConsoleKey": "N",
+    "Modifiers": "Control",
+    "Investigate": false
+  },
+  {
+    "Key": "Ctrl+o",
+    "KeyChar": "\u000f",
+    "ConsoleKey": "O",
+    "Modifiers": "Control",
+    "Investigate": false
+  },
+  {
+    "Key": "Ctrl+p",
+    "KeyChar": "\u0010",
+    "ConsoleKey": "P",
+    "Modifiers": "Control",
+    "Investigate": false
+  },
+  {
+    "Key": "Ctrl+PageDown",
+    "KeyChar": "\u0000",
+    "ConsoleKey": "PageDown",
+    "Modifiers": "Control",
+    "Investigate": false
+  },
+  {
+    "Key": "Ctrl+PageUp",
+    "KeyChar": "\u0000",
+    "ConsoleKey": "PageUp",
+    "Modifiers": "Control",
+    "Investigate": false
+  },
+  {
+    "Key": "Ctrl+q",
+    "KeyChar": "\u0011",
+    "ConsoleKey": "Q",
+    "Modifiers": "Control",
+    "Investigate": false
+  },
+  {
+    "Key": "Ctrl+r",
+    "KeyChar": "\u0012",
+    "ConsoleKey": "R",
+    "Modifiers": "Control",
+    "Investigate": false
+  },
+  {
+    "Key": "Ctrl+RightArrow",
+    "KeyChar": "\u0000",
+    "ConsoleKey": "RightArrow",
+    "Modifiers": "Control",
+    "Investigate": false
+  },
+  {
+    "Key": "Ctrl+s",
+    "KeyChar": "\u0013",
+    "ConsoleKey": "S",
+    "Modifiers": "Control",
+    "Investigate": false
+  },
+  {
+    "Key": "Ctrl+Shift+Enter",
+    "KeyChar": "\u0000",
+    "ConsoleKey": "Enter",
+    "Modifiers": "Shift, Control",
+    "Investigate": false
+  },
+  {
+    "Key": "Ctrl+Shift+LeftArrow",
+    "KeyChar": "\u0000",
+    "ConsoleKey": "LeftArrow",
+    "Modifiers": "Shift, Control",
+    "Investigate": false
+  },
+  {
+    "Key": "Ctrl+Shift+RightArrow",
+    "KeyChar": "\u0000",
+    "ConsoleKey": "RightArrow",
+    "Modifiers": "Shift, Control",
+    "Investigate": false
+  },
+  {
+    "Key": "Ctrl+Spacebar",
+    "KeyChar": " ",
+    "ConsoleKey": "Spacebar",
+    "Modifiers": "Control",
+    "Investigate": false
+  },
+  {
+    "Key": "Ctrl+t",
+    "KeyChar": "\u0014",
+    "ConsoleKey": "T",
+    "Modifiers": "Control",
+    "Investigate": false
+  },
+  {
+    "Key": "Ctrl+u",
+    "KeyChar": "\u0015",
+    "ConsoleKey": "U",
+    "Modifiers": "Control",
+    "Investigate": false
+  },
+  {
+    "Key": "Ctrl+v",
+    "KeyChar": "\u0016",
+    "ConsoleKey": "V",
+    "Modifiers": "Control",
+    "Investigate": false
+  },
+  {
+    "Key": "Ctrl+w",
+    "KeyChar": "\u0017",
+    "ConsoleKey": "W",
+    "Modifiers": "Control",
+    "Investigate": false
+  },
+  {
+    "Key": "Ctrl+x",
+    "KeyChar": "\u0018",
+    "ConsoleKey": "X",
+    "Modifiers": "Control",
+    "Investigate": false
+  },
+  {
+    "Key": "Ctrl+y",
+    "KeyChar": "\u0019",
+    "ConsoleKey": "Y",
+    "Modifiers": "Control",
+    "Investigate": false
+  },
+  {
+    "Key": "Ctrl+z",
+    "KeyChar": "\u001a",
+    "ConsoleKey": "Z",
+    "Modifiers": "Control",
+    "Investigate": false
+  },
+  {
+    "Key": "D",
+    "KeyChar": "D",
+    "ConsoleKey": "D",
+    "Modifiers": "Shift",
+    "Investigate": false
+  },
+  {
+    "Key": "d",
+    "KeyChar": "d",
+    "ConsoleKey": "D",
+    "Modifiers": "0",
+    "Investigate": false
+  },
+  {
+    "Key": "Delete",
+    "KeyChar": "\u0000",
+    "ConsoleKey": "Delete",
+    "Modifiers": "0",
+    "Investigate": false
+  },
+  {
+    "Key": "DownArrow",
+    "KeyChar": "\u0000",
+    "ConsoleKey": "DownArrow",
+    "Modifiers": "0",
+    "Investigate": false
+  },
+  {
+    "Key": "E",
+    "KeyChar": "E",
+    "ConsoleKey": "E",
+    "Modifiers": "Shift",
+    "Investigate": false
+  },
+  {
+    "Key": "e",
+    "KeyChar": "e",
+    "ConsoleKey": "E",
+    "Modifiers": "0",
+    "Investigate": false
+  },
+  {
+    "Key": "End",
+    "KeyChar": "\u0000",
+    "ConsoleKey": "End",
+    "Modifiers": "0",
+    "Investigate": false
+  },
+  {
+    "Key": "Enter",
+    "KeyChar": "\r",
+    "ConsoleKey": "Enter",
+    "Modifiers": "0",
+    "Investigate": false
+  },
+  {
+    "Key": "Escape",
+    "KeyChar": "\u001b",
+    "ConsoleKey": "Escape",
+    "Modifiers": "0",
+    "Investigate": false
+  },
+  {
+    "Key": "F",
+    "KeyChar": "F",
+    "ConsoleKey": "F",
+    "Modifiers": "Shift",
+    "Investigate": false
+  },
+  {
+    "Key": "f",
+    "KeyChar": "f",
+    "ConsoleKey": "F",
+    "Modifiers": "0",
+    "Investigate": false
+  },
+  {
+    "Key": "F1",
+    "KeyChar": "\u0000",
+    "ConsoleKey": "F1",
+    "Modifiers": "0",
+    "Investigate": false
+  },
+  {
+    "Key": "F2",
+    "KeyChar": "\u0000",
+    "ConsoleKey": "F2",
+    "Modifiers": "0",
+    "Investigate": false
+  },
+  {
+    "Key": "F3",
+    "KeyChar": "\u0000",
+    "ConsoleKey": "F3",
+    "Modifiers": "0",
+    "Investigate": false
+  },
+  {
+    "Key": "F4",
+    "KeyChar": "\u0000",
+    "ConsoleKey": "F4",
+    "Modifiers": "0",
+    "Investigate": false
+  },
+  {
+    "Key": "F5",
+    "KeyChar": "\u0000",
+    "ConsoleKey": "F5",
+    "Modifiers": "0",
+    "Investigate": false
+  },
+  {
+    "Key": "F6",
+    "KeyChar": "\u0000",
+    "ConsoleKey": "F6",
+    "Modifiers": "0",
+    "Investigate": false
+  },
+  {
+    "Key": "F7",
+    "KeyChar": "\u0000",
+    "ConsoleKey": "F7",
+    "Modifiers": "0",
+    "Investigate": false
+  },
+  {
+    "Key": "F8",
+    "KeyChar": "\u0000",
+    "ConsoleKey": "F8",
+    "Modifiers": "0",
+    "Investigate": false
+  },
+  {
+    "Key": "F9",
+    "KeyChar": "\u0000",
+    "ConsoleKey": "F9",
+    "Modifiers": "0",
+    "Investigate": false
+  },
+  {
+    "Key": "g",
+    "KeyChar": "g",
+    "ConsoleKey": "G",
+    "Modifiers": "0",
+    "Investigate": false
+  },
+  {
+    "Key": "G",
+    "KeyChar": "G",
+    "ConsoleKey": "G",
+    "Modifiers": "Shift",
+    "Investigate": false
+  },
+  {
+    "Key": "h",
+    "KeyChar": "h",
+    "ConsoleKey": "H",
+    "Modifiers": "0",
+    "Investigate": false
+  },
+  {
+    "Key": "H",
+    "KeyChar": "H",
+    "ConsoleKey": "H",
+    "Modifiers": "Shift",
+    "Investigate": false
+  },
+  {
+    "Key": "Home",
+    "KeyChar": "\u0000",
+    "ConsoleKey": "Home",
+    "Modifiers": "0",
+    "Investigate": false
+  },
+  {
+    "Key": "I",
+    "KeyChar": "I",
+    "ConsoleKey": "I",
+    "Modifiers": "Shift",
+    "Investigate": false
+  },
+  {
+    "Key": "i",
+    "KeyChar": "i",
+    "ConsoleKey": "I",
+    "Modifiers": "0",
+    "Investigate": false
+  },
+  {
+    "Key": "j",
+    "KeyChar": "j",
+    "ConsoleKey": "J",
+    "Modifiers": "0",
+    "Investigate": false
+  },
+  {
+    "Key": "J",
+    "KeyChar": "J",
+    "ConsoleKey": "J",
+    "Modifiers": "Shift",
+    "Investigate": false
+  },
+  {
+    "Key": "K",
+    "KeyChar": "K",
+    "ConsoleKey": "K",
+    "Modifiers": "Shift",
+    "Investigate": false
+  },
+  {
+    "Key": "k",
+    "KeyChar": "k",
+    "ConsoleKey": "K",
+    "Modifiers": "0",
+    "Investigate": false
+  },
+  {
+    "Key": "l",
+    "KeyChar": "l",
+    "ConsoleKey": "L",
+    "Modifiers": "0",
+    "Investigate": false
+  },
+  {
+    "Key": "L",
+    "KeyChar": "L",
+    "ConsoleKey": "L",
+    "Modifiers": "Shift",
+    "Investigate": false
+  },
+  {
+    "Key": "LeftArrow",
+    "KeyChar": "\u0000",
+    "ConsoleKey": "LeftArrow",
+    "Modifiers": "0",
+    "Investigate": false
+  },
+  {
+    "Key": "M",
+    "KeyChar": "M",
+    "ConsoleKey": "M",
+    "Modifiers": "Shift",
+    "Investigate": false
+  },
+  {
+    "Key": "m",
+    "KeyChar": "m",
+    "ConsoleKey": "M",
+    "Modifiers": "0",
+    "Investigate": false
+  },
+  {
+    "Key": "N",
+    "KeyChar": "N",
+    "ConsoleKey": "N",
+    "Modifiers": "Shift",
+    "Investigate": false
+  },
+  {
+    "Key": "n",
+    "KeyChar": "n",
+    "ConsoleKey": "N",
+    "Modifiers": "0",
+    "Investigate": false
+  },
+  {
+    "Key": "O",
+    "KeyChar": "O",
+    "ConsoleKey": "O",
+    "Modifiers": "Shift",
+    "Investigate": false
+  },
+  {
+    "Key": "o",
+    "KeyChar": "o",
+    "ConsoleKey": "O",
+    "Modifiers": "0",
+    "Investigate": false
+  },
+  {
+    "Key": "p",
+    "KeyChar": "p",
+    "ConsoleKey": "P",
+    "Modifiers": "0",
+    "Investigate": false
+  },
+  {
+    "Key": "P",
+    "KeyChar": "P",
+    "ConsoleKey": "P",
+    "Modifiers": "Shift",
+    "Investigate": false
+  },
+  {
+    "Key": "PageDown",
+    "KeyChar": "\u0000",
+    "ConsoleKey": "PageDown",
+    "Modifiers": "0",
+    "Investigate": false
+  },
+  {
+    "Key": "PageUp",
+    "KeyChar": "\u0000",
+    "ConsoleKey": "PageUp",
+    "Modifiers": "0",
+    "Investigate": false
+  },
+  {
+    "Key": "q",
+    "KeyChar": "q",
+    "ConsoleKey": "Q",
+    "Modifiers": "0",
+    "Investigate": false
+  },
+  {
+    "Key": "r",
+    "KeyChar": "r",
+    "ConsoleKey": "R",
+    "Modifiers": "0",
+    "Investigate": false
+  },
+  {
+    "Key": "R",
+    "KeyChar": "R",
+    "ConsoleKey": "R",
+    "Modifiers": "Shift",
+    "Investigate": false
+  },
+  {
+    "Key": "RightArrow",
+    "KeyChar": "\u0000",
+    "ConsoleKey": "RightArrow",
+    "Modifiers": "0",
+    "Investigate": false
+  },
+  {
+    "Key": "s",
+    "KeyChar": "s",
+    "ConsoleKey": "S",
+    "Modifiers": "0",
+    "Investigate": false
+  },
+  {
+    "Key": "S",
+    "KeyChar": "S",
+    "ConsoleKey": "S",
+    "Modifiers": "Shift",
+    "Investigate": false
+  },
+  {
+    "Key": "Shift+DownArrow",
+    "KeyChar": "\u0000",
+    "ConsoleKey": "DownArrow",
+    "Modifiers": "Shift",
+    "Investigate": false
+  },
+  {
+    "Key": "Shift+End",
+    "KeyChar": "\u0000",
+    "ConsoleKey": "End",
+    "Modifiers": "Shift",
+    "Investigate": false
+  },
+  {
+    "Key": "Shift+Enter",
+    "KeyChar": "\r",
+    "ConsoleKey": "Enter",
+    "Modifiers": "Shift",
+    "Investigate": false
+  },
+  {
+    "Key": "Shift+F3",
+    "KeyChar": "\u0000",
+    "ConsoleKey": "F3",
+    "Modifiers": "Shift",
+    "Investigate": false
+  },
+  {
+    "Key": "Shift+F8",
+    "KeyChar": "\u0000",
+    "ConsoleKey": "F8",
+    "Modifiers": "Shift",
+    "Investigate": false
+  },
+  {
+    "Key": "Shift+Home",
+    "KeyChar": "\u0000",
+    "ConsoleKey": "Home",
+    "Modifiers": "Shift",
+    "Investigate": false
+  },
+  {
+    "Key": "Shift+Insert",
+    "KeyChar": "\u0000",
+    "ConsoleKey": "Insert",
+    "Modifiers": "Shift",
+    "Investigate": false
+  },
+  {
+    "Key": "Shift+LeftArrow",
+    "KeyChar": "\u0000",
+    "ConsoleKey": "LeftArrow",
+    "Modifiers": "Shift",
+    "Investigate": false
+  },
+  {
+    "Key": "Shift+PageDown",
+    "KeyChar": "\u0000",
+    "ConsoleKey": "PageDown",
+    "Modifiers": "Shift",
+    "Investigate": false
+  },
+  {
+    "Key": "Shift+PageUp",
+    "KeyChar": "\u0000",
+    "ConsoleKey": "PageUp",
+    "Modifiers": "Shift",
+    "Investigate": false
+  },
+  {
+    "Key": "Shift+RightArrow",
+    "KeyChar": "\u0000",
+    "ConsoleKey": "RightArrow",
+    "Modifiers": "Shift",
+    "Investigate": false
+  },
+  {
+    "Key": "Shift+Tab",
+    "KeyChar": "\t",
+    "ConsoleKey": "Tab",
+    "Modifiers": "Shift",
+    "Investigate": false
+  },
+  {
+    "Key": "Shift+Backspace",
+    "KeyChar": "\b",
+    "ConsoleKey": "Backspace",
+    "Modifiers": "Shift",
+    "Investigate": false
+  },
+  {
+    "Key": "Shift+Escape",
+    "KeyChar": "\u001b",
+    "ConsoleKey": "Escape",
+    "Modifiers": "Shift",
+    "Investigate": false
+  },
+  {
+    "Key": "Shift+UpArrow",
+    "KeyChar": "\u0000",
+    "ConsoleKey": "UpArrow",
+    "Modifiers": "Shift",
+    "Investigate": false
+  },
+  {
+    "Key": "Spacebar",
+    "KeyChar": " ",
+    "ConsoleKey": "Spacebar",
+    "Modifiers": "0",
+    "Investigate": false
+  },
+  {
+    "Key": "t",
+    "KeyChar": "t",
+    "ConsoleKey": "T",
+    "Modifiers": "0",
+    "Investigate": false
+  },
+  {
+    "Key": "T",
+    "KeyChar": "T",
+    "ConsoleKey": "T",
+    "Modifiers": "Shift",
+    "Investigate": false
+  },
+  {
+    "Key": "Tab",
+    "KeyChar": "\t",
+    "ConsoleKey": "Tab",
+    "Modifiers": "0",
+    "Investigate": false
+  },
+  {
+    "Key": "U",
+    "KeyChar": "U",
+    "ConsoleKey": "U",
+    "Modifiers": "Shift",
+    "Investigate": false
+  },
+  {
+    "Key": "u",
+    "KeyChar": "u",
+    "ConsoleKey": "U",
+    "Modifiers": "0",
+    "Investigate": false
+  },
+  {
+    "Key": "UpArrow",
+    "KeyChar": "\u0000",
+    "ConsoleKey": "UpArrow",
+    "Modifiers": "0",
+    "Investigate": false
+  },
+  {
+    "Key": "V",
+    "KeyChar": "V",
+    "ConsoleKey": "V",
+    "Modifiers": "Shift",
+    "Investigate": false
+  },
+  {
+    "Key": "v",
+    "KeyChar": "v",
+    "ConsoleKey": "V",
+    "Modifiers": "0",
+    "Investigate": false
+  },
+  {
+    "Key": "W",
+    "KeyChar": "W",
+    "ConsoleKey": "W",
+    "Modifiers": "Shift",
+    "Investigate": false
+  },
+  {
+    "Key": "w",
+    "KeyChar": "w",
+    "ConsoleKey": "W",
+    "Modifiers": "0",
+    "Investigate": false
+  },
+  {
+    "Key": "X",
+    "KeyChar": "X",
+    "ConsoleKey": "X",
+    "Modifiers": "Shift",
+    "Investigate": false
+  },
+  {
+    "Key": "x",
+    "KeyChar": "x",
+    "ConsoleKey": "X",
+    "Modifiers": "0",
+    "Investigate": false
+  },
+  {
+    "Key": "y",
+    "KeyChar": "y",
+    "ConsoleKey": "Y",
+    "Modifiers": "0",
+    "Investigate": false
+  },
+  {
+    "Key": "Y",
+    "KeyChar": "Y",
+    "ConsoleKey": "Y",
+    "Modifiers": "Shift",
+    "Investigate": false
+  },
+  {
+    "Key": "Z",
+    "KeyChar": "Z",
+    "ConsoleKey": "Z",
+    "Modifiers": "Shift",
+    "Investigate": false
+  },
+  {
+    "Key": "z",
+    "KeyChar": "z",
+    "ConsoleKey": "Z",
+    "Modifiers": "0",
+    "Investigate": false
+  },
+  {
+    "Key": "DeadKey_Caret",
+    "KeyChar": "\u0000",
+    "ConsoleKey": "Oem6",
+    "Modifiers": "0",
+    "Investigate": false
+  },
+  {
+    "Key": "DeadKey_Caret+A",
+    "KeyChar": "\u00e2",
+    "ConsoleKey": "A",
+    "Modifiers": "0",
+    "Investigate": false
+  }
 ]

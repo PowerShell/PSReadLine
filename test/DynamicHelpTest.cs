@@ -29,43 +29,39 @@ PARAMETERS
 
         internal static object GetDynamicHelpContent(string commandName, string parameterName, bool isFullHelp)
         {
-            if (string.IsNullOrEmpty(commandName))
-            {
-                return null;
-            }
+            if (string.IsNullOrEmpty(commandName)) return null;
 
-            if (isFullHelp)
-            {
-                return fullHelp;
-            }
+            if (isFullHelp) return fullHelp;
 
-            if (string.IsNullOrEmpty(parameterName))
-            {
-                return null;
-            }
+            if (string.IsNullOrEmpty(parameterName)) return null;
 
-            PSObject paramHelp = new PSObject();
+            var paramHelp = new PSObject();
 
-            if (string.Equals(commandName, "Get-FakeHelp", StringComparison.OrdinalIgnoreCase) && string.Equals(parameterName, "Fake", StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(commandName, "Get-FakeHelp", StringComparison.OrdinalIgnoreCase) &&
+                string.Equals(parameterName, "Fake", StringComparison.OrdinalIgnoreCase))
             {
-                PSObject[] descDetails = new PSObject[1];
+                var descDetails = new PSObject[1];
                 descDetails[0] = new PSObject();
                 descDetails[0].Members.Add(new PSNoteProperty("Text", null));
             }
-            else if (string.Equals(commandName, "Get-Date", StringComparison.OrdinalIgnoreCase) && string.Equals(parameterName, "Date", StringComparison.OrdinalIgnoreCase))
+            else if (string.Equals(commandName, "Get-Date", StringComparison.OrdinalIgnoreCase) &&
+                     string.Equals(parameterName, "Date", StringComparison.OrdinalIgnoreCase))
             {
-                return GetParameterHelpObject(description: "Specifies a date and time.");
+                return GetParameterHelpObject("Specifies a date and time.");
             }
             else if (string.Equals(commandName, "Get-MultiLineHelp", StringComparison.OrdinalIgnoreCase))
             {
-                if(string.Equals(parameterName, "OneAndHalf", StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(parameterName, "OneAndHalf", StringComparison.OrdinalIgnoreCase))
                 {
-                    string multiLineDesc = "Some very long description that is over the buffer width of 60 characters but shorter than 120.";
+                    var multiLineDesc =
+                        "Some very long description that is over the buffer width of 60 characters but shorter than 120.";
                     return GetParameterHelpObject(multiLineDesc);
                 }
-                else if(string.Equals(parameterName, "ExactlyTwo", StringComparison.OrdinalIgnoreCase))
+
+                if (string.Equals(parameterName, "ExactlyTwo", StringComparison.OrdinalIgnoreCase))
                 {
-                    string multiLineDesc = "Some very long description that is over the buffer width of 60 characters and exactly the length of 120 characters";
+                    var multiLineDesc =
+                        "Some very long description that is over the buffer width of 60 characters and exactly the length of 120 characters";
                     return GetParameterHelpObject(multiLineDesc);
                 }
             }
@@ -75,8 +71,8 @@ PARAMETERS
 
         private static PSObject GetParameterHelpObject(string description)
         {
-            PSObject paramHelp = new PSObject();
-            PSObject[] descDetails = new PSObject[1];
+            var paramHelp = new PSObject();
+            var descDetails = new PSObject[1];
             descDetails[0] = new PSObject();
             descDetails[0].Members.Add(new PSNoteProperty("Text", description));
 
@@ -112,7 +108,7 @@ PARAMETERS
                 "Get-Date", _.F1,
                 CheckThat(() => Assert.Equal(fullHelp, _mockedMethods.helpContentRendered)),
                 _.Enter
-                ));
+            ));
         }
 
         [SkippableFact]
@@ -129,27 +125,27 @@ PARAMETERS
 
             Test("Get-Date -Date", Keys(
                 "Get-Date -Date", _.Alt_h,
-                    CheckThat(() => AssertScreenIs(9,
-                        TokenClassification.Command, "Get-Date",
-                        TokenClassification.None, " ",
-                        TokenClassification.Parameter, "-Date",
-                        NextLine,
-                        NextLine,
-                        TokenClassification.None, $"-Date <name>",
-                        NextLine,
-                        NextLine,
-                        TokenClassification.None, "DESC: Specifies a date and time.",
-                        NextLine,
-                        TokenClassification.None, "Required: false, Position: 0, Default Value: None, Pipeline ",
-                        NextLine,
-                        "Input: True (ByPropertyName, ByValue), WildCard: false")),
+                CheckThat(() => AssertScreenIs(9,
+                    TokenClassification.Command, "Get-Date",
+                    TokenClassification.None, " ",
+                    TokenClassification.Parameter, "-Date",
+                    NextLine,
+                    NextLine,
+                    TokenClassification.None, "-Date <name>",
+                    NextLine,
+                    NextLine,
+                    TokenClassification.None, "DESC: Specifies a date and time.",
+                    NextLine,
+                    TokenClassification.None, "Required: false, Position: 0, Default Value: None, Pipeline ",
+                    NextLine,
+                    "Input: True (ByPropertyName, ByValue), WildCard: false")),
                 _.Escape,
-                    CheckThat(() => AssertScreenIs(1,
-                        TokenClassification.Command, "Get-Date",
-                        TokenClassification.None, " ",
-                        TokenClassification.Parameter, "-Date")),
+                CheckThat(() => AssertScreenIs(1,
+                    TokenClassification.Command, "Get-Date",
+                    TokenClassification.None, " ",
+                    TokenClassification.Parameter, "-Date")),
                 _.Enter
-                ));
+            ));
         }
 
         [SkippableFact]
@@ -159,27 +155,27 @@ PARAMETERS
 
             Test("Get-MultiLineHelp -OneAndHalf", Keys(
                 "Get-MultiLineHelp -OneAndHalf", _.Alt_h,
-                    CheckThat(() => AssertScreenIs(8,
-                        TokenClassification.Command, "Get-MultiLineHelp",
-                        TokenClassification.None, " ",
-                        TokenClassification.Parameter, "-OneAndHalf",
-                        NextLine,
-                        NextLine,
-                        TokenClassification.None, $"-Date <name>",
-                        NextLine,
-                        NextLine,
-                        TokenClassification.None, "DESC: Some very long description that is over the buffer width of ",
-                        TokenClassification.None, "60 characters but shorter than 120.",
-                        NextLine,
-                        TokenClassification.None, "Required: false, Position: 0, Default Value: None, Pipeline ",
-                        TokenClassification.None, "Input: True (ByPropertyName, ByValue), WildCard: false")),
+                CheckThat(() => AssertScreenIs(8,
+                    TokenClassification.Command, "Get-MultiLineHelp",
+                    TokenClassification.None, " ",
+                    TokenClassification.Parameter, "-OneAndHalf",
+                    NextLine,
+                    NextLine,
+                    TokenClassification.None, "-Date <name>",
+                    NextLine,
+                    NextLine,
+                    TokenClassification.None, "DESC: Some very long description that is over the buffer width of ",
+                    TokenClassification.None, "60 characters but shorter than 120.",
+                    NextLine,
+                    TokenClassification.None, "Required: false, Position: 0, Default Value: None, Pipeline ",
+                    TokenClassification.None, "Input: True (ByPropertyName, ByValue), WildCard: false")),
                 _.LeftArrow,
-                    CheckThat(() => AssertScreenIs(1,
-                        TokenClassification.Command, "Get-MultiLineHelp",
-                        TokenClassification.None, " ",
-                        TokenClassification.Parameter, "-OneAndHalf")),
+                CheckThat(() => AssertScreenIs(1,
+                    TokenClassification.Command, "Get-MultiLineHelp",
+                    TokenClassification.None, " ",
+                    TokenClassification.Parameter, "-OneAndHalf")),
                 _.Enter
-                ));
+            ));
         }
 
         [SkippableFact]
@@ -194,17 +190,17 @@ PARAMETERS
             AssertCursorLeftTopIs(0, 9);
 
             Test("Get-MultiLineHelp -OneAndHalf", Keys(
-                "Get-MultiLineHelp -OneAndHalf",
+                    "Get-MultiLineHelp -OneAndHalf",
                     CheckThat(() => AssertCursorLeftTopIs(29, 9)),
-                _.Alt_h,
+                    _.Alt_h,
                     CheckThat(() => AssertCursorLeftTopIs(29, 2)),
-                    CheckThat(() => AssertScreenIs(top: 12, lines: 8,
+                    CheckThat(() => AssertScreenIs(12, 8,
                         TokenClassification.Command, "Get-MultiLineHelp",
                         TokenClassification.None, " ",
                         TokenClassification.Parameter, "-OneAndHalf",
                         NextLine,
                         NextLine,
-                        TokenClassification.None, $"-Date <name>",
+                        TokenClassification.None, "-Date <name>",
                         NextLine,
                         NextLine,
                         TokenClassification.None, "DESC: Some very long description that is over the buffer width of ",
@@ -212,9 +208,9 @@ PARAMETERS
                         NextLine,
                         TokenClassification.None, "Required: false, Position: 0, Default Value: None, Pipeline ",
                         TokenClassification.None, "Input: True (ByPropertyName, ByValue), WildCard: false")),
-                _.Alt_h,
+                    _.Alt_h,
                     CheckThat(() => AssertCursorLeftTopIs(29, 2)),
-                    CheckThat(() => AssertScreenIs(top: 12, lines: 8,
+                    CheckThat(() => AssertScreenIs(12, 8,
                         TokenClassification.Command, "Get-MultiLineHelp",
                         TokenClassification.None, " ",
                         TokenClassification.Parameter, "-OneAndHalf", NextLine,
@@ -225,15 +221,15 @@ PARAMETERS
                         NextLine,
                         NextLine,
                         NextLine)),
-                _.Alt_h,
+                    _.Alt_h,
                     CheckThat(() => AssertCursorLeftTopIs(29, 2)),
-                    CheckThat(() => AssertScreenIs(top: 12, lines: 8,
+                    CheckThat(() => AssertScreenIs(12, 8,
                         TokenClassification.Command, "Get-MultiLineHelp",
                         TokenClassification.None, " ",
                         TokenClassification.Parameter, "-OneAndHalf",
                         NextLine,
                         NextLine,
-                        TokenClassification.None, $"-Date <name>",
+                        TokenClassification.None, "-Date <name>",
                         NextLine,
                         NextLine,
                         TokenClassification.None, "DESC: Some very long description that is over the buffer width of ",
@@ -241,9 +237,9 @@ PARAMETERS
                         NextLine,
                         TokenClassification.None, "Required: false, Position: 0, Default Value: None, Pipeline ",
                         TokenClassification.None, "Input: True (ByPropertyName, ByValue), WildCard: false")),
-                _.LeftArrow,
+                    _.LeftArrow,
                     CheckThat(() => AssertCursorLeftTopIs(29, 2)),
-                    CheckThat(() => AssertScreenIs(top: 12, lines: 8,
+                    CheckThat(() => AssertScreenIs(12, 8,
                         TokenClassification.Command, "Get-MultiLineHelp",
                         TokenClassification.None, " ",
                         TokenClassification.Parameter, "-OneAndHalf", NextLine,
@@ -254,7 +250,7 @@ PARAMETERS
                         NextLine,
                         NextLine,
                         NextLine)),
-                _.Enter),
+                    _.Enter),
                 resetCursor: false);
         }
 
@@ -271,17 +267,17 @@ PARAMETERS
             AssertCursorLeftTopIs(0, 9);
 
             Test("Get-MultiLineHelp -OneAndHalf", Keys(
-                "Get-MultiLineHelp -OneAndHalf",
+                    "Get-MultiLineHelp -OneAndHalf",
                     CheckThat(() => AssertCursorLeftTopIs(29, 9)),
-                _.Alt_h,
+                    _.Alt_h,
                     CheckThat(() => AssertCursorLeftTopIs(29, 2)),
-                    CheckThat(() => AssertScreenIs(top: 12, lines: 8,
+                    CheckThat(() => AssertScreenIs(12, 8,
                         TokenClassification.Command, "Get-MultiLineHelp",
                         TokenClassification.None, " ",
                         TokenClassification.Parameter, "-OneAndHalf",
                         NextLine,
                         NextLine,
-                        TokenClassification.None, $"-Date <name>",
+                        TokenClassification.None, "-Date <name>",
                         NextLine,
                         NextLine,
                         TokenClassification.None, "DESC: Some very long description that is over the buffer width of ",
@@ -289,9 +285,9 @@ PARAMETERS
                         NextLine,
                         TokenClassification.None, "Required: false, Position: 0, Default Value: None, Pipeline ",
                         TokenClassification.None, "Input: True (ByPropertyName, ByValue), WildCard: false")),
-                _.Escape,
+                    _.Escape,
                     CheckThat(() => AssertCursorLeftTopIs(29, 2)),
-                    CheckThat(() => AssertScreenIs(top: 12, lines: 8,
+                    CheckThat(() => AssertScreenIs(12, 8,
                         TokenClassification.Command, "Get-MultiLineHelp",
                         TokenClassification.None, " ",
                         TokenClassification.Parameter, "-OneAndHalf", NextLine,
@@ -302,10 +298,10 @@ PARAMETERS
                         NextLine,
                         NextLine,
                         NextLine)),
-                // Write more characters after clearing the inline help content, verify that the initial coordinates are up-to-date.
-                "abc",
+                    // Write more characters after clearing the inline help content, verify that the initial coordinates are up-to-date.
+                    "abc",
                     CheckThat(() => AssertCursorLeftTopIs(32, 2)),
-                    CheckThat(() => AssertScreenIs(top: 12, lines: 8,
+                    CheckThat(() => AssertScreenIs(12, 8,
                         TokenClassification.Command, "Get-MultiLineHelp",
                         TokenClassification.None, " ",
                         TokenClassification.Parameter, "-OneAndHalfabc", NextLine,
@@ -316,9 +312,9 @@ PARAMETERS
                         NextLine,
                         NextLine,
                         NextLine)),
-                _.Backspace, _.Backspace, _.Backspace,
+                    _.Backspace, _.Backspace, _.Backspace,
                     CheckThat(() => AssertCursorLeftTopIs(29, 2)),
-                    CheckThat(() => AssertScreenIs(top: 12, lines: 8,
+                    CheckThat(() => AssertScreenIs(12, 8,
                         TokenClassification.Command, "Get-MultiLineHelp",
                         TokenClassification.None, " ",
                         TokenClassification.Parameter, "-OneAndHalf", NextLine,
@@ -329,7 +325,7 @@ PARAMETERS
                         NextLine,
                         NextLine,
                         NextLine)),
-                _.Enter),
+                    _.Enter),
                 resetCursor: false);
         }
 
@@ -340,28 +336,28 @@ PARAMETERS
 
             Test("Get-MultiLineHelp -ExactlyTwo", Keys(
                 "Get-MultiLineHelp -ExactlyTwo", _.Alt_h,
-                    CheckThat(() => AssertScreenIs(9,
-                        TokenClassification.Command, "Get-MultiLineHelp",
-                        TokenClassification.None, " ",
-                        TokenClassification.Parameter, "-ExactlyTwo",
-                        NextLine,
-                        NextLine,
-                        TokenClassification.None, $"-Date <name>",
-                        NextLine,
-                        NextLine,
-                        TokenClassification.None, "DESC: Some very long description that is over the buffer wid",
-                        TokenClassification.None, "th of 60 characters and exactly the length of 120 characters",
-                        NextLine,
-                        TokenClassification.None, "Required: false, Position: 0, Default Value: None, Pipeline ",
-                        NextLine,
-                        "Input: True (ByPropertyName, ByValue), WildCard: false")),
+                CheckThat(() => AssertScreenIs(9,
+                    TokenClassification.Command, "Get-MultiLineHelp",
+                    TokenClassification.None, " ",
+                    TokenClassification.Parameter, "-ExactlyTwo",
+                    NextLine,
+                    NextLine,
+                    TokenClassification.None, "-Date <name>",
+                    NextLine,
+                    NextLine,
+                    TokenClassification.None, "DESC: Some very long description that is over the buffer wid",
+                    TokenClassification.None, "th of 60 characters and exactly the length of 120 characters",
+                    NextLine,
+                    TokenClassification.None, "Required: false, Position: 0, Default Value: None, Pipeline ",
+                    NextLine,
+                    "Input: True (ByPropertyName, ByValue), WildCard: false")),
                 _.RightArrow,
-                    CheckThat(() => AssertScreenIs(1,
-                        TokenClassification.Command, "Get-MultiLineHelp",
-                        TokenClassification.None, " ",
-                        TokenClassification.Parameter, "-ExactlyTwo")),
+                CheckThat(() => AssertScreenIs(1,
+                    TokenClassification.Command, "Get-MultiLineHelp",
+                    TokenClassification.None, " ",
+                    TokenClassification.Parameter, "-ExactlyTwo")),
                 _.Enter
-                ));
+            ));
         }
 
         [SkippableFact]
@@ -371,28 +367,28 @@ PARAMETERS
 
             Test("Get-MultiLineHelp -ExactlyTwo", Keys(
                 "Get-MultiLineHelp -ExactlyTwo", _.Alt_h,
-                    CheckThat(() => AssertScreenIs(9,
-                        TokenClassification.Command, "Get-MultiLineHelp",
-                        TokenClassification.None, " ",
-                        TokenClassification.Parameter, "-ExactlyTwo",
-                        NextLine,
-                        NextLine,
-                        TokenClassification.None, $"-Date <name>",
-                        NextLine,
-                        NextLine,
-                        TokenClassification.None, "DESC: Some very long description that is over the buffer wid",
-                        TokenClassification.None, "th of 60 characters and exactly the length of 120 characters",
-                        NextLine,
-                        TokenClassification.None, "Required: false, Position: 0, Default Value: None, Pipeline ",
-                        NextLine,
-                        "Input: True (ByPropertyName, ByValue), WildCard: false")),
+                CheckThat(() => AssertScreenIs(9,
+                    TokenClassification.Command, "Get-MultiLineHelp",
+                    TokenClassification.None, " ",
+                    TokenClassification.Parameter, "-ExactlyTwo",
+                    NextLine,
+                    NextLine,
+                    TokenClassification.None, "-Date <name>",
+                    NextLine,
+                    NextLine,
+                    TokenClassification.None, "DESC: Some very long description that is over the buffer wid",
+                    TokenClassification.None, "th of 60 characters and exactly the length of 120 characters",
+                    NextLine,
+                    TokenClassification.None, "Required: false, Position: 0, Default Value: None, Pipeline ",
+                    NextLine,
+                    "Input: True (ByPropertyName, ByValue), WildCard: false")),
                 _.RightArrow,
-                    CheckThat(() => AssertScreenIs(1,
-                        TokenClassification.Command, "Get-MultiLineHelp",
-                        TokenClassification.None, " ",
-                        TokenClassification.Parameter, "-ExactlyTwo")),
+                CheckThat(() => AssertScreenIs(1,
+                    TokenClassification.Command, "Get-MultiLineHelp",
+                    TokenClassification.None, " ",
+                    TokenClassification.Parameter, "-ExactlyTwo")),
                 _.Enter
-                ));
+            ));
         }
 
         [SkippableFact]
@@ -402,28 +398,28 @@ PARAMETERS
 
             Test("Get-MultiLineHelp -ExactlyTwo", Keys(
                 "Get-MultiLineHelp -ExactlyTwo", _.Alt_h,
-                    CheckThat(() => AssertScreenIs(9,
-                        TokenClassification.Command, "Get-MultiLineHelp",
-                        TokenClassification.None, " ",
-                        TokenClassification.Parameter, "-ExactlyTwo",
-                        NextLine,
-                        NextLine,
-                        TokenClassification.None, $"-Date <name>",
-                        NextLine,
-                        NextLine,
-                        TokenClassification.None, "DESC: Some very long description that is over the buffer wid",
-                        TokenClassification.None, "th of 60 characters and exactly the length of 120 characters",
-                        NextLine,
-                        TokenClassification.None, "Required: false, Position: 0, Default Value: None, Pipeline ",
-                        NextLine,
-                        "Input: True (ByPropertyName, ByValue), WildCard: false")),
+                CheckThat(() => AssertScreenIs(9,
+                    TokenClassification.Command, "Get-MultiLineHelp",
+                    TokenClassification.None, " ",
+                    TokenClassification.Parameter, "-ExactlyTwo",
+                    NextLine,
+                    NextLine,
+                    TokenClassification.None, "-Date <name>",
+                    NextLine,
+                    NextLine,
+                    TokenClassification.None, "DESC: Some very long description that is over the buffer wid",
+                    TokenClassification.None, "th of 60 characters and exactly the length of 120 characters",
+                    NextLine,
+                    TokenClassification.None, "Required: false, Position: 0, Default Value: None, Pipeline ",
+                    NextLine,
+                    "Input: True (ByPropertyName, ByValue), WildCard: false")),
                 _.RightArrow,
-                    CheckThat(() => AssertScreenIs(1,
-                        TokenClassification.Command, "Get-MultiLineHelp",
-                        TokenClassification.None, " ",
-                        TokenClassification.Parameter, "-ExactlyTwo")),
+                CheckThat(() => AssertScreenIs(1,
+                    TokenClassification.Command, "Get-MultiLineHelp",
+                    TokenClassification.None, " ",
+                    TokenClassification.Parameter, "-ExactlyTwo")),
                 _.Enter
-                ));
+            ));
         }
 
         [SkippableFact]
@@ -433,7 +429,7 @@ PARAMETERS
 
             Test("Get-FakeHelp -Fake", Keys(
                 "Get-FakeHelp -Fake", _.Alt_h,
-                    CheckThat(() => AssertScreenIs(4,
+                CheckThat(() => AssertScreenIs(4,
                     TokenClassification.Command, "Get-FakeHelp",
                     TokenClassification.None, " ",
                     TokenClassification.Parameter, "-Fake",
@@ -444,7 +440,7 @@ PARAMETERS
                     "d the latest help content.")),
                 _.RightArrow,
                 _.Enter
-                ));
+            ));
         }
     }
 }

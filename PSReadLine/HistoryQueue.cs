@@ -14,13 +14,13 @@ namespace Microsoft.PowerShell
     {
         private readonly HistoryQueue<T> _queue;
 
-        [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
-        public T[] Items => this._queue.ToArray();
-
         public QueueDebugView(HistoryQueue<T> queue)
         {
-            this._queue = queue ?? throw new ArgumentNullException(nameof(queue));
+            _queue = queue ?? throw new ArgumentNullException(nameof(queue));
         }
+
+        [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
+        public T[] Items => _queue.ToArray();
     }
 
     [DebuggerDisplay("Count = {" + nameof(Count) + "}")]
@@ -38,12 +38,27 @@ namespace Microsoft.PowerShell
             _head = _tail = Count = 0;
         }
 
+        public int Count { get; private set; }
+
+        [ExcludeFromCodeCoverage]
+        public T this[int index]
+        {
+            get
+            {
+                Debug.Assert(index >= 0 && index < Count);
+                return _array[(_head + index) % _array.Length];
+            }
+            set
+            {
+                Debug.Assert(index >= 0 && index < Count);
+                _array[(_head + index) % _array.Length] = value;
+            }
+        }
+
         public void Clear()
         {
-            for (int i = 0; i < Count; i++)
-            {
-                this[i] = default(T);
-            }
+            for (var i = 0; i < Count; i++) this[i] = default;
+
             _head = _tail = Count = 0;
         }
 
@@ -52,29 +67,21 @@ namespace Microsoft.PowerShell
             return IndexOf(item) != -1;
         }
 
-        public int Count { get; private set; }
-
         public int IndexOf(T item)
         {
             // REVIEW: should we use case insensitive here?
             var eqComparer = EqualityComparer<T>.Default;
-            for (int i = 0; i < Count; i++)
-            {
+            for (var i = 0; i < Count; i++)
                 if (eqComparer.Equals(this[i], item))
-                {
                     return i;
-                }
-            }
 
             return -1;
         }
 
         public void Enqueue(T item)
         {
-            if (Count == _array.Length)
-            {
-                Dequeue();
-            }
+            if (Count == _array.Length) Dequeue();
+
             _array[_tail] = item;
             _tail = (_tail + 1) % _array.Length;
             Count += 1;
@@ -84,8 +91,8 @@ namespace Microsoft.PowerShell
         {
             Debug.Assert(Count > 0);
 
-            T obj = _array[_head];
-            _array[_head] = default(T);
+            var obj = _array[_head];
+            _array[_head] = default;
             _head = (_head + 1) % _array.Length;
             Count -= 1;
             return obj;
@@ -106,22 +113,8 @@ namespace Microsoft.PowerShell
                     Array.Copy(_array, 0, result, _array.Length - _head, _tail);
                 }
             }
-            return result;
-        }
 
-        [ExcludeFromCodeCoverage]
-        public T this[int index]
-        {
-            get
-            { 
-                Debug.Assert(index >= 0 && index < Count);
-                return _array[(_head + index) % _array.Length];
-            }
-            set
-            {
-                Debug.Assert(index >= 0 && index < Count);
-                _array[(_head + index) % _array.Length] = value;
-            }
+            return result;
         }
     }
 }

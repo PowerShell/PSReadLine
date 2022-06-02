@@ -21,40 +21,30 @@ namespace Test
                 Assert.Equal(mods, r[0].Modifiers);
             }
 
-            for (char c = 'a'; c <= 'z'; c++)
-            {
-                TestOne(c, ConsoleKey.A + (c - 'a'));
-            }
+            for (var c = 'a'; c <= 'z'; c++) TestOne(c, ConsoleKey.A + (c - 'a'));
 
-            for (char c = 'A'; c <= 'Z'; c++)
-            {
-                TestOne(c, ConsoleKey.A + (c - 'A'), ConsoleModifiers.Shift);
-            }
+            for (var c = 'A'; c <= 'Z'; c++) TestOne(c, ConsoleKey.A + (c - 'A'), ConsoleModifiers.Shift);
 
-            for (char c = '0'; c <= '9'; c++)
-            {
-                TestOne(c, ConsoleKey.D0 + (c - '0'));
-            }
+            for (var c = '0'; c <= '9'; c++) TestOne(c, ConsoleKey.D0 + (c - '0'));
 
-            foreach (char c in "`~!@#$%^&*()-_=+[{]}\\|;:'\",<.>/?")
-            {
+            foreach (var c in "`~!@#$%^&*()-_=+[{]}\\|;:'\",<.>/?")
                 // Symbols often have different ConsoleKey's depending
                 // on the keyboard layout, so we don't verify those
                 // (which is fine, because we go out of the way to map
                 // those ConsoleKey's to the symbol before looking for
                 // key handlers.)
                 TestOne(c, 0);
-            }
         }
 
         [Fact]
         public void KeyInfoConverterSimpleConsoleKey()
         {
-            var cases = new [] {
+            var cases = new[]
+            {
                 "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12",
                 "F13", "F14", "F15", "F16", "F17", "F18", "F19", "F20", "F21", "F22", "F23", "F24",
                 "Delete", "DownArrow", "End", "Enter", "Home", "LeftArrow", "PageUp", "PageDown",
-                "RightArrow", "Tab", "UpArrow",
+                "RightArrow", "Tab", "UpArrow"
             };
 
             var mods = new[]
@@ -75,8 +65,10 @@ namespace Test
                 Tuple.Create("Shift+Alt", ConsoleModifiers.Alt | ConsoleModifiers.Shift),
                 Tuple.Create("Alt+Shift", ConsoleModifiers.Alt | ConsoleModifiers.Shift),
                 Tuple.Create("Alt+Shift", ConsoleModifiers.Alt | ConsoleModifiers.Shift),
-                Tuple.Create("Ctrl+Shift+Alt", ConsoleModifiers.Alt | ConsoleModifiers.Shift | ConsoleModifiers.Control),
-                Tuple.Create("Control+Shift+Alt", ConsoleModifiers.Alt | ConsoleModifiers.Shift | ConsoleModifiers.Control),
+                Tuple.Create("Ctrl+Shift+Alt",
+                    ConsoleModifiers.Alt | ConsoleModifiers.Shift | ConsoleModifiers.Control),
+                Tuple.Create("Control+Shift+Alt",
+                    ConsoleModifiers.Alt | ConsoleModifiers.Shift | ConsoleModifiers.Control)
             };
 
             void TestOne(string s)
@@ -103,10 +95,7 @@ namespace Test
                 }
             }
 
-            foreach (var c in cases)
-            {
-                TestOne(c);
-            }
+            foreach (var c in cases) TestOne(c);
         }
 
         [Fact]
@@ -127,7 +116,8 @@ namespace Test
                 Assert.IsType<ArgumentException>(ex);
             }
 
-            var cases = new [] {
+            var cases = new[]
+            {
                 "escrape",
                 "alt+shft+x",
                 "alt+ctrl+sift+x",
@@ -145,14 +135,10 @@ namespace Test
                 ",x",
                 "Ctrl+10",
                 "Ctrl+1a",
-                "Ctrl+ab",
+                "Ctrl+ab"
             };
 
-            foreach (var c in cases)
-            {
-                TestOne(c);
-            }
+            foreach (var c in cases) TestOne(c);
         }
-
     }
 }

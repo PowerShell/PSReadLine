@@ -12,25 +12,21 @@ namespace Microsoft.PowerShell
 {
     public partial class PSConsoleReadLine
     {
+        private int _killCommandCount;
+
+        private int _killIndex;
+
         // Yank/Kill state
         private List<string> _killRing;
-        private int _killIndex;
-        private int _killCommandCount;
-        private int _yankCommandCount;
-        private int _yankStartPoint;
-        private int _yankLastArgCommandCount;
-        class YankLastArgState
-        {
-            internal int argument;
-            internal int historyIndex;
-            internal int historyIncrement;
-            internal int startPoint = -1;
-        }
-        private YankLastArgState _yankLastArgState;
         private int _visualSelectionCommandCount;
+        private int _yankCommandCount;
+        private int _yankLastArgCommandCount;
+
+        private YankLastArgState _yankLastArgState;
+        private int _yankStartPoint;
 
         /// <summary>
-        /// Mark the current location of the cursor for use in a subsequent editing command.
+        ///     Mark the current location of the cursor for use in a subsequent editing command.
         /// </summary>
         public static void SetMark(ConsoleKeyInfo? key = null, object arg = null)
         {
@@ -38,8 +34,8 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// The cursor is placed at the location of the mark and the mark is moved
-        /// to the location of the cursor.
+        ///     The cursor is placed at the location of the mark and the mark is moved
+        ///     to the location of the cursor.
         /// </summary>
         public static void ExchangePointAndMark(ConsoleKeyInfo? key = null, object arg = null)
         {
@@ -49,12 +45,12 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// The contents of the kill ring are cleared.
+        ///     The contents of the kill ring are cleared.
         /// </summary>
         public static void ClearKillRing()
         {
             _singleton._killRing?.Clear();
-            _singleton._killIndex = -1;    // So first add indexes 0.
+            _singleton._killIndex = -1; // So first add indexes 0.
         }
 
         private void Kill(int start, int length, bool prepend)
@@ -69,6 +65,7 @@ namespace Microsoft.PowerShell
                     _killCommandCount++;
                 return;
             }
+
             var killText = _buffer.ToString(start, length);
             SaveEditItem(EditItemDelete.Create(killText, start));
             _buffer.Remove(start, length);
@@ -77,13 +74,9 @@ namespace Microsoft.PowerShell
             if (_killCommandCount > 0)
             {
                 if (prepend)
-                {
                     _killRing[_killIndex] = killText + _killRing[_killIndex];
-                }
                 else
-                {
                     _killRing[_killIndex] += killText;
-                }
             }
             else
             {
@@ -95,19 +88,18 @@ namespace Microsoft.PowerShell
                 else
                 {
                     _killIndex += 1;
-                    if (_killIndex == _killRing.Count)
-                    {
-                        _killIndex = 0;
-                    }
+                    if (_killIndex == _killRing.Count) _killIndex = 0;
+
                     _killRing[_killIndex] = killText;
                 }
             }
+
             _killCommandCount += 1;
         }
 
         /// <summary>
-        /// Clear the input from the cursor to the end of the input.  The cleared text is placed
-        /// in the kill ring.
+        ///     Clear the input from the cursor to the end of the input.  The cleared text is placed
+        ///     in the kill ring.
         /// </summary>
         public static void KillLine(ConsoleKeyInfo? key = null, object arg = null)
         {
@@ -115,8 +107,8 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Clear the input from the start of the input to the cursor.  The cleared text is placed
-        /// in the kill ring.
+        ///     Clear the input from the start of the input to the cursor.  The cleared text is placed
+        ///     in the kill ring.
         /// </summary>
         public static void BackwardKillInput(ConsoleKeyInfo? key = null, object arg = null)
         {
@@ -124,8 +116,8 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Clear the input from the start of the current logical line to the cursor.  The cleared text is placed
-        /// in the kill ring.
+        ///     Clear the input from the start of the current logical line to the cursor.  The cleared text is placed
+        ///     in the kill ring.
         /// </summary>
         public static void BackwardKillLine(ConsoleKeyInfo? key = null, object arg = null)
         {
@@ -134,56 +126,56 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Clear the input from the cursor to the end of the current word.  If the cursor
-        /// is between words, the input is cleared from the cursor to the end of the next word.
-        /// The cleared text is placed in the kill ring.
+        ///     Clear the input from the cursor to the end of the current word.  If the cursor
+        ///     is between words, the input is cleared from the cursor to the end of the next word.
+        ///     The cleared text is placed in the kill ring.
         /// </summary>
         public static void KillWord(ConsoleKeyInfo? key = null, object arg = null)
         {
-            int i = _singleton.FindForwardWordPoint(_singleton.Options.WordDelimiters);
+            var i = _singleton.FindForwardWordPoint(_singleton.Options.WordDelimiters);
             _singleton.Kill(_singleton._current, i - _singleton._current, false);
         }
 
         /// <summary>
-        /// Clear the input from the cursor to the end of the current word.  If the cursor
-        /// is between words, the input is cleared from the cursor to the end of the next word.
-        /// The cleared text is placed in the kill ring.
+        ///     Clear the input from the cursor to the end of the current word.  If the cursor
+        ///     is between words, the input is cleared from the cursor to the end of the next word.
+        ///     The cleared text is placed in the kill ring.
         /// </summary>
         public static void ShellKillWord(ConsoleKeyInfo? key = null, object arg = null)
         {
             var token = _singleton.FindToken(_singleton._current, FindTokenMode.CurrentOrNext);
-            var end = (token.Kind == TokenKind.EndOfInput)
+            var end = token.Kind == TokenKind.EndOfInput
                 ? _singleton._buffer.Length
                 : token.Extent.EndOffset;
             _singleton.Kill(_singleton._current, end - _singleton._current, false);
         }
 
         /// <summary>
-        /// Clear the input from the start of the current word to the cursor.  If the cursor
-        /// is between words, the input is cleared from the start of the previous word to the
-        /// cursor.  The cleared text is placed in the kill ring.
+        ///     Clear the input from the start of the current word to the cursor.  If the cursor
+        ///     is between words, the input is cleared from the start of the previous word to the
+        ///     cursor.  The cleared text is placed in the kill ring.
         /// </summary>
         public static void BackwardKillWord(ConsoleKeyInfo? key = null, object arg = null)
         {
-            int i = _singleton.FindBackwardWordPoint(_singleton.Options.WordDelimiters);
+            var i = _singleton.FindBackwardWordPoint(_singleton.Options.WordDelimiters);
             _singleton.Kill(i, _singleton._current - i, true);
         }
 
         /// <summary>
-        /// Clear the input from the start of the current word to the cursor.  If the cursor
-        /// is between words, the input is cleared from the start of the previous word to the
-        /// cursor.  The cleared text is placed in the kill ring.
+        ///     Clear the input from the start of the current word to the cursor.  If the cursor
+        ///     is between words, the input is cleared from the start of the previous word to the
+        ///     cursor.  The cleared text is placed in the kill ring.
         /// </summary>
         public static void UnixWordRubout(ConsoleKeyInfo? key = null, object arg = null)
         {
-            int i = _singleton.FindBackwardWordPoint("");
+            var i = _singleton.FindBackwardWordPoint("");
             _singleton.Kill(i, _singleton._current - i, true);
         }
 
         /// <summary>
-        /// Clear the input from the start of the current word to the cursor.  If the cursor
-        /// is between words, the input is cleared from the start of the previous word to the
-        /// cursor.  The cleared text is placed in the kill ring.
+        ///     Clear the input from the start of the current word to the cursor.  If the cursor
+        ///     is between words, the input is cleared from the start of the previous word to the
+        ///     cursor.  The cleared text is placed in the kill ring.
         /// </summary>
         public static void ShellBackwardKillWord(ConsoleKeyInfo? key = null, object arg = null)
         {
@@ -193,7 +185,7 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Kill the text between the cursor and the mark.
+        ///     Kill the text between the cursor and the mark.
         /// </summary>
         public static void KillRegion(ConsoleKeyInfo? key = null, object arg = null)
         {
@@ -215,7 +207,7 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Add the most recently killed text to the input.
+        ///     Add the most recently killed text to the input.
         /// </summary>
         public static void Yank(ConsoleKeyInfo? key = null, object arg = null)
         {
@@ -228,25 +220,23 @@ namespace Microsoft.PowerShell
                 return;
 
             _killIndex -= 1;
-            if (_killIndex < 0)
-            {
-                _killIndex = _killRing.Count - 1;
-            }
+            if (_killIndex < 0) _killIndex = _killRing.Count - 1;
+
             var yankText = _killRing[_killIndex];
             Replace(_yankStartPoint, _current - _yankStartPoint, yankText);
             _yankCommandCount += 1;
         }
 
         /// <summary>
-        /// If the previous operation was Yank or YankPop, replace the previously yanked
-        /// text with the next killed text from the kill ring.
+        ///     If the previous operation was Yank or YankPop, replace the previously yanked
+        ///     text with the next killed text from the kill ring.
         /// </summary>
         public static void YankPop(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.YankPopImpl();
         }
 
-        void YankArgImpl(YankLastArgState yankLastArgState)
+        private void YankArgImpl(YankLastArgState yankLastArgState)
         {
             if (yankLastArgState.historyIndex < 0 || yankLastArgState.historyIndex >= _history.Count)
             {
@@ -257,9 +247,9 @@ namespace Microsoft.PowerShell
             var buffer = _history[yankLastArgState.historyIndex];
             Parser.ParseInput(buffer.CommandLine, out var tokens, out var unused);
 
-            int arg = (yankLastArgState.argument < 0)
-                          ? tokens.Length + yankLastArgState.argument - 1
-                          : yankLastArgState.argument;
+            var arg = yankLastArgState.argument < 0
+                ? tokens.Length + yankLastArgState.argument - 1
+                : yankLastArgState.argument;
             if (arg < 0 || arg >= tokens.Length)
             {
                 Ding();
@@ -279,25 +269,25 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Yank the first argument (after the command) from the previous history line.
-        /// With an argument, yank the nth argument (starting from 0), if the argument
-        /// is negative, start from the last argument.
+        ///     Yank the first argument (after the command) from the previous history line.
+        ///     With an argument, yank the nth argument (starting from 0), if the argument
+        ///     is negative, start from the last argument.
         /// </summary>
         public static void YankNthArg(ConsoleKeyInfo? key = null, object arg = null)
         {
             var yankLastArgState = new YankLastArgState
             {
                 argument = arg as int? ?? 1,
-                historyIndex = _singleton._currentHistoryIndex - 1,
+                historyIndex = _singleton._currentHistoryIndex - 1
             };
             _singleton.YankArgImpl(yankLastArgState);
         }
 
         /// <summary>
-        /// Yank the last argument from the previous history line.  With an argument,
-        /// the first time it is invoked, behaves just like YankNthArg.  If invoked
-        /// multiple times, instead it iterates through history and arg sets the direction
-        /// (negative reverses the direction.)
+        ///     Yank the last argument from the previous history line.  With an argument,
+        ///     the first time it is invoked, behaves just like YankNthArg.  If invoked
+        ///     multiple times, instead it iterates through history and arg sets the direction
+        ///     (negative reverses the direction.)
         /// </summary>
         public static void YankLastArg(ConsoleKeyInfo? key = null, object arg = null)
         {
@@ -324,10 +314,7 @@ namespace Microsoft.PowerShell
 
             var yankLastArgState = _singleton._yankLastArgState;
 
-            if ((int?) arg < 0)
-            {
-                yankLastArgState.historyIncrement = -yankLastArgState.historyIncrement;
-            }
+            if ((int?) arg < 0) yankLastArgState.historyIncrement = -yankLastArgState.historyIncrement;
 
             yankLastArgState.historyIndex += yankLastArgState.historyIncrement;
 
@@ -350,17 +337,15 @@ namespace Microsoft.PowerShell
 
         private void VisualSelectionCommon(Action action, bool forceSetMark = false)
         {
-            if (_singleton._visualSelectionCommandCount == 0 || forceSetMark)
-            {
-                SetMark();
-            }
+            if (_singleton._visualSelectionCommandCount == 0 || forceSetMark) SetMark();
+
             _singleton._visualSelectionCommandCount += 1;
             action();
             _singleton.RenderWithPredictionQueryPaused();
         }
 
         /// <summary>
-        /// Adjust the current selection to include the previous character.
+        ///     Adjust the current selection to include the previous character.
         /// </summary>
         public static void SelectBackwardChar(ConsoleKeyInfo? key = null, object arg = null)
         {
@@ -368,7 +353,7 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Adjust the current selection to include the next character.
+        ///     Adjust the current selection to include the next character.
         /// </summary>
         public static void SelectForwardChar(ConsoleKeyInfo? key = null, object arg = null)
         {
@@ -376,7 +361,7 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Adjust the current selection to include the previous word.
+        ///     Adjust the current selection to include the previous word.
         /// </summary>
         public static void SelectBackwardWord(ConsoleKeyInfo? key = null, object arg = null)
         {
@@ -384,7 +369,7 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Adjust the current selection to include the next word.
+        ///     Adjust the current selection to include the next word.
         /// </summary>
         public static void SelectNextWord(ConsoleKeyInfo? key = null, object arg = null)
         {
@@ -392,7 +377,7 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Adjust the current selection to include the next word using ForwardWord.
+        ///     Adjust the current selection to include the next word using ForwardWord.
         /// </summary>
         public static void SelectForwardWord(ConsoleKeyInfo? key = null, object arg = null)
         {
@@ -400,7 +385,7 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Adjust the current selection to include the next word using ShellForwardWord.
+        ///     Adjust the current selection to include the next word using ShellForwardWord.
         /// </summary>
         public static void SelectShellForwardWord(ConsoleKeyInfo? key = null, object arg = null)
         {
@@ -408,7 +393,7 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Adjust the current selection to include the next word using ShellNextWord.
+        ///     Adjust the current selection to include the next word using ShellNextWord.
         /// </summary>
         public static void SelectShellNextWord(ConsoleKeyInfo? key = null, object arg = null)
         {
@@ -416,7 +401,7 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Adjust the current selection to include the previous word using ShellBackwardWord.
+        ///     Adjust the current selection to include the previous word using ShellBackwardWord.
         /// </summary>
         public static void SelectShellBackwardWord(ConsoleKeyInfo? key = null, object arg = null)
         {
@@ -424,7 +409,7 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Select the entire line.
+        ///     Select the entire line.
         /// </summary>
         public static void SelectAll(ConsoleKeyInfo? key = null, object arg = null)
         {
@@ -435,7 +420,7 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Adjust the current selection to include from the cursor to the end of the line.
+        ///     Adjust the current selection to include from the cursor to the end of the line.
         /// </summary>
         public static void SelectLine(ConsoleKeyInfo? key = null, object arg = null)
         {
@@ -443,7 +428,7 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Adjust the current selection to include from the cursor to the start of the line.
+        ///     Adjust the current selection to include from the cursor to the start of the line.
         /// </summary>
         public static void SelectBackwardsLine(ConsoleKeyInfo? key = null, object arg = null)
         {
@@ -451,82 +436,67 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Select the command argument that the cursor is at, or the previous/next Nth command arguments from the current cursor position.
+        ///     Select the command argument that the cursor is at, or the previous/next Nth command arguments from the current
+        ///     cursor position.
         /// </summary>
         public static void SelectCommandArgument(ConsoleKeyInfo? key = null, object arg = null)
         {
-            if (!TryGetArgAsInt(arg, out var numericArg, 0))
-            {
-                return;
-            }
+            if (!TryGetArgAsInt(arg, out var numericArg, 0)) return;
 
             _singleton.MaybeParseInput();
 
-            int cursor = _singleton._current;
+            var cursor = _singleton._current;
             int prev = -1, curr = -1, next = -1;
-            var sbAsts = _singleton._ast.FindAll(GetScriptBlockAst, searchNestedScriptBlocks: true).ToList();
+            var sbAsts = _singleton._ast.FindAll(GetScriptBlockAst, true).ToList();
             var arguments = new List<ExpressionAst>();
 
             // We start searching for command arguments from the most nested script block.
-            for (int i = sbAsts.Count - 1; i >= 0; i --)
+            for (var i = sbAsts.Count - 1; i >= 0; i--)
             {
                 var sbAst = sbAsts[i];
-                var cmdAsts = sbAst.FindAll(ast => ast is CommandAst, searchNestedScriptBlocks: false);
+                var cmdAsts = sbAst.FindAll(ast => ast is CommandAst, false);
 
                 foreach (CommandAst cmdAst in cmdAsts)
-                {
-                    for (int j = 1; j < cmdAst.CommandElements.Count; j++)
+                    for (var j = 1; j < cmdAst.CommandElements.Count; j++)
                     {
                         var argument = cmdAst.CommandElements[j] switch
                         {
                             CommandParameterAst paramAst => paramAst.Argument,
                             ExpressionAst expAst => expAst,
-                            _ => null,
+                            _ => null
                         };
 
                         if (argument is not null)
                         {
                             arguments.Add(argument);
 
-                            int start = argument.Extent.StartOffset;
-                            int end = argument.Extent.EndOffset;
+                            var start = argument.Extent.StartOffset;
+                            var end = argument.Extent.EndOffset;
 
-                            if (end <= cursor)
-                            {
-                                prev = arguments.Count - 1;
-                            }
+                            if (end <= cursor) prev = arguments.Count - 1;
+
                             if (curr == -1 && start <= cursor && end > cursor)
-                            {
                                 curr = arguments.Count - 1;
-                            }
-                            else if (next == -1 && start > cursor)
-                            {
-                                next = arguments.Count - 1;
-                            }
+                            else if (next == -1 && start > cursor) next = arguments.Count - 1;
                         }
                     }
-                }
 
                 // Stop searching the outer script blocks if we find any command arguments within the current script block.
-                if (arguments.Count > 0)
-                {
-                    break;
-                }
+                if (arguments.Count > 0) break;
             }
 
             // Simply return if we didn't find any command arguments.
-            int count = arguments.Count;
-            if (count == 0)
-            {
-                return;
-            }
+            var count = arguments.Count;
+            if (count == 0) return;
 
-            if (prev == -1) { prev = count - 1; }
-            if (next == -1) { next = 0; }
-            if (curr == -1) { curr = numericArg > 0 ? prev : next; }
+            if (prev == -1) prev = count - 1;
+
+            if (next == -1) next = 0;
+
+            if (curr == -1) curr = numericArg > 0 ? prev : next;
 
             int newStartCursor, newEndCursor;
-            int selectCount = _singleton._visualSelectionCommandCount;
+            var selectCount = _singleton._visualSelectionCommandCount;
 
             // When an argument is already visually selected by the previous run of this function, the cursor would have past the selected argument.
             // In this case, if a user wants to move backward to an argument that is before the currently selected argument by having numericArg < 0,
@@ -538,10 +508,7 @@ namespace Microsoft.PowerShell
             if (count > 1 && numericArg < 0 && curr == next && selectCount > 0)
             {
                 var prevArg = arguments[prev];
-                if (_singleton._mark == prevArg.Extent.StartOffset && cursor == prevArg.Extent.EndOffset)
-                {
-                    numericArg--;
-                }
+                if (_singleton._mark == prevArg.Extent.StartOffset && cursor == prevArg.Extent.EndOffset) numericArg--;
             }
 
             while (true)
@@ -553,7 +520,7 @@ namespace Microsoft.PowerShell
                 }
                 else
                 {
-                    int index = curr + numericArg;
+                    var index = curr + numericArg;
                     index = index >= 0 ? index % count : (count + index % count) % count;
                     targetAst = arguments[index];
                 }
@@ -561,13 +528,9 @@ namespace Microsoft.PowerShell
                 // Handle quoted-string arguments specially, by leaving the quotes out of the visual selection.
                 StringConstantType? constantType = null;
                 if (targetAst is StringConstantExpressionAst conString)
-                {
                     constantType = conString.StringConstantType;
-                }
                 else if (targetAst is ExpandableStringExpressionAst expString)
-                {
                     constantType = expString.StringConstantType;
-                }
 
                 int startOffsetAdjustment = 0, endOffsetAdjustment = 0;
                 switch (constantType)
@@ -581,7 +544,6 @@ namespace Microsoft.PowerShell
                         startOffsetAdjustment = 2;
                         endOffsetAdjustment = 3;
                         break;
-                    default: break;
                 }
 
                 newStartCursor = targetAst.Extent.StartOffset + startOffsetAdjustment;
@@ -611,30 +573,21 @@ namespace Microsoft.PowerShell
             // Move cursor to the start of the argument.
             SetCursorPosition(newStartCursor);
             // Make the intended range visually selected.
-            _singleton.VisualSelectionCommon(() => SetCursorPosition(newEndCursor), forceSetMark: true);
+            _singleton.VisualSelectionCommon(() => SetCursorPosition(newEndCursor), true);
 
 
             // Get the script block AST's whose extent contains the cursor.
             bool GetScriptBlockAst(Ast ast)
             {
-                if (ast is not ScriptBlockAst)
-                {
-                    return false;
-                }
+                if (ast is not ScriptBlockAst) return false;
 
-                if (ast.Parent is null)
-                {
-                    return true;
-                }
+                if (ast.Parent is null) return true;
 
-                if (ast.Extent.StartOffset >= cursor)
-                {
-                    return false;
-                }
+                if (ast.Extent.StartOffset >= cursor) return false;
 
                 // If the script block is closed, then we want the script block only if the cursor is within the script block.
                 // Otherwise, if the script block is not completed, then we want the script block even if the cursor is at the end.
-                int textLength = ast.Extent.Text.Length;
+                var textLength = ast.Extent.Text.Length;
                 return ast.Extent.Text[textLength - 1] == '}'
                     ? ast.Extent.EndOffset - 1 > cursor
                     : ast.Extent.EndOffset >= cursor;
@@ -642,11 +595,11 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Paste text from the system clipboard.
+        ///     Paste text from the system clipboard.
         /// </summary>
         public static void Paste(ConsoleKeyInfo? key = null, object arg = null)
         {
-            string textToPaste = Clipboard.GetText();
+            var textToPaste = Clipboard.GetText();
 
             if (textToPaste != null)
             {
@@ -665,7 +618,7 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Copy selected region to the system clipboard.  If no region is selected, copy the whole line.
+        ///     Copy selected region to the system clipboard.  If no region is selected, copy the whole line.
         /// </summary>
         public static void Copy(ConsoleKeyInfo? key = null, object arg = null)
         {
@@ -679,29 +632,23 @@ namespace Microsoft.PowerShell
             {
                 textToSet = _singleton._buffer.ToString();
             }
-            if (!string.IsNullOrEmpty(textToSet))
-            {
-                Clipboard.SetText(textToSet);
-            }
+
+            if (!string.IsNullOrEmpty(textToSet)) Clipboard.SetText(textToSet);
         }
 
         /// <summary>
-        /// If text is selected, copy to the clipboard, otherwise cancel the line.
+        ///     If text is selected, copy to the clipboard, otherwise cancel the line.
         /// </summary>
         public static void CopyOrCancelLine(ConsoleKeyInfo? key = null, object arg = null)
         {
             if (_singleton._visualSelectionCommandCount > 0)
-            {
                 Copy(key, arg);
-            }
             else
-            {
                 CancelLine(key, arg);
-            }
         }
 
         /// <summary>
-        /// Delete selected region placing deleted text in the system clipboard.
+        ///     Delete selected region placing deleted text in the system clipboard.
         /// </summary>
         public static void Cut(ConsoleKeyInfo? key = null, object arg = null)
         {
@@ -711,6 +658,14 @@ namespace Microsoft.PowerShell
                 Clipboard.SetText(_singleton._buffer.ToString(start, length));
                 Delete(start, length);
             }
+        }
+
+        private class YankLastArgState
+        {
+            internal int argument;
+            internal int historyIncrement;
+            internal int historyIndex;
+            internal int startPoint = -1;
         }
     }
 }

@@ -19,12 +19,10 @@
           "X": 51,
           "Y": 15
         },
-
         "Offset": {
           "LineIndex": 2,
           "CharIndex": 2147483647
         },
-
         "NewInitial": {
           "X": 7,
           "Y": 9
@@ -44,12 +42,10 @@
           "X": 0,
           "Y": 15
         },
-
         "Offset": {
           "LineIndex": 2,
           "CharIndex": 180
         },
-
         "NewInitial": {
           "X": 7,
           "Y": 9
@@ -69,12 +65,10 @@
           "X": 7,
           "Y": 15
         },
-
         "Offset": {
           "LineIndex": 2,
           "CharIndex": 187
         },
-
         "NewInitial": {
           "X": 7,
           "Y": 9
@@ -94,12 +88,10 @@
           "X": 3,
           "Y": 13
         },
-
         "Offset": {
           "LineIndex": 2,
           "CharIndex": 3
         },
-
         "NewInitial": {
           "X": 7,
           "Y": 10
@@ -119,12 +111,10 @@
           "X": 89,
           "Y": 14
         },
-
         "Offset": {
           "LineIndex": 0,
           "CharIndex": 82
         },
-
         "NewInitial": {
           "X": 7,
           "Y": 14
@@ -144,12 +134,10 @@
           "X": 0,
           "Y": 15
         },
-
         "Offset": {
           "LineIndex": 0,
           "CharIndex": 83
         },
-
         "NewInitial": {
           "X": 7,
           "Y": 14
@@ -169,12 +157,10 @@
           "X": 3,
           "Y": 17
         },
-
         "Offset": {
           "LineIndex": 1,
           "CharIndex": 2147483647
         },
-
         "NewInitial": {
           "X": 7,
           "Y": 14
@@ -194,12 +180,10 @@
           "X": 7,
           "Y": 14
         },
-
         "Offset": {
           "LineIndex": 0,
           "CharIndex": -1
         },
-
         "NewInitial": {
           "X": 7,
           "Y": 14
@@ -219,12 +203,10 @@
           "X": 7,
           "Y": 8
         },
-
         "Offset": {
           "LineIndex": -1,
           "CharIndex": -1
         },
-
         "NewInitial": {
           "X": -1,
           "Y": -1
@@ -244,12 +226,10 @@
           "X": 70,
           "Y": 3
         },
-
         "Offset": {
           "LineIndex": -1,
           "CharIndex": -1
         },
-
         "NewInitial": {
           "X": -1,
           "Y": -1
@@ -269,12 +249,10 @@
           "X": 4,
           "Y": 4
         },
-
         "Offset": {
           "LineIndex": -1,
           "CharIndex": -1
         },
-
         "NewInitial": {
           "X": -1,
           "Y": -1
@@ -286,7 +264,6 @@
       }
     ]
   },
-
   {
     "Name": "BasicTest_2",
     "Lines": [
@@ -307,12 +284,10 @@
           "X": 107,
           "Y": 15
         },
-
         "Offset": {
           "LineIndex": 2,
           "CharIndex": 2147483647
         },
-
         "NewInitial": {
           "X": 7,
           "Y": 9
@@ -332,12 +307,10 @@
           "X": 56,
           "Y": 15
         },
-
         "Offset": {
           "LineIndex": 2,
           "CharIndex": 180
         },
-
         "NewInitial": {
           "X": 7,
           "Y": 8
@@ -357,12 +330,10 @@
           "X": 63,
           "Y": 15
         },
-
         "Offset": {
           "LineIndex": 2,
           "CharIndex": 187
         },
-
         "NewInitial": {
           "X": 7,
           "Y": 8
@@ -382,12 +353,10 @@
           "X": 3,
           "Y": 14
         },
-
         "Offset": {
           "LineIndex": 2,
           "CharIndex": 3
         },
-
         "NewInitial": {
           "X": 7,
           "Y": 9
@@ -407,12 +376,10 @@
           "X": 0,
           "Y": 15
         },
-
         "Offset": {
           "LineIndex": 2,
           "CharIndex": 124
         },
-
         "NewInitial": {
           "X": 7,
           "Y": 9
@@ -432,12 +399,10 @@
           "X": 123,
           "Y": 11
         },
-
         "Offset": {
           "LineIndex": 0,
           "CharIndex": 116
         },
-
         "NewInitial": {
           "X": 7,
           "Y": 9
@@ -457,12 +422,10 @@
           "X": 3,
           "Y": 13
         },
-
         "Offset": {
           "LineIndex": 1,
           "CharIndex": 2147483647
         },
-
         "NewInitial": {
           "X": 7,
           "Y": 9
@@ -474,7 +437,6 @@
       }
     ]
   },
-
   {
     "Name": "BasicTest_3",
     // Use empty string as the continuation prompt.
@@ -497,12 +459,10 @@
           "X": 0,
           "Y": 13
         },
-
         "Offset": {
           "LineIndex": 2,
           "CharIndex": 0
         },
-
         "NewInitial": {
           "X": 6,
           "Y": 9
@@ -522,12 +482,10 @@
           "X": 0,
           "Y": 12
         },
-
         "Offset": {
           "LineIndex": 1,
           "CharIndex": 2147483647
         },
-
         "NewInitial": {
           "X": 6,
           "Y": 9
@@ -547,12 +505,10 @@
           "X": 0,
           "Y": 16
         },
-
         "Offset": {
           "LineIndex": 3,
           "CharIndex": 0
         },
-
         "NewInitial": {
           "X": 6,
           "Y": 9
@@ -572,12 +528,10 @@
           "X": 1,
           "Y": 16
         },
-
         "Offset": {
           "LineIndex": 3,
           "CharIndex": 1
         },
-
         "NewInitial": {
           "X": 6,
           "Y": 9
@@ -589,7 +543,6 @@
       }
     ]
   },
-
   {
     "Name": "BasicTest_4",
     // Use empty string as the continuation prompt.
@@ -611,12 +564,10 @@
           "X": 11,
           "Y": 11
         },
-
         "Offset": {
           "LineIndex": 0,
           "CharIndex": 2147483647
         },
-
         "NewInitial": {
           "X": 6,
           "Y": 11
@@ -636,12 +587,10 @@
           "X": 0,
           "Y": 12
         },
-
         "Offset": {
           "LineIndex": 1,
           "CharIndex": 0
         },
-
         "NewInitial": {
           "X": 6,
           "Y": 11
@@ -661,12 +610,10 @@
           "X": 2,
           "Y": 12
         },
-
         "Offset": {
           "LineIndex": 1,
           "CharIndex": 2
         },
-
         "NewInitial": {
           "X": 6,
           "Y": 11
@@ -678,7 +625,6 @@
       }
     ]
   },
-
   {
     "Name": "BasicTest_5",
     // Use empty string as the continuation prompt.
@@ -699,12 +645,10 @@
           "X": 0,
           "Y": 13
         },
-
         "Offset": {
           "LineIndex": 0,
           "CharIndex": 83
         },
-
         "NewInitial": {
           "X": 6,
           "Y": 12
@@ -724,12 +668,10 @@
           "X": 2,
           "Y": 13
         },
-
         "Offset": {
           "LineIndex": 0,
           "CharIndex": 84
         },
-
         "NewInitial": {
           "X": 6,
           "Y": 12
@@ -749,12 +691,10 @@
           "X": 0,
           "Y": 15
         },
-
         "Offset": {
           "LineIndex": 1,
           "CharIndex": 89
         },
-
         "NewInitial": {
           "X": 6,
           "Y": 12
@@ -774,12 +714,10 @@
           "X": 2,
           "Y": 15
         },
-
         "Offset": {
           "LineIndex": 1,
           "CharIndex": 90
         },
-
         "NewInitial": {
           "X": 6,
           "Y": 12
@@ -799,12 +737,10 @@
           "X": 4,
           "Y": 15
         },
-
         "Offset": {
           "LineIndex": 1,
           "CharIndex": 91
         },
-
         "NewInitial": {
           "X": 6,
           "Y": 12
@@ -824,12 +760,10 @@
           "X": 6,
           "Y": 15
         },
-
         "Offset": {
           "LineIndex": 1,
           "CharIndex": 92
         },
-
         "NewInitial": {
           "X": 6,
           "Y": 11
@@ -841,7 +775,6 @@
       }
     ]
   },
-
   {
     // Testing scenarios where the logical lines happen to fit in the whole buffer width.
     "Name": "BasicTest_6",
@@ -863,12 +796,10 @@
           "X": 9,
           "Y": 5
         },
-
         "Offset": {
           "LineIndex": 2,
           "CharIndex": 2147483647
         },
-
         "NewInitial": {
           "X": 6,
           "Y": 3
@@ -888,12 +819,10 @@
           "X": 5,
           "Y": 5
         },
-
         "Offset": {
           "LineIndex": 2,
           "CharIndex": 5
         },
-
         "NewInitial": {
           "X": 6,
           "Y": 3
@@ -913,12 +842,10 @@
           "X": 3,
           "Y": 5
         },
-
         "Offset": {
           "LineIndex": 2,
           "CharIndex": 3
         },
-
         "NewInitial": {
           "X": 6,
           "Y": 3
@@ -938,12 +865,10 @@
           "X": 0,
           "Y": 5
         },
-
         "Offset": {
           "LineIndex": 1,
           "CharIndex": 2147483647
         },
-
         "NewInitial": {
           "X": 6,
           "Y": 3
@@ -963,12 +888,10 @@
           "X": 89,
           "Y": 4
         },
-
         "Offset": {
           "LineIndex": 1,
           "CharIndex": 89
         },
-
         "NewInitial": {
           "X": 6,
           "Y": 3
@@ -988,12 +911,10 @@
           "X": 0,
           "Y": 4
         },
-
         "Offset": {
           "LineIndex": 0,
           "CharIndex": 2147483647
         },
-
         "NewInitial": {
           "X": 6,
           "Y": 3

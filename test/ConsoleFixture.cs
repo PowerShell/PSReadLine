@@ -1,23 +1,23 @@
-
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Runtime.InteropServices;
 using System.Threading;
-using Xunit;
 
 namespace Test
 {
     public class WindowsConsoleFixtureHelper
     {
-        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        static extern IntPtr LoadKeyboardLayout(string pwszKLID, uint Flags);
+        private const int WM_INPUTLANGCHANGEREQUEST = 0x0050;
 
         [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        static extern IntPtr GetKeyboardLayout(uint idThread);
+        private static extern IntPtr LoadKeyboardLayout(string pwszKLID, uint Flags);
 
         [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-        static extern int GetKeyboardLayoutList(int nBuff, [Out] IntPtr[] lpList);
+        private static extern IntPtr GetKeyboardLayout(uint idThread);
+
+        [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        private static extern int GetKeyboardLayoutList(int nBuff, [Out] IntPtr[] lpList);
 
         // For set:
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
@@ -25,29 +25,24 @@ namespace Test
 
         // For get:
         [DllImport("user32.dll", SetLastError = true)]
-        static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint processId);
+        private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint processId);
 
         [DllImport("user32.dll", SetLastError = true)]
-        static extern IntPtr GetForegroundWindow();
-
-        const int WM_INPUTLANGCHANGEREQUEST = 0x0050;
+        private static extern IntPtr GetForegroundWindow();
 
         private static string GetLayoutNameFromHKL(IntPtr hkl)
         {
-            var lcid = (int)((uint)hkl & 0xffff);
-            return (new CultureInfo(lcid)).Name;
+            var lcid = (int) ((uint) hkl & 0xffff);
+            return new CultureInfo(lcid).Name;
         }
 
         public static IEnumerable<string> GetKeyboardLayoutList()
         {
-            int cnt = GetKeyboardLayoutList(0, null);
+            var cnt = GetKeyboardLayoutList(0, null);
             var list = new IntPtr[cnt];
             GetKeyboardLayoutList(list.Length, list);
 
-            foreach (var layout in list)
-            {
-                yield return GetLayoutNameFromHKL(layout);
-            }
+            foreach (var layout in list) yield return GetLayoutNameFromHKL(layout);
         }
 
         public static string GetKeyboardLayout()
@@ -58,7 +53,7 @@ namespace Test
 
         public static IntPtr SetKeyboardLayout(string lang)
         {
-            var layoutId = (new CultureInfo(lang)).KeyboardLayoutId;
+            var layoutId = new CultureInfo(lang).KeyboardLayoutId;
             var layout = LoadKeyboardLayout(layoutId.ToString("x8"), 0x80);
             // Hacky, but tests are probably running in a console app and the layout change
             // is ignored, so post the layout change to the foreground window.
@@ -70,14 +65,18 @@ namespace Test
 
     public class ConsoleFixture : IDisposable
     {
-        public KeyboardLayout KbLayout { get; private set; }
-        public string Lang { get; private set; }
-        public string Os { get; private set; }
-
         public ConsoleFixture()
         {
             Lang = "";
             Os = "";
+        }
+
+        public KeyboardLayout KbLayout { get; private set; }
+        public string Lang { get; private set; }
+        public string Os { get; private set; }
+
+        public void Dispose()
+        {
         }
 
         public void Initialize(string lang, string os)
@@ -90,14 +89,9 @@ namespace Test
             }
         }
 
-        public void Dispose()
-        {
-        }
-
         public override string ToString()
         {
             return Lang + "-" + Os;
         }
     }
 }
-

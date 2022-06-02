@@ -1,9 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using Microsoft.PowerShell;
 using Newtonsoft.Json;
+using Test.Resizing;
 using Xunit;
 
 namespace Test.Resizing
@@ -11,54 +11,54 @@ namespace Test.Resizing
 #pragma warning disable 0649
 
     /// <summary>
-    /// This class is initialized by JSON deserialization.
+    ///     This class is initialized by JSON deserialization.
     /// </summary>
     internal sealed class LogicalToPhysicalLineTestData
     {
-        public string Name;
-        public string Line;
-        public bool IsFirstLogicalLine;
         public List<LogicalToPhysicalLineTestContext> Context;
+        public bool IsFirstLogicalLine;
+        public string Line;
+        public string Name;
     }
 
     /// <summary>
-    /// This class is initialized by JSON deserialization.
+    ///     This class is initialized by JSON deserialization.
     /// </summary>
     internal sealed class LogicalToPhysicalLineTestContext
     {
         public int BufferWidth;
         public int InitialX;
-        public int LineCount;
         public int LastLineLen;
+        public int LineCount;
     }
 
     /// <summary>
-    /// This class is initialized by JSON deserialization.
+    ///     This class is initialized by JSON deserialization.
     /// </summary>
     internal sealed class ResizingTestData
     {
-        public string Name;
-        public List<string> Lines;
-        public int OldBufferWidth;
-        public int NewBufferWidth;
         public List<ResizingTestContext> Context;
+        public List<string> Lines;
+        public string Name;
+        public int NewBufferWidth;
+        public int OldBufferWidth;
     }
 
     /// <summary>
-    /// This class is initialized by JSON deserialization.
+    ///     This class is initialized by JSON deserialization.
     /// </summary>
     internal sealed class ResizingTestContext
     {
-        public Point OldInitial;
-        public Point OldCursor;
-        public Point NewInitial;
         public Point NewCursor;
+        public Point NewInitial;
         public RenderOffset Offset;
+        public Point OldCursor;
+        public Point OldInitial;
 
         internal sealed class RenderOffset
         {
-            public int LineIndex;
             public int CharIndex;
+            public int LineIndex;
         }
     }
 
@@ -67,8 +67,6 @@ namespace Test.Resizing
 
 namespace Test
 {
-    using Test.Resizing;
-
     public partial class ReadLine
     {
         private static List<ResizingTestData> s_resizingTestData;
@@ -77,15 +75,15 @@ namespace Test
         {
             if (s_resizingTestData is null)
             {
-                string path = Path.Combine("assets", "resizing", "renderdata-to-cursor-point.json");
-                string text = File.ReadAllText(path);
+                var path = Path.Combine("assets", "resizing", "renderdata-to-cursor-point.json");
+                var text = File.ReadAllText(path);
                 s_resizingTestData = JsonConvert.DeserializeObject<List<ResizingTestData>>(text);
             }
         }
 
         private PSConsoleReadLine GetPSConsoleReadLineSingleton()
         {
-            return (PSConsoleReadLine)typeof(PSConsoleReadLine)
+            return (PSConsoleReadLine) typeof(PSConsoleReadLine)
                 .GetField("_singleton", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
         }
 
@@ -93,9 +91,9 @@ namespace Test
         public void ConvertPointToRenderDataOffset_ShouldWork()
         {
             InitializeTestData();
-            PSConsoleReadLine instance = GetPSConsoleReadLineSingleton();
+            var instance = GetPSConsoleReadLineSingleton();
 
-            foreach (ResizingTestData test in s_resizingTestData)
+            foreach (var test in s_resizingTestData)
             {
                 RenderData renderData = new()
                 {
@@ -103,18 +101,17 @@ namespace Test
                     bufferWidth = test.OldBufferWidth
                 };
 
-                for (int i = 0; i < test.Lines.Count; i++)
-                {
-                    renderData.lines[i] = new RenderedLineData(test.Lines[i], isFirstLogicalLine: i == 0);
-                }
+                for (var i = 0; i < test.Lines.Count; i++)
+                    renderData.lines[i] = new RenderedLineData(test.Lines[i], i == 0);
 
-                for (int j = 0; j < test.Context.Count; j++)
+                for (var j = 0; j < test.Context.Count; j++)
                 {
-                    ResizingTestContext context = test.Context[j];
+                    var context = test.Context[j];
                     renderData.cursorLeft = context.OldCursor.X;
                     renderData.cursorTop = context.OldCursor.Y;
 
-                    RenderDataOffset offset = instance.ConvertPointToRenderDataOffset(context.OldInitial.X, context.OldInitial.Y, renderData);
+                    var offset =
+                        instance.ConvertPointToRenderDataOffset(context.OldInitial.X, context.OldInitial.Y, renderData);
                     Assert.True(
                         context.Offset.LineIndex == offset.LogicalLineIndex &&
                         context.Offset.CharIndex == offset.VisibleCharIndex,
@@ -127,9 +124,9 @@ namespace Test
         public void ConvertRenderDataOffsetToPoint_ShouldWork()
         {
             InitializeTestData();
-            PSConsoleReadLine instance = GetPSConsoleReadLineSingleton();
+            var instance = GetPSConsoleReadLineSingleton();
 
-            foreach (ResizingTestData test in s_resizingTestData)
+            foreach (var test in s_resizingTestData)
             {
                 RenderData renderData = new()
                 {
@@ -137,21 +134,20 @@ namespace Test
                     bufferWidth = test.OldBufferWidth
                 };
 
-                for (int i = 0; i < test.Lines.Count; i++)
-                {
-                    renderData.lines[i] = new RenderedLineData(test.Lines[i], isFirstLogicalLine: i == 0);
-                }
+                for (var i = 0; i < test.Lines.Count; i++)
+                    renderData.lines[i] = new RenderedLineData(test.Lines[i], i == 0);
 
-                for (int j = 0; j < test.Context.Count; j++)
+                for (var j = 0; j < test.Context.Count; j++)
                 {
-                    ResizingTestContext context = test.Context[j];
+                    var context = test.Context[j];
                     if (context.Offset.LineIndex != -1)
                     {
                         renderData.cursorLeft = context.OldCursor.X;
                         renderData.cursorTop = context.OldCursor.Y;
 
                         var offset = new RenderDataOffset(context.Offset.LineIndex, context.Offset.CharIndex);
-                        Point newCursor = instance.ConvertRenderDataOffsetToPoint(context.NewInitial.X, context.NewInitial.Y, test.NewBufferWidth, renderData, offset);
+                        var newCursor = instance.ConvertRenderDataOffsetToPoint(context.NewInitial.X,
+                            context.NewInitial.Y, test.NewBufferWidth, renderData, offset);
                         Assert.True(
                             context.NewCursor.X == newCursor.X &&
                             context.NewCursor.Y == newCursor.Y,
@@ -168,13 +164,14 @@ namespace Test
             var text = File.ReadAllText(path);
             var testDataList = JsonConvert.DeserializeObject<List<LogicalToPhysicalLineTestData>>(text);
 
-            foreach (LogicalToPhysicalLineTestData test in testDataList)
+            foreach (var test in testDataList)
             {
                 RenderedLineData lineData = new(test.Line, test.IsFirstLogicalLine);
-                for (int i = 0; i < test.Context.Count; i++)
+                for (var i = 0; i < test.Context.Count; i++)
                 {
-                    LogicalToPhysicalLineTestContext context = test.Context[i];
-                    int lineCount = lineData.PhysicalLineCount(context.BufferWidth, context.InitialX, out int lastLinelen);
+                    var context = test.Context[i];
+                    var lineCount =
+                        lineData.PhysicalLineCount(context.BufferWidth, context.InitialX, out var lastLinelen);
                     Assert.True(
                         context.LineCount == lineCount &&
                         context.LastLineLen == lastLinelen,
