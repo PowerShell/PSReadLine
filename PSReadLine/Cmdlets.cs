@@ -165,7 +165,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public const int DefaultAnsiEscapeTimeout = 100;
 
-        public PSConsoleReadLineOptions(string hostName)
+        public PSConsoleReadLineOptions(string hostName, bool usingLegacyConsole)
         {
             ResetColors();
             EditMode = DefaultEditMode;
@@ -185,7 +185,11 @@ namespace Microsoft.PowerShell
             HistorySearchCaseSensitive = DefaultHistorySearchCaseSensitive;
             HistorySaveStyle = DefaultHistorySaveStyle;
             AnsiEscapeTimeout = DefaultAnsiEscapeTimeout;
-            PredictionSource = DefaultPredictionSource;
+            PredictionSource = usingLegacyConsole
+                ? PredictionSource.None
+                : Environment.Version.Major < 6
+                    ? PredictionSource.History
+                    : PredictionSource.HistoryAndPlugin;
             PredictionViewStyle = DefaultPredictionViewStyle;
             MaximumHistoryCount = 0;
 

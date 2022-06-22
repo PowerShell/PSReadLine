@@ -230,6 +230,8 @@ namespace Microsoft.PowerShell
                 { Keys.AltMinus,               MakeKeyHandler(DigitArgument,             "DigitArgument") },
                 { Keys.AltQuestion,            MakeKeyHandler(WhatIsKey,                 "WhatIsKey") },
                 { Keys.AltA,                   MakeKeyHandler(SelectCommandArgument,     "SelectCommandArgument") },
+                { Keys.AltH,                   MakeKeyHandler(ShowParameterHelp,         "ShowParameterHelp") },
+                { Keys.F1,                     MakeKeyHandler(ShowCommandHelp,           "ShowCommandHelp") },
                 { Keys.F2,                     MakeKeyHandler(SwitchPredictionView,      "SwitchPredictionView") },
                 { Keys.F3,                     MakeKeyHandler(CharacterSearch,           "CharacterSearch") },
                 { Keys.ShiftF3,                MakeKeyHandler(CharacterSearchBackward,   "CharacterSearchBackward") },
@@ -239,8 +241,6 @@ namespace Microsoft.PowerShell
                 { Keys.AltD,                   MakeKeyHandler(KillWord,                  "KillWord") },
                 { Keys.CtrlAt,                 MakeKeyHandler(MenuComplete,              "MenuComplete") },
                 { Keys.CtrlW,                  MakeKeyHandler(BackwardKillWord,          "BackwardKillWord") },
-                { Keys.AltH,                   MakeKeyHandler(ShowParameterHelp,         "ShowParameterHelp") },
-                { Keys.F1,                     MakeKeyHandler(ShowCommandHelp,           "ShowCommandHelp") },
             };
 
             // Some bindings are not available on certain platforms
@@ -338,6 +338,7 @@ namespace Microsoft.PowerShell
                 { Keys.AltA,                   MakeKeyHandler(SelectCommandArgument,     "SelectCommandArgument") },
                 { Keys.AltH,                   MakeKeyHandler(ShowParameterHelp,         "ShowParameterHelp") },
                 { Keys.F1,                     MakeKeyHandler(ShowCommandHelp,           "ShowCommandHelp") },
+                { Keys.F2,                     MakeKeyHandler(SwitchPredictionView,      "SwitchPredictionView") },
             };
 
             // Some bindings are not available on certain platforms

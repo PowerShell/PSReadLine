@@ -686,7 +686,9 @@ namespace Microsoft.PowerShell
             {
                 hostName = PSReadLine;
             }
-            _options = new PSConsoleReadLineOptions(hostName);
+
+            bool usingLegacyConsole = _console is PlatformWindows.LegacyWin32Console;
+            _options = new PSConsoleReadLineOptions(hostName, usingLegacyConsole);
             _prediction = new Prediction(this);
             SetDefaultBindings(_options.EditMode);
         }
