@@ -202,28 +202,40 @@ namespace Microsoft.PowerShell
             {
                 helpBlock = new Collection<string>()
                 {
-                    String.Empty,
+                    string.Empty,
                     PSReadLineResources.NeedsUpdateHelp
                 };
             }
             else
             {
                 string syntax = $"-{helpContent.name} <{helpContent.type.name}>";
-                string desc = "DESC: " + helpContent.Description[0].Text;
-
-                // trim new line characters as some help content has it at the end of the first list on the description.
-                desc = desc.Trim('\r', '\n');
-
-                string details = $"Required: {helpContent.required}, Position: {helpContent.position}, Default Value: {helpContent.defaultValue}, Pipeline Input: {helpContent.pipelineInput}, WildCard: {helpContent.globbing}";
-
                 helpBlock = new Collection<string>
                 {
                     string.Empty,
                     syntax,
-                    string.Empty,
-                    desc,
-                    details
+                    string.Empty
                 };
+
+                string text = helpContent.Description[0].Text;
+                if (text.Contains("\n"))
+                {
+                    string[] lines = text.Split(new char[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                    for (int i = 0; i < lines.Length; i++)
+                    {
+                        string prefix = i == 0 ? "DESC: " : "      ";
+                        string s = prefix + lines[i].Trim('\r');
+                        helpBlock.Add(s);
+                    }
+                }
+                else
+                {
+                    string desc = "DESC: " + text;
+                    // trim new line characters as some help content has it at the end of the first list on the description.
+                    helpBlock.Add(desc.Trim('\r', '\n'));
+                }
+
+                string details = $"Required: {helpContent.required}, Position: {helpContent.position}, Default Value: {helpContent.defaultValue}, Pipeline Input: {helpContent.pipelineInput}, WildCard: {helpContent.globbing}";
+                helpBlock.Add(details);
             }
 
             WriteDynamicHelpBlock(helpBlock);
