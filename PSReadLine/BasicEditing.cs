@@ -246,6 +246,72 @@ namespace Microsoft.PowerShell
             _singleton.DeleteCharImpl(1, orExit: true);
         }
 
+        /// <summary>
+        /// A helper function to change the case of the current word.
+        /// </summary>
+        private static void UpdateWordCase(bool toUpper, ConsoleKeyInfo? key = null, object arg = null)
+        {
+            if (_singleton._current >= _singleton._buffer.Length)
+            {
+                Ding();
+                return;
+            }
+
+            int endOfWord = _singleton.FindForwardWordPoint(_singleton.Options.WordDelimiters);
+            int wordlen = endOfWord - _singleton._current;
+
+            string word = _singleton._buffer.ToString(_singleton._current, wordlen);
+            word = toUpper ? word.ToUpper() : word.ToLower();
+
+            Replace(_singleton._current, wordlen, word);
+
+            _singleton.MoveCursor(endOfWord);
+            _singleton.Render();
+        }
+
+        /// <summary>
+        /// Upcase the current word and move to the next one.
+        /// </summary>
+        public static void UpcaseWord(ConsoleKeyInfo? key = null, object arg = null)
+        {
+          UpdateWordCase(true, key, arg);
+        }
+
+        /// <summary>
+        /// Downcase the current word and move to the next one.
+        /// </summary>
+        public static void DowncaseWord(ConsoleKeyInfo? key = null, object arg = null)
+        {
+          UpdateWordCase(false, key, arg);
+        }
+
+        /// <summary>
+        /// Capitalize the current word and move to the next one.
+        /// </summary>
+        public static void CapitalizeWord(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            if (_singleton._current >= _singleton._buffer.Length)
+            {
+                Ding();
+                return;
+            }
+
+            int endOfWord = _singleton.FindForwardWordPoint(_singleton.Options.WordDelimiters);
+            int wordlen = endOfWord - _singleton._current;
+
+            char[] word = _singleton._buffer.ToString(_singleton._current, wordlen).ToLower().ToCharArray();
+            int idxFirstLetter = Array.FindIndex(word, x => char.IsLetter(x));
+
+            if (idxFirstLetter >= 0)
+            {
+              word[idxFirstLetter] = Char.ToUpper(word[idxFirstLetter]);
+              Replace(_singleton._current, wordlen, new string(word));
+            }
+
+            _singleton.MoveCursor(endOfWord);
+            _singleton.Render();
+        }
+
         private bool AcceptLineImpl(bool validate)
         {
             using var _ = _prediction.DisableScoped();

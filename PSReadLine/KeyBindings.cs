@@ -339,6 +339,9 @@ namespace Microsoft.PowerShell
                 { Keys.AltH,                   MakeKeyHandler(ShowParameterHelp,         "ShowParameterHelp") },
                 { Keys.F1,                     MakeKeyHandler(ShowCommandHelp,           "ShowCommandHelp") },
                 { Keys.F2,                     MakeKeyHandler(SwitchPredictionView,      "SwitchPredictionView") },
+                { Keys.AltU,                   MakeKeyHandler(UpcaseWord,                "UpcaseWord") },
+                { Keys.AltL,                   MakeKeyHandler(DowncaseWord,              "DowncaseWord") },
+                { Keys.AltC,                   MakeKeyHandler(CapitalizeWord,            "CapitalizeWord") },
             };
 
             // Some bindings are not available on certain platforms
@@ -371,6 +374,9 @@ namespace Microsoft.PowerShell
                     { Keys.F,         MakeKeyHandler(ForwardWord,      "ForwardWord")},
                     { Keys.R,         MakeKeyHandler(RevertLine,       "RevertLine")},
                     { Keys.Y,         MakeKeyHandler(YankPop,          "YankPop")},
+                    { Keys.U,         MakeKeyHandler(UpcaseWord,       "UpcaseWord") },
+                    { Keys.L,         MakeKeyHandler(DowncaseWord,     "DowncaseWord") },
+                    { Keys.C,         MakeKeyHandler(CapitalizeWord,   "CapitalizeWord") },
                     { Keys.CtrlY,     MakeKeyHandler(YankNthArg,       "YankNthArg")},
                     { Keys.Backspace, MakeKeyHandler(BackwardKillWord, "BackwardKillWord")},
                     { Keys.Period,    MakeKeyHandler(YankLastArg,      "YankLastArg")},
@@ -399,14 +405,15 @@ namespace Microsoft.PowerShell
             case nameof(AcceptAndGetNext):
             case nameof(AcceptLine):
             case nameof(AddLine):
-            case nameof(BackwardDeleteInput):
             case nameof(BackwardDeleteChar):
+            case nameof(BackwardDeleteInput):
             case nameof(BackwardDeleteLine):
             case nameof(BackwardDeleteWord):
             case nameof(BackwardKillInput):
             case nameof(BackwardKillLine):
             case nameof(BackwardKillWord):
             case nameof(CancelLine):
+            case nameof(CapitalizeWord):
             case nameof(Copy):
             case nameof(CopyOrCancelLine):
             case nameof(Cut):
@@ -414,13 +421,14 @@ namespace Microsoft.PowerShell
             case nameof(DeleteCharOrExit):
             case nameof(DeleteEndOfBuffer):
             case nameof(DeleteEndOfWord):
-            case nameof(DeleteRelativeLines):
             case nameof(DeleteLine):
             case nameof(DeleteLineToFirstChar):
             case nameof(DeleteNextLines):
             case nameof(DeletePreviousLines):
+            case nameof(DeleteRelativeLines):
             case nameof(DeleteToEnd):
             case nameof(DeleteWord):
+            case nameof(DowncaseWord):
             case nameof(ForwardDeleteInput):
             case nameof(ForwardDeleteLine):
             case nameof(InsertLineAbove):
@@ -442,6 +450,7 @@ namespace Microsoft.PowerShell
             case nameof(Undo):
             case nameof(UndoAll):
             case nameof(UnixWordRubout):
+            case nameof(UpcaseWord):
             case nameof(ValidateAndAcceptLine):
             case nameof(ViAcceptLine):
             case nameof(ViAcceptLineOrExit):
