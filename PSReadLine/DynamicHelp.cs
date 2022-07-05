@@ -198,7 +198,12 @@ namespace Microsoft.PowerShell
         {
             Collection<string> helpBlock;
 
-            if (string.IsNullOrEmpty(helpContent?.Description?[0]?.Text))
+            if (helpContent?.Description is not string descriptionText)
+            {
+                descriptionText = helpContent?.Description?[0]?.Text;
+            }
+
+            if (descriptionText is null)
             {
                 helpBlock = new Collection<string>()
                 {
@@ -216,7 +221,7 @@ namespace Microsoft.PowerShell
                     string.Empty
                 };
 
-                string text = helpContent.Description[0].Text;
+                string text = descriptionText;
                 if (text.Contains("\n"))
                 {
                     string[] lines = text.Split(new char[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
