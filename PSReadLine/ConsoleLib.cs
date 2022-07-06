@@ -52,7 +52,7 @@ namespace Microsoft.PowerShell.Internal
                 // This is because this API works fine in console host, but not in Windows Terminal. The escape sequence will configure the
                 // cursor as expected in Windows Terminal, while in console host, the escape sequence works after it's written out, but then
                 // will be overwritten by 'CursorSize' when the user continues typing.
-                // We use blinking block and blinking underscore, so as to mimic the cursor size 100 and 25.
+                // We use blinking block and blinking underscore, so as to mimic the cursor size 100 and 25 in console host.
                 Write(value > 50 ? "\x1b[1 q" : "\x1b[3 q");
             }
         }
