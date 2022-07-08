@@ -275,6 +275,13 @@ namespace Microsoft.PowerShell
 
             internal override void GetSuggestion(string userInput)
             {
+                if (_singleton._initialY < 0)
+                {
+                    // Do not trigger list view prediction when the first line has already been scrolled up off the buffer.
+                    // See https://github.com/PowerShell/PSReadLine/issues/3347 for an example where this may happen.
+                    return;
+                }
+
                 bool inputUnchanged = string.Equals(_inputText, userInput, _singleton._options.HistoryStringComparison);
                 if (!inputUnchanged && _selectedIndex > -1)
                 {
