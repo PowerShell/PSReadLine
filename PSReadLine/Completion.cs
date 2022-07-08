@@ -561,6 +561,7 @@ namespace Microsoft.PowerShell
                     // Determine if showing the tooltip would scroll the top of our buffer off the screen.
 
                     int lineLength = 0;
+                    bool fullLine = false;
                     for (var i = 0; i < toolTip.Length; i++)
                     {
                         char c = toolTip[i];
@@ -572,8 +573,13 @@ namespace Microsoft.PowerShell
 
                         if (c == '\r' || c == '\n')
                         {
-                            toolTipLines += 1;
-                            lineLength = 0;
+                            // If we happened to have a full line right before the newline character, then we
+                            // skip this newline character because we already increased the line count.
+                            if (!fullLine)
+                            {
+                                toolTipLines += 1;
+                                lineLength = 0;
+                            }
                         }
                         else
                         {
@@ -582,8 +588,14 @@ namespace Microsoft.PowerShell
                             {
                                 toolTipLines += 1;
                                 lineLength = 0;
+
+                                // Indicate that we just had a full line.
+                                fullLine = true;
+                                continue;
                             }
                         }
+
+                        fullLine = false;
                     }
 
                     // The +1 is for the blank line between the menu and tooltips.
