@@ -31,7 +31,7 @@ namespace Microsoft.PowerShell.Internal
             set => Console.CursorTop = value;
         }
 
-        // .NET doesn't implement this API, so we fake it with a commonly supported escape sequence.
+        // .NET doesn't fully implement this API on all platforms, so we fake it with a commonly supported escape sequence.
         protected int _unixCursorSize = 25;
         public virtual int CursorSize
         {
@@ -45,9 +45,15 @@ namespace Microsoft.PowerShell.Internal
                 else
                 {
                     _unixCursorSize = value;
-                    // Solid blinking block or blinking vertical bar
-                    Write(value > 50 ? "\x1b[2 q" : "\x1b[5 q");
                 }
+
+                // See the cursor ANSI codes at https://www.real-world-systems.com/docs/ANSIcode.html, searching for 'blinking block'.
+                // We write out the ANSI escape sequence even if we are on Windows, where the 'Console.CursorSize' API is supported by .NET.
+                // This is because this API works fine in console host, but not in Windows Terminal. The escape sequence will configure the
+                // cursor as expected in Windows Terminal, while in console host, the escape sequence works after it's written out, but then
+                // will be overwritten by 'CursorSize' when the user continues typing.
+                // We use blinking block and blinking underscore, so as to mimic the cursor size 100 and 25 in console host.
+                Write(value > 50 ? "\x1b[1 q" : "\x1b[3 q");
             }
         }
 
