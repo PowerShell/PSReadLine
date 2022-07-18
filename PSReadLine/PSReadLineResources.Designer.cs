@@ -2204,7 +2204,7 @@ namespace Microsoft.PowerShell.PSReadLine {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to: Find the next word starting from the current position and then make it Pascal case.
+        ///   Looks up a localized string similar to: Find the next word starting from the current position and then upcase the first character and downcase the remaining characters.
         /// </summary>
         internal static string CapitalizeWordDescription
         {
