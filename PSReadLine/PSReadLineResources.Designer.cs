@@ -2202,5 +2202,38 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("FailedToConvertPointToRenderDataOffset", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to: Find the next word starting from the current position and then make it Pascal case.
+        /// </summary>
+        internal static string CapitalizeWordDescription
+        {
+            get
+            {
+                return ResourceManager.GetString("CapitalizeWordDescription", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to: Find the next word starting from the current position and then make it lower case.
+        /// </summary>
+        internal static string DowncaseWordDescription
+        {
+            get
+            {
+                return ResourceManager.GetString("DowncaseWordDescription", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to: Find the next word starting from the current position and then make it upper case.
+        /// </summary>
+        internal static string UpcaseWordDescription
+        {
+            get
+            {
+                return ResourceManager.GetString("UpcaseWordDescription", resourceCulture);
+            }
+        }
     }
 }

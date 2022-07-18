@@ -249,7 +249,7 @@ namespace Microsoft.PowerShell
         /// <summary>
         /// A helper function to change the case of the current word.
         /// </summary>
-        private static void UpdateWordCase(bool toUpper, ConsoleKeyInfo? key = null, object arg = null)
+        private static void UpdateWordCase(bool toUpper)
         {
             if (_singleton._current >= _singleton._buffer.Length)
             {
@@ -274,7 +274,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void UpcaseWord(ConsoleKeyInfo? key = null, object arg = null)
         {
-          UpdateWordCase(true, key, arg);
+            UpdateWordCase(toUpper: true);
         }
 
         /// <summary>
@@ -282,7 +282,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void DowncaseWord(ConsoleKeyInfo? key = null, object arg = null)
         {
-          UpdateWordCase(false, key, arg);
+            UpdateWordCase(toUpper: false);
         }
 
         /// <summary>
@@ -300,12 +300,12 @@ namespace Microsoft.PowerShell
             int wordlen = endOfWord - _singleton._current;
 
             char[] word = _singleton._buffer.ToString(_singleton._current, wordlen).ToLower().ToCharArray();
-            int idxFirstLetter = Array.FindIndex(word, x => char.IsLetter(x));
+            int firstLetterIdx = Array.FindIndex(word, static x => char.IsLetter(x));
 
-            if (idxFirstLetter >= 0)
+            if (firstLetterIdx >= 0)
             {
-              word[idxFirstLetter] = Char.ToUpper(word[idxFirstLetter]);
-              Replace(_singleton._current, wordlen, new string(word));
+                word[firstLetterIdx] = char.ToUpper(word[firstLetterIdx]);
+                Replace(_singleton._current, wordlen, new string(word));
             }
 
             _singleton.MoveCursor(endOfWord);
