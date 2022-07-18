@@ -201,6 +201,37 @@ namespace Test
         }
 
         [SkippableFact]
+        public void UpcaseWord()
+        {
+            TestSetup(KeyMode.Emacs);
+            Test("FOO", Keys("foo", _.Alt_b, _.Alt_u));
+            Test("FOO bar", Keys("foo bar", _.Home, _.Alt_u));
+            Test("foo BAR", Keys("foo bar", _.Alt_b, _.Alt_u));
+            Test("FOO BAR", Keys("foo bar", _.Home, Enumerable.Repeat(_.Alt_u, 2)));
+        }
+
+        [SkippableFact]
+        public void DowncaseWord()
+        {
+            TestSetup(KeyMode.Emacs);
+            Test("foo", Keys("fOO", _.Alt_b, _.Alt_l));
+            Test("FOO bar", Keys("FOO BAR", _.Alt_b, _.Alt_l));
+            Test("foo BAR", Keys("FOO BAR", _.Home, _.Alt_l));
+            Test("foo bar", Keys("FOO BAR", _.Home, Enumerable.Repeat(_.Alt_l, 2)));
+        }
+
+        [SkippableFact]
+        public void CapitalizeWord()
+        {
+            TestSetup(KeyMode.Emacs);
+            Test("Foo", Keys("fOO", _.Alt_b, _.Alt_c));
+            Test("fOO Bar", Keys("fOO bAR", _.Alt_b, _.Alt_c));
+            Test("Foo BAR", Keys("fOO BAR", _.Home, _.Alt_c));
+            Test("Foo Bar", Keys("fOO BAR", _.Home, Enumerable.Repeat(_.Alt_c, 2)));
+            Test("Foo ^&*() Bar", Keys("Foo ^&*() bar", _.Home, Enumerable.Repeat(_.Alt_c, 2)));
+        }
+
+        [SkippableFact]
         public void SelectAndDelete()
         {
             TestSetup(KeyMode.Cmd);

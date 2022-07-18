@@ -858,4 +858,13 @@ Or not saving history with:
   <data name="FailedToConvertPointToRenderDataOffset" xml:space="preserve">
     <value>Cannot locate the offset in the rendered text that was pointed by the original cursor. Initial Coord: ({0}, {1}) Buffer: ({2}, {3}) Cursor: ({4}, {5})</value>
   </data>
+  <data name="CapitalizeWordDescription" xml:space="preserve">
+    <value>Find the next word starting from the current position and then make it Pascal case.</value>
+  </data>
+  <data name="DowncaseWordDescription" xml:space="preserve">
+    <value>Find the next word starting from the current position and then make it lower case.</value>
+  </data>
+  <data name="UpcaseWordDescription" xml:space="preserve">
+    <value>Find the next word starting from the current position and then make it upper case.</value>
+  </data>
 </root>
