@@ -859,7 +859,7 @@ Or not saving history with:
     <value>Cannot locate the offset in the rendered text that was pointed by the original cursor. Initial Coord: ({0}, {1}) Buffer: ({2}, {3}) Cursor: ({4}, {5})</value>
   </data>
   <data name="CapitalizeWordDescription" xml:space="preserve">
-    <value>Find the next word starting from the current position and then make it Pascal case.</value>
+    <value>Find the next word starting from the current position and then upcase the first character and downcase the remaining characters.</value>
   </data>
   <data name="DowncaseWordDescription" xml:space="preserve">
     <value>Find the next word starting from the current position and then make it lower case.</value>
