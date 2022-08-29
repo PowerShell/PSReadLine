@@ -585,6 +585,7 @@ namespace Microsoft.PowerShell
             case nameof(ViEditVisually):
             case nameof(ViExit):
             case nameof(ViInsertMode):
+            case nameof(ViDGChord):
             case nameof(WhatIsKey):
             case nameof(ShowCommandHelp):
             case nameof(ShowParameterHelp):
