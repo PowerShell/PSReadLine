@@ -177,7 +177,7 @@ Set-PSReadLineKeyHandler -Key Tab -Function Complete
 Here is a more interesting example of what is possible:
 
 ```powershell
-Set-PSReadLineKeyHandler -Chord 'Oem7','Shift+Oem7' `
+Set-PSReadLineKeyHandler -Chord '"',"'" `
                          -BriefDescription SmartInsertQuote `
                          -LongDescription "Insert paired quotes if not already on a quote" `
                          -ScriptBlock {
