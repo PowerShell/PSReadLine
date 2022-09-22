@@ -187,7 +187,7 @@ Set-PSReadLineKeyHandler -Chord '"',"'" `
     $cursor = $null
     [Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref]$line, [ref]$cursor)
 
-    if ($line[$cursor] -eq $key.KeyChar) {
+    if ($line.Length -gt $cursor -and $line[$cursor] -eq $key.KeyChar) {
         # Just move the cursor
         [Microsoft.PowerShell.PSConsoleReadLine]::SetCursorPosition($cursor + 1)
     }
