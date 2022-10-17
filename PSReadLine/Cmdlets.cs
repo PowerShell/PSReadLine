@@ -526,7 +526,7 @@ namespace Microsoft.PowerShell
             ParameterColor    = DefaultParameterColor;
             TypeColor         = DefaultTypeColor;
             NumberColor       = DefaultNumberColor;
-            MemberColor       = DefaultNumberColor;
+            MemberColor       = DefaultMemberColor;
             EmphasisColor     = DefaultEmphasisColor;
             ErrorColor        = DefaultErrorColor;
             InlinePredictionColor       = DefaultInlinePredictionColor;
