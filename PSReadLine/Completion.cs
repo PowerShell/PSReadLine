@@ -304,9 +304,9 @@ namespace Microsoft.PowerShell
                     if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && _tabCompletions.CompletionMatches.Count > 1)
                     {
                         // Filter out apparent duplicates
-                        var hashSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                        var hashSet = new HashSet<string>();
 
-                        foreach (var match in _tabCompletions.CompletionMatches.ToArray())
+                        foreach (var match in _tabCompletions.CompletionMatches)
                         {
                             if (!hashSet.Add(match.ListItemText))
                             {
