@@ -10,7 +10,6 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Management.Automation;
 using System.Management.Automation.Runspaces;
 using Microsoft.PowerShell.Internal;
@@ -300,17 +299,27 @@ namespace Microsoft.PowerShell
                     if (start < 0 || start > _singleton._buffer.Length) return null;
                     if (length < 0 || length > (_singleton._buffer.Length - start)) return null;
 
-                    // Only filter out duplicates on Windows.
-                    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && _tabCompletions.CompletionMatches.Count > 1)
+                    if (_tabCompletions.CompletionMatches.Count > 1)
                     {
-                        // Filter out apparent duplicates
-                        var hashSet = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                        // Filter out apparent duplicates -- the 'ListItemText' is exactly the same.
+                        var hashSet = new HashSet<string>();
+                        var matches = _tabCompletions.CompletionMatches;
+                        List<int> indices = null;
 
-                        foreach (var match in _tabCompletions.CompletionMatches.ToArray())
+                        for (int i = 0; i < matches.Count; i++)
                         {
-                            if (!hashSet.Add(match.ListItemText))
+                            if (!hashSet.Add(matches[i].ListItemText))
                             {
-                                _tabCompletions.CompletionMatches.Remove(match);
+                                indices ??= new List<int>();
+                                indices.Add(i);
+                            }
+                        }
+
+                        if (indices is not null)
+                        {
+                            for (int i = indices.Count - 1; i >= 0; i--)
+                            {
+                                matches.RemoveAt(indices[i]);
                             }
                         }
                     }
