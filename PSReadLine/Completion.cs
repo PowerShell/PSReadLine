@@ -301,7 +301,7 @@ namespace Microsoft.PowerShell
 
                     if (_tabCompletions.CompletionMatches.Count > 1)
                     {
-                        // Filter out apparent duplicates
+                        // Filter out apparent duplicates -- the 'ListItemText' is exactly the same.
                         var hashSet = new HashSet<string>();
                         var matches = _tabCompletions.CompletionMatches;
                         List<int> indices = null;
@@ -317,9 +317,9 @@ namespace Microsoft.PowerShell
 
                         if (indices is not null)
                         {
-                            foreach (int index in indices)
+                            for (int i = indices.Count - 1; i >= 0; i--)
                             {
-                                matches.RemoveAt(index);
+                                matches.RemoveAt(indices[i]);
                             }
                         }
                     }
