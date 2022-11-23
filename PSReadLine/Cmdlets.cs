@@ -95,10 +95,10 @@ namespace Microsoft.PowerShell
 
         // Find the most suitable color using https://stackoverflow.com/a/33206814
         // Default prediction color settings:
-        //  - use FG color 'dark black' for the inline-view suggestion text
+        //  - use FG color 'dim white italic' for the inline-view suggestion text
         //  - use FG color 'yellow' for the list-view suggestion text
         //  - use BG color 'dark black' for the selected list-view suggestion text
-        public const string DefaultInlinePredictionColor       = "\x1b[38;5;238m";
+        public const string DefaultInlinePredictionColor       = "\x1b[97;2;3m";
         public const string DefaultListPredictionColor         = "\x1b[33m";
         public const string DefaultListPredictionSelectedColor = "\x1b[48;5;238m";
 
