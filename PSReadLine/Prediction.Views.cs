@@ -144,12 +144,9 @@ namespace Microsoft.PowerShell
                         continue;
                     }
 
-                    if (results == null)
-                    {
-                        results = new List<SuggestionEntry>(capacity: count);
-                    }
-
                     _cacheHistorySet.Add(line);
+                    results ??= new List<SuggestionEntry>(capacity: count);
+
                     if (matchIndex == 0)
                     {
                         results.Add(new SuggestionEntry(line, matchIndex));
@@ -224,8 +221,11 @@ namespace Microsoft.PowerShell
             private bool _updatePending;
 
             // Caches re-used when aggregating the suggestion results from predictors and history.
+            // Those caches help us avoid allocation on tons of short-lived collections.
             private List<int> _cacheList1;
             private List<int> _cacheList2;
+            private HashSet<string> _cachedHistorySet;
+            private StringComparer _cachedComparer;
 
             /// <summary>
             /// Gets whether the current window size meets the minimum requirement for the List view to work.
@@ -376,7 +376,7 @@ namespace Microsoft.PowerShell
 
                         // Assign the results of each plugin to the average slots.
                         // Note that it's possible a plugin may return less results than the average slots,
-                        // and in that case, the unused slots will be come remaining slots that are to be
+                        // and in that case, the unused slots will become remaining slots which are to be
                         // distributed again.
                         for (int i = 0; i < pCount; i++)
                         {
@@ -419,6 +419,18 @@ namespace Microsoft.PowerShell
                         if (hCount > 0)
                         {
                             _listItems.RemoveRange(hCount, _listItems.Count - hCount);
+
+                            if (_cachedComparer != _singleton._options.HistoryStringComparer)
+                            {
+                                // Create the cached history set if not yet, or re-create the set if case-sensitivity was changed by the user.
+                                _cachedComparer = _singleton._options.HistoryStringComparer;
+                                _cachedHistorySet = new HashSet<string>(_cachedComparer);
+                            }
+
+                            foreach (SuggestionEntry entry in _listItems)
+                            {
+                                _cachedHistorySet.Add(entry.SuggestionText);
+                            }
                         }
 
                         int index = -1;
@@ -435,19 +447,46 @@ namespace Microsoft.PowerShell
                                     break;
                                 }
 
+                                int skipCount = 0;
                                 int num = _cacheList2[index];
-                                for (int i = 0; i < num; i++)
+                                foreach (PredictiveSuggestion suggestion in item.Suggestions)
                                 {
-                                    string sugText = item.Suggestions[i].SuggestionText ?? string.Empty;
+                                    string sugText = suggestion.SuggestionText ?? string.Empty;
+                                    if (_cachedHistorySet?.Contains(sugText) == true)
+                                    {
+                                        // Skip the prediction result that is exactly the same as one of the history results.
+                                        skipCount++;
+                                        continue;
+                                    }
+
                                     int matchIndex = sugText.IndexOf(_inputText, comparison);
                                     _listItems.Add(new SuggestionEntry(item.Name, item.Id, item.Session, sugText, matchIndex));
+
+                                    if (--num == 0)
+                                    {
+                                        // Break after we've added the desired number of prediction results.
+                                        break;
+                                    }
                                 }
 
-                                if (item.Session.HasValue)
+                                // Get the number of prediction results that were actually put in the list after filtering out the duplicate ones.
+                                int count = _cacheList2[index] - num;
+                                if (item.Session.HasValue && count > 0)
                                 {
-                                    // Send feedback only if the mini-session id is specified.
-                                    // When it's not specified, we consider the predictor doesn't accept feedback.
-                                    _singleton._mockableMethods.OnSuggestionDisplayed(item.Id, item.Session.Value, num);
+                                    // Send feedback only if the mini-session id is specified and we truely have its results in the list to be rendered.
+                                    // When the mini-session id is not specified, we consider the predictor doesn't accept feedback.
+                                    //
+                                    // NOTE: when any duplicate results were skipped, the 'count' passed in here won't be accurate as it still includes
+                                    // those skipped ones. This is due to the limitation of the 'OnSuggestionDisplayed' interface method, which didn't
+                                    // assume any prediction results from a predictor could be filtered out at the initial design time. We will have to
+                                    // change the predictor interface to pass in accurate information, such as:
+                                    //   void OnSuggestionDisplayed(Guid predictorId, uint session, int countOrIndex, int[] skippedIndices)
+                                    //
+                                    // However, an interface change has huge impacts. At least, a newer version of PSReadLine will stop working on the
+                                    // existing PowerShell 7+ versions. For this particular issue, the chance that it could happen is low and the impact
+                                    // of the inaccurate feedback is also low, so we should delay this interface change until another highly-demanded
+                                    // change to the interface is required in future (e.g. changes related to supporting OpenAI models).
+                                    _singleton._mockableMethods.OnSuggestionDisplayed(item.Id, item.Session.Value, count + skipCount);
                                 }
                             }
                         }
@@ -456,6 +495,7 @@ namespace Microsoft.PowerShell
                     {
                         _cacheList1.Clear();
                         _cacheList2.Clear();
+                        _cachedHistorySet?.Clear();
                     }
                 }
 
