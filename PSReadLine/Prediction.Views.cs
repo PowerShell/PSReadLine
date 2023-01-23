@@ -207,18 +207,27 @@ namespace Microsoft.PowerShell
         /// </summary>
         private class PredictionListView : PredictionViewBase
         {
-            internal const int ListMaxCount = 10;
-            internal const int ListMaxWidth = 100;
+            // Item count constants.
+            internal const int ListMaxCount = 50;
+            internal const int HistoryMaxCount = 50;
+
+            // List view constants.
+            internal const int ListViewMaxHeight = 10;
+            internal const int ListViewMaxWidth = 100;
             internal const int SourceMaxWidth = 15;
 
+            // Minimal window size.
             internal const int MinWindowWidth = 54;
-            internal const int MinWindowHeight = 15;
+            internal const int MinWindowHeight = 16;
 
             private List<SuggestionEntry> _listItems;
-            private int _listItemWidth;
-            private int _listItemHeight;
             private int _selectedIndex;
             private bool _updatePending;
+
+            private int _listViewHeight;
+            private int _listViewWidth;
+            private int _listViewTop;
+            private int _listViewEnd;
 
             // Caches re-used when aggregating the suggestion results from predictors and history.
             // Those caches help us avoid allocation on tons of short-lived collections.
@@ -301,8 +310,12 @@ namespace Microsoft.PowerShell
                 }
 
                 _inputText = userInput;
+                // Reset the list item selection.
                 _selectedIndex = -1;
-                _listItemWidth = Math.Min(_singleton._console.BufferWidth, ListMaxWidth);
+                // Reset the view window position.
+                _listViewTop = -1;
+                // Refresh the view width in case the terminal was resized.
+                _listViewWidth = Math.Min(_singleton._console.BufferWidth, ListViewMaxWidth);
 
                 if (inputUnchanged)
                 {
@@ -323,7 +336,7 @@ namespace Microsoft.PowerShell
 
                     if (UseHistory)
                     {
-                        _listItems = GetHistorySuggestions(userInput, ListMaxCount);
+                        _listItems = GetHistorySuggestions(userInput, HistoryMaxCount);
                     }
                 }
                 catch
@@ -412,7 +425,7 @@ namespace Microsoft.PowerShell
                                     break;
                                 }
 
-                                more = _cacheList1[i] > 0;
+                                more |= _cacheList1[i] > 0;
                             }
                         }
 
@@ -501,7 +514,13 @@ namespace Microsoft.PowerShell
 
                 if (_listItems?.Count > 0)
                 {
-                    _listItemHeight = Math.Min(_listItems.Count, ListMaxCount);
+                    if (_listViewTop == -1)
+                    {
+                        // We will be rendering this list for the first time, so initialize the view window position here.
+                        _listViewTop = 0;
+                        _listViewEnd = Math.Min(_listItems.Count, ListViewMaxHeight);
+                        _listViewHeight = _listViewEnd - _listViewTop;
+                    }
                 }
                 else
                 {
@@ -520,33 +539,60 @@ namespace Microsoft.PowerShell
                     AggregateSuggestions();
                 }
 
-                if (_listItems == null)
+                if (_listItems is null)
                 {
                     return;
                 }
 
-                for (int i = 0; i < _listItemHeight; i++)
+                // Create the metadata line.
+                NextBufferLine(consoleBufferLines, ref currentLogicalLine)
+                    .Append(' ', repeatCount: 2)
+                    .Append(_singleton._options._listPredictionColor)
+                    .Append('<')
+                    .Append(_selectedIndex > -1 ? _selectedIndex + 1 : "-")
+                    .Append('/')
+                    .Append(_listItems.Count)
+                    .Append('>')
+                    .Append(VTColorUtils.AnsiReset);
+
+                if (_selectedIndex >= 0)
                 {
-                    currentLogicalLine += 1;
-                    if (currentLogicalLine == consoleBufferLines.Count)
+                    // An item was selected, so update the view window accrodingly.
+                    if (_selectedIndex < _listViewTop)
+                    {
+                        _listViewTop = _selectedIndex;
+                        _listViewEnd = Math.Min(_listItems.Count, _selectedIndex + ListViewMaxHeight);
+                    }
+                    else if (_selectedIndex >= _listViewEnd)
+                    {
+                        _listViewEnd = _selectedIndex + 1;
+                        _listViewTop = Math.Max(0, _listViewEnd - ListViewMaxHeight);
+                    }
+
+                    _listViewHeight = _listViewEnd - _listViewTop;
+                }
+
+                for (int i = _listViewTop; i < _listViewEnd; i++)
+                {
+                    bool itemSelected = i == _selectedIndex;
+                    string selectionColor = itemSelected ? _singleton._options._listPredictionSelectedColor : null;
+
+                    NextBufferLine(consoleBufferLines, ref currentLogicalLine)
+                        .Append(_listItems[i].GetListItemText(
+                            _listViewWidth,
+                            _inputText,
+                            selectionColor));
+                }
+
+                static StringBuilder NextBufferLine(List<StringBuilder> consoleBufferLines, ref int current)
+                {
+                    current += 1;
+                    if (current == consoleBufferLines.Count)
                     {
                         consoleBufferLines.Add(new StringBuilder(COMMON_WIDEST_CONSOLE_WIDTH));
                     }
 
-                    bool itemSelected = i == _selectedIndex;
-                    StringBuilder currentLineBuffer = consoleBufferLines[currentLogicalLine];
-
-                    string selectionColor = itemSelected ? _singleton._options._listPredictionSelectedColor : null;
-                    currentLineBuffer.Append(
-                        _listItems[i].GetListItemText(
-                            _listItemWidth,
-                            _inputText,
-                            selectionColor));
-
-                    if (itemSelected)
-                    {
-                        currentLineBuffer.Append(VTColorUtils.AnsiReset);
-                    }
+                    return consoleBufferLines[current];
                 }
             }
 
@@ -577,7 +623,7 @@ namespace Microsoft.PowerShell
                     ? _singleton._console.CursorTop
                     : _singleton.ConvertOffsetToPoint(_inputText.Length).Y;
 
-                _singleton.WriteBlankLines(top + 1, _listItemHeight);
+                _singleton.WriteBlankLines(top + 1, _listViewHeight + 1 /* plus 1 to include the metadata line */);
                 Reset();
             }
 
@@ -585,7 +631,7 @@ namespace Microsoft.PowerShell
             {
                 base.Reset();
                 _listItems = null;
-                _listItemWidth = _listItemHeight = _selectedIndex = -1;
+                _listViewTop = _listViewEnd = _listViewWidth = _listViewHeight = _selectedIndex = -1;
                 _updatePending = false;
             }
 
@@ -595,8 +641,12 @@ namespace Microsoft.PowerShell
             /// <param name="move"></param>
             internal void UpdateListSelection(int move)
             {
+                // While moving around the list, we want to go back to the original input when we move one down
+                // after the last item, or move one up before the first item in the list.
+                // So, we can imagine a virtual list constructed by inserting the original input at the index 0
+                // of the real list.
                 int virtualItemIndex = _selectedIndex + 1;
-                int virtualItemCount = _listItemHeight + 1;
+                int virtualItemCount = _listItems.Count + 1;
 
                 _updatePending = true;
                 virtualItemIndex += move;
@@ -613,6 +663,58 @@ namespace Microsoft.PowerShell
                 {
                     _selectedIndex = virtualItemIndex % virtualItemCount + virtualItemCount - 1;
                 }
+            }
+
+            /// <summary>
+            /// Update the index of the selected item based on <paramref name="pageUp"/>.
+            /// </summary>
+            /// <param name="pageUp"></param>
+            internal bool UpdateListByPaging(bool pageUp, int num)
+            {
+                if (_selectedIndex == -1)
+                {
+                    return false;
+                }
+
+                int oldSelectedIndex = _selectedIndex;
+                int lastItemIndex = _listItems.Count - 1;
+
+                for (int i = 0; i < num; i++)
+                {
+                    if (pageUp)
+                    {
+                        if (_selectedIndex == 0)
+                        {
+                            break;
+                        }
+
+                        // Do one page up.
+                        _selectedIndex = _selectedIndex == _listViewEnd - 1
+                            ? _listViewTop
+                            : Math.Max(0, _selectedIndex - (ListViewMaxHeight - 1));
+                    }
+                    else
+                    {
+                        if (_selectedIndex == lastItemIndex)
+                        {
+                            break;
+                        }
+
+                        // Do one page down.
+                        _selectedIndex = _selectedIndex == _listViewTop
+                            ? _listViewEnd - 1
+                            : Math.Min(lastItemIndex, _selectedIndex + (ListViewMaxHeight - 1));
+                    }
+                }
+
+                if (_selectedIndex != oldSelectedIndex)
+                {
+                    // The selected item is changed, so we need to update the rendering.
+                    _updatePending = true;
+                    return true;
+                }
+
+                return false;
             }
         }
 

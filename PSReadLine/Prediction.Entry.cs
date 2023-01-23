@@ -20,6 +20,9 @@ namespace Microsoft.PowerShell
             internal readonly string SuggestionText;
             internal readonly int InputMatchIndex;
 
+            private string _listItemTextRegular;
+            private string _listItemTextSelected;
+
             internal SuggestionEntry(string suggestion, int matchIndex)
                 : this(source: "History", predictorId: Guid.Empty, predictorSession: null, suggestion, matchIndex)
             {
@@ -32,6 +35,8 @@ namespace Microsoft.PowerShell
                 PredictorSession = predictorSession;
                 SuggestionText = suggestion;
                 InputMatchIndex = matchIndex;
+
+                _listItemTextRegular = _listItemTextSelected = null;
             }
 
             /// <summary>
@@ -59,6 +64,18 @@ namespace Microsoft.PowerShell
             {
                 const string ellipsis = "...";
                 const int ellipsisLength = 3;
+
+                if (selectionHighlighting is null)
+                {
+                    if (_listItemTextRegular is not null)
+                    {
+                        return _listItemTextRegular;
+                    }
+                }
+                else if (_listItemTextSelected is not null)
+                {
+                    return _listItemTextSelected;
+                }
 
                 // Calculate the 'SOURCE' portion to be rendered.
                 int sourceStrLen = Source.Length;
@@ -357,7 +374,23 @@ namespace Microsoft.PowerShell
                 line.EndColorSection(selectionHighlighting)
                     .Append(']');
 
-                return line.ToString();
+                if (selectionHighlighting is not null)
+                {
+                    // Need to reset at the end if the selection highlighting is being applied.
+                    line.Append(VTColorUtils.AnsiReset);
+                }
+
+                string textForRendering = line.ToString();
+                if (selectionHighlighting is null)
+                {
+                    _listItemTextRegular = textForRendering;
+                }
+                else
+                {
+                    _listItemTextSelected = textForRendering;
+                }
+
+                return textForRendering;
             }
         }
     }
