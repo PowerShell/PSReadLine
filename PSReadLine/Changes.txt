@@ -6,7 +6,7 @@
 
 ### [2.2.5] - 2022-05-03
 
-- Re-package the `2.2.4-beta1` version to `2.2.5` as an offical servicing release.
+- Re-package the `2.2.4-beta1` version to `2.2.5` as an official servicing release.
 
 [2.2.5]: https://github.com/PowerShell/PSReadLine/compare/v2.2.4-beta1...v2.2.5
 
@@ -385,7 +385,7 @@ Bug fixes:
 * Fix InvokePrompt when the prompt is > 1 line.
 * Fix YankToPercent off by 1 error.
 * Fix error reported when running in container.
-* Catch and ignore execptions in InvokePrompt (#583)
+* Catch and ignore exceptions in InvokePrompt (#583)
 * Get new completions on 2nd tab if 1st had 1 result (#238)
 * Tab replaced with 4 spaces during paste (#144)
 * Fix rendering after buffer resize (#418)
@@ -670,7 +670,7 @@ New features:
 * Add ETW event source for demo mode, key logger, macro recorder etc.
 * Undo/redo
 * Get-PSReadLineOption cmdlet
-* Make specifying key handlers for builtins simpler
+* Make specifying key handlers for built-ins simpler
 * Current un-entered line is saved and recalled when cycling through history
 * Support syntax coloring of member names
 

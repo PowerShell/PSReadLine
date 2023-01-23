@@ -975,7 +975,7 @@ namespace Test
             using var disp = SetPrediction(PredictionSource.History, PredictionViewStyle.ListView);
 
             _console.Clear();
-            SetHistory("Get-Mocha -AddMilk -AddSugur -ExtraCup", "Get-MoreBook -Kind Fiction -FlatCover");
+            SetHistory("Get-Mocha -AddMilk -AddSugar -ExtraCup", "Get-MoreBook -Kind Fiction -FlatCover");
 
             Test("Get-Module", Keys(
                 "Get-Mo",
@@ -994,8 +994,8 @@ namespace Test
                     TokenClassification.ListPrediction, '>',
                     TokenClassification.None, ' ',
                     emphasisColors, "Get-Mo",
-                    TokenClassification.None, "cha -AddMilk -AddSugur -ExtraCup",
-                    TokenClassification.None, new string(' ', listWidth - 49), // 49 is the length of '> Get-Mocha -AddMilk -AddSugur -ExtraCup' plus '[History]'.
+                    TokenClassification.None, "cha -AddMilk -AddSugar -ExtraCup",
+                    TokenClassification.None, new string(' ', listWidth - 49), // 49 is the length of '> Get-Mocha -AddMilk -AddSugar -ExtraCup' plus '[History]'.
                     TokenClassification.None, '[',
                     TokenClassification.ListPrediction, "History",
                     TokenClassification.None, ']')),

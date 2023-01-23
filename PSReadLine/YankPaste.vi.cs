@@ -80,7 +80,7 @@ namespace Microsoft.PowerShell
         /// <param name="arg"></param>
         /// <param name="moveCursorToEndWhenUndoDelete">
         /// Use 'false' as the default value because this method is used a lot by VI operations,
-        /// and for VI opeartions, we do NOT want to move the cursor to the end when undoing a
+        /// and for VI operations, we do NOT want to move the cursor to the end when undoing a
         /// deletion.
         /// </param>
         private void RemoveTextToViRegister(

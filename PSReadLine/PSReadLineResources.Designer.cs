@@ -241,7 +241,7 @@ namespace Microsoft.PowerShell.PSReadLine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Read a character and move the cursor to the previous occurence of that character.
+        ///   Looks up a localized string similar to Read a character and move the cursor to the previous occurrence of that character.
         /// </summary>
         internal static string CharacterSearchBackwardDescription {
             get {
@@ -250,7 +250,7 @@ namespace Microsoft.PowerShell.PSReadLine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Read a character and move the cursor to the next occurence of that character.
+        ///   Looks up a localized string similar to Read a character and move the cursor to the next occurrence of that character.
         /// </summary>
         internal static string CharacterSearchDescription {
             get {

@@ -853,7 +853,7 @@ namespace Microsoft.PowerShell
         public string BriefDescription { get; set; }
 
         [Parameter(ParameterSetName = "ScriptBlock")]
-        [Alias("LongDescription")]  // Alias to stay comptible with previous releases
+        [Alias("LongDescription")]  // Alias to stay compatible with previous releases
         public string Description { get; set; }
 
         private const string FunctionParameter = "Function";

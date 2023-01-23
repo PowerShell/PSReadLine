@@ -1162,7 +1162,7 @@ namespace Microsoft.PowerShell
                 _previousRender.initialY = _initialY;
             }
 
-            // While waiting to render, and a keybinding has occured that is moving the cursor,
+            // While waiting to render, and a keybinding has occurred that is moving the cursor,
             // converting offset to point could potentially result in an invalid screen position,
             // but the insertion point should reflect the move.
             _current = newCursor;

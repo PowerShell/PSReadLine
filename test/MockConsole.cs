@@ -102,7 +102,7 @@ namespace Test
             _bufferWidth = _windowWidth = width;
             _bufferHeight = _windowHeight = height;
 
-            // Use a big enough buffer when we are mimicing scrolling.
+            // Use a big enough buffer when we are mimicking scrolling.
             int bufferSize = mimicScrolling ? BufferWidth * 1000 : BufferWidth * BufferHeight;
             buffer = new CHAR_INFO[bufferSize];
             ClearBuffer();
