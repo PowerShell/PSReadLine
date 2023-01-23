@@ -37,6 +37,16 @@ namespace Test
                 new SetPSReadLineOption { PredictionSource = oldSource, PredictionViewStyle = oldView }));
         }
 
+        private Disposable SetHistorySearchCaseSensitive(bool caseSensitive)
+        {
+            var options = PSConsoleReadLine.GetOptions();
+            var oldValue = options.HistorySearchCaseSensitive;
+
+            PSConsoleReadLine.SetOptions(new SetPSReadLineOption { HistorySearchCaseSensitive = caseSensitive });
+            return new Disposable(() => PSConsoleReadLine.SetOptions(
+                new SetPSReadLineOption { HistorySearchCaseSensitive = oldValue }));
+        }
+
         private void AssertDisplayedSuggestions(int count, Guid predictorId, uint session, int countOrIndex)
         {
             Assert.Equal(count, _mockedMethods.displayedSuggestions.Count);
@@ -1709,6 +1719,131 @@ namespace Test
             Assert.Equal("java", _mockedMethods.commandHistory[1]);
             Assert.Equal("eca -zoo", _mockedMethods.commandHistory[2]);
             Assert.Equal("SOME NEW TEX SOME TEXT AFTER", _mockedMethods.commandHistory[3]);
+        }
+
+        [SkippableFact]
+        public void List_HistoryAndPluginSource_Deduplication()
+        {
+            TestSetup(KeyMode.Cmd);
+            int listWidth = CheckWindowSize();
+            var emphasisColors = Tuple.Create(PSConsoleReadLineOptions.DefaultEmphasisColor, _console.BackgroundColor);
+
+            // Using the 'HistoryAndPlugin' source will make PSReadLine get prediction from both history and plugin.
+            using var disp1 = SetPrediction(PredictionSource.HistoryAndPlugin, PredictionViewStyle.ListView);
+            _mockedMethods.ClearPredictionFields();
+
+            // The 1st result from 'predictorId_1' is the same as the 1st entry in history with case-insensitive comparison,
+            // which is the default comparison. So, that result will be filtered out due to the de-duplication logic.
+            SetHistory("some TEXT BEFORE de-dup", "de-dup -of");
+            Test("de-dup", Keys(
+                "de-dup", CheckThat(() => AssertScreenIs(6,
+                        TokenClassification.Command, "de-dup",
+                        NextLine,
+                        TokenClassification.ListPrediction, '>',
+                        TokenClassification.None, ' ',
+                        emphasisColors, "de-dup",
+                        TokenClassification.None, " -of",
+                        TokenClassification.None, new string(' ', listWidth - 21), // 21 is the length of '> de-dup -of' plus '[History]'.
+                        TokenClassification.None, '[',
+                        TokenClassification.ListPrediction, "History",
+                        TokenClassification.None, ']',
+                        NextLine,
+                        TokenClassification.ListPrediction, '>',
+                        TokenClassification.None, " some TEXT BEFORE ",
+                        emphasisColors, "de-dup",
+                        TokenClassification.None, new string(' ', listWidth - 34), // 34 is the length of '> SOME TEXT BEFORE de-dup' plus '[History]'.
+                        TokenClassification.None, '[',
+                        TokenClassification.ListPrediction, "History",
+                        TokenClassification.None, ']',
+                        NextLine,
+                        TokenClassification.ListPrediction, '>',
+                        TokenClassification.None, ' ',
+                        emphasisColors, "de-dup",
+                        TokenClassification.None, " SOME TEXT AFTER",
+                        TokenClassification.None, new string(' ', listWidth - 39), // 35 is the length of '> de-dup SOME TEXT AFTER' plus '[TestPredictor]'.
+                        TokenClassification.None, '[',
+                        TokenClassification.ListPrediction, "TestPredictor",
+                        TokenClassification.None, ']',
+                        NextLine,
+                        TokenClassification.ListPrediction, '>',
+                        TokenClassification.None, " SOME NEW TEXT",
+                        TokenClassification.None, new string(' ', listWidth - 32), // 32 is the length of '> SOME NEW TEXT' plus '[LongNamePred...]'
+                        TokenClassification.None, '[',
+                        TokenClassification.ListPrediction, "LongNamePred...",
+                        TokenClassification.None, ']',
+                        // List view is done, no more list item following.
+                        NextLine,
+                        NextLine
+                     )),
+                // `OnSuggestionDisplayed` should be fired for both predictors.
+                // For 'predictorId_1', the reported 'countOrIndex' from feedback is still 2 even though its 1st result was filtered out due to duplication.
+                CheckThat(() => AssertDisplayedSuggestions(count: 2, predictorId_1, MiniSessionId, 2)),
+                CheckThat(() => AssertDisplayedSuggestions(count: 2, predictorId_2, MiniSessionId, 1)),
+                CheckThat(() => _mockedMethods.ClearPredictionFields()),
+                // Once accepted, the list should be cleared.
+                _.Enter, CheckThat(() => AssertScreenIs(2,
+                        TokenClassification.Command, "de-dup",
+                        NextLine,
+                        NextLine))
+            ));
+
+            // Change the setting to be case sensitive, and check the list view content.
+            using var disp2 = SetHistorySearchCaseSensitive(caseSensitive: true);
+            _mockedMethods.ClearPredictionFields();
+
+            // The 1st result from 'predictorId_1' is not the same as the 2nd entry in history with the case-sensitive comparison.
+            // But the 2nd result from 'predictorId_1' is the same as teh 1st entry in history with the case-sensitive comparison,
+            // so, that result will be filtered out due to the de-duplication logic.
+            SetHistory("de-dup SOME TEXT AFTER", "some TEXT BEFORE de-dup");
+            Test("de-dup", Keys(
+                "de-dup", CheckThat(() => AssertScreenIs(6,
+                        TokenClassification.Command, "de-dup",
+                        NextLine,
+                        TokenClassification.ListPrediction, '>',
+                        TokenClassification.None, ' ',
+                        emphasisColors, "de-dup",
+                        TokenClassification.None, " SOME TEXT AFTER",
+                        TokenClassification.None, new string(' ', listWidth - 33), // 33 is the length of '> de-dup SOME TEXT AFTER' plus '[History]'.
+                        TokenClassification.None, '[',
+                        TokenClassification.ListPrediction, "History",
+                        TokenClassification.None, ']',
+                        NextLine,
+                        TokenClassification.ListPrediction, '>',
+                        TokenClassification.None, " some TEXT BEFORE ",
+                        emphasisColors, "de-dup",
+                        TokenClassification.None, new string(' ', listWidth - 34), // 34 is the length of '> some TEXT BEFORE de-dup' plus '[History]'.
+                        TokenClassification.None, '[',
+                        TokenClassification.ListPrediction, "History",
+                        TokenClassification.None, ']',
+                        NextLine,
+                        TokenClassification.ListPrediction, '>',
+                        TokenClassification.None, " SOME TEXT BEFORE ",
+                        emphasisColors, "de-dup",
+                        TokenClassification.None, new string(' ', listWidth - 40), // 40 is the length of '> SOME TEXT BEFORE de-dup' plus '[TestPredictor]'.
+                        TokenClassification.None, '[',
+                        TokenClassification.ListPrediction, "TestPredictor",
+                        TokenClassification.None, ']',
+                        NextLine,
+                        TokenClassification.ListPrediction, '>',
+                        TokenClassification.None, " SOME NEW TEXT",
+                        TokenClassification.None, new string(' ', listWidth - 32), // 32 is the length of '> SOME NEW TEXT' plus '[LongNamePred...]'
+                        TokenClassification.None, '[',
+                        TokenClassification.ListPrediction, "LongNamePred...",
+                        TokenClassification.None, ']',
+                        // List view is done, no more list item following.
+                        NextLine,
+                        NextLine
+                     )),
+                // `OnSuggestionDisplayed` should be fired for both predictors.
+                // For 'predictorId_1', the reported 'countOrIndex' from feedback is still 2 even though its 2nd result was filtered out due to duplication.
+                CheckThat(() => AssertDisplayedSuggestions(count: 2, predictorId_1, MiniSessionId, 2)),
+                CheckThat(() => AssertDisplayedSuggestions(count: 2, predictorId_2, MiniSessionId, 1)),
+                // Once accepted, the list should be cleared.
+                _.Enter, CheckThat(() => AssertScreenIs(2,
+                        TokenClassification.Command, "de-dup",
+                        NextLine,
+                        NextLine))
+            ));
         }
 
         [SkippableFact]
