@@ -57,7 +57,7 @@ if ($Clean) {
 Import-Module "$PSScriptRoot/tools/helper.psm1"
 
 if ($Bootstrap) {
-    Write-Log "Validate and install missing prerequisits for building ..."
+    Write-Log "Validate and install missing prerequisites for building ..."
 
     Install-Dotnet
     if (-not (Get-Module -Name InvokeBuild -ListAvailable)) {

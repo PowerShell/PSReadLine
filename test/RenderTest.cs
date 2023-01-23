@@ -307,7 +307,7 @@ namespace Test
                     Tuple.Create(_console.ForegroundColor, _console.BackgroundColor), "PSREADLINE> ",
                     TokenClassification.Command, "dir"))));
 
-            // Tricky prompt - writes to console directly with colors, uses ^H trick to eliminate trailng space.
+            // Tricky prompt - writes to console directly with colors, uses ^H trick to eliminate trailing space.
             using (var ps = PowerShell.Create(RunspaceMode.CurrentRunspace))
             {
                 ps.AddCommand("New-Variable").AddParameter("Name", "__console").AddParameter("Value", _console).Invoke();

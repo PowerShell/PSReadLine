@@ -49,7 +49,7 @@ namespace Microsoft.PowerShell
             {
                 // Calculate the coord to place the cursor at the end of current input.
                 Point bufferEndPoint = Singleton.ConvertOffsetToPoint(Singleton._buffer.Length);
-                // Top must be initialized before any possible adjustion by 'AdjustForPossibleScroll' or 'AdjustForActualScroll',
+                // Top must be initialized before any possible adjustment by 'AdjustForPossibleScroll' or 'AdjustForActualScroll',
                 // otherwise its value would be corrupted and cause rendering issue.
                 Top = bufferEndPoint.Y + 1;
 

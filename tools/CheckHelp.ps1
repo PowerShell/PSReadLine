@@ -13,7 +13,7 @@ Import-Module $PSScriptRoot/helper.psm1
 $t ='Microsoft.PowerShell.PSConsoleReadLine' -as [type]
 if ($null -ne $t)
 {
-    # Make sure we're runnning in a non-interactive session by relaunching
+    # Make sure we're running in a non-interactive session by relaunching
     $psExePath = Get-PSExePath
     & $psExePath -NoProfile -NonInteractive -File $PSCommandPath $Configuration
     exit $LASTEXITCODE

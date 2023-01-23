@@ -777,7 +777,7 @@ namespace Microsoft.PowerShell
         private void DelayedOneTimeInitialize()
         {
             // Delayed initialization is needed so that options can be set
-            // after the constuctor but have an affect before the user starts
+            // after the constructor but have an affect before the user starts
             // editing their first command line.  For example, if the user
             // specifies a custom history save file, we don't want to try reading
             // from the default one.

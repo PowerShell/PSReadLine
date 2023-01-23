@@ -527,16 +527,16 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Read a character and search forward for the next occurence of that character.
+        /// Read a character and search forward for the next occurrence of that character.
         /// If an argument is specified, search forward (or backward if negative) for the
-        /// nth occurence.
+        /// nth occurrence.
         /// </summary>
         public static void CharacterSearch(ConsoleKeyInfo? key = null, object arg = null)
         {
-            int occurence = arg as int? ?? 1;
-            if (occurence < 0)
+            int occurrence = arg as int? ?? 1;
+            if (occurrence < 0)
             {
-                CharacterSearchBackward(key, -occurence);
+                CharacterSearchBackward(key, -occurrence);
                 return;
             }
 
@@ -550,31 +550,31 @@ namespace Microsoft.PowerShell
             {
                 if (_singleton._buffer[i] == toFind)
                 {
-                    occurence -= 1;
-                    if (occurence == 0)
+                    occurrence -= 1;
+                    if (occurrence == 0)
                     {
                         _singleton.MoveCursor(i);
                         break;
                     }
                 }
             }
-            if (occurence > 0)
+            if (occurrence > 0)
             {
                 Ding();
             }
         }
 
         /// <summary>
-        /// Read a character and search backward for the next occurence of that character.
+        /// Read a character and search backward for the next occurrence of that character.
         /// If an argument is specified, search backward (or forward if negative) for the
-        /// nth occurence.
+        /// nth occurrence.
         /// </summary>
         public static void CharacterSearchBackward(ConsoleKeyInfo? key = null, object arg = null)
         {
-            int occurence = arg as int? ?? 1;
-            if (occurence < 0)
+            int occurrence = arg as int? ?? 1;
+            if (occurrence < 0)
             {
-                CharacterSearch(key, -occurence);
+                CharacterSearch(key, -occurrence);
                 return;
             }
 
@@ -588,8 +588,8 @@ namespace Microsoft.PowerShell
             {
                 if (_singleton._buffer[i] == toFind)
                 {
-                    occurence -= 1;
-                    if (occurence == 0)
+                    occurrence -= 1;
+                    if (occurrence == 0)
                     {
                         _singleton.MoveCursor(i);
                         return;

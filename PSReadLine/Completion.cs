@@ -1079,7 +1079,7 @@ namespace Microsoft.PowerShell
                         processingKeys = false;
                         prependNextKey = true;
 
-                        // without this branch experience doesnt look naturally
+                        // without this branch experience doesn't look naturally
                         if (_dispatchTable.TryGetValue(nextKey, out var handler) &&
                             (
                                 handler.Action == CopyOrCancelLine ||

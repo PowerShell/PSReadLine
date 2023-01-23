@@ -742,7 +742,7 @@ namespace Microsoft.PowerShell
                         // The whole suggestion text cannot fit in the console buffer without having part of it scrolled up off the buffer.
                         // We truncate the end part and append ellipsis.
 
-                        // We need to truncate 4 buffer cells ealier (just to be safe), so we have enough room to add the ellipsis.
+                        // We need to truncate 4 buffer cells earlier (just to be safe), so we have enough room to add the ellipsis.
                         int lenFromEnd = SubstringLengthByCellsFromEnd(_suggestionText, length - 1, countOfCells: 4);
                         totalLength = length - lenFromEnd;
                         if (totalLength <= inputLength)
