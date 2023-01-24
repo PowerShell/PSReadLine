@@ -242,7 +242,7 @@ The build script `build.ps1` can be used to bootstrap, build and test the projec
 After build, the produced artifacts can be found at `<your-local-repo-root>/bin/Debug`. 
 In order to isolate your imported module to the one locally built, be sure to run 
 `pwsh -NonInteractive -NoProfile` to not automatically load the default PSReadLine module installed.
-After you will have to `Import-Module <your-local-repo-root>/bin/Debug/PSReadLine/PSReadLine.psd1`
+After you will have to `Import-Module <your-local-repo-root>/bin/Debug/PSReadLine/PSReadLine.psd1`.
 
 [Contribution Guide]: https://github.com/PowerShell/PSReadLine/blob/master/.github/CONTRIBUTING.md
 
