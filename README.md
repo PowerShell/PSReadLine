@@ -239,7 +239,7 @@ The build script `build.ps1` can be used to bootstrap, build and test the projec
     * Targeting .NET 4.6.2 (Windows only): `./build.ps1 -Test -Configuration Debug -Framework net462`
     * Targeting .NET Core: `./build.ps1 -Test -Configuration Debug -Framework netcoreapp2.1`
 
-After build, the produced artifacts can be found at `<your-local-repo-root>/bin/Debug`. 
+After build, the produced artifacts can be found at `<your-local-repo-root>/bin/Debug`.
 In order to isolate your imported module to the one locally built, be sure to run 
 `pwsh -NonInteractive -NoProfile` to not automatically load the default PSReadLine module installed.
 After you will have to `Import-Module <your-local-repo-root>/bin/Debug/PSReadLine/PSReadLine.psd1`.
