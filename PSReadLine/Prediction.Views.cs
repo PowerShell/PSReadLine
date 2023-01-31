@@ -207,12 +207,14 @@ namespace Microsoft.PowerShell
         /// </summary>
         private class PredictionListView : PredictionViewBase
         {
+            internal const int MaxPromptLineCount = 2;
             internal const int ListMaxCount = 10;
+            internal const int ListMinCount = 3;
             internal const int ListMaxWidth = 100;
             internal const int SourceMaxWidth = 15;
 
             internal const int MinWindowWidth = 54;
-            internal const int MinWindowHeight = 15;
+            internal const int MinWindowHeight = MaxPromptLineCount + ListMinCount;
 
             private List<SuggestionEntry> _listItems;
             private int _listItemWidth;
@@ -236,6 +238,17 @@ namespace Microsoft.PowerShell
                 {
                     var console = _singleton._console;
                     return console.WindowWidth >= MinWindowWidth && console.WindowHeight >= MinWindowHeight;
+                }
+            }
+
+            private int ListCount
+            {
+                get
+                {
+                    var console = _singleton._console;
+                    var availableLines = console.WindowHeight - MaxPromptLineCount;
+                    // Math.Clamp doesn't exist in .NET Framework or .NET 3.1 and earlier
+                    return Math.Min(Math.Max(availableLines, ListMinCount), ListMaxCount);
                 }
             }
 
@@ -323,7 +336,7 @@ namespace Microsoft.PowerShell
 
                     if (UseHistory)
                     {
-                        _listItems = GetHistorySuggestions(userInput, ListMaxCount);
+                        _listItems = GetHistorySuggestions(userInput, ListCount);
                     }
                 }
                 catch
