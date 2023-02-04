@@ -3,6 +3,7 @@ Copyright (c) Microsoft Corporation.  All rights reserved.
 --********************************************************************/
 
 using System;
+using System.Text;
 
 namespace Microsoft.PowerShell
 {
@@ -61,6 +62,26 @@ namespace Microsoft.PowerShell
                     // Simple escape sequence skipping
                     i += 2;
                     while (i < end && str[i] != 'm')
+                        i++;
+
+                    continue;
+                }
+                sum += LengthInBufferCells(c);
+            }
+            return sum;
+        }
+
+        internal static int LengthInBufferCells(StringBuilder sb, int start, int end)
+        {
+            var sum = 0;
+            for (var i = start; i < end; i++)
+            {
+                var c = sb[i];
+                if (c == 0x1b && (i + 1) < end && sb[i + 1] == '[')
+                {
+                    // Simple escape sequence skipping
+                    i += 2;
+                    while (i < end && sb[i] != 'm')
                         i++;
 
                     continue;

@@ -181,6 +181,24 @@ namespace Microsoft.PowerShell
             return false;
         }
 
+        private static bool UpdateListByLoopingSources(bool jumpUp, int numericArg)
+        {
+            if (_singleton._prediction.ActiveView is PredictionListView listView && listView.HasActiveSuggestion)
+            {
+                // Ignore the visual selection.
+                _singleton._visualSelectionCommandCount = 0;
+
+                if (listView.UpdateListByLoopingSources(jumpUp, numericArg))
+                {
+                    ReplaceSelection(listView.SelectedItemText);
+                }
+
+                return true;
+            }
+
+            return false;
+        }
+
         /// <summary>
         /// Replace current buffer with the selected list item text.
         /// The replacement is done in a way that allows further selection updates for the same list view

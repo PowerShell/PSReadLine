@@ -8,6 +8,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Management.Automation.Subsystem.Prediction;
 using Microsoft.PowerShell.Internal;
+using System.Runtime.InteropServices.WindowsRuntime;
+using System.Security.Cryptography;
 
 namespace Microsoft.PowerShell
 {
@@ -209,7 +211,7 @@ namespace Microsoft.PowerShell
         {
             // Item count constants.
             internal const int ListMaxCount = 50;
-            internal const int HistoryMaxCount = 50;
+            internal const int HistoryMaxCount = 10;
 
             // List view constants.
             internal const int ListViewMaxHeight = 10;
@@ -217,13 +219,16 @@ namespace Microsoft.PowerShell
             internal const int SourceMaxWidth = 15;
 
             // Minimal window size.
-            internal const int MinWindowWidth = 54;
+            internal const int MinWindowWidth = 40;
             internal const int MinWindowHeight = 16;
 
             private List<SuggestionEntry> _listItems;
+            private List<SourceInfo> _sources;
             private int _selectedIndex;
+            private bool _renderFromSelected;
             private bool _updatePending;
 
+            // List view rendering helper fields.
             private int _listViewHeight;
             private int _listViewWidth;
             private int _listViewTop;
@@ -282,6 +287,9 @@ namespace Microsoft.PowerShell
             internal override bool HasPendingUpdate => _updatePending;
             internal override bool HasActiveSuggestion => _listItems != null;
 
+            /// <summary>
+            /// Get suggestion results.
+            /// </summary>
             internal override void GetSuggestion(string userInput)
             {
                 if (_singleton._initialY < 0)
@@ -312,8 +320,6 @@ namespace Microsoft.PowerShell
                 _inputText = userInput;
                 // Reset the list item selection.
                 _selectedIndex = -1;
-                // Reset the view window position.
-                _listViewTop = -1;
                 // Refresh the view width in case the terminal was resized.
                 _listViewWidth = Math.Min(_singleton._console.BufferWidth, ListViewMaxWidth);
 
@@ -326,6 +332,7 @@ namespace Microsoft.PowerShell
                 }
 
                 _listItems?.Clear();
+                _sources?.Clear();
 
                 try
                 {
@@ -337,6 +344,10 @@ namespace Microsoft.PowerShell
                     if (UseHistory)
                     {
                         _listItems = GetHistorySuggestions(userInput, HistoryMaxCount);
+                        if (_listItems?.Count > 0)
+                        {
+                            _sources = new List<SourceInfo>() { new SourceInfo(SuggestionEntry.HistorySource, _listItems.Count - 1, -1) };
+                        }
                     }
                 }
                 catch
@@ -361,6 +372,7 @@ namespace Microsoft.PowerShell
                     try
                     {
                         _listItems ??= new List<SuggestionEntry>();
+                        _sources ??= new List<SourceInfo>();
                         _cacheList1 ??= new List<int>(); // This list holds the total number of suggestions from each of the predictors.
                         _cacheList2 ??= new List<int>(); // This list holds the final number of suggestions that will be rendered for each of the predictors.
 
@@ -431,7 +443,12 @@ namespace Microsoft.PowerShell
 
                         if (hCount > 0)
                         {
-                            _listItems.RemoveRange(hCount, _listItems.Count - hCount);
+                            if (hCount < _listItems.Count)
+                            {
+                                _listItems.RemoveRange(hCount, _listItems.Count - hCount);
+                                _sources.Clear();
+                                _sources.Add(new SourceInfo(SuggestionEntry.HistorySource, hCount - 1, prevSourceEndIndex: -1));
+                            }
 
                             if (_cachedComparer != _singleton._options.HistoryStringComparer)
                             {
@@ -484,22 +501,29 @@ namespace Microsoft.PowerShell
 
                                 // Get the number of prediction results that were actually put in the list after filtering out the duplicate ones.
                                 int count = _cacheList2[index] - num;
-                                if (item.Session.HasValue && count > 0)
+                                if (count > 0)
                                 {
-                                    // Send feedback only if the mini-session id is specified and we truely have its results in the list to be rendered.
-                                    // When the mini-session id is not specified, we consider the predictor doesn't accept feedback.
-                                    //
-                                    // NOTE: when any duplicate results were skipped, the 'count' passed in here won't be accurate as it still includes
-                                    // those skipped ones. This is due to the limitation of the 'OnSuggestionDisplayed' interface method, which didn't
-                                    // assume any prediction results from a predictor could be filtered out at the initial design time. We will have to
-                                    // change the predictor interface to pass in accurate information, such as:
-                                    //   void OnSuggestionDisplayed(Guid predictorId, uint session, int countOrIndex, int[] skippedIndices)
-                                    //
-                                    // However, an interface change has huge impacts. At least, a newer version of PSReadLine will stop working on the
-                                    // existing PowerShell 7+ versions. For this particular issue, the chance that it could happen is low and the impact
-                                    // of the inaccurate feedback is also low, so we should delay this interface change until another highly-demanded
-                                    // change to the interface is required in future (e.g. changes related to supporting OpenAI models).
-                                    _singleton._mockableMethods.OnSuggestionDisplayed(item.Id, item.Session.Value, count + skipCount);
+                                    int prevEndIndex = _sources.Count > 0 ? _sources[_sources.Count - 1].EndIndex : -1;
+                                    int endIndex = _listItems.Count - 1;
+                                    _sources.Add(new SourceInfo(_listItems[endIndex].Source, endIndex, prevEndIndex));
+
+                                    if (item.Session.HasValue && count > 0)
+                                    {
+                                        // Send feedback only if the mini-session id is specified and we truely have its results in the list to be rendered.
+                                        // When the mini-session id is not specified, we consider the predictor doesn't accept feedback.
+                                        //
+                                        // NOTE: when any duplicate results were skipped, the 'count' passed in here won't be accurate as it still includes
+                                        // those skipped ones. This is due to the limitation of the 'OnSuggestionDisplayed' interface method, which didn't
+                                        // assume any prediction results from a predictor could be filtered out at the initial design time. We will have to
+                                        // change the predictor interface to pass in accurate information, such as:
+                                        //   void OnSuggestionDisplayed(Guid predictorId, uint session, int countOrIndex, int[] skippedIndices)
+                                        //
+                                        // However, an interface change has huge impacts. At least, a newer version of PSReadLine will stop working on the
+                                        // existing PowerShell 7+ versions. For this particular issue, the chance that it could happen is low and the impact
+                                        // of the inaccurate feedback is also low, so we should delay this interface change until another highly-demanded
+                                        // change to the interface is required in future (e.g. changes related to supporting OpenAI models).
+                                        _singleton._mockableMethods.OnSuggestionDisplayed(item.Id, item.Session.Value, count + skipCount);
+                                    }
                                 }
                             }
                         }
@@ -514,13 +538,10 @@ namespace Microsoft.PowerShell
 
                 if (_listItems?.Count > 0)
                 {
-                    if (_listViewTop == -1)
-                    {
-                        // We will be rendering this list for the first time, so initialize the view window position here.
-                        _listViewTop = 0;
-                        _listViewEnd = Math.Min(_listItems.Count, ListViewMaxHeight);
-                        _listViewHeight = _listViewEnd - _listViewTop;
-                    }
+                    // Initialize the view window position here.
+                    _listViewTop = 0;
+                    _listViewEnd = Math.Min(_listItems.Count, ListViewMaxHeight);
+                    _listViewHeight = _listViewEnd - _listViewTop;
                 }
                 else
                 {
@@ -528,6 +549,9 @@ namespace Microsoft.PowerShell
                 }
             }
 
+            /// <summary>
+            /// Generate the rendering text for the list view.
+            /// </summary>
             internal override void RenderSuggestion(List<StringBuilder> consoleBufferLines, ref int currentLogicalLine)
             {
                 if (_updatePending)
@@ -544,29 +568,50 @@ namespace Microsoft.PowerShell
                     return;
                 }
 
+                /// <summary>
+                /// Return the next logical line buffer, and create a new one if we are at the end.
+                /// </summary>
+                static StringBuilder NextBufferLine(List<StringBuilder> consoleBufferLines, ref int current)
+                {
+                    current += 1;
+                    if (current == consoleBufferLines.Count)
+                    {
+                        consoleBufferLines.Add(new StringBuilder(COMMON_WIDEST_CONSOLE_WIDTH));
+                    }
+
+                    return consoleBufferLines[current];
+                }
+
                 // Create the metadata line.
-                NextBufferLine(consoleBufferLines, ref currentLogicalLine)
-                    .Append(' ', repeatCount: 2)
-                    .Append(_singleton._options._listPredictionColor)
-                    .Append('<')
-                    .Append(_selectedIndex > -1 ? _selectedIndex + 1 : "-")
-                    .Append('/')
-                    .Append(_listItems.Count)
-                    .Append('>')
-                    .Append(VTColorUtils.AnsiReset);
+                RenderMetadataLine(NextBufferLine(consoleBufferLines, ref currentLogicalLine));
 
                 if (_selectedIndex >= 0)
                 {
                     // An item was selected, so update the view window accrodingly.
-                    if (_selectedIndex < _listViewTop)
+                    if (_renderFromSelected)
                     {
-                        _listViewTop = _selectedIndex;
-                        _listViewEnd = Math.Min(_listItems.Count, _selectedIndex + ListViewMaxHeight);
+                        // Render from the selected index if there are enough items left for a page.
+                        // If not, then render all remaining items plus a few from above the selected one, so as to render a full page.
+                        _renderFromSelected = false;
+                        int offset = ListViewMaxHeight - Math.Min(_listItems.Count - _selectedIndex, ListViewMaxHeight);
+                        _listViewTop = offset > 0 ? Math.Max(0, _selectedIndex - offset) : _selectedIndex;
+                        _listViewEnd = Math.Min(_listItems.Count, _listViewTop + ListViewMaxHeight);
                     }
-                    else if (_selectedIndex >= _listViewEnd)
+                    else
                     {
-                        _listViewEnd = _selectedIndex + 1;
-                        _listViewTop = Math.Max(0, _listViewEnd - ListViewMaxHeight);
+                        // - if the selected item is within the current top/end, then no need to move the list view window.
+                        // - if the selected item is before the current top, then move the top to the selected item.
+                        // - if the selected item is after the current end, then move the end to one beyond the selected item.
+                        if (_selectedIndex < _listViewTop)
+                        {
+                            _listViewTop = _selectedIndex;
+                            _listViewEnd = Math.Min(_listItems.Count, _selectedIndex + ListViewMaxHeight);
+                        }
+                        else if (_selectedIndex >= _listViewEnd)
+                        {
+                            _listViewEnd = _selectedIndex + 1;
+                            _listViewTop = Math.Max(0, _listViewEnd - ListViewMaxHeight);
+                        }
                     }
 
                     _listViewHeight = _listViewEnd - _listViewTop;
@@ -583,19 +628,172 @@ namespace Microsoft.PowerShell
                             _inputText,
                             selectionColor));
                 }
-
-                static StringBuilder NextBufferLine(List<StringBuilder> consoleBufferLines, ref int current)
-                {
-                    current += 1;
-                    if (current == consoleBufferLines.Count)
-                    {
-                        consoleBufferLines.Add(new StringBuilder(COMMON_WIDEST_CONSOLE_WIDTH));
-                    }
-
-                    return consoleBufferLines[current];
-                }
             }
 
+            /// <summary>
+            /// Generate the rendering text for the metadata line.
+            /// </summary>
+            private void RenderMetadataLine(StringBuilder buffer)
+            {
+                // Add italic text effect to the highlight color.
+                string highlightColor = _singleton._options._listPredictionColor + "\x1b[3m";
+                string dimmedColor = PSConsoleReadLineOptions.DefaultInlinePredictionColor;
+                string activeColor = null;
+
+                // Render the quick indicator.
+                buffer.Append(highlightColor)
+                    .Append('<')
+                    .Append(_selectedIndex > -1 ? _selectedIndex + 1 : "-")
+                    .Append('/')
+                    .Append(_listItems.Count)
+                    .Append('>')
+                    .Append(VTColorUtils.AnsiReset);
+
+                if (_listViewWidth < 60)
+                {
+                    // We don't render the additional information about sources when the list view width is less than 60.
+                    // Adjust the position of quick indicator a little bit in this case and call it done.
+                    buffer.Insert(0, " ", count: 2);
+                    return;
+                }
+
+                /// <summary>
+                /// A helper function to avoid appending extra color VT sequences unnecessarily.
+                /// </summary>
+                static StringBuilder AppendColor(StringBuilder buffer, string colorToUse, ref string activeColor, out int nextCharPos)
+                {
+                    if (activeColor is null)
+                    {
+                        buffer.Append(colorToUse);
+                    }
+                    else if (activeColor != colorToUse)
+                    {
+                        buffer.Append(VTColorUtils.AnsiReset).Append(colorToUse);
+                    }
+
+                    activeColor = colorToUse;
+                    nextCharPos = buffer.Length;
+                    return buffer;
+                }
+
+                // The list view width decides how to render the source information:
+                //  - when width >= 80, we render upto 3 sources,
+                //  - when width >= 60, we render upto 2 sources.
+                // The reason to select '80' and '60' here is because:
+                //  - To render upto 3 sources, the maximum cell length that could be taken by both the total-count part and the extra-info part
+                //    will be 75 (7+68), so we choose '80' as the minimal requirement for rendering 3 sources.
+                //  - To render upto 2 sources, the maximum cell length that could be taken by both the total-count part and the extra-info part
+                //    will be 55 (7+48), so we choose '60' as the minimal requirement for rendering 2 sources.
+                int maxSourceCount = _listViewWidth >= 80 ? 3 : 2;
+                int charPosition = buffer.Length;
+                int totalCountPartLength = buffer.Length - highlightColor.Length - VTColorUtils.AnsiReset.Length;
+                int additionalPartLength = 0;
+
+                int selected = -1;
+                int startFrom = 0;
+
+                // If a list item was selected, calculate which source the list item belongs to and which source
+                // to start render for the additional information part.
+                if (_selectedIndex > -1)
+                {
+                    for (int i = 0; i < _sources.Count; i++)
+                    {
+                        if (_selectedIndex <= _sources[i].EndIndex)
+                        {
+                            selected = i;
+                            break;
+                        }
+                    }
+
+                    if (selected == 0)
+                    {
+                        startFrom = 0;
+                    }
+                    else if (selected == _sources.Count - 1)
+                    {
+                        startFrom = Math.Max(0, selected - (maxSourceCount - 1));
+                    }
+                    else
+                    {
+                        startFrom = maxSourceCount == 3 ? selected - 1 : selected;
+                    }
+                }
+
+                // Start the extra information about the sources -- add the opening arrow bracket.
+                AppendColor(buffer, dimmedColor, ref activeColor, out _).Append('<');
+                additionalPartLength++;
+
+                // Add the prefix, continue to use dimmed color.
+                if (startFrom > 0)
+                {
+                    buffer.Append(SuggestionEntry.Ellipsis).Append(' ');
+                    additionalPartLength += 2;
+                }
+
+                // Add the sources.
+                for (int i = 0; i < maxSourceCount; i++)
+                {
+                    int index = startFrom + i;
+                    if (index == _sources.Count)
+                    {
+                        break;
+                    }
+
+                    if (i > 0)
+                    {
+                        // Add the separator.
+                        buffer.Append(' ');
+                        additionalPartLength++;
+                    }
+
+                    int nextCharPos;
+                    SourceInfo info = _sources[index];
+                    if (selected == index)
+                    {
+                        AppendColor(buffer, highlightColor, ref activeColor, out nextCharPos)
+                            .Append(info.SourceName)
+                            .Append('(')
+                            .Append(_selectedIndex - info.PrevSourceEndIndex)
+                            .Append('/')
+                            .Append(info.ItemCount)
+                            .Append(')');
+                    }
+                    else
+                    {
+                        AppendColor(buffer, dimmedColor, ref activeColor, out nextCharPos)
+                            .Append(info.SourceName)
+                            .Append('(')
+                            .Append(info.ItemCount)
+                            .Append(')');
+                    }
+
+                    // Need to take into account multi-cell characters when calculating length.
+                    additionalPartLength += LengthInBufferCells(buffer, nextCharPos, buffer.Length);
+                }
+
+                // Add the suffix.
+                if (startFrom + maxSourceCount < _sources.Count)
+                {
+                    AppendColor(buffer, dimmedColor, ref activeColor, out _)
+                        .Append(' ')
+                        .Append(SuggestionEntry.Ellipsis);
+                    additionalPartLength += 2;
+                }
+
+                // Add the closing arrow bracket.
+                AppendColor(buffer, dimmedColor, ref activeColor, out _)
+                    .Append('>')
+                    .Append(VTColorUtils.AnsiReset);
+                additionalPartLength++;
+
+                // Lastly, insert the padding spaces.
+                int padding = _listViewWidth - additionalPartLength - totalCountPartLength;
+                buffer.Insert(charPosition, " ", padding);
+            }
+
+            /// <summary>
+            /// Trigger the feedback about a suggestion was accepted.
+            /// </summary>
             internal override void OnSuggestionAccepted()
             {
                 if (!UsePlugin)
@@ -615,6 +813,9 @@ namespace Microsoft.PowerShell
                 }
             }
 
+            /// <summary>
+            /// Clear the list view.
+            /// </summary>
             internal override void Clear(bool cursorAtEol)
             {
                 if (_listItems == null) { return; }
@@ -627,12 +828,17 @@ namespace Microsoft.PowerShell
                 Reset();
             }
 
+            /// <summary>
+            /// Reset all the list view states.
+            /// </summary>
             internal override void Reset()
             {
                 base.Reset();
+
+                _sources = null;
                 _listItems = null;
                 _listViewTop = _listViewEnd = _listViewWidth = _listViewHeight = _selectedIndex = -1;
-                _updatePending = false;
+                _updatePending = _renderFromSelected = false;
             }
 
             /// <summary>
@@ -666,9 +872,9 @@ namespace Microsoft.PowerShell
             }
 
             /// <summary>
-            /// Update the index of the selected item based on <paramref name="pageUp"/>.
+            /// Page up/down within the list view.
+            /// Update the index of the selected item based on <paramref name="pageUp"/> and <paramref name="num"/>.
             /// </summary>
-            /// <param name="pageUp"></param>
             internal bool UpdateListByPaging(bool pageUp, int num)
             {
                 if (_selectedIndex == -1)
@@ -711,6 +917,55 @@ namespace Microsoft.PowerShell
                 {
                     // The selected item is changed, so we need to update the rendering.
                     _updatePending = true;
+                    return true;
+                }
+
+                return false;
+            }
+
+            /// <summary>
+            /// Loop up/down through the sources rendered in the list view.
+            /// Update the index of the selected item based on <paramref name="jumpUp"/> and <paramref name="num"/>.
+            /// </summary>
+            internal bool UpdateListByLoopingSources(bool jumpUp, int num)
+            {
+                if (_selectedIndex == -1)
+                {
+                    return false;
+                }
+
+                int selectedSource = -1;
+                for (int i = 0; i < _sources.Count; i++)
+                {
+                    if (_selectedIndex <= _sources[i].EndIndex)
+                    {
+                        selectedSource = i;
+                        break;
+                    }
+                }
+
+                int oldSelectedIndex = _selectedIndex;
+                for (int i = 0; i < num; i++)
+                {
+                    if (jumpUp)
+                    {
+                        _selectedIndex = selectedSource == 0
+                            ? _sources[_sources.Count - 1].PrevSourceEndIndex + 1
+                            : _sources[selectedSource - 1].PrevSourceEndIndex + 1;
+                    }
+                    else
+                    {
+                        _selectedIndex = selectedSource == _sources.Count - 1
+                            ? 0
+                            : _sources[selectedSource].EndIndex + 1;
+                    }
+                }
+
+                if (_selectedIndex != oldSelectedIndex)
+                {
+                    // The selected item is changed, so we need to update the rendering.
+                    _updatePending = true;
+                    _renderFromSelected = true;
                     return true;
                 }
 

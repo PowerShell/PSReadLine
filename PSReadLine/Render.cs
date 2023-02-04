@@ -1691,6 +1691,12 @@ namespace Microsoft.PowerShell
         public static void ScrollDisplayUpLine(ConsoleKeyInfo? key = null, object arg = null)
         {
             TryGetArgAsInt(arg, out var numericArg, +1);
+
+            if (UpdateListByLoopingSources(jumpUp: true, numericArg))
+            {
+                return;
+            }
+
             var console = _singleton._console;
             var newTop = console.WindowTop - numericArg;
             if (newTop < 0)
@@ -1727,6 +1733,12 @@ namespace Microsoft.PowerShell
         public static void ScrollDisplayDownLine(ConsoleKeyInfo? key = null, object arg = null)
         {
             TryGetArgAsInt(arg, out var numericArg, +1);
+
+            if (UpdateListByLoopingSources(jumpUp: false, numericArg))
+            {
+                return;
+            }
+
             var console = _singleton._console;
             var newTop = console.WindowTop + numericArg;
             if (newTop > (console.BufferHeight - console.WindowHeight))
