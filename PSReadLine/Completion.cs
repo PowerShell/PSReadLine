@@ -983,14 +983,25 @@ namespace Microsoft.PowerShell
                     // TODO: Shift + Backspace does not fail here?
                     if (menuStack.Count > 1)
                     {
-                        var newMenu = menuStack.Pop();
-
-                        newMenu.DrawMenu(menu, menuSelect: true);
                         previousSelection = -1;
-
-                        menu = newMenu;
-
                         userCompletionText = userCompletionText.Substring(0, userCompletionText.Length - 1);
+
+                        Menu newMenu = menuStack.Peek();
+                        int pos = FindUserCompletionTextPosition(newMenu.CurrentMenuItem, userCompletionText);
+                        if (pos >= 0)
+                        {
+                            newMenu = menuStack.Pop();
+                            newMenu.DrawMenu(menu, menuSelect: true);
+
+                            menu = newMenu;
+                        }
+                        // else {
+                        //     We should not pop the stack yet. The updated user completion text contains characters
+                        //     that are not included in the selected item of the menu at the top of stack. This may
+                        //     happen when the user pressed a 'Tab' before this 'Backspace', which updated the user
+                        //     completion text with the unambiguous common prefix. In this case, we should stay in
+                        //     the current menu.
+                        // }
                     }
                     else if (menuStack.Count == 1)
                     {
