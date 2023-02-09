@@ -299,20 +299,15 @@
           "operator": "and",
           "operands": [
             {
-              "operator": "not",
-              "operands": [
-                {
-                  "name": "isAction",
-                  "parameters": {
-                    "action": "closed"
-                  }
-                }
-              ]
-            },
-            {
               "name": "hasLabel",
               "parameters": {
                 "label": "Status-No Recent Activity"
+              }
+            },
+            {
+              "name": "isAction",
+              "parameters": {
+                "action": "closed"
               }
             }
           ]
@@ -492,12 +487,6 @@
             }
           },
           {
-            "name": "hasLabel",
-            "parameters": {
-              "label": "Status-No Recent Activity"
-            }
-          },
-          {
             "name": "noActivitySince",
             "parameters": {
               "days": 7
@@ -508,6 +497,12 @@
           {
             "name": "closeIssue",
             "parameters": {}
+          },
+          {
+            "name": "addReply",
+            "parameters": {
+              "comment": "This issue is closed because it has been marked as requiring author feedback but has not had any activity for **7 days**. If you think the issue is still relevant, please reopen and provide your feedback."
+            }
           }
         ]
       }
@@ -781,12 +776,6 @@
             "parameters": {
               "days": 7
             }
-          },
-          {
-            "name": "hasLabel",
-            "parameters": {
-              "label": "Needs-Repro"
-            }
           }
         ],
         "taskName": "Close stale issues",
@@ -840,65 +829,68 @@
           {
             "weekDay": 0,
             "hours": [
-              7,
-              19
-            ],
-            "timezoneOffset": -7
+              0,
+              6,
+              12,
+              18
+            ]
           },
           {
             "weekDay": 1,
             "hours": [
-              7,
-              19
-            ],
-            "timezoneOffset": -7
+              0,
+              6,
+              12,
+              18
+            ]
           },
           {
             "weekDay": 2,
             "hours": [
-              7,
-              19
-            ],
-            "timezoneOffset": -7
+              0,
+              6,
+              12,
+              18
+            ]
           },
           {
             "weekDay": 3,
             "hours": [
-              7,
-              19
-            ],
-            "timezoneOffset": -7
+              0,
+              6,
+              12,
+              18
+            ]
           },
           {
             "weekDay": 4,
             "hours": [
-              7,
-              19
-            ],
-            "timezoneOffset": -7
+              0,
+              6,
+              12,
+              18
+            ]
           },
           {
             "weekDay": 5,
             "hours": [
-              7,
-              19
-            ],
-            "timezoneOffset": -7
+              0,
+              6,
+              12,
+              18
+            ]
           },
           {
             "weekDay": 6,
             "hours": [
-              7,
-              19
-            ],
-            "timezoneOffset": -7
+              0,
+              6,
+              12,
+              18
+            ]
           }
         ],
         "searchTerms": [
-          {
-            "name": "isIssue",
-            "parameters": {}
-          },
           {
             "name": "isOpen",
             "parameters": {}
@@ -906,56 +898,554 @@
           {
             "name": "hasLabel",
             "parameters": {
-              "label": "Question-Answered"
-            }
-          },
-          {
-            "name": "noActivitySince",
-            "parameters": {
-              "days": 1
-            }
-          },
-          {
-            "name": "hasLabel",
-            "parameters": {
               "label": "Resolution-Answered"
             }
+          }
+        ],
+        "taskName": "Closing if Resolution Answered",
+        "actions": [
+          {
+            "name": "closeIssue",
+            "parameters": {}
+          }
+        ]
+      }
+    },
+    {
+      "taskType": "scheduled",
+      "capabilityId": "ScheduledSearch",
+      "subCapability": "ScheduledSearch",
+      "version": "1.1",
+      "config": {
+        "frequency": [
+          {
+            "weekDay": 0,
+            "hours": [
+              0,
+              6,
+              12,
+              18
+            ]
           },
           {
-            "name": "hasLabel",
-            "parameters": {
-              "label": "Resolution-Duplicate"
-            }
+            "weekDay": 1,
+            "hours": [
+              0,
+              6,
+              12,
+              18
+            ]
           },
           {
-            "name": "hasLabel",
-            "parameters": {
-              "label": "Resolution-External"
-            }
+            "weekDay": 2,
+            "hours": [
+              0,
+              6,
+              12,
+              18
+            ]
+          },
+          {
+            "weekDay": 3,
+            "hours": [
+              0,
+              6,
+              12,
+              18
+            ]
+          },
+          {
+            "weekDay": 4,
+            "hours": [
+              0,
+              6,
+              12,
+              18
+            ]
+          },
+          {
+            "weekDay": 5,
+            "hours": [
+              0,
+              6,
+              12,
+              18
+            ]
+          },
+          {
+            "weekDay": 6,
+            "hours": [
+              0,
+              6,
+              12,
+              18
+            ]
+          }
+        ],
+        "searchTerms": [
+          {
+            "name": "isOpen",
+            "parameters": {}
           },
           {
             "name": "hasLabel",
             "parameters": {
               "label": "Resolution-By Design"
             }
+          }
+        ],
+        "taskName": "Closing if Resolution By Design",
+        "actions": [
+          {
+            "name": "closeIssue",
+            "parameters": {}
+          }
+        ]
+      }
+    },
+    {
+      "taskType": "scheduled",
+      "capabilityId": "ScheduledSearch",
+      "subCapability": "ScheduledSearch",
+      "version": "1.1",
+      "config": {
+        "frequency": [
+          {
+            "weekDay": 0,
+            "hours": [
+              0,
+              6,
+              12,
+              18
+            ]
+          },
+          {
+            "weekDay": 1,
+            "hours": [
+              0,
+              6,
+              12,
+              18
+            ]
+          },
+          {
+            "weekDay": 2,
+            "hours": [
+              0,
+              6,
+              12,
+              18
+            ]
+          },
+          {
+            "weekDay": 3,
+            "hours": [
+              0,
+              6,
+              12,
+              18
+            ]
+          },
+          {
+            "weekDay": 4,
+            "hours": [
+              0,
+              6,
+              12,
+              18
+            ]
+          },
+          {
+            "weekDay": 5,
+            "hours": [
+              0,
+              6,
+              12,
+              18
+            ]
+          },
+          {
+            "weekDay": 6,
+            "hours": [
+              0,
+              6,
+              12,
+              18
+            ]
+          }
+        ],
+        "searchTerms": [
+          {
+            "name": "isOpen",
+            "parameters": {}
           },
           {
             "name": "hasLabel",
             "parameters": {
               "label": "Resolution-Declined"
             }
+          }
+        ],
+        "taskName": "Closing if Resolution Declined",
+        "actions": [
+          {
+            "name": "closeIssue",
+            "parameters": {}
+          }
+        ]
+      }
+    },
+    {
+      "taskType": "scheduled",
+      "capabilityId": "ScheduledSearch",
+      "subCapability": "ScheduledSearch",
+      "version": "1.1",
+      "config": {
+        "frequency": [
+          {
+            "weekDay": 0,
+            "hours": [
+              0,
+              6,
+              12,
+              18
+            ]
+          },
+          {
+            "weekDay": 1,
+            "hours": [
+              0,
+              6,
+              12,
+              18
+            ]
+          },
+          {
+            "weekDay": 2,
+            "hours": [
+              0,
+              6,
+              12,
+              18
+            ]
+          },
+          {
+            "weekDay": 3,
+            "hours": [
+              0,
+              6,
+              12,
+              18
+            ]
+          },
+          {
+            "weekDay": 4,
+            "hours": [
+              0,
+              6,
+              12,
+              18
+            ]
+          },
+          {
+            "weekDay": 5,
+            "hours": [
+              0,
+              6,
+              12,
+              18
+            ]
+          },
+          {
+            "weekDay": 6,
+            "hours": [
+              0,
+              6,
+              12,
+              18
+            ]
+          }
+        ],
+        "searchTerms": [
+          {
+            "name": "isOpen",
+            "parameters": {}
+          },
+          {
+            "name": "hasLabel",
+            "parameters": {
+              "label": "Resolution-Duplicate"
+            }
+          }
+        ],
+        "taskName": "Closing if Resolution Dup",
+        "actions": [
+          {
+            "name": "closeIssue",
+            "parameters": {}
+          }
+        ]
+      }
+    },
+    {
+      "taskType": "scheduled",
+      "capabilityId": "ScheduledSearch",
+      "subCapability": "ScheduledSearch",
+      "version": "1.1",
+      "config": {
+        "frequency": [
+          {
+            "weekDay": 0,
+            "hours": [
+              0,
+              6,
+              12,
+              18
+            ]
+          },
+          {
+            "weekDay": 1,
+            "hours": [
+              0,
+              6,
+              12,
+              18
+            ]
+          },
+          {
+            "weekDay": 2,
+            "hours": [
+              0,
+              6,
+              12,
+              18
+            ]
+          },
+          {
+            "weekDay": 3,
+            "hours": [
+              0,
+              6,
+              12,
+              18
+            ]
+          },
+          {
+            "weekDay": 4,
+            "hours": [
+              0,
+              6,
+              12,
+              18
+            ]
+          },
+          {
+            "weekDay": 5,
+            "hours": [
+              0,
+              6,
+              12,
+              18
+            ]
+          },
+          {
+            "weekDay": 6,
+            "hours": [
+              0,
+              6,
+              12,
+              18
+            ]
+          }
+        ],
+        "searchTerms": [
+          {
+            "name": "isOpen",
+            "parameters": {}
+          },
+          {
+            "name": "hasLabel",
+            "parameters": {
+              "label": "Resolution-External"
+            }
+          }
+        ],
+        "taskName": "Closing if Resolution External",
+        "actions": [
+          {
+            "name": "closeIssue",
+            "parameters": {}
+          }
+        ]
+      }
+    },
+    {
+      "taskType": "scheduled",
+      "capabilityId": "ScheduledSearch",
+      "subCapability": "ScheduledSearch",
+      "version": "1.1",
+      "config": {
+        "frequency": [
+          {
+            "weekDay": 0,
+            "hours": [
+              0,
+              6,
+              12,
+              18
+            ]
+          },
+          {
+            "weekDay": 1,
+            "hours": [
+              0,
+              6,
+              12,
+              18
+            ]
+          },
+          {
+            "weekDay": 2,
+            "hours": [
+              0,
+              6,
+              12,
+              18
+            ]
+          },
+          {
+            "weekDay": 3,
+            "hours": [
+              0,
+              6,
+              12,
+              18
+            ]
+          },
+          {
+            "weekDay": 4,
+            "hours": [
+              0,
+              6,
+              12,
+              18
+            ]
+          },
+          {
+            "weekDay": 5,
+            "hours": [
+              0,
+              6,
+              12,
+              18
+            ]
+          },
+          {
+            "weekDay": 6,
+            "hours": [
+              0,
+              6,
+              12,
+              18
+            ]
+          }
+        ],
+        "searchTerms": [
+          {
+            "name": "isOpen",
+            "parameters": {}
           },
           {
             "name": "hasLabel",
             "parameters": {
               "label": "Resolution-Fixed"
             }
+          }
+        ],
+        "taskName": "Closing if Resolution Fixed",
+        "actions": [
+          {
+            "name": "closeIssue",
+            "parameters": {}
+          }
+        ]
+      }
+    },
+    {
+      "taskType": "scheduled",
+      "capabilityId": "ScheduledSearch",
+      "subCapability": "ScheduledSearch",
+      "version": "1.1",
+      "config": {
+        "frequency": [
+          {
+            "weekDay": 0,
+            "hours": [
+              0,
+              6,
+              12,
+              18
+            ]
           },
           {
-            "name": "hasLabel",
-            "parameters": {
-              "label": "Resolution-Wont Fix"
-            }
+            "weekDay": 1,
+            "hours": [
+              0,
+              6,
+              12,
+              18
+            ]
+          },
+          {
+            "weekDay": 2,
+            "hours": [
+              0,
+              6,
+              12,
+              18
+            ]
+          },
+          {
+            "weekDay": 3,
+            "hours": [
+              0,
+              6,
+              12,
+              18
+            ]
+          },
+          {
+            "weekDay": 4,
+            "hours": [
+              0,
+              6,
+              12,
+              18
+            ]
+          },
+          {
+            "weekDay": 5,
+            "hours": [
+              0,
+              6,
+              12,
+              18
+            ]
+          },
+          {
+            "weekDay": 6,
+            "hours": [
+              0,
+              6,
+              12,
+              18
+            ]
+          }
+        ],
+        "searchTerms": [
+          {
+            "name": "isOpen",
+            "parameters": {}
           },
           {
             "name": "hasLabel",
@@ -964,17 +1454,257 @@
             }
           }
         ],
-        "taskName": "Close answered issues",
+        "taskName": "Closing if Resolution Not Repro",
         "actions": [
-          {
-            "name": "addReply",
-            "parameters": {
-              "comment": "This issue has been marked as answered or resolved and has not had any activity for **1 day**. It has been closed for housekeeping purposes."
-            }
-          },
           {
             "name": "closeIssue",
             "parameters": {}
+          }
+        ]
+      }
+    },
+    {
+      "taskType": "scheduled",
+      "capabilityId": "ScheduledSearch",
+      "subCapability": "ScheduledSearch",
+      "version": "1.1",
+      "config": {
+        "frequency": [
+          {
+            "weekDay": 0,
+            "hours": [
+              0,
+              6,
+              12,
+              18
+            ]
+          },
+          {
+            "weekDay": 1,
+            "hours": [
+              0,
+              6,
+              12,
+              18
+            ]
+          },
+          {
+            "weekDay": 2,
+            "hours": [
+              0,
+              6,
+              12,
+              18
+            ]
+          },
+          {
+            "weekDay": 3,
+            "hours": [
+              0,
+              6,
+              12,
+              18
+            ]
+          },
+          {
+            "weekDay": 4,
+            "hours": [
+              0,
+              6,
+              12,
+              18
+            ]
+          },
+          {
+            "weekDay": 5,
+            "hours": [
+              0,
+              6,
+              12,
+              18
+            ]
+          },
+          {
+            "weekDay": 6,
+            "hours": [
+              0,
+              6,
+              12,
+              18
+            ]
+          }
+        ],
+        "searchTerms": [
+          {
+            "name": "isOpen",
+            "parameters": {}
+          },
+          {
+            "name": "hasLabel",
+            "parameters": {
+              "label": "Resolution-Wont Fix"
+            }
+          }
+        ],
+        "taskName": "Closing if Resolution Wont Fix",
+        "actions": [
+          {
+            "name": "closeIssue",
+            "parameters": {}
+          }
+        ]
+      }
+    },
+    {
+      "taskType": "scheduled",
+      "capabilityId": "ScheduledSearch",
+      "subCapability": "ScheduledSearch",
+      "version": "1.1",
+      "config": {
+        "frequency": [
+          {
+            "weekDay": 0,
+            "hours": [
+              0,
+              6,
+              12,
+              18
+            ]
+          },
+          {
+            "weekDay": 1,
+            "hours": [
+              0,
+              6,
+              12,
+              18
+            ]
+          },
+          {
+            "weekDay": 2,
+            "hours": [
+              0,
+              6,
+              12,
+              18
+            ]
+          },
+          {
+            "weekDay": 3,
+            "hours": [
+              0,
+              6,
+              12,
+              18
+            ]
+          },
+          {
+            "weekDay": 4,
+            "hours": [
+              0,
+              6,
+              12,
+              18
+            ]
+          },
+          {
+            "weekDay": 5,
+            "hours": [
+              0,
+              6,
+              12,
+              18
+            ]
+          },
+          {
+            "weekDay": 6,
+            "hours": [
+              0,
+              6,
+              12,
+              18
+            ]
+          }
+        ],
+        "searchTerms": [
+          {
+            "name": "isOpen",
+            "parameters": {}
+          },
+          {
+            "name": "hasLabel",
+            "parameters": {
+              "label": "Needs-Repro"
+            }
+          },
+          {
+            "name": "noActivitySince",
+            "parameters": {
+              "days": 7
+            }
+          }
+        ],
+        "taskName": "Closing if Stale Needs Repro",
+        "actions": [
+          {
+            "name": "closeIssue",
+            "parameters": {}
+          },
+          {
+            "name": "addReply",
+            "parameters": {
+              "comment": "This issue is closed because it has been marked as requiring repro steps but has not had any activity for **7 days**. If you think the issue is still relevant, please reopen and provide your feedback."
+            }
+          }
+        ]
+      }
+    },
+    {
+      "taskType": "trigger",
+      "capabilityId": "IssueResponder",
+      "subCapability": "IssueCommentResponder",
+      "version": "1.0",
+      "config": {
+        "conditions": {
+          "operator": "and",
+          "operands": [
+            {
+              "name": "hasLabel",
+              "parameters": {
+                "label": "Needs-Repro"
+              }
+            },
+            {
+              "name": "isActivitySender",
+              "parameters": {
+                "user": {
+                  "type": "author"
+                }
+              }
+            }
+          ]
+        },
+        "eventType": "issue",
+        "eventNames": [
+          "issue_comment"
+        ],
+        "taskName": "",
+        "actions": [
+          {
+            "name": "reopenIssue",
+            "parameters": {}
+          },
+          {
+            "name": "removeLabel",
+            "parameters": {
+              "label": "Needs-Repro"
+            }
+          },
+          {
+            "name": "addLabel",
+            "parameters": {
+              "label": "Needs-Attention :wave:"
+            }
           }
         ]
       }
