@@ -397,6 +397,7 @@ namespace Test
         private const uint MiniSessionId = 56;
         private static readonly Guid predictorId_1 = Guid.Parse("b45b5fbe-90fa-486c-9c87-e7940fdd6273");
         private static readonly Guid predictorId_2 = Guid.Parse("74a86463-033b-44a3-b386-41ee191c94be");
+        private static readonly Guid predictorId_3 = Guid.Parse("19e98622-99e0-41f7-9ee0-a8bed92cde51");
 
         /// <summary>
         /// Mocked implementation of 'PredictInput'.
@@ -423,13 +424,22 @@ namespace Test
                 new PredictiveSuggestion($"SOME NEW TEXT"),
             };
 
-            return new List<PredictionResult>
+            var result = new List<PredictionResult>
             {
                 (PredictionResult)ctor.Invoke(
                     new object[] { predictorId_1, "TestPredictor", MiniSessionId, suggestions_1 }),
                 (PredictionResult)ctor.Invoke(
                     new object[] { predictorId_2, "LongNamePredictor", MiniSessionId, suggestions_2 }),
             };
+
+            // Return an extra source if it's for testing the metadata line.
+            if (input == "metadata-line")
+            {
+                result.Add((PredictionResult)ctor.Invoke(
+                    new object[] { predictorId_3, "Metadata", MiniSessionId, suggestions_2 }));
+            }
+
+            return result;
         }
 
         [SkippableFact]

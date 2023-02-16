@@ -221,20 +221,33 @@ namespace Microsoft.PowerShell
             internal const int MinWindowWidth = 50;
             internal const int MinWindowHeight = 5;
 
+            // The items to be displayed in the list view.
             private List<SuggestionEntry> _listItems;
+            // Information about the sources of those items.
             private List<SourceInfo> _sources;
+            // The index that is currently selected by user.
             private int _selectedIndex;
+            // Indicates to have the list view starts at the selected index.
             private bool _renderFromSelected;
+            // Indicates a navigation update within the list view is pending.
             private bool _updatePending;
 
-            // List view rendering helper fields.
+            // The max list height to be used for rendering, which is auto-adjusted based on terminal height.
             private int _maxViewHeight;
+            // The actual height of the list view that is currently rendered.
             private int _listViewHeight;
+            // The actual width of the list view that is currently rendered.
             private int _listViewWidth;
+            // An index pointing to the item that is shown in the first slot of the list view.
             private int _listViewTop;
+            // An index pointing to the item right AFTER the one that is shown in the last slot of the list view.
             private int _listViewEnd;
+
+            // Indicates if we need to check on the height for each navigation in the list view.
             private bool _checkOnHeight;
+            // To warn about that the terminal size is too small to display the list view.
             private bool _warnAboutSize;
+            // Indicates if a warning message was displayed.
             private bool _warningPrinted;
 
             // Caches re-used when aggregating the suggestion results from predictors and history.
@@ -290,6 +303,9 @@ namespace Microsoft.PowerShell
             internal override bool HasPendingUpdate => _updatePending;
             internal override bool HasActiveSuggestion => _listItems != null;
 
+            /// <summary>
+            /// Calculate the max width and height of the list view based on the current terminal size.
+            /// </summary>
             private (int maxWidth, int maxHeight, bool extraCheck) RefreshMaxViewSize()
             {
                 var console = _singleton._console;
@@ -305,6 +321,9 @@ namespace Microsoft.PowerShell
                 return (maxWidth, maxHeight, moreCheck);
             }
 
+            /// <summary>
+            /// Check if the height becomes too small for the current rendering.
+            /// </summary>
             private bool HeightIsTooSmall()
             {
                 int physicalLineCountForBuffer = _singleton.EndOfBufferPosition().Y - _singleton._initialY + 1;
@@ -653,6 +672,9 @@ namespace Microsoft.PowerShell
                 }
             }
 
+            /// <summary>
+            /// Generate the rendering text for the warning message.
+            /// </summary>
             private void RenderWarningLine(StringBuilder buffer)
             {
                 // Add italic text effect to the highlight color.
@@ -663,6 +685,9 @@ namespace Microsoft.PowerShell
                     .Append(VTColorUtils.AnsiReset);
             }
 
+            /// <summary>
+            /// Calculate the height of the list when warning was displayed.
+            /// </summary>
             private int GetPesudoListHeightForWarningRendering()
             {
                 int bufferWidth = _singleton._console.BufferWidth;
@@ -700,7 +725,8 @@ namespace Microsoft.PowerShell
                 {
                     // We don't render the additional information about sources when the list view width is less than 60.
                     // Adjust the position of quick indicator a little bit in this case and call it done.
-                    buffer.Insert(0, " ", count: 2);
+                    buffer.Insert(0, VTColorUtils.AnsiReset);
+                    buffer.Insert(VTColorUtils.AnsiReset.Length, " ", count: 2);
                     return;
                 }
 

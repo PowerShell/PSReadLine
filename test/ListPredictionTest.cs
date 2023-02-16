@@ -8,7 +8,7 @@ namespace Test
     {
         // The source of truth is defined in 'Microsoft.PowerShell.PSConsoleReadLine+PredictionListView'.
         // Make sure the values are in sync.
-        private const int MinWindowWidth = 54;
+        private const int MinWindowWidth = 50;
         private const int MinWindowHeight = 15;
         private const int ListMaxWidth = 100;
         private const int SourceMaxWidth = 15;
@@ -19,8 +19,8 @@ namespace Test
             // This is a precaution check, just in case that things change.
             int winWidth = _console.WindowWidth;
             int winHeight = _console.WindowHeight;
-            Assert.True(winWidth >= 54,  $"list-view prediction requires minimum window width {MinWindowWidth}. Make sure the TestConsole's width is set properly.");
-            Assert.True(winHeight >= 15, $"list-view prediction requires minimum window height {MinWindowHeight}. Make sure the TestConsole's height is set properly.");
+            Assert.True(winWidth >= MinWindowWidth,  $"list-view prediction requires minimum window width {MinWindowWidth}. Make sure the TestConsole's width is set properly.");
+            Assert.True(winHeight >= MinWindowHeight, $"list-view prediction requires minimum window height {MinWindowHeight}. Make sure the TestConsole's height is set properly.");
 
             int listWidth = winWidth > ListMaxWidth ? ListMaxWidth : winWidth;
             return listWidth;
@@ -98,14 +98,21 @@ namespace Test
         {
             TestSetup(KeyMode.Cmd);
             int listWidth = CheckWindowSize();
+            // The font effect sequences of the dimmed color used in list view metadata line
+            // are ignored in the mock console, so only the white color will be left.
+            var dimmedColors = Tuple.Create(ConsoleColor.White, _console.BackgroundColor);
             var emphasisColors = Tuple.Create(PSConsoleReadLineOptions.DefaultEmphasisColor, _console.BackgroundColor);
             using var disp = SetPrediction(PredictionSource.History, PredictionViewStyle.ListView);
 
             // Different matches as more input coming
             SetHistory("echo -bar", "eca -zoo");
             Test("ech", Keys(
-                'e', CheckThat(() => AssertScreenIs(3,
+                'e', CheckThat(() => AssertScreenIs(4,
                         TokenClassification.Command, 'e',
+                        NextLine,
+                        TokenClassification.ListPrediction, "<-/2>",
+                        TokenClassification.None, new string(' ', listWidth - 17), // 17 is the length of '<-/2>' plus '<History(2)>'.
+                        dimmedColors, "<History(2)>",
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.None, ' ',
@@ -125,8 +132,12 @@ namespace Test
                         TokenClassification.ListPrediction, "History",
                         TokenClassification.None, ']'
                      )),
-                'c', CheckThat(() => AssertScreenIs(3,
+                'c', CheckThat(() => AssertScreenIs(4,
                         TokenClassification.Command, "ec",
+                        NextLine,
+                        TokenClassification.ListPrediction, "<-/2>",
+                        TokenClassification.None, new string(' ', listWidth - 17), // 17 is the length of '<-/2>' plus '<History(2)>'.
+                        dimmedColors, "<History(2)>",
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.None, ' ',
@@ -146,8 +157,12 @@ namespace Test
                         TokenClassification.ListPrediction, "History",
                         TokenClassification.None, ']'
                      )),
-                'h', CheckThat(() => AssertScreenIs(2,
+                'h', CheckThat(() => AssertScreenIs(3,
                         TokenClassification.Command, "ech",
+                        NextLine,
+                        TokenClassification.ListPrediction, "<-/1>",
+                        TokenClassification.None, new string(' ', listWidth - 17), // 17 is the length of '<-/1>' plus '<History(1)>'.
+                        dimmedColors, "<History(1)>",
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.None, ' ',
@@ -171,14 +186,19 @@ namespace Test
         {
             TestSetup(KeyMode.Cmd);
             int listWidth = CheckWindowSize();
+            var dimmedColors = Tuple.Create(ConsoleColor.White, _console.BackgroundColor);
             var emphasisColors = Tuple.Create(PSConsoleReadLineOptions.DefaultEmphasisColor, _console.BackgroundColor);
             using var disp = SetPrediction(PredictionSource.History, PredictionViewStyle.ListView);
 
             // Navigate up and down in the list
             SetHistory("echo -bar", "eca -zoo");
             Test("e", Keys(
-                'e', CheckThat(() => AssertScreenIs(3,
+                'e', CheckThat(() => AssertScreenIs(4,
                         TokenClassification.Command, 'e',
+                        NextLine,
+                        TokenClassification.ListPrediction, "<-/2>",
+                        TokenClassification.None, new string(' ', listWidth - 17), // 17 is the length of '<-/2>' plus '<History(2)>'.
+                        dimmedColors, "<History(2)>",
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.None, ' ',
@@ -199,10 +219,16 @@ namespace Test
                         TokenClassification.None, ']'
                      )),
                 _.DownArrow,
-                     CheckThat(() => AssertScreenIs(3,
+                     CheckThat(() => AssertScreenIs(4,
                         TokenClassification.Command, "eca",
                         TokenClassification.None, ' ',
                         TokenClassification.Parameter, "-zoo",
+                        NextLine,
+                        TokenClassification.ListPrediction, "<1/2>",
+                        TokenClassification.None, new string(' ', listWidth - 19), // 19 is the length of '<1/2>' plus '<History(1/2)>'.
+                        dimmedColors, '<',
+                        TokenClassification.ListPrediction, "History(1/2)",
+                        dimmedColors, '>',
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.ListPredictionSelected, ' ',
@@ -223,10 +249,16 @@ namespace Test
                         TokenClassification.None, ']'
                      )),
                 _.DownArrow,
-                     CheckThat(() => AssertScreenIs(3,
+                     CheckThat(() => AssertScreenIs(4,
                         TokenClassification.Command, "echo",
                         TokenClassification.None, ' ',
                         TokenClassification.Parameter, "-bar",
+                        NextLine,
+                        TokenClassification.ListPrediction, "<2/2>",
+                        TokenClassification.None, new string(' ', listWidth - 19), // 19 is the length of '<2/2>' plus '<History(2/2)>'.
+                        dimmedColors, '<',
+                        TokenClassification.ListPrediction, "History(2/2)",
+                        dimmedColors, '>',
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.None, ' ',
@@ -247,8 +279,12 @@ namespace Test
                         TokenClassification.ListPredictionSelected, ']'
                      )),
                 _.DownArrow,
-                     CheckThat(() => AssertScreenIs(3,
+                     CheckThat(() => AssertScreenIs(4,
                         TokenClassification.Command, 'e',
+                        NextLine,
+                        TokenClassification.ListPrediction, "<-/2>",
+                        TokenClassification.None, new string(' ', listWidth - 17), // 17 is the length of '<-/2>' plus '<History(2)>'.
+                        dimmedColors, "<History(2)>",
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.None, ' ',
@@ -269,10 +305,16 @@ namespace Test
                         TokenClassification.None, ']'
                      )),
                 _.UpArrow,
-                     CheckThat(() => AssertScreenIs(3,
+                     CheckThat(() => AssertScreenIs(4,
                         TokenClassification.Command, "echo",
                         TokenClassification.None, ' ',
                         TokenClassification.Parameter, "-bar",
+                        NextLine,
+                        TokenClassification.ListPrediction, "<2/2>",
+                        TokenClassification.None, new string(' ', listWidth - 19), // 19 is the length of '<2/2>' plus '<History(2/2)>'.
+                        dimmedColors, '<',
+                        TokenClassification.ListPrediction, "History(2/2)",
+                        dimmedColors, '>',
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.None, ' ',
@@ -293,10 +335,16 @@ namespace Test
                         TokenClassification.ListPredictionSelected, ']'
                      )),
                 _.UpArrow,
-                     CheckThat(() => AssertScreenIs(3,
+                     CheckThat(() => AssertScreenIs(4,
                         TokenClassification.Command, "eca",
                         TokenClassification.None, ' ',
                         TokenClassification.Parameter, "-zoo",
+                        NextLine,
+                        TokenClassification.ListPrediction, "<1/2>",
+                        TokenClassification.None, new string(' ', listWidth - 19), // 19 is the length of '<1/2>' plus '<History(1/2)>'.
+                        dimmedColors, '<',
+                        TokenClassification.ListPrediction, "History(1/2)",
+                        dimmedColors, '>',
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.ListPredictionSelected, ' ',
@@ -317,8 +365,12 @@ namespace Test
                         TokenClassification.None, ']'
                      )),
                 _.UpArrow,
-                     CheckThat(() => AssertScreenIs(3,
+                     CheckThat(() => AssertScreenIs(4,
                         TokenClassification.Command, 'e',
+                        NextLine,
+                        TokenClassification.ListPrediction, "<-/2>",
+                        TokenClassification.None, new string(' ', listWidth - 17), // 17 is the length of '<-/2>' plus '<History(2)>'.
+                        dimmedColors, "<History(2)>",
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.None, ' ',
@@ -353,14 +405,19 @@ namespace Test
                       new KeyHandler("Ctrl+p", PSConsoleReadLine.HistorySearchBackward),
                       new KeyHandler("Ctrl+l", PSConsoleReadLine.HistorySearchForward));
             int listWidth = CheckWindowSize();
+            var dimmedColors = Tuple.Create(ConsoleColor.White, _console.BackgroundColor);
             var emphasisColors = Tuple.Create(PSConsoleReadLineOptions.DefaultEmphasisColor, _console.BackgroundColor);
             using var disp = SetPrediction(PredictionSource.History, PredictionViewStyle.ListView);
 
             // Navigate up and down in the list
             SetHistory("echo -bar", "eca -zoo");
             Test("e", Keys(
-                'e', CheckThat(() => AssertScreenIs(3,
+                'e', CheckThat(() => AssertScreenIs(4,
                         TokenClassification.Command, 'e',
+                        NextLine,
+                        TokenClassification.ListPrediction, "<-/2>",
+                        TokenClassification.None, new string(' ', listWidth - 17), // 17 is the length of '<-/2>' plus '<History(2)>'.
+                        dimmedColors, "<History(2)>",
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.None, ' ',
@@ -381,10 +438,16 @@ namespace Test
                         TokenClassification.None, ']'
                      )),
                 _.Ctrl_l,
-                     CheckThat(() => AssertScreenIs(3,
+                     CheckThat(() => AssertScreenIs(4,
                         TokenClassification.Command, "eca",
                         TokenClassification.None, ' ',
                         TokenClassification.Parameter, "-zoo",
+                        NextLine,
+                        TokenClassification.ListPrediction, "<1/2>",
+                        TokenClassification.None, new string(' ', listWidth - 19), // 19 is the length of '<1/2>' plus '<History(1/2)>'.
+                        dimmedColors, '<',
+                        TokenClassification.ListPrediction, "History(1/2)",
+                        dimmedColors, '>',
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.ListPredictionSelected, ' ',
@@ -405,10 +468,16 @@ namespace Test
                         TokenClassification.None, ']'
                      )),
                 _.Ctrl_l,
-                     CheckThat(() => AssertScreenIs(3,
+                     CheckThat(() => AssertScreenIs(4,
                         TokenClassification.Command, "echo",
                         TokenClassification.None, ' ',
                         TokenClassification.Parameter, "-bar",
+                        NextLine,
+                        TokenClassification.ListPrediction, "<2/2>",
+                        TokenClassification.None, new string(' ', listWidth - 19), // 19 is the length of '<2/2>' plus '<History(2/2)>'.
+                        dimmedColors, '<',
+                        TokenClassification.ListPrediction, "History(2/2)",
+                        dimmedColors, '>',
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.None, ' ',
@@ -429,8 +498,12 @@ namespace Test
                         TokenClassification.ListPredictionSelected, ']'
                      )),
                 _.Ctrl_l,
-                     CheckThat(() => AssertScreenIs(3,
+                     CheckThat(() => AssertScreenIs(4,
                         TokenClassification.Command, 'e',
+                        NextLine,
+                        TokenClassification.ListPrediction, "<-/2>",
+                        TokenClassification.None, new string(' ', listWidth - 17), // 17 is the length of '<-/2>' plus '<History(2)>'.
+                        dimmedColors, "<History(2)>",
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.None, ' ',
@@ -451,10 +524,16 @@ namespace Test
                         TokenClassification.None, ']'
                      )),
                 _.Ctrl_p,
-                     CheckThat(() => AssertScreenIs(3,
+                     CheckThat(() => AssertScreenIs(4,
                         TokenClassification.Command, "echo",
                         TokenClassification.None, ' ',
                         TokenClassification.Parameter, "-bar",
+                        NextLine,
+                        TokenClassification.ListPrediction, "<2/2>",
+                        TokenClassification.None, new string(' ', listWidth - 19), // 19 is the length of '<2/2>' plus '<History(2/2)>'.
+                        dimmedColors, '<',
+                        TokenClassification.ListPrediction, "History(2/2)",
+                        dimmedColors, '>',
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.None, ' ',
@@ -475,10 +554,16 @@ namespace Test
                         TokenClassification.ListPredictionSelected, ']'
                      )),
                 _.Ctrl_p,
-                     CheckThat(() => AssertScreenIs(3,
+                     CheckThat(() => AssertScreenIs(4,
                         TokenClassification.Command, "eca",
                         TokenClassification.None, ' ',
                         TokenClassification.Parameter, "-zoo",
+                        NextLine,
+                        TokenClassification.ListPrediction, "<1/2>",
+                        TokenClassification.None, new string(' ', listWidth - 19), // 19 is the length of '<1/2>' plus '<History(1/2)>'.
+                        dimmedColors, '<',
+                        TokenClassification.ListPrediction, "History(1/2)",
+                        dimmedColors, '>',
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.ListPredictionSelected, ' ',
@@ -499,8 +584,12 @@ namespace Test
                         TokenClassification.None, ']'
                      )),
                 _.Ctrl_p,
-                     CheckThat(() => AssertScreenIs(3,
+                     CheckThat(() => AssertScreenIs(4,
                         TokenClassification.Command, 'e',
+                        NextLine,
+                        TokenClassification.ListPrediction, "<-/2>",
+                        TokenClassification.None, new string(' ', listWidth - 17), // 17 is the length of '<-/2>' plus '<History(2)>'.
+                        dimmedColors, "<History(2)>",
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.None, ' ',
@@ -533,14 +622,19 @@ namespace Test
         {
             TestSetup(KeyMode.Cmd);
             int listWidth = CheckWindowSize();
+            var dimmedColors = Tuple.Create(ConsoleColor.White, _console.BackgroundColor);
             var emphasisColors = Tuple.Create(PSConsoleReadLineOptions.DefaultEmphasisColor, _console.BackgroundColor);
             using var disp = SetPrediction(PredictionSource.History, PredictionViewStyle.ListView);
 
             // Press 'Escape' without selecting an item.
             SetHistory("echo -bar", "eca -zoo");
             Test("echo -bar", Keys(
-                'c', CheckThat(() => AssertScreenIs(3,
+                'c', CheckThat(() => AssertScreenIs(4,
                         TokenClassification.Command, 'c',
+                        NextLine,
+                        TokenClassification.ListPrediction, "<-/2>",
+                        TokenClassification.None, new string(' ', listWidth - 17), // 17 is the length of '<-/2>' plus '<History(2)>'.
+                        dimmedColors, "<History(2)>",
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.None, " e",
@@ -568,8 +662,12 @@ namespace Test
                         TokenClassification.None, new string(' ', listWidth)
                      )),
                 // Keep typing will trigger the list view again
-                'h', CheckThat(() => AssertScreenIs(2,
+                'h', CheckThat(() => AssertScreenIs(3,
                         TokenClassification.Command, "ch",
+                        NextLine,
+                        TokenClassification.ListPrediction, "<-/1>",
+                        TokenClassification.None, new string(' ', listWidth - 17), // 17 is the length of '<-/1>' plus '<History(1)>'.
+                        dimmedColors, "<History(1)>",
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.None, " e",
@@ -581,10 +679,16 @@ namespace Test
                         TokenClassification.None, ']'
                      )),
                 _.DownArrow,
-                    CheckThat(() => AssertScreenIs(2,
+                    CheckThat(() => AssertScreenIs(3,
                         TokenClassification.Command, "echo",
                         TokenClassification.None, ' ',
                         TokenClassification.Parameter, "-bar",
+                        NextLine,
+                        TokenClassification.ListPrediction, "<1/1>",
+                        TokenClassification.None, new string(' ', listWidth - 19), // 19 is the length of '<1/1>' plus '<History(1/1)>'.
+                        dimmedColors, '<',
+                        TokenClassification.ListPrediction, "History(1/1)",
+                        dimmedColors, '>',
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.ListPredictionSelected, " e",
@@ -607,8 +711,12 @@ namespace Test
             // Press 'Escape' after selecting an item.
             SetHistory("echo -bar", "eca -zoo");
             Test("c", Keys(
-                'c', CheckThat(() => AssertScreenIs(3,
+                'c', CheckThat(() => AssertScreenIs(4,
                         TokenClassification.Command, 'c',
+                        NextLine,
+                        TokenClassification.ListPrediction, "<-/2>",
+                        TokenClassification.None, new string(' ', listWidth - 17), // 17 is the length of '<-/2>' plus '<History(2)>'.
+                        dimmedColors, "<History(2)>",
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.None, " e",
@@ -629,10 +737,16 @@ namespace Test
                         TokenClassification.None, ']'
                      )),
                 _.DownArrow,
-                     CheckThat(() => AssertScreenIs(3,
+                     CheckThat(() => AssertScreenIs(4,
                         TokenClassification.Command, "eca",
                         TokenClassification.None, ' ',
                         TokenClassification.Parameter, "-zoo",
+                        NextLine,
+                        TokenClassification.ListPrediction, "<1/2>",
+                        TokenClassification.None, new string(' ', listWidth - 19), // 19 is the length of '<1/2>' plus '<History(1/2)>'.
+                        dimmedColors, '<',
+                        TokenClassification.ListPrediction, "History(1/2)",
+                        dimmedColors, '>',
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.ListPredictionSelected, " e",
@@ -671,13 +785,18 @@ namespace Test
         {
             TestSetup(KeyMode.Cmd);
             int listWidth = CheckWindowSize();
+            var dimmedColors = Tuple.Create(ConsoleColor.White, _console.BackgroundColor);
             var emphasisColors = Tuple.Create(PSConsoleReadLineOptions.DefaultEmphasisColor, _console.BackgroundColor);
             using var disp = SetPrediction(PredictionSource.History, PredictionViewStyle.ListView);
 
             SetHistory("echo -bar", "eca -zoo");
             Test("c", Keys(
-                'c', CheckThat(() => AssertScreenIs(3,
+                'c', CheckThat(() => AssertScreenIs(4,
                         TokenClassification.Command, 'c',
+                        NextLine,
+                        TokenClassification.ListPrediction, "<-/2>",
+                        TokenClassification.None, new string(' ', listWidth - 17), // 17 is the length of '<-/2>' plus '<History(2)>'.
+                        dimmedColors, "<History(2)>",
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.None, " e",
@@ -698,8 +817,12 @@ namespace Test
                         TokenClassification.None, ']'
                      )),
                 _.Alt_2,
-                     CheckThat(() => AssertScreenIs(4,
+                     CheckThat(() => AssertScreenIs(5,
                         TokenClassification.Command, 'c',
+                        NextLine,
+                        TokenClassification.ListPrediction, "<-/2>",
+                        TokenClassification.None, new string(' ', listWidth - 17), // 17 is the length of '<-/2>' plus '<History(2)>'.
+                        dimmedColors, "<History(2)>",
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.None, " e",
@@ -722,10 +845,16 @@ namespace Test
                         TokenClassification.None, "digit-argument: 2"
                      )),
                 _.DownArrow,
-                     CheckThat(() => AssertScreenIs(3,
+                     CheckThat(() => AssertScreenIs(4,
                         TokenClassification.Command, "echo",
                         TokenClassification.None, ' ',
                         TokenClassification.Parameter, "-bar",
+                        NextLine,
+                        TokenClassification.ListPrediction, "<2/2>",
+                        TokenClassification.None, new string(' ', listWidth - 19), // 19 is the length of '<2/2>' plus '<History(2/2)>'.
+                        dimmedColors, '<',
+                        TokenClassification.ListPrediction, "History(2/2)",
+                        dimmedColors, '>',
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.None, " e",
@@ -746,10 +875,16 @@ namespace Test
                         TokenClassification.ListPredictionSelected, ']'
                      )),
                 _.Alt_2,
-                     CheckThat(() => AssertScreenIs(4,
+                     CheckThat(() => AssertScreenIs(5,
                         TokenClassification.Command, "echo",
                         TokenClassification.None, ' ',
                         TokenClassification.Parameter, "-bar",
+                        NextLine,
+                        TokenClassification.ListPrediction, "<2/2>",
+                        TokenClassification.None, new string(' ', listWidth - 19), // 19 is the length of '<2/2>' plus '<History(2/2)>'.
+                        dimmedColors, '<',
+                        TokenClassification.ListPrediction, "History(2/2)",
+                        dimmedColors, '>',
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.None, " e",
@@ -772,8 +907,12 @@ namespace Test
                         TokenClassification.None, "digit-argument: 2"
                      )),
                 _.UpArrow,
-                     CheckThat(() => AssertScreenIs(3,
+                     CheckThat(() => AssertScreenIs(4,
                         TokenClassification.Command, 'c',
+                        NextLine,
+                        TokenClassification.ListPrediction, "<-/2>",
+                        TokenClassification.None, new string(' ', listWidth - 17), // 17 is the length of '<-/2>' plus '<History(2)>'.
+                        dimmedColors, "<History(2)>",
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.None, " e",
@@ -806,13 +945,18 @@ namespace Test
         {
             TestSetup(KeyMode.Cmd);
             int listWidth = CheckWindowSize();
+            var dimmedColors = Tuple.Create(ConsoleColor.White, _console.BackgroundColor);
             var emphasisColors = Tuple.Create(PSConsoleReadLineOptions.DefaultEmphasisColor, _console.BackgroundColor);
             using var disp = SetPrediction(PredictionSource.History, PredictionViewStyle.ListView);
 
             SetHistory("echo -bar", "eca -zoo");
             Test("e", Keys(
-                'e', CheckThat(() => AssertScreenIs(3,
+                'e', CheckThat(() => AssertScreenIs(4,
                         TokenClassification.Command, 'e',
+                        NextLine,
+                        TokenClassification.ListPrediction, "<-/2>",
+                        TokenClassification.None, new string(' ', listWidth - 17), // 17 is the length of '<-/2>' plus '<History(2)>'.
+                        dimmedColors, "<History(2)>",
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.None, ' ',
@@ -833,10 +977,16 @@ namespace Test
                         TokenClassification.None, ']'
                      )),
                 _.UpArrow, _.UpArrow,
-                     CheckThat(() => AssertScreenIs(3,
+                     CheckThat(() => AssertScreenIs(4,
                         TokenClassification.Command, "eca",
                         TokenClassification.None, ' ',
                         TokenClassification.Parameter, "-zoo",
+                        NextLine,
+                        TokenClassification.ListPrediction, "<1/2>",
+                        TokenClassification.None, new string(' ', listWidth - 19), // 19 is the length of '<1/2>' plus '<History(1/2)>'.
+                        dimmedColors, '<',
+                        TokenClassification.ListPrediction, "History(1/2)",
+                        dimmedColors, '>',
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.ListPredictionSelected, ' ',
@@ -858,8 +1008,12 @@ namespace Test
                      )),
                 // No matter how many navigation operations were done, 'Ctrl+z' (undo) reverts back to the initial list view state.
                 _.Ctrl_z,
-                     CheckThat(() => AssertScreenIs(3,
+                     CheckThat(() => AssertScreenIs(4,
                         TokenClassification.Command, 'e',
+                        NextLine,
+                        TokenClassification.ListPrediction, "<-/2>",
+                        TokenClassification.None, new string(' ', listWidth - 17), // 17 is the length of '<-/2>' plus '<History(2)>'.
+                        dimmedColors, "<History(2)>",
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.None, ' ',
@@ -881,10 +1035,16 @@ namespace Test
                      )),
                 // After undo, you can continue to navigate in the list.
                 _.DownArrow,
-                     CheckThat(() => AssertScreenIs(3,
+                     CheckThat(() => AssertScreenIs(4,
                         TokenClassification.Command, "eca",
                         TokenClassification.None, ' ',
                         TokenClassification.Parameter, "-zoo",
+                        NextLine,
+                        TokenClassification.ListPrediction, "<1/2>",
+                        TokenClassification.None, new string(' ', listWidth - 19), // 19 is the length of '<1/2>' plus '<History(1/2)>'.
+                        dimmedColors, '<',
+                        TokenClassification.ListPrediction, "History(1/2)",
+                        dimmedColors, '>',
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.ListPredictionSelected, ' ',
@@ -918,13 +1078,18 @@ namespace Test
         {
             TestSetup(KeyMode.Cmd);
             int listWidth = CheckWindowSize();
+            var dimmedColors = Tuple.Create(ConsoleColor.White, _console.BackgroundColor);
             var emphasisColors = Tuple.Create(PSConsoleReadLineOptions.DefaultEmphasisColor, _console.BackgroundColor);
             using var disp = SetPrediction(PredictionSource.History, PredictionViewStyle.ListView);
 
             SetHistory("echo -bar", "eca -zoo");
             Test("eca -zoo", Keys(
-                'e', CheckThat(() => AssertScreenIs(3,
+                'e', CheckThat(() => AssertScreenIs(4,
                         TokenClassification.Command, 'e',
+                        NextLine,
+                        TokenClassification.ListPrediction, "<-/2>",
+                        TokenClassification.None, new string(' ', listWidth - 17), // 17 is the length of '<-/2>' plus '<History(2)>'.
+                        dimmedColors, "<History(2)>",
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.None, ' ',
@@ -946,10 +1111,16 @@ namespace Test
                      )),
                 _.DownArrow,
                      CheckThat(() => AssertCursorLeftIs(8)),
-                     CheckThat(() => AssertScreenIs(3,
+                     CheckThat(() => AssertScreenIs(4,
                         TokenClassification.Command, "eca",
                         TokenClassification.None, ' ',
                         TokenClassification.Parameter, "-zoo",
+                        NextLine,
+                        TokenClassification.ListPrediction, "<1/2>",
+                        TokenClassification.None, new string(' ', listWidth - 19), // 19 is the length of '<1/2>' plus '<History(1/2)>'.
+                        dimmedColors, '<',
+                        TokenClassification.ListPrediction, "History(1/2)",
+                        dimmedColors, '>',
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.ListPredictionSelected, ' ',
@@ -972,10 +1143,16 @@ namespace Test
                 // Moving cursor won't trigger a new prediction.
                 _.LeftArrow, _.LeftArrow,
                      CheckThat(() => AssertCursorLeftIs(6)),
-                     CheckThat(() => AssertScreenIs(3,
+                     CheckThat(() => AssertScreenIs(4,
                         TokenClassification.Command, "eca",
                         TokenClassification.None, ' ',
                         TokenClassification.Parameter, "-zoo",
+                        NextLine,
+                        TokenClassification.ListPrediction, "<1/2>",
+                        TokenClassification.None, new string(' ', listWidth - 19), // 19 is the length of '<1/2>' plus '<History(1/2)>'.
+                        dimmedColors, '<',
+                        TokenClassification.ListPrediction, "History(1/2)",
+                        dimmedColors, '>',
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.ListPredictionSelected, ' ',
@@ -997,10 +1174,16 @@ namespace Test
                      )),
                 _.Ctrl_LeftArrow,
                      CheckThat(() => AssertCursorLeftIs(5)),
-                     CheckThat(() => AssertScreenIs(3,
+                     CheckThat(() => AssertScreenIs(4,
                         TokenClassification.Command, "eca",
                         TokenClassification.None, ' ',
                         TokenClassification.Parameter, "-zoo",
+                        NextLine,
+                        TokenClassification.ListPrediction, "<1/2>",
+                        TokenClassification.None, new string(' ', listWidth - 19), // 19 is the length of '<1/2>' plus '<History(1/2)>'.
+                        dimmedColors, '<',
+                        TokenClassification.ListPrediction, "History(1/2)",
+                        dimmedColors, '>',
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.ListPredictionSelected, ' ',
@@ -1022,11 +1205,17 @@ namespace Test
                      )),
                 // Text selection won't trigger a new prediction.
                 _.Shift_LeftArrow,
-                     CheckThat(() => AssertScreenIs(3,
+                     CheckThat(() => AssertScreenIs(4,
                         TokenClassification.Command, "eca",
                         TokenClassification.None, ' ',
                         TokenClassification.Selection, '-',
                         TokenClassification.Parameter, "zoo",
+                        NextLine,
+                        TokenClassification.ListPrediction, "<1/2>",
+                        TokenClassification.None, new string(' ', listWidth - 19), // 19 is the length of '<1/2>' plus '<History(1/2)>'.
+                        dimmedColors, '<',
+                        TokenClassification.ListPrediction, "History(1/2)",
+                        dimmedColors, '>',
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.ListPredictionSelected, ' ',
@@ -1047,9 +1236,15 @@ namespace Test
                         TokenClassification.None, ']'
                      )),
                 _.Ctrl_Shift_LeftArrow,
-                     CheckThat(() => AssertScreenIs(3,
+                     CheckThat(() => AssertScreenIs(4,
                         TokenClassification.Selection, "eca -",
                         TokenClassification.Parameter, "zoo",
+                        NextLine,
+                        TokenClassification.ListPrediction, "<1/2>",
+                        TokenClassification.None, new string(' ', listWidth - 19), // 19 is the length of '<1/2>' plus '<History(1/2)>'.
+                        dimmedColors, '<',
+                        TokenClassification.ListPrediction, "History(1/2)",
+                        dimmedColors, '>',
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.ListPredictionSelected, ' ',
@@ -1083,6 +1278,7 @@ namespace Test
         {
             TestSetup(KeyMode.Cmd);
             int listWidth = CheckWindowSize();
+            var dimmedColors = Tuple.Create(ConsoleColor.White, _console.BackgroundColor);
             var emphasisColors = Tuple.Create(PSConsoleReadLineOptions.DefaultEmphasisColor, _console.BackgroundColor);
 
             // Using the 'History' source will not trigger 'acceptance' callbacks.
@@ -1092,10 +1288,16 @@ namespace Test
             SetHistory("echo -bar", "eca -zoo");
             Test("eca -zooa", Keys(
                 'e', _.DownArrow,
-                     CheckThat(() => AssertScreenIs(3,
+                     CheckThat(() => AssertScreenIs(4,
                         TokenClassification.Command, "eca",
                         TokenClassification.None, ' ',
                         TokenClassification.Parameter, "-zoo",
+                        NextLine,
+                        TokenClassification.ListPrediction, "<1/2>",
+                        TokenClassification.None, new string(' ', listWidth - 19), // 19 is the length of '<1/2>' plus '<History(1/2)>'.
+                        dimmedColors, '<',
+                        TokenClassification.ListPrediction, "History(1/2)",
+                        dimmedColors, '>',
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.ListPredictionSelected, ' ',
@@ -1140,6 +1342,7 @@ namespace Test
         {
             TestSetup(KeyMode.Cmd);
             int listWidth = CheckWindowSize();
+            var dimmedColors = Tuple.Create(ConsoleColor.White, _console.BackgroundColor);
             var emphasisColors = Tuple.Create(PSConsoleReadLineOptions.DefaultEmphasisColor, _console.BackgroundColor);
 
             // Using the 'Plugin' source will make PSReadLine get prediction from the plugin only.
@@ -1148,8 +1351,12 @@ namespace Test
 
             SetHistory("echo -bar", "eca -zoo");
             Test("SOME NEW TEX SOME TEXT AFTER", Keys(
-                "ec", CheckThat(() => AssertScreenIs(5,
+                "ec", CheckThat(() => AssertScreenIs(6,
                         TokenClassification.Command, "ec",
+                        NextLine,
+                        TokenClassification.ListPrediction, "<-/3>",
+                        TokenClassification.None, new string(' ', listWidth - 42), // 42 is the length of '<-/3>' plus '<TestPredictor(2) LongNamePredic…(1)>'.
+                        dimmedColors, "<TestPredictor(2) LongNamePredic…(1)>",
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.None, " SOME TEXT BEFORE ",
@@ -1170,9 +1377,9 @@ namespace Test
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.None, " SOME NEW TEXT",
-                        TokenClassification.None, new string(' ', listWidth - 32), // 32 is the length of '> SOME NEW TEXT' plus '[LongNamePred...]'
+                        TokenClassification.None, new string(' ', listWidth - 32), // 32 is the length of '> SOME NEW TEXT' plus '[LongNamePredic…]'
                         TokenClassification.None, '[',
-                        TokenClassification.ListPrediction, "LongNamePred...",
+                        TokenClassification.ListPrediction, "LongNamePredic…",
                         TokenClassification.None, ']',
                         // List view is done, no more list item following.
                         NextLine,
@@ -1183,9 +1390,15 @@ namespace Test
                 CheckThat(() => AssertDisplayedSuggestions(count: 2, predictorId_2, MiniSessionId, 1)),
                 CheckThat(() => _mockedMethods.ClearPredictionFields()),
                 _.DownArrow,
-                     CheckThat(() => AssertScreenIs(5,
+                     CheckThat(() => AssertScreenIs(6,
                         TokenClassification.Command, "SOME",
                         TokenClassification.None, " TEXT BEFORE ec",
+                        NextLine,
+                        TokenClassification.ListPrediction, "<1/3>",
+                        TokenClassification.None, new string(' ', listWidth - 44), // 44 is the length of '<1/3>' plus '<TestPredictor(1/2) LongNamePredic…(1)>'.
+                        dimmedColors, '<',
+                        TokenClassification.ListPrediction, "TestPredictor(1/2) ",
+                        dimmedColors, "LongNamePredic…(1)>",
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.ListPredictionSelected, " SOME TEXT BEFORE ",
@@ -1206,9 +1419,9 @@ namespace Test
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.None, " SOME NEW TEXT",
-                        TokenClassification.None, new string(' ', listWidth - 32), // 32 is the length of '> SOME NEW TEXT' plus '[LongNamePred...]'
+                        TokenClassification.None, new string(' ', listWidth - 32), // 32 is the length of '> SOME NEW TEXT' plus '[LongNamePredic…]'
                         TokenClassification.None, '[',
-                        TokenClassification.ListPrediction, "LongNamePred...",
+                        TokenClassification.ListPrediction, "LongNamePredic…",
                         TokenClassification.None, ']',
                         // List view is done, no more list item following.
                         NextLine,
@@ -1217,8 +1430,14 @@ namespace Test
                 // `OnSuggestionDisplayed` should not be fired when navigating the list.
                 CheckThat(() => Assert.Empty(_mockedMethods.displayedSuggestions)),
                 _.Shift_Home,
-                    CheckThat(() => AssertScreenIs(5,
+                    CheckThat(() => AssertScreenIs(6,
                         TokenClassification.Selection, "SOME TEXT BEFORE ec",
+                        NextLine,
+                        TokenClassification.ListPrediction, "<1/3>",
+                        TokenClassification.None, new string(' ', listWidth - 44), // 44 is the length of '<1/3>' plus '<TestPredictor(1/2) LongNamePredic…(1)>'.
+                        dimmedColors, '<',
+                        TokenClassification.ListPrediction, "TestPredictor(1/2) ",
+                        dimmedColors, "LongNamePredic…(1)>",
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.ListPredictionSelected, " SOME TEXT BEFORE ",
@@ -1239,9 +1458,9 @@ namespace Test
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.None, " SOME NEW TEXT",
-                        TokenClassification.None, new string(' ', listWidth - 32), // 32 is the length of '> SOME NEW TEXT' plus '[LongNamePred...]'
+                        TokenClassification.None, new string(' ', listWidth - 32), // 32 is the length of '> SOME NEW TEXT' plus '[LongNamePredic…]'
                         TokenClassification.None, '[',
-                        TokenClassification.ListPrediction, "LongNamePred...",
+                        TokenClassification.ListPrediction, "LongNamePredic…",
                         TokenClassification.None, ']',
                         // List view is done, no more list item following.
                         NextLine,
@@ -1250,8 +1469,12 @@ namespace Test
                 // `OnSuggestionDisplayed` should not be fired when selecting the input.
                 CheckThat(() => Assert.Empty(_mockedMethods.displayedSuggestions)),
                 "j",
-                     CheckThat(() => AssertScreenIs(5,
+                     CheckThat(() => AssertScreenIs(6,
                         TokenClassification.Command, "j",
+                        NextLine,
+                        TokenClassification.ListPrediction, "<-/3>",
+                        TokenClassification.None, new string(' ', listWidth - 42), // 42 is the length of '<-/3>' plus '<TestPredictor(2) LongNamePredic…(1)>'.
+                        dimmedColors, "<TestPredictor(2) LongNamePredic…(1)>",
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.None, " SOME TEXT BEFORE ",
@@ -1272,9 +1495,9 @@ namespace Test
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.None, " SOME NEW TEXT",
-                        TokenClassification.None, new string(' ', listWidth - 32), // 32 is the length of '> SOME NEW TEXT' plus '[LongNamePred...]'
+                        TokenClassification.None, new string(' ', listWidth - 32), // 32 is the length of '> SOME NEW TEXT' plus '[LongNamePredic…]'
                         TokenClassification.None, '[',
-                        TokenClassification.ListPrediction, "LongNamePred...",
+                        TokenClassification.ListPrediction, "LongNamePredic…",
                         TokenClassification.None, ']',
                         // List view is done, no more list item following.
                         NextLine,
@@ -1290,9 +1513,15 @@ namespace Test
                 _.DownArrow,
                 _.DownArrow,
                 _.DownArrow,
-                     CheckThat(() => AssertScreenIs(5,
+                     CheckThat(() => AssertScreenIs(6,
                         TokenClassification.Command, "SOME",
                         TokenClassification.None, " NEW TEXT",
+                        NextLine,
+                        TokenClassification.ListPrediction, "<3/3>",
+                        TokenClassification.None, new string(' ', listWidth - 44), // 44 is the length of '<1/3>' plus '<TestPredictor(2) LongNamePredic…(1/1)>'.
+                        dimmedColors, "<TestPredictor(2) ",
+                        TokenClassification.ListPrediction, "LongNamePredic…(1/1)",
+                        dimmedColors, '>',
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.None, " SOME TEXT BEFORE ",
@@ -1313,9 +1542,9 @@ namespace Test
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.ListPredictionSelected, " SOME NEW TEXT",
-                        TokenClassification.ListPredictionSelected, new string(' ', listWidth - 32), // 32 is the length of '> SOME NEW TEXT' plus '[LongNamePred...]'
+                        TokenClassification.ListPredictionSelected, new string(' ', listWidth - 32), // 32 is the length of '> SOME NEW TEXT' plus '[LongNamePredic…]'
                         TokenClassification.ListPredictionSelected, '[',
-                        TokenClassification.ListPrediction, "LongNamePred...",
+                        TokenClassification.ListPrediction, "LongNamePredic…",
                         TokenClassification.ListPredictionSelected, ']',
                         // List view is done, no more list item following.
                         NextLine,
@@ -1324,9 +1553,13 @@ namespace Test
                 // `OnSuggestionDisplayed` should not be fired when navigating the input.
                 CheckThat(() => Assert.Empty(_mockedMethods.displayedSuggestions)),
                 _.Backspace,
-                     CheckThat(() => AssertScreenIs(5,
+                     CheckThat(() => AssertScreenIs(6,
                         TokenClassification.Command, "SOME",
                         TokenClassification.None, " NEW TEX",
+                        NextLine,
+                        TokenClassification.ListPrediction, "<-/3>",
+                        TokenClassification.None, new string(' ', listWidth - 42), // 42 is the length of '<-/3>' plus '<TestPredictor(2) LongNamePredic…(1)>'.
+                        dimmedColors, "<TestPredictor(2) LongNamePredic…(1)>",
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.None, " SOME TEXT BEFORE ",
@@ -1349,9 +1582,9 @@ namespace Test
                         TokenClassification.None, ' ',
                         emphasisColors, "SOME NEW TEX",
                         TokenClassification.None, 'T',
-                        TokenClassification.None, new string(' ', listWidth - 32), // 32 is the length of '> SOME NEW TEXT' plus '[LongNamePred...]'
+                        TokenClassification.None, new string(' ', listWidth - 32), // 32 is the length of '> SOME NEW TEXT' plus '[LongNamePredic…]'
                         TokenClassification.None, '[',
-                        TokenClassification.ListPrediction, "LongNamePred...",
+                        TokenClassification.ListPrediction, "LongNamePredic…",
                         TokenClassification.None, ']',
                         // List view is done, no more list item following.
                         NextLine,
@@ -1366,9 +1599,15 @@ namespace Test
                 CheckThat(() => _mockedMethods.ClearPredictionFields()),
                 _.UpArrow,
                 _.UpArrow,
-                     CheckThat(() => AssertScreenIs(5,
+                     CheckThat(() => AssertScreenIs(6,
                         TokenClassification.Command, "SOME",
                         TokenClassification.None, " NEW TEX SOME TEXT AFTER",
+                        NextLine,
+                        TokenClassification.ListPrediction, "<2/3>",
+                        TokenClassification.None, new string(' ', listWidth - 44), // 44 is the length of '<2/3>' plus '<TestPredictor(2/2) LongNamePredic…(1)>'.
+                        dimmedColors, '<',
+                        TokenClassification.ListPrediction, "TestPredictor(2/2) ",
+                        dimmedColors, "LongNamePredic…(1)>",
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.None, " SOME TEXT BEFORE ",
@@ -1391,9 +1630,9 @@ namespace Test
                         TokenClassification.None, ' ',
                         emphasisColors, "SOME NEW TEX",
                         TokenClassification.None, 'T',
-                        TokenClassification.None, new string(' ', listWidth - 32), // 32 is the length of '> SOME NEW TEXT' plus '[LongNamePred...]'
+                        TokenClassification.None, new string(' ', listWidth - 32), // 32 is the length of '> SOME NEW TEXT' plus '[LongNamePredic…]'
                         TokenClassification.None, '[',
-                        TokenClassification.ListPrediction, "LongNamePred...",
+                        TokenClassification.ListPrediction, "LongNamePredic…",
                         TokenClassification.None, ']',
                         // List view is done, no more list item following.
                         NextLine,
@@ -1424,6 +1663,7 @@ namespace Test
         {
             TestSetup(KeyMode.Cmd);
             int listWidth = CheckWindowSize();
+            var dimmedColors = Tuple.Create(ConsoleColor.White, _console.BackgroundColor);
             var emphasisColors = Tuple.Create(PSConsoleReadLineOptions.DefaultEmphasisColor, _console.BackgroundColor);
 
             // Using the 'HistoryAndPlugin' source will make PSReadLine get prediction from both history and plugin.
@@ -1432,8 +1672,12 @@ namespace Test
 
             SetHistory("echo -bar", "java", "eca -zoo");
             Test("SOME NEW TEX SOME TEXT AFTER", Keys(
-                "ec", CheckThat(() => AssertScreenIs(7,
+                "ec", CheckThat(() => AssertScreenIs(8,
                         TokenClassification.Command, "ec",
+                        NextLine,
+                        TokenClassification.ListPrediction, "<-/5>",
+                        TokenClassification.None, new string(' ', listWidth - 36), // 36 is the length of '<-/5>' plus '<History(2) TestPredictor(2) …>'.
+                        dimmedColors, "<History(2) TestPredictor(2) …>",
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.None, ' ',
@@ -1472,9 +1716,9 @@ namespace Test
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.None, " SOME NEW TEXT",
-                        TokenClassification.None, new string(' ', listWidth - 32), // 32 is the length of '> SOME NEW TEXT' plus '[LongNamePred...]'
+                        TokenClassification.None, new string(' ', listWidth - 32), // 32 is the length of '> SOME NEW TEXT' plus '[LongNamePredic…]'
                         TokenClassification.None, '[',
-                        TokenClassification.ListPrediction, "LongNamePred...",
+                        TokenClassification.ListPrediction, "LongNamePredic…",
                         TokenClassification.None, ']',
                         // List view is done, no more list item following.
                         NextLine,
@@ -1485,8 +1729,14 @@ namespace Test
                 CheckThat(() => AssertDisplayedSuggestions(count: 2, predictorId_2, MiniSessionId, 1)),
                 CheckThat(() => _mockedMethods.ClearPredictionFields()),
                 _.DownArrow, _.Shift_Home,
-                     CheckThat(() => AssertScreenIs(7,
+                     CheckThat(() => AssertScreenIs(8,
                         TokenClassification.Selection, "eca -zoo",
+                        NextLine,
+                        TokenClassification.ListPrediction, "<1/5>",
+                        TokenClassification.None, new string(' ', listWidth - 38), // 38 is the length of '<1/5>' plus '<History(1/2) TestPredictor(2) …>'.
+                        dimmedColors, '<',
+                        TokenClassification.ListPrediction, "History(1/2) ",
+                        dimmedColors, "TestPredictor(2) …>",
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.ListPredictionSelected, ' ',
@@ -1525,9 +1775,9 @@ namespace Test
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.None, " SOME NEW TEXT",
-                        TokenClassification.None, new string(' ', listWidth - 32), // 32 is the length of '> SOME NEW TEXT' plus '[LongNamePred...]'
+                        TokenClassification.None, new string(' ', listWidth - 32), // 32 is the length of '> SOME NEW TEXT' plus '[LongNamePredic…]'
                         TokenClassification.None, '[',
-                        TokenClassification.ListPrediction, "LongNamePred...",
+                        TokenClassification.ListPrediction, "LongNamePredic…",
                         TokenClassification.None, ']',
                         // List view is done, no more list item following.
                         NextLine,
@@ -1535,8 +1785,12 @@ namespace Test
                      )),
                 // `OnSuggestionDisplayed` should not be fired when navigating the list.
                 CheckThat(() => Assert.Empty(_mockedMethods.displayedSuggestions)),
-                'j', CheckThat(() => AssertScreenIs(6,
+                'j', CheckThat(() => AssertScreenIs(7,
                         TokenClassification.Command, "j",
+                        NextLine,
+                        TokenClassification.ListPrediction, "<-/4>",
+                        TokenClassification.None, new string(' ', listWidth - 36), // 36 is the length of '<-/4>' plus '<History(1) TestPredictor(2) …>'.
+                        dimmedColors, "<History(1) TestPredictor(2) …>",
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.None, ' ',
@@ -1566,9 +1820,9 @@ namespace Test
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.None, " SOME NEW TEXT",
-                        TokenClassification.None, new string(' ', listWidth - 32), // 32 is the length of '> SOME NEW TEXT' plus '[LongNamePred...]'
+                        TokenClassification.None, new string(' ', listWidth - 32), // 32 is the length of '> SOME NEW TEXT' plus '[LongNamePredic…]'
                         TokenClassification.None, '[',
-                        TokenClassification.ListPrediction, "LongNamePred...",
+                        TokenClassification.ListPrediction, "LongNamePredic…",
                         TokenClassification.None, ']',
                         // List view is done, no more list item following.
                         NextLine,
@@ -1583,9 +1837,15 @@ namespace Test
                 CheckThat(() => Assert.Null(_mockedMethods.commandHistory)),
                 CheckThat(() => _mockedMethods.ClearPredictionFields()),
                 _.UpArrow,
-                     CheckThat(() => AssertScreenIs(6,
+                     CheckThat(() => AssertScreenIs(7,
                         TokenClassification.Command, "SOME",
                         TokenClassification.None, " NEW TEXT",
+                        NextLine,
+                        TokenClassification.ListPrediction, "<4/4>",
+                        TokenClassification.None, new string(' ', listWidth - 46), // 46 is the length of '<4/4>' plus '<… TestPredictor(2) LongNamePredic…(1/1)>'.
+                        dimmedColors, "<… TestPredictor(2) ",
+                        TokenClassification.ListPrediction, "LongNamePredic…(1/1)",
+                        dimmedColors, '>',
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.None, ' ',
@@ -1615,9 +1875,9 @@ namespace Test
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.ListPredictionSelected, " SOME NEW TEXT",
-                        TokenClassification.ListPredictionSelected, new string(' ', listWidth - 32), // 32 is the length of '> SOME NEW TEXT' plus '[LongNamePred...]'
+                        TokenClassification.ListPredictionSelected, new string(' ', listWidth - 32), // 32 is the length of '> SOME NEW TEXT' plus '[LongNamePredic…]'
                         TokenClassification.ListPredictionSelected, '[',
-                        TokenClassification.ListPrediction, "LongNamePred...",
+                        TokenClassification.ListPrediction, "LongNamePredic…",
                         TokenClassification.ListPredictionSelected, ']',
                         // List view is done, no more list item following.
                         NextLine,
@@ -1626,9 +1886,13 @@ namespace Test
                 // `OnSuggestionDisplayed` should not be fired when navigating the list.
                 CheckThat(() => Assert.Empty(_mockedMethods.displayedSuggestions)),
                 _.Backspace,
-                     CheckThat(() => AssertScreenIs(5,
+                     CheckThat(() => AssertScreenIs(6,
                         TokenClassification.Command, "SOME",
                         TokenClassification.None, " NEW TEX",
+                        NextLine,
+                        TokenClassification.ListPrediction, "<-/3>",
+                        TokenClassification.None, new string(' ', listWidth - 42), // 42 is the length of '<-/3>' plus '<TestPredictor(2) LongNamePredic…(1)>'.
+                        dimmedColors, "<TestPredictor(2) LongNamePredic…(1)>",
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.None, " SOME TEXT BEFORE ",
@@ -1651,9 +1915,9 @@ namespace Test
                         TokenClassification.None, ' ',
                         emphasisColors, "SOME NEW TEX",
                         TokenClassification.None, 'T',
-                        TokenClassification.None, new string(' ', listWidth - 32), // 32 is the length of '> SOME NEW TEXT' plus '[LongNamePred...]'
+                        TokenClassification.None, new string(' ', listWidth - 32), // 32 is the length of '> SOME NEW TEXT' plus '[LongNamePredic…]'
                         TokenClassification.None, '[',
-                        TokenClassification.ListPrediction, "LongNamePred...",
+                        TokenClassification.ListPrediction, "LongNamePredic…",
                         TokenClassification.None, ']',
                         // List view is done, no more list item following.
                         NextLine,
@@ -1668,9 +1932,15 @@ namespace Test
                 CheckThat(() => _mockedMethods.ClearPredictionFields()),
                 _.UpArrow,
                 _.UpArrow,
-                     CheckThat(() => AssertScreenIs(5,
+                     CheckThat(() => AssertScreenIs(6,
                         TokenClassification.Command, "SOME",
                         TokenClassification.None, " NEW TEX SOME TEXT AFTER",
+                        NextLine,
+                        TokenClassification.ListPrediction, "<2/3>",
+                        TokenClassification.None, new string(' ', listWidth - 44), // 44 is the length of '<2/3>' plus '<TestPredictor(2/2) LongNamePredic…(1)>'.
+                        dimmedColors, '<',
+                        TokenClassification.ListPrediction, "TestPredictor(2/2) ",
+                        dimmedColors, "LongNamePredic…(1)>",
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.None, " SOME TEXT BEFORE ",
@@ -1693,9 +1963,9 @@ namespace Test
                         TokenClassification.None, ' ',
                         emphasisColors, "SOME NEW TEX",
                         TokenClassification.None, 'T',
-                        TokenClassification.None, new string(' ', listWidth - 32), // 32 is the length of '> SOME NEW TEXT' plus '[LongNamePred...]'
+                        TokenClassification.None, new string(' ', listWidth - 32), // 32 is the length of '> SOME NEW TEXT' plus '[LongNamePredic…]'
                         TokenClassification.None, '[',
-                        TokenClassification.ListPrediction, "LongNamePred...",
+                        TokenClassification.ListPrediction, "LongNamePredic…",
                         TokenClassification.None, ']',
                         // List view is done, no more list item following.
                         NextLine,
@@ -1726,6 +1996,7 @@ namespace Test
         {
             TestSetup(KeyMode.Cmd);
             int listWidth = CheckWindowSize();
+            var dimmedColors = Tuple.Create(ConsoleColor.White, _console.BackgroundColor);
             var emphasisColors = Tuple.Create(PSConsoleReadLineOptions.DefaultEmphasisColor, _console.BackgroundColor);
 
             // Using the 'HistoryAndPlugin' source will make PSReadLine get prediction from both history and plugin.
@@ -1736,8 +2007,12 @@ namespace Test
             // which is the default comparison. So, that result will be filtered out due to the de-duplication logic.
             SetHistory("some TEXT BEFORE de-dup", "de-dup -of");
             Test("de-dup", Keys(
-                "de-dup", CheckThat(() => AssertScreenIs(6,
+                "de-dup", CheckThat(() => AssertScreenIs(7,
                         TokenClassification.Command, "de-dup",
+                        NextLine,
+                        TokenClassification.ListPrediction, "<-/4>",
+                        TokenClassification.None, new string(' ', listWidth - 36), // 36 is the length of '<-/4>' plus '<History(2) TestPredictor(1) …>'.
+                        dimmedColors, "<History(2) TestPredictor(1) …>",
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.None, ' ',
@@ -1767,9 +2042,9 @@ namespace Test
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.None, " SOME NEW TEXT",
-                        TokenClassification.None, new string(' ', listWidth - 32), // 32 is the length of '> SOME NEW TEXT' plus '[LongNamePred...]'
+                        TokenClassification.None, new string(' ', listWidth - 32), // 32 is the length of '> SOME NEW TEXT' plus '[LongNamePredic…]'
                         TokenClassification.None, '[',
-                        TokenClassification.ListPrediction, "LongNamePred...",
+                        TokenClassification.ListPrediction, "LongNamePredic…",
                         TokenClassification.None, ']',
                         // List view is done, no more list item following.
                         NextLine,
@@ -1796,8 +2071,12 @@ namespace Test
             // so, that result will be filtered out due to the de-duplication logic.
             SetHistory("de-dup SOME TEXT AFTER", "some TEXT BEFORE de-dup");
             Test("de-dup", Keys(
-                "de-dup", CheckThat(() => AssertScreenIs(6,
+                "de-dup", CheckThat(() => AssertScreenIs(7,
                         TokenClassification.Command, "de-dup",
+                        NextLine,
+                        TokenClassification.ListPrediction, "<-/4>",
+                        TokenClassification.None, new string(' ', listWidth - 36), // 36 is the length of '<-/4>' plus '<History(2) TestPredictor(1) …>'.
+                        dimmedColors, "<History(2) TestPredictor(1) …>",
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.None, ' ',
@@ -1826,9 +2105,9 @@ namespace Test
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.None, " SOME NEW TEXT",
-                        TokenClassification.None, new string(' ', listWidth - 32), // 32 is the length of '> SOME NEW TEXT' plus '[LongNamePred...]'
+                        TokenClassification.None, new string(' ', listWidth - 32), // 32 is the length of '> SOME NEW TEXT' plus '[LongNamePredic…]'
                         TokenClassification.None, '[',
-                        TokenClassification.ListPrediction, "LongNamePred...",
+                        TokenClassification.ListPrediction, "LongNamePredic…",
                         TokenClassification.None, ']',
                         // List view is done, no more list item following.
                         NextLine,
