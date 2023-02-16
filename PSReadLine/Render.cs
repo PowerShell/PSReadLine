@@ -294,11 +294,7 @@ namespace Microsoft.PowerShell
                         _consoleBufferLines[currentLogicalLine].Append(VTColorUtils.AnsiReset);
                     }
 
-                    currentLogicalLine += 1;
-                    if (currentLogicalLine == _consoleBufferLines.Count)
-                    {
-                        _consoleBufferLines.Add(new StringBuilder(COMMON_WIDEST_CONSOLE_WIDTH));
-                    }
+                    NextBufferLine(_consoleBufferLines, ref currentLogicalLine);
 
                     // Reset the color for continuation prompt so the color sequence will always be explicitly
                     // specified for continuation prompt in the generated render strings.
@@ -458,11 +454,7 @@ namespace Microsoft.PowerShell
 
             if (_statusLinePrompt != null)
             {
-                currentLogicalLine += 1;
-                if (currentLogicalLine > _consoleBufferLines.Count - 1)
-                {
-                    _consoleBufferLines.Add(new StringBuilder(COMMON_WIDEST_CONSOLE_WIDTH));
-                }
+                NextBufferLine(_consoleBufferLines, ref currentLogicalLine);
 
                 color = _statusIsErrorMessage ? Options._errorColor : defaultColor;
                 UpdateColorsIfNecessary(color);
@@ -476,6 +468,20 @@ namespace Microsoft.PowerShell
             }
 
             return currentLogicalLine + 1;
+        }
+
+        /// <summary>
+        /// Return the next logical line buffer, and create a new one if we are at the end.
+        /// </summary>
+        private static StringBuilder NextBufferLine(List<StringBuilder> consoleBufferLines, ref int current)
+        {
+            current += 1;
+            if (current == consoleBufferLines.Count)
+            {
+                consoleBufferLines.Add(new StringBuilder(COMMON_WIDEST_CONSOLE_WIDTH));
+            }
+
+            return consoleBufferLines[current];
         }
 
         /// <summary>
@@ -1168,6 +1174,11 @@ namespace Microsoft.PowerShell
             _current = newCursor;
         }
 
+        internal Point EndOfBufferPosition()
+        {
+            return ConvertOffsetToPoint(_buffer.Length);
+        }
+
         internal Point ConvertOffsetToPoint(int offset)
         {
             int x = _initialX;
@@ -1762,7 +1773,7 @@ namespace Microsoft.PowerShell
         public static void ScrollDisplayToCursor(ConsoleKeyInfo? key = null, object arg = null)
         {
             // Ideally, we'll put the last input line at the bottom of the window
-            var point = _singleton.ConvertOffsetToPoint(_singleton._buffer.Length);
+            var point = _singleton.EndOfBufferPosition();
 
             var console = _singleton._console;
             var newTop = point.Y - console.WindowHeight + 1;

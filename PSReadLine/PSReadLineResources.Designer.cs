@@ -2071,6 +2071,17 @@ namespace Microsoft.PowerShell.PSReadLine {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to "! term size too small to show the list view".
+        /// </summary>
+        internal static string WindowSizeTooSmallWarning
+        {
+            get
+            {
+                return ResourceManager.GetString("WindowSizeTooSmallWarning", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Copy the text from the current kill ring position to the input.
         /// </summary>
         internal static string YankDescription {

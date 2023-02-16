@@ -8,8 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Management.Automation.Subsystem.Prediction;
 using Microsoft.PowerShell.Internal;
-using System.Runtime.InteropServices.WindowsRuntime;
-using System.Security.Cryptography;
+using Microsoft.PowerShell.PSReadLine;
 
 namespace Microsoft.PowerShell
 {
@@ -219,8 +218,8 @@ namespace Microsoft.PowerShell
             internal const int SourceMaxWidth = 15;
 
             // Minimal window size.
-            internal const int MinWindowWidth = 40;
-            internal const int MinWindowHeight = 16;
+            internal const int MinWindowWidth = 50;
+            internal const int MinWindowHeight = 5;
 
             private List<SuggestionEntry> _listItems;
             private List<SourceInfo> _sources;
@@ -229,10 +228,14 @@ namespace Microsoft.PowerShell
             private bool _updatePending;
 
             // List view rendering helper fields.
+            private int _maxViewHeight;
             private int _listViewHeight;
             private int _listViewWidth;
             private int _listViewTop;
             private int _listViewEnd;
+            private bool _checkOnHeight;
+            private bool _warnAboutSize;
+            private bool _warningPrinted;
 
             // Caches re-used when aggregating the suggestion results from predictors and history.
             // Those caches help us avoid allocation on tons of short-lived collections.
@@ -287,6 +290,27 @@ namespace Microsoft.PowerShell
             internal override bool HasPendingUpdate => _updatePending;
             internal override bool HasActiveSuggestion => _listItems != null;
 
+            private (int maxWidth, int maxHeight, bool extraCheck) RefreshMaxViewSize()
+            {
+                var console = _singleton._console;
+                int maxWidth = Math.Min(console.BufferWidth, ListViewMaxWidth);
+
+                (int maxHeight, bool moreCheck) = console.BufferHeight switch
+                {
+                    > ListViewMaxHeight * 2 => (ListViewMaxHeight, false),
+                    > ListViewMaxHeight => (ListViewMaxHeight / 2, false),
+                    _ => (ListViewMaxHeight / 3, true)
+                };
+
+                return (maxWidth, maxHeight, moreCheck);
+            }
+
+            private bool HeightIsTooSmall()
+            {
+                int physicalLineCountForBuffer = _singleton.EndOfBufferPosition().Y - _singleton._initialY + 1;
+                return _singleton._console.BufferHeight < physicalLineCountForBuffer + _maxViewHeight + 1 /* one metadata line */;
+            }
+
             /// <summary>
             /// Get suggestion results.
             /// </summary>
@@ -312,16 +336,16 @@ namespace Microsoft.PowerShell
 
                 if (!WindowSizeMeetsMinRequirement)
                 {
-                    // If the window size is too small for the list view to work, we just disable the list view.
-                    Reset();
+                    // If the window size is too small to show the list view, we disable the list view and show a warning.
+                    _warnAboutSize = true;
                     return;
                 }
 
                 _inputText = userInput;
                 // Reset the list item selection.
                 _selectedIndex = -1;
-                // Refresh the view width in case the terminal was resized.
-                _listViewWidth = Math.Min(_singleton._console.BufferWidth, ListViewMaxWidth);
+                // Refresh the list view width and height in case the terminal was resized.
+                (_listViewWidth, _maxViewHeight, _checkOnHeight) = RefreshMaxViewSize();
 
                 if (inputUnchanged)
                 {
@@ -540,7 +564,7 @@ namespace Microsoft.PowerShell
                 {
                     // Initialize the view window position here.
                     _listViewTop = 0;
-                    _listViewEnd = Math.Min(_listItems.Count, ListViewMaxHeight);
+                    _listViewEnd = Math.Min(_listItems.Count, _maxViewHeight);
                     _listViewHeight = _listViewEnd - _listViewTop;
                 }
                 else
@@ -554,6 +578,19 @@ namespace Microsoft.PowerShell
             /// </summary>
             internal override void RenderSuggestion(List<StringBuilder> consoleBufferLines, ref int currentLogicalLine)
             {
+                if (_warnAboutSize || (_checkOnHeight && HeightIsTooSmall()))
+                {
+                    _warningPrinted = true;
+                    RenderWarningLine(NextBufferLine(consoleBufferLines, ref currentLogicalLine));
+
+                    Reset();
+                    return;
+                }
+                else
+                {
+                    _warningPrinted = false;
+                }
+
                 if (_updatePending)
                 {
                     _updatePending = false;
@@ -568,20 +605,6 @@ namespace Microsoft.PowerShell
                     return;
                 }
 
-                /// <summary>
-                /// Return the next logical line buffer, and create a new one if we are at the end.
-                /// </summary>
-                static StringBuilder NextBufferLine(List<StringBuilder> consoleBufferLines, ref int current)
-                {
-                    current += 1;
-                    if (current == consoleBufferLines.Count)
-                    {
-                        consoleBufferLines.Add(new StringBuilder(COMMON_WIDEST_CONSOLE_WIDTH));
-                    }
-
-                    return consoleBufferLines[current];
-                }
-
                 // Create the metadata line.
                 RenderMetadataLine(NextBufferLine(consoleBufferLines, ref currentLogicalLine));
 
@@ -593,9 +616,9 @@ namespace Microsoft.PowerShell
                         // Render from the selected index if there are enough items left for a page.
                         // If not, then render all remaining items plus a few from above the selected one, so as to render a full page.
                         _renderFromSelected = false;
-                        int offset = ListViewMaxHeight - Math.Min(_listItems.Count - _selectedIndex, ListViewMaxHeight);
+                        int offset = _maxViewHeight - Math.Min(_listItems.Count - _selectedIndex, _maxViewHeight);
                         _listViewTop = offset > 0 ? Math.Max(0, _selectedIndex - offset) : _selectedIndex;
-                        _listViewEnd = Math.Min(_listItems.Count, _listViewTop + ListViewMaxHeight);
+                        _listViewEnd = Math.Min(_listItems.Count, _listViewTop + _maxViewHeight);
                     }
                     else
                     {
@@ -605,12 +628,12 @@ namespace Microsoft.PowerShell
                         if (_selectedIndex < _listViewTop)
                         {
                             _listViewTop = _selectedIndex;
-                            _listViewEnd = Math.Min(_listItems.Count, _selectedIndex + ListViewMaxHeight);
+                            _listViewEnd = Math.Min(_listItems.Count, _selectedIndex + _maxViewHeight);
                         }
                         else if (_selectedIndex >= _listViewEnd)
                         {
                             _listViewEnd = _selectedIndex + 1;
-                            _listViewTop = Math.Max(0, _listViewEnd - ListViewMaxHeight);
+                            _listViewTop = Math.Max(0, _listViewEnd - _maxViewHeight);
                         }
                     }
 
@@ -628,6 +651,30 @@ namespace Microsoft.PowerShell
                             _inputText,
                             selectionColor));
                 }
+            }
+
+            private void RenderWarningLine(StringBuilder buffer)
+            {
+                // Add italic text effect to the highlight color.
+                string highlightColor = _singleton._options._listPredictionColor + "\x1b[3m";
+
+                buffer.Append(highlightColor)
+                    .Append(PSReadLineResources.WindowSizeTooSmallWarning)
+                    .Append(VTColorUtils.AnsiReset);
+            }
+
+            private int GetPesudoListHeightForWarningRendering()
+            {
+                int bufferWidth = _singleton._console.BufferWidth;
+                int lengthInCells = LengthInBufferCells(PSReadLineResources.WindowSizeTooSmallWarning);
+                int pesudoListHeight = lengthInCells / bufferWidth;
+
+                if (lengthInCells % bufferWidth == 0)
+                {
+                    pesudoListHeight--;
+                }
+
+                return pesudoListHeight;
             }
 
             /// <summary>
@@ -818,13 +865,21 @@ namespace Microsoft.PowerShell
             /// </summary>
             internal override void Clear(bool cursorAtEol)
             {
-                if (_listItems == null) { return; }
+                if (_listItems == null && !_warningPrinted)
+                {
+                    return;
+                }
+
+                int listHeight = _warningPrinted
+                    ? GetPesudoListHeightForWarningRendering()
+                    : _listViewHeight;
 
                 int top = cursorAtEol
                     ? _singleton._console.CursorTop
-                    : _singleton.ConvertOffsetToPoint(_inputText.Length).Y;
+                    : _singleton.EndOfBufferPosition().Y;
 
-                _singleton.WriteBlankLines(top + 1, _listViewHeight + 1 /* plus 1 to include the metadata line */);
+                _warningPrinted = false;
+                _singleton.WriteBlankLines(top + 1, listHeight + 1 /* plus 1 to include the metadata line */);
                 Reset();
             }
 
@@ -837,8 +892,8 @@ namespace Microsoft.PowerShell
 
                 _sources = null;
                 _listItems = null;
-                _listViewTop = _listViewEnd = _listViewWidth = _listViewHeight = _selectedIndex = -1;
-                _updatePending = _renderFromSelected = false;
+                _maxViewHeight = _listViewTop = _listViewEnd = _listViewWidth = _listViewHeight = _selectedIndex = -1;
+                _warnAboutSize = _checkOnHeight = _updatePending = _renderFromSelected = false;
             }
 
             /// <summary>
@@ -897,7 +952,7 @@ namespace Microsoft.PowerShell
                         // Do one page up.
                         _selectedIndex = _selectedIndex == _listViewEnd - 1
                             ? _listViewTop
-                            : Math.Max(0, _selectedIndex - (ListViewMaxHeight - 1));
+                            : Math.Max(0, _selectedIndex - (_maxViewHeight - 1));
                     }
                     else
                     {
@@ -909,7 +964,7 @@ namespace Microsoft.PowerShell
                         // Do one page down.
                         _selectedIndex = _selectedIndex == _listViewTop
                             ? _listViewEnd - 1
-                            : Math.Min(lastItemIndex, _selectedIndex + (ListViewMaxHeight - 1));
+                            : Math.Min(lastItemIndex, _selectedIndex + (_maxViewHeight - 1));
                     }
                 }
 
