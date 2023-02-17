@@ -999,8 +999,8 @@ namespace Microsoft.PowerShell
                         //     We should not pop the stack yet. The updated user completion text contains characters
                         //     that are not included in the selected item of the menu at the top of stack. This may
                         //     happen when the user pressed a 'Tab' before this 'Backspace', which updated the user
-                        //     completion text with the unambiguous common prefix. In this case, we should stay in
-                        //     the current menu.
+                        //     completion text to include the unambiguous common prefix of the available completion
+                        //     candidates. In this case, we should stay in the current menu.
                         // }
                     }
                     else if (menuStack.Count == 1)

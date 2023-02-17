@@ -1319,6 +1319,95 @@ namespace Test
                 _.Ctrl_c, InputAcceptedNow));
         }
 
+        [SkippableFact]
+        public void MenuCompletions_Backspace()
+        {
+            TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+Spacebar", PSConsoleReadLine.MenuComplete));
+
+            _console.Clear();
+            char separator = Path.DirectorySeparatorChar;
+
+            Test("cd stro", Keys(
+                "cd stron", _.Ctrl_Spacebar,
+                CheckThat(() => AssertScreenIs(3,
+                    TokenClassification.Command, "cd",
+                    TokenClassification.None, $" .{separator}strong",
+                    TokenClassification.Selection, separator,
+                    NextLine,
+                    TokenClassification.Selection, "strong      ",
+                    TokenClassification.None, "stronghold  strongholp",
+                    NextLine,
+                    NextLine)),
+                _.h, CheckThat(() => AssertScreenIs(3,
+                    TokenClassification.Command, "cd",
+                    TokenClassification.None, $" .{separator}strongh",
+                    TokenClassification.Selection, $"old{separator}",
+                    NextLine,
+                    TokenClassification.Selection, "stronghold  ",
+                    TokenClassification.None, "strongholp",
+                    NextLine,
+                    NextLine)),
+                // Tab will update the user completion text to include the unambiguous common prefix.
+                _.Tab, CheckThat(() => AssertScreenIs(3,
+                    TokenClassification.Command, "cd",
+                    TokenClassification.None, $" .{separator}stronghol",
+                    TokenClassification.Selection, $"d{separator}",
+                    NextLine,
+                    TokenClassification.Selection, "stronghold  ",
+                    TokenClassification.None, "strongholp",
+                    NextLine,
+                    NextLine)),
+                _.Backspace, CheckThat(() => AssertScreenIs(3,
+                    TokenClassification.Command, "cd",
+                    TokenClassification.None, $" .{separator}strongho",
+                    TokenClassification.Selection, $"ld{separator}",
+                    NextLine,
+                    TokenClassification.Selection, "stronghold  ",
+                    TokenClassification.None, "strongholp",
+                    NextLine,
+                    NextLine)),
+                _.Backspace, CheckThat(() => AssertScreenIs(3,
+                    TokenClassification.Command, "cd",
+                    TokenClassification.None, $" .{separator}strongh",
+                    TokenClassification.Selection, $"old{separator}",
+                    NextLine,
+                    TokenClassification.Selection, "stronghold  ",
+                    TokenClassification.None, "strongholp",
+                    NextLine,
+                    NextLine)),
+                _.Backspace, CheckThat(() => AssertScreenIs(3,
+                    TokenClassification.Command, "cd",
+                    TokenClassification.None, $" .{separator}strong",
+                    TokenClassification.Selection, separator,
+                    NextLine,
+                    TokenClassification.Selection, "strong      ",
+                    TokenClassification.None, "stronghold  strongholp",
+                    NextLine,
+                    NextLine)),
+                _.h, CheckThat(() => AssertScreenIs(3,
+                    TokenClassification.Command, "cd",
+                    TokenClassification.None, $" .{separator}strongh",
+                    TokenClassification.Selection, $"old{separator}",
+                    NextLine,
+                    TokenClassification.Selection, "stronghold  ",
+                    TokenClassification.None, "strongholp",
+                    NextLine,
+                    NextLine)),
+                _.Backspace, CheckThat(() => AssertScreenIs(3,
+                    TokenClassification.Command, "cd",
+                    TokenClassification.None, $" .{separator}strong",
+                    TokenClassification.Selection, separator,
+                    NextLine,
+                    TokenClassification.Selection, "strong      ",
+                    TokenClassification.None, "stronghold  strongholp",
+                    NextLine,
+                    NextLine)),
+                _.Backspace,
+                _.Backspace, CheckThat(() => AssertLineIs("cd stro")),
+                _.Enter
+                ));
+        }
+
         internal static CommandCompletion MockedCompleteInput(string input, int cursor, Hashtable options, PowerShell powerShell)
         {
             var ctor = typeof (CommandCompletion).GetConstructor(
@@ -1418,6 +1507,14 @@ namespace Test
                 completions.Add(new CompletionResult("idden"));
                 break;
             case "none":
+                break;
+            case "cd stron":
+                replacementIndex = 3;
+                replacementLength = 5;
+                char separator = Path.DirectorySeparatorChar;
+                completions.Add(new CompletionResult($".{separator}strong", "strong", CompletionResultType.ProviderContainer, $".{separator}strong"));
+                completions.Add(new CompletionResult($".{separator}stronghold", "stronghold", CompletionResultType.ProviderContainer, $".{separator}stronghold"));
+                completions.Add(new CompletionResult($".{separator}strongholp", "strongholp", CompletionResultType.ProviderContainer, $".{separator}strongholp"));
                 break;
 
             default:
