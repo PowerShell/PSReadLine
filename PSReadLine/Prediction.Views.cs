@@ -678,9 +678,9 @@ namespace Microsoft.PowerShell
             private void RenderWarningLine(StringBuilder buffer)
             {
                 // Add italic text effect to the highlight color.
-                string highlightColor = _singleton._options._listPredictionColor + "\x1b[3m";
+                string highlightStyle = _singleton._options._listPredictionColor + "\x1b[3m";
 
-                buffer.Append(highlightColor)
+                buffer.Append(highlightStyle)
                     .Append(PSReadLineResources.WindowSizeTooSmallWarning)
                     .Append(VTColorUtils.AnsiReset);
             }
@@ -708,12 +708,12 @@ namespace Microsoft.PowerShell
             private void RenderMetadataLine(StringBuilder buffer)
             {
                 // Add italic text effect to the highlight color.
-                string highlightColor = _singleton._options._listPredictionColor + "\x1b[3m";
-                string dimmedColor = PSConsoleReadLineOptions.DefaultInlinePredictionColor;
-                string activeColor = null;
+                string highlightStyle = _singleton._options._listPredictionColor + "\x1b[3m";
+                string dimmedStyle = PSConsoleReadLineOptions.DefaultInlinePredictionColor;
+                string activeStyle = null;
 
                 // Render the quick indicator.
-                buffer.Append(highlightColor)
+                buffer.Append(highlightStyle)
                     .Append('<')
                     .Append(_selectedIndex > -1 ? _selectedIndex + 1 : "-")
                     .Append('/')
@@ -759,7 +759,7 @@ namespace Microsoft.PowerShell
                 //    will be 55 (7+48), so we choose '60' as the minimal requirement for rendering 2 sources.
                 int maxSourceCount = _listViewWidth >= 80 ? 3 : 2;
                 int charPosition = buffer.Length;
-                int totalCountPartLength = buffer.Length - highlightColor.Length - VTColorUtils.AnsiReset.Length;
+                int totalCountPartLength = buffer.Length - highlightStyle.Length - VTColorUtils.AnsiReset.Length;
                 int additionalPartLength = 0;
 
                 int selected = -1;
@@ -793,7 +793,7 @@ namespace Microsoft.PowerShell
                 }
 
                 // Start the extra information about the sources -- add the opening arrow bracket.
-                AppendColor(buffer, dimmedColor, ref activeColor, out _).Append('<');
+                AppendColor(buffer, dimmedStyle, ref activeStyle, out _).Append('<');
                 additionalPartLength++;
 
                 // Add the prefix, continue to use dimmed color.
@@ -823,7 +823,7 @@ namespace Microsoft.PowerShell
                     SourceInfo info = _sources[index];
                     if (selected == index)
                     {
-                        AppendColor(buffer, highlightColor, ref activeColor, out nextCharPos)
+                        AppendColor(buffer, highlightStyle, ref activeStyle, out nextCharPos)
                             .Append(info.SourceName)
                             .Append('(')
                             .Append(_selectedIndex - info.PrevSourceEndIndex)
@@ -833,7 +833,7 @@ namespace Microsoft.PowerShell
                     }
                     else
                     {
-                        AppendColor(buffer, dimmedColor, ref activeColor, out nextCharPos)
+                        AppendColor(buffer, dimmedStyle, ref activeStyle, out nextCharPos)
                             .Append(info.SourceName)
                             .Append('(')
                             .Append(info.ItemCount)
@@ -847,14 +847,14 @@ namespace Microsoft.PowerShell
                 // Add the suffix.
                 if (startFrom + maxSourceCount < _sources.Count)
                 {
-                    AppendColor(buffer, dimmedColor, ref activeColor, out _)
+                    AppendColor(buffer, dimmedStyle, ref activeStyle, out _)
                         .Append(' ')
                         .Append(SuggestionEntry.Ellipsis);
                     additionalPartLength += 2;
                 }
 
                 // Add the closing arrow bracket.
-                AppendColor(buffer, dimmedColor, ref activeColor, out _)
+                AppendColor(buffer, dimmedStyle, ref activeStyle, out _)
                     .Append('>')
                     .Append(VTColorUtils.AnsiReset);
                 additionalPartLength++;
