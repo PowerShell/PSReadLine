@@ -306,7 +306,7 @@ namespace Microsoft.PowerShell
             /// <summary>
             /// Calculate the max width and height of the list view based on the current terminal size.
             /// </summary>
-            private (int maxWidth, int maxHeight, bool extraCheck) RefreshMaxViewSize()
+            private (int maxWidth, int maxHeight, bool checkOnHeight) RefreshMaxViewSize()
             {
                 var console = _singleton._console;
                 int maxWidth = Math.Min(console.BufferWidth, ListViewMaxWidth);
