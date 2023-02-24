@@ -1,5 +1,5 @@
 
-image: Visual Studio 2017
+image: Visual Studio 2022
 
 environment:
   POWERSHELL_TELEMETRY_OPTOUT: 1
