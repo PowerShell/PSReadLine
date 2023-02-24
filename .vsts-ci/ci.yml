@@ -36,7 +36,7 @@ stages:
         .\build.ps1 -Bootstrap
         .\build.ps1 -Configuration Release -Framework net462
 
-        $output = '$(Build.SourcesDirectory)\PSReadLine\bin\Release\PSReadLine'
+        $output = '$(Build.SourcesDirectory)\bin\Release\PSReadLine'
         Write-Host "##vso[artifact.upload containerfolder=PSReadLine;artifactname=PSReadLine]$output"
       displayName: Bootstrap & Build
 
