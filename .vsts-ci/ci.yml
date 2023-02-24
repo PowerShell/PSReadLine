@@ -35,6 +35,7 @@ stages:
     - pwsh: |
         Write-Host "PS Version: $($PSVersionTable.PSVersion)"
         Set-Location -Path '$(Build.SourcesDirectory)\PSReadLine'
+        Get-ChildItem
         .\build.ps1 -Bootstrap
         .\build.ps1 -Configuration Release -Framework net462
 
