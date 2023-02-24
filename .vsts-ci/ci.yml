@@ -18,13 +18,6 @@ variables:
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
   PSREADLINE_TESTRUN: 1
 
-resources:
-  repositories:
-  - repository: ComplianceRepo
-    type: github
-    endpoint: ComplianceGHRepo
-    name: PowerShell/compliance
-
 stages:
 - stage: Build
   displayName: Build PSReadLine module
