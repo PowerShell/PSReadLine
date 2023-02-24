@@ -11,6 +11,7 @@
 
 # PSReadLine
 
+Hahaha
 This module replaces the command line editing experience of PowerShell for versions 3 and up.
 It provides:
 
