@@ -1,0 +1,58 @@
+name: PSReadLine-$(Date:yyyyMMdd).$(Rev:.rr)
+trigger:
+  # Batch merge builds together while a merge build is running
+  batch: true
+  branches:
+    include:
+    - master
+    - ci
+pr:
+  branches:
+    include:
+    - master
+    - ci
+
+variables:
+  DOTNET_CLI_TELEMETRY_OPTOUT: 1
+  POWERSHELL_TELEMETRY_OPTOUT: 1
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+  PSREADLINE_TESTRUN: 1
+
+resources:
+  repositories:
+  - repository: ComplianceRepo
+    type: github
+    endpoint: ComplianceGHRepo
+    name: PowerShell/compliance
+
+stages:
+- stage: Build
+  displayName: Build PSReadLine module
+  jobs:
+  - job: BuildPkg
+    displayName: Build Package
+    pool:
+      vmImage: windows-latest
+    steps:
+    - pwsh: |
+        Write-Host "PS Version: $($PSVersionTable.PSVersion)"
+        Set-Location -Path '$(Build.SourcesDirectory)\PSReadLine'
+        .\build.ps1 -Bootstrap
+        .\build.ps1 -Configuration Release -Framework net462
+
+        $output = '$(Build.SourcesDirectory)\PSReadLine\bin\Release\PSReadLine'
+        Write-Host "##vso[artifact.upload containerfolder=PSReadLine;artifactname=PSReadLine]$output"
+      displayName: Bootstrap & Build
+
+- stage: Test
+  displayName: Test Package
+  dependsOn: Build
+  jobs:
+  - job: TestPkg
+    displayName: Test Package
+    pool:
+      vmImage: windows-latest
+    steps:
+    - pwsh: |
+        Set-Location -Path '$(Build.SourcesDirectory)\PSReadLine'
+        .\build.ps1 -Test -Configuration Release -Framework net462
