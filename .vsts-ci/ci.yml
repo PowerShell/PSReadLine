@@ -21,7 +21,7 @@ variables:
 stages:
 - stage: PSReadLine
   jobs:
-  - job: Build-Test
+  - job: Build_Test
     pool:
       vmImage: windows-latest
 
