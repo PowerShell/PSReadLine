@@ -27,6 +27,7 @@ It provides:
 * Undo/redo
 * Automatic saving of history, including sharing history across live sessions
 * "Menu" completion (somewhat like Intellisense, select completion with arrows) via Ctrl+Space
+* blahblah
 
 The "out of box" experience is meant to be very familiar to PowerShell users - there should be no need to learn any new key strokes.
 
