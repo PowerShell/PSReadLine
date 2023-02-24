@@ -28,13 +28,10 @@ stages:
       vmImage: windows-latest
 
     steps:
-    - checkout: self
-      clean: true
-      persistCredentials: true
 
     - pwsh: |
         Write-Host "PS Version: $($PSVersionTable.PSVersion)"
-        Set-Location -Path '$(Build.SourcesDirectory)\PSReadLine'
+        Set-Location -Path '$(Build.SourcesDirectory)'
         Get-ChildItem
         .\build.ps1 -Bootstrap
         .\build.ps1 -Configuration Release -Framework net462
