@@ -19,11 +19,9 @@ variables:
   PSREADLINE_TESTRUN: 1
 
 stages:
-- stage: Build
-  displayName: Build PSReadLine module
+- stage: PSReadLine
   jobs:
-  - job: BuildPkg
-    displayName: Build Package
+  - job: Build & Test
     pool:
       vmImage: windows-latest
 
@@ -39,17 +37,7 @@ stages:
         Write-Host "##vso[artifact.upload containerfolder=PSReadLine;artifactname=PSReadLine]$output"
       displayName: Bootstrap & Build
 
-- stage: Test
-  displayName: Test Package
-  dependsOn: Build
-  jobs:
-  - job: TestPkg
-    displayName: Test Package
-    pool:
-      vmImage: windows-latest
-
-    steps:
-
     - pwsh: |
         Set-Location -Path '$(Build.SourcesDirectory)'
         .\build.ps1 -Test -Configuration Release -Framework net462
+      displayName: Test
