@@ -40,4 +40,4 @@ stages:
     - pwsh: |
         Set-Location -Path '$(Build.SourcesDirectory)'
         .\build.ps1 -Test -Configuration Release -Framework net462
-      displayName: Test
+      displayName: Run Tests
