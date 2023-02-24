@@ -26,7 +26,12 @@ stages:
     displayName: Build Package
     pool:
       vmImage: windows-latest
+
     steps:
+    - checkout: self
+      clean: true
+      persistCredentials: true
+
     - pwsh: |
         Write-Host "PS Version: $($PSVersionTable.PSVersion)"
         Set-Location -Path '$(Build.SourcesDirectory)\PSReadLine'
@@ -45,7 +50,9 @@ stages:
     displayName: Test Package
     pool:
       vmImage: windows-latest
+
     steps:
+
     - pwsh: |
         Set-Location -Path '$(Build.SourcesDirectory)\PSReadLine'
         .\build.ps1 -Test -Configuration Release -Framework net462
