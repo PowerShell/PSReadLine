@@ -4,12 +4,10 @@ trigger:
   batch: true
   branches:
     include:
-    - master
     - ci
 pr:
   branches:
     include:
-    - master
     - ci
 
 variables:
