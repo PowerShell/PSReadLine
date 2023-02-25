@@ -358,6 +358,11 @@ namespace Microsoft.PowerShell
         public PredictionViewStyle PredictionViewStyle { get; set; }
 
         /// <summary>
+        /// Set the delay while waiting for prediction render
+        /// </summary>
+        public int PredictionDelayMilliseconds { get; set; }
+
+        /// <summary>
         /// How long in milliseconds should we wait before concluding
         /// the input is not an escape sequence?
         /// </summary>
@@ -795,6 +800,14 @@ namespace Microsoft.PowerShell
         }
         internal PredictionViewStyle? _predictionViewStyle;
 
+        [Parameter]
+        public int PredictionDelayMilliseconds
+        {
+            get => _predictionDelayMilliseconds.GetValueOrDefault();
+            set => _predictionDelayMilliseconds = value;
+        }
+        internal int? _predictionDelayMilliseconds;
+        
         [Parameter]
         public Hashtable Colors { get; set; }
 

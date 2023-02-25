@@ -9,6 +9,7 @@ using System.Management.Automation;
 using System.Management.Automation.Language;
 using System.Management.Automation.Subsystem.Prediction;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 using Microsoft.PowerShell.Internal;
 using Microsoft.PowerShell.PSReadLine;
 
@@ -377,6 +378,10 @@ namespace Microsoft.PowerShell
                     return;
                 }
 
+                if (_singleton.Options.PredictionDelayMilliseconds > 0)
+                {
+                    Thread.Sleep(_singleton.Options.PredictionDelayMilliseconds);
+                }
                 ActiveView.GetSuggestion(userInput);
             }
 
