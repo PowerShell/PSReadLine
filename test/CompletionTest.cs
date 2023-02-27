@@ -971,6 +971,7 @@ namespace Test
             TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+Spacebar", PSConsoleReadLine.MenuComplete));
 
             int listWidth = CheckWindowSize();
+            var dimmedColors = Tuple.Create(ConsoleColor.White, _console.BackgroundColor);
             var emphasisColors = Tuple.Create(PSConsoleReadLineOptions.DefaultEmphasisColor, _console.BackgroundColor);
             using var disp = SetPrediction(PredictionSource.History, PredictionViewStyle.ListView);
 
@@ -979,8 +980,12 @@ namespace Test
 
             Test("Get-Module", Keys(
                 "Get-Mo",
-                CheckThat(() => AssertScreenIs(3,
+                CheckThat(() => AssertScreenIs(4,
                     TokenClassification.Command, "Get-Mo",
+                    NextLine,
+                    TokenClassification.ListPrediction, "<-/2>",
+                    TokenClassification.None, new string(' ', listWidth - 17), // 17 is the length of '<-/2>' plus '<History(2)>'.
+                    dimmedColors, "<History(2)>",
                     NextLine,
                     TokenClassification.ListPrediction, '>',
                     TokenClassification.None, ' ',

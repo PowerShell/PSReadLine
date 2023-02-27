@@ -10,18 +10,51 @@ namespace Microsoft.PowerShell
     public partial class PSConsoleReadLine
     {
         /// <summary>
+        /// Represents a prediction source.
+        /// </summary>
+        private readonly struct SourceInfo
+        {
+            internal readonly string SourceName;
+            internal readonly int EndIndex;
+            internal readonly int PrevSourceEndIndex;
+            internal readonly int ItemCount;
+
+            internal SourceInfo(string sourceName, int endIndex, int prevSourceEndIndex)
+            {
+                SourceName = sourceName;
+                int sourceWidth = LengthInBufferCells(SourceName);
+                if (sourceWidth > PredictionListView.SourceMaxWidth)
+                {
+                    sourceWidth = PredictionListView.SourceMaxWidth - 1;
+                    int sourceStrLen = SubstringLengthByCells(sourceName, sourceWidth);
+                    SourceName = sourceName.Substring(0, sourceStrLen) + SuggestionEntry.Ellipsis;
+                }
+
+                EndIndex = endIndex;
+                PrevSourceEndIndex = prevSourceEndIndex;
+                ItemCount = EndIndex - PrevSourceEndIndex;
+            }
+        }
+
+        /// <summary>
         /// This type represents an individual suggestion entry.
         /// </summary>
         private struct SuggestionEntry
         {
+            internal const char Ellipsis = '\u2026';
+            internal const string HistorySource = "History";
+
             internal readonly Guid PredictorId;
             internal readonly uint? PredictorSession;
             internal readonly string Source;
             internal readonly string SuggestionText;
             internal readonly int InputMatchIndex;
 
+            private string _listItemTextRegular;
+            private string _listItemTextSelected;
+
             internal SuggestionEntry(string suggestion, int matchIndex)
-                : this(source: "History", predictorId: Guid.Empty, predictorSession: null, suggestion, matchIndex)
+                : this(source: HistorySource, predictorId: Guid.Empty, predictorSession: null, suggestion, matchIndex)
             {
             }
 
@@ -32,6 +65,8 @@ namespace Microsoft.PowerShell
                 PredictorSession = predictorSession;
                 SuggestionText = suggestion;
                 InputMatchIndex = matchIndex;
+
+                _listItemTextRegular = _listItemTextSelected = null;
             }
 
             /// <summary>
@@ -57,8 +92,19 @@ namespace Microsoft.PowerShell
             /// <param name="selectionHighlighting">The highlighting sequences for a selected list item.</param>
             internal string GetListItemText(int width, string input, string selectionHighlighting)
             {
-                const string ellipsis = "...";
-                const int ellipsisLength = 3;
+                const int ellipsisLength = 1;
+
+                if (selectionHighlighting is null)
+                {
+                    if (_listItemTextRegular is not null)
+                    {
+                        return _listItemTextRegular;
+                    }
+                }
+                else if (_listItemTextSelected is not null)
+                {
+                    return _listItemTextSelected;
+                }
 
                 // Calculate the 'SOURCE' portion to be rendered.
                 int sourceStrLen = Source.Length;
@@ -119,7 +165,7 @@ namespace Microsoft.PowerShell
                             // The suggestion text doesn't contain the user input.
                             int length = SubstringLengthByCells(SuggestionText, textWidth - ellipsisLength);
                             line.Append(SuggestionText, 0, length)
-                                .Append(ellipsis);
+                                .Append(Ellipsis);
                             break;
                         }
 
@@ -136,7 +182,7 @@ namespace Microsoft.PowerShell
                                     .Append(SuggestionText, 0, input.Length)
                                     .EndColorSection(selectionHighlighting)
                                     .Append(SuggestionText, input.Length, length - input.Length)
-                                    .Append(ellipsis);
+                                    .Append(Ellipsis);
                             }
                             else
                             {
@@ -149,7 +195,7 @@ namespace Microsoft.PowerShell
                                     int remainingLenInCells = textWidth - ellipsisLength - rightLenInCells;
                                     int length = SubstringLengthByCellsFromEnd(SuggestionText, input.Length - 1, remainingLenInCells);
                                     line.Append(_singleton._options.EmphasisColor)
-                                        .Append(ellipsis)
+                                        .Append(Ellipsis)
                                         .Append(SuggestionText, input.Length - length, length)
                                         .EndColorSection(selectionHighlighting)
                                         .Append(SuggestionText, input.Length, SuggestionText.Length - input.Length);
@@ -162,11 +208,11 @@ namespace Microsoft.PowerShell
                                     int startIndex = input.Length - leftStrLen;
                                     int totalStrLen = SubstringLengthByCells(SuggestionText, startIndex, textWidth - ellipsisLength * 2);
                                     line.Append(_singleton._options.EmphasisColor)
-                                        .Append(ellipsis)
+                                        .Append(Ellipsis)
                                         .Append(SuggestionText, startIndex, leftStrLen)
                                         .EndColorSection(selectionHighlighting)
                                         .Append(SuggestionText, input.Length, totalStrLen - leftStrLen)
-                                        .Append(ellipsis);
+                                        .Append(Ellipsis);
                                 }
                             }
 
@@ -192,7 +238,7 @@ namespace Microsoft.PowerShell
                                     .Append(SuggestionText, InputMatchIndex, input.Length)
                                     .EndColorSection(selectionHighlighting)
                                     .Append(SuggestionText, rightStartindex, rightStrLen)
-                                    .Append(ellipsis);
+                                    .Append(Ellipsis);
                                 break;
                             }
 
@@ -201,7 +247,7 @@ namespace Microsoft.PowerShell
                             {
                                 // Otherwise, if the (mid+right) portions take up to 2/3 of the text width, we just truncate the suggestion text at the beginning.
                                 int leftStrLen = SubstringLengthByCellsFromEnd(SuggestionText, InputMatchIndex - 1, textWidth - midRightLenInCells - ellipsisLength);
-                                line.Append(ellipsis)
+                                line.Append(Ellipsis)
                                     .Append(SuggestionText, InputMatchIndex - leftStrLen, leftStrLen)
                                     .Append(_singleton._options.EmphasisColor)
                                     .Append(SuggestionText, InputMatchIndex, input.Length)
@@ -223,13 +269,13 @@ namespace Microsoft.PowerShell
                                 int leftStrLen = SubstringLengthByCellsFromEnd(SuggestionText, InputMatchIndex - 1, leftCellLen - ellipsisLength);
                                 int rightStrLen = SubstringLengthByCells(SuggestionText, rightStartindex, rigthCellLen - ellipsisLength);
 
-                                line.Append(ellipsis)
+                                line.Append(Ellipsis)
                                     .Append(SuggestionText, InputMatchIndex - leftStrLen, leftStrLen)
                                     .Append(_singleton._options.EmphasisColor)
                                     .Append(SuggestionText, InputMatchIndex, input.Length)
                                     .EndColorSection(selectionHighlighting)
                                     .Append(SuggestionText, rightStartindex, rightStrLen)
-                                    .Append(ellipsis);
+                                    .Append(Ellipsis);
                                 break;
                             }
 
@@ -249,7 +295,7 @@ namespace Microsoft.PowerShell
                                 line.Append(SuggestionText, 0, InputMatchIndex)
                                     .Append(_singleton._options.EmphasisColor)
                                     .Append(SuggestionText, InputMatchIndex, midLeftStrLen)
-                                    .Append(ellipsis)
+                                    .Append(Ellipsis)
                                     .Append(SuggestionText, rightStartindex - midRightStrLen, midRightStrLen)
                                     .EndColorSection(selectionHighlighting)
                                     .Append(SuggestionText, rightStartindex, SuggestionText.Length - rightStartindex);
@@ -277,11 +323,11 @@ namespace Microsoft.PowerShell
                                 line.Append(SuggestionText, 0, InputMatchIndex)
                                     .Append(_singleton._options.EmphasisColor)
                                     .Append(SuggestionText, InputMatchIndex, midLeftStrLen)
-                                    .Append(ellipsis)
+                                    .Append(Ellipsis)
                                     .Append(SuggestionText, rightStartindex - midRightStrLen, midRightStrLen)
                                     .EndColorSection(selectionHighlighting)
                                     .Append(SuggestionText, rightStartindex, rightStrLen)
-                                    .Append(ellipsis);
+                                    .Append(Ellipsis);
                                 break;
                             }
 
@@ -298,11 +344,11 @@ namespace Microsoft.PowerShell
                                 int midRightStrLen = SubstringLengthByCellsFromEnd(SuggestionText, rightStartindex - 1, midRightCellLen);
                                 int leftStrLen = SubstringLengthByCellsFromEnd(SuggestionText, InputMatchIndex - 1, midRemainingLenInCells);
 
-                                line.Append(ellipsis)
+                                line.Append(Ellipsis)
                                     .Append(SuggestionText, InputMatchIndex - leftStrLen, leftStrLen)
                                     .Append(_singleton._options.EmphasisColor)
                                     .Append(SuggestionText, InputMatchIndex, midLeftStrLen)
-                                    .Append(ellipsis)
+                                    .Append(Ellipsis)
                                     .Append(SuggestionText, rightStartindex - midRightStrLen, midRightStrLen)
                                     .EndColorSection(selectionHighlighting)
                                     .Append(SuggestionText, rightStartindex, SuggestionText.Length - rightStartindex);
@@ -324,15 +370,15 @@ namespace Microsoft.PowerShell
                                 int spacesNeeded = textWidth - midRemainingLenInCells * 3 - ellipsisLength * 3;
                                 string spaces = spacesNeeded > 0 ? Spaces(spacesNeeded) : string.Empty;
 
-                                line.Append(ellipsis)
+                                line.Append(Ellipsis)
                                     .Append(SuggestionText, InputMatchIndex - leftStrLen, leftStrLen)
                                     .Append(_singleton._options.EmphasisColor)
                                     .Append(SuggestionText, InputMatchIndex, midLeftStrLen)
-                                    .Append(ellipsis)
+                                    .Append(Ellipsis)
                                     .Append(SuggestionText, rightStartindex - midRightStrLen, midRightStrLen)
                                     .EndColorSection(selectionHighlighting)
                                     .Append(SuggestionText, rightStartindex, rightStrLen)
-                                    .Append(ellipsis)
+                                    .Append(Ellipsis)
                                     .Append(spaces);
                                 break;
                             }
@@ -351,13 +397,29 @@ namespace Microsoft.PowerShell
                 else
                 {
                     line.Append(Source, 0, sourceStrLen)
-                        .Append(ellipsis);
+                        .Append(Ellipsis);
                 }
 
                 line.EndColorSection(selectionHighlighting)
                     .Append(']');
 
-                return line.ToString();
+                if (selectionHighlighting is not null)
+                {
+                    // Need to reset at the end if the selection highlighting is being applied.
+                    line.Append(VTColorUtils.AnsiReset);
+                }
+
+                string textForRendering = line.ToString();
+                if (selectionHighlighting is null)
+                {
+                    _listItemTextRegular = textForRendering;
+                }
+                else
+                {
+                    _listItemTextSelected = textForRendering;
+                }
+
+                return textForRendering;
             }
         }
     }

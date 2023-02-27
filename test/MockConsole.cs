@@ -235,6 +235,13 @@ namespace Test
                     var escapeSequence = s.Substring(i + 2, len);
                     foreach (var subsequence in escapeSequence.Split(';'))
                     {
+                        if (subsequence is "2" or "3")
+                        {
+                            // Ignore the font effect sequence: 2 - dimmed color; 3 - italics
+                            // They are used in the metadata line of the list view.
+                            continue;
+                        }
+
                         EscapeSequenceActions[subsequence](this);
                     }
                     i = endSequence;
@@ -444,6 +451,13 @@ namespace Test
                     var escapeSequence = s.Substring(i + 2, len);
                     foreach (var subsequence in escapeSequence.Split(';'))
                     {
+                        if (subsequence is "2" or "3")
+                        {
+                            // Ignore the font effect sequence: 2 - dimmed color; 3 - italics
+                            // They are used in the metadata line of the list view.
+                            continue;
+                        }
+
                         EscapeSequenceActions[subsequence](this);
                     }
                     i = endSequence;

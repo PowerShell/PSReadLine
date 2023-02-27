@@ -831,7 +831,7 @@
         "Key":  "Ctrl+PageUp",
         "KeyChar":  "\u0000",
         "ConsoleKey":  "PageUp",
-        "Modifiers":  "0"
+        "Modifiers":  "Control"
     },
     {
         "Key":  "Ctrl+q",
