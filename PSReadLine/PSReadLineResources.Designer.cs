@@ -2071,7 +2071,7 @@ namespace Microsoft.PowerShell.PSReadLine {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to "! term size too small to show the list view".
+        ///   Looks up a localized string similar to "! terminal size too small to show the list view".
         /// </summary>
         internal static string WindowSizeTooSmallWarning
         {

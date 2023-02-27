@@ -861,9 +861,9 @@ namespace Test
                 'g', CheckThat(() => AssertScreenIs(4,
                         TokenClassification.Command, "g",
                         NextLine,
-                        TokenClassification.ListPrediction, "! term size too small to show the list v",
+                        TokenClassification.ListPrediction, "! terminal size too small to show the li",
                         NextLine,
-                        TokenClassification.ListPrediction, "iew",
+                        TokenClassification.ListPrediction, "st view",
                         // List view is done, no more list item following.
                         NextLine,
                         NextLine
@@ -871,9 +871,9 @@ namespace Test
                 'i', CheckThat(() => AssertScreenIs(4,
                         TokenClassification.Command, "gi",
                         NextLine,
-                        TokenClassification.ListPrediction, "! term size too small to show the list v",
+                        TokenClassification.ListPrediction, "! terminal size too small to show the li",
                         NextLine,
-                        TokenClassification.ListPrediction, "iew",
+                        TokenClassification.ListPrediction, "st view",
                         // List view is done, no more list item following.
                         NextLine,
                         NextLine
@@ -888,9 +888,9 @@ namespace Test
                 "git", CheckThat(() => AssertScreenIs(4,
                         TokenClassification.Command, "git",
                         NextLine,
-                        TokenClassification.ListPrediction, "! term size too small to show the list v",
+                        TokenClassification.ListPrediction, "! terminal size too small to show the li",
                         NextLine,
-                        TokenClassification.ListPrediction, "iew",
+                        TokenClassification.ListPrediction, "st view",
                         // List view is done, no more list item following.
                         NextLine,
                         NextLine
