@@ -389,7 +389,7 @@ namespace Microsoft.PowerShell
                         _listItems = GetHistorySuggestions(userInput, HistoryMaxCount);
                         if (_listItems?.Count > 0)
                         {
-                            _sources = new List<SourceInfo>() { new SourceInfo(SuggestionEntry.HistorySource, _listItems.Count - 1, -1) };
+                            _sources = new List<SourceInfo>() { new SourceInfo(SuggestionEntry.HistorySource, _listItems.Count - 1, prevSourceEndIndex: -1) };
                         }
                     }
                 }
@@ -546,6 +546,7 @@ namespace Microsoft.PowerShell
                                 int count = _cacheList2[index] - num;
                                 if (count > 0)
                                 {
+                                    // If we had at least one source, we take the end index of the last source in the list.
                                     int prevEndIndex = _sources.Count > 0 ? _sources[_sources.Count - 1].EndIndex : -1;
                                     int endIndex = _listItems.Count - 1;
                                     _sources.Add(new SourceInfo(_listItems[endIndex].Source, endIndex, prevEndIndex));
