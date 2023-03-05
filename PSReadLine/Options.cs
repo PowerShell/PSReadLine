@@ -156,6 +156,10 @@ namespace Microsoft.PowerShell
                 Options.PredictionViewStyle = options.PredictionViewStyle;
                 _prediction.SetViewStyle(options.PredictionViewStyle);
             }
+			if (options._predictionTimeout.HasValue)
+			{
+				Options.PredictionTimeout = options._predictionTimeout;
+			}
             if (options.Colors != null)
             {
                 IDictionaryEnumerator e = options.Colors.GetEnumerator();
