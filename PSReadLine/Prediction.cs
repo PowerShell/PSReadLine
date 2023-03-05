@@ -26,6 +26,11 @@ namespace Microsoft.PowerShell
             return CommandPrediction.PredictInputAsync(s_predictionClient, ast, tokens);
         }
 
+        Task<List<PredictionResult>> IPSConsoleReadLineMockableMethods.PredictInputAsync(Ast ast, Token[] tokens, int timeoutMilliseconds)
+        {
+            return CommandPrediction.PredictInputAsync(s_predictionClient, ast, tokens, timeoutMilliseconds);
+        }
+
         [ExcludeFromCodeCoverage]
         void IPSConsoleReadLineMockableMethods.OnSuggestionDisplayed(Guid predictorId, uint session, int countOrIndex)
         {

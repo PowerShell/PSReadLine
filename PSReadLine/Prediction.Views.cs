@@ -180,8 +180,18 @@ namespace Microsoft.PowerShell
             /// </summary>
             protected void PredictInput()
             {
-                _predictionTask = _singleton._mockableMethods.PredictInputAsync(_singleton._ast, _singleton._tokens);
-            }
+				// Is it breaking abstraction too much to pull this directly from the singleton options? Should this be a separate property on the class itself?
+				var predictionTimeout = _singleton._options.PredictionTimeout;
+				if (predictionTimeout is null)
+				{
+					_singleton._mockableMethods.PredictInputAsync(_singleton._ast, _singleton._tokens);
+				}
+				else
+				{
+					//TODO: Is there a better way to handle the nullable conversion here? I would think the pattern matching would allow it to be. Zero will throw an exception with this particular method which is what we want as this should never be null.
+					_singleton._mockableMethods.PredictInputAsync(_singleton._ast, _singleton._tokens, predictionTimeout ?? 0);
+				}
+			}
 
             /// <summary>
             /// Gets the results from the prediction task.

@@ -1,4 +1,4 @@
-﻿/********************************************************************++
+/********************************************************************++
 Copyright (c) Microsoft Corporation.  All rights reserved.
 --********************************************************************/
 
@@ -356,6 +356,11 @@ namespace Microsoft.PowerShell
         /// Sets the view style for rendering predictive suggestions.
         /// </summary>
         public PredictionViewStyle PredictionViewStyle { get; set; }
+
+		/// <summary>
+		/// Sets the timeout for prediction completers in milliseconds to be silently ignored if they take longer than the specified duration to return a result. If not specified, uses the PowerShell engine default timeout which is currently hardcoded to 20ms.
+		/// </summary>
+		public int? PredictionTimeout { get; set; }
 
         /// <summary>
         /// How long in milliseconds should we wait before concluding
@@ -795,7 +800,16 @@ namespace Microsoft.PowerShell
         }
         internal PredictionViewStyle? _predictionViewStyle;
 
-        [Parameter]
+		[Parameter]
+		public int? PredictionTimeout
+		{
+			get => _predictionTimeout;
+			set => _predictionTimeout = value;
+		}
+		internal int? _predictionTimeout;
+
+
+		[Parameter]
         public Hashtable Colors { get; set; }
 
         [ExcludeFromCodeCoverage]
@@ -920,7 +934,7 @@ namespace Microsoft.PowerShell
         }
     }
 
-    [Cmdlet("Get", "PSReadLineKeyHandler", DefaultParameterSetName = "FullListing", 
+    [Cmdlet("Get", "PSReadLineKeyHandler", DefaultParameterSetName = "FullListing",
         HelpUri = "https://go.microsoft.com/fwlink/?LinkId=528807")]
     [OutputType(typeof(KeyHandler))]
     public class GetKeyHandlerCommand : PSCmdlet

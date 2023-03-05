@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -55,12 +55,17 @@ namespace Test
 
         public Task<List<PredictionResult>> PredictInputAsync(Ast ast, Token[] tokens)
         {
-            var result = ReadLine.MockedPredictInput(ast, tokens);
-            var source = new TaskCompletionSource<List<PredictionResult>>();
+			return PredictInputAsync(ast, tokens, timeoutMilliseconds: 20);
+		}
 
-            source.SetResult(result);
-            return source.Task;
-        }
+		public Task<List<PredictionResult>> PredictInputAsync(Ast ast, Token[] tokens, int timeoutMilliseconds)
+		{
+			var result = ReadLine.MockedPredictInput(ast, tokens);
+			var source = new TaskCompletionSource<List<PredictionResult>>();
+
+			source.SetResult(result);
+			return source.Task;
+		}
 
         public void OnCommandLineAccepted(IReadOnlyList<string> history)
         {

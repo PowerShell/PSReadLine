@@ -1,4 +1,4 @@
-﻿/********************************************************************++
+/********************************************************************++
 Copyright (c) Microsoft Corporation.  All rights reserved.
 --********************************************************************/
 
@@ -27,6 +27,7 @@ namespace Microsoft.PowerShell
             CommandCompletion CompleteInput(string input, int cursorIndex, Hashtable options, System.Management.Automation.PowerShell powershell);
             bool RunspaceIsRemote(Runspace runspace);
             Task<List<PredictionResult>> PredictInputAsync(Ast ast, Token[] tokens);
+			Task<List<PredictionResult>> PredictInputAsync(Ast ast, Token[] tokens, int millisecondsTimeout);
             void OnCommandLineAccepted(IReadOnlyList<string> history);
             void OnCommandLineExecuted(string commandLine, bool success);
             void OnSuggestionDisplayed(Guid predictorId, uint session, int countOrIndex);
