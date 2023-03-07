@@ -1,3 +1,27 @@
+### [2.3.0-beta0] - 2023-03-07
+
+- Fix the menu completion to better handle the backspace key (#3574)
+- Improve the list view to be scrollable and auto-adjust the list view height (#3583)
+- Use 'Visual Studio 2022' as the image for `appveyor` CI (#3594)
+- Fix some typos in this repository (#3547) (Thanks @spaette!)
+- De-duplicate prediction results with the history results (#3543)
+- Updating Fabric bot (#3540, #3576)
+- Change default color for inline prediction to `dim` (#3493)
+- Make tab completion show results whose `ListItemText` are different by case only (#3456) (Thanks @dkaszews!)
+- Fix to use the default member color for members (#3450)
+- Update the samples in README.md (#3440, #3424)
+- Place 'ViDGChord' in the right group (#3422)
+- Fix the description of `CapitalizeWord` (#3384)
+- Add support for upcasing, downcasing, and capitalizing word (#3365) (Thanks @3N4N!)
+- No list view prediction when the first line was scrolled up off the buffer (#3372)
+- Fix wrong cursor position in menu completion (#3373)
+- Fix `ViModeIndicator = Cursor` for Windows Terminal (#3374)
+- Fix parameter dynamic help when the help content is specified in ParameterAttribute (#3370)
+- Handle multi-line description for parameter help content (#3358)
+- Update module version in bot messages (#3361)
+
+[2.3.0-beta0]: https://github.com/PowerShell/PSReadLine/compare/v2.2.6...v2.3.0-beta0
+
 ### [2.2.6] - 2022-06-27
 
 - Enable Predictive Intellisense by default (#3351)
