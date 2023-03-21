@@ -238,7 +238,7 @@ namespace Microsoft.PowerShell
                             if (ps == null)
                             {
                                 ps = System.Management.Automation.PowerShell.Create(RunspaceMode.CurrentRunspace);
-                                ps.AddScript("0", useLocalScope: true);
+                                ps.AddScript("[System.Diagnostics.DebuggerHidden()]param() 0", useLocalScope: true);
                             }
 
                             // To detect output during possible event processing, see if the cursor moved
@@ -674,7 +674,7 @@ namespace Microsoft.PowerShell
             {
                 try
                 {
-                    var results = ps.AddScript("$Host", useLocalScope: true).Invoke<PSHost>();
+                    var results = ps.AddScript("[System.Diagnostics.DebuggerHidden()]param() $Host", useLocalScope: true).Invoke<PSHost>();
                     PSHost host = results.Count == 1 ? results[0] : null;
                     hostName = host?.Name;
                 }
