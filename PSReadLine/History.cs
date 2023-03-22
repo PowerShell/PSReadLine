@@ -525,6 +525,22 @@ namespace Microsoft.PowerShell
             return result;
         }
 
+        private static bool IsSafePropertyUsage(Ast member)
+        {
+            bool result = false;
+
+            if (member.Parent is MemberExpressionAst memberExpr)
+            {
+                // - If the property is NOT on the left side of an assignment, then it's safe.
+                // - Otherwise, if the right-hand side is a pipeline or a variable, then we consider it safe.
+                result = !IsOnLeftSideOfAnAssignment(memberExpr, out Ast rhs)
+                    || rhs is PipelineAst
+                    || (rhs is CommandExpressionAst cmdExpr && cmdExpr.Expression is VariableExpressionAst);
+            }
+
+            return result;
+        }
+
         private static ExpressionAst GetArgumentForParameter(CommandParameterAst param)
         {
             if (param.Argument is not null)
@@ -612,15 +628,20 @@ namespace Microsoft.PowerShell
                         break;
 
                     case StringConstantExpressionAst strConst:
-                        // If it's not a command name, or it's not one of the secret management commands that
-                        // we can ignore, we consider it sensitive.
-                        isSensitive = !IsSecretMgmtCommand(strConst, out CommandAst command);
-
-                        if (!isSensitive)
+                        isSensitive = true;
+                        if (IsSecretMgmtCommand(strConst, out CommandAst command))
                         {
-                            // We can safely skip the whole command text.
+                            // If it's one of the secret management commands that we can ignore, we consider it safe.
+                            isSensitive = false;
+                            // And we can safely skip the whole command text in this case.
                             match = s_sensitivePattern.Match(line, command.Extent.EndOffset);
                         }
+                        else if (IsSafePropertyUsage(strConst))
+                        {
+                            isSensitive = false;
+                            match = match.NextMatch();
+                        }
+
                         break;
 
                     case CommandParameterAst param:

@@ -202,7 +202,16 @@ namespace Test
                 "Set-SecretInfo -Name apikey; Set-SecretVaultDefault; Test-SecretVault; Unlock-SecretVault -password $pwd; Unregister-SecretVault -SecretVault vaultInfo",
                 "Get-ResultFromTwo -Secret1 (Get-Secret -Name blah -AsPlainText) -Secret2 $secret2",
                 "Get-ResultFromTwo -Secret1 (Get-Secret -Name blah -AsPlainText) -Secret2 sdv87ysdfayf798hfasd8f7ha", // '-Secret2' has expr-value argument. Not saved to file.
-                "$environment -brand $brand -userBitWardenEmail $bwuser -userBitWardenPassword $bwpass" // '-userBitWardenPassword' matches sensitive pattern and it has parsing error. Not save to file.
+                "$environment -brand $brand -userBitWardenEmail $bwuser -userBitWardenPassword $bwpass", // '-userBitWardenPassword' matches sensitive pattern and it has parsing error. Not save to file.
+                "(Import-Clixml \"${Env:HOME}\\credential.clixml\").GetNetworkCredential().Password | Set-Clipboard", // 'Password' is a property not in assignment.
+                "$a.Password = 'abcd'", // setting the 'Password' property with string value. Not saved to file.
+                "$a.Password.Value = 'abcd'", // indirectly setting the 'Password' property with string value. Not saved to file.
+                "$a.Secret = Get-Secret -Name github-token -Vault MySecret",
+                "$a.Secret = $secret",
+                "$a.Password = 'ab' + 'cd'", // setting the 'Password' property with string values. Not saved to file.
+                "$a.Password.Secret | Set-Value",
+                "Write-Host $a.Password.Secret",
+                "($a.Password, $b) = ('aa', 'bb')", // setting the 'Password' property with string value. Not saved to file.
             };
 
             string[] expectedSavedItems = new[] {
@@ -218,6 +227,11 @@ namespace Test
                 "Get-SecretInfo -Name mytoken; Get-SecretVault; Register-SecretVault; Remove-Secret apikey",
                 "Set-SecretInfo -Name apikey; Set-SecretVaultDefault; Test-SecretVault; Unlock-SecretVault -password $pwd; Unregister-SecretVault -SecretVault vaultInfo",
                 "Get-ResultFromTwo -Secret1 (Get-Secret -Name blah -AsPlainText) -Secret2 $secret2",
+                "(Import-Clixml \"${Env:HOME}\\credential.clixml\").GetNetworkCredential().Password | Set-Clipboard",
+                "$a.Secret = Get-Secret -Name github-token -Vault MySecret",
+                "$a.Secret = $secret",
+                "$a.Password.Secret | Set-Value",
+                "Write-Host $a.Password.Secret",
             };
 
             try
