@@ -685,7 +685,7 @@ namespace Microsoft.PowerShell
             }
 
             bool usingLegacyConsole = _console is PlatformWindows.LegacyWin32Console;
-            _options = new PSConsoleReadLineOptions(hostName ?? PSReadLine, usingLegacyConsole);
+            _options = new PSConsoleReadLineOptions(hostName ?? DefaultName, usingLegacyConsole);
             _prediction = new Prediction(this);
             SetDefaultBindings(_options.EditMode);
         }

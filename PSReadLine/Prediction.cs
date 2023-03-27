@@ -18,8 +18,8 @@ namespace Microsoft.PowerShell
 {
     public partial class PSConsoleReadLine
     {
-        private const string PSReadLine = "PSReadLine";
-        private static readonly PredictionClient s_predictionClient = new(PSReadLine, PredictionClientKind.Terminal);
+        private const string DefaultName = "PSReadLine";
+        private static readonly PredictionClient s_predictionClient = new(DefaultName, PredictionClientKind.Terminal);
         private static PropertyInfo s_pCurrentLocation = null;
 
         /// <summary>
@@ -35,6 +35,7 @@ namespace Microsoft.PowerShell
             }
 
             Type pcType = typeof(PredictionClient);
+            // Property added in 7.4
             s_pCurrentLocation = pcType.GetProperty("CurrentLocation");
         }
 
