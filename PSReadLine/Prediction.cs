@@ -4,8 +4,10 @@ Copyright (c) Microsoft Corporation.  All rights reserved.
 
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Threading.Tasks;
 using System.Management.Automation;
+using System.Management.Automation.Runspaces;
 using System.Management.Automation.Language;
 using System.Management.Automation.Subsystem.Prediction;
 using System.Diagnostics.CodeAnalysis;
@@ -16,8 +18,42 @@ namespace Microsoft.PowerShell
 {
     public partial class PSConsoleReadLine
     {
-        private const string PSReadLine = "PSReadLine";
-        private static PredictionClient s_predictionClient = new(PSReadLine, PredictionClientKind.Terminal);
+        private const string DefaultName = "PSReadLine";
+        private static readonly PredictionClient s_predictionClient = new(DefaultName, PredictionClientKind.Terminal);
+        private static PropertyInfo s_pCurrentLocation = null;
+
+        /// <summary>
+        /// Initialize the <see cref="PropertyInfo"/> objects for those public settable properties newly added to
+        /// <see cref="PredictionClient"/>.
+        /// </summary>
+        private static void InitializePropertyInfo()
+        {
+            Version ver = typeof(PSObject).Assembly.GetName().Version;
+            if (ver.Major < 7 || ver.Minor < 4)
+            {
+                return;
+            }
+
+            Type pcType = typeof(PredictionClient);
+            // Property added in 7.4
+            s_pCurrentLocation = pcType.GetProperty("CurrentLocation");
+        }
+
+        /// <summary>
+        /// New public settable properties may be added to the <see cref="PredictionClient"/> type as it evolves to
+        /// offer more helpful context information. We dynamically set those properties here to avoid any backward
+        /// compatibility issues.
+        /// </summary>
+        private static void UpdatePredictionClient(Runspace runspace, EngineIntrinsics engineIntrinsics)
+        {
+            // Set the current location if the 'CurrentLocation' property exists.
+            if (s_pCurrentLocation is not null)
+            {
+                // Set the current location if it's a local Runspace. Otherwise, set it to null.
+                object path = runspace.RunspaceIsRemote ? null : engineIntrinsics.SessionState.Path.CurrentLocation;
+                s_pCurrentLocation.SetValue(s_predictionClient, path);
+            }
+        }
 
         // Stub helper methods so prediction can be mocked
         [ExcludeFromCodeCoverage]

@@ -652,6 +652,7 @@ namespace Microsoft.PowerShell
         {
             _singleton = new PSConsoleReadLine();
             _viRegister = new ViRegister(_singleton);
+            InitializePropertyInfo();
         }
 
         private PSConsoleReadLine()
@@ -682,13 +683,9 @@ namespace Microsoft.PowerShell
                 {
                 }
             }
-            if (hostName == null)
-            {
-                hostName = PSReadLine;
-            }
 
             bool usingLegacyConsole = _console is PlatformWindows.LegacyWin32Console;
-            _options = new PSConsoleReadLineOptions(hostName, usingLegacyConsole);
+            _options = new PSConsoleReadLineOptions(hostName ?? DefaultName, usingLegacyConsole);
             _prediction = new Prediction(this);
             SetDefaultBindings(_options.EditMode);
         }
@@ -697,6 +694,9 @@ namespace Microsoft.PowerShell
         {
             _engineIntrinsics = engineIntrinsics;
             _runspace = runspace;
+
+            // Update the client instance per every call to PSReadLine.
+            UpdatePredictionClient(runspace, engineIntrinsics);
 
             if (!_delayedOneTimeInitCompleted)
             {
