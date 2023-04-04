@@ -128,7 +128,8 @@ namespace Microsoft.PowerShell
             "Set-SecretVaultDefault",
             "Test-SecretVault",
             "Unlock-SecretVault",
-            "Unregister-SecretVault"
+            "Unregister-SecretVault",
+            "Get-AzAccessToken",
         };
 
         private void ClearSavedCurrentLine()
@@ -511,15 +512,32 @@ namespace Microsoft.PowerShell
             return result;
         }
 
+        private static bool IsRightSideOfAnAssignmentSafe(Ast rhs)
+        {
+            if (rhs is PipelineAst)
+            {
+                // Right hand side is a pipeline.
+                return true;
+            }
+
+            if (rhs is CommandExpressionAst cmdExprAst && cmdExprAst.Expression is MemberExpressionAst or InvokeMemberExpressionAst)
+            {
+                // Right hand side is a member access, or method invocation.
+                return true;
+            }
+
+            return false;
+        }
+
         private static bool IsSecretMgmtCommand(StringConstantExpressionAst strConst, out CommandAst command)
         {
+            command = null;
             bool result = false;
-            command = strConst.Parent as CommandAst;
 
-            if (command is not null)
+            if (strConst.Parent is CommandAst cmdAst && ReferenceEquals(cmdAst.CommandElements[0], strConst) && s_SecretMgmtCommands.Contains(strConst.Value))
             {
-                result = ReferenceEquals(command.CommandElements[0], strConst)
-                    && s_SecretMgmtCommands.Contains(strConst.Value);
+                result = true;
+                command = cmdAst;
             }
 
             return result;
@@ -566,6 +584,45 @@ namespace Microsoft.PowerShell
             }
 
             return null;
+        }
+
+        private static bool IsCloudTokenOrSecretAccess(StringConstantExpressionAst arg2Ast, out CommandAst command)
+        {
+            bool result = false;
+            command = arg2Ast.Parent as CommandAst;
+
+            if (command is not null && command.CommandElements.Count >= 3
+                && command.CommandElements[0] is StringConstantExpressionAst nameAst
+                && command.CommandElements[1] is StringConstantExpressionAst arg1Ast
+                && command.CommandElements[2] == arg2Ast)
+            {
+                string name = nameAst.Value;
+                string arg1 = arg1Ast.Value;
+                string arg2 = arg2Ast.Value;
+
+                if (string.Equals(name, "gcloud", StringComparison.OrdinalIgnoreCase))
+                {
+                    result = string.Equals(arg1, "auth", StringComparison.OrdinalIgnoreCase) &&
+                        string.Equals(arg2, "print-access-token", StringComparison.OrdinalIgnoreCase);
+                }
+                else if (string.Equals(name, "az", StringComparison.OrdinalIgnoreCase))
+                {
+                    result = string.Equals(arg1, "account", StringComparison.OrdinalIgnoreCase) &&
+                        string.Equals(arg2, "get-access-token", StringComparison.OrdinalIgnoreCase);
+                }
+                else if (string.Equals(name, "kubectl", StringComparison.OrdinalIgnoreCase))
+                {
+                    result = (string.Equals(arg1, "get", StringComparison.OrdinalIgnoreCase) || string.Equals(arg1, "describe", StringComparison.OrdinalIgnoreCase))
+                        && (string.Equals(arg2, "secrets", StringComparison.OrdinalIgnoreCase) || string.Equals(arg2, "secret", StringComparison.OrdinalIgnoreCase));
+                }
+            }
+
+            if (!result)
+            {
+                command = null;
+            }
+
+            return result;
         }
 
         public static AddToHistoryOption GetDefaultAddToHistoryOption(string line)
@@ -618,8 +675,7 @@ namespace Microsoft.PowerShell
                         // If it appears on the left-hand-side of an assignment, and the right-hand-side is
                         // not a command invocation, we consider it sensitive.
                         // e.g. `$token = Get-Secret` vs. `$token = 'token-text'` or `$token, $url = ...`
-                        isSensitive = IsOnLeftSideOfAnAssignment(innerAst, out Ast rhs)
-                            && rhs is not PipelineAst;
+                        isSensitive = IsOnLeftSideOfAnAssignment(innerAst, out Ast rhs) && !IsRightSideOfAnAssignmentSafe(rhs);
 
                         if (!isSensitive)
                         {
@@ -629,7 +685,8 @@ namespace Microsoft.PowerShell
 
                     case StringConstantExpressionAst strConst:
                         isSensitive = true;
-                        if (IsSecretMgmtCommand(strConst, out CommandAst command))
+                        if (IsSecretMgmtCommand(strConst, out CommandAst command)
+                            || IsCloudTokenOrSecretAccess(strConst, out command))
                         {
                             // If it's one of the secret management commands that we can ignore, we consider it safe.
                             isSensitive = false;
