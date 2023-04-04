@@ -212,6 +212,14 @@ namespace Test
                 "$a.Password.Secret | Set-Value",
                 "Write-Host $a.Password.Secret",
                 "($a.Password, $b) = ('aa', 'bb')", // setting the 'Password' property with string value. Not saved to file.
+                "kubectl get secrets",
+                "kubectl get secret db-user-pass -o jsonpath='{.data.password}' | base64 --decode",
+                "kubectl describe secret db-user-pass",
+                "(Get-AzAccessToken -ResourceUrl 'https://abc.com').Token",
+                "$token = (Get-AzAccessToken -ResourceUrl 'abc').Token",
+                "az account get-access-token --resource=https://abc.com --query accessToken --output tsv",
+                "curl -X GET --header \"Authorization: Bearer $token\" https://abc.com",
+                "$env:PGPASS = gcloud auth print-access-token",
             };
 
             string[] expectedSavedItems = new[] {
@@ -232,6 +240,14 @@ namespace Test
                 "$a.Secret = $secret",
                 "$a.Password.Secret | Set-Value",
                 "Write-Host $a.Password.Secret",
+                "kubectl get secrets",
+                "kubectl get secret db-user-pass -o jsonpath='{.data.password}' | base64 --decode",
+                "kubectl describe secret db-user-pass",
+                "(Get-AzAccessToken -ResourceUrl 'https://abc.com').Token",
+                "$token = (Get-AzAccessToken -ResourceUrl 'abc').Token",
+                "az account get-access-token --resource=https://abc.com --query accessToken --output tsv",
+                "curl -X GET --header \"Authorization: Bearer $token\" https://abc.com",
+                "$env:PGPASS = gcloud auth print-access-token",
             };
 
             try
