@@ -1082,9 +1082,24 @@ namespace Microsoft.PowerShell
                 {
                     _inputText = userInput;
 
-                    if (_suggestionText == null || _suggestionText.Length <= userInput.Length ||
-                        _lastInputText.Length > userInput.Length ||
-                        !_suggestionText.StartsWith(userInput, _singleton._options.HistoryStringComparison))
+                    bool needToRefresh = _suggestionText == null
+                        || _suggestionText.Length <= userInput.Length
+                        || _lastInputText.Length > userInput.Length
+                        || !_suggestionText.StartsWith(userInput, _singleton._options.HistoryStringComparison);
+
+                    // The current suggestion was from history and it still applies to the new input. However, the plugin is in use,
+                    // so we may need to force refreshing in case the plugin gives more relevant suggestion for the new input. This
+                    // is because we favor plugin over history in the inline view.
+                    if (!needToRefresh && _predictorId == Guid.Empty && UsePlugin)
+                    {
+                        // We generally want to force refreshing in this case, with only one exception -- the user accepted the next
+                        // word from the current history suggestion. That means the user is interested in the current suggestion and
+                        // thus we should keep on using.
+                        needToRefresh = !_alreadyAccepted;
+                        _alreadyAccepted = false;
+                    }
+
+                    if (needToRefresh)
                     {
                         _alreadyAccepted = false;
                         _suggestionText = null;
@@ -1215,15 +1230,14 @@ namespace Microsoft.PowerShell
 
             internal override void OnSuggestionAccepted()
             {
-                if (!UsePlugin)
+                if (_alreadyAccepted)
                 {
                     return;
                 }
 
-                if (!_alreadyAccepted && _suggestionText != null && _predictorSession.HasValue)
+                _alreadyAccepted = true;
+                if (_suggestionText != null && _predictorSession.HasValue)
                 {
-                    _alreadyAccepted = true;
-
                     // Send feedback only if the mini-session id is specified.
                     // When it's not specified, we consider the predictor doesn't accept feedback.
                     _singleton._mockableMethods.OnSuggestionAccepted(_predictorId, _predictorSession.Value, _suggestionText);

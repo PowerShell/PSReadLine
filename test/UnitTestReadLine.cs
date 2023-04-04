@@ -27,7 +27,7 @@ namespace Test
         internal Guid acceptedPredictorId;
         internal string acceptedSuggestion;
         internal string helpContentRendered;
-        internal Dictionary<Guid, Tuple<uint, int>> displayedSuggestions = new Dictionary<Guid, Tuple<uint, int>>();
+        internal Dictionary<Guid, Tuple<uint, int>> displayedSuggestions = new();
 
         internal void ClearPredictionFields()
         {

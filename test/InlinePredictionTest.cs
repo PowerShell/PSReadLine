@@ -605,6 +605,48 @@ namespace Test
             Assert.NotNull(_mockedMethods.commandHistory);
             Assert.Equal(1, _mockedMethods.commandHistory.Count);
             Assert.Equal("netsh show me", _mockedMethods.commandHistory[0]);
+
+            _mockedMethods.ClearPredictionFields();
+            SetHistory("netsh show me");
+            Test("netsh  SOME TEXT AFTER", Keys(
+                "netsh", CheckThat(() => AssertScreenIs(1,
+                    TokenClassification.Command, "netsh",
+                    TokenClassification.InlinePrediction, " show me")),
+                // Yeah, we still have `OnSuggestionDisplayed` fired, from the typing of each character of `nets`.
+                CheckThat(() => AssertDisplayedSuggestions(count: 1, predictorId_1, MiniSessionId, countOrIndex: -1)),
+                CheckThat(() => _mockedMethods.ClearPredictionFields()),
+
+                // Now mimic pressing a space key. This will trigger the refreshing of suggestions even though the
+                // current history suggestion still applies to the new input, because plugin is in use and we favor
+                // plugin over history results.
+                ' ', CheckThat(() => AssertScreenIs(1,
+                    TokenClassification.Command, "netsh",
+                    TokenClassification.None, " ",
+                    TokenClassification.InlinePrediction, " SOME TEXT AFTER")),
+                CheckThat(() => AssertDisplayedSuggestions(count: 1, predictorId_1, MiniSessionId, countOrIndex: -1)),
+                CheckThat(() => Assert.Equal(Guid.Empty, _mockedMethods.acceptedPredictorId)),
+                CheckThat(() => Assert.Null(_mockedMethods.acceptedSuggestion)),
+                CheckThat(() => Assert.Null(_mockedMethods.commandHistory)),
+
+                CheckThat(() => _mockedMethods.ClearPredictionFields()),
+                // 'RightArrow' will trigger 'OnSuggestionAccepted' as the suggestion is now from plugin.
+                _.RightArrow, CheckThat(() => AssertScreenIs(1,
+                    TokenClassification.Command, "netsh",
+                    TokenClassification.None, "  SOME TEXT AFTER")),
+                CheckThat(() => Assert.Empty(_mockedMethods.displayedSuggestions)),
+                CheckThat(() => Assert.Equal(predictorId_1, _mockedMethods.acceptedPredictorId)),
+                CheckThat(() => Assert.Equal("netsh  SOME TEXT AFTER", _mockedMethods.acceptedSuggestion)),
+                CheckThat(() => Assert.Null(_mockedMethods.commandHistory))
+            ));
+
+            Assert.Empty(_mockedMethods.displayedSuggestions);
+            Assert.Equal(predictorId_1, _mockedMethods.acceptedPredictorId);
+            Assert.Equal("netsh  SOME TEXT AFTER", _mockedMethods.acceptedSuggestion);
+            Assert.NotNull(_mockedMethods.commandHistory);
+            Assert.Equal(2, _mockedMethods.commandHistory.Count);
+            Assert.Equal("netsh show me", _mockedMethods.commandHistory[0]);
+            Assert.Equal("netsh  SOME TEXT AFTER", _mockedMethods.commandHistory[1]);
+            _mockedMethods.ClearPredictionFields();
         }
 
         [SkippableFact]
