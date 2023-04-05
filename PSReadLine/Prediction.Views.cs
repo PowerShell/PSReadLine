@@ -1082,10 +1082,12 @@ namespace Microsoft.PowerShell
                 {
                     _inputText = userInput;
 
+                    string currentSugText = null;
                     bool needToRefresh = _suggestionText == null
                         || _suggestionText.Length <= userInput.Length
                         || _lastInputText.Length > userInput.Length
                         || !_suggestionText.StartsWith(userInput, _singleton._options.HistoryStringComparison);
+
 
                     // The current suggestion was from history and it still applies to the new input. However, the plugin is in use,
                     // so we may need to force refreshing in case the plugin gives more relevant suggestion for the new input. This
@@ -1097,6 +1099,9 @@ namespace Microsoft.PowerShell
                         // thus we should keep on using.
                         needToRefresh = !_alreadyAccepted;
                         _alreadyAccepted = false;
+
+                        // We can reuse the current suggestion text for history to avoid an unnecessary search.
+                        currentSugText = _suggestionText;
                     }
 
                     if (needToRefresh)
@@ -1112,7 +1117,7 @@ namespace Microsoft.PowerShell
 
                         if (UseHistory)
                         {
-                            _suggestionText = GetOneHistorySuggestion(userInput);
+                            _suggestionText = currentSugText ?? GetOneHistorySuggestion(userInput);
                             _predictorId = Guid.Empty;
                             _predictorSession = null;
                         }
