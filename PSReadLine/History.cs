@@ -140,7 +140,7 @@ namespace Microsoft.PowerShell
             _savedCurrentLine._editGroupStart = -1;
         }
 
-        private AddToHistoryOption GetAddToHistoryOption(string line)
+        private AddToHistoryOption GetAddToHistoryOption(string line, bool fromHistoryFile)
         {
             // Whitespace only is useless, never add.
             if (string.IsNullOrWhiteSpace(line))
@@ -155,7 +155,7 @@ namespace Microsoft.PowerShell
                 return AddToHistoryOption.SkipAdding;
             }
 
-            if (Options.AddToHistoryHandler != null)
+            if (!fromHistoryFile && Options.AddToHistoryHandler != null)
             {
                 if (Options.AddToHistoryHandler == PSConsoleReadLineOptions.DefaultAddToHistoryHandler)
                 {
@@ -204,10 +204,11 @@ namespace Microsoft.PowerShell
             bool fromDifferentSession = false,
             bool fromInitialRead = false)
         {
-            var addToHistoryOption = GetAddToHistoryOption(result);
+            bool fromHistoryFile = fromDifferentSession || fromInitialRead;
+            var addToHistoryOption = GetAddToHistoryOption(result, fromHistoryFile);
+
             if (addToHistoryOption != AddToHistoryOption.SkipAdding)
             {
-                var fromHistoryFile = fromDifferentSession || fromInitialRead;
                 _previousHistoryItem = new HistoryItem
                 {
                     CommandLine = result,
