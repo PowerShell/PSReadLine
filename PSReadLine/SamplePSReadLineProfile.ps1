@@ -603,7 +603,7 @@ Set-PSReadLineKeyHandler -Key RightArrow `
 
 # Cycle through arguments on current line and select the text. This makes it easier to quickly change the argument if re-running a previously run command from the history
 # or if using a psreadline predictor. You can also use a digit argument to specify which argument you want to select, i.e. Alt+1, Alt+a selects the first argument
-# on the command line. 
+# on the command line.
 Set-PSReadLineKeyHandler -Key Alt+a `
                          -BriefDescription SelectCommandArguments `
                          -LongDescription "Set current selection to next command argument in the command line. Use of digit argument selects argument by position" `
@@ -655,4 +655,37 @@ Set-PSReadLineKeyHandler -Key Alt+a `
     [Microsoft.PowerShell.PSConsoleReadLine]::SetCursorPosition($nextAst.Extent.StartOffset + $startOffsetAdjustment)
     [Microsoft.PowerShell.PSConsoleReadLine]::SetMark($null, $null)
     [Microsoft.PowerShell.PSConsoleReadLine]::SelectForwardChar($null, ($nextAst.Extent.EndOffset - $nextAst.Extent.StartOffset) - $endOffsetAdjustment)
+}
+
+# Allow you to type a Unicode code point, then pressing `Alt+x` to transform it into a Unicode char.
+Set-PSReadLineKeyHandler -Chord 'Alt+x' `
+                         -BriefDescription ToUnicodeChar `
+                         -LongDescription "Transform Unicode code point into a UTF-16 encoded string" `
+                         -ScriptBlock {
+    $buffer = $null
+    $cursor = 0
+    [Microsoft.PowerShell.PSConsoleReadLine]::GetBufferState([ref] $buffer, [ref] $cursor)
+    if ($cursor -lt 4) {
+        return
+    }
+
+    $number = 0
+    $isNumber = [int]::TryParse(
+        $buffer.Substring($cursor - 4, 4),
+        [System.Globalization.NumberStyles]::AllowHexSpecifier,
+        $null,
+        [ref] $number)
+
+    if (-not $isNumber) {
+        return
+    }
+
+    try {
+        $unicode = [char]::ConvertFromUtf32($number)
+    } catch {
+        return
+    }
+
+    [Microsoft.PowerShell.PSConsoleReadLine]::Delete($cursor - 4, 4)
+    [Microsoft.PowerShell.PSConsoleReadLine]::Insert($unicode)
 }
