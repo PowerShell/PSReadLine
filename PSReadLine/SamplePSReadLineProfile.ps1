@@ -686,5 +686,6 @@ Set-PSReadLineKeyHandler -Chord 'Alt+x' `
         return
     }
 
-    [Microsoft.PowerShell.PSConsoleReadLine]::Replace($cursor - 4, 4, $unicode)
+    [Microsoft.PowerShell.PSConsoleReadLine]::Delete($cursor - 4, 4)
+    [Microsoft.PowerShell.PSConsoleReadLine]::Insert($unicode)
 }
