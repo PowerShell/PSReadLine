@@ -42,7 +42,7 @@ There are multiple ways to install `PSReadLine`.
 
 ### Install from PowerShellGallery (preferred)
 
-You will need the `1.6.0` or a higher version of [`PowerShellGet`](https://docs.microsoft.com/powershell/scripting/gallery/installing-psget) to install the latest prerelease version of `PSReadLine`.
+You will need the `1.6.0` or a higher version of [`PowerShellGet`](https://learn.microsoft.com/en-us/powershell/gallery/powershellget/install-powershellget) to install the latest prerelease version of `PSReadLine`.
 
 Windows PowerShell 5.1 ships an older version of `PowerShellGet` which doesn't support installing prerelease modules,
 so Windows PowerShell users need to install the latest `PowerShellGet` (if not yet) by running the following commands from an elevated Windows PowerShell session:
