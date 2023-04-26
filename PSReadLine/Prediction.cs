@@ -181,6 +181,21 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
+        /// Show the tooltip of the currently selected list item in the full view.
+        /// </summary>
+        public static void ShowFullPredictionTooltip(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            if (_singleton._prediction.ActiveView is PredictionListView listView && listView.HasActiveSuggestion)
+            {
+                string tooltip = listView.SelectedItemTooltip;
+                if (!string.IsNullOrWhiteSpace(tooltip))
+                {
+                    _singleton._mockableMethods.RenderFullHelp(tooltip, regexPatternToScrollTo: null);
+                }
+            }
+        }
+
+        /// <summary>
         /// Implementation for updating the selected item in list view.
         /// </summary>
         private static bool UpdateListSelection(int numericArg)

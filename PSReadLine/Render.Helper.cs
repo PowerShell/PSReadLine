@@ -190,5 +190,30 @@ namespace Microsoft.PowerShell
 
             return charLength;
         }
+
+        private static (int newStart, int newEnd) TrimSubstringInPlace(string text, int start, int end)
+        {
+            int newStart = start;
+            int newEnd = end;
+
+            for (; newStart <= end; newStart++)
+            {
+                if (!char.IsWhiteSpace(text[newStart]))
+                {
+                    break;
+                }
+            }
+
+            for (; newEnd > newStart; newEnd--)
+            {
+                if (!char.IsWhiteSpace(text[newEnd]))
+                {
+                    break;
+                }
+            }
+
+            // Return the new start/end after triming, or (-1, -1) if the substring only consists of whitespaces.
+            return newStart > newEnd ? (-1, -1) : (newStart, newEnd);
+        }
     }
 }

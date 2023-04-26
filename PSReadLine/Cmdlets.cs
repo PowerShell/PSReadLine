@@ -101,6 +101,7 @@ namespace Microsoft.PowerShell
         public const string DefaultInlinePredictionColor       = "\x1b[97;2;3m";
         public const string DefaultListPredictionColor         = "\x1b[33m";
         public const string DefaultListPredictionSelectedColor = "\x1b[48;5;238m";
+        public const string DefaultListPredictionTooltipColor  = "\x1b[97;2;3m";
 
         public static EditMode DefaultEditMode = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
             ? EditMode.Windows
@@ -495,6 +496,12 @@ namespace Microsoft.PowerShell
             set => _listPredictionSelectedColor = VTColorUtils.AsEscapeSequence(value);
         }
 
+        public object ListPredictionTooltipColor
+        {
+            get => _listPredictionTooltipColor;
+            set => _listPredictionTooltipColor = VTColorUtils.AsEscapeSequence(value);
+        }
+
         internal string _defaultTokenColor;
         internal string _commentColor;
         internal string _keywordColor;
@@ -512,6 +519,7 @@ namespace Microsoft.PowerShell
         internal string _inlinePredictionColor;
         internal string _listPredictionColor;
         internal string _listPredictionSelectedColor;
+        internal string _listPredictionTooltipColor;
 
         internal void ResetColors()
         {
@@ -532,6 +540,7 @@ namespace Microsoft.PowerShell
             InlinePredictionColor       = DefaultInlinePredictionColor;
             ListPredictionColor         = DefaultListPredictionColor;
             ListPredictionSelectedColor = DefaultListPredictionSelectedColor;
+            ListPredictionTooltipColor  = DefaultListPredictionTooltipColor;
 
             var bg = Console.BackgroundColor;
             if (fg == VTColorUtils.UnknownColor || bg == VTColorUtils.UnknownColor)
@@ -571,6 +580,7 @@ namespace Microsoft.PowerShell
                         {"InlinePrediction", (o, v) => o.InlinePredictionColor = v},
                         {"ListPrediction", (o, v) => o.ListPredictionColor = v},
                         {"ListPredictionSelected", (o, v) => o.ListPredictionSelectedColor = v},
+                        {"ListPredictionTooltip", (o, v) => o.ListPredictionTooltipColor = v},
                     };
 
                 Interlocked.CompareExchange(ref ColorSetters, setters, null);

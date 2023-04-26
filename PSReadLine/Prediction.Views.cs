@@ -215,6 +215,7 @@ namespace Microsoft.PowerShell
             // List view constants.
             internal const int ListViewMaxHeight = 10;
             internal const int ListViewMaxWidth = 100;
+            internal const int TooltipMaxHeight = 4;
             internal const int SourceMaxWidth = 15;
 
             // Minimal window size.
@@ -236,6 +237,11 @@ namespace Microsoft.PowerShell
             private int _maxViewHeight;
             // The actual height of the list view that is currently rendered.
             private int _listViewHeight;
+            // The max number of physical lines for rendering tooltip.
+            private int _maxTooltipHeight;
+            // The actual number of lines used for rendering the tooltip.
+            private int _tooltipHeight;
+
             // The actual width of the list view that is currently rendered.
             private int _listViewWidth;
             // An index pointing to the item that is shown in the first slot of the list view.
@@ -294,6 +300,23 @@ namespace Microsoft.PowerShell
                 }
             }
 
+            /// <summary>
+            /// The tooltip of the currently selected item.
+            /// </summary>
+            internal string SelectedItemTooltip
+            {
+                get
+                {
+                    if (_listItems == null || _selectedIndex == -1)
+                        return null;
+
+                    if (_selectedIndex >= 0)
+                        return _listItems[_selectedIndex].ToolTip;
+
+                    throw new InvalidOperationException("Unexpected '_selectedIndex' value: " + _selectedIndex);
+                }
+            }
+
             internal PredictionListView(PSConsoleReadLine singleton)
                 : base(singleton)
             {
@@ -306,19 +329,19 @@ namespace Microsoft.PowerShell
             /// <summary>
             /// Calculate the max width and height of the list view based on the current terminal size.
             /// </summary>
-            private (int maxWidth, int maxHeight, bool checkOnHeight) RefreshMaxViewSize()
+            private (int, int, int, bool) RefreshMaxViewSize()
             {
                 var console = _singleton._console;
-                int maxWidth = Math.Min(console.BufferWidth, ListViewMaxWidth);
+                int maxListWidth = Math.Min(console.BufferWidth, ListViewMaxWidth);
 
-                (int maxHeight, bool moreCheck) = console.BufferHeight switch
+                (int maxListHeight, int maxTooltipHeigth, bool moreCheck) = console.BufferHeight switch
                 {
-                    > ListViewMaxHeight * 2 => (ListViewMaxHeight, false),
-                    > ListViewMaxHeight => (ListViewMaxHeight / 2, false),
-                    _ => (ListViewMaxHeight / 3, true)
+                    > ListViewMaxHeight * 2 => (ListViewMaxHeight, TooltipMaxHeight, false),
+                    > ListViewMaxHeight => (ListViewMaxHeight / 2, TooltipMaxHeight / 2, false),
+                    _ => (ListViewMaxHeight / 3, TooltipMaxHeight / 3, true)
                 };
 
-                return (maxWidth, maxHeight, moreCheck);
+                return (maxListWidth, maxListHeight, maxTooltipHeigth, moreCheck);
             }
 
             /// <summary>
@@ -326,8 +349,9 @@ namespace Microsoft.PowerShell
             /// </summary>
             private bool HeightIsTooSmall()
             {
+                int tooltipLineCount = GetToolTipLineCountForHeightCheck();
                 int physicalLineCountForBuffer = _singleton.EndOfBufferPosition().Y - _singleton._initialY + 1;
-                return _singleton._console.BufferHeight < physicalLineCountForBuffer + _maxViewHeight + 1 /* one metadata line */;
+                return _singleton._console.BufferHeight < physicalLineCountForBuffer + _maxViewHeight + tooltipLineCount + 1 /* one metadata line */;
             }
 
             /// <summary>
@@ -364,7 +388,7 @@ namespace Microsoft.PowerShell
                 // Reset the list item selection.
                 _selectedIndex = -1;
                 // Refresh the list view width and height in case the terminal was resized.
-                (_listViewWidth, _maxViewHeight, _checkOnHeight) = RefreshMaxViewSize();
+                (_listViewWidth, _maxViewHeight, _maxTooltipHeight, _checkOnHeight) = RefreshMaxViewSize();
 
                 if (inputUnchanged)
                 {
@@ -533,7 +557,7 @@ namespace Microsoft.PowerShell
                                     }
 
                                     int matchIndex = sugText.IndexOf(_inputText, comparison);
-                                    _listItems.Add(new SuggestionEntry(item.Name, item.Id, item.Session, sugText, matchIndex));
+                                    _listItems.Add(new SuggestionEntry(item.Name, item.Id, item.Session, sugText, suggestion.ToolTip, matchIndex));
 
                                     if (--num == 0)
                                     {
@@ -586,6 +610,7 @@ namespace Microsoft.PowerShell
                     _listViewTop = 0;
                     _listViewEnd = Math.Min(_listItems.Count, _maxViewHeight);
                     _listViewHeight = _listViewEnd - _listViewTop;
+                    _tooltipHeight = 0;
                 }
                 else
                 {
@@ -658,18 +683,25 @@ namespace Microsoft.PowerShell
                     }
 
                     _listViewHeight = _listViewEnd - _listViewTop;
+                    _tooltipHeight = 0;
                 }
 
                 for (int i = _listViewTop; i < _listViewEnd; i++)
                 {
                     bool itemSelected = i == _selectedIndex;
                     string selectionColor = itemSelected ? _singleton._options._listPredictionSelectedColor : null;
+                    SuggestionEntry entry = _listItems[i];
 
                     NextBufferLine(consoleBufferLines, ref currentLogicalLine)
-                        .Append(_listItems[i].GetListItemText(
+                        .Append(entry.GetListItemText(
                             _listViewWidth,
                             _inputText,
                             selectionColor));
+
+                    if (_singleton._options.ShowToolTips && itemSelected && !string.IsNullOrWhiteSpace(entry.ToolTip))
+                    {
+                        _tooltipHeight = RenderTooltip(entry.ToolTip, consoleBufferLines, ref currentLogicalLine);
+                    }
                 }
             }
 
@@ -701,6 +733,26 @@ namespace Microsoft.PowerShell
                 }
 
                 return pesudoListHeight;
+            }
+
+            /// <summary>
+            /// Calculate the number of tooltip lines rendered in the list view.
+            /// </summary>
+            private int GetToolTipLineCountForHeightCheck()
+            {
+                int tooltipLineCount = 0;
+                if (_singleton._options.ShowToolTips && _selectedIndex >= 0)
+                {
+                    // When '_selectedIndex >= 0', this is an update to the list view triggered by navigation
+                    // within the list, and thus '_listItems' is guaranteed to be not null.
+                    string tooltip = _listItems[_selectedIndex].ToolTip;
+                    if (!string.IsNullOrWhiteSpace(tooltip))
+                    {
+                        tooltipLineCount = _maxTooltipHeight;
+                    }
+                }
+
+                return tooltipLineCount;
             }
 
             /// <summary>
@@ -866,6 +918,127 @@ namespace Microsoft.PowerShell
             }
 
             /// <summary>
+            /// Generate the rendering text for the tooltip.
+            /// </summary>
+            private int RenderTooltip(string tooltip, List<StringBuilder> consoleBufferLines, ref int currentLogicalLine)
+            {
+                const int LengthOfLeadingPart = 6;
+                const string IndicatorSymbol = ">>";
+                const string MsgForViewAll = "(<F4> to view all)";
+                const string MoreTextIndicator1 = " \u2026 ";
+                const string MoreTextIndicator2 = "\u2026 ";
+                const string DimItalicStyle = "\x1b[2;3m";
+
+                bool first = true;
+                int newlineIndex = -1;
+                int cellCount = 0;
+                int start, end;
+
+                StringBuilder buff = null;
+                bool moreToCome = false;
+                int windowWidth = _singleton._console.BufferWidth;
+                int linesLeft = _maxTooltipHeight;
+
+                do
+                {
+                    int startIndex = newlineIndex + 1;
+                    if (startIndex == tooltip.Length)
+                    {
+                        break;
+                    }
+
+                    newlineIndex = tooltip.IndexOf('\n', startIndex);
+                    (start, end) = TrimSubstringInPlace(tooltip, startIndex, newlineIndex is -1 ? tooltip.Length - 1 : newlineIndex);
+
+                    if (start is -1)
+                    {
+                        continue;
+                    }
+
+                    if (linesLeft is 0)
+                    {
+                        // More non-empty logical lines, but no more space for rendering.
+                        moreToCome = true;
+                        break;
+                    }
+
+                    linesLeft--;
+                    buff = NextBufferLine(consoleBufferLines, ref currentLogicalLine);
+
+                    if (first)
+                    {
+                        first = false;
+                        string tooltipStyle = _singleton._options._listPredictionTooltipColor;
+                        if (tooltipStyle != PSConsoleReadLineOptions.DefaultInlinePredictionColor)
+                        {
+                            tooltipStyle += DimItalicStyle;
+                        }
+
+                        buff.Append(tooltipStyle)
+                            .Append(' ', 3)
+                            .Append(IndicatorSymbol)
+                            .Append(' ');
+                    }
+                    else
+                    {
+                        buff.Append(' ', LengthOfLeadingPart);
+                    }
+
+                    cellCount = LengthOfLeadingPart;
+                    for (; start <= end; start++)
+                    {
+                        char ch = tooltip[start];
+                        int charInCells = LengthInBufferCells(ch);
+
+                        cellCount += charInCells;
+                        if (cellCount > windowWidth)
+                        {
+                            linesLeft--;
+                            if (linesLeft is -1)
+                            {
+                                // More text from the current logical string, but no more space for rendering.
+                                moreToCome = true;
+                                break;
+                            }
+
+                            cellCount = charInCells;
+                        }
+
+                        buff.Append(ch);
+                    }
+                }
+                while (linesLeft >= 0 && newlineIndex >= 0);
+
+                if (moreToCome)
+                {
+                    // Append the "(<F4> to view all)" at the end of the last line
+                    string highlightStyle = _singleton._options._listPredictionColor + DimItalicStyle;
+
+                    int remainingCells = windowWidth - cellCount;
+
+                    if (remainingCells >= MsgForViewAll.Length + MoreTextIndicator1.Length)
+                    {
+                        buff.Append(MoreTextIndicator1);
+                    }
+                    else
+                    {
+                        int length = MsgForViewAll.Length + MoreTextIndicator2.Length - remainingCells;
+                        int buffIndex = buff.Length - length;
+
+                        buff.Remove(buffIndex, length);
+                        buff.Append(MoreTextIndicator2);
+                    }
+
+                    buff.Append(VTColorUtils.AnsiReset)
+                        .Append(highlightStyle)
+                        .Append(MsgForViewAll);
+                }
+
+                buff.Append(VTColorUtils.AnsiReset);
+                return _maxTooltipHeight - linesLeft > 0 ? linesLeft : 0;
+            }
+
+            /// <summary>
             /// Trigger the feedback about a suggestion was accepted.
             /// </summary>
             internal override void OnSuggestionAccepted()
@@ -899,7 +1072,7 @@ namespace Microsoft.PowerShell
 
                 int listHeight = _warningPrinted
                     ? GetPesudoListHeightForWarningRendering()
-                    : _listViewHeight;
+                    : _listViewHeight + _tooltipHeight;
 
                 int top = cursorAtEol
                     ? _singleton._console.CursorTop
@@ -919,7 +1092,9 @@ namespace Microsoft.PowerShell
 
                 _sources = null;
                 _listItems = null;
-                _maxViewHeight = _listViewTop = _listViewEnd = _listViewWidth = _listViewHeight = _selectedIndex = -1;
+                _maxViewHeight = _maxTooltipHeight = -1;
+                _listViewWidth = _listViewHeight = _tooltipHeight = -1;
+                _listViewTop = _listViewEnd = _selectedIndex = -1;
                 _warnAboutSize = _checkOnHeight = _updatePending = _renderFromSelected = false;
             }
 

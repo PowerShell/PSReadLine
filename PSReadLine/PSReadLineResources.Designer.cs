@@ -2193,6 +2193,17 @@ namespace Microsoft.PowerShell.PSReadLine {
         }
 
         /// <summary>
+        ///   Looks up a localized string similar to Show the full tooltip of the selected list-view item in the terminal's alternate screen buffer.
+        /// </summary>
+        internal static string ShowFullPredictionTooltipDescription
+        {
+            get
+            {
+                return ResourceManager.GetString("ShowFullPredictionTooltipDescription", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   Looks up a localized string similar to Make visual selection of the command arguments.
         /// </summary>
         internal static string SelectCommandArgumentDescription

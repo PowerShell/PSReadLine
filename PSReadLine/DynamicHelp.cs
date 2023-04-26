@@ -19,6 +19,7 @@ namespace Microsoft.PowerShell
         [ExcludeFromCodeCoverage]
         void IPSConsoleReadLineMockableMethods.RenderFullHelp(string content, string regexPatternToScrollTo)
         {
+            _pager ??= new Pager();
             _pager.Write(content, regexPatternToScrollTo);
         }
 
@@ -142,11 +143,6 @@ namespace Microsoft.PowerShell
 
         private void DynamicHelpImpl(bool isFullHelp)
         {
-            if (isFullHelp)
-            {
-                _pager ??= new Pager();
-            }
-
             int cursor = _singleton._current;
             string commandName = null;
             string parameterName = null;

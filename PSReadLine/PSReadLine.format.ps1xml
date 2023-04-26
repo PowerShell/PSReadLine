@@ -205,6 +205,10 @@ $d = [Microsoft.PowerShell.KeyHandler]::GetGroupingDescription($_.Group)
                 <ScriptBlock>[Microsoft.PowerShell.VTColorUtils]::FormatColor($_.ListPredictionSelectedColor)</ScriptBlock>
               </ListItem>
               <ListItem>
+                <Label>ListPredictionTooltipColor</Label>
+                <ScriptBlock>[Microsoft.PowerShell.VTColorUtils]::FormatColor($_.ListPredictionTooltipColor)</ScriptBlock>
+              </ListItem>
+              <ListItem>
                 <Label>MemberColor</Label>
                 <ScriptBlock>[Microsoft.PowerShell.VTColorUtils]::FormatColor($_.MemberColor)</ScriptBlock>
               </ListItem>

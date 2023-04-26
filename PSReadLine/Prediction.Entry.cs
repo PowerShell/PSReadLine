@@ -47,6 +47,7 @@ namespace Microsoft.PowerShell
             internal readonly Guid PredictorId;
             internal readonly uint? PredictorSession;
             internal readonly string Source;
+            internal readonly string ToolTip;
             internal readonly string SuggestionText;
             internal readonly int InputMatchIndex;
 
@@ -54,16 +55,17 @@ namespace Microsoft.PowerShell
             private string _listItemTextSelected;
 
             internal SuggestionEntry(string suggestion, int matchIndex)
-                : this(source: HistorySource, predictorId: Guid.Empty, predictorSession: null, suggestion, matchIndex)
+                : this(source: HistorySource, predictorId: Guid.Empty, predictorSession: null, suggestion, tooltip: null, matchIndex)
             {
             }
 
-            internal SuggestionEntry(string source, Guid predictorId, uint? predictorSession, string suggestion, int matchIndex)
+            internal SuggestionEntry(string source, Guid predictorId, uint? predictorSession, string suggestion, string tooltip, int matchIndex)
             {
                 Source = source;
                 PredictorId = predictorId;
                 PredictorSession = predictorSession;
                 SuggestionText = suggestion;
+                ToolTip = tooltip;
                 InputMatchIndex = matchIndex;
 
                 _listItemTextRegular = _listItemTextSelected = null;

@@ -91,6 +91,8 @@ namespace Microsoft.PowerShell
                 { Keys.CtrlG,           MakeKeyHandler(Abort,                  "Abort") },
                 { Keys.AltH,            MakeKeyHandler(ShowParameterHelp,      "ShowParameterHelp") },
                 { Keys.F1,              MakeKeyHandler(ShowCommandHelp,        "ShowCommandHelp") },
+                { Keys.F2,              MakeKeyHandler(SwitchPredictionView,   "SwitchPredictionView") },
+                { Keys.F4,              MakeKeyHandler(ShowFullPredictionTooltip, "ShowFullPredictionTooltip") },
             };
 
             // Some bindings are not available on certain platforms
