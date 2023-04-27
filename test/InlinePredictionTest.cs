@@ -395,6 +395,7 @@ namespace Test
         }
 
         private const uint MiniSessionId = 56;
+        private static readonly Guid predictorId_0 = Guid.Parse("c69fa9fc-6157-4877-8cf4-a9c83a0128af");
         private static readonly Guid predictorId_1 = Guid.Parse("b45b5fbe-90fa-486c-9c87-e7940fdd6273");
         private static readonly Guid predictorId_2 = Guid.Parse("74a86463-033b-44a3-b386-41ee191c94be");
         private static readonly Guid predictorId_3 = Guid.Parse("19e98622-99e0-41f7-9ee0-a8bed92cde51");
@@ -409,9 +410,23 @@ namespace Test
                 new[] { typeof(Guid), typeof(string), typeof(uint), typeof(List<PredictiveSuggestion>) }, null);
 
             var input = ast.Extent.Text;
-            if (input == "netsh")
+            if (input is "netsh")
             {
                 return null;
+            }
+            else if (input is "tooltip")
+            {
+                var suggestions_0 = new List<PredictiveSuggestion>
+                {
+                    new PredictiveSuggestion("tooltip NO1", "Hello\nBinary\nWorld\nPowerShell is a task automation and configuration management program from Microsoft"),
+                    new PredictiveSuggestion("tooltip NO2", "Hello\nWorld"),
+                };
+
+                return new List<PredictionResult>
+                {
+                    (PredictionResult)ctor.Invoke(
+                        new object[] { predictorId_0, "Tooltip", MiniSessionId, suggestions_0 }),
+                };
             }
 
             var suggestions_1 = new List<PredictiveSuggestion>

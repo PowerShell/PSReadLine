@@ -939,41 +939,59 @@ namespace Microsoft.PowerShell
                 int windowWidth = _singleton._console.BufferWidth;
                 int linesLeft = _maxTooltipHeight;
 
+                string tooltipStyle = _singleton._options._listPredictionTooltipColor;
+                if (tooltipStyle != PSConsoleReadLineOptions.DefaultInlinePredictionColor)
+                {
+                    tooltipStyle += DimItalicStyle;
+                }
+
                 do
                 {
                     int startIndex = newlineIndex + 1;
+
+                    // This may happen when the tooltip ends with a newline character.
                     if (startIndex == tooltip.Length)
                     {
                         break;
                     }
 
+                    // Get the range of the current non-whitespace substring line.
                     newlineIndex = tooltip.IndexOf('\n', startIndex);
                     (start, end) = TrimSubstringInPlace(tooltip, startIndex, newlineIndex is -1 ? tooltip.Length - 1 : newlineIndex);
 
+                    // This may happen when the current substring contains whitespace characters only.
                     if (start is -1)
                     {
+                        if (newlineIndex is -1)
+                        {
+                            // If we have reached the end, then we are done.
+                            break;
+                        }
+
+                        // Otherwise, we need to continue processing the next substring line.
                         continue;
                     }
 
                     if (linesLeft is 0)
                     {
-                        // More non-empty logical lines, but no more space for rendering.
+                        // More non-empty substring lines, but no more space for rendering.
                         moreToCome = true;
                         break;
                     }
 
+                    if (buff is not null)
+                    {
+                        // Append reset for the previous substring line.
+                        buff.Append(VTColorUtils.AnsiReset);
+                    }
+
+                    // Create a new buffer line for the current substring line.
                     linesLeft--;
                     buff = NextBufferLine(consoleBufferLines, ref currentLogicalLine);
 
                     if (first)
                     {
                         first = false;
-                        string tooltipStyle = _singleton._options._listPredictionTooltipColor;
-                        if (tooltipStyle != PSConsoleReadLineOptions.DefaultInlinePredictionColor)
-                        {
-                            tooltipStyle += DimItalicStyle;
-                        }
-
                         buff.Append(tooltipStyle)
                             .Append(' ', 3)
                             .Append(IndicatorSymbol)
@@ -981,7 +999,8 @@ namespace Microsoft.PowerShell
                     }
                     else
                     {
-                        buff.Append(' ', LengthOfLeadingPart);
+                        buff.Append(tooltipStyle)
+                            .Append(' ', LengthOfLeadingPart);
                     }
 
                     cellCount = LengthOfLeadingPart;
@@ -996,8 +1015,9 @@ namespace Microsoft.PowerShell
                             linesLeft--;
                             if (linesLeft is -1)
                             {
-                                // More text from the current logical string, but no more space for rendering.
+                                // More text from the current substring line, but no more space for rendering.
                                 moreToCome = true;
+                                cellCount -= charInCells;
                                 break;
                             }
 
@@ -1013,7 +1033,6 @@ namespace Microsoft.PowerShell
                 {
                     // Append the "(<F4> to view all)" at the end of the last line
                     string highlightStyle = _singleton._options._listPredictionColor + DimItalicStyle;
-
                     int remainingCells = windowWidth - cellCount;
 
                     if (remainingCells >= MsgForViewAll.Length + MoreTextIndicator1.Length)
