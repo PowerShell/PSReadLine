@@ -927,7 +927,7 @@ namespace Microsoft.PowerShell
                 const string MsgForViewAll = "(<F4> to view all)";
                 const string MoreTextIndicator1 = " \u2026 ";
                 const string MoreTextIndicator2 = "\u2026 ";
-                const string DimItalicStyle = "\x1b[2;3m";
+                const string BoldDimItalicStyle = "\x1b[1;2;3m";
 
                 bool first = true;
                 int newlineIndex = -1;
@@ -942,7 +942,7 @@ namespace Microsoft.PowerShell
                 string tooltipStyle = _singleton._options._listPredictionTooltipColor;
                 if (tooltipStyle != PSConsoleReadLineOptions.DefaultInlinePredictionColor)
                 {
-                    tooltipStyle += DimItalicStyle;
+                    tooltipStyle += BoldDimItalicStyle;
                 }
 
                 do
@@ -1032,7 +1032,7 @@ namespace Microsoft.PowerShell
                 if (moreToCome)
                 {
                     // Append the "(<F4> to view all)" at the end of the last line
-                    string highlightStyle = _singleton._options._listPredictionColor + DimItalicStyle;
+                    string highlightStyle = _singleton._options._listPredictionColor + BoldDimItalicStyle;
                     int remainingCells = windowWidth - cellCount;
 
                     if (remainingCells >= MsgForViewAll.Length + MoreTextIndicator1.Length)
