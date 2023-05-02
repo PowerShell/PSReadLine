@@ -235,6 +235,7 @@ namespace Microsoft.PowerShell
                 { Keys.F2,                     MakeKeyHandler(SwitchPredictionView,      "SwitchPredictionView") },
                 { Keys.F3,                     MakeKeyHandler(CharacterSearch,           "CharacterSearch") },
                 { Keys.ShiftF3,                MakeKeyHandler(CharacterSearchBackward,   "CharacterSearchBackward") },
+                { Keys.F4,                     MakeKeyHandler(ShowFullPredictionTooltip, "ShowFullPredictionTooltip") },
                 { Keys.F8,                     MakeKeyHandler(HistorySearchBackward,     "HistorySearchBackward") },
                 { Keys.ShiftF8,                MakeKeyHandler(HistorySearchForward,      "HistorySearchForward") },
                 // Added for xtermjs-based terminals that send different key combinations.
@@ -339,6 +340,7 @@ namespace Microsoft.PowerShell
                 { Keys.AltH,                   MakeKeyHandler(ShowParameterHelp,         "ShowParameterHelp") },
                 { Keys.F1,                     MakeKeyHandler(ShowCommandHelp,           "ShowCommandHelp") },
                 { Keys.F2,                     MakeKeyHandler(SwitchPredictionView,      "SwitchPredictionView") },
+                { Keys.F4,                     MakeKeyHandler(ShowFullPredictionTooltip, "ShowFullPredictionTooltip") },
                 { Keys.AltU,                   MakeKeyHandler(UpcaseWord,                "UpcaseWord") },
                 { Keys.AltL,                   MakeKeyHandler(DowncaseWord,              "DowncaseWord") },
                 { Keys.AltC,                   MakeKeyHandler(CapitalizeWord,            "CapitalizeWord") },
@@ -566,6 +568,7 @@ namespace Microsoft.PowerShell
             case nameof(NextSuggestion):
             case nameof(PreviousSuggestion):
             case nameof(SwitchPredictionView):
+            case nameof(ShowFullPredictionTooltip):
                 return KeyHandlerGroup.Prediction;
 
             case nameof(CaptureScreen):
