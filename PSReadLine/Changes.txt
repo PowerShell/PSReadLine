@@ -1,3 +1,18 @@
+### [2.3.1-beta1] - 2023-05-03
+
+- Append reset VT sequence before rendering the ineline prediction (#3669)
+- Support tooltip rendering in the prediction list view (#3667)
+- Fix the broken doc link about `PowerShellGet` (#3657) (Thanks @vimode!)
+- Add a sample for transforming Unicode code point to Unicode char by `Alt+x` (#3652)
+- Avoid running `AddToHistoryHandler` on command lines loaded from history file (#3643)
+- Force refreshing suggestion in the inline view when plugin is in use (#3644)
+- Improve the sensitive history scrubbing to allow retrieving token from `az`, `gcloud`, and `kubectl` (#3641)
+- Set the current location in `PredictionClient` when it's supported (#3639)
+- Improve the default sensitive history scrubbing to allow safe property access (#3630)
+- Make PSReadLine script hidden from debugger (#3629)
+
+[2.3.1-beta1]: https://github.com/PowerShell/PSReadLine/compare/v2.3.0-beta0...v2.3.1-beta1
+
 ### [2.3.0-beta0] - 2023-03-07
 
 - Fix the menu completion to better handle the backspace key (#3574)
