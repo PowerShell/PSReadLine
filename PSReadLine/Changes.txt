@@ -1,7 +1,7 @@
 ### [2.3.1-beta1] - 2023-05-03
 
 - Append reset VT sequence before rendering the ineline prediction (#3669)
-- Support tooltip rendering in the prediction list view (#3667)
+- Support tooltip rendering in the prediction list view (#3667, #3671)
 - Fix the broken doc link about `PowerShellGet` (#3657) (Thanks @vimode!)
 - Add a sample for transforming Unicode code point to Unicode char by `Alt+x` (#3652)
 - Avoid running `AddToHistoryHandler` on command lines loaded from history file (#3643)
