@@ -1416,6 +1416,7 @@ namespace Microsoft.PowerShell
                 StringBuilder currentLineBuffer = consoleBufferLines[currentLogicalLine];
 
                 currentLineBuffer
+                    .Append(VTColorUtils.AnsiReset)
                     .Append(_singleton._options._inlinePredictionColor)
                     .Append(_suggestionText, inputLength, _renderedLength - inputLength);
 
