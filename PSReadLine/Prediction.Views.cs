@@ -1054,7 +1054,7 @@ namespace Microsoft.PowerShell
                 }
 
                 buff.Append(VTColorUtils.AnsiReset);
-                return _maxTooltipHeight - linesLeft > 0 ? linesLeft : 0;
+                return _maxTooltipHeight - (linesLeft > 0 ? linesLeft : 0);
             }
 
             /// <summary>
