@@ -414,6 +414,7 @@ namespace Microsoft.PowerShell
                 case nameof(BackwardKillInput):
                 case nameof(BackwardKillLine):
                 case nameof(BackwardKillWord):
+                case nameof(BackwardKillHump):
                 case nameof(CancelLine):
                 case nameof(CapitalizeWord):
                 case nameof(Copy):

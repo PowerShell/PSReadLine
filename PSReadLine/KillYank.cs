@@ -170,6 +170,17 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
+        /// Clear the input from the start of the current hump to the cursor.  If the cursor
+        /// is between words, the input is cleared from the start of the previous hump to the
+        /// cursor.  The cleared text is placed in the kill ring.
+        /// </summary>
+        public static void BackwardKillHump(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            int i = _singleton.FindBackwardHumpPoint(_singleton.Options.WordDelimiters);
+            _singleton.Kill(i, _singleton._current - i, true);
+        }
+
+        /// <summary>
         /// Clear the input from the start of the current word to the cursor.  If the cursor
         /// is between words, the input is cleared from the start of the previous word to the
         /// cursor.  The cleared text is placed in the kill ring.
