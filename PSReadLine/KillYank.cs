@@ -384,6 +384,14 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
+        /// Adjust the current selection to include the previous hump.
+        /// </summary>
+        public static void SelectBackwardHump(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            _singleton.VisualSelectionCommon(() => BackwardHump(key, arg));
+        }
+
+        /// <summary>
         /// Adjust the current selection to include the next word.
         /// </summary>
         public static void SelectNextWord(ConsoleKeyInfo? key = null, object arg = null)
@@ -397,6 +405,14 @@ namespace Microsoft.PowerShell
         public static void SelectForwardWord(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.VisualSelectionCommon(() => ForwardWord(key, arg));
+        }
+
+        /// <summary>
+        /// Adjust the current selection to include the next hump using ForwardHump.
+        /// </summary>
+        public static void SelectForwardHump(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            _singleton.VisualSelectionCommon(() => ForwardHump(key, arg));
         }
 
         /// <summary>

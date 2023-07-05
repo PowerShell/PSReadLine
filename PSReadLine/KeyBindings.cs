@@ -615,8 +615,10 @@ namespace Microsoft.PowerShell
                 case nameof(SelectBackwardChar):
                 case nameof(SelectBackwardsLine):
                 case nameof(SelectBackwardWord):
+                case nameof(SelectBackwardHump):
                 case nameof(SelectForwardChar):
                 case nameof(SelectForwardWord):
+                case nameof(SelectForwardHump):
                 case nameof(SelectLine):
                 case nameof(SelectNextWord):
                 case nameof(SelectShellBackwardWord):
