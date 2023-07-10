@@ -1,0 +1,290 @@
+id: 
+name: GitOps.PullRequestIssueManagement
+description: GitOps.PullRequestIssueManagement primitive
+owner: 
+resource: repository
+disabled: false
+where: 
+configuration:
+  resourceManagementConfiguration:
+    scheduledSearches:
+    - description: 
+      frequencies:
+      - hourly:
+          hour: 6
+      filters:
+      - isPullRequest
+      - isOpen
+      - hasLabel:
+          label: Needs-Author Feedback
+      - noActivitySince:
+          days: 7
+      actions:
+      - closeIssue
+      - addReply:
+          reply: This issue is closed because it has been marked as requiring author feedback but has not had any activity for **7 days**. If you think the issue is still relevant, please reopen and provide your feedback.
+    - description: 
+      frequencies:
+      - hourly:
+          hour: 6
+      filters:
+      - isPullRequest
+      - isOpen
+      - hasLabel:
+          label: Needs-Author Feedback
+      - noActivitySince:
+          days: 14
+      - isNotLabeledWith:
+          label: Status-No Recent Activity
+      actions:
+      - addLabel:
+          label: Status-No Recent Activity
+      - addReply:
+          reply: This pull request has been automatically marked as stale because it has been marked as requiring author feedback but has not had any activity for **14 days**. It will be closed if no further activity occurs **within 7 days of this comment**.
+    - description: 
+      frequencies:
+      - hourly:
+          hour: 6
+      filters:
+      - isIssue
+      - isOpen
+      - hasLabel:
+          label: Needs-Author Feedback
+      - noActivitySince:
+          days: 7
+      actions:
+      - addReply:
+          reply: This issue is closed because it has been marked as requiring author feedback but has not had any activity for **7 days**. If you think the issue is still relevant, please reopen and provide your feedback.
+      - closeIssue
+    - description: 
+      frequencies:
+      - hourly:
+          hour: 6
+      filters:
+      - isOpen
+      - hasLabel:
+          label: Resolution-Answered
+      actions:
+      - closeIssue
+    - description: 
+      frequencies:
+      - hourly:
+          hour: 6
+      filters:
+      - isOpen
+      - hasLabel:
+          label: Resolution-By Design
+      actions:
+      - closeIssue
+    - description: 
+      frequencies:
+      - hourly:
+          hour: 6
+      filters:
+      - isOpen
+      - hasLabel:
+          label: Resolution-Declined
+      actions:
+      - closeIssue
+    - description: 
+      frequencies:
+      - hourly:
+          hour: 6
+      filters:
+      - isOpen
+      - hasLabel:
+          label: Resolution-Duplicate
+      actions:
+      - closeIssue
+    - description: 
+      frequencies:
+      - hourly:
+          hour: 6
+      filters:
+      - isOpen
+      - hasLabel:
+          label: Resolution-External
+      actions:
+      - closeIssue
+    - description: 
+      frequencies:
+      - hourly:
+          hour: 6
+      filters:
+      - isOpen
+      - hasLabel:
+          label: Resolution-Fixed
+      actions:
+      - closeIssue
+    - description: 
+      frequencies:
+      - hourly:
+          hour: 6
+      filters:
+      - isOpen
+      - hasLabel:
+          label: Resolution-Not Repro
+      actions:
+      - closeIssue
+    - description: 
+      frequencies:
+      - hourly:
+          hour: 6
+      filters:
+      - isOpen
+      - hasLabel:
+          label: Resolution-Wont Fix
+      actions:
+      - closeIssue
+    - description: 
+      frequencies:
+      - hourly:
+          hour: 6
+      filters:
+      - isOpen
+      - hasLabel:
+          label: Needs-Repro
+      - noActivitySince:
+          days: 7
+      actions:
+      - closeIssue
+      - addReply:
+          reply: This issue is closed because it has been marked as requiring repro steps but has not had any activity for **7 days**. If you think the issue is still relevant, please reopen and provide your feedback.
+    eventResponderTasks:
+    - if:
+      - payloadType: Issue_Comment
+      - isAction:
+          action: Created
+      - isActivitySender:
+          issueAuthor: True
+      - hasLabel:
+          label: Needs-Author Feedback
+      - isOpen
+      then:
+      - addLabel:
+          label: 'Needs-Attention :wave:'
+      - removeLabel:
+          label: Needs-Author Feedback
+      description: 
+    - if:
+      - payloadType: Pull_Request
+      - isAction:
+          action: Opened
+      then:
+      - addCodeFlowLink
+      description: 
+    - if:
+      - payloadType: Pull_Request_Review
+      - isAction:
+          action: Submitted
+      - isReviewState:
+          reviewState: Changes_requested
+      then:
+      - addLabel:
+          label: Needs-Author Feedback
+      description: 
+    - if:
+      - payloadType: Pull_Request
+      - isActivitySender:
+          issueAuthor: True
+      - not:
+          isAction:
+            action: Closed
+      - hasLabel:
+          label: Needs-Author Feedback
+      then:
+      - removeLabel:
+          label: Needs-Author Feedback
+      description: 
+    - if:
+      - payloadType: Issue_Comment
+      - isActivitySender:
+          issueAuthor: True
+      - hasLabel:
+          label: Needs-Author Feedback
+      then:
+      - removeLabel:
+          label: Needs-Author Feedback
+      description: 
+    - if:
+      - payloadType: Pull_Request_Review
+      - isActivitySender:
+          issueAuthor: True
+      - hasLabel:
+          label: Needs-Author Feedback
+      then:
+      - removeLabel:
+          label: Needs-Author Feedback
+      description: 
+    - if:
+      - payloadType: Pull_Request
+      - hasLabel:
+          label: Status-No Recent Activity
+      - isAction:
+          action: Closed
+      then:
+      - removeLabel:
+          label: Status-No Recent Activity
+      description: 
+    - if:
+      - payloadType: Issue_Comment
+      - hasLabel:
+          label: Status-No Recent Activity
+      then:
+      - removeLabel:
+          label: Status-No Recent Activity
+      description: 
+    - if:
+      - payloadType: Pull_Request_Review
+      - hasLabel:
+          label: Status-No Recent Activity
+      then:
+      - removeLabel:
+          label: Status-No Recent Activity
+      description: 
+    - if:
+      - payloadType: Pull_Request
+      - hasLabel:
+          label: Auto Merge
+      then:
+      - enableAutoMerge:
+          mergeMethod: Squash
+      description: 
+    - if:
+      - payloadType: Pull_Request
+      - labelRemoved:
+          label: Auto Merge
+      then:
+      - disableAutoMerge
+      description: 
+    - if:
+      - payloadType: Issues
+      - isAction:
+          action: Closed
+      - hasLabel:
+          label: 'Needs-Triage :mag:'
+      then:
+      - removeLabel:
+          label: 'Needs-Triage :mag:'
+      description: 
+    - if:
+      - payloadType: Pull_Request
+      then:
+      - inPrLabel:
+          label: In-PR
+      description: 
+    - if:
+      - payloadType: Issue_Comment
+      - hasLabel:
+          label: Needs-Repro
+      - isActivitySender:
+          issueAuthor: True
+      then:
+      - reopenIssue
+      - removeLabel:
+          label: Needs-Repro
+      - addLabel:
+          label: 'Needs-Attention :wave:'
+      description: 
+onFailure: 
+onSuccess: 
