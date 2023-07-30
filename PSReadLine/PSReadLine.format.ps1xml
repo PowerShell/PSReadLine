@@ -165,6 +165,9 @@ $d = [Microsoft.PowerShell.KeyHandler]::GetGroupingDescription($_.Group)
                 <PropertyName>PredictionViewStyle</PropertyName>
               </ListItem>
               <ListItem>
+                <PropertyName>TerminateStragglers</PropertyName>
+              </ListItem>
+              <ListItem>
                 <Label>CommandColor</Label>
                 <ScriptBlock>[Microsoft.PowerShell.VTColorUtils]::FormatColor($_.CommandColor)</ScriptBlock>
               </ListItem>

@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Management.Automation;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.PowerShell.PSReadLine;
 
@@ -165,6 +166,14 @@ namespace Microsoft.PowerShell
                     {
                         Options.SetColor(property, e.Value);
                     }
+                }
+            }
+            if (options._terminateStragglers.HasValue)
+            {
+                Options.TerminateStragglers = options.TerminateStragglers;
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    PlatformWindows.SetTerminateStragglers(Options.TerminateStragglers);
                 }
             }
         }
