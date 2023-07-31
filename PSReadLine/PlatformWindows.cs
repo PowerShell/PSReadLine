@@ -202,7 +202,7 @@ static class PlatformWindows
                 EnableAnsiInput(ref charMap);
             }
 
-            // Is the TerminateStragglers feature enabled?
+            // Is the TerminateOrphanedConsoleApps feature enabled?
             if (_allowedPids != null)
             {
                 // We are about to disable Ctrl+C signals... so if there are still any
@@ -630,19 +630,19 @@ static class PlatformWindows
 
         if ((0 == numPids) || (numPids > size))
         {
-            return null; // no TerminateStragglers for you, sorry
+            return null; // no TerminateOrphanedConsoleApps for you, sorry
         }
 
         Array.Resize(ref pids, (int) numPids);
         return pids;
     }
 
-    // If the TerminateStragglers option is enabled, this is the list of PIDs that are
-    // allowed to stay attached to the console (effectively the current process plus
-    // ancestors).
+    // If the TerminateOrphanedConsoleApps option is enabled, this is the list of PIDs
+    // that are allowed to stay attached to the console (effectively the current process
+    // plus ancestors).
     private static uint[] _allowedPids;
 
-    internal static void SetTerminateStragglers(bool enabled)
+    internal static void SetTerminateOrphanedConsoleApps(bool enabled)
     {
         if (enabled)
         {
@@ -789,7 +789,7 @@ static class PlatformWindows
     private const bool ClearProgress = true;
 
     //
-    //                             TerminateStragglers
+    //                         TerminateOrphanedConsoleApps
     //
     // This feature works around a bad interaction on Windows between:
     //    * a race condition between ctrl+c and console attachment, and
@@ -826,19 +826,19 @@ static class PlatformWindows
     // that the user has a usable shell.
     //
     // Note that GUI processes do not attach to the console, so if you have launched
-    // notepad, for example, TerminateStragglers will never even "see" it; they are immune
-    // from getting terminated.
+    // notepad, for example, TerminateOrphanedConsoleApps will never even "see" it; they
+    // are immune from getting terminated.
     //
     // Q: But isn't terminating processes that we know nothing about kind of risky and
     //    extreme?
     //
     // A: Perhaps so... but consider the alternative: by definition, if you get into a
-    //    situation where the TerminateStragglers feature would actually kill anything,
-    //    your shell will be Completely Broken. It's "them or us": allow the stragglers to
-    //    live, but leave the user without their shell; or kill the stragglers and give
-    //    the user their shell back. There is no middle ground. So when the
-    //    TerminateStragglers feature is enabled, that means the user has opted for "give
-    //    me back my shell".
+    //    situation where the TerminateOrphanedConsoleApps feature would actually kill
+    //    anything, your shell will be Completely Broken. It's "them or us": allow the
+    //    stragglers to live, but leave the user without their shell; or kill the
+    //    stragglers and give the user their shell back. There is no middle ground. So
+    //    when the TerminateOrphanedConsoleApps feature is enabled, that means the user
+    //    has opted for "give me back my shell".
     //
     //    Note that we do give stragglers a small grace period before terminating them, in
     //    case they are somehow just slow shutting down. But if you're wondering "should
@@ -848,13 +848,13 @@ static class PlatformWindows
     //
     // Q: What if the user *didn't* type ctrl+c?
     //
-    // A: We don't care. When TerminateStragglers is called, all we know is that the shell
-    //    has displayed the prompt and believes it is time to wait for user input. Whether
-    //    this situation came about because of a ctrl+c, or some other situation (for
-    //    example, if the shell's immediate child crashed or was manually killed), if
-    //    there are leftover straggler processes (console-attached grandchildren), the
-    //    shell will be broken until they are gone, and thus we must take action (if the
-    //    feature is enabled).
+    // A: We don't care. When TerminateOrphanedConsoleApps is called, all we know is that
+    //    the shell has displayed the prompt and believes it is time to wait for user
+    //    input.  Whether this situation came about because of a ctrl+c, or some other
+    //    situation (for example, if the shell's immediate child crashed or was manually
+    //    killed), if there are leftover straggler processes (console-attached
+    //    grandchildren), the shell will be broken until they are gone, and thus we must
+    //    take action (if the feature is enabled).
     //
     // Q: Should this really be baked into PSReadLine, or could we leave it to some other
     //    module to implement? (See: https://github.com/jazzdelightsme/ConsoleBouncer)
@@ -871,19 +871,19 @@ static class PlatformWindows
     //    please don't kill these ones, even though they will *look* like stragglers".
     //
     //    And in fact, an external module solution may still be attractive to some users
-    //    (and could safely be used with TerminateStragglers enabled). Because the
-    //    (external solution) ConsoleBouncer module reacts to ctrl+c signals, that makes
-    //    it a bit more aggressive than what we do here: TerminateStragglers only comes
-    //    into play when control has returned to the shell, which might not be right away
-    //    after the user types ctrl+c--there might be "Terminate batch job (Y/N)?"
-    //    messages, etc. So if the user understands the limitations of the ConsoleBouncer
-    //    module and has an environment where it would be suitable, they could still opt
-    //    to use it to get much more responsive ctrl+c behavior. (A metaphor with a club:
-    //    the PSReadLine built-in feature patiently waits for the host of a private party
-    //    to leave before kicking the rest of the guests out; whereas the ConsoleBouncer,
-    //    upon receipt of a ctrl+c signal, just clears the whole place out right away
-    //    (which *might* not be the right thing to do, but you're paying them to be tough,
-    //    not smart).)
+    //    (and could safely be used with TerminateOrphanedConsoleApps enabled). Because
+    //    the (external solution) ConsoleBouncer module reacts to ctrl+c signals, that
+    //    makes it a bit more aggressive than what we do here:
+    //    TerminateOrphanedConsoleApps only comes into play when control has returned to
+    //    the shell, which might not be right away after the user types ctrl+c--there
+    //    might be "Terminate batch job (Y/N)?" messages, etc. So if the user understands
+    //    the limitations of the ConsoleBouncer module and has an environment where it
+    //    would be suitable, they could still opt to use it to get much more responsive
+    //    ctrl+c behavior. (A metaphor with a club: the PSReadLine built-in feature
+    //    patiently waits for the host of a private party to leave before kicking the rest
+    //    of the guests out; whereas the ConsoleBouncer, upon receipt of a ctrl+c signal,
+    //    just clears the whole place out right away (which *might* not be the right thing
+    //    to do, but you're paying them to be tough, not smart).)
     //
     private static void TerminateStragglers()
     {

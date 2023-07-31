@@ -165,7 +165,7 @@ $d = [Microsoft.PowerShell.KeyHandler]::GetGroupingDescription($_.Group)
                 <PropertyName>PredictionViewStyle</PropertyName>
               </ListItem>
               <ListItem>
-                <PropertyName>TerminateStragglers</PropertyName>
+                <PropertyName>TerminateOrphanedConsoleApps</PropertyName>
               </ListItem>
               <ListItem>
                 <Label>CommandColor</Label>

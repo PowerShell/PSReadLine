@@ -502,7 +502,7 @@ namespace Microsoft.PowerShell
             set => _listPredictionTooltipColor = VTColorUtils.AsEscapeSequence(value);
         }
 
-        public bool TerminateStragglers { get; set; }
+        public bool TerminateOrphanedConsoleApps { get; set; }
 
         internal string _defaultTokenColor;
         internal string _commentColor;
@@ -811,12 +811,12 @@ namespace Microsoft.PowerShell
         public Hashtable Colors { get; set; }
 
         [Parameter]
-        public SwitchParameter TerminateStragglers
+        public SwitchParameter TerminateOrphanedConsoleApps
         {
-            get => _terminateStragglers.GetValueOrDefault();
-            set => _terminateStragglers = value;
+            get => _terminateOrphanedConsoleApps.GetValueOrDefault();
+            set => _terminateOrphanedConsoleApps = value;
         }
-        internal SwitchParameter? _terminateStragglers;
+        internal SwitchParameter? _terminateOrphanedConsoleApps;
 
         [ExcludeFromCodeCoverage]
         protected override void EndProcessing()

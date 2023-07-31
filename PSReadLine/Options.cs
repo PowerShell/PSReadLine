@@ -168,12 +168,12 @@ namespace Microsoft.PowerShell
                     }
                 }
             }
-            if (options._terminateStragglers.HasValue)
+            if (options._terminateOrphanedConsoleApps.HasValue)
             {
-                Options.TerminateStragglers = options.TerminateStragglers;
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
-                    PlatformWindows.SetTerminateStragglers(Options.TerminateStragglers);
+                    Options.TerminateOrphanedConsoleApps = options.TerminateOrphanedConsoleApps;
+                    PlatformWindows.SetTerminateOrphanedConsoleApps(Options.TerminateOrphanedConsoleApps);
                 }
             }
         }
