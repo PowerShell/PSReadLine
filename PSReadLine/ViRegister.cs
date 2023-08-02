@@ -12,28 +12,29 @@ namespace Microsoft.PowerShell
         {
             private readonly PSConsoleReadLine _singleton;
             private string _localText;
+            private PSConsoleReadLineOptions _options;
             private string Text
             {
                 get
                 {
-                    if (_singleton.Options.ViClipboardMode == ViClipboardMode.ViRegister)
+                    if (_options?.ViClipboardMode == ViClipboardMode.SystemClipboard)
                     {
-                        return _localText;
+                        return Internal.Clipboard.GetText();
                     }
                     else
                     {
-                        return Internal.Clipboard.GetText();
+                        return _localText;
                     }
                 }
                 set
                 {
-                    if (_singleton.Options.ViClipboardMode == ViClipboardMode.ViRegister)
+                    if (_options?.ViClipboardMode == ViClipboardMode.SystemClipboard)
                     {
-                        _localText = value;
+                        Internal.Clipboard.SetText(value);
                     }
                     else
                     {
-                        Internal.Clipboard.SetText(value);
+                        _localText = value;
                     }
                 }
             }
@@ -48,6 +49,14 @@ namespace Microsoft.PowerShell
             public ViRegister(PSConsoleReadLine singleton)
             {
                 _singleton = singleton;
+                _options = _singleton?.Options;
+            }
+
+            internal static ViRegister CreateTestRegister(PSConsoleReadLineOptions options)
+            {
+                ViRegister register = new ViRegister(null);
+                register._options = options;
+                return register;
             }
 
             /// <summary>

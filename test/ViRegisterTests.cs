@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using Microsoft.PowerShell;
+using Microsoft.PowerShell.Internal;
 using Xunit;
 
 namespace Test
@@ -151,6 +152,52 @@ namespace Test
 
             Assert.Equal("line1\nline2\nline3\n", buffer.ToString());
             Assert.Equal(6, newPosition);
+        }
+
+        [Fact]
+        public void ViRegister_ClipboardModeViRegister()
+        {
+            PSConsoleReadLineOptions options = new PSConsoleReadLineOptions(string.Empty, false)
+            {
+                ViClipboardMode = ViClipboardMode.ViRegister
+            };
+            var register = PSConsoleReadLine.ViRegister.CreateTestRegister(options);
+
+            // system under test
+
+            Clipboard.SetText("EmptyClipboard");
+            var copyBuffer = new StringBuilder("CopiedText");
+            register.Record(copyBuffer);
+            var pasteBuffer = new StringBuilder();
+            register.PasteAfter(pasteBuffer, 0);
+
+            // assert expectations
+
+            Assert.Equal("EmptyClipboard", Clipboard.GetText());
+            Assert.Equal("CopiedText", pasteBuffer.ToString());
+        }
+
+        [Fact]
+        public void ViRegister_ClipboardModeSystemClipboard()
+        {
+            PSConsoleReadLineOptions options = new PSConsoleReadLineOptions(string.Empty, false)
+            {
+                ViClipboardMode = ViClipboardMode.SystemClipboard
+            };
+            var register = PSConsoleReadLine.ViRegister.CreateTestRegister(options);
+
+            // system under test
+
+            Clipboard.SetText("EmptyClipboard");
+            var copyBuffer = new StringBuilder("CopiedText");
+            register.Record(copyBuffer);
+            var pasteBuffer = new StringBuilder();
+            register.PasteAfter(pasteBuffer, 0);
+
+            // assert expectations
+
+            Assert.Equal("CopiedText", Clipboard.GetText());
+            Assert.Equal("CopiedText", pasteBuffer.ToString());
         }
     }
 }
