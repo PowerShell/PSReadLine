@@ -11,7 +11,32 @@ namespace Microsoft.PowerShell
         internal sealed class ViRegister
         {
             private readonly PSConsoleReadLine _singleton;
-            private string _text;
+            private string _localText;
+            private string Text
+            {
+                get
+                {
+                    if (_singleton.Options.ViClipboardMode == ViClipboardMode.ViRegister)
+                    {
+                        return _localText;
+                    }
+                    else
+                    {
+                        return Internal.Clipboard.GetText();
+                    }
+                }
+                set
+                {
+                    if (_singleton.Options.ViClipboardMode == ViClipboardMode.ViRegister)
+                    {
+                        _localText = value;
+                    }
+                    else
+                    {
+                        Internal.Clipboard.SetText(value);
+                    }
+                }
+            }
 
             /// <summary>
             /// Initialize a new instance of the <see cref="ViRegister" /> class.
@@ -29,7 +54,7 @@ namespace Microsoft.PowerShell
             /// Returns whether this register is empty.
             /// </summary>
             public bool IsEmpty
-                => String.IsNullOrEmpty(_text);
+                => String.IsNullOrEmpty(Text);
 
             /// <summary>
             /// Returns whether this register contains
@@ -41,7 +66,7 @@ namespace Microsoft.PowerShell
             /// Gets the raw text contained in the register
             /// </summary>
             public string RawText
-                => _text;
+                => Text;
 
             /// <summary>
             /// Records the entire buffer in the register.
@@ -67,7 +92,7 @@ namespace Microsoft.PowerShell
                 System.Diagnostics.Debug.Assert(offset + count <= buffer.Length);
 
                 HasLinewiseText = false;
-                _text = buffer.ToString(offset, count);
+                Text = buffer.ToString(offset, count);
             }
 
             /// <summary>
@@ -77,7 +102,7 @@ namespace Microsoft.PowerShell
             public void LinewiseRecord(string text)
             {
                 HasLinewiseText = true;
-                _text = text;
+                Text = text;
             }
 
             public int PasteAfter(StringBuilder buffer, int position)
@@ -89,7 +114,7 @@ namespace Microsoft.PowerShell
 
                 if (HasLinewiseText)
                 {
-                    var text = _text;
+                    var text = Text;
 
                     if (text[0] != '\n')
                     {
@@ -127,8 +152,9 @@ namespace Microsoft.PowerShell
                         position += 1;
                     }
 
-                    InsertAt(buffer, _text, position, position);
-                    position += _text.Length - 1;
+                    var text = Text;
+                    InsertAt(buffer, text, position, position);
+                    position += text.Length - 1;
 
                     return position;
                 }
@@ -145,7 +171,7 @@ namespace Microsoft.PowerShell
 
                     position = Math.Max(0, Math.Min(position, buffer.Length - 1));
 
-                    var text = _text;
+                    var text = Text;
 
                     if (text[0] == '\n')
                     {
@@ -184,8 +210,9 @@ namespace Microsoft.PowerShell
                 }
                 else
                 {
-                    InsertAt(buffer, _text, position, position);
-                    return position + _text.Length - 1;
+                    var text = Text;
+                    InsertAt(buffer, text, position, position);
+                    return position + text.Length - 1;
                 }
             }
 
@@ -246,7 +273,7 @@ namespace Microsoft.PowerShell
 #if DEBUG
             public override string ToString()
             {
-                var text = _text.Replace("\n", "\\n");
+                var text = Text.Replace("\n", "\\n");
                 return (HasLinewiseText ? "line: " : "") + "\"" + text + "\"";
             }
 #endif

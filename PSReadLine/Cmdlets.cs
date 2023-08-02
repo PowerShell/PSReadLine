@@ -50,6 +50,12 @@ namespace Microsoft.PowerShell
         Command
     }
 
+    public enum ViClipboardMode
+    {
+        ViRegister,
+        SystemClipboard
+    }
+
     public enum HistorySaveStyle
     {
         SaveIncrementally,
@@ -341,6 +347,11 @@ namespace Microsoft.PowerShell
         /// The script block to execute when the indicator mode is set to Script.
         /// </summary>
         public ScriptBlock ViModeChangeHandler { get; set; }
+
+        /// <summary>
+        /// Which source should be used when copying and pasting in vi edit mode?
+        /// </summary>
+        public ViClipboardMode ViClipboardMode { get; set; }
 
         /// <summary>
         /// The path to the saved history.
@@ -788,6 +799,14 @@ namespace Microsoft.PowerShell
 
         [Parameter]
         public ScriptBlock ViModeChangeHandler { get; set; }
+
+        [Parameter]
+        public ViClipboardMode ViClipboardMode
+        {
+            get => _viClipboardMode.GetValueOrDefault();
+            set => _viClipboardMode = value;
+        }
+        internal ViClipboardMode? _viClipboardMode;
 
         [Parameter]
         public PredictionSource PredictionSource
