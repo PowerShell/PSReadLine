@@ -286,5 +286,17 @@ configuration:
       - addLabel:
           label: 'Needs-Attention :wave:'
       description: 
+    - if:
+      - payloadType: Issues
+      - and:
+        - isOpen
+        - not:
+            and:
+                - isAssignedToSomeone
+                - isLabeled
+      then:
+      - addLabel:
+          label: 'Needs-Triage :mag:'
+      description: 'Adding needs triage label to newly opened issues'
 onFailure: 
 onSuccess: 
