@@ -294,8 +294,6 @@ configuration:
             and:
                 - isAssignedToSomeone
                 - isLabeled
-      - isActivitySender:
-          issueAuthor: True
       then:
       - addLabel:
           label: 'Needs-Triage :mag:'
