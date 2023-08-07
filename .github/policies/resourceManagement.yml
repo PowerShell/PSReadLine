@@ -291,7 +291,9 @@ configuration:
       - and:
         - isOpen
         - not:
-            - isLabeled
+            and:
+                - isAssignedToSomeone
+                - isLabeled
       - isActivitySender:
           issueAuthor: True
       then:
