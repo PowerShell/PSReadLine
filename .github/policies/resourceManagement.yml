@@ -297,6 +297,6 @@ configuration:
       then:
       - addLabel:
           label: 'Needs-Triage :mag:'
-      description: "Adding needs triage label to newly opened issues"
+      description: 'Adding needs triage label to newly opened issues'
 onFailure: 
 onSuccess: 
