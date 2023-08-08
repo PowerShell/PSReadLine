@@ -613,6 +613,37 @@ static class PlatformWindows
     [return: MarshalAs(UnmanagedType.Bool)]
     internal static extern bool SystemParametersInfo(uint uiAction, uint uiParam, ref bool pvParam, uint fWinIni);
 
+    [StructLayout(LayoutKind.Sequential)]
+    internal struct PROCESS_BASIC_INFORMATION
+    {
+        public IntPtr ExitStatus;
+        public IntPtr PebBaseAddress;
+        public IntPtr AffinityMask;
+        public IntPtr BasePriority;
+        public IntPtr UniqueProcessId;
+        public IntPtr InheritedFromUniqueProcessId;
+    }
+
+    [DllImport("ntdll.dll")]
+    internal static extern int NtQueryInformationProcess(
+            IntPtr processHandle,
+            int processInformationClass,
+            out PROCESS_BASIC_INFORMATION processInformation,
+            int processInformationLength,
+            out int returnLength);
+
+    internal const int InvalidProcessId = -1;
+
+    internal static int GetParentPid(Process process)
+    {
+        // (This is how ProcessCodeMethods in pwsh does it.)
+        PROCESS_BASIC_INFORMATION pbi;
+        int size;
+        var res = NtQueryInformationProcess(process.Handle, 0, out pbi, Marshal.SizeOf<PROCESS_BASIC_INFORMATION>(), out size);
+
+        return res != 0 ? InvalidProcessId : pbi.InheritedFromUniqueProcessId.ToInt32();
+    }
+
     [DllImport("kernel32.dll", SetLastError = true, EntryPoint = "GetConsoleProcessList")]
     private static extern uint native_GetConsoleProcessList([In, Out] uint[] lpdwProcessList, uint dwProcessCount);
 
@@ -729,6 +760,14 @@ static class PlatformWindows
         }
     }
 
+    private static readonly Lazy<uint> _myPid = new Lazy<uint>(() =>
+    {
+        using (var me = Process.GetCurrentProcess())
+        {
+            return (uint)me.Id;
+        }
+    });
+
     // Calculates what processes need to be terminated (populated into procsToTerminate),
     // and returns the count. A "straggler" is a console-attached process (so GUI
     // processes don't count) that is not in the _allowedPids list.
@@ -755,7 +794,22 @@ static class PlatformWindows
                     // likely can't do anything about it.
                 }
 
-                if (proc != null)
+                // Q: Why the check against the parent pid (below)?
+                //
+                // A: The idea is that a user could do something like this:
+                //
+                //    $p = Start-Process pwsh -ArgumentList '-c Write-Host start $pid; sleep -seconds 30; Write-Host stop' -NoNewWindow -passThru
+                //
+                // Such a process *is* indeed _capable_ of wrecking the interactive prompt
+                // (all it has to do is attempt to read input; and any output will be
+                // interleaved with your interactive session)... but MAYBE it won't. So
+                // the idea with letting such processes live is that perhaps the user did
+                // this on purpose, to do some sort of "background work" (even though it
+                // may not seem like the best way to do that); and we only want to kill
+                // *actually-orphaned* processes: processes whose parent is gone, so they
+                // should be gone, too.
+
+                if (proc != null && GetParentPid(proc) != _myPid.Value)
                 {
                     procsToTerminate.Add(proc);
                 }
