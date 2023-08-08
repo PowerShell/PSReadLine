@@ -932,6 +932,11 @@ static class PlatformWindows
 
         // In forcible termination scenarios, if there was a child updating the terminal's
         // progress state, it may be left stuck that way... we can clear that out.
+        //
+        // The preferred way to do that is with a VT sequence, but there's no way to know
+        // if the console we are attached to supports that sequence. If we are in Windows
+        // Terminal, we know we can use the VT sequence; else we'll fall back to the old
+        // (Win7-era?) COM API (which does the same thing).
         uint consoleMode = GetConsoleOutputMode();
         if (ItLooksLikeWeAreInTerminal())
         {
