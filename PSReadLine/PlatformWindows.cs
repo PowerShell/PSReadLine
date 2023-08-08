@@ -210,6 +210,7 @@ static class PlatformWindows
                 // gone, so we'll get rid of them:
                 TerminateStragglers();
             }
+
             SetOurInputMode();
         }
     }
@@ -628,7 +629,7 @@ static class PlatformWindows
             numPids = native_GetConsoleProcessList(pids, (uint) size);
         }
 
-        if ((0 == numPids) || (numPids > size))
+        if (0 == numPids || numPids > size)
         {
             return null; // no TerminateOrphanedConsoleApps for you, sorry
         }
@@ -683,27 +684,27 @@ static class PlatformWindows
             int HrInit();
 
             [PreserveSig]
-            int AddTab( IntPtr hwnd );
+            int AddTab(IntPtr hwnd);
 
             [PreserveSig]
-            int DeleteTab( IntPtr hwnd );
+            int DeleteTab(IntPtr hwnd);
 
             [PreserveSig]
-            int ActivateTab( IntPtr hwnd );
+            int ActivateTab(IntPtr hwnd);
 
             [PreserveSig]
-            int SetActiveAlt( IntPtr hwnd );
+            int SetActiveAlt(IntPtr hwnd);
 
             // ITaskbarList2
             [PreserveSig]
-            int MarkFullscreenWindow( IntPtr hwnd, [MarshalAs(UnmanagedType.Bool)] bool fFullscreen );
+            int MarkFullscreenWindow(IntPtr hwnd, [MarshalAs(UnmanagedType.Bool)] bool fFullscreen);
 
             // ITaskbarList3
             [PreserveSig]
-            int SetProgressValue( IntPtr hwnd, UInt64 ullCompleted, UInt64 ullTotal );
+            int SetProgressValue(IntPtr hwnd, UInt64 ullCompleted, UInt64 ullTotal);
 
             [PreserveSig]
-            int SetProgressState( IntPtr hwnd, TaskbarStates state );
+            int SetProgressState(IntPtr hwnd, TaskbarStates state);
 
             // N.B. for copy/pasters: we've left out the rest of the ITaskbarList3 methods...
         }
@@ -748,7 +749,7 @@ static class PlatformWindows
                 {
                     proc = Process.GetProcessById((int) pid);
                 }
-                catch( ArgumentException )
+                catch (ArgumentException)
                 {
                     // Ignore it: process could be gone, or something else that we
                     // likely can't do anything about it.
@@ -765,8 +766,6 @@ static class PlatformWindows
 
     [DllImport("kernel32.dll")]
     internal static extern ulong GetTickCount64();
-
-    private const int DefaultGraceMillis = 1000;
 
     private static int MillisLeftUntilDeadline(ulong deadline)
     {
@@ -785,8 +784,8 @@ static class PlatformWindows
         return (int) diff;
     }
 
+    private const int DefaultGraceMillis = 1000;
     private const int MaxRounds = 2;
-    private const bool ClearProgress = true;
 
     //
     //                         TerminateOrphanedConsoleApps
@@ -901,8 +900,8 @@ static class PlatformWindows
         int round = 0;
         int killAttempts = 0;
 
-        while ((round++ < MaxRounds) &&
-               (GatherStragglers(procsToTerminate) > 0))
+        while (round++ < MaxRounds &&
+               GatherStragglers(procsToTerminate) > 0)
         {
             // We'll give them up to GracePeriodMillis for them to exit on their
             // own, in case they actually did receive the original ctrl+c, and are
@@ -933,27 +932,24 @@ static class PlatformWindows
 
         // In forcible termination scenarios, if there was a child updating the terminal's
         // progress state, it may be left stuck that way... we can clear that out.
-        if (ClearProgress)
+        uint consoleMode = GetConsoleOutputMode();
+        if (ItLooksLikeWeAreInTerminal())
         {
-            uint consoleMode = GetConsoleOutputMode();
-            if (ItLooksLikeWeAreInTerminal())
+            // We can use the [semi-]standard OSC sequence:
+            // https://conemu.github.io/en/AnsiEscapeCodes.html#ConEmu_specific_OSC
+            if (0 != (consoleMode & (uint) ENABLE_VIRTUAL_TERMINAL_PROCESSING))
             {
-                // We can use the [semi-]standard OSC sequence:
-                // https://conemu.github.io/en/AnsiEscapeCodes.html#ConEmu_specific_OSC
-                if (0 != (consoleMode & (uint) ENABLE_VIRTUAL_TERMINAL_PROCESSING))
-                {
-                    // Use "bell" if we actually tried to whack anything.
-                    char final = (killAttempts > 0) ? '\a' : '\x001b';
-                    Console.Write("\x001b]9;4;0;0" + final);
-                }
+                // Use "bell" if we actually tried to whack anything.
+                string final = (killAttempts > 0) ? "\a" : "\x001b\\";
+                Console.Write("\x001b]9;4;0;0" + final);
             }
-            else
+        }
+        else
+        {
+            IntPtr hwnd = GetConsoleWindow();
+            if (hwnd != IntPtr.Zero)
             {
-                IntPtr hwnd = GetConsoleWindow();
-                if (hwnd != IntPtr.Zero)
-                {
-                    int ret = TaskbarProgress.SetProgressState(hwnd, TaskbarStates.NoProgress);
-                }
+                int ret = TaskbarProgress.SetProgressState(hwnd, TaskbarStates.NoProgress);
             }
         }
     }

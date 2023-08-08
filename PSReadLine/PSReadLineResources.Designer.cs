@@ -2257,5 +2257,16 @@ namespace Microsoft.PowerShell.PSReadLine {
                 return ResourceManager.GetString("UpcaseWordDescription", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to: The {0} option is not supported on non-Windows platforms.
+        /// </summary>
+        internal static string OptionNotSupportedOnNonWindows
+        {
+            get
+            {
+                return ResourceManager.GetString("OptionNotSupportedOnNonWindows", resourceCulture);
+            }
+        }
     }
 }
