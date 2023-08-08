@@ -794,24 +794,31 @@ static class PlatformWindows
                     // likely can't do anything about it.
                 }
 
-                // Q: Why the check against the parent pid (below)?
-                //
-                // A: The idea is that a user could do something like this:
-                //
-                //    $p = Start-Process pwsh -ArgumentList '-c Write-Host start $pid; sleep -seconds 30; Write-Host stop' -NoNewWindow -passThru
-                //
-                // Such a process *is* indeed _capable_ of wrecking the interactive prompt
-                // (all it has to do is attempt to read input; and any output will be
-                // interleaved with your interactive session)... but MAYBE it won't. So
-                // the idea with letting such processes live is that perhaps the user did
-                // this on purpose, to do some sort of "background work" (even though it
-                // may not seem like the best way to do that); and we only want to kill
-                // *actually-orphaned* processes: processes whose parent is gone, so they
-                // should be gone, too.
-
-                if (proc != null && GetParentPid(proc) != _myPid.Value)
+                if (proc != null)
                 {
-                    procsToTerminate.Add(proc);
+                    // Q: Why the check against the parent pid (below)?
+                    //
+                    // A: The idea is that a user could do something like this:
+                    //
+                    //    $p = Start-Process pwsh -ArgumentList '-c Write-Host start $pid; sleep -seconds 30; Write-Host stop' -NoNewWindow -passThru
+                    //
+                    // Such a process *is* indeed _capable_ of wrecking the interactive
+                    // prompt (all it has to do is attempt to read input; and any output
+                    // will be interleaved with your interactive session)... but MAYBE it
+                    // won't. So the idea with letting such processes live is that perhaps
+                    // the user did this on purpose, to do some sort of "background work"
+                    // (even though it may not seem like the best way to do that); and we
+                    // only want to kill *actually-orphaned* processes: processes whose
+                    // parent is gone, so they should be gone, too.
+
+                    if (GetParentPid(proc) != _myPid.Value)
+                    {
+                        procsToTerminate.Add(proc);
+                    }
+                    else
+                    {
+                        proc.Dispose();
+                    }
                 }
             }
         }
