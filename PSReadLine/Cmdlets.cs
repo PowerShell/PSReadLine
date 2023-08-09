@@ -502,6 +502,8 @@ namespace Microsoft.PowerShell
             set => _listPredictionTooltipColor = VTColorUtils.AsEscapeSequence(value);
         }
 
+        public bool TerminateOrphanedConsoleApps { get; set; }
+
         internal string _defaultTokenColor;
         internal string _commentColor;
         internal string _keywordColor;
@@ -807,6 +809,14 @@ namespace Microsoft.PowerShell
 
         [Parameter]
         public Hashtable Colors { get; set; }
+
+        [Parameter]
+        public SwitchParameter TerminateOrphanedConsoleApps
+        {
+            get => _terminateOrphanedConsoleApps.GetValueOrDefault();
+            set => _terminateOrphanedConsoleApps = value;
+        }
+        internal SwitchParameter? _terminateOrphanedConsoleApps;
 
         [ExcludeFromCodeCoverage]
         protected override void EndProcessing()

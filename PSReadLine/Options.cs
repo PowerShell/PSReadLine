@@ -6,8 +6,10 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.Management.Automation;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.PowerShell.PSReadLine;
 
@@ -165,6 +167,22 @@ namespace Microsoft.PowerShell
                     {
                         Options.SetColor(property, e.Value);
                     }
+                }
+            }
+            if (options._terminateOrphanedConsoleApps.HasValue)
+            {
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    Options.TerminateOrphanedConsoleApps = options.TerminateOrphanedConsoleApps;
+                    PlatformWindows.SetTerminateOrphanedConsoleApps(Options.TerminateOrphanedConsoleApps);
+                }
+                else
+                {
+                    throw new PlatformNotSupportedException(
+                        string.Format(
+                            CultureInfo.CurrentUICulture,
+                            PSReadLineResources.OptionNotSupportedOnNonWindows,
+                            nameof(Options.TerminateOrphanedConsoleApps)));
                 }
             }
         }

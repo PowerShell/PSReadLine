@@ -873,4 +873,7 @@ Or not saving history with:
   <data name="UpcaseWordDescription" xml:space="preserve">
     <value>Find the next word starting from the current position and then make it upper case.</value>
   </data>
+  <data name="OptionNotSupportedOnNonWindows" xml:space="preserve">
+    <value>The '{0}' option is not supported on non-Windows platforms.</value>
+  </data>
 </root>
