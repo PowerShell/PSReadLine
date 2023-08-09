@@ -874,6 +874,6 @@ Or not saving history with:
     <value>Find the next word starting from the current position and then make it upper case.</value>
   </data>
   <data name="OptionNotSupportedOnNonWindows" xml:space="preserve">
-    <value>The {0} option is not supported on non-Windows platforms.</value>
+    <value>The '{0}' option is not supported on non-Windows platforms.</value>
   </data>
 </root>

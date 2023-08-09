@@ -178,7 +178,11 @@ namespace Microsoft.PowerShell
                 }
                 else
                 {
-                    throw new PlatformNotSupportedException(string.Format(CultureInfo.CurrentUICulture, PSReadLineResources.OptionNotSupportedOnNonWindows, nameof(Options.TerminateOrphanedConsoleApps)));
+                    throw new PlatformNotSupportedException(
+                        string.Format(
+                            CultureInfo.CurrentUICulture,
+                            PSReadLineResources.OptionNotSupportedOnNonWindows,
+                            nameof(Options.TerminateOrphanedConsoleApps)));
                 }
             }
         }

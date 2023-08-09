@@ -2259,7 +2259,7 @@ namespace Microsoft.PowerShell.PSReadLine {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to: The {0} option is not supported on non-Windows platforms.
+        ///   Looks up a localized string similar to: The '{0}' option is not supported on non-Windows platforms.
         /// </summary>
         internal static string OptionNotSupportedOnNonWindows
         {
