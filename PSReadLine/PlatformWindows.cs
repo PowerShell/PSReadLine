@@ -760,12 +760,10 @@ static class PlatformWindows
         }
     }
 
-    private static readonly Lazy<uint> _myPid = new Lazy<uint>(() =>
+    private static readonly Lazy<uint> _myPid = new(() =>
     {
-        using (var me = Process.GetCurrentProcess())
-        {
-            return (uint)me.Id;
-        }
+        using var me = Process.GetCurrentProcess();
+        return (uint)me.Id;
     });
 
     // Calculates what processes need to be terminated (populated into procsToTerminate),
@@ -802,14 +800,15 @@ static class PlatformWindows
                     //
                     //    $p = Start-Process pwsh -ArgumentList '-c Write-Host start $pid; sleep -seconds 30; Write-Host stop' -NoNewWindow -passThru
                     //
-                    // Such a process *is* indeed _capable_ of wrecking the interactive
-                    // prompt (all it has to do is attempt to read input; and any output
-                    // will be interleaved with your interactive session)... but MAYBE it
-                    // won't. So the idea with letting such processes live is that perhaps
-                    // the user did this on purpose, to do some sort of "background work"
-                    // (even though it may not seem like the best way to do that); and we
-                    // only want to kill *actually-orphaned* processes: processes whose
-                    // parent is gone, so they should be gone, too.
+                    // Such a process *is* indeed _capable_ of wrecking the interactive prompt (all it has to do is to attempt to read input; and any output
+                    // will be interleaved with your interactive session)... but MAYBE it won't. So the idea with letting such processes live is that perhaps
+                    // the user did this on purpose, to do some sort of "background work" (even though it may not seem like the best way to do that); and we
+                    // only want to kill *actually-orphaned* processes: processes whose parent is gone, so they should be gone, too.
+                    //
+                    // We only check the immediate children processes here for simplicity. However, an immediate child process may have children that accidentally
+                    // derive the standard input (which technically is a wrong thing to do), so ideally we should check if the parent of a console-attached process
+                    // is still alive -- the parent process id points to an alive process that was created earlier.
+                    // We will wait for feedback to see if this check needs to be updated.
 
                     if (GetParentPid(proc) != _myPid.Value)
                     {
