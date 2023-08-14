@@ -84,13 +84,13 @@ namespace Microsoft.PowerShell
             // the cursor is on a logical line considered empty if...
             return 
                 // the entire buffer is empty (by definition),
-                buffer.Length == 0
+                buffer.Length == 0 ||
                 // or the cursor sits at the start of the empty last line,
                 // meaning that it is past the end of the buffer and the
                 // last character in the buffer is a newline character,
-                || (cursor == buffer.Length && buffer[cursor - 1] == '\n')
+                (cursor == buffer.Length && buffer[cursor - 1] == '\n') ||
                 // or if the cursor is on a newline character.
-                || (cursor > 0 && buffer[cursor] == '\n');
+                (cursor > 0 && buffer[cursor] == '\n');
         }
     }
 
