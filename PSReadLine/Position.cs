@@ -102,23 +102,14 @@ namespace Microsoft.PowerShell
             var beginningOfLine = GetBeginningOfLinePos(current);
 
             var newCurrent = beginningOfLine;
+            var buffer = _singleton._buffer;
 
-            while (newCurrent < _singleton._buffer.Length && IsVisibleBlank(newCurrent))
+            while (newCurrent < buffer.Length && buffer.IsVisibleBlank(newCurrent))
             {
                 newCurrent++;
             }
 
             return newCurrent;
-        }
-
-        private static bool IsVisibleBlank(int newCurrent)
-        {
-            var c = _singleton._buffer[newCurrent];
-
-            // [:blank:] of vim's pattern matching behavior
-            // defines blanks as SPACE and TAB characters.
-
-            return c == ' ' || c == '\t';
         }
     }
 }

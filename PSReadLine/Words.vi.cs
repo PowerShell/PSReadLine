@@ -2,6 +2,8 @@
 Copyright (c) Microsoft Corporation.  All rights reserved.
 --********************************************************************/
 
+using System;
+
 namespace Microsoft.PowerShell
 {
     public partial class PSConsoleReadLine
@@ -106,10 +108,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         private bool IsWhiteSpace(int i)
         {
-            // Treat just beyond the end of buffer as whitespace because
-            // it looks like whitespace to the user even though they haven't
-            // entered a character yet.
-            return i >= _buffer.Length || char.IsWhiteSpace(_buffer[i]);
+            return _buffer.IsWhiteSpace(i);
         }
 
         /// <summary>
