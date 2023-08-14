@@ -2,7 +2,7 @@
 
 namespace Microsoft.PowerShell
 {
-    internal static partial class StringBuilderExtensions
+    internal static class StringBuilderCharacterExtensions
     {
         /// <summary>
         /// Returns true if the character at the specified position is a visible whitespace character.

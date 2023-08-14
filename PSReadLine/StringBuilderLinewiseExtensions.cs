@@ -14,7 +14,7 @@ namespace Microsoft.PowerShell
         internal int Count { get; }
     }
 
-    internal static partial class StringBuilderLinewiseExtensions
+    internal static class StringBuilderLinewiseExtensions
     {
         /// <summary>
         /// Determines the offset and the length of the fragment
@@ -74,8 +74,7 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
-        /// Returns true if the specified position
-        /// is on an empty logical line
+        /// Returns true if the specified position is on an empty logical line.
         /// </summary>
         /// <param name="buffer"></param>
         /// <param name="cursor"></param>
@@ -83,24 +82,15 @@ namespace Microsoft.PowerShell
         public static bool IsLogigalLineEmpty(this StringBuilder buffer, int cursor)
         {
             // the cursor is on a logical line considered empty if...
-
             return 
-
-                // the entire buffer is empty (by definition), or
-
-                buffer.Length == 0 ||
-
-                // the cursor sits at the start of the empty last line, 
+                // the entire buffer is empty (by definition),
+                buffer.Length == 0
+                // or the cursor sits at the start of the empty last line,
                 // meaning that it is past the end of the buffer and the
-                // last character in the buffer is a newline character, or
-
-                (cursor == buffer.Length && buffer[cursor - 1] == '\n') ||
-
-                // if the cursor is on a newline character, or
-
-                (cursor > 0 && buffer[cursor] == '\n')
-
-                ;
+                // last character in the buffer is a newline character,
+                || (cursor == buffer.Length && buffer[cursor - 1] == '\n')
+                // or if the cursor is on a newline character.
+                || (cursor > 0 && buffer[cursor] == '\n');
         }
     }
 

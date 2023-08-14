@@ -93,11 +93,6 @@ namespace Microsoft.PowerShell
             return _buffer.InWord(index, wordDelimiters);
         }
 
-        private bool InWord(char c, string wordDelimiters)
-        {
-            return Character.IsInWord(c, wordDelimiters);
-        }
-
         /// <summary>
         /// Find the end of the current/next word as defined by wordDelimiters and whitespace.
         /// </summary>
