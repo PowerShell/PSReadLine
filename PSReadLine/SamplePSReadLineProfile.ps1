@@ -24,6 +24,9 @@ Set-PSReadLineKeyHandler -Key DownArrow -Function HistorySearchForward
 # typed text is used as the substring pattern for filtering. A selected command
 # is inserted to the command line without invoking. Multiple command selection
 # is supported, e.g. selected by Ctrl + Click.
+# As another example, the module 'F7History' does something similar but uses the
+# console GUI instead of Out-GridView. Details about this module can be found at
+# PowerShell Gallery: https://www.powershellgallery.com/packages/F7History.
 Set-PSReadLineKeyHandler -Key F7 `
                          -BriefDescription History `
                          -LongDescription 'Show command history' `
