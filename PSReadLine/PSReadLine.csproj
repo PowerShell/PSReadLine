@@ -5,9 +5,9 @@
     <RootNamespace>Microsoft.PowerShell.PSReadLine</RootNamespace>
     <AssemblyName>Microsoft.PowerShell.PSReadLine2</AssemblyName>
     <NoWarn>$(NoWarn);CA1416</NoWarn>
-    <AssemblyVersion>2.3.1.0</AssemblyVersion>
-    <FileVersion>2.3.1</FileVersion>
-    <InformationalVersion>2.3.1-beta1</InformationalVersion>
+    <AssemblyVersion>2.3.2.0</AssemblyVersion>
+    <FileVersion>2.3.2</FileVersion>
+    <InformationalVersion>2.3.2-beta2</InformationalVersion>
     <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
     <TargetFrameworks>net462;net6.0</TargetFrameworks>
     <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
@@ -22,7 +22,7 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
-    <PackageReference Include="System.Management.Automation" Version="7.2.0" />
+    <PackageReference Include="System.Management.Automation" Version="7.2.13" />
   </ItemGroup>
 
   <ItemGroup>
