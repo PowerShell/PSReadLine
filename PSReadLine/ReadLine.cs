@@ -210,7 +210,7 @@ namespace Microsoft.PowerShell
                         bool runPipelineForEventProcessing = false;
                         foreach (var sub in eventSubscribers)
                         {
-                            if (sub.SourceIdentifier.Equals(PSEngineEvent.OnIdle, StringComparison.OrdinalIgnoreCase))
+                            if (string.Equals(sub.SourceIdentifier, PSEngineEvent.OnIdle, StringComparison.OrdinalIgnoreCase))
                             {
                                 // If the buffer is not empty, let's not consider we are idle because the user is in the middle of typing something.
                                 if (_singleton._buffer.Length > 0)
