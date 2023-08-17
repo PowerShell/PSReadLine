@@ -1,10 +1,12 @@
-### [2.3.2-beta2] - 2023-08-15
+### [2.3.2-beta2] - 2023-08-17
 
 - Work around `InvalidOperationException` from Console API (#3755) (Thanks @jazzdelightsme!)
 - Add the `TerminateOrphanedConsoleApps` option on Windows to kill orphaned console-attached process that may mess up reading from Console input (#3764) (Thanks @jazzdelightsme!)
 - Fix bot to add `needs-triage` label to newly opened issue (#3772)
 - Update `actions/checkout` used in GitHub action to v3 (#3773)
 - Supports the text-object command `diw` in the VI edit mode (#2059) (Thanks @springcomp!)
+- Fix `NullReferenceException` when processing event subscribers (#3781)
+- Point to `F7History` in the comment of the `F7` key-binding sample (#3782)
 
 [2.3.2-beta2]: https://github.com/PowerShell/PSReadLine/compare/v2.3.1-beta1...v2.3.2-beta2
 
