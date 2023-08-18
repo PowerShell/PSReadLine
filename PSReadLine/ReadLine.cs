@@ -36,7 +36,7 @@ namespace Microsoft.PowerShell
         // *must* be initialized in the static ctor
         // because the static member _clipboard depends upon it
         // for its own initialization
-        private static readonly PSConsoleReadLine _singleton;
+        internal static readonly PSConsoleReadLine _singleton;
 
         // This is used by PowerShellEditorServices (the backend of the PowerShell VSCode extension)
         // so that it can call PSReadLine from a delegate and not hit nested pipeline issues.

@@ -87,6 +87,8 @@ namespace Microsoft.PowerShell
             internal List<EditItem> _edits;
             internal int _undoEditIndex;
             internal int _editGroupStart;
+            internal GroupUndoHelper _groupUndoHelper;
+            internal Stack<GroupUndoState> _groupUndoStates = new Stack<GroupUndoState>();
         }
 
         // History state
@@ -138,6 +140,8 @@ namespace Microsoft.PowerShell
             _savedCurrentLine._edits = null;
             _savedCurrentLine._undoEditIndex = 0;
             _savedCurrentLine._editGroupStart = -1;
+            _savedCurrentLine._groupUndoHelper.Clear();
+            _savedCurrentLine._groupUndoStates.Clear();
         }
 
         private AddToHistoryOption GetAddToHistoryOption(string line, bool fromHistoryFile)
@@ -787,6 +791,9 @@ namespace Microsoft.PowerShell
                 _edits = new List<EditItem>(_savedCurrentLine._edits);
                 _undoEditIndex = _savedCurrentLine._undoEditIndex;
                 _editGroupStart = _savedCurrentLine._editGroupStart;
+                _groupUndoHelper = _savedCurrentLine._groupUndoHelper;
+
+                _savedCurrentLine._groupUndoStates.CopyTo(_groupUndoStates);
             }
             else
             {
@@ -794,6 +801,9 @@ namespace Microsoft.PowerShell
                 _edits = new List<EditItem>(_history[_currentHistoryIndex]._edits);
                 _undoEditIndex = _history[_currentHistoryIndex]._undoEditIndex;
                 _editGroupStart = _history[_currentHistoryIndex]._editGroupStart;
+                _groupUndoHelper = _history[_currentHistoryIndex]._groupUndoHelper;
+
+                _history[_currentHistoryIndex]._groupUndoStates.CopyTo(_groupUndoStates);
             }
             _buffer.Clear();
             _buffer.Append(line);
@@ -831,6 +841,9 @@ namespace Microsoft.PowerShell
                 _savedCurrentLine._edits = _edits;
                 _savedCurrentLine._undoEditIndex = _undoEditIndex;
                 _savedCurrentLine._editGroupStart = _editGroupStart;
+                _savedCurrentLine._groupUndoHelper = _groupUndoHelper;
+
+                _groupUndoStates.CopyTo(_savedCurrentLine._groupUndoStates);
             }
         }
 

@@ -59,19 +59,13 @@ namespace Microsoft.PowerShell
             _undoEditIndex = _edits.Count;
         }
 
-        private void StartEditGroup()
+        internal void StartEditGroup()
         {
-            if (_editGroupStart != -1)
-            {
-                // Nesting not supported.
-                throw new InvalidOperationException();
-            }
-
             RemoveEditsAfterUndo();
             _editGroupStart = _edits.Count;
         }
 
-        private void EndEditGroup(Action<ConsoleKeyInfo?, object> instigator = null, object instigatorArg = null)
+        internal void EndEditGroup(Action<ConsoleKeyInfo?, object> instigator = null, object instigatorArg = null)
         {
             // Remove the undone edits when closing an edit group, so the generated group
             // doesn't contain those edits that were already undone.
@@ -94,6 +88,7 @@ namespace Microsoft.PowerShell
                 _edits.RemoveRange(_editGroupStart, groupEditCount);
                 SaveEditItem(GroupedEdit.Create(groupedEditItems, instigator, instigatorArg));
             }
+
             _editGroupStart = -1;
         }
 

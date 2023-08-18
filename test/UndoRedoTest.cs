@@ -2,6 +2,8 @@
 
 namespace Test
 {
+    using PSConsoleReadLine = Microsoft.PowerShell.PSConsoleReadLine;
+
     public partial class ReadLine
     {
         [SkippableFact]
@@ -55,6 +57,32 @@ namespace Test
                 "123", CheckThat(() => AssertLineIs("yuiog123")),
                 _.Escape, _.u, CheckThat(() => AssertLineIs("yuiogh"))
             ));
+        }
+
+        [SkippableFact]
+        public void SupportNestedEditGroups()
+        {
+            TestSetup(KeyMode.Vi);
+
+            Test(" ", Keys(
+                " ", _.Escape,
+                CheckThat(() =>
+                {
+                    PSConsoleReadLine._singleton.StartEditGroup();
+                    PSConsoleReadLine._singleton.EndEditGroup();
+                })));
+
+            Test("012 45", Keys(
+                "012 45", _.Escape,
+                "b", // back one word
+                CheckThat(() =>
+                {
+                    PSConsoleReadLine._singleton.StartEditGroup();
+                    PSConsoleReadLine._singleton.StartEditGroup();
+
+                    PSConsoleReadLine._singleton.EndEditGroup();
+                    PSConsoleReadLine._singleton.EndEditGroup();
+                })));
         }
     }
 }
