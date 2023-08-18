@@ -573,6 +573,8 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void ViInsertWithAppend(ConsoleKeyInfo? key = null, object arg = null)
         {
+            _singleton._groupUndoHelper.StartGroup(ViInsertWithAppend, arg);
+
             ViInsertMode(key, arg);
             ForwardChar(key, arg);
         }
