@@ -277,6 +277,10 @@ namespace Microsoft.PowerShell
                     ViInsertMode(key, arg);
                 }
             }
+            else
+            {
+                _singleton._groupUndoHelper.EndGroup();
+            }
         }
 
         /// <summary>
@@ -294,6 +298,10 @@ namespace Microsoft.PowerShell
             if (ViCharacterSearcher.SearchBackwardDelete(keyChar, arg, backoff: false, instigator: (_key, _arg) => ViReplaceToCharBack(keyChar, _key, _arg)))
             {
                 ViInsertMode(key, arg);
+            }
+            else
+            {
+                _singleton._groupUndoHelper.EndGroup();
             }
         }
 
@@ -314,6 +322,10 @@ namespace Microsoft.PowerShell
             {
                 ViInsertMode(key, arg);
             }
+            else
+            {
+                _singleton._groupUndoHelper.EndGroup();
+            }
         }
 
         /// <summary>
@@ -331,6 +343,10 @@ namespace Microsoft.PowerShell
             if (ViCharacterSearcher.SearchBackwardDelete(keyChar, arg, backoff: true, instigator: (_key, _arg) => ViReplaceToBeforeCharBack(keyChar, _key, _arg)))
             {
                 ViInsertMode(key, arg);
+            }
+            else
+            {
+                _singleton._groupUndoHelper.EndGroup();
             }
         }
 
