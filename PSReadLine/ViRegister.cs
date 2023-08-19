@@ -6,14 +6,64 @@ namespace Microsoft.PowerShell
     public partial class PSConsoleReadLine
     {
         /// <summary>
+        /// Represents a clipboard that holds a piece of text.
+        /// </summary>
+        internal interface IClipboard
+        {
+            /// <summary>
+            /// Retrieves the text stored in the clipboard.
+            /// </summary>
+            string GetText();
+            /// <summary>
+            /// Stores some text in the clipboard.
+            /// </summary>
+            /// <param name="text"></param>
+            void SetText(string text);
+        }
+
+        /// <summary>
+        /// Represents an in-memory clipboard.
+        /// </summary>
+        internal sealed class InMemoryClipboard : IClipboard
+        {
+            private string _text;
+            public string GetText()
+                => _text ?? "";
+
+            public void SetText(string text)
+                => _text = text;
+        }
+
+        /// <summary>
+        /// Represents a clipboard that does not store any text.
+        /// </summary>
+        internal sealed class NoOpClipboard : IClipboard
+        {
+            public string GetText() => "";
+            public void SetText(string text) { }
+        }
+
+        /// <summary>
         /// Represents a named register.
         /// </summary>
         internal sealed class ViRegister
         {
             private readonly PSConsoleReadLine _singleton;
-            private string _text;
+            private readonly IClipboard _clipboard;
 
-            /// <summary>
+            /// Initialize a new instance of the <see cref="ViRegister" /> class.
+            /// </summary>
+            /// <param name="singleton">The <see cref="PSConsoleReadLine" /> object.
+            /// Used to hook into the undo / redo subsystem as part of
+            /// pasting the contents of the register into a buffer.
+            /// </param>
+            /// <param name="clipboard">The clipboard to store text to and retrieve text from</param>
+            public ViRegister(PSConsoleReadLine singleton, IClipboard clipboard)
+            {
+                _clipboard = clipboard;
+                _singleton = singleton;
+            }
+
             /// Initialize a new instance of the <see cref="ViRegister" /> class.
             /// </summary>
             /// <param name="singleton">The <see cref="PSConsoleReadLine" /> object.
@@ -21,15 +71,15 @@ namespace Microsoft.PowerShell
             /// pasting the contents of the register into a buffer.
             /// </param>
             public ViRegister(PSConsoleReadLine singleton)
+                : this(singleton, new InMemoryClipboard())
             {
-                _singleton = singleton;
             }
 
             /// <summary>
             /// Returns whether this register is empty.
             /// </summary>
             public bool IsEmpty
-                => String.IsNullOrEmpty(_text);
+                => String.IsNullOrEmpty(_clipboard.GetText());
 
             /// <summary>
             /// Returns whether this register contains
@@ -41,16 +91,14 @@ namespace Microsoft.PowerShell
             /// Gets the raw text contained in the register
             /// </summary>
             public string RawText
-                => _text;
+                => _clipboard.GetText();
 
             /// <summary>
             /// Records the entire buffer in the register.
             /// </summary>
             /// <param name="buffer"></param>
             public void Record(StringBuilder buffer)
-            {
-                Record(buffer, 0, buffer.Length);
-            }
+                => Record(buffer, 0, buffer.Length);
 
             /// <summary>
             /// Records a piece of text in the register.
@@ -67,7 +115,7 @@ namespace Microsoft.PowerShell
                 System.Diagnostics.Debug.Assert(offset + count <= buffer.Length);
 
                 HasLinewiseText = false;
-                _text = buffer.ToString(offset, count);
+                _clipboard.SetText(buffer.ToString(offset, count));
             }
 
             /// <summary>
@@ -77,7 +125,7 @@ namespace Microsoft.PowerShell
             public void LinewiseRecord(string text)
             {
                 HasLinewiseText = true;
-                _text = text;
+                _clipboard.SetText(text);
             }
 
             public int PasteAfter(StringBuilder buffer, int position)
@@ -87,9 +135,11 @@ namespace Microsoft.PowerShell
                     return position;
                 }
 
+                var yanked = _clipboard.GetText();
+
                 if (HasLinewiseText)
                 {
-                    var text = _text;
+                    var text = yanked;
 
                     if (text[0] != '\n')
                     {
@@ -99,7 +149,6 @@ namespace Microsoft.PowerShell
                     // paste text after the next line
 
                     var pastePosition = -1;
-                    var newCursorPosition = position;
 
                     for (var index = position; index < buffer.Length; index++)
                     {
@@ -127,8 +176,8 @@ namespace Microsoft.PowerShell
                         position += 1;
                     }
 
-                    InsertAt(buffer, _text, position, position);
-                    position += _text.Length - 1;
+                    InsertAt(buffer, yanked, position, position);
+                    position += yanked.Length - 1;
 
                     return position;
                 }
@@ -136,6 +185,8 @@ namespace Microsoft.PowerShell
 
             public int PasteBefore(StringBuilder buffer, int position)
             {
+                var yanked = _clipboard.GetText();
+
                 if (HasLinewiseText)
                 {
                     // currently, in Vi Edit Mode, the cursor may be positioned
@@ -145,7 +196,7 @@ namespace Microsoft.PowerShell
 
                     position = Math.Max(0, Math.Min(position, buffer.Length - 1));
 
-                    var text = _text;
+                    var text = yanked;
 
                     if (text[0] == '\n')
                     {
@@ -184,8 +235,8 @@ namespace Microsoft.PowerShell
                 }
                 else
                 {
-                    InsertAt(buffer, _text, position, position);
-                    return position + _text.Length - 1;
+                    InsertAt(buffer, yanked, position, position);
+                    return position + yanked.Length - 1;
                 }
             }
 
@@ -246,7 +297,7 @@ namespace Microsoft.PowerShell
 #if DEBUG
             public override string ToString()
             {
-                var text = _text.Replace("\n", "\\n");
+                var text = _clipboard.GetText().Replace("\n", "\\n");
                 return (HasLinewiseText ? "line: " : "") + "\"" + text + "\"";
             }
 #endif
