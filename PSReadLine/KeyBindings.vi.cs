@@ -313,6 +313,8 @@ namespace Microsoft.PowerShell
 
             _viChordDQuoteTable = new Dictionary<PSKeyInfo, KeyHandler>
             {
+                { Keys.DQuote,          MakeKeyHandler( ViSelectNamedRegister, "ViSelectNamedRegister" ) },
+                { Keys.Plus,            MakeKeyHandler( ViSelectNamedRegister, "ViSelectNamedRegister" ) },
                 { Keys.Underbar,        MakeKeyHandler( ViSelectNamedRegister, "ViSelectNamedRegister" ) },
             };
 

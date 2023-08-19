@@ -44,6 +44,18 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
+        /// Represents the system clipboard.
+        /// </summary>
+        internal sealed class SystemClipboard : IClipboard
+        {
+            public string GetText()
+                => Internal.Clipboard.GetText();
+
+            public void SetText(string text)
+                => Internal.Clipboard.SetText(text);
+        }
+
+        /// <summary>
         /// Represents a named register.
         /// </summary>
         internal sealed class ViRegister

@@ -5,7 +5,6 @@ Copyright (c) Microsoft Corporation.  All rights reserved.
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Security.Cryptography.Pkcs;
 
 namespace Microsoft.PowerShell
 {

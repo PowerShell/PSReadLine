@@ -653,7 +653,14 @@ namespace Microsoft.PowerShell
             _registers = new Dictionary<string, ViRegister> {
                 [""] = new ViRegister(_singleton, new InMemoryClipboard()),
                 ["_"] = new ViRegister(_singleton, new NoOpClipboard()),
+                ["\""] = new ViRegister(_singleton, new SystemClipboard()),
             };
+
+            // '+' and '"' are synonyms
+
+            _registers["+"] = _registers["\""];
+
+            // default register is the unnamed local register
 
             _viRegister = _registers[""];
 
