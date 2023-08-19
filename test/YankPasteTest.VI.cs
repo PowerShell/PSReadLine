@@ -584,5 +584,18 @@ namespace Test
                 "2dd", 'P', CheckThat(() => AssertCursorLeftTopIs(0, 0))
                 ));
         }
+
+        [SkippableFact]
+        public void ViYankToBlackHoleRegister()
+        {
+            TestSetup(KeyMode.Vi);
+
+            Test("text\n", Keys(
+                "text", _.Escape, "dd",
+                "iline", _.Escape,
+                "\"_dd", CheckThat(() => AssertLineIs("")),
+                "P", CheckThat(() => AssertLineIs("text\n"))
+                ));
+        }
     }
 }

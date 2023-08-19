@@ -44,6 +44,7 @@ namespace Microsoft.PowerShell
         private static Dictionary<PSKeyInfo, KeyHandler> _viChordCTable;
         private static Dictionary<PSKeyInfo, KeyHandler> _viChordYTable;
         private static Dictionary<PSKeyInfo, KeyHandler> _viChordDGTable;
+        private static Dictionary<PSKeyInfo, KeyHandler> _viChordDQuoteTable;
 
         private static Dictionary<PSKeyInfo, KeyHandler> _viChordTextObjectsTable;
 
@@ -218,6 +219,7 @@ namespace Microsoft.PowerShell
                 { Keys.Comma,           MakeKeyHandler(RepeatLastCharSearchBackwards, "RepeatLastCharSearchBackwards") },
                 { Keys.AltH,            MakeKeyHandler(ShowParameterHelp,     "ShowParameterHelp") },
                 { Keys.F1,              MakeKeyHandler(ShowCommandHelp,       "ShowCommandHelp") },
+                { Keys.DQuote,          MakeKeyHandler(ViChord,               "ChordFirstKey") },
             };
 
             // Some bindings are not available on certain platforms
@@ -309,6 +311,11 @@ namespace Microsoft.PowerShell
                 { Keys.G,               MakeKeyHandler( DeleteRelativeLines,   "DeleteRelativeLines") },
             };
 
+            _viChordDQuoteTable = new Dictionary<PSKeyInfo, KeyHandler>
+            {
+                { Keys.Underbar,        MakeKeyHandler( ViSelectNamedRegister, "ViSelectNamedRegister" ) },
+            };
+
             _viCmdChordTable = new Dictionary<PSKeyInfo, Dictionary<PSKeyInfo, KeyHandler>>();
             _viInsChordTable = new Dictionary<PSKeyInfo, Dictionary<PSKeyInfo, KeyHandler>>();
 
@@ -318,6 +325,7 @@ namespace Microsoft.PowerShell
             _viCmdChordTable[Keys.D] = _viChordDTable;
             _viCmdChordTable[Keys.C] = _viChordCTable;
             _viCmdChordTable[Keys.Y] = _viChordYTable;
+            _viCmdChordTable[Keys.DQuote] = _viChordDQuoteTable;
 
             _normalCursorSize = _console.CursorSize;
             if ((_normalCursorSize < 1) || (_normalCursorSize > 100))

@@ -649,7 +649,14 @@ namespace Microsoft.PowerShell
         static PSConsoleReadLine()
         {
             _singleton = new PSConsoleReadLine();
-            _viRegister = new ViRegister(_singleton);
+
+            _registers = new Dictionary<string, ViRegister> {
+                [""] = new ViRegister(_singleton, new InMemoryClipboard()),
+                ["_"] = new ViRegister(_singleton, new NoOpClipboard()),
+            };
+
+            _viRegister = _registers[""];
+
             InitializePropertyInfo();
         }
 
