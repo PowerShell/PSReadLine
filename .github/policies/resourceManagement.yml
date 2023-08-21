@@ -290,7 +290,7 @@ configuration:
       - payloadType: Issues
       - and:
         - isAction:
-            action: Open
+            action: Opened
         - not:
             and:
                 - isAssignedToSomeone
