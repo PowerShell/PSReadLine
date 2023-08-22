@@ -88,7 +88,7 @@ namespace Microsoft.PowerShell
             internal int _undoEditIndex;
             internal int _editGroupStart;
             internal GroupUndoHelper _groupUndoHelper;
-            internal Stack<GroupUndoState> _groupUndoStates = new Stack<GroupUndoState>();
+            internal Stack<GroupUndoState> _groupUndoStates = new();
         }
 
         // History state
