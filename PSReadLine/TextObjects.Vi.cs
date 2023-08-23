@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace Microsoft.PowerShell
 {
@@ -22,9 +23,17 @@ namespace Microsoft.PowerShell
         private TextObjectOperation _textObjectOperation = TextObjectOperation.None;
         private TextObjectSpan _textObjectSpan = TextObjectSpan.None;
 
-        private readonly Dictionary<TextObjectOperation, Dictionary<TextObjectSpan, KeyHandler>> _textObjectHandlers = new()
+        private readonly Dictionary<TextObjectOperation, Dictionary<TextObjectSpan, Dictionary<PSKeyInfo, KeyHandler>>> _textObjectHandlers = new()
         {
-            [TextObjectOperation.Delete] = new() { [TextObjectSpan.Inner] = MakeKeyHandler(ViDeleteInnerWord, "ViDeleteInnerWord") },
+            [TextObjectOperation.Delete] = new()
+            {
+                [TextObjectSpan.Inner] = new()
+                {
+                    [Keys.DQuote] = MakeKeyHandler(ViDeleteInnerDQuote, "ViDeleteInnerDQuote"),
+                    [Keys.SQuote] = MakeKeyHandler(ViDeleteInnerSQuote, "ViDeleteInnerSQuote"),
+                    [Keys.W] = MakeKeyHandler(ViDeleteInnerWord, "ViDeleteInnerWord"),
+                }
+            },
         };
 
         private void ViChordDeleteTextObject(ConsoleKeyInfo? key = null, object arg = null)
@@ -75,8 +84,12 @@ namespace Microsoft.PowerShell
 
         private static void ViHandleTextObject(ConsoleKeyInfo? key = null, object arg = null)
         {
-            if (!_singleton._textObjectHandlers.TryGetValue(_singleton._textObjectOperation, out var textObjectHandler) ||
-                !textObjectHandler.TryGetValue(_singleton._textObjectSpan, out var handler))
+            System.Diagnostics.Debug.Assert(key != null);
+            var keyInfo = PSKeyInfo.FromConsoleKeyInfo(key.Value);
+
+            if (!_singleton._textObjectHandlers.TryGetValue(_singleton._textObjectOperation, out var textObjectSpanHandlers) ||
+                !textObjectSpanHandlers.TryGetValue(_singleton._textObjectSpan, out var textObjectKeyHandlers) ||
+                !textObjectKeyHandlers.TryGetValue(keyInfo, out var handler))
             {
                 ResetTextObjectState();
                 Ding();
@@ -90,6 +103,39 @@ namespace Microsoft.PowerShell
         {
             _singleton._textObjectOperation = TextObjectOperation.None;
             _singleton._textObjectSpan = TextObjectSpan.None;
+        }
+
+        private static void ViDeleteInnerSQuote(ConsoleKeyInfo? key = null, object arg = null)
+            => ViDeleteInnerQuotes('\'', key, arg);
+        private static void ViDeleteInnerDQuote(ConsoleKeyInfo? key = null, object arg = null)
+            => ViDeleteInnerQuotes('\"', key, arg);
+
+        private static void ViDeleteInnerQuotes(char delimiter, ConsoleKeyInfo? key = null, object arg = null)
+        {
+            if (!TryGetArgAsInt(arg, out var numericArg, 1))
+            {
+                return;
+            }
+
+            if (_singleton._buffer.Length == 0)
+            {
+                Ding();
+                return;
+            }
+
+            var (start, end) = _singleton._buffer.ViFindSpanOfInnerQuotedTextObjectBoundary(delimiter, _singleton._current, repeated: numericArg);
+
+            if (start == -1 || end == -1)
+            {
+                Ding();
+                return;
+            }
+
+            var position = start;
+
+            _singleton.RemoveTextToViRegister(position, end - position);
+            _singleton.AdjustCursorPosition(position);
+            _singleton.Render();
         }
 
         private static void ViDeleteInnerWord(ConsoleKeyInfo? key = null, object arg = null)

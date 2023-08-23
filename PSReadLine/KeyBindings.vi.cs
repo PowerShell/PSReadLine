@@ -301,6 +301,8 @@ namespace Microsoft.PowerShell
 
             _viChordTextObjectsTable = new Dictionary<PSKeyInfo, KeyHandler>
             {
+                { Keys.DQuote,          MakeKeyHandler(ViHandleTextObject,     "QuoteTextObject")},
+                { Keys.SQuote,          MakeKeyHandler(ViHandleTextObject,     "QuoteTextObject")},
                 { Keys.W,               MakeKeyHandler(ViHandleTextObject,     "WordTextObject")},
             };
             

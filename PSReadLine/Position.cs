@@ -10,19 +10,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         /// <param name="current">The position in the current logical line.</param>
         private static int GetBeginningOfLinePos(int current)
-        {
-            int i = Math.Max(0, current);
-            while (i > 0)
-            {
-                if (_singleton._buffer[--i] == '\n')
-                {
-                    i += 1;
-                    break;
-                }
-            }
-
-            return i;
-        }
+            => _singleton._buffer.GetBeginningOfLogicalLinePos(current);
 
         /// <summary>
         /// Returns the position of the beginning of line
@@ -66,21 +54,7 @@ namespace Microsoft.PowerShell
         /// <param name="current"></param>
         /// <returns></returns>
         private static int GetEndOfLogicalLinePos(int current)
-        {
-            var newCurrent = current;
-
-            for (var position = current; position < _singleton._buffer.Length; position++)
-            {
-                if (_singleton._buffer[position] == '\n')
-                {
-                    break;
-                }
-
-                newCurrent = position;
-            }
-
-            return newCurrent;
-        }
+            => _singleton._buffer.GetEndOfLogicalLinePos(current);
 
         /// <summary>
         /// Returns the position of the end of the logical line

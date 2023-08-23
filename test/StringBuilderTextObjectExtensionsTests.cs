@@ -73,5 +73,51 @@ namespace Test
             Assert.Equal(46, buffer.ViFindBeginningOfNextWordObjectBoundary(45, wordDelimiters));
             Assert.Equal(50, buffer.ViFindBeginningOfNextWordObjectBoundary(46, wordDelimiters));
         }
+
+        [Theory]
+        [InlineData('\'')]
+        [InlineData('\"')]
+        public void StringBuilderTextObjectExtensions_ViFindSpanOfInnerQuotedTextObjectBoundary(char delimiter)
+        {
+            var buffer = new StringBuilder($"_{delimiter}_{delimiter} {delimiter}_{delimiter} {delimiter}_{delimiter}");
+
+            // text:     _"_" "_" "_"
+            // position: 012345678901
+            //           -         1
+            // boundary: 111135557888
+
+            // when invoked once, the span is within the quotes
+
+            Assert.Equal((2, 3), buffer.ViFindSpanOfInnerQuotedTextObjectBoundary(delimiter, 0, repeated: 1));
+            Assert.Equal((2, 3), buffer.ViFindSpanOfInnerQuotedTextObjectBoundary(delimiter, 1, repeated: 1));
+            Assert.Equal((2, 3), buffer.ViFindSpanOfInnerQuotedTextObjectBoundary(delimiter, 2, repeated: 1));
+            Assert.Equal((2, 3), buffer.ViFindSpanOfInnerQuotedTextObjectBoundary(delimiter, 3, repeated: 1));
+            Assert.Equal((4, 5), buffer.ViFindSpanOfInnerQuotedTextObjectBoundary(delimiter, 4, repeated: 1));
+            Assert.Equal((6, 7), buffer.ViFindSpanOfInnerQuotedTextObjectBoundary(delimiter, 5, repeated: 1));
+            Assert.Equal((6, 7), buffer.ViFindSpanOfInnerQuotedTextObjectBoundary(delimiter, 6, repeated: 1));
+            Assert.Equal((6, 7), buffer.ViFindSpanOfInnerQuotedTextObjectBoundary(delimiter, 7, repeated: 1));
+            Assert.Equal((8, 9), buffer.ViFindSpanOfInnerQuotedTextObjectBoundary(delimiter, 8, repeated: 1));
+            Assert.Equal((10, 11), buffer.ViFindSpanOfInnerQuotedTextObjectBoundary(delimiter, 9, repeated: 1));
+            Assert.Equal((10, 11), buffer.ViFindSpanOfInnerQuotedTextObjectBoundary(delimiter, 10, repeated: 1));
+            Assert.Equal((10, 11), buffer.ViFindSpanOfInnerQuotedTextObjectBoundary(delimiter, 11, repeated: 1));
+            Assert.Equal((10, 11), buffer.ViFindSpanOfInnerQuotedTextObjectBoundary(delimiter, 12, repeated: 1));
+
+            // when invoked more than once, the span is around the quotes
+
+            Assert.Equal((1, 4), buffer.ViFindSpanOfInnerQuotedTextObjectBoundary(delimiter, 0, repeated: 42));
+            Assert.Equal((1, 4), buffer.ViFindSpanOfInnerQuotedTextObjectBoundary(delimiter, 1, repeated: 42));
+            Assert.Equal((1, 4), buffer.ViFindSpanOfInnerQuotedTextObjectBoundary(delimiter, 2, repeated: 42));
+            Assert.Equal((1, 4), buffer.ViFindSpanOfInnerQuotedTextObjectBoundary(delimiter, 3, repeated: 42));
+            Assert.Equal((3, 6), buffer.ViFindSpanOfInnerQuotedTextObjectBoundary(delimiter, 4, repeated: 42));
+            Assert.Equal((5, 8), buffer.ViFindSpanOfInnerQuotedTextObjectBoundary(delimiter, 5, repeated: 42));
+            Assert.Equal((5, 8), buffer.ViFindSpanOfInnerQuotedTextObjectBoundary(delimiter, 6, repeated: 42));
+            Assert.Equal((5, 8), buffer.ViFindSpanOfInnerQuotedTextObjectBoundary(delimiter, 7, repeated: 42));
+            Assert.Equal((7, 10), buffer.ViFindSpanOfInnerQuotedTextObjectBoundary(delimiter, 8, repeated: 42));
+            Assert.Equal((9, 12), buffer.ViFindSpanOfInnerQuotedTextObjectBoundary(delimiter, 9, repeated: 42));
+            Assert.Equal((9, 12), buffer.ViFindSpanOfInnerQuotedTextObjectBoundary(delimiter, 10, repeated: 42));
+            Assert.Equal((9, 12), buffer.ViFindSpanOfInnerQuotedTextObjectBoundary(delimiter, 11, repeated: 42));
+            Assert.Equal((9, 12), buffer.ViFindSpanOfInnerQuotedTextObjectBoundary(delimiter, 12, repeated: 42));
+
+        }
     }
 }
