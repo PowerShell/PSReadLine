@@ -66,7 +66,7 @@ namespace Microsoft.PowerShell
         ///
         /// In an ideal situation, edit groups would be started and ended
         /// in balanced pairs of calls. However, we expose public methods
-        /// that may start and edit group and rely on future actions to
+        /// that may start an edit group and rely on future actions to
         /// properly end the group.
         ///
         /// To improve robustness of the code, we allow starting "nested"
