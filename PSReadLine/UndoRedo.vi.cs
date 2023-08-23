@@ -46,16 +46,23 @@ namespace Microsoft.PowerShell
             {
                 if (_singleton._editGroupStart >= 0)
                 {
-                    _singleton.EndEditGroup(_instigator, _instigatorArg);
+                    _singleton.EndEditGroup(
+                        _singleton._groupUndoHelper._instigator,
+                        _singleton._groupUndoHelper._instigatorArg);
 
-                    if (_singleton._groupUndoStates.Count > 0)
+                    while (_singleton._groupUndoStates.Count > 0)
                     {
                         var groupUndoState = _singleton._groupUndoStates.Pop();
                         _singleton._editGroupStart = groupUndoState.EditGroupStart;
-                        groupUndoState.GroupUndoHelper.EndGroup();
+                        _singleton._groupUndoHelper = groupUndoState.GroupUndoHelper;
+
+                        _singleton.EndEditGroup(
+                            _singleton._groupUndoHelper._instigator,
+                            _singleton._groupUndoHelper._instigatorArg);
                     }
                 }
-                Clear();
+
+                _singleton._groupUndoHelper.Clear();
             }
         }
 
