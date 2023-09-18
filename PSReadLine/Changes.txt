@@ -1,3 +1,7 @@
+### [2.3.3] - 2023-09-18
+
+[2.3.3]: https://github.com/PowerShell/PSReadLine/compare/v2.3.2-beta2...v2.3.3
+
 ### [2.3.2-beta2] - 2023-08-17
 
 - Work around `InvalidOperationException` from Console API (#3755) (Thanks @jazzdelightsme!)
