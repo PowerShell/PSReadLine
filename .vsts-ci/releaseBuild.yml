@@ -143,6 +143,7 @@ stages:
     displayName: PSReadLine Compliance
     variables:
       - group: APIScan
+      - group: ApiScanMeta
     # APIScan can take a long time
     timeoutInMinutes: 240
 
