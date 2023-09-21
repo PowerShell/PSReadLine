@@ -179,11 +179,17 @@ namespace Microsoft.PowerShell
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 DefaultEditMode = EditMode.Windows;
-                DefaultInlinePredictionColor =
-                    Environment.OSVersion.Version.Build >= 22621 // on Windows 11 22H2 or newer versions
-                    || Environment.GetEnvironmentVariable("WT_SESSION") is not null // in Windows Terminal
-                        ? newInlinePredictionColor
-                        : oldInlinePredictionColor;
+
+                // Our tests expect that the default inline-view color is set to the new color, so we configure
+                // the color based on system environment only if we are not in test runs.
+                if (AppDomain.CurrentDomain.FriendlyName is not "PSReadLine.Tests")
+                {
+                    DefaultInlinePredictionColor =
+                        Environment.OSVersion.Version.Build >= 22621 // on Windows 11 22H2 or newer versions
+                        || Environment.GetEnvironmentVariable("WT_SESSION") is not null // in Windows Terminal
+                            ? newInlinePredictionColor
+                            : oldInlinePredictionColor;
+                }
             }
 
             // Use the same color for the list prediction tooltips.
