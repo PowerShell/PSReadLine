@@ -95,17 +95,14 @@ namespace Microsoft.PowerShell
 
         // Find the most suitable color using https://stackoverflow.com/a/33206814
         // Default prediction color settings:
-        //  - use FG color 'dim white italic' for the inline-view suggestion text
         //  - use FG color 'yellow' for the list-view suggestion text
         //  - use BG color 'dark black' for the selected list-view suggestion text
-        public const string DefaultInlinePredictionColor       = "\x1b[97;2;3m";
         public const string DefaultListPredictionColor         = "\x1b[33m";
         public const string DefaultListPredictionSelectedColor = "\x1b[48;5;238m";
-        public const string DefaultListPredictionTooltipColor  = "\x1b[97;2;3m";
 
-        public static EditMode DefaultEditMode = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
-            ? EditMode.Windows
-            : EditMode.Emacs;
+        public static readonly string DefaultInlinePredictionColor;
+        public static readonly string DefaultListPredictionTooltipColor;
+        public static readonly EditMode DefaultEditMode;
 
         public const string DefaultContinuationPrompt = ">> ";
 
@@ -165,6 +162,34 @@ namespace Microsoft.PowerShell
         /// the input is not an escape sequence?
         /// </summary>
         public const int DefaultAnsiEscapeTimeout = 100;
+
+        static PSConsoleReadLineOptions()
+        {
+            // For inline-view suggestion text, we use the new FG color 'dim white italic' when possible, because it provides
+            // sufficient contrast in terminals that don't use a pure black background (like VSCode terminal).
+            // However, on Windows 10 and Windows Server, the ConHost doesn't support font effect VT sequences, such as 'dim'
+            // and 'italic', so we need to use the old FG color 'dark black' as in the v2.2.6.
+            const string newInlinePredictionColor = "\x1b[97;2;3m";
+            const string oldInlinePredictionColor = "\x1b[38;5;238m";
+
+            ColorSetters = null;
+            DefaultEditMode = EditMode.Emacs;
+            DefaultInlinePredictionColor = newInlinePredictionColor;
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                DefaultEditMode = EditMode.Windows;
+                DefaultInlinePredictionColor =
+                    Environment.OSVersion.Version.Build >= 22621 // on Windows 11 22H2 or newer versions
+                    || Environment.GetEnvironmentVariable("WT_SESSION") is not null // in Windows Terminal
+                        ? newInlinePredictionColor
+                        : oldInlinePredictionColor;
+            }
+
+            // Use the same color for the list prediction tooltips.
+            DefaultListPredictionTooltipColor = DefaultInlinePredictionColor;
+            DefaultAddToHistoryHandler = s => PSConsoleReadLine.GetDefaultAddToHistoryOption(s);
+        }
 
         public PSConsoleReadLineOptions(string hostName, bool usingLegacyConsole)
         {
@@ -285,8 +310,7 @@ namespace Microsoft.PowerShell
         /// or added to memory only, or added to both memory and history file.
         /// </summary>
         public Func<string, object> AddToHistoryHandler { get; set; }
-        public static readonly Func<string, object> DefaultAddToHistoryHandler =
-            s => PSConsoleReadLine.GetDefaultAddToHistoryOption(s);
+        public static readonly Func<string, object> DefaultAddToHistoryHandler;
 
         /// <summary>
         /// This handler is called from ValidateAndAcceptLine.
@@ -305,7 +329,6 @@ namespace Microsoft.PowerShell
         /// odd things with script blocks, we create a white-list of commands
         /// that do invoke the script block - this covers the most useful cases.
         /// </summary>
-        [SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public HashSet<string> CommandsToValidateScriptBlockArguments { get; set; }
 
         /// <summary>
@@ -555,7 +578,7 @@ namespace Microsoft.PowerShell
             SelectionColor = VTColorUtils.AsEscapeSequence(bg, fg);
         }
 
-        private static Dictionary<string, Action<PSConsoleReadLineOptions, object>> ColorSetters = null;
+        private static Dictionary<string, Action<PSConsoleReadLineOptions, object>> ColorSetters;
 
         internal void SetColor(string property, object value)
         {
@@ -830,7 +853,6 @@ namespace Microsoft.PowerShell
         [Parameter(Position = 0, Mandatory = true)]
         [Alias("Key")]
         [ValidateNotNullOrEmpty]
-        [SuppressMessage("Microsoft.Performance", "CA1819:PropertiesShouldNotReturnArrays")]
         public string[] Chord { get; set; }
 
         [Parameter]
@@ -903,8 +925,7 @@ namespace Microsoft.PowerShell
             }
         }
 
-        private readonly Lazy<RuntimeDefinedParameterDictionary> _dynamicParameters =
-            new Lazy<RuntimeDefinedParameterDictionary>(CreateDynamicParametersResult);
+        private readonly Lazy<RuntimeDefinedParameterDictionary> _dynamicParameters = new(CreateDynamicParametersResult);
 
         private static RuntimeDefinedParameterDictionary CreateDynamicParametersResult()
         {
@@ -1027,7 +1048,7 @@ namespace Microsoft.PowerShell
 
         public const ConsoleColor UnknownColor = (ConsoleColor) (-1);
         private static readonly Dictionary<string, ConsoleColor> ConsoleColors =
-            new Dictionary<string, ConsoleColor>(StringComparer.OrdinalIgnoreCase)
+            new(StringComparer.OrdinalIgnoreCase)
             {
                 {"Black", ConsoleColor.Black},
                 {"DarkBlue", ConsoleColor.DarkBlue},
