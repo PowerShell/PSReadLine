@@ -637,10 +637,7 @@ static class PlatformWindows
     internal static int GetParentPid(Process process)
     {
         // (This is how ProcessCodeMethods in pwsh does it.)
-        PROCESS_BASIC_INFORMATION pbi;
-        int size;
-        var res = NtQueryInformationProcess(process.Handle, 0, out pbi, Marshal.SizeOf<PROCESS_BASIC_INFORMATION>(), out size);
-
+        var res = NtQueryInformationProcess(process.Handle, 0, out PROCESS_BASIC_INFORMATION pbi, Marshal.SizeOf<PROCESS_BASIC_INFORMATION>(), out _);
         return res != 0 ? InvalidProcessId : pbi.InheritedFromUniqueProcessId.ToInt32();
     }
 

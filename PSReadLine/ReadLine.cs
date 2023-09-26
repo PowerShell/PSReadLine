@@ -25,8 +25,6 @@ using Microsoft.PowerShell.PSReadLine;
 
 namespace Microsoft.PowerShell
 {
-    [SuppressMessage("Microsoft.Design", "CA1032:ImplementStandardExceptionConstructors")]
-    [SuppressMessage("Microsoft.Usage", "CA2237:MarkISerializableTypesWithSerializable")]
     class ExitException : Exception { }
 
     public partial class PSConsoleReadLine : IPSConsoleReadLineMockableMethods
