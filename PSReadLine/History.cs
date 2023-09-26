@@ -497,7 +497,7 @@ namespace Microsoft.PowerShell
                     string line;
                     while ((line = sr.ReadLine()) is not null)
                     {
-                        if (!line.EndsWith('`'))
+                        if (!line.EndsWith("`", StringComparison.Ordinal))
                         {
                             // A complete history record is guaranteed to start from the next line.
                             break;
