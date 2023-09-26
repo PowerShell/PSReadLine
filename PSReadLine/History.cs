@@ -470,14 +470,14 @@ namespace Microsoft.PowerShell
                 const long offset_05mb = 524288;
 
                 // 1mb content contains more than 34,000 history lines for a typical usage, which should be
-                // more than enough to cover 25,000 history records (a history record could be a multi-line
+                // more than enough to cover 20,000 history records (a history record could be a multi-line
                 // command). Similarly, 0.5mb content should be enough to cover 10,000 history records.
                 // We optimize the file reading when the history count falls in those ranges. If the history
                 // count is even larger, which should be very rare, we just read all lines.
                 long offset = historyCount switch
                 {
                     <= 10000 => offset_05mb,
-                    <= 25000 => offset_1mb,
+                    <= 20000 => offset_1mb,
                     _ => 0,
                 };
 
@@ -486,22 +486,22 @@ namespace Microsoft.PowerShell
 
                 if (offset > 0 && fs.Length > offset)
                 {
-                    // When the file size is larger than 1mb, we only read the last 1mb content from the end.
-                    int? b1 = null, b2 = null;
+                    // When the file size is larger than the offset, we only read that amount of content from the end.
                     fs.Seek(-offset, SeekOrigin.End);
 
-                    // After seeking, the current position may point at the middle of a history record, or even
-                    // a byte within a unicode char. So, we need to find the start of the next history record.
-                    while ((b2 = fs.ReadByte()) is not -1)
+                    // After seeking, the current position may point at the middle of a history record, or even at a
+                    // byte within a UTF-8 character (history file is saved with UTF-8 encoding). So, let's ignore the
+                    // first line read from that position.
+                    sr.ReadLine();
+
+                    string line;
+                    while ((line = sr.ReadLine()) is not null)
                     {
-                        // Read bytes until we find the first newline ('\n' == 0xA) that is not right after a backtick ('`' == 0x60).
-                        // It means a separate full history record will start from the next byte.
-                        if (b2 is 0xA && b1.HasValue && b1 is not 0x60)
+                        if (!line.EndsWith('`'))
                         {
+                            // A complete history record is guaranteed to start from the next line.
                             break;
                         }
-
-                        b1 = b2;
                     }
                 }
 
