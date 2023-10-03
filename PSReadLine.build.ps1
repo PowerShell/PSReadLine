@@ -165,10 +165,14 @@ task LayoutModule BuildPolyfiller, BuildMainModule, {
         if ($matches[1] -ne $version) { throw "AssemblyFileVersion mismatch with AssemblyInformationalVersion" }
         $prerelease = $matches[2]
 
-        # Put the prerelease tag in private data
-        $moduleManifestContent = [regex]::Replace($moduleManifestContent, "}", "PrivateData = @{ PSData = @{ Prerelease = '$prerelease'; ProjectUri = 'https://github.com/PowerShell/PSReadLine' } }$([System.Environment]::Newline)}")
+        # Put the prerelease tag in private data, along with the project URI.
+        $privateDataSection = "PrivateData = @{ PSData = @{ Prerelease = '$prerelease'; ProjectUri = 'https://github.com/PowerShell/PSReadLine' } }"
+    } else {
+        # Put the project URI in private data.
+        $privateDataSection = "PrivateData = @{ PSData = @{ ProjectUri = 'https://github.com/PowerShell/PSReadLine' } }"
     }
 
+    $moduleManifestContent = [regex]::Replace($moduleManifestContent, "}", "${privateDataSection}$([System.Environment]::Newline)}")
     $moduleManifestContent = [regex]::Replace($moduleManifestContent, "ModuleVersion = '.*'", "ModuleVersion = '$version'")
     $moduleManifestContent | Set-Content -Path $targetDir/PSReadLine.psd1
 
