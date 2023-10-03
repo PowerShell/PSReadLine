@@ -457,11 +457,60 @@ namespace Microsoft.PowerShell
             {
                 WithHistoryFileMutexDo(1000, () =>
                 {
-                    var historyLines = File.ReadAllLines(Options.HistorySavePath);
+                    var historyLines = ReadHistoryLinesImpl(Options.HistorySavePath, Options.MaximumHistoryCount);
                     UpdateHistoryFromFile(historyLines, fromDifferentSession: false, fromInitialRead: true);
                     var fileInfo = new FileInfo(Options.HistorySavePath);
                     _historyFileLastSavedSize = fileInfo.Length;
                 });
+            }
+
+            static IEnumerable<string> ReadHistoryLinesImpl(string path, int historyCount)
+            {
+                const long offset_1mb = 1048576;
+                const long offset_05mb = 524288;
+
+                // 1mb content contains more than 34,000 history lines for a typical usage, which should be
+                // more than enough to cover 20,000 history records (a history record could be a multi-line
+                // command). Similarly, 0.5mb content should be enough to cover 10,000 history records.
+                // We optimize the file reading when the history count falls in those ranges. If the history
+                // count is even larger, which should be very rare, we just read all lines.
+                long offset = historyCount switch
+                {
+                    <= 10000 => offset_05mb,
+                    <= 20000 => offset_1mb,
+                    _ => 0,
+                };
+
+                using var fs = new FileStream(path, FileMode.Open);
+                using var sr = new StreamReader(fs);
+
+                if (offset > 0 && fs.Length > offset)
+                {
+                    // When the file size is larger than the offset, we only read that amount of content from the end.
+                    fs.Seek(-offset, SeekOrigin.End);
+
+                    // After seeking, the current position may point at the middle of a history record, or even at a
+                    // byte within a UTF-8 character (history file is saved with UTF-8 encoding). So, let's ignore the
+                    // first line read from that position.
+                    sr.ReadLine();
+
+                    string line;
+                    while ((line = sr.ReadLine()) is not null)
+                    {
+                        if (!line.EndsWith("`", StringComparison.Ordinal))
+                        {
+                            // A complete history record is guaranteed to start from the next line.
+                            break;
+                        }
+                    }
+                }
+
+                // Read lines in the streaming way, so it won't consume to much memory even if we have to
+                // read all lines from a large history file.
+                while (!sr.EndOfStream)
+                {
+                    yield return sr.ReadLine();
+                }
             }
         }
 
