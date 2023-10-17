@@ -5,9 +5,8 @@ body:
 - type: markdown
   attributes:
     value: |
-      Thanks for taking the time to fill out this documentation Issue! |
-      Documents for PSReadLine are hosted in the [PowerShell-Docs](https://github.com/MicrosoftDocs/PowerShell-Docs) repo, |
-      so, please submit the issue directly in that repo for a quicker response and fix.
+      Thanks for taking the time to fill out this documentation Issue!
+      Documents for PSReadLine are hosted in the [PowerShell-Docs](https://github.com/MicrosoftDocs/PowerShell-Docs) repo. So, please submit the issue directly in that repo for a quicker response and fix.
 - type: checkboxes
   attributes:
     label: Prerequisites
