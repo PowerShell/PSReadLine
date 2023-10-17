@@ -1129,8 +1129,35 @@ namespace Test
 
             Test("bcd", Keys(
                 "abcdabcd", _.Escape,
-                "Bc2tb", _.Escape, CheckThat(() => AssertCursorLeftIs(0)), 
+
+                // return to the [B]eginning of the word,
+                // then [c]hange text un[t]il just before the [2]nd [b] character
+                // this leaves the cursor at the current position (0) but erases
+                // the "abcda" text portion, / switches to edit mode and
+                // positions the cursor just before the "bcd" text portion.
+
+                "Bc2tb",
+
+                // going back to normal mode again without having modified the buffer further
+                // even though the [c] command started an edit group, going back to normal
+                // mode closes the pending edit group.
+
+                _.Escape, CheckThat(() => AssertCursorLeftIs(0)),
+
+                // attempt to [c]hange text un[t]il just before the [2]nd [b] character again
+                // because the [b] character only appears once further down in the buffer
+                // relative to where the cursor position is – currently set to 0 - the command
+                // fails. Therefore, we are still in normal mode.
+                //
+                // however, even though the command failed, it still started an edit group
+                // which is now pending further edit actions
+
                 "c2tb", CheckThat(() => AssertLineIs("bcd")),
+
+                // attempt to [c]hange text un[t]il just before the [2]nd [b] character a third time.
+                // this exercises a code path where starting a edit group while another
+                // pending edit group was previously started crashed PSRL.
+
                 "c2tb" // should not crash
                 ));
         }

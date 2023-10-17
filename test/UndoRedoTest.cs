@@ -78,9 +78,27 @@ namespace Test
                 CheckThat(() =>
                 {
                     PSConsoleReadLine._singleton.StartEditGroup();
+
+                    // In an ideal situation, edit groups would be started and ended
+                    // in balanced pairs of calls. However, we expose public methods
+                    // that may start an edit group and rely on future actions to
+                    // properly end the group.
+                    //
+                    // To improve robustness of the code, we allow starting "nested"
+                    // edit groups and end the whole sequence of groups once. That is,
+                    // a single call to _singleton.EndEditGroup() will properly record the
+                    // changes made up to that point from calls to _singleton.StartEditGroup()
+                    // that have been made at different points in the overall sequence of changes.
+
+                    // Thus, the following, unneeded call, should not crash.
+
                     PSConsoleReadLine._singleton.StartEditGroup();
 
                     PSConsoleReadLine._singleton.EndEditGroup();
+
+                    // Likewise, closing an edit group that is no longer open
+                    // is now a no-op. That is, the following line should not crash either.
+
                     PSConsoleReadLine._singleton.EndEditGroup();
                 })));
         }
