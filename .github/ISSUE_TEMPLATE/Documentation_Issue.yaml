@@ -1,5 +1,5 @@
 name: Documentation Issue 📚
-description: Report issues in our documentation.
+description: Report documentation issues at https://github.com/MicrosoftDocs/PowerShell-Docs/issues/new/choose
 labels: Issue-Docs
 body:
 - type: markdown
