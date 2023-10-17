@@ -2,15 +2,9 @@ name: Documentation Issue 📚
 description: Report issues in our documentation.
 labels: Issue-Docs
 body:
-- type: checkboxes
+- type: markdown
   attributes:
-    label: Prerequisites
-    options:
-    - label: Write a descriptive title.
-      required: true
-- type: textarea
-  attributes:
-    label: Issue summary
-    description: Briefly describe which document needs to be corrected and why.
-  validations:
-    required: true
+    value: |
+      Thanks for taking the time to fill out this documentation Issue! |
+      Documents for PSReadLine are hosted in the [PowerShell-Docs](https://github.com/MicrosoftDocs/PowerShell-Docs) repo, |
+      so, please submit the issue directly in that repo for a quicker response and fix.
