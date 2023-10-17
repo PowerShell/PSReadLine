@@ -68,8 +68,8 @@ namespace Test
                 " ", _.Escape,
                 CheckThat(() =>
                 {
-                    PSConsoleReadLine._singleton.StartEditGroup();
-                    PSConsoleReadLine._singleton.EndEditGroup();
+                    PSConsoleReadLine._singleton._groupUndoHelper.StartGroup((k, o) => { }, null);
+                    PSConsoleReadLine._singleton._groupUndoHelper.EndGroup();
                 })));
 
             Test("012 45", Keys(
@@ -77,7 +77,7 @@ namespace Test
                 "b", // back one word
                 CheckThat(() =>
                 {
-                    PSConsoleReadLine._singleton.StartEditGroup();
+                    PSConsoleReadLine._singleton._groupUndoHelper.StartGroup((k, o) => { }, null);
 
                     // In an ideal situation, edit groups would be started and ended
                     // in balanced pairs of calls. However, we expose public methods
@@ -92,14 +92,14 @@ namespace Test
 
                     // Thus, the following, unneeded call, should not crash.
 
-                    PSConsoleReadLine._singleton.StartEditGroup();
+                    PSConsoleReadLine._singleton._groupUndoHelper.StartGroup((k, o) => { }, null);
 
-                    PSConsoleReadLine._singleton.EndEditGroup();
+                    PSConsoleReadLine._singleton._groupUndoHelper.EndGroup();
 
                     // Likewise, closing an edit group that is no longer open
                     // is now a no-op. That is, the following line should not crash either.
 
-                    PSConsoleReadLine._singleton.EndEditGroup();
+                    PSConsoleReadLine._singleton._groupUndoHelper.EndGroup();
                 })));
         }
     }

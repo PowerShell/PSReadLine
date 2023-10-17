@@ -29,6 +29,8 @@ namespace Microsoft.PowerShell
                     // need to record the state of the preceding start.
                     _singleton._groupUndoStates.Push(
                         new GroupUndoState(_singleton._groupUndoHelper, _singleton._editGroupStart));
+
+                    _singleton._editGroupStart = -1;
                 }
 
                 _instigator = instigator;
@@ -66,7 +68,7 @@ namespace Microsoft.PowerShell
             }
         }
 
-        private GroupUndoHelper _groupUndoHelper = new();
+        internal GroupUndoHelper _groupUndoHelper = new();
 
         /// <summary>
         /// Records states of changes made as part of an edit group.

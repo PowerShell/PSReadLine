@@ -61,6 +61,12 @@ namespace Microsoft.PowerShell
 
         internal void StartEditGroup()
         {
+            if (_editGroupStart != -1)
+            {
+                // Nesting not supported.
+                throw new InvalidOperationException();
+            }
+
             RemoveEditsAfterUndo();
             _editGroupStart = _edits.Count;
         }
