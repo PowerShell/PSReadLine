@@ -124,13 +124,6 @@ namespace Microsoft.PowerShell
             uint flags,
             IntPtr dwhkl);
 
-        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
-
-        private static extern IntPtr LoadKeyboardLayoutW(
-            string pwszKLID,
-            uint Flags
-            );
-
         static readonly ThreadLocal<char[]> toUnicodeBuffer = new ThreadLocal<char[]>(() => new char[2]);
         static readonly ThreadLocal<byte[]> toUnicodeStateBuffer = new ThreadLocal<byte[]>(() => new byte[256]);
         internal static void TryGetCharFromConsoleKey(ConsoleKeyInfo key, ref char result, ref bool isDeadKey)
@@ -156,9 +149,7 @@ namespace Microsoft.PowerShell
                 flags |= (1 << 2); /* If bit 2 is set, keyboard state is not changed (Windows 10, version 1607 and newer) */
             }
 
-            var layout = WindowsKeyboardLayoutUtil.GetConsoleKeyboardLayout()
-                         ?? WindowsKeyboardLayoutUtil.GetConsoleKeyboardLayoutFallback();
-
+            IntPtr layout = PlatformWindows.GetConsoleKeyboardLayout();
             int charCount = ToUnicodeEx(virtualKey, scanCode, state, chars, chars.Length, flags, layout);
 
             if (charCount == 1)

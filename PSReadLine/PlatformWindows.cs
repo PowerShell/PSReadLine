@@ -1015,4 +1015,34 @@ static class PlatformWindows
             }
         }
     }
+
+    /// <remarks>
+    /// This method helps to find the active keyboard layout in a terminal process that controls the current console
+    /// application. For now, we assume that at the moment when we are asked to process a keyboard shortcut, the
+    /// process owning the foreground window has to be the terminal process controlling the current console.
+    /// </remarks>
+    public static IntPtr GetConsoleKeyboardLayout()
+    {
+        IntPtr foregroundWindow = GetForegroundWindow();
+        if (foregroundWindow != IntPtr.Zero)
+        {
+            uint tid = GetWindowThreadProcessId(foregroundWindow, out _);
+            if (tid != 0)
+            {
+                return GetKeyboardLayout(tid);
+            }
+        }
+
+        // Fall back to the default keyboard when we failed to find the parent terminal process.
+        return GetKeyboardLayout(0);
+    }
+
+    [DllImport("user32.dll")]
+    private static extern IntPtr GetForegroundWindow();
+
+    [DllImport("User32.dll", SetLastError = true)]
+    private static extern IntPtr GetKeyboardLayout(uint idThread);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    static extern uint GetWindowThreadProcessId(IntPtr hwnd, out IntPtr proccess);
 }
