@@ -1016,25 +1016,105 @@ static class PlatformWindows
         }
     }
 
+    private static readonly object _terminalOwnerThreadHandleLock = new();
+    private static IntPtr? _terminalOwnerThreadHandle;
+
     /// <remarks>
-    /// This method helps to find the active keyboard layout in a terminal process that controls the current console
-    /// application. For now, we assume that at the moment when we are asked to process a keyboard shortcut, the
-    /// process owning the foreground window has to be the terminal process controlling the current console.
+    /// <para>
+    ///     This method helps to find the thread id that owns the console window of the current process. The logic is
+    ///     that at the moment we are called, most likely a current foreground window owner will be the terminal window
+    ///     owner as well. We verify that by going up the process tree and if we find the foreground process owner among
+    ///     the current process' parent hierarchy, then we consider we found it.
+    /// </para>
+    /// <para>
+    ///     The terminal process is not always the direct parent of the current process, but may be higher in the
+    ///     process tree in case PowerShell is a child of some other console process.
+    /// </para>
+    /// <para>
+    ///     The result is cached for performance reasons. To avoid thread id reuse, we keep the thread handle as well.
+    /// </para>
     /// </remarks>
+    private static uint? GetTerminalOwnerThreadId()
+    {
+        lock (_terminalOwnerThreadHandleLock)
+        {
+            if (_terminalOwnerThreadHandle.HasValue)
+            {
+                // Already cached, validate the cache and return.
+                uint tid = GetThreadId(_terminalOwnerThreadHandle.Value);
+                if (tid == 0)
+                {
+                    // Failed to get thread handle, let's free the resources.
+                    CloseHandle(_terminalOwnerThreadHandle.Value);
+                    _terminalOwnerThreadHandle = null;
+                    return null;
+                }
+
+                return tid;
+            }
+
+            IntPtr foregroundWindow = GetForegroundWindow();
+            if (foregroundWindow != IntPtr.Zero)
+            {
+                uint tid = GetWindowThreadProcessId(foregroundWindow, out var terminalOwnerPid);
+                if (tid == 0)
+                {
+                    return null;
+                }
+
+                // We've got the process, but is it a correct process? Verify using the process parent hierarchy.
+                // Define a limit not get stuck in case processed form a loop (possible in case pid reuse).
+                const int iterationLimit = 20;
+
+                PROCESS_BASIC_INFORMATION pbi = new();
+                Process process = Process.GetCurrentProcess();
+                int activeProcessId = process.Id;
+                for (int i = 0; i < iterationLimit; ++i)
+                {
+                    int status = NtQueryInformationProcess(process.Handle, 0, out pbi, Marshal.SizeOf(pbi), out _);
+                    activeProcessId = pbi.InheritedFromUniqueProcessId.ToInt32();
+                    if (status != 0 || activeProcessId == 0 || activeProcessId == terminalOwnerPid)
+                        break;
+
+                    try
+                    {
+                        process = Process.GetProcessById(activeProcessId);
+                    }
+                    catch (Exception)
+                    {
+                        // No access to the process, or the process is already dead. Either way, we cannot determine its
+                        // keyboard layout.
+                        return null;
+                    }
+                }
+
+                if (activeProcessId == terminalOwnerPid)
+                {
+                    IntPtr threadHandle = OpenThread(THREAD_QUERY_LIMITED_INFORMATION, false, tid);
+                    if (threadHandle == IntPtr.Zero)
+                    {
+                        return null;
+                    }
+
+                    _terminalOwnerThreadHandle = threadHandle;
+                    return tid;
+                }
+            }
+
+            return null;
+        }
+    }
+
+
     public static IntPtr GetConsoleKeyboardLayout()
     {
-        IntPtr foregroundWindow = GetForegroundWindow();
-        if (foregroundWindow != IntPtr.Zero)
+        uint? threadId = GetTerminalOwnerThreadId();
+        if (!threadId.HasValue)
         {
-            uint tid = GetWindowThreadProcessId(foregroundWindow, out _);
-            if (tid != 0)
-            {
-                return GetKeyboardLayout(tid);
-            }
+            return GetKeyboardLayout(0);
         }
 
-        // Fall back to the default keyboard when we failed to find the parent terminal process.
-        return GetKeyboardLayout(0);
+        return GetKeyboardLayout(threadId.Value);
     }
 
     [DllImport("user32.dll")]
@@ -1044,5 +1124,16 @@ static class PlatformWindows
     private static extern IntPtr GetKeyboardLayout(uint idThread);
 
     [DllImport("user32.dll", SetLastError = true)]
-    static extern uint GetWindowThreadProcessId(IntPtr hwnd, out IntPtr proccess);
+    private static extern uint GetWindowThreadProcessId(IntPtr hwnd, out uint proccess);
+
+    [DllImport("Kernel32.dll", SetLastError = true)]
+    private static extern uint GetThreadId(IntPtr Thread);
+
+    [DllImport("Kernel32.dll", SetLastError = true)]
+    private static extern bool CloseHandle(IntPtr hObject);
+
+    [DllImport("Kernel32.dll", SetLastError = true)]
+    private static extern IntPtr OpenThread(uint dwDesiredAccess, bool bInheritHandle, uint dwThreadId);
+
+    private const uint THREAD_QUERY_LIMITED_INFORMATION = 0x0800;
 }
