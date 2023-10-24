@@ -1121,5 +1121,88 @@ namespace Test
                 _.RightArrow, // 'RightArrow' again does nothing, but doesn't crash
                 "c"));
         }
+
+        [SkippableFact]
+        public void ViDefect1281_1()
+        {
+            TestSetup(KeyMode.Vi);
+
+            Test("bcd", Keys(
+                "abcdabcd", _.Escape,
+
+                // return to the [B]eginning of the word,
+                // then [c]hange text un[t]il just before the [2]nd [b] character
+                // this leaves the cursor at the current position (0) but erases
+                // the "abcda" text portion, / switches to edit mode and
+                // positions the cursor just before the "bcd" text portion.
+
+                "Bc2tb",
+
+                // going back to normal mode again without having modified the buffer further
+                // even though the [c] command started an edit group, going back to normal
+                // mode closes the pending edit group.
+
+                _.Escape, CheckThat(() => AssertCursorLeftIs(0)),
+
+                // attempt to [c]hange text un[t]il just before the [2]nd [b] character again
+                // because the [b] character only appears once further down in the buffer
+                // relative to where the cursor position is – currently set to 0 - the command
+                // fails. Therefore, we are still in normal mode.
+                //
+                // as the command failed, the current edit group is now correctly closed.
+
+                "c2tb", CheckThat(() => AssertLineIs("bcd")),
+
+                // attempt to [c]hange text un[t]il just before the [2]nd [b] character a third time.
+                // this exercises a code path where starting a edit group while another
+                // pending edit group was previously started crashed PSRL.
+                //
+                // this should no longer crash as any started pending group is now properly closed if
+                // the command fails
+                "c2tb"
+                ));
+        }
+
+        [SkippableFact]
+        public void ViDefect1281_2()
+        {
+            TestSetup(KeyMode.Vi);
+
+            Test("abc", Keys(
+                "abc", _.Escape,
+
+                // 'cff' triggers `ViReplaceToChar` to delete until the character 'f'. But 'abc' doesn't
+                // have the letter 'f', so the started edit group should be ended and cursor is not moved.
+                "cff",
+                CheckThat(() => AssertCursorLeftIs(2)),
+
+                // the subsequent 'cc' calls `ViReplaceLine` to replace the current line with 'i', which
+                // starts a new edit group.
+                "ccip",
+                CheckThat(() => AssertLineIs("ip")),
+
+                // now we undo the 'cci' step, and accept the current command line, which should be 'abc'.
+                _.Escape, "u"
+                ));
+        }
+
+        [SkippableFact]
+        public void ViDefect1281_3()
+        {
+            TestSetup(KeyMode.Vi);
+
+            Test("bcd", Keys(
+                "bcd", _.Escape, _.LeftArrow, _.LeftArrow,
+
+                // 'a' triggers `ViInsertWithAppend` and we append 'iii' after 'b'.
+                "aiii",
+                CheckThat(() => AssertCursorLeftIs(4)),
+                CheckThat(() => AssertLineIs("biiicd")),
+
+                // now we undo the 'aiii' step, and accept the current command line,
+                // which should be 'bcd'.
+                _.Escape, "u"
+                ));
+        }
     }
 }

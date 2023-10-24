@@ -205,7 +205,7 @@ namespace Microsoft.PowerShell
             if (InViInsertMode())   // must close out the current edit group before engaging menu completion
             {
                 ViCommandMode();
-                ViInsertWithAppend();
+                ViInsertWithAppendImpl();
             }
 
             // Do not show suggestion text during tab completion.

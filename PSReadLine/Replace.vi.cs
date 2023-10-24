@@ -161,7 +161,7 @@ namespace Microsoft.PowerShell
                 && !_singleton.IsDelimiter(_singleton._lastWordDelimiter, _singleton.Options.WordDelimiters)
                 && _singleton._shouldAppend)
             {
-                ViInsertWithAppend(key, arg);
+                ViInsertWithAppendImpl(key, arg);
             }
             else
             {
@@ -180,7 +180,7 @@ namespace Microsoft.PowerShell
             }
             if (_singleton._current == _singleton._buffer.Length - 1)
             {
-                ViInsertWithAppend(key, arg);
+                ViInsertWithAppendImpl(key, arg);
             }
             else
             {
@@ -194,7 +194,7 @@ namespace Microsoft.PowerShell
             DeleteEndOfWord(key, arg);
             if (_singleton._current == _singleton._buffer.Length - 1)
             {
-                ViInsertWithAppend(key, arg);
+                ViInsertWithAppendImpl(key, arg);
             }
             else
             {
@@ -208,7 +208,7 @@ namespace Microsoft.PowerShell
             ViDeleteEndOfGlob(key, arg);
             if (_singleton._current == _singleton._buffer.Length - 1)
             {
-                ViInsertWithAppend(key, arg);
+                ViInsertWithAppendImpl(key, arg);
             }
             else
             {
@@ -270,12 +270,16 @@ namespace Microsoft.PowerShell
             {
                 if (_singleton._current < initialCurrent || _singleton._current >= _singleton._buffer.Length)
                 {
-                    ViInsertWithAppend(key, arg);
+                    ViInsertWithAppendImpl(key, arg);
                 }
                 else
                 {
                     ViInsertMode(key, arg);
                 }
+            }
+            else
+            {
+                _singleton._groupUndoHelper.EndGroup();
             }
         }
 
@@ -294,6 +298,10 @@ namespace Microsoft.PowerShell
             if (ViCharacterSearcher.SearchBackwardDelete(keyChar, arg, backoff: false, instigator: (_key, _arg) => ViReplaceToCharBack(keyChar, _key, _arg)))
             {
                 ViInsertMode(key, arg);
+            }
+            else
+            {
+                _singleton._groupUndoHelper.EndGroup();
             }
         }
 
@@ -314,6 +322,10 @@ namespace Microsoft.PowerShell
             {
                 ViInsertMode(key, arg);
             }
+            else
+            {
+                _singleton._groupUndoHelper.EndGroup();
+            }
         }
 
         /// <summary>
@@ -332,8 +344,10 @@ namespace Microsoft.PowerShell
             {
                 ViInsertMode(key, arg);
             }
+            else
+            {
+                _singleton._groupUndoHelper.EndGroup();
+            }
         }
-
-
     }
 }
