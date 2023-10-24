@@ -1149,16 +1149,17 @@ namespace Test
                 // relative to where the cursor position is – currently set to 0 - the command
                 // fails. Therefore, we are still in normal mode.
                 //
-                // however, even though the command failed, it still started an edit group
-                // which is now pending further edit actions
+                // as the command failed, the current edit group is now correctly closed.
 
                 "c2tb", CheckThat(() => AssertLineIs("bcd")),
 
                 // attempt to [c]hange text un[t]il just before the [2]nd [b] character a third time.
                 // this exercises a code path where starting a edit group while another
                 // pending edit group was previously started crashed PSRL.
-
-                "c2tb" // should not crash
+                //
+                // this should no longer crash as any started pending group is now properly closed if
+                // the command fails
+                "c2tb"
                 ));
         }
 
