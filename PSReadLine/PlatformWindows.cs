@@ -140,6 +140,7 @@ static class PlatformWindows
         var breakHandlerGcHandle = GCHandle.Alloc(new BreakHandler(OnBreak));
         SetConsoleCtrlHandler((BreakHandler)breakHandlerGcHandle.Target, true);
         _enableVtOutput = !Console.IsOutputRedirected && SetConsoleOutputVirtualTerminalProcessing();
+        _terminalOwnerThreadId = GetTerminalOwnerThreadId();
 
         return _enableVtOutput ? new VirtualTerminal() : new LegacyWin32Console();
     }
@@ -1016,8 +1017,7 @@ static class PlatformWindows
         }
     }
 
-    private static readonly object _terminalOwnerThreadHandleLock = new();
-    private static IntPtr? _terminalOwnerThreadHandle;
+    private static uint _terminalOwnerThreadId;
 
     /// <remarks>
     /// <para>
@@ -1030,91 +1030,55 @@ static class PlatformWindows
     ///     The terminal process is not always the direct parent of the current process, but may be higher in the
     ///     process tree in case PowerShell is a child of some other console process.
     /// </para>
-    /// <para>
-    ///     The result is cached for performance reasons. To avoid thread id reuse, we keep the thread handle as well.
-    /// </para>
     /// </remarks>
-    private static uint? GetTerminalOwnerThreadId()
+    private static uint GetTerminalOwnerThreadId()
     {
-        lock (_terminalOwnerThreadHandleLock)
+        IntPtr foregroundWindow = GetForegroundWindow();
+        if (foregroundWindow != IntPtr.Zero)
         {
-            if (_terminalOwnerThreadHandle.HasValue)
+            uint tid = GetWindowThreadProcessId(foregroundWindow, out var terminalOwnerPid);
+            if (tid == 0)
             {
-                // Already cached, validate the cache and return.
-                uint tid = GetThreadId(_terminalOwnerThreadHandle.Value);
-                if (tid == 0)
-                {
-                    // Failed to get thread handle, let's free the resources.
-                    CloseHandle(_terminalOwnerThreadHandle.Value);
-                    _terminalOwnerThreadHandle = null;
-                    return null;
-                }
+                return 0;
+            }
 
+            // We've got the process, but is it a correct process? Verify using the process parent hierarchy.
+            // Define a limit not get stuck in case processed form a loop (possible in case pid reuse).
+            const int iterationLimit = 20;
+
+            PROCESS_BASIC_INFORMATION pbi = new();
+            Process process = Process.GetCurrentProcess();
+            int activeProcessId = process.Id;
+            for (int i = 0; i <= iterationLimit; ++i)
+            {
+                if (activeProcessId == InvalidProcessId || activeProcessId == terminalOwnerPid)
+                    break;
+
+                activeProcessId = GetParentPid(process);
+                try
+                {
+                    process = Process.GetProcessById(activeProcessId);
+                }
+                catch (Exception)
+                {
+                    // No access to the process, or the process is already dead. Either way, we cannot determine its
+                    // keyboard layout.
+                    return 0;
+                }
+            }
+
+            if (activeProcessId == terminalOwnerPid)
+            {
                 return tid;
             }
-
-            IntPtr foregroundWindow = GetForegroundWindow();
-            if (foregroundWindow != IntPtr.Zero)
-            {
-                uint tid = GetWindowThreadProcessId(foregroundWindow, out var terminalOwnerPid);
-                if (tid == 0)
-                {
-                    return null;
-                }
-
-                // We've got the process, but is it a correct process? Verify using the process parent hierarchy.
-                // Define a limit not get stuck in case processed form a loop (possible in case pid reuse).
-                const int iterationLimit = 20;
-
-                PROCESS_BASIC_INFORMATION pbi = new();
-                Process process = Process.GetCurrentProcess();
-                int activeProcessId = process.Id;
-                for (int i = 0; i < iterationLimit; ++i)
-                {
-                    int status = NtQueryInformationProcess(process.Handle, 0, out pbi, Marshal.SizeOf(pbi), out _);
-                    activeProcessId = pbi.InheritedFromUniqueProcessId.ToInt32();
-                    if (status != 0 || activeProcessId == 0 || activeProcessId == terminalOwnerPid)
-                        break;
-
-                    try
-                    {
-                        process = Process.GetProcessById(activeProcessId);
-                    }
-                    catch (Exception)
-                    {
-                        // No access to the process, or the process is already dead. Either way, we cannot determine its
-                        // keyboard layout.
-                        return null;
-                    }
-                }
-
-                if (activeProcessId == terminalOwnerPid)
-                {
-                    IntPtr threadHandle = OpenThread(THREAD_QUERY_LIMITED_INFORMATION, false, tid);
-                    if (threadHandle == IntPtr.Zero)
-                    {
-                        return null;
-                    }
-
-                    _terminalOwnerThreadHandle = threadHandle;
-                    return tid;
-                }
-            }
-
-            return null;
         }
-    }
 
+        return 0;
+    }
 
     public static IntPtr GetConsoleKeyboardLayout()
     {
-        uint? threadId = GetTerminalOwnerThreadId();
-        if (!threadId.HasValue)
-        {
-            return GetKeyboardLayout(0);
-        }
-
-        return GetKeyboardLayout(threadId.Value);
+        return GetKeyboardLayout(_terminalOwnerThreadId);
     }
 
     [DllImport("user32.dll")]
@@ -1125,15 +1089,4 @@ static class PlatformWindows
 
     [DllImport("user32.dll", SetLastError = true)]
     private static extern uint GetWindowThreadProcessId(IntPtr hwnd, out uint proccess);
-
-    [DllImport("Kernel32.dll", SetLastError = true)]
-    private static extern uint GetThreadId(IntPtr Thread);
-
-    [DllImport("Kernel32.dll", SetLastError = true)]
-    private static extern bool CloseHandle(IntPtr hObject);
-
-    [DllImport("Kernel32.dll", SetLastError = true)]
-    private static extern IntPtr OpenThread(uint dwDesiredAccess, bool bInheritHandle, uint dwThreadId);
-
-    private const uint THREAD_QUERY_LIMITED_INFORMATION = 0x0800;
 }
