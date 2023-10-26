@@ -6,8 +6,10 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using Microsoft.PowerShell;
 using Microsoft.PowerShell.Internal;
 using Microsoft.Win32.SafeHandles;
@@ -1020,59 +1022,86 @@ static class PlatformWindows
     private static uint _terminalOwnerThreadId;
 
     /// <remarks>
-    /// <para>
-    ///     This method helps to find the thread id that owns the console window of the current process. The logic is
-    ///     that at the moment we are called, most likely a current foreground window owner will be the terminal window
-    ///     owner as well. We verify that by going up the process tree and if we find the foreground process owner among
-    ///     the current process' parent hierarchy, then we consider we found it.
-    /// </para>
-    /// <para>
-    ///     The terminal process is not always the direct parent of the current process, but may be higher in the
-    ///     process tree in case PowerShell is a child of some other console process.
-    /// </para>
+    /// This method helps to find the owner thread of the terminal window used by this pwsh instance,
+    /// by looking for a parent process whose <see cref="Process.MainWindowHandle"/>) is visible.
+    ///
+    /// The terminal process is not always the direct parent of the current process, but may be higher
+    /// in the process tree in case this pwsh process is a child of some other console process.
+    ///
+    /// This works well in Windows Terminal (with profile), IntelliJ and VSCode.
+    /// It doesn't work when PowerShell runs in conhost, or when it gets started from Start Menu with
+    /// Windows Terminal as the default terminal application (without profile).
     /// </remarks>
     private static uint GetTerminalOwnerThreadId()
     {
-        IntPtr foregroundWindow = GetForegroundWindow();
-        if (foregroundWindow != IntPtr.Zero)
+        try
         {
-            uint tid = GetWindowThreadProcessId(foregroundWindow, out var terminalOwnerPid);
-            if (tid == 0)
-            {
-                return 0;
-            }
+            // The window handle returned by `GetConsoleWindow` is not the correct terminal/console window for us
+            // to query about the keyboard layout change. It's the window created for a console application, such
+            // as `cmd` or `pwsh`, so its owner process in those cases will be `cmd` or `pwsh`.
+            //
+            // When we are running with conhost, this window is visible, but it's not what we want and needs to be
+            // filtered out. When running with conhost, we want the window owned by the conhost. But unfortunately,
+            // there is no reliable way to get the conhost process that is associated with the current pwsh, since
+            // it's not in the parent chain of the process tree.
+            // So, this method is supposed to always fail when running with conhost.
+            IntPtr wrongHandle = GetConsoleWindow();
 
-            // We've got the process, but is it a correct process? Verify using the process parent hierarchy.
-            // Define a limit not get stuck in case processed form a loop (possible in case pid reuse).
+            // Limit for parent process walk-up for not getting stuck in a loop (possible in case pid reuse).
             const int iterationLimit = 20;
+            var process = Process.GetCurrentProcess();
 
-            PROCESS_BASIC_INFORMATION pbi = new();
-            Process process = Process.GetCurrentProcess();
-            int activeProcessId = process.Id;
-            for (int i = 0; i <= iterationLimit; ++i)
+            for (int i = 0; i < iterationLimit; ++i)
             {
-                if (activeProcessId == InvalidProcessId || activeProcessId == terminalOwnerPid)
+                if (process.ProcessName is "explorer")
+                {
+                    // We've reached the root of the process tree. This can happen when PowerShell was started
+                    // from Start Menu with Windows Terminal as the default terminal application.
+                    // The `explorer` process has a visible window, but it doesn't help for getting the layout
+                    // change. Again, we need to find the terminal window owner.
                     break;
-
-                activeProcessId = GetParentPid(process);
-                try
-                {
-                    process = Process.GetProcessById(activeProcessId);
                 }
-                catch (Exception)
-                {
-                    // No access to the process, or the process is already dead. Either way, we cannot determine its
-                    // keyboard layout.
-                    return 0;
-                }
-            }
 
-            if (activeProcessId == terminalOwnerPid)
-            {
-                return tid;
+                IntPtr mainWindowHandle = process.MainWindowHandle;
+                if (mainWindowHandle == wrongHandle)
+                {
+                    // This can only happen when we are running with conhost.
+                    // Break early because the terminal owner process is not in the parent chain in this scenario.
+                    break;
+                }
+
+                if (mainWindowHandle != IntPtr.Zero && IsWindowVisible(mainWindowHandle))
+                {
+                    // The window is visible, so it's likely the terminal window.
+                    return GetWindowThreadProcessId(process.MainWindowHandle, out _);
+                }
+
+                // When reaching here, the main window of the process:
+                //   - doesn't exist, or
+                //   - exits but invisible
+                // So, this is likely not a terminal process.
+                // Now we get its parent process and continue with the check.
+                int parentId = GetParentPid(process);
+                process = Process.GetProcessById(parentId);
             }
         }
+        catch (Exception)
+        {
+            // No access to the process, or the process is already dead.
+            // Either way, we cannot determine the owner thread of the terminal window.
+        }
 
+        // We could not find the owner thread/process of the terminal window in following scenarios:
+        //  1. pwsh is running with conhost.
+        //     This happens when conhost is set as the default terminal application, and a user starts pwsh
+        //     from the Start Menu, or with `win+r` (run code) and etc.
+        //
+        //  2. pwsh is running with Windows Terminal, but was not started from a Windows Terminal profile.
+        //     This happens when Windows Terminal is set as the default terminal application, and a user
+        //     starts pwsh from the Start Menu, or with `win+r` (run code) and etc.
+        //     The `WindowsTerminal` process is not in the parent process chain in this case.
+        //
+        //  3. pwsh's parent process chain is broken -- a parent was terminated so we cannot walk up the chain.
         return 0;
     }
 
@@ -1082,7 +1111,8 @@ static class PlatformWindows
     }
 
     [DllImport("user32.dll")]
-    private static extern IntPtr GetForegroundWindow();
+    [return: MarshalAs(UnmanagedType.Bool)]
+    static extern bool IsWindowVisible(IntPtr hWnd);
 
     [DllImport("User32.dll", SetLastError = true)]
     private static extern IntPtr GetKeyboardLayout(uint idThread);
