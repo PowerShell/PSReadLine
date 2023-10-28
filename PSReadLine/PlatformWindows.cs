@@ -1105,14 +1105,14 @@ static class PlatformWindows
         return 0;
     }
 
-    public static IntPtr GetConsoleKeyboardLayout()
+    internal static IntPtr GetConsoleKeyboardLayout()
     {
         return GetKeyboardLayout(_terminalOwnerThreadId);
     }
 
     [DllImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
-    static extern bool IsWindowVisible(IntPtr hWnd);
+    private static extern bool IsWindowVisible(IntPtr hWnd);
 
     [DllImport("User32.dll", SetLastError = true)]
     private static extern IntPtr GetKeyboardLayout(uint idThread);
