@@ -370,7 +370,7 @@ namespace Microsoft.PowerShell
         {
             foreach (var entry in _singleton._dispatchTable)
             {
-                if (entry.Value.Action == action)
+                if (entry.Value.TryGetKeyHandler(out var handler) && handler.Action == action)
                     return true;
             }
             return false;
