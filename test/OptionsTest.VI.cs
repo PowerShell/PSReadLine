@@ -37,6 +37,31 @@ namespace Test
             {
                 Assert.Equal("<d,0>", handler.Key);
             }
+
+            handlers = PSConsoleReadLine.GetKeyHandlers(Chord: new string[] { "d,i,w" });
+            Assert.NotEmpty(handlers);
+            foreach (var handler in handlers)
+            {
+                Assert.Equal("<d,i,w>", handler.Key);
+            }
+        }
+
+        [SkippableFact]
+        public void ViRemoveKeyHandler()
+        {
+            TestSetup(KeyMode.Vi);
+
+            using var disposable = PSConsoleReadLine.UseViCommandModeTables();
+
+            PSConsoleReadLine.RemoveKeyHandler(new string[] { "d,0" });
+
+            var handlers = PSConsoleReadLine.GetKeyHandlers(Chord: new string[] { "d,0" });
+            Assert.Empty(handlers);
+
+            PSConsoleReadLine.RemoveKeyHandler(new string[] { "d,i,w" });
+
+            handlers = PSConsoleReadLine.GetKeyHandlers(Chord: new string[] { "d,i,w" });
+            Assert.Empty(handlers);
         }
     }
 }

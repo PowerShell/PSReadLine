@@ -56,11 +56,11 @@ namespace Test
         }
 
         [SkippableFact]
-        public void GetKeyHandlers()
+        public void GetKeyHandlers_Unbound()
         {
             System.Collections.Generic.IEnumerable<Microsoft.PowerShell.KeyHandler> handlers;
 
-            foreach (var keymode in new[] {KeyMode.Cmd, KeyMode.Emacs})
+            foreach (var keymode in new[] { KeyMode.Cmd, KeyMode.Emacs })
             {
                 TestSetup(keymode);
 
@@ -85,15 +85,17 @@ namespace Test
                     Assert.Equal("Home", handler.Key);
                 }
             }
+        }
+
+        [SkippableFact]
+        public void GetKeyHandlers_Emacs()
+        {
+            System.Collections.Generic.IEnumerable<Microsoft.PowerShell.KeyHandler> handlers;
 
             TestSetup(KeyMode.Emacs);
             
             handlers = PSConsoleReadLine.GetKeyHandlers(Chord: new string[] { "ctrl+x" });
-            Assert.NotEmpty(handlers);
-            foreach (var handler in handlers)
-            {
-                Assert.Equal("Ctrl+x", handler.Key);
-            }
+            Assert.Empty(handlers);
 
             handlers = PSConsoleReadLine.GetKeyHandlers(Chord: new string[] { "ctrl+x,ctrl+e" });
             Assert.NotEmpty(handlers);
