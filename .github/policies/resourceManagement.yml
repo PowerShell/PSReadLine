@@ -143,6 +143,16 @@ configuration:
       filters:
       - isOpen
       - hasLabel:
+          label: Resolution-No Activity
+      actions:
+      - closeIssue
+    - description: 
+      frequencies:
+      - hourly:
+          hour: 6
+      filters:
+      - isOpen
+      - hasLabel:
           label: Needs-Repro
       - noActivitySince:
           days: 7
