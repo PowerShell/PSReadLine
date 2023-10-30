@@ -146,6 +146,8 @@ configuration:
           label: Resolution-No Activity
       actions:
       - closeIssue
+      - addReply:
+          reply: This issue is closed because it has had no activity and on older unsupported versions of PowerShell or PSReadLine. Please try again on latest versions of both and if its still an issue please submit a new issue.
     - description: 
       frequencies:
       - hourly:
