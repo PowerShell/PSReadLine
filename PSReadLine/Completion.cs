@@ -1091,7 +1091,8 @@ namespace Microsoft.PowerShell
                         prependNextKey = true;
 
                         // without this branch experience doesn't look naturally
-                        if (_dispatchTable.TryGetValue(nextKey, out var handler) &&
+                        if (_dispatchTable.TryGetValue(nextKey, out var handlerOrChordDispatchTable) &&
+                            handlerOrChordDispatchTable.TryGetKeyHandler(out var handler) &&
                             (
                                 handler.Action == CopyOrCancelLine ||
                                 handler.Action == Cut ||
