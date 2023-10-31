@@ -4,6 +4,9 @@ namespace Microsoft.PowerShell
 {
     public partial class PSConsoleReadLine
     {
+        /// <summary>
+        /// Delete the content inside and including the current word
+        /// </summary>
         public static void ViDeleteInnerWord(ConsoleKeyInfo? key = null, object arg = null)
         {
             var delimiters = _singleton.Options.WordDelimiters;
