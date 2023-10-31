@@ -486,12 +486,10 @@ namespace Microsoft.PowerShell
                                 return color >= ConsoleColor.Black && color <= ConsoleColor.White;
                             }
 
-                            if (IsValid(_singleton._initialForeground))
-                            {
+                            if (IsValid(_singleton._initialForeground)) {
                                 console.ForegroundColor = _singleton._initialForeground;
                             }
-                            if (IsValid(_singleton._initialBackground))
-                            {
+                            if (IsValid(_singleton._initialBackground)) {
                                 console.BackgroundColor = _singleton._initialBackground;
                             }
                             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
