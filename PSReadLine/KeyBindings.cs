@@ -103,6 +103,8 @@ namespace Microsoft.PowerShell
                 return PSReadLineResources.SelectionGrouping;
             case KeyHandlerGroup.Search:
                 return PSReadLineResources.SearchGrouping;
+            case KeyHandlerGroup.TextObjects:
+                return PSReadLineResources.TextObjectsGrouping;
             case KeyHandlerGroup.Custom:
                 return PSReadLineResources.CustomGrouping;
             default: return "";
