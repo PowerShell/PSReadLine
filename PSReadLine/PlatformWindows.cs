@@ -1076,7 +1076,7 @@ static class PlatformWindows
 
                 // When reaching here, the main window of the process:
                 //   - doesn't exist, or
-                //   - exits but invisible
+                //   - exists but invisible
                 // So, this is likely not a terminal process.
                 // Now we get its parent process and continue with the check.
                 int parentId = GetParentPid(process);
