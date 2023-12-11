@@ -298,31 +298,6 @@ namespace Microsoft.PowerShell
                     var length = _tabCompletions.ReplacementLength;
                     if (start < 0 || start > _singleton._buffer.Length) return null;
                     if (length < 0 || length > (_singleton._buffer.Length - start)) return null;
-
-                    if (_tabCompletions.CompletionMatches.Count > 1)
-                    {
-                        // Filter out apparent duplicates -- the 'ListItemText' is exactly the same.
-                        var hashSet = new HashSet<string>();
-                        var matches = _tabCompletions.CompletionMatches;
-                        List<int> indices = null;
-
-                        for (int i = 0; i < matches.Count; i++)
-                        {
-                            if (!hashSet.Add(matches[i].ListItemText))
-                            {
-                                indices ??= new List<int>();
-                                indices.Add(i);
-                            }
-                        }
-
-                        if (indices is not null)
-                        {
-                            for (int i = indices.Count - 1; i >= 0; i--)
-                            {
-                                matches.RemoveAt(indices[i]);
-                            }
-                        }
-                    }
                 }
                 catch (Exception)
                 {
