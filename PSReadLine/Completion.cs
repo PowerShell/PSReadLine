@@ -288,16 +288,27 @@ namespace Microsoft.PowerShell
                         ps = System.Management.Automation.PowerShell.Create();
                         ps.Runspace = _runspace;
                     }
-                    _tabCompletions = _mockableMethods.CompleteInput(_buffer.ToString(), _current, null, ps);
 
-                    if (_tabCompletions.CompletionMatches.Count == 0) return null;
+                    _tabCompletions = _mockableMethods.CompleteInput(_buffer.ToString(), _current, null, ps);
+                    if (_tabCompletions.CompletionMatches.Count == 0)
+                    {
+                        return null;
+                    }
 
                     // Validate the replacement index/length - if we can't do
                     // the replacement, we'll ignore the completions.
                     var start = _tabCompletions.ReplacementIndex;
                     var length = _tabCompletions.ReplacementLength;
-                    if (start < 0 || start > _singleton._buffer.Length) return null;
-                    if (length < 0 || length > (_singleton._buffer.Length - start)) return null;
+
+                    if (start < 0 || start > _singleton._buffer.Length)
+                    {
+                        return null;
+                    }
+
+                    if (length < 0 || length > (_singleton._buffer.Length - start))
+                    {
+                        return null;
+                    }
                 }
                 catch (Exception)
                 {
