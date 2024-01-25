@@ -256,7 +256,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void ViReplaceToChar(ConsoleKeyInfo? key = null, object arg = null)
         {
-            var keyChar = ReadKey().KeyChar;
+            var keyChar = ReadKeyChar();
             ViReplaceToChar(keyChar, key, arg);
         }
 
@@ -288,7 +288,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void ViReplaceToCharBackward(ConsoleKeyInfo? key = null, object arg = null)
         {
-            var keyChar = ReadKey().KeyChar;
+            var keyChar = ReadKeyChar();
             ViReplaceToCharBack(keyChar, key, arg);
         }
 
@@ -310,7 +310,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void ViReplaceToBeforeChar(ConsoleKeyInfo? key = null, object arg = null)
         {
-            var keyChar = ReadKey().KeyChar;
+            var keyChar = ReadKeyChar();
             ViReplaceToBeforeChar(keyChar, key, arg);
         }
 
@@ -333,7 +333,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void ViReplaceToBeforeCharBackward(ConsoleKeyInfo? key = null, object arg = null)
         {
-            var keyChar = ReadKey().KeyChar;
+            var keyChar = ReadKeyChar();
             ViReplaceToBeforeCharBack(keyChar, key, arg);
         }
 
