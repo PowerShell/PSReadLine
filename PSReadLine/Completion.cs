@@ -23,6 +23,7 @@ namespace Microsoft.PowerShell
         private int _tabCommandCount;
         private CommandCompletion _tabCompletions;
         private Runspace _runspace;
+        private string _directorySeparator;
 
         private static readonly Dictionary<CompletionResultType, PSKeyInfo []> KeysEndingCompletion =
             new Dictionary<CompletionResultType, PSKeyInfo []>
@@ -40,7 +41,7 @@ namespace Microsoft.PowerShell
         private static readonly char[] EolChars = {'\r', '\n'};
 
         // String helper for directory paths
-        private static readonly string DirectorySeparatorString = System.IO.Path.DirectorySeparatorChar.ToString();
+        private static readonly string DefaultDirectorySeparator = System.IO.Path.DirectorySeparatorChar.ToString();
 
         // Stub helper method so completion can be mocked
         [ExcludeFromCodeCoverage]
@@ -281,10 +282,26 @@ namespace Microsoft.PowerShell
                     System.Management.Automation.PowerShell ps;
                     if (!_mockableMethods.RunspaceIsRemote(_runspace))
                     {
+                        _directorySeparator ??= DefaultDirectorySeparator;
                         ps = System.Management.Automation.PowerShell.Create(RunspaceMode.CurrentRunspace);
                     }
                     else
                     {
+                        if (_directorySeparator is null)
+                        {
+                            // Use the default separator by default.
+                            _directorySeparator = DefaultDirectorySeparator;
+                            PSPrimitiveDictionary dict = _runspace.GetApplicationPrivateData();
+
+                            if (dict["PSVersionTable"] is PSPrimitiveDictionary versionTable)
+                            {
+                                // If the 'Platform' key is available and its value is not 'Win*', then the server side is macOS or Linux.
+                                // In that case, we use the forward slash '/' as the directory separator.
+                                // Otherwise, the server side is Windows and we use the backward slash '\' instead.
+                                _directorySeparator = versionTable["Platform"] is string platform && !platform.StartsWith("Win", StringComparison.Ordinal) ? "/" : @"\";
+                            }
+                        }
+
                         ps = System.Management.Automation.PowerShell.Create();
                         ps.Runspace = _runspace;
                     }
@@ -375,12 +392,12 @@ namespace Microsoft.PowerShell
             completions.ReplacementLength = replacementText.Length;
         }
 
-        private static string GetReplacementTextForDirectory(string replacementText, ref int cursorAdjustment)
+        private string GetReplacementTextForDirectory(string replacementText, ref int cursorAdjustment)
         {
-            if (!replacementText.EndsWith(DirectorySeparatorString , StringComparison.Ordinal))
+            if (!replacementText.EndsWith(_directorySeparator , StringComparison.Ordinal))
             {
-                if (replacementText.EndsWith(String.Format("{0}\'", DirectorySeparatorString), StringComparison.Ordinal) ||
-                    replacementText.EndsWith(String.Format("{0}\"", DirectorySeparatorString), StringComparison.Ordinal))
+                if (replacementText.EndsWith(string.Format("{0}\'", _directorySeparator), StringComparison.Ordinal) ||
+                    replacementText.EndsWith(string.Format("{0}\"", _directorySeparator), StringComparison.Ordinal))
                 {
                     cursorAdjustment = -1;
                 }
@@ -388,12 +405,12 @@ namespace Microsoft.PowerShell
                          replacementText.EndsWith("\"", StringComparison.Ordinal))
                 {
                     var len = replacementText.Length;
-                    replacementText = replacementText.Substring(0, len - 1) + System.IO.Path.DirectorySeparatorChar + replacementText[len - 1];
+                    replacementText = replacementText.Substring(0, len - 1) + _directorySeparator + replacementText[len - 1];
                     cursorAdjustment = -1;
                 }
                 else
                 {
-                    replacementText = replacementText + System.IO.Path.DirectorySeparatorChar;
+                    replacementText += _directorySeparator;
                 }
             }
             return replacementText;
