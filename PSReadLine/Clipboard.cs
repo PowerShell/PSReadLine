@@ -16,22 +16,22 @@ namespace Microsoft.PowerShell.Internal
         // This is useful for testing in CI as well.
         private static string _internalClipboard;
 
-        private static string StartProcess(
-            string tool,
-            string args,
-            string stdin = ""
-        )
+        private static string StartProcess(bool collectOutput, string tool, string args, string stdin = null)
         {
-            ProcessStartInfo startInfo = new ProcessStartInfo();
-            startInfo.UseShellExecute = false;
-            startInfo.RedirectStandardInput = true;
-            startInfo.RedirectStandardOutput = true;
-            startInfo.RedirectStandardError = true;
-            startInfo.FileName = tool;
-            startInfo.Arguments = args;
             string stdout;
+            bool redirectInput = !string.IsNullOrEmpty(stdin);
 
-            using (Process process = new Process())
+            ProcessStartInfo startInfo = new()
+            {
+                UseShellExecute = false,
+                RedirectStandardInput = redirectInput,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                FileName = tool,
+                Arguments = args
+            };
+
+            using (Process process = new())
             {
                 process.StartInfo = startInfo;
                 try
@@ -42,15 +42,16 @@ namespace Microsoft.PowerShell.Internal
                 {
                     _clipboardSupported = false;
                     PSConsoleReadLine.Ding();
-                    return "";
+                    return string.Empty;
                 }
 
-                if (stdin != "")
+                if (redirectInput)
                 {
                     process.StandardInput.Write(stdin);
                     process.StandardInput.Close();
                 }
-                stdout = process.StandardOutput.ReadToEnd();
+
+                stdout = collectOutput ? process.StandardOutput.ReadToEnd() : string.Empty;
                 process.WaitForExit(250);
 
                 _clipboardSupported = process.ExitCode == 0;
@@ -91,7 +92,7 @@ namespace Microsoft.PowerShell.Internal
                 return "";
             }
 
-            return StartProcess(tool, args);
+            return StartProcess(collectOutput: true, tool, args);
         }
 
         public static void SetText(string text)
@@ -128,7 +129,7 @@ namespace Microsoft.PowerShell.Internal
                 return;
             }
 
-            StartProcess(tool, args, text);
+            StartProcess(collectOutput: false, tool, args, text);
             if (_clipboardSupported == false)
             {
                 _internalClipboard = text;
