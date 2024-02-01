@@ -693,6 +693,13 @@ namespace Microsoft.PowerShell
             _engineIntrinsics = engineIntrinsics;
             _runspace = runspace;
 
+            // The directory separator to be used for tab completion may change depending on
+            // whether we are working with a remote Runspace.
+            // So, we always set it to null for every call into 'PSConsoleReadLine.ReadLine',
+            // and do the real initialization when tab completion is triggered for the first
+            // time during that call.
+            _directorySeparator = null;
+
             // Update the client instance per every call to PSReadLine.
             UpdatePredictionClient(runspace, engineIntrinsics);
 
