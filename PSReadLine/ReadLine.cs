@@ -239,15 +239,31 @@ namespace Microsoft.PowerShell
                                 ps.AddScript("[System.Diagnostics.DebuggerHidden()]param() 0", useLocalScope: true);
                             }
 
-                            // To detect output during possible event processing, see if the cursor moved
-                            // and rerender if so.
+                            // To detect output during possible event processing, see if the cursor moved and rerender if so.
                             var console = _singleton._console;
-                            var y = console.CursorTop;
+                            var buffer = _singleton._buffer;
+                            int y = console.CursorTop, len = buffer.Length;
+
+                            // Start the pipeline to process events.
                             ps.Invoke();
-                            if (y != console.CursorTop)
+
+                            // Check if cursor moved, but handle a very special case: an event handler changed our buffer,
+                            // by calling 'Insert' for example.
+                            //
+                            // I know only checking on buffer length change doesn't cover the case where buffer changed but
+                            // the length is the same. However, we mainly want to cover buffer changes made by an 'OnIdle'
+                            // event handler, and we trigger 'OnIdle' event only if the buffer is empty. So, this check is
+                            // efficient and good enough for that main scenario.
+                            //
+                            // When our buffer was changed by an event handler, we assume that was all the event handler did
+                            // and there was no console output. So, we rerender only if there was no buffer change.
+                            if (y != console.CursorTop && buffer.Length == len)
                             {
                                 _singleton._initialY = console.CursorTop;
-                                _singleton.Render();
+                                if (buffer.Length > 0)
+                                {
+                                    _singleton.Render();
+                                }
                             }
                         }
                     }
