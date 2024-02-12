@@ -21,6 +21,10 @@ jobs:
     name: Process new issues
     timeout-minutes: 20
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      metadata: read
     steps:
       - name: checkout
         uses: actions/checkout@v4
