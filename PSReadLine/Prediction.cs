@@ -50,7 +50,9 @@ namespace Microsoft.PowerShell
             if (s_pCurrentLocation is not null)
             {
                 // Set the current location if it's a local Runspace. Otherwise, set it to null.
-                object path = runspace.RunspaceIsRemote ? null : engineIntrinsics.SessionState.Path.CurrentLocation;
+                object path = runspace is null || runspace.RunspaceIsRemote
+                    ? null
+                    : engineIntrinsics?.SessionState.Path.CurrentLocation;
                 s_pCurrentLocation.SetValue(s_predictionClient, path);
             }
         }
