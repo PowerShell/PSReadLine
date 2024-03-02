@@ -1,3 +1,21 @@
+### [2.4.0-beta0] - 2024-03-01
+
+- Fix the null-reference exception when running `Debug-Job` on a thread job (#3957)
+- Add needed permission to the workflow (#3944, #3945, #3946)
+- Fix copying text to system clipboard on Linux using xclip (#3937)
+- Use the correct directory separator for tab completion based on the platform we are working with (#3935)
+- Update the minimal PS version required to be 5.1 (#3936)
+- Little code style cleanup for the `GetCompletions()` method (#3898)
+- Stop trying to de-duplicate completion results (#3897)
+- Windows keyboard layout handling: get the current layout from the parent terminal process (#3786) (Thanks @ForNeVeR!)
+- Add "resolution no activity" label to the bot-close list (#3852)
+- Fix a few VI key handlers to close edit group properly (#3845)
+- Update the documentation issue template to point to the PowerShell-Doc repo (#3839, #3840, #3841)
+- Handle large history file properly by reading lines in the streaming way (#3810)
+- Update build script to always include the `ProjectUri` info (#3821)
+
+[2.4.0-beta0]: https://github.com/PowerShell/PSReadLine/compare/v2.3.4...v2.4.0-beta0
+
 ### [2.3.4] - 2023-10-02
 
 - Choose the inline prediction color based on the environment (#3808)
