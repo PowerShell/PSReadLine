@@ -1,170 +1,206 @@
-#################################################################################
-#                               OneBranch Pipelines                             #
-# This pipeline was created by EasyStart from a sample located at:              #
-#   https://aka.ms/obpipelines/easystart/samples                                #
-# Documentation:  https://aka.ms/obpipelines                                    #
-# Yaml Schema:    https://aka.ms/obpipelines/yaml/schema                        #
-# Retail Tasks:   https://aka.ms/obpipelines/tasks                              #
-# Support:        https://aka.ms/onebranchsup                                   #
-#################################################################################
-
-trigger: none # https://aka.ms/obpipelines/triggers
-
-parameters: # parameters are shown up in ADO UI in a build queue time
-- name: 'debug'
-  displayName: 'Enable debug output'
-  type: boolean
-  default: false
+# This Yaml Document has been converted by ESAI Yaml Pipeline Conversion Tool.
+# Please make sure to check all the converted content, it is your team's responsibility to make sure that the pipeline is still valid and functions as expected.
+# This pipeline will be extended to the OneBranch template
+name: PSReadLine-ModuleBuild-$(Build.BuildId)
+trigger: none
+pr: none
 
 variables:
-  CDP_DEFINITION_BUILD_COUNT: $[counter('', 0)] # needed for onebranch.pipeline.version task https://aka.ms/obpipelines/versioning
-  system.debug: ${{ parameters.debug }}
-
-  BuildSolution: $(Build.SourcesDirectory)\dirs.proj
-  BuildConfiguration: Release
-
-  WindowsContainerImage: 'onebranch.azurecr.io/windows/ltsc2019/vse2022:latest' # Docker image which is used to build the project https://aka.ms/obpipelines/containers
+  DOTNET_CLI_TELEMETRY_OPTOUT: 1
+  POWERSHELL_TELEMETRY_OPTOUT: 1
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+  WindowsContainerImage: onebranch.azurecr.io/windows/ltsc2022/vse2022:latest
 
 resources:
-  repositories: 
-    - repository: templates
-      type: git
-      name: OneBranch.Pipelines/GovernedTemplates
-      ref: refs/heads/main
+  repositories:
+  - repository: onebranchTemplates
+    type: git
+    name: OneBranch.Pipelines/GovernedTemplates
+    ref: refs/heads/main
 
 extends:
-  template: v2/OneBranch.Official.CrossPlat.yml@templates # https://aka.ms/obpipelines/templates
+  template: v2/OneBranch.Official.CrossPlat.yml@onebranchTemplates
   parameters:
-    cloudvault: # https://aka.ms/obpipelines/cloudvault
-      enabled: false
-    globalSdl: # https://aka.ms/obpipelines/sdl
-      asyncSdl:
+    featureFlags:
+      WindowsHostVersion: '1ESWindows2022'
+    globalSdl:
+      disableLegacyManifest: true
+      sbom:
         enabled: true
-        tsaOptionsFile: .config/tsaoptions.json
-      # tsa:
-      #  enabled: false # onebranch publish all sdl results to TSA. If TSA is disabled all SDL tools will forced into 'break' build mode.
-      # credscan:
-      #   suppressionsFile: $(Build.SourcesDirectory)\.config\CredScanSuppressions.json
-      policheck:
-        break: true # always break the build on policheck issues. You can disable it by setting to 'false'
-      # suppression:
-      #   suppressionFile: $(Build.SourcesDirectory)\.gdn\global.gdnsuppress
+        packageName: PSReadLine
+      codeql:
+        compiled:
+          enabled: true
+      asyncSdl: # https://aka.ms/obpipelines/asyncsdl
+        enabled: true
+        forStages: [Build]
+        credscan:
+          enabled: true
+          scanFolder:  $(Build.SourcesDirectory)\PSReadLine
+        binskim:
+          enabled: true
+        apiscan:
+          enabled: false
 
     stages:
-    - stage: build
+    - stage: Build
+      displayName: Build and Sign
       jobs:
-      - job: main
+      - job: build_windows
+        displayName: Build PSReadLine
+        variables:
+        - name: ob_outputDirectory
+          value: '$(Build.ArtifactStagingDirectory)/ONEBRANCH_ARTIFACT'
+        - name: repoRoot
+          value: $(Build.SourcesDirectory)\PSReadLine
+        - name: ob_sdl_tsa_configFile
+          value: $(repoRoot)\.config\tsaoptions.json
+        - name: signSrcPath
+          value: $(repoRoot)\bin\Release\PSReadLine
+        - name: ob_sdl_sbom_enabled
+          value: true
+        - name: ob_signing_setup_enabled
+          value: true
+        #CodeQL tasks added manually to workaround signing failures
+        - name: ob_sdl_codeql_compiled_enabled
+          value: false
+
         pool:
-          type: windows  # read more about custom job pool types at https://aka.ms/obpipelines/yaml/jobs
-        
-        variables: # More settings at https://aka.ms/obpipelines/yaml/jobs
-          ob_outputDirectory: '$(Build.SourcesDirectory)\out' # this directory is uploaded to pipeline artifacts, reddog and cloudvault. More info at https://aka.ms/obpipelines/artifacts
-          # https://aka.ms/obpipelines/sdl
-          ob_sdl_binskim_break: true # always break the build on binskim issues, even if TSA enabled. You can disable it by setting to 'false'
-          ob_sdl_roslyn_break: true
-          ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}: # conditionally enable symbolsPublishing for main branch only
-            ob_symbolsPublishing_enabled: true # https://aka.ms/obpipelines/symbols
-          # ob_sdl_suppression_suppressionFile: $(Build.SourcesDirectory)\.gdn\job.gdnsuppress
-
+          type: windows
         steps:
-          - task: UseDotNet@2
-            continueOnError: true
-            inputs:
-              packageType: 'sdk'
-              useGlobalJson: true
-              performMultiLevelLookup: true
+        - checkout: self
+          env:
+            # Set ob_restore_phase to run this step before '🔒 Setup Signing' step.
+            ob_restore_phase: true
 
-          - task: onebranch.pipeline.version@1 # generates automatic version. For other versioning options check https://aka.ms/obpipelines/versioning
-            displayName: 'Setup BuildNumber'
-            inputs:
-              system: 'RevisionCounter'
-              major: '1'
-              minor: '0'
-              exclude_commit: true
+        - pwsh: |
+            if (-not (Test-Path $(repoRoot)/.config/tsaoptions.json)) {
+              throw "tsaoptions.json does not exist under $(repoRoot)/.config"
+            }
+          displayName: Test if tsaoptions.json exists
+          env:
+            # Set ob_restore_phase to run this step before '🔒 Setup Signing' step.
+            ob_restore_phase: true
 
-          - task: DotNetCoreCLI@2
-            displayName: 'DotNetCore restore'
-            inputs:
-              command: 'custom'
-              projects: $(BuildSolution)
-              custom: 'restore'
+        - pwsh: |
+            Write-Host "PS Version: $($($PSVersionTable.PSVersion))"
+            Set-Location -Path '$(repoRoot)'
+            .\build.ps1 -Bootstrap
+          displayName: Bootstrap
+          env:
+            # Set ob_restore_phase to run this step before '🔒 Setup Signing' step.
+            ob_restore_phase: true
 
-          # roslynanalyzers task wraps around dotnet build to enable static analysis
-          - task: RoslynAnalyzers@3
-            displayName: 'DotNetCore build with RoslynAnalyzers'
-            inputs:
-              userProvideBuildInfo: 'msBuildInfo'
-              msBuildCommandline: 'dotnet.exe build $(BuildSolution) --no-restore --configuration $(BuildConfiguration)'
+        # Add CodeQL Init task right before your 'Build' step.
+        - task: CodeQL3000Init@0
+          env:
+            # Set ob_restore_phase to run this step before '🔒 Setup Signing' step.
+            ob_restore_phase: true
+          inputs:
+            Enabled: true
+            AnalyzeInPipeline: true
+            Language: csharp
 
-          - task: DotNetCoreCLI@2
-            displayName: 'DotNetCore test'
-            inputs:
-              command: 'test'
-              projects: $(BuildSolution)
-              arguments: '--no-build --no-restore --configuration $(BuildConfiguration) --logger trx --blame --collect "Code coverage" --results-directory $(Build.SourcesDirectory)\TestResults\'
-              publishTestResults: false
+        - pwsh: |
+            function Send-VstsCommand ($vstsCommandString) {
+              Write-Host ("sending: " + $vstsCommandString)
+              Write-Host "##$vstsCommandString"
+            }
 
-          - task: PublishTestResults@2
-            displayName: 'Publish test results'
-            inputs:
-              testResultsFormat: VSTest
-              testResultsFiles: '$(Build.SourcesDirectory)\TestResults\**\*.trx'
-              failTaskOnFailedTests: true
+            Write-Host "PS Version: $($($PSVersionTable.PSVersion))"
+            Set-Location -Path '$(repoRoot)'
+            .\build.ps1 -Configuration Release -Framework net461
 
-          - task: DotNetCoreCLI@2
-            displayName: 'DotNetCore publish'
-            inputs:
-              command: 'publish'
-              publishWebProjects: false
-              projects: $(BuildSolution)
-              arguments: '--no-build --no-restore --configuration $(BuildConfiguration) --output $(Build.SourcesDirectory)\out'
-              zipAfterPublish: false
+            # Set target folder paths
+            New-Item -Path .\bin\Release\NuGetPackage -ItemType Directory > $null
+            Send-VstsCommand "vso[task.setvariable variable=NuGetPackage]$(Build.SourcesDirectory)\PSReadLine\bin\Release\NuGetPackage"
+            Send-VstsCommand "vso[task.setvariable variable=PSReadLine]$(Build.SourcesDirectory)\PSReadLine\bin\Release\PSReadLine"
+            Send-VstsCommand "vso[task.setvariable variable=Signed]$(Build.SourcesDirectory)\PSReadLine\bin\Release\Signed"
+          displayName: Build
+          env:
+            # Set ob_restore_phase to run this step before '🔒 Setup Signing' step.
+            ob_restore_phase: true
 
-          - task: onebranch.pipeline.signing@1
-            displayName: 'Sign output'
-            inputs:
-              command: 'sign'
-              signing_environment: 'azure-ado'
-              files_to_sign: '**/*.exe;**/*.dll;**/*.ps1;**/*.psm1'
-              search_root: '$(Build.SourcesDirectory)\out'
-# uncomment this section and edit parameters to enable VSTest instead of dotnet tests. When you enable this you dont need publish test results and codecoverage steps
-         # - task: VSTest@3
-         #   inputs:
-          #    testSelector: 'testAssemblies'
-           #   testAssemblyVer2: |
-            #    **\*test*.dll
-             #   !**\*TestAdapter.dll
-              #  !**\obj\**
-             # searchFolder: '$(Build.SourcesDirectory)\out' ## or use '$(Agent.BuildDirectory)'
-              ##testFiltercriteria: 'TestCategory=UnitTests'   ## update
-              #resultsFolder: '$(Build.SourcesDirectory)\out\logs\TestResults'
-              #runInParallel: true ## this setting helps to speed up test case execution but if youhave depdencies between tests you change or remove this but having it enabled is always recommended
-              #codeCoverageEnabled: true
-              #testRunTitle: 'release_x64' ## Update this for a custom readable way of taggin your test run when you query in ADO test runs view
-              #platform: 'x64' ## you can modify this as needed
-              #configuration: 'release'
-              #publishRunAttachments: false
-              #failOnMinTestsNotRun: true
-              #rerunFailedTests: true
-              #rerunFailedThreshold: '70' 
-# https://aka.ms/obpipelines/cloudtest
-# uncomment this section and edit parameters to enable CloudTest
-    # - stage: cloudtest
-    #   dependsOn: build_stage
-    #   jobs:
-    #   - job: cloudtestjob
-    #     pool:
-    #       type: cloudtestagentless
-    #     continueOnError: true
-    #     steps:
-    #     - task: CloudTestServerBuildTask@1
-    #       displayName: 'CloudTest'
-    #       inputs:
-    #         connectedServiceName: 'CloudTest-prod'
-    #         cloudTestTenant: 'onebranchtest'
-    #         testMapLocation: '[BuildRoot]\ClassLibrary.UnitTest\TestMapCdp.xml'
-    #         pipelineArtifactName: 'drop_build_main'
-    #         pipelineArtifactBuildUrl: '$(System.TaskDefinitionsUri)$(System.TeamProject)/_build/results?buildId=$(Build.BuildId)'
-    #         parserProperties: 'worker:VsTestVersion=V150;CodeCoverageType=Dynamic;worker:TestVar=$(RUN_PIPELINE_VARIABLE)'
-    #         cacheEnabled: false
-    #         scheduleBuildRequesterAlias: 'azbldrun'
+        # Add CodeQL Finalize task right after your 'Build' step.
+        - task: CodeQL3000Finalize@0
+          condition: always()
+          env:
+            # Set ob_restore_phase to run this step before '🔒 Setup Signing' step.
+            ob_restore_phase: true
+
+        - task: onebranch.pipeline.signing@1
+          displayName: Sign 1st party files
+          inputs:
+            command: 'sign'
+            signing_profile: external_distribution
+            files_to_sign: '*.psd1;*.psm1;*.ps1;*.ps1xml;**\Microsoft*.dll;!Microsoft.PowerShell.Pager.dll'
+            search_root: $(signSrcPath)
+
+        - task: CopyFiles@2
+          displayName: "Copy signed files to ob_outputDirectory - '$(ob_outputDirectory)'"
+          inputs:
+            SourceFolder: "$(signSrcPath)"
+            Contents: '**'
+            TargetFolder: $(ob_outputDirectory)
+
+        - pwsh: |
+            try {
+              $RepoName = "PSRLLocal"
+              Register-PSRepository -Name $RepoName -SourceLocation $(NuGetPackage) -PublishLocation $(NuGetPackage) -InstallationPolicy Trusted
+              Publish-Module -Repository $RepoName -Path $(PSReadLine)
+            } finally {
+              Unregister-PSRepository -Name $RepoName -ErrorAction SilentlyContinue
+            }
+            Get-ChildItem -Path $(NuGetPackage)
+          displayName: 'Create the NuGet package'
+        - pwsh: |
+            Get-ChildItem -Path $(PSReadLine), $(NuGetPackage)
+            Write-Host "##vso[artifact.upload containerfolder=PSReadLine;artifactname=PSReadLine]$(PSReadLine)"
+            Write-Host "##vso[artifact.upload containerfolder=NuGetPackage;artifactname=NuGetPackage]$(NuGetPackage)"
+          displayName: 'Upload artifacts'
+    - stage: compliance
+      displayName: Compliance
+      dependsOn: Build
+      jobs:
+      - job: Compliance_Job
+        displayName: PSReadLine Compliance
+        variables:
+        - group: APIScan
+        - name: ob_outputDirectory
+          value: '$(Build.ArtifactStagingDirectory)/ONEBRANCH_ARTIFACT'
+        timeoutInMinutes: 240
+        pool:
+          type: windows
+        steps:
+        - checkout: self
+        - checkout: ComplianceRepo
+        - download: current
+          artifact: PSReadLine
+        - pwsh: |
+            Get-ChildItem -Path "$(Pipeline.Workspace)\PSReadLine" -Recurse
+          displayName: Capture downloaded artifacts
+        - pwsh: |
+            function Send-VstsCommand ($vstsCommandString) {
+              Write-Host ("sending: " + $vstsCommandString)
+              Write-Host "##$vstsCommandString"
+            }
+            # Get module version
+            $psd1Data = Import-PowerShellDataFile -Path "$(Pipeline.Workspace)\PSReadLine\PSReadLine.psd1"
+            $moduleVersion = $psd1Data.ModuleVersion
+            $prerelease = $psd1Data.PrivateData.PSData.Prerelease
+            if ($prerelease) { $moduleVersion = "$moduleVersion-$prerelease" }
+            Send-VstsCommand "vso[task.setvariable variable=ModuleVersion]$moduleVersion"
+          displayName: Get Module Version
+        - template: assembly-module-compliance.yml@ComplianceRepo
+          parameters:
+            AnalyzeTarget: '$(Pipeline.Workspace)\PSReadLine\*.dll'
+            AnalyzeSymPath: 'SRV*'
+            sourceScanPath: ''
+            suppressionsFile: ''
+            optionsRulesDBPath: ''
+            optionsFTPath: ''
+            codeBaseName: 'PSReadLine_201912'
+            softwareFolder: '$(Pipeline.Workspace)\PSReadLine'
+            softwareName: 'PSReadLine'
+            softwareVersion: '$(ModuleVersion)'
+            connectionString: 'RunAs=App;AppId=$(APIScanClient);TenantId=$(APIScanTenant);AppKey=$(APIScanSecret)'
