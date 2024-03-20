@@ -152,7 +152,7 @@ extends:
             }
 
             Write-Host "Display files in the folder ..." -ForegroundColor Yellow
-            Get-ChildItem -Path $(signSrcPath) -Recurse
+            Get-ChildItem -Path $(signSrcPath) -Recurse | Out-String -Width 120
           displayName: 'Verify the signed files'
 
         - task: CopyFiles@2
@@ -232,5 +232,6 @@ extends:
         - task: CopyFiles@2
           displayName: "Copy nupkg to ob_outputDirectory - '$(ob_outputDirectory)'"
           inputs:
-            Contents: "$(nugetPath)*.nupkg"
+            SourceFolder: $(nugetPath)
+            Contents: '**\*'
             TargetFolder: $(ob_outputDirectory)
