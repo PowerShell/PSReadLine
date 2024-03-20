@@ -152,7 +152,7 @@ extends:
             }
 
             Write-Host "Display files in the folder ..."
-            Get-ChildItem -Path $(signSrcPath)
+            Get-ChildItem -Path $(signSrcPath) -Recurse | Out-String -Width 150
           displayName: 'Verify the signed files'
 
         - task: CopyFiles@2
@@ -163,7 +163,7 @@ extends:
             TargetFolder: $(ob_outputDirectory)
 
         - pwsh: |
-            $versionInfo = Get-Item "$(signSrcPath)\Microsoft.PowerShell.PSReadLine2.dll | ForEach-Object VersionInfo"
+            $versionInfo = Get-Item "$(signSrcPath)\Microsoft.PowerShell.PSReadLine2.dll" | ForEach-Object VersionInfo
             $moduleVersion = $versionInfo.ProductVersion.Split('+')[0]
             $vstsCommandString = "vso[task.setvariable variable=ob_sdl_sbom_packageversion]${moduleVersion}"
 
