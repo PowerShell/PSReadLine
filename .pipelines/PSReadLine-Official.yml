@@ -1,6 +1,13 @@
-# This Yaml Document has been converted by ESAI Yaml Pipeline Conversion Tool.
-# Please make sure to check all the converted content, it is your team's responsibility to make sure that the pipeline is still valid and functions as expected.
-# This pipeline will be extended to the OneBranch template
+#################################################################################
+#                               OneBranch Pipelines                             #
+# This pipeline was created by EasyStart from a sample located at:              #
+#   https://aka.ms/obpipelines/easystart/samples                                #
+# Documentation:  https://aka.ms/obpipelines                                    #
+# Yaml Schema:    https://aka.ms/obpipelines/yaml/schema                        #
+# Retail Tasks:   https://aka.ms/obpipelines/tasks                              #
+# Support:        https://aka.ms/onebranchsup                                   #
+#################################################################################
+
 name: PSReadLine-ModuleBuild-$(Build.BuildId)
 trigger: none
 pr: none
@@ -36,18 +43,18 @@ extends:
         forStages: [Build]
         credscan:
           enabled: true
-          scanFolder:  $(Build.SourcesDirectory)\PSReadLine
+          scanFolder:  $(Build.SourcesDirectory)\PSReadLine\PSReadLine
         binskim:
           enabled: true
         apiscan:
           enabled: false
 
     stages:
-    - stage: Build
-      displayName: Build and Sign
+    - stage: buildstage
+      displayName: Build and Sign PSReadLine
       jobs:
-      - job: build_windows
-        displayName: Build PSReadLine
+      - job: buildjob
+        displayName: Build PSReadLine Files
         variables:
         - name: ob_outputDirectory
           value: '$(Build.ArtifactStagingDirectory)/ONEBRANCH_ARTIFACT'
@@ -83,7 +90,7 @@ extends:
             ob_restore_phase: true
 
         - pwsh: |
-            Write-Host "PS Version: $($($PSVersionTable.PSVersion))"
+            Write-Host "PS Version: $($PSVersionTable.PSVersion)"
             Set-Location -Path '$(repoRoot)'
             .\build.ps1 -Bootstrap
           displayName: Bootstrap
@@ -102,20 +109,9 @@ extends:
             Language: csharp
 
         - pwsh: |
-            function Send-VstsCommand ($vstsCommandString) {
-              Write-Host ("sending: " + $vstsCommandString)
-              Write-Host "##$vstsCommandString"
-            }
-
             Write-Host "PS Version: $($($PSVersionTable.PSVersion))"
             Set-Location -Path '$(repoRoot)'
             .\build.ps1 -Configuration Release -Framework net461
-
-            # Set target folder paths
-            New-Item -Path .\bin\Release\NuGetPackage -ItemType Directory > $null
-            Send-VstsCommand "vso[task.setvariable variable=NuGetPackage]$(Build.SourcesDirectory)\PSReadLine\bin\Release\NuGetPackage"
-            Send-VstsCommand "vso[task.setvariable variable=PSReadLine]$(Build.SourcesDirectory)\PSReadLine\bin\Release\PSReadLine"
-            Send-VstsCommand "vso[task.setvariable variable=Signed]$(Build.SourcesDirectory)\PSReadLine\bin\Release\Signed"
           displayName: Build
           env:
             # Set ob_restore_phase to run this step before '🔒 Setup Signing' step.
@@ -136,71 +132,106 @@ extends:
             files_to_sign: '*.psd1;*.psm1;*.ps1;*.ps1xml;**\Microsoft*.dll;!Microsoft.PowerShell.Pager.dll'
             search_root: $(signSrcPath)
 
+        # Verify the signatures
+        - pwsh: |
+            $HasInvalidFiles = $false
+            $WrongCert = @{}
+            Get-ChildItem -Path $(signSrcPath) -Recurse -Include "*.dll","*.ps*1*" | `
+                Get-AuthenticodeSignature | ForEach-Object {
+                    $_ | Select-Object Path, Status
+                    if ($_.Status -ne 'Valid') { $HasInvalidFiles = $true }
+                    if ($_.SignerCertificate.Subject -notmatch 'CN=Microsoft Corporation.*') {
+                        $WrongCert.Add($_.Path, $_.SignerCertificate.Subject)
+                    }
+                }
+
+            if ($HasInvalidFiles) { throw "Authenticode verification failed. There is one or more invalid files." }
+            if ($WrongCert.Count -gt 0) {
+                $WrongCert
+                throw "Certificate should have the subject starts with 'Microsoft Corporation'"
+            }
+
+            ## Display files in the folder.
+            Get-ChildItem -Path $(signSrcPath)
+          displayName: 'Verify the signed files'
+
         - task: CopyFiles@2
           displayName: "Copy signed files to ob_outputDirectory - '$(ob_outputDirectory)'"
           inputs:
-            SourceFolder: "$(signSrcPath)"
+            SourceFolder: $(signSrcPath)
             Contents: '**'
             TargetFolder: $(ob_outputDirectory)
 
         - pwsh: |
-            try {
-              $RepoName = "PSRLLocal"
-              Register-PSRepository -Name $RepoName -SourceLocation $(NuGetPackage) -PublishLocation $(NuGetPackage) -InstallationPolicy Trusted
-              Publish-Module -Repository $RepoName -Path $(PSReadLine)
-            } finally {
-              Unregister-PSRepository -Name $RepoName -ErrorAction SilentlyContinue
-            }
-            Get-ChildItem -Path $(NuGetPackage)
-          displayName: 'Create the NuGet package'
-        - pwsh: |
-            Get-ChildItem -Path $(PSReadLine), $(NuGetPackage)
-            Write-Host "##vso[artifact.upload containerfolder=PSReadLine;artifactname=PSReadLine]$(PSReadLine)"
-            Write-Host "##vso[artifact.upload containerfolder=NuGetPackage;artifactname=NuGetPackage]$(NuGetPackage)"
-          displayName: 'Upload artifacts'
-    - stage: compliance
-      displayName: Compliance
-      dependsOn: Build
-      jobs:
-      - job: Compliance_Job
-        displayName: PSReadLine Compliance
+            $versionInfo = Get-Item "$(repoRoot)\Microsoft.PowerShell.PSReadLine2.dll | ForEach-Object VersionInfo"
+            $moduleVersion = $versionInfo.ProductVersion.Split('+')[0]
+            $vstsCommandString = "vso[task.setvariable variable=ob_sdl_sbom_packageversion]${moduleVersion}"
+
+            Write-Host "sending $vstsCommandString"
+            Write-Host "##$vstsCommandString"
+          displayName: Setup SBOM Package Version
+
+      - job: nupkg
+        dependsOn: buildjob
+        displayName: Package PSReadLine module
         variables:
-        - group: APIScan
-        - name: ob_outputDirectory
-          value: '$(Build.ArtifactStagingDirectory)/ONEBRANCH_ARTIFACT'
-        timeoutInMinutes: 240
+          - name: ob_outputDirectory
+            value: '$(Build.ArtifactStagingDirectory)/ONEBRANCH_ARTIFACT'
+          - name: repoRoot
+            value: $(Build.SourcesDirectory)\PSReadLine
+          - name: ob_sdl_tsa_configFile
+            value: $(repoRoot)\.config\tsaoptions.json
+          # Disable because SBOM was already built in the previous job
+          - name: ob_sdl_sbom_enabled
+            value: false
+          - name: signOutPath
+            value: $(repoRoot)\signed\PSReadLine
+          - name: nugetPath
+            value: $(repoRoot)\signed\NuGetPackage
+          - name: ob_signing_setup_enabled
+            value: true
+          # This job is not compiling code, so disable codeQL
+          - name: ob_sdl_codeql_compiled_enabled
+            value: false
+
         pool:
           type: windows
         steps:
         - checkout: self
-        - checkout: ComplianceRepo
-        - download: current
-          artifact: PSReadLine
+
+        - task: DownloadPipelineArtifact@2
+          displayName: 'Download build files'
+          inputs:
+            targetPath: $(signOutPath)
+            artifact: drop_buildstage_buildjob
+
         - pwsh: |
-            Get-ChildItem -Path "$(Pipeline.Workspace)\PSReadLine" -Recurse
-          displayName: Capture downloaded artifacts
+            Set-Location "$(signOutPath)"
+            Get-ChildItem -Directory -Recurse *
+            New-Item -Path $(nugetPath) -ItemType Directory > $null
+          displayName: Capture artifacts structure
+
         - pwsh: |
-            function Send-VstsCommand ($vstsCommandString) {
-              Write-Host ("sending: " + $vstsCommandString)
-              Write-Host "##$vstsCommandString"
+            try {
+              $RepoName = "PSRLLocal"
+              Register-PSRepository -Name $RepoName -SourceLocation $(nugetPath) -PublishLocation $(nugetPath) -InstallationPolicy Trusted
+              Publish-Module -Repository $RepoName -Path $(signOutPath)
+            } finally {
+              Unregister-PSRepository -Name $RepoName -ErrorAction SilentlyContinue
             }
-            # Get module version
-            $psd1Data = Import-PowerShellDataFile -Path "$(Pipeline.Workspace)\PSReadLine\PSReadLine.psd1"
-            $moduleVersion = $psd1Data.ModuleVersion
-            $prerelease = $psd1Data.PrivateData.PSData.Prerelease
-            if ($prerelease) { $moduleVersion = "$moduleVersion-$prerelease" }
-            Send-VstsCommand "vso[task.setvariable variable=ModuleVersion]$moduleVersion"
-          displayName: Get Module Version
-        - template: assembly-module-compliance.yml@ComplianceRepo
-          parameters:
-            AnalyzeTarget: '$(Pipeline.Workspace)\PSReadLine\*.dll'
-            AnalyzeSymPath: 'SRV*'
-            sourceScanPath: ''
-            suppressionsFile: ''
-            optionsRulesDBPath: ''
-            optionsFTPath: ''
-            codeBaseName: 'PSReadLine_201912'
-            softwareFolder: '$(Pipeline.Workspace)\PSReadLine'
-            softwareName: 'PSReadLine'
-            softwareVersion: '$(ModuleVersion)'
-            connectionString: 'RunAs=App;AppId=$(APIScanClient);TenantId=$(APIScanTenant);AppKey=$(APIScanSecret)'
+            Get-ChildItem -Path $(nugetPath)
+          displayName: 'Create the NuGet package'
+
+        - task: onebranch.pipeline.signing@1
+          displayName: Sign nupkg
+          inputs:
+            command: 'sign'
+            signing_profile: external_distribution
+            files_to_sign: '*.nupkg'
+            search_root: $(nugetPath)
+
+        - task: CopyFiles@2
+          displayName: "Copy nupkg to ob_outputDirectory - '$(ob_outputDirectory)'"
+          inputs:
+            Contents: "$(nugetPath)*.nupkg"
+            TargetFolder: $(ob_outputDirectory)
