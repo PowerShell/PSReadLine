@@ -138,7 +138,7 @@ extends:
             $WrongCert = @{}
             Get-ChildItem -Path $(signSrcPath) -Recurse -Include "*.dll","*.ps*1*" | `
                 Get-AuthenticodeSignature | ForEach-Object {
-                    $_ | Select-Object Path, Status
+                    Write-Host "$($_.Path): $($_.Status)"
                     if ($_.Status -ne 'Valid') { $HasInvalidFiles = $true }
                     if ($_.SignerCertificate.Subject -notmatch 'CN=Microsoft Corporation.*') {
                         $WrongCert.Add($_.Path, $_.SignerCertificate.Subject)
@@ -151,8 +151,8 @@ extends:
                 throw "Certificate should have the subject starts with 'Microsoft Corporation'"
             }
 
-            Write-Host "Display files in the folder ..."
-            Get-ChildItem -Path $(signSrcPath) -Recurse | Out-String -Width 150
+            Write-Host "Display files in the folder ..." -ForegroundColor Yellow
+            Get-ChildItem -Path $(signSrcPath) -Recurse
           displayName: 'Verify the signed files'
 
         - task: CopyFiles@2
@@ -206,8 +206,7 @@ extends:
             artifact: drop_buildstage_buildjob
 
         - pwsh: |
-            Set-Location "$(signOutPath)"
-            Get-ChildItem -Directory -Recurse *
+            Get-ChildItem $(signOutPath) -Recurse
             New-Item -Path $(nugetPath) -ItemType Directory > $null
           displayName: Capture artifacts structure
 
@@ -226,7 +225,7 @@ extends:
           displayName: Sign nupkg
           inputs:
             command: 'sign'
-            signing_profile: external_distribution
+            signing_profile: external_default
             files_to_sign: '*.nupkg'
             search_root: $(nugetPath)
 
