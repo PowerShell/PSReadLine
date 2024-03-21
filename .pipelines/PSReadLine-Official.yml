@@ -225,7 +225,7 @@ extends:
           displayName: Sign nupkg
           inputs:
             command: 'sign'
-            signing_profile: external_default
+            signing_profile: external_distribution
             files_to_sign: '*.nupkg'
             search_root: $(nugetPath)
 
