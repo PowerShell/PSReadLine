@@ -7,6 +7,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
+using System.Linq;
 using System.Management.Automation;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -68,10 +69,6 @@ namespace Microsoft.PowerShell
             if (options._editMode.HasValue)
             {
                 Options.EditMode = options.EditMode;
-
-                // Switching/resetting modes - clear out chord dispatch table
-                _chordDispatchTable.Clear();
-
                 SetDefaultBindings(Options.EditMode);
             }
             if (options._showToolTips.HasValue)
@@ -192,20 +189,34 @@ namespace Microsoft.PowerShell
             foreach (var key in keys)
             {
                 var chord = ConsoleKeyChordConverter.Convert(key);
-                var firstKey = PSKeyInfo.FromConsoleKeyInfo(chord[0]);
-                if (chord.Length == 1)
+                var chordHandler = MakeKeyHandler(handler, briefDescription, longDescription, scriptBlock);
+
+                var chordDispatchTable = _dispatchTable;
+
+                for (var index = 0; index < chord.Length; index++)
                 {
-                    _dispatchTable[firstKey] = MakeKeyHandler(handler, briefDescription, longDescription, scriptBlock);
-                }
-                else
-                {
-                    _dispatchTable[firstKey] = MakeKeyHandler(Chord, "ChordFirstKey");
-                    if (!_chordDispatchTable.TryGetValue(firstKey, out var secondDispatchTable))
+                    var anchorKey = PSKeyInfo.FromConsoleKeyInfo(chord[index]);
+
+                    var createDispatchTable = chord.Length - index > 1;
+                    if (createDispatchTable)
                     {
-                        secondDispatchTable = new Dictionary<PSKeyInfo, KeyHandler>();
-                        _chordDispatchTable[firstKey] = secondDispatchTable;
+                        var dispatchTableExists =
+                            chordDispatchTable.ContainsKey(anchorKey) &&
+                            !chordDispatchTable[anchorKey].TryGetKeyHandler(out var _)
+                            ;
+
+                        if (!dispatchTableExists)
+                        {
+                            chordDispatchTable[anchorKey] = new ChordDispatchTable(
+                                Enumerable.Empty<KeyValuePair<PSKeyInfo, KeyHandlerOrChordDispatchTable>>());
+                        }
+
+                        chordDispatchTable = (ChordDispatchTable)chordDispatchTable[anchorKey];
                     }
-                    secondDispatchTable[PSKeyInfo.FromConsoleKeyInfo(chord[1])] = MakeKeyHandler(handler, briefDescription, longDescription, scriptBlock);
+                    else
+                    {
+                        chordDispatchTable[anchorKey] = chordHandler;
+                    }
                 }
             }
         }
@@ -214,21 +225,23 @@ namespace Microsoft.PowerShell
         {
             foreach (var key in keys)
             {
-                var chord = ConsoleKeyChordConverter.Convert(key);
-                var firstKey = PSKeyInfo.FromConsoleKeyInfo(chord[0]);
-                if (chord.Length == 1)
+                var consoleKeyChord = ConsoleKeyChordConverter.Convert(key);
+                var dispatchTable = _singleton._dispatchTable;
+
+                for (var index = 0; index < consoleKeyChord.Length; index++)
                 {
-                    _dispatchTable.Remove(firstKey);
-                }
-                else
-                {
-                    if (_chordDispatchTable.TryGetValue(firstKey, out var secondDispatchTable))
+                    var chordKey = PSKeyInfo.FromConsoleKeyInfo(consoleKeyChord[index]);
+                    if (!dispatchTable.TryGetValue(chordKey, out var handlerOrChordDispatchTable))
+                        continue;
+
+                    if (handlerOrChordDispatchTable.TryGetKeyHandler(out var keyHandler))
                     {
-                        secondDispatchTable.Remove(PSKeyInfo.FromConsoleKeyInfo(chord[1]));
-                        if (secondDispatchTable.Count == 0)
-                        {
-                            _dispatchTable.Remove(firstKey);
-                        }
+                        dispatchTable.Remove(chordKey);
+                    }
+
+                    else
+                    {
+                        dispatchTable = (ChordDispatchTable)handlerOrChordDispatchTable;
                     }
                 }
             }
@@ -321,92 +334,20 @@ namespace Microsoft.PowerShell
         {
             var boundFunctions = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-            foreach (var entry in _singleton._dispatchTable)
-            {
-                if (entry.Value.BriefDescription == "Ignore"
-                    || entry.Value.BriefDescription == "ChordFirstKey")
-                {
-                    continue;
-                }
-                boundFunctions.Add(entry.Value.BriefDescription);
-                if (includeBound)
-                {
-                    yield return new PowerShell.KeyHandler
-                    {
-                        Key = entry.Key.KeyStr,
-                        Function = entry.Value.BriefDescription,
-                        Description = entry.Value.LongDescription,
-                        Group = GetDisplayGrouping(entry.Value.BriefDescription),
-                    };
-                }
-            }
+            var templates = new List<(ChordDispatchTable DispatchTable, string[] Surrounds)> {
+                (_singleton._dispatchTable, new[]{ "", "", }),
+            };
 
-            // Added to support vi command mode mappings
             if (_singleton._options.EditMode == EditMode.Vi)
             {
-                foreach (var entry in _viCmdKeyMap)
-                {
-                    if (entry.Value.BriefDescription == "Ignore"
-                        || entry.Value.BriefDescription == "ChordFirstKey")
-                    {
-                        continue;
-                    }
-                    boundFunctions.Add(entry.Value.BriefDescription);
-                    if (includeBound)
-                    {
-                        yield return new PowerShell.KeyHandler
-                        {
-                            Key = "<" + entry.Key.KeyStr + ">",
-                            Function = entry.Value.BriefDescription,
-                            Description = entry.Value.LongDescription,
-                            Group = GetDisplayGrouping(entry.Value.BriefDescription),
-                        };
-                    }
-                }
+                templates.Add((_viCmdKeyMap, new[] { "<", ">" }));
             }
 
-            foreach( var entry in _singleton._chordDispatchTable )
+            foreach (var template in templates)
             {
-                foreach( var secondEntry in entry.Value )
-                {
-                    boundFunctions.Add( secondEntry.Value.BriefDescription );
-                    if (includeBound)
-                    {
-                        yield return new PowerShell.KeyHandler
-                        {
-                            Key = entry.Key.KeyStr + "," + secondEntry.Key.KeyStr,
-                            Function = secondEntry.Value.BriefDescription,
-                            Description = secondEntry.Value.LongDescription,
-                            Group = GetDisplayGrouping(secondEntry.Value.BriefDescription),
-                        };
-                    }
-                }
-            }
-
-            // Added to support vi command mode chorded mappings
-            if (_singleton._options.EditMode == EditMode.Vi)
-            {
-                foreach (var entry in _viCmdChordTable)
-                {
-                    foreach (var secondEntry in entry.Value)
-                    {
-                        if (secondEntry.Value.BriefDescription == "Ignore")
-                        {
-                            continue;
-                        }
-                        boundFunctions.Add(secondEntry.Value.BriefDescription);
-                        if (includeBound)
-                        {
-                            yield return new PowerShell.KeyHandler
-                            {
-                                Key = "<" + entry.Key.KeyStr + "," + secondEntry.Key.KeyStr + ">",
-                                Function = secondEntry.Value.BriefDescription,
-                                Description = secondEntry.Value.LongDescription,
-                                Group = GetDisplayGrouping(secondEntry.Value.BriefDescription),
-                            };
-                        }
-                    }
-                }
+                var handlers = GetKeyHandlers("", template.Surrounds, template.DispatchTable, includeBound, ref boundFunctions);
+                foreach (var handler in handlers)
+                    yield return handler;
             }
 
             if (includeUnbound)
@@ -414,13 +355,13 @@ namespace Microsoft.PowerShell
                 // SelfInsert isn't really unbound, but we don't want UI to show it that way
                 boundFunctions.Add("SelfInsert");
 
-                var methods = typeof (PSConsoleReadLine).GetMethods(BindingFlags.Public | BindingFlags.Static);
+                var methods = typeof(PSConsoleReadLine).GetMethods(BindingFlags.Public | BindingFlags.Static);
                 foreach (var method in methods)
                 {
                     var parameters = method.GetParameters();
                     if (parameters.Length != 2 ||
-                        parameters[0].ParameterType != typeof (ConsoleKeyInfo?) ||
-                        parameters[1].ParameterType != typeof (object))
+                        parameters[0].ParameterType != typeof(ConsoleKeyInfo?) ||
+                        parameters[1].ParameterType != typeof(object))
                     {
                         continue;
                     }
@@ -439,94 +380,114 @@ namespace Microsoft.PowerShell
             }
         }
 
+        private static PowerShell.KeyHandler[] GetKeyHandlers(
+            string chordPrefix,
+            string[] surrounds,
+            ChordDispatchTable dispatchTable,
+            bool includeBound,
+            ref HashSet<string> boundFunctions
+        )
+        {
+            var keyHandlers = new List<PowerShell.KeyHandler>();
+
+            foreach (var entry in dispatchTable)
+            {
+                var handlerOrChordDispatchTable = entry.Value;
+
+                if (handlerOrChordDispatchTable.TryGetKeyHandler(out var keyHandler))
+                {
+                    boundFunctions.Add(keyHandler.BriefDescription);
+                    if (includeBound)
+                    {
+                        var handlerKey = chordPrefix.Length == 0
+                            ? entry.Key.KeyStr
+                            : chordPrefix.Substring(1) + "," + entry.Key.KeyStr
+                            ;
+
+                        keyHandlers.Add(new PowerShell.KeyHandler
+                        {
+                            Key = surrounds[0] + handlerKey + surrounds[1],
+                            Function = keyHandler.BriefDescription,
+                            Description = keyHandler.LongDescription,
+                            Group = GetDisplayGrouping(keyHandler.BriefDescription),
+                        });
+                    }
+                }
+
+                else
+                {
+                    keyHandlers.AddRange(
+                        GetKeyHandlers(
+                            chordPrefix + "," + entry.Key.KeyStr,
+                            surrounds,
+                            (ChordDispatchTable)handlerOrChordDispatchTable,
+                            includeBound,
+                            ref boundFunctions
+                        ));
+                }
+            }
+
+            return keyHandlers.ToArray();
+        }
+
         /// <summary>
         /// Return key handlers bound to specified chords.
         /// </summary>
         /// <returns></returns>
         public static IEnumerable<PowerShell.KeyHandler> GetKeyHandlers(string[] Chord)
         {
-            var boundFunctions = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
             if (Chord == null || Chord.Length == 0)
             {
                 yield break;
             }
 
-            foreach (string Key in Chord)
+            foreach (string key in Chord)
             {
-                ConsoleKeyInfo[] consoleKeyChord = ConsoleKeyChordConverter.Convert(Key);
-                PSKeyInfo firstKey = PSKeyInfo.FromConsoleKeyInfo(consoleKeyChord[0]);
+                ConsoleKeyInfo[] consoleKeyChord = ConsoleKeyChordConverter.Convert(key);
 
-                if (_singleton._dispatchTable.TryGetValue(firstKey, out KeyHandler entry))
-                {
-                    if (consoleKeyChord.Length == 1)
-                    {
-                        yield return new PowerShell.KeyHandler
-                        {
-                            Key = firstKey.KeyStr,
-                            Function = entry.BriefDescription,
-                            Description = entry.LongDescription,
-                            Group = GetDisplayGrouping(entry.BriefDescription),
-                        };
-                    }
-                    else
-                    {
-                        PSKeyInfo secondKey = PSKeyInfo.FromConsoleKeyInfo(consoleKeyChord[1]);
-                        if (_singleton._chordDispatchTable.TryGetValue(firstKey, out var secondDispatchTable) &&
-                            secondDispatchTable.TryGetValue(secondKey, out entry))
-                        {
-                            yield return new PowerShell.KeyHandler
-                            {
-                                Key = firstKey.KeyStr + "," + secondKey.KeyStr,
-                                Function = entry.BriefDescription,
-                                Description = entry.LongDescription,
-                                Group = GetDisplayGrouping(entry.BriefDescription),
-                            };
-                        }
-                    }
-                }
+                foreach (var handler in GetKeyHandlers(_singleton._dispatchTable, consoleKeyChord))
+                    yield return handler;
 
                 // If in Vi mode, also check Vi's command mode list.
                 if (_singleton._options.EditMode == EditMode.Vi)
                 {
-                    if (_viCmdKeyMap.TryGetValue(firstKey, out entry))
+                    foreach (var handler in GetKeyHandlers(_viCmdKeyMap, consoleKeyChord, new[] { "<", ">" }))
+                        yield return handler;
+                }
+            }
+        }
+
+        private static IEnumerable<PowerShell.KeyHandler> GetKeyHandlers(
+            ChordDispatchTable dispatchTable,
+            ConsoleKeyInfo[] consoleKeyChord,
+            string[] surrounds = null
+        )
+        {
+            surrounds ??= new[] { "", "" };
+            var handlerKey = "";
+
+            for (var index = 0; index < consoleKeyChord.Length; index++)
+            {
+                var chordKey = PSKeyInfo.FromConsoleKeyInfo(consoleKeyChord[index]);
+                if (!dispatchTable.TryGetValue(chordKey, out var handlerOrChordDispatchTable))
+                    continue;
+
+                handlerKey += "," + chordKey.KeyStr;
+
+                if (handlerOrChordDispatchTable.TryGetKeyHandler(out var keyHandler))
+                {
+                    yield return new PowerShell.KeyHandler
                     {
-                        if (consoleKeyChord.Length == 1)
-                        {
-                            if (entry.BriefDescription == "Ignore")
-                            {
-                                continue;
-                            }
+                        Key = surrounds[0] + handlerKey.Substring(1) + surrounds[1],
+                        Function = keyHandler.BriefDescription,
+                        Description = keyHandler.LongDescription,
+                        Group = GetDisplayGrouping(keyHandler.BriefDescription),
+                    };
+                }
 
-                            yield return new PowerShell.KeyHandler
-                            {
-                                Key = "<" + firstKey.KeyStr + ">",
-                                Function = entry.BriefDescription,
-                                Description = entry.LongDescription,
-                                Group = GetDisplayGrouping(entry.BriefDescription),
-                            };
-                        }
-                        else
-                        {
-                            PSKeyInfo secondKey = PSKeyInfo.FromConsoleKeyInfo(consoleKeyChord[1]);
-                            if (_viCmdChordTable.TryGetValue(firstKey, out var secondDispatchTable) &&
-                                secondDispatchTable.TryGetValue(secondKey, out entry))
-                            {
-                                if (entry.BriefDescription == "Ignore")
-                                {
-                                    continue;
-                                }
-
-                                yield return new PowerShell.KeyHandler
-                                {
-                                    Key = "<" + firstKey.KeyStr + "," + secondKey.KeyStr + ">",
-                                    Function = entry.BriefDescription,
-                                    Description = entry.LongDescription,
-                                    Group = GetDisplayGrouping(entry.BriefDescription),
-                                };
-                            }
-                        }
-                    }
+                else
+                {
+                    dispatchTable = (ChordDispatchTable)handlerOrChordDispatchTable;
                 }
             }
         }
