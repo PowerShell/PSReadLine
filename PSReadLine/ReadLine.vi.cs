@@ -163,7 +163,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void SearchChar(ConsoleKeyInfo? key = null, object arg = null)
         {
-            char keyChar = ReadKey().KeyChar;
+            char keyChar = ReadKeyChar();
             ViCharacterSearcher.Set(keyChar, isBackward: false, isBackoff: false);
             ViCharacterSearcher.Search(keyChar, arg, backoff: false);
         }
@@ -174,7 +174,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void SearchCharBackward(ConsoleKeyInfo? key = null, object arg = null)
         {
-            char keyChar = ReadKey().KeyChar;
+            char keyChar = ReadKeyChar();
             ViCharacterSearcher.Set(keyChar, isBackward: true, isBackoff: false);
             ViCharacterSearcher.SearchBackward(keyChar, arg, backoff: false);
         }
@@ -185,7 +185,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void SearchCharWithBackoff(ConsoleKeyInfo? key = null, object arg = null)
         {
-            char keyChar = ReadKey().KeyChar;
+            char keyChar = ReadKeyChar();
             ViCharacterSearcher.Set(keyChar, isBackward: false, isBackoff: true);
             ViCharacterSearcher.Search(keyChar, arg, backoff: true);
         }
@@ -196,7 +196,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void SearchCharBackwardWithBackoff(ConsoleKeyInfo? key = null, object arg = null)
         {
-            char keyChar = ReadKey().KeyChar;
+            char keyChar = ReadKeyChar();
             ViCharacterSearcher.Set(keyChar, isBackward: true, isBackoff: true);
             ViCharacterSearcher.SearchBackward(keyChar, arg, backoff: true);
         }
@@ -362,7 +362,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void ViDeleteToChar(ConsoleKeyInfo? key = null, object arg = null)
         {
-            var keyChar = ReadKey().KeyChar;
+            var keyChar = ReadKeyChar();
             ViDeleteToChar(keyChar, key, arg);
         }
 
@@ -380,7 +380,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void ViDeleteToCharBackward(ConsoleKeyInfo? key = null, object arg = null)
         {
-            var keyChar = ReadKey().KeyChar;
+            var keyChar = ReadKeyChar();
             ViDeleteToCharBack(keyChar, key, arg);
         }
 
@@ -397,7 +397,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void ViDeleteToBeforeChar(ConsoleKeyInfo? key = null, object arg = null)
         {
-            var keyChar = ReadKey().KeyChar;
+            var keyChar = ReadKeyChar();
             ViDeleteToBeforeChar(keyChar, key, arg);
         }
 
@@ -415,7 +415,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void ViDeleteToBeforeCharBackward(ConsoleKeyInfo? key = null, object arg = null)
         {
-            var keyChar = ReadKey().KeyChar;
+            var keyChar = ReadKeyChar();
             ViDeleteToBeforeCharBack(keyChar, key, arg);
         }
 
