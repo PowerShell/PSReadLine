@@ -32,6 +32,8 @@ extends:
       WindowsHostVersion: '1ESWindows2022'
     globalSdl:
       disableLegacyManifest: true
+      cg: # Component Governance parameters. Ignore test components.
+        ignoreDirectories: $(Build.SourcesDirectory)\PSReadLine\MockPSConsole,$(Build.SourcesDirectory)\PSReadLine\test
       sbom:
         enabled: true
         packageName: PSReadLine
@@ -43,7 +45,7 @@ extends:
         forStages: [Build]
         credscan:
           enabled: true
-          scanFolder:  $(Build.SourcesDirectory)\PSReadLine\PSReadLine
+          scanFolder: $(Build.SourcesDirectory)\PSReadLine\PSReadLine
         binskim:
           enabled: true
         apiscan:
@@ -235,3 +237,57 @@ extends:
             SourceFolder: $(nugetPath)
             Contents: '**\*'
             TargetFolder: $(ob_outputDirectory)
+
+    - stage: release
+      dependsOn: buildstage
+      displayName: Release PSReadLine
+
+      jobs:
+      - job: validation
+        displayName: Manual validation
+        pool:
+          type: agentless
+        timeoutInMinutes: 1440
+
+        steps:
+        - task: ManualValidation@0
+          displayName: Wait 24 hours for validation
+          inputs:
+            instructions: Please validate the release
+            timeoutInMinutes: 1440
+
+      - job: publish
+        dependsOn: validation
+        displayName: Publish to PSGallery
+        variables:
+          - name: nugetPath
+            value: $(Pipeline.Workspace)\NuGetPackage
+        pool:
+          type: windows
+
+        steps:
+        - task: DownloadPipelineArtifact@2
+          displayName: 'Download nupkg artifact'
+          inputs:
+            targetPath: $(nugetPath)
+            artifact: drop_buildstage_nupkg
+
+        - pwsh: |
+            Get-ChildItem $(nugetPath) -Recurse
+          displayName: Find signed Nupkg
+
+        - task: NuGetCommand@2
+          displayName: Push PSReadLine module to Azure feed
+          inputs:
+            command: push
+            packagesToPush: $(nugetPath)\PSReadLine.*.nupkg
+            nuGetFeedType: internal
+            publishVstsFeed: AzArtifactsFeed
+
+        - task: NuGetCommand@2
+          displayName: Push PSReadLine module to PSGallery feed
+          inputs:
+            command: push
+            packagesToPush: $(nugetPath)\PSReadLine.*.nupkg
+            nuGetFeedType: external
+            publishFeedCredentials: PowerShellGalleryFeed
