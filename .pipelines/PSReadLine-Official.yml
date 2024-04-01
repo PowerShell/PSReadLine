@@ -260,6 +260,8 @@ extends:
         dependsOn: validation
         displayName: Publish to PSGallery
         variables:
+          - name: ob_outputDirectory
+            value: '$(Build.ArtifactStagingDirectory)/ONEBRANCH_ARTIFACT'
           - name: nugetPath
             value: $(Pipeline.Workspace)\NuGetPackage
         pool:
