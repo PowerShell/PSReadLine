@@ -37,6 +37,7 @@ extends:
       sbom:
         enabled: true
         packageName: PSReadLine
+        buildComponentPath: $(Build.SourcesDirectory)\PSReadLine\PSReadLine
       codeql:
         compiled:
           enabled: true
