@@ -160,7 +160,8 @@ task LayoutModule BuildPolyfiller, BuildMainModule, {
     $version = $versionInfo.FileVersion
     $semVer = $versionInfo.ProductVersion
 
-    if ($semVer -match "(.*)-(.*)") {
+    # dotnet build may add the Git commit hash to the 'ProductVersion' attribute with this format: +<commit-hash>.
+    if ($semVer -match "(.*)-([^\+]*)(?:\+.*)?") {
         # Make sure versions match
         if ($matches[1] -ne $version) { throw "AssemblyFileVersion mismatch with AssemblyInformationalVersion" }
         $prerelease = $matches[2]

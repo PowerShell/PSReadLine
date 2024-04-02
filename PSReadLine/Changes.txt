@@ -1,3 +1,13 @@
+### [2.3.5] - 2024-04-02
+
+- Add the release stage to the pipeline and exclude test folders from Component Governance (#3982)
+- Change back to 'external_distribution' for nupkg signing (#3977)
+- Migrate PSReadLine release build pipeline to OneBranch (#3975)
+- Fix the null-reference exception when running `Debug-Job` on a thread job (#3957)
+- Update build script to always include the `ProjectUri` info (#3821)
+
+[2.3.5]: https://github.com/PowerShell/PSReadLine/compare/v2.3.4...v2.3.5
+
 ### [2.3.4] - 2023-10-02
 
 - Choose the inline prediction color based on the environment (#3808)
