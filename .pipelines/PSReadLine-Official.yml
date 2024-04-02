@@ -259,7 +259,7 @@ extends:
 
       - job: publish
         dependsOn: validation
-        displayName: Publish to PSGallery
+        displayName: Publish to AzFeed and PSGallery
         variables:
           - name: ob_outputDirectory
             value: '$(Build.ArtifactStagingDirectory)/ONEBRANCH_ARTIFACT'
