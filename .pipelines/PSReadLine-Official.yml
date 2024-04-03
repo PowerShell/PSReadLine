@@ -265,6 +265,13 @@ extends:
             value: '$(Build.ArtifactStagingDirectory)/ONEBRANCH_ARTIFACT'
           - name: nugetPath
             value: $(Pipeline.Workspace)\NuGetPackage
+          # Disable SBOM, signing, and codeQL for this job
+          - name: ob_sdl_sbom_enabled
+            value: false
+          - name: ob_signing_setup_enabled
+            value: false
+          - name: ob_sdl_codeql_compiled_enabled
+            value: false
         pool:
           type: windows
 
