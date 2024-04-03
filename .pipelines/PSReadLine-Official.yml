@@ -284,8 +284,8 @@ extends:
           inputs:
             command: push
             packagesToPush: $(nugetPath)\PSReadLine.*.nupkg
-            nuGetFeedType: internal
-            publishVstsFeed: AzArtifactsFeed
+            nuGetFeedType: external
+            publishFeedCredentials: AzArtifactsFeed
 
         - task: NuGetCommand@2
           displayName: Push PSReadLine module to PSGallery feed
