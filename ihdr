@@ -1,0 +1,12 @@
+-
+StatusCode        : 0
+StatusDescription :
+Content           : {80, 75, 3, 4...}
+RawContent        : Content-Length: 600279
+                    Content-Type: application/octet-stream
+
+                    PK........??~X?????...?.......pList.targetsize-16.png?PNG
+                    .
+                    ...IHDR..............??a...?IDATx?????0E??.2BG(.d.6?.??I{??.e??.6.W.?.
+Headers           : {[Content-Length, 600279], [Content-Type, application/octet-stream]}
+RawContentLength  : 600279
