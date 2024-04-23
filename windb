@@ -1,0 +1,65 @@
+
+************* Preparing the environment for Debugger Extensions Gallery repositories **************
+   ExtensionRepository : Implicit
+   UseExperimentalFeatureForNugetShare : true
+   AllowNugetExeUpdate : true
+   NonInteractiveNuget : true
+   AllowNugetMSCredentialProviderInstall : true
+   AllowParallelInitializationOfLocalRepositories : true
+
+   EnableRedirectToV8JsProvider : false
+
+   -- Configuring repositories
+      ----> Repository : LocalInstalled, Enabled: true
+      ----> Repository : UserExtensions, Enabled: true
+
+>>>>>>>>>>>>> Preparing the environment for Debugger Extensions Gallery repositories completed, duration 0.015 seconds
+
+************* Waiting for Debugger Extensions Gallery to Initialize **************
+
+>>>>>>>>>>>>> Waiting for Debugger Extensions Gallery to Initialize completed, duration 0.110 seconds
+   ----> Repository : UserExtensions, Enabled: true, Packages count: 0
+   ----> Repository : LocalInstalled, Enabled: true, Packages count: 41
+
+Microsoft (R) Windows Debugger Version 10.0.27553.1004 AMD64
+Copyright (c) Microsoft Corporation. All rights reserved.
+
+*** wait with pending attach
+
+************* Path validation summary **************
+Response                         Time (ms)     Location
+Deferred                                       srv*
+Symbol search path is: srv*
+Executable search path is: 
+ModLoad: 00007ff6`1bf50000 00007ff6`1bf61000   C:\WINDOWS\system32\svchost.exe
+ModLoad: 00007ffb`30a30000 00007ffb`30c46000   C:\WINDOWS\SYSTEM32\ntdll.dll
+ModLoad: 00007ffb`300b0000 00007ffb`30174000   C:\WINDOWS\System32\KERNEL32.DLL
+ModLoad: 00007ffb`2dd80000 00007ffb`2e127000   C:\WINDOWS\System32\KERNELBASE.dll
+ModLoad: 00007ffb`2e250000 00007ffb`2e361000   C:\WINDOWS\System32\ucrtbase.dll
+ModLoad: 00007ffb`2fb30000 00007ffb`2feb8000   C:\WINDOWS\System32\combase.dll
+ModLoad: 00007ffb`305c0000 00007ffb`306d5000   C:\WINDOWS\System32\RPCRT4.dll
+ModLoad: 00007ffb`2cd50000 00007ffb`2cd68000   C:\WINDOWS\SYSTEM32\kernel.appcore.dll
+ModLoad: 00007ffb`2e910000 00007ffb`2e9b7000   C:\WINDOWS\System32\msvcrt.dll
+ModLoad: 00007ffb`2e570000 00007ffb`2e5e9000   C:\WINDOWS\System32\bcryptPrimitives.dll
+ModLoad: 00007ffb`2e760000 00007ffb`2e90e000   C:\WINDOWS\System32\user32.dll
+ModLoad: 00007ffb`2dd50000 00007ffb`2dd76000   C:\WINDOWS\System32\win32u.dll
+ModLoad: 00007ffb`30180000 00007ffb`301a9000   C:\WINDOWS\System32\GDI32.dll
+ModLoad: 00007ffb`2e130000 00007ffb`2e249000   C:\WINDOWS\System32\gdi32full.dll
+ModLoad: 00007ffb`2e410000 00007ffb`2e4aa000   C:\WINDOWS\System32\msvcp_win.dll
+ModLoad: 00007ffb`308a0000 00007ffb`308d1000   C:\WINDOWS\System32\IMM32.DLL
+ModLoad: 00007ffb`303f0000 00007ffb`30498000   C:\WINDOWS\System32\sechost.dll
+ModLoad: 00007ffb`2e370000 00007ffb`2e398000   C:\WINDOWS\System32\bcrypt.dll
+ModLoad: 00007ffa`fb480000 00007ffa`fb4cb000   c:\windows\system32\webthreatdefusersvc.dll
+ModLoad: 00007ffb`307a0000 00007ffb`30893000   C:\WINDOWS\System32\shcore.dll
+ModLoad: 00007ffb`2f5c0000 00007ffb`2f697000   C:\WINDOWS\System32\OLEAUT32.dll
+ModLoad: 00007ffb`306e0000 00007ffb`30790000   C:\WINDOWS\System32\clbcatq.dll
+ModLoad: 00007ffa`fb0f0000 00007ffa`fb119000   C:\Windows\System32\ThreatResponseEngine.dll
+ModLoad: 00007ffa`ffa10000 00007ffa`ffa7f000   C:\Windows\System32\usermgrproxy.dll
+ModLoad: 00007ffb`14490000 00007ffb`1453b000   C:\Windows\System32\OneCoreCommonProxyStub.dll
+ModLoad: 00007ffb`2baf0000 00007ffb`2bc2e000   C:\WINDOWS\SYSTEM32\wintypes.dll
+ModLoad: 00007ffa`f9d20000 00007ffa`f9d7a000   C:\Windows\System32\vaultcli.dll
+ModLoad: 00007ffb`28220000 00007ffb`28237000   C:\WINDOWS\SYSTEM32\usermgrcli.dll
+(688.2be0): Break instruction exception - code 80000003 (first chance)
+ntdll!DbgBreakPoint:
+00007ffb`30ad3050 cc              int     3
+0:003> g
