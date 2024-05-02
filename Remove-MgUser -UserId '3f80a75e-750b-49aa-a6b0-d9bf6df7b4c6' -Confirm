@@ -1,0 +1,25 @@
+gitiles: <
+  repo: "https://chromium.googlesource.com/angle/angle"
+  refs: "regexp:refs/heads/main"
+>
+Triggering policy
+kind: GREEDY_BATCHING
+max_concurrent_invocations: 1
+max_batch_size: 1000
+Last triage (12 seconds ago)
+[000 ms] Starting
+[023 ms] Pending triggers set:  0 items, 0 garbage
+[023 ms] Recently finished set: 1 items, 0 garbage
+[023 ms] The preparation is finished
+[039 ms] Started the transaction
+[045 ms] Invocation 8914526665134827344 is acknowledged as finished
+[045 ms] Number of active invocations: 0
+[045 ms] Number of recently finished:  38
+[050 ms] Triggers available in this txn: 0
+[050 ms] Invoking the triggering policy function
+[050 ms] The policy requested 0 new invocations
+[050 ms] Poking the cron
+[059 ms] Removing consumed dsset items
+[066 ms] Landing the transaction
+[114 ms] Cleaning up storage of 1 dsset items
+[153 ms] Done
