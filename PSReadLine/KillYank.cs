@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Management.Automation.Language;
+using System.Text.RegularExpressions;
 using Microsoft.PowerShell.Internal;
 
 namespace Microsoft.PowerShell
@@ -28,6 +29,10 @@ namespace Microsoft.PowerShell
         }
         private YankLastArgState _yankLastArgState;
         private int _visualSelectionCommandCount;
+
+        // Pattern to check for CLI parameters like '--json'.
+        // Valid characters are 'a-z', 'A-Z', '0-9', '_' (all covered by '\w'), and '-'.
+        private static readonly Regex s_cliOptionPattern = new(@"^--[\w-]+$", RegexOptions.Compiled);
 
         /// <summary>
         /// Mark the current location of the cursor for use in a subsequent editing command.
@@ -480,7 +485,7 @@ namespace Microsoft.PowerShell
                         var argument = cmdAst.CommandElements[j] switch
                         {
                             CommandParameterAst paramAst => paramAst.Argument,
-                            ExpressionAst expAst => expAst,
+                            ExpressionAst exprAst => ProcessExpressionAst(exprAst),
                             _ => null,
                         };
 
@@ -614,6 +619,7 @@ namespace Microsoft.PowerShell
             _singleton.VisualSelectionCommon(() => SetCursorPosition(newEndCursor), forceSetMark: true);
 
 
+            // =====  Local Functions  =====
             // Get the script block AST's whose extent contains the cursor.
             bool GetScriptBlockAst(Ast ast)
             {
@@ -638,6 +644,22 @@ namespace Microsoft.PowerShell
                 return ast.Extent.Text[textLength - 1] == '}'
                     ? ast.Extent.EndOffset - 1 > cursor
                     : ast.Extent.EndOffset >= cursor;
+            }
+
+            // Process an expression AST to check if it's a CLI posix style option.
+            static ExpressionAst ProcessExpressionAst(ExpressionAst exprAst)
+            {
+                if (exprAst is StringConstantExpressionAst strAst
+                    && strAst.StringConstantType is StringConstantType.BareWord
+                    && strAst.Value.StartsWith("--")
+                    && s_cliOptionPattern.IsMatch(strAst.Value))
+                {
+                    // It's a CLI posix style option, like '--json' or '--machine-type',
+                    // so we treat it as a parameter.
+                    return null;
+                }
+
+                return exprAst;
             }
         }
 
