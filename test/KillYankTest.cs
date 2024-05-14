@@ -620,6 +620,56 @@ namespace Test
         }
 
         [SkippableFact]
+        public void SelectCommandArgument_CLIArgs()
+        {
+            TestSetup(KeyMode.Cmd);
+
+            Test("", Keys(
+                "az webapp --name MyWebApp --resource-group MyResourceGroup",
+                _.Alt_a, CheckThat(() => AssertScreenIs(1,
+                    TokenClassification.Command, "az",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Selection, "webapp",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Parameter, "--name",
+                    TokenClassification.None, " MyWebApp ",
+                    TokenClassification.Parameter, "--resource-group",
+                    TokenClassification.None, " MyResourceGroup ")),
+
+                _.Alt_a, CheckThat(() => AssertScreenIs(1,
+                    TokenClassification.Command, "az",
+                    TokenClassification.None, " webapp ",
+                    TokenClassification.Parameter, "--name",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Selection, "MyWebApp",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Parameter, "--resource-group",
+                    TokenClassification.None, " MyResourceGroup ")),
+
+                _.Alt_a, CheckThat(() => AssertScreenIs(1,
+                    TokenClassification.Command, "az",
+                    TokenClassification.None, " webapp ",
+                    TokenClassification.Parameter, "--name",
+                    TokenClassification.None, " MyWebApp ",
+                    TokenClassification.Parameter, "--resource-group",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Selection, "MyResourceGroup")),
+
+                // Verify that we can loop through the arguments.
+                _.Alt_a, CheckThat(() => AssertScreenIs(1,
+                    TokenClassification.Command, "az",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Selection, "webapp",
+                    TokenClassification.None, ' ',
+                    TokenClassification.Parameter, "--name",
+                    TokenClassification.None, " MyWebApp ",
+                    TokenClassification.Parameter, "--resource-group",
+                    TokenClassification.None, " MyResourceGroup ")),
+
+                _.Escape));
+        }
+
+        [SkippableFact]
         public void SelectCommandArgument_HereStringArgs()
         {
             TestSetup(KeyMode.Cmd);
