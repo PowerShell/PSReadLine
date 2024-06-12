@@ -957,7 +957,7 @@ namespace Microsoft.PowerShell
                         unambiguousText.Length > (userComplPos + userCompletionText.Length))
                     {
                         var unambiguousMenuItems = menu.MenuItems.Where(item => item.CompletionText.StartsWith(unambiguousText));
-                        if ( Enumerator.Count(unambiguousMenuItems) == 1 )
+                        if ( Enumerable.Count(unambiguousMenuItems) == 1 )
                         {
                             bool prependNextKey = false;
                             int cursorAdjustment = 0;
