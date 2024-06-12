@@ -959,15 +959,10 @@ namespace Microsoft.PowerShell
                         var unambiguousMenuItems = menu.MenuItems.Where(item => item.CompletionText.StartsWith(unambiguousText));
                         if ( Enumerable.Count(unambiguousMenuItems) == 1 )
                         {
-                            bool prependNextKey = false;
-                            int cursorAdjustment = 0;
                             processingKeys = false;
-
+                            int cursorAdjustment = 0;
                             var onlyResult = unambiguousMenuItems.First();
-                            userCompletionText = onlyResult.CompletionText;
-                            _current = userCompletionText.Length;
-
-                            ExchangePointAndMark(); // cursor to the end of Completion
+                            _current = onlyResult.CompletionText.Length;
 
                             if (onlyResult.ResultType == CompletionResultType.ProviderContainer)
                             {
@@ -979,16 +974,6 @@ namespace Microsoft.PowerShell
                             {
                                 userCompletionText = GetUnquotedText(onlyResult, consistentQuoting: false);
                             }
-                            
-                            // do not append the same char as last char in CompletionText (works for '(', '\')
-                            prependNextKey = userCompletionText[userCompletionText.Length - 1] != nextKey.KeyChar;
-                            _visualSelectionCommandCount = 0;
-                            // if mark was set after cursor, it restored in uninspected position, because text before mark now longer
-                            // should we correct it ? I think not, beause any other text insertion does not correct it
-                            _mark = savedUserMark;
-                    
-                            // without render all key chords that just move cursor leave selection visible, but it can be wrong
-                            Render();
                             _current -= cursorAdjustment;
                             PrependQueuedKeys(nextKey);
                         }
