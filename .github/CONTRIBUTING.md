@@ -127,5 +127,5 @@ After build, the produced artifacts can be found at `<your-local-repo-root>/bin/
 [platy-ps]: https://www.powershellgallery.com/packages/platyPS
 [using-prs]: https://help.github.com/articles/using-pull-requests/
 [fork-a-repo]: https://help.github.com/articles/fork-a-repo/
-[vuln-reporting]: https://github.com/PowerShell/PowerShell/blob/master/.github/SECURITY.md
+[vuln-reporting]: SECURITY.md
 [closing-via-message]: https://help.github.com/articles/closing-issues-via-commit-messages/
