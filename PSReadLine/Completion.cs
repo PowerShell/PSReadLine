@@ -771,7 +771,7 @@ namespace Microsoft.PowerShell
 
         private bool IsDoneWithCompletions(CompletionResult currentCompletion, PSKeyInfo nextKey)
         {
-            return nextKey == Keys.Space
+            return (nextKey == Keys.Space && ! currentCompletion.CompletionText.Contains(' '))
                 || nextKey == Keys.Enter
                 || KeysEndingCompletion.TryGetValue(currentCompletion.ResultType, out var doneKeys)
                    && doneKeys.Contains(nextKey);
@@ -949,21 +949,46 @@ namespace Microsoft.PowerShell
                 else if (nextKey == Keys.Tab)
                 {
                     // Search for possible unambiguous common prefix.
-                    string unAmbiguousText = GetUnambiguousPrefix(menu.MenuItems, out ambiguous);
-                    int userComplPos = unAmbiguousText.IndexOf(userCompletionText, StringComparison.OrdinalIgnoreCase);
+                    string unambiguousText = GetUnambiguousPrefix(menu.MenuItems, out ambiguous);
+                    int userComplPos = unambiguousText.IndexOf(userCompletionText, StringComparison.OrdinalIgnoreCase);
 
-                    // ... If found - advance IncrementalCompletion ...
-                    if (unAmbiguousText.Length > 0 && userComplPos >= 0 &&
-                        unAmbiguousText.Length > (userComplPos + userCompletionText.Length))
+                    // Obtain all the menu items beginning with unambigousText, so we can count them.
+                    var unambiguousMenuItems = menu.MenuItems.Where(item =>
+                        item.CompletionText
+                            .Trim('\'') // handles comparisons with items that have spaces in them (these auto receive quote wraps)
+                            .StartsWith(unambiguousText, StringComparison.OrdinalIgnoreCase)
+                    );
+                    int countUnambiguousItems = Enumerable.Count(unambiguousMenuItems);
+
+                    // If there is only 1 item, autoaccept it
+                    if (unambiguousText.Length > 0 && userComplPos >= 0 && countUnambiguousItems == 1 )
                     {
-                        userCompletionText = unAmbiguousText.Substring(userComplPos);
-                        _current = completions.ReplacementIndex +
-                                   FindUserCompletionTextPosition(menu.MenuItems[menu.CurrentSelection], userCompletionText) +
-                                   userCompletionText.Length;
-                        Render();
-                        Ding();
+                        processingKeys = false;
+                        int cursorAdjustment = 0;
+
+                        var onlyCompletionResult = unambiguousMenuItems.First();
+                        userCompletionText = onlyCompletionResult.CompletionText;
+                        
+                        _current = userCompletionText.Length;
+                        // Append a slash if it's a filesystem container
+                        DoReplacementForCompletion(onlyCompletionResult, completions);
+                        _current -= cursorAdjustment;
+
+                        // Autoaccepts the single available option (otherwise need to press rightarrow/tab a second time manually)
+                        PrependQueuedKeys(Keys.RightArrow);
                     }
-                    // ... if no - usual Tab behaviour
+                    // For multiple items which are shorter length than the unambiguous text, autocomplete through the unambiguous text.
+                    else if (unambiguousText.Length > 0 && userComplPos >= 0 &&
+                        unambiguousText.Length > (userComplPos + userCompletionText.Length))
+                    {
+                        userCompletionText = unambiguousText.Substring(userComplPos);
+                            _current = completions.ReplacementIndex +
+                                       FindUserCompletionTextPosition(menu.MenuItems[menu.CurrentSelection], userCompletionText) +
+                                       userCompletionText.Length;
+                            Render();
+                            Ding();
+                    }
+                    // For multiple items and only ambiguous text remaining, tab will cycle through the available choices.
                     else
                     {
                         menu.MoveN(1);
