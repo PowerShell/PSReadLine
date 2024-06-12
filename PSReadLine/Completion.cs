@@ -956,7 +956,9 @@ namespace Microsoft.PowerShell
                     if (unambiguousText.Length > 0 && userComplPos >= 0 &&
                         unambiguousText.Length > (userComplPos + userCompletionText.Length))
                     {
+                        // Obtain all the menu items beginning with unambigousText, so we can count them.
                         var unambiguousMenuItems = menu.MenuItems.Where(item => item.CompletionText.StartsWith(unambiguousText));
+                        // If there is only 1 item, and it is a container, then complete it and append the directory separator.
                         if ( Enumerable.Count(unambiguousMenuItems) == 1 )
                         {
                             processingKeys = false;
@@ -975,6 +977,7 @@ namespace Microsoft.PowerShell
                                 userCompletionText = GetUnquotedText(onlyResult, consistentQuoting: false);
                             }
                             _current -= cursorAdjustment;
+                            // If Tabbing into a container (directory), then repeat tab for a menu on its contents (faster navigation).
                             PrependQueuedKeys(nextKey);
                         }
                         else
