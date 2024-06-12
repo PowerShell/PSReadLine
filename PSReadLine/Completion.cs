@@ -949,19 +949,58 @@ namespace Microsoft.PowerShell
                 else if (nextKey == Keys.Tab)
                 {
                     // Search for possible unambiguous common prefix.
-                    string unAmbiguousText = GetUnambiguousPrefix(menu.MenuItems, out ambiguous);
-                    int userComplPos = unAmbiguousText.IndexOf(userCompletionText, StringComparison.OrdinalIgnoreCase);
+                    string unambiguousText = GetUnambiguousPrefix(menu.MenuItems, out ambiguous);
+                    int userComplPos = unambiguousText.IndexOf(userCompletionText, StringComparison.OrdinalIgnoreCase);
 
                     // ... If found - advance IncrementalCompletion ...
-                    if (unAmbiguousText.Length > 0 && userComplPos >= 0 &&
-                        unAmbiguousText.Length > (userComplPos + userCompletionText.Length))
+                    if (unambiguousText.Length > 0 && userComplPos >= 0 &&
+                        unambiguousText.Length > (userComplPos + userCompletionText.Length))
                     {
-                        userCompletionText = unAmbiguousText.Substring(userComplPos);
-                        _current = completions.ReplacementIndex +
-                                   FindUserCompletionTextPosition(menu.MenuItems[menu.CurrentSelection], userCompletionText) +
-                                   userCompletionText.Length;
-                        Render();
-                        Ding();
+                        var unambiguousMenuItems = menu.MenuItems.Where(item => item.CompletionText.StartsWith(unambiguousText));
+                        if ( Enumerator.Count(unambiguousMenuItems) == 1 )
+                        {
+                            bool prependNextKey = false;
+                            int cursorAdjustment = 0;
+                            processingKeys = false;
+
+                            var onlyResult = unambiguousMenuItems.First();
+                            userCompletionText = onlyResult.CompletionText;
+                            _current = userCompletionText.Length;
+
+                            ExchangePointAndMark(); // cursor to the end of Completion
+
+                            if (onlyResult.ResultType == CompletionResultType.ProviderContainer)
+                            {
+                                userCompletionText = GetUnquotedText(
+                                    GetReplacementTextForDirectory(onlyResult.CompletionText, ref cursorAdjustment),
+                                                                   consistentQuoting: false);
+                            }
+                            else
+                            {
+                                userCompletionText = GetUnquotedText(onlyResult, consistentQuoting: false);
+                            }
+                            
+                            // do not append the same char as last char in CompletionText (works for '(', '\')
+                            prependNextKey = userCompletionText[userCompletionText.Length - 1] != nextKey.KeyChar;
+                            _visualSelectionCommandCount = 0;
+                            // if mark was set after cursor, it restored in uninspected position, because text before mark now longer
+                            // should we correct it ? I think not, beause any other text insertion does not correct it
+                            _mark = savedUserMark;
+                    
+                            // without render all key chords that just move cursor leave selection visible, but it can be wrong
+                            Render();
+                            _current -= cursorAdjustment;
+                            PrependQueuedKeys(nextKey);
+                        }
+                        else
+                        {
+                            userCompletionText = unambiguousText.Substring(userComplPos);
+                            _current = completions.ReplacementIndex +
+                                       FindUserCompletionTextPosition(menu.MenuItems[menu.CurrentSelection], userCompletionText) +
+                                       userCompletionText.Length;
+                            Render();
+                            Ding();
+                        }
                     }
                     // ... if no - usual Tab behaviour
                     else
