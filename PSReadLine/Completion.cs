@@ -977,7 +977,7 @@ namespace Microsoft.PowerShell
                         // Autoaccepts the single available option (otherwise need to press rightarrow/tab a second time manually)
                         PrependQueuedKeys(Keys.RightArrow);
                     }
-                    // For multiple items which are shorter length than the unambiguous text, autocomplete through the unambiguous text.
+                    // For multiple items, when your typed length is shorter length than the unambiguous text, autocomplete through the unambiguous text.
                     else if (unambiguousText.Length > 0 && userComplPos >= 0 &&
                         unambiguousText.Length > (userComplPos + userCompletionText.Length))
                     {
