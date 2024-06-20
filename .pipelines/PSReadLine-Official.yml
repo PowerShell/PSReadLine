@@ -201,9 +201,13 @@ extends:
           type: windows
         steps:
         - checkout: self
+          env:
+            ob_restore_phase: true # This ensures this done in restore phase to workaround signing issue
 
         - task: DownloadPipelineArtifact@2
           displayName: 'Download build files'
+          env:
+            ob_restore_phase: true # This ensures this done in restore phase to workaround signing issue
           inputs:
             targetPath: $(signOutPath)
             artifact: drop_buildstage_buildjob
@@ -212,6 +216,8 @@ extends:
             Get-ChildItem $(signOutPath) -Recurse
             New-Item -Path $(nugetPath) -ItemType Directory > $null
           displayName: Capture artifacts structure
+          env:
+            ob_restore_phase: true # This ensures this done in restore phase to workaround signing issue
 
         - pwsh: |
             try {
@@ -223,6 +229,8 @@ extends:
             }
             Get-ChildItem -Path $(nugetPath)
           displayName: 'Create the NuGet package'
+          env:
+            ob_restore_phase: true # This ensures this done in restore phase to workaround signing issue
 
         - task: onebranch.pipeline.signing@1
           displayName: Sign nupkg
