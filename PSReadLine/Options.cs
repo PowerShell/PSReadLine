@@ -122,6 +122,10 @@ namespace Microsoft.PowerShell
                 }
                 Options.ViModeChangeHandler = options.ViModeChangeHandler;
             }
+            if (options._viClipboardMode.HasValue)
+            {
+                Options.ViClipboardMode = options.ViClipboardMode;
+            }
             if (options.HistorySavePath != null)
             {
                 Options.HistorySavePath = options.HistorySavePath;
