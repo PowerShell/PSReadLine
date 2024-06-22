@@ -330,6 +330,7 @@ namespace Microsoft.PowerShell
                 { Keys.AltR,                   MakeKeyHandler(RevertLine,                "RevertLine") },
                 { Keys.AltY,                   MakeKeyHandler(YankPop,                   "YankPop") },
                 { Keys.AltBackspace,           MakeKeyHandler(BackwardKillWord,          "BackwardKillWord") },
+                { Keys.CtrlAltH,               MakeKeyHandler(BackwardKillWord,          "BackwardKillWord") },
                 { Keys.AltEquals,              MakeKeyHandler(PossibleCompletions,       "PossibleCompletions") },
                 { Keys.CtrlAltQuestion,        MakeKeyHandler(ShowKeyBindings,           "ShowKeyBindings") },
                 { Keys.AltQuestion,            MakeKeyHandler(WhatIsKey,                 "WhatIsKey") },
