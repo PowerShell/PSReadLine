@@ -108,7 +108,6 @@ extends:
             ob_restore_phase: true
           inputs:
             Enabled: true
-            AnalyzeInPipeline: true
             Language: csharp
 
         - pwsh: |
