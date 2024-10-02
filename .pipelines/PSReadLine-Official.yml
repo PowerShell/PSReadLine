@@ -15,21 +15,22 @@ pr: none
 variables:
   DOTNET_CLI_TELEMETRY_OPTOUT: 1
   POWERSHELL_TELEMETRY_OPTOUT: 1
-  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+  DOTNET_NOLOGO: 1
   WindowsContainerImage: onebranch.azurecr.io/windows/ltsc2022/vse2022:latest
 
 resources:
   repositories:
-  - repository: onebranchTemplates
-    type: git
-    name: OneBranch.Pipelines/GovernedTemplates
-    ref: refs/heads/main
+    - repository: templates
+      type: git
+      name: OneBranch.Pipelines/GovernedTemplates
+      ref: refs/heads/main
 
 extends:
-  template: v2/OneBranch.Official.CrossPlat.yml@onebranchTemplates
+  template: v2/OneBranch.Official.CrossPlat.yml@templates
   parameters:
     featureFlags:
-      WindowsHostVersion: '1ESWindows2022'
+      WindowsHostVersion:
+        Version: 2022
     globalSdl:
       disableLegacyManifest: true
       cg: # Component Governance parameters. Ignore test components.
@@ -43,7 +44,7 @@ extends:
           enabled: true
       asyncSdl: # https://aka.ms/obpipelines/asyncsdl
         enabled: true
-        forStages: [Build]
+        forStages: [buildstage]
         credscan:
           enabled: true
           scanFolder: $(Build.SourcesDirectory)\PSReadLine\PSReadLine
@@ -154,7 +155,7 @@ extends:
             }
 
             Write-Host "Display files in the folder ..." -ForegroundColor Yellow
-            Get-ChildItem -Path $(signSrcPath) -Recurse | Out-String -Width 120
+            Get-ChildItem -Path $(signSrcPath) -Recurse | Out-String -Width 120 -Stream
           displayName: 'Verify the signed files'
 
         - task: CopyFiles@2
@@ -212,7 +213,11 @@ extends:
             artifact: drop_buildstage_buildjob
 
         - pwsh: |
-            Get-ChildItem $(signOutPath) -Recurse
+            if (Test-Path '$(signOutPath)\_manifest') {
+              Write-Verbose -Verbose "Delete SBOM files ..."
+              Remove-Item -Path '$(signOutPath)\_manifest' -Recurse -Force
+            }
+            Get-ChildItem $(signOutPath) -Recurse | Out-String -Width 120 -Stream
             New-Item -Path $(nugetPath) -ItemType Directory > $null
           displayName: Capture artifacts structure
           env:
@@ -226,7 +231,7 @@ extends:
             } finally {
               Unregister-PSRepository -Name $RepoName -ErrorAction SilentlyContinue
             }
-            Get-ChildItem -Path $(nugetPath)
+            Get-ChildItem -Path $(nugetPath) | Out-String -Width 120 -Stream
           displayName: 'Create the NuGet package'
           env:
             ob_restore_phase: true # This ensures this done in restore phase to workaround signing issue
@@ -290,7 +295,7 @@ extends:
             artifact: drop_buildstage_nupkg
 
         - pwsh: |
-            Get-ChildItem $(nugetPath) -Recurse
+            Get-ChildItem $(nugetPath) -Recurse | Out-String -Width 120 -Stream
           displayName: Find signed Nupkg
 
         - task: NuGetCommand@2
