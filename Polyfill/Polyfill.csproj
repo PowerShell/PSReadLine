@@ -12,7 +12,7 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
-    <PackageReference Include="System.Management.Automation" Version="7.2.18" />
+    <PackageReference Include="System.Management.Automation" Version="7.2.23" />
   </ItemGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)' == 'net462'">
