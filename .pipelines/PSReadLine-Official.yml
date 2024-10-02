@@ -299,14 +299,6 @@ extends:
           displayName: Find signed Nupkg
 
         - task: NuGetCommand@2
-          displayName: Push PSReadLine module to Azure feed
-          inputs:
-            command: push
-            packagesToPush: $(nugetPath)\PSReadLine.*.nupkg
-            nuGetFeedType: external
-            publishFeedCredentials: AzArtifactsFeed
-
-        - task: NuGetCommand@2
           displayName: Push PSReadLine module to PSGallery feed
           inputs:
             command: push
