@@ -1,7 +1,7 @@
 ﻿@{
 RootModule = 'PSReadLine.psm1'
 NestedModules = @("Microsoft.PowerShell.PSReadLine2.dll")
-ModuleVersion = '2.3.5'
+ModuleVersion = '2.3.6'
 GUID = '5714753b-2afd-4492-a5fd-01d9e2cff8b5'
 Author = 'Microsoft Corporation'
 CompanyName = 'Microsoft Corporation'
