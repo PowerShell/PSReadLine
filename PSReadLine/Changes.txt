@@ -16,6 +16,18 @@
 
 [2.4.0-beta0]: https://github.com/PowerShell/PSReadLine/compare/v2.3.4...v2.4.0-beta0
 
+### [2.3.6] - 2024-10-02
+
+This is a servicing release that excludes SBOM files from the module.
+
+- Update the OneBranch pipeline to keep it compliant and remove SBOM files from module (#4201)
+- Make sure the `CodeQL` result from release pipeline gets uploaded (#4082)
+- Add 'ob_restore_phase' for every task before the signing task to work around the signing issue (#4046)
+- Change the NuGet feed to use the governed PowerShell feed (#4044)
+- Disable SBOM, signing, and codeQL for the publish job (#3986)
+
+[2.3.6]: https://github.com/PowerShell/PSReadLine/compare/v2.3.5...v2.3.6
+
 ### [2.3.5] - 2024-04-02
 
 This is a servicing release that excludes test components from SBOM generation.
