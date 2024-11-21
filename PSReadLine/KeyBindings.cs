@@ -186,7 +186,7 @@ namespace Microsoft.PowerShell
                 { Keys.LeftArrow,              MakeKeyHandler(BackwardChar,              "BackwardChar") },
                 { Keys.RightArrow,             MakeKeyHandler(ForwardChar,               "ForwardChar") },
                 { Keys.CtrlLeftArrow,          MakeKeyHandler(BackwardWord,              "BackwardWord") },
-                { Keys.CtrlRightArrow,         MakeKeyHandler(NextWord,                  "NextWord") },
+                { Keys.CtrlRightArrow,         MakeKeyHandler(ForwardWord,               "ForwardWord") },
                 { Keys.ShiftLeftArrow,         MakeKeyHandler(SelectBackwardChar,        "SelectBackwardChar") },
                 { Keys.ShiftRightArrow,        MakeKeyHandler(SelectForwardChar,         "SelectForwardChar") },
                 { Keys.CtrlShiftLeftArrow,     MakeKeyHandler(SelectBackwardWord,        "SelectBackwardWord") },
