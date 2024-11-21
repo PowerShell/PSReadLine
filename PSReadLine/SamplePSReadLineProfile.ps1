@@ -604,6 +604,19 @@ Set-PSReadLineKeyHandler -Key RightArrow `
     }
 }
 
+# `NextWord` does not operate on the suggestion text when the cursor is at the end of the line.
+# This custom binding is an alternative to the other custom binding `ForwardCharAndAcceptNextSuggestionWord`.
+# Besides moving the cursor forward in the current editing line to the end of the current word, or if between words, to the end of the next word,
+# this custom binding causes `Ctrl+RightArrow` to also accept the next word in the suggestion text.
+Set-PSReadLineKeyHandler -Key "Ctrl+RightArrow" `
+                         -BriefDescription ForwardWordAndAcceptNextSuggestionWord `
+                         -LongDescription "Move the cursor forward to the end of the current word, or if between words, to the end of the next word, and accept the next word in suggestion when it's at the end of the current editing line." `
+                         -ScriptBlock {
+    param($key, $arg)
+
+    [Microsoft.PowerShell.PSConsoleReadLine]::ForwardWord($key, $arg)
+}
+
 # Cycle through arguments on current line and select the text. This makes it easier to quickly change the argument if re-running a previously run command from the history
 # or if using a psreadline predictor. You can also use a digit argument to specify which argument you want to select, i.e. Alt+1, Alt+a selects the first argument
 # on the command line.
