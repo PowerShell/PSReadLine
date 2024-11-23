@@ -36,20 +36,22 @@ namespace Microsoft.PowerShell
                 throw new ArgumentNullException(nameof(chord));
             }
 
-            int start = 0;
-            var first = GetOneKey(chord, ref start);
+            var keyChord = new List<ConsoleKeyInfo>(2);
 
-            if (start >= chord.Length)
-                return new [] { first };
+            int index = 0;
 
-            if (chord[start++] != ',')
-                throw CantConvert(PSReadLineResources.InvalidSequence, chord);
+            while (true)
+            {
+                keyChord.Add(GetOneKey(chord, ref index));
 
-            var second = GetOneKey(chord, ref start);
-            if (start < chord.Length)
-                throw CantConvert(PSReadLineResources.InvalidSequence, chord);
+                if (index >= chord.Length)
+                    break;
 
-            return new [] { first, second };
+                if (chord[index++] != ',')
+                    throw CantConvert(PSReadLineResources.InvalidSequence, chord);
+            }
+
+            return keyChord.ToArray();
         }
 
         private static ConsoleKeyInfo GetOneKey(string chord, ref int start)
