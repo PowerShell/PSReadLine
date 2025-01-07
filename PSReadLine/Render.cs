@@ -122,6 +122,14 @@ namespace Microsoft.PowerShell
             cursorLeft = console.CursorLeft;
             cursorTop = console.CursorTop;
         }
+
+        public void UpdateConsoleInfo(int bWidth, int bHeight, int cLeft, int cTop)
+        {
+            bufferWidth = bWidth;
+            bufferHeight = bHeight;
+            cursorLeft = cLeft;
+            cursorTop = cTop;
+        }
     }
 
     internal readonly struct RenderDataOffset
@@ -928,7 +936,7 @@ namespace Microsoft.PowerShell
             _console.SetCursorPosition(point.X, point.Y);
             _console.CursorVisible = true;
 
-            _previousRender.UpdateConsoleInfo(_console);
+            _previousRender.UpdateConsoleInfo(bufferWidth, bufferHeight, point.X, point.Y);
             _previousRender.initialY = _initialY;
 
             // TODO: set WindowTop if necessary
