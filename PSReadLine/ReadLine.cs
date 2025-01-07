@@ -203,24 +203,24 @@ namespace Microsoft.PowerShell
                     // If we timed out, check for event subscribers (which is just
                     // a hint that there might be an event waiting to be processed.)
                     var eventSubscribers = _singleton._engineIntrinsics?.Events.Subscribers;
+                    int bufferLen = _singleton._buffer.Length;
                     if (eventSubscribers?.Count > 0)
                     {
                         bool runPipelineForEventProcessing = false;
                         foreach (var sub in eventSubscribers)
                         {
-                            if (string.Equals(sub.SourceIdentifier, PSEngineEvent.OnIdle, StringComparison.OrdinalIgnoreCase))
+                            // If the buffer is not empty, let's not consider we are idle because the user is in the middle of typing something.
+                            if (string.Equals(sub.SourceIdentifier, PSEngineEvent.OnIdle, StringComparison.OrdinalIgnoreCase) && bufferLen is 0)
                             {
-                                // If the buffer is not empty, let's not consider we are idle because the user is in the middle of typing something.
-                                if (_singleton._buffer.Length > 0)
-                                {
-                                    continue;
-                                }
-
-                                // There is an OnIdle event subscriber and we are idle because we timed out and the buffer is empty.
-                                // Normally PowerShell generates this event, but PowerShell assumes the engine is not idle because
-                                // it called PSConsoleHostReadLine which isn't returning. So we generate the event instead.
+                                // There is an 'OnIdle' event subscriber and we are idle because we timed out and the buffer is empty.
+                                // Normally PowerShell generates this event, but now PowerShell assumes the engine is not idle because
+                                // it called 'PSConsoleHostReadLine' which isn't returning. So we generate the event instead.
                                 runPipelineForEventProcessing = true;
-                                _singleton._engineIntrinsics.Events.GenerateEvent(PSEngineEvent.OnIdle, null, null, null);
+                                _singleton._engineIntrinsics.Events.GenerateEvent(
+                                    PSEngineEvent.OnIdle,
+                                    sender: null,
+                                    args: null,
+                                    extraData: null);
 
                                 // Break out so we don't genreate more than one 'OnIdle' event for a timeout.
                                 break;
@@ -240,27 +240,32 @@ namespace Microsoft.PowerShell
                             }
 
                             // To detect output during possible event processing, see if the cursor moved and rerender if so.
-                            var console = _singleton._console;
-                            var buffer = _singleton._buffer;
-                            int y = console.CursorTop, len = buffer.Length;
+                            int cursorTop = _singleton._console.CursorTop;
 
                             // Start the pipeline to process events.
                             ps.Invoke();
 
-                            // Check if cursor moved, but handle a very special case: an event handler changed our buffer,
-                            // by calling 'Insert' for example.
+                            // Check if any event handler writes console output to the best of our effort, and adjust the initial coordinates in that case.
                             //
-                            // I know only checking on buffer length change doesn't cover the case where buffer changed but
-                            // the length is the same. However, we mainly want to cover buffer changes made by an 'OnIdle'
-                            // event handler, and we trigger 'OnIdle' event only if the buffer is empty. So, this check is
-                            // efficient and good enough for that main scenario.
+                            // I say "to the best of our effort" because the delegate handler for an event will mostly run on a background thread, and thus
+                            // there is no guarantee about when the delegate would finish. So in an extreme case, there could be race conditions in console
+                            // read/write: we are reading 'CursorTop' while the delegate is writing console output on a different thread.
+                            // There is no much we can do about that extreme case. However, our focus here is the 'OnIdle' event, and its handler is usually
+                            // a script block, which will run within the 'ps.Invoke()' call above.
                             //
-                            // When our buffer was changed by an event handler, we assume that was all the event handler did
-                            // and there was no console output. So, we rerender only if there was no buffer change.
-                            if (y != console.CursorTop && buffer.Length == len)
+                            // We detect new console output by checking if cursor top changed, but handle a very special case: an event handler changed our
+                            // buffer, by calling 'Insert' for example.
+                            // I know only checking on buffer length change doesn't cover the case where buffer changed but the length is the same. However,
+                            // we mainly want to cover buffer changes made by an 'OnIdle' event handler, and we trigger 'OnIdle' event only if the buffer is
+                            // empty. So, this check is efficient and good enough for that main scenario.
+                            // When our buffer was changed by an event handler, we assume that was all the event handler did and there was no direct console
+                            // output. So, we adjust the initial coordinates only if cursor top changed but there was no buffer change.
+                            int newCursorTop = _singleton._console.CursorTop;
+                            int newBufferLen = _singleton._buffer.Length;
+                            if (cursorTop != newCursorTop && bufferLen == newBufferLen)
                             {
-                                _singleton._initialY = console.CursorTop;
-                                if (buffer.Length > 0)
+                                _singleton._initialY = newCursorTop;
+                                if (bufferLen > 0)
                                 {
                                     _singleton.Render();
                                 }
