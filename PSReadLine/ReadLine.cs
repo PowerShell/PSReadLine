@@ -209,9 +209,14 @@ namespace Microsoft.PowerShell
                         bool runPipelineForEventProcessing = false;
                         foreach (var sub in eventSubscribers)
                         {
-                            // If the buffer is not empty, let's not consider we are idle because the user is in the middle of typing something.
-                            if (string.Equals(sub.SourceIdentifier, PSEngineEvent.OnIdle, StringComparison.OrdinalIgnoreCase) && bufferLen is 0)
+                            if (string.Equals(sub.SourceIdentifier, PSEngineEvent.OnIdle, StringComparison.OrdinalIgnoreCase))
                             {
+                                // If the buffer is not empty, let's not consider we are idle because the user is in the middle of typing something.
+                                if (bufferLen > 0)
+                                {
+                                    continue;
+                                }
+
                                 // There is an 'OnIdle' event subscriber and we are idle because we timed out and the buffer is empty.
                                 // Normally PowerShell generates this event, but now PowerShell assumes the engine is not idle because
                                 // it called 'PSConsoleHostReadLine' which isn't returning. So we generate the event instead.
