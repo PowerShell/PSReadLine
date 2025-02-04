@@ -92,6 +92,7 @@ namespace Microsoft.PowerShell
         /// <param name="s">String to insert</param>
         public static void Insert(string s)
         {
+            s = s.Replace("\r\n", "\n");
             _singleton.SaveEditItem(EditItemInsertString.Create(s, _singleton._current));
 
             // Use Append if possible because Insert at end makes StringBuilder quite slow.
