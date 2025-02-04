@@ -122,6 +122,14 @@ namespace Microsoft.PowerShell
             cursorLeft = console.CursorLeft;
             cursorTop = console.CursorTop;
         }
+
+        public void UpdateConsoleInfo(int bWidth, int bHeight, int cLeft, int cTop)
+        {
+            bufferWidth = bWidth;
+            bufferHeight = bHeight;
+            cursorLeft = cLeft;
+            cursorTop = cTop;
+        }
     }
 
     internal readonly struct RenderDataOffset
@@ -212,9 +220,9 @@ namespace Microsoft.PowerShell
 
         private void Render()
         {
-            // If there are a bunch of keys queued up, skip rendering if we've rendered
-            // recently.
-            if (_queuedKeys.Count > 10 && (_lastRenderTime.ElapsedMilliseconds < 50))
+            // If there are a bunch of keys queued up, skip rendering if we've rendered very recently.
+            long elapsedMs = _lastRenderTime.ElapsedMilliseconds;
+            if (_queuedKeys.Count > 10 && elapsedMs < 50)
             {
                 // We won't render, but most likely the tokens will be different, so make
                 // sure we don't use old tokens, also allow garbage to get collected.
@@ -223,6 +231,20 @@ namespace Microsoft.PowerShell
                 _parseErrors = null;
                 _waitingToRender = true;
                 return;
+            }
+
+            // If we've rendered very recently, skip the terminal window resizing check as it's unlikely
+            // to happen in such a short time interval.
+            // We try to avoid unnecessary resizing check because it requires getting the cursor position
+            // which would force a network round trip in an environment where front-end xtermjs talking to
+            // a server-side PTY via websocket. Without querying for cursor position, content written on
+            // the server side could be buffered, which is much more performant.
+            // See the following 2 GitHub issues for more context:
+            //  - https://github.com/PowerShell/PSReadLine/issues/3879#issuecomment-2573996070
+            //  - https://github.com/PowerShell/PowerShell/issues/24696
+            if (elapsedMs < 50)
+            {
+                _handlePotentialResizing = false;
             }
 
             ForceRender();
@@ -928,7 +950,7 @@ namespace Microsoft.PowerShell
             _console.SetCursorPosition(point.X, point.Y);
             _console.CursorVisible = true;
 
-            _previousRender.UpdateConsoleInfo(_console);
+            _previousRender.UpdateConsoleInfo(bufferWidth, bufferHeight, point.X, point.Y);
             _previousRender.initialY = _initialY;
 
             // TODO: set WindowTop if necessary
