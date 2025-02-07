@@ -57,7 +57,13 @@ namespace Microsoft.PowerShell
             for (var i = start; i < end; i++)
             {
                 var c = str[i];
-                if (c == 0x1b && (i+1) < end && str[i+1] == '[')
+                if (char.IsHighSurrogate(c) && (i + 1) < end && char.IsLowSurrogate(str[i + 1]))
+                {
+                    sum++;
+                    i++; // Skip the low surrogate
+                    continue;
+                }
+                else if (c == 0x1b && (i + 1) < end && str[i + 1] == '[')
                 {
                     // Simple escape sequence skipping
                     i += 2;
@@ -77,7 +83,13 @@ namespace Microsoft.PowerShell
             for (var i = start; i < end; i++)
             {
                 var c = sb[i];
-                if (c == 0x1b && (i + 1) < end && sb[i + 1] == '[')
+                if (char.IsHighSurrogate(c) && (i + 1) < end && char.IsLowSurrogate(sb[i + 1]))
+                {
+                    sum++;
+                    i++; // Skip the low surrogate
+                    continue;
+                }
+                else if (c == 0x1b && (i + 1) < end && sb[i + 1] == '[')
                 {
                     // Simple escape sequence skipping
                     i += 2;
