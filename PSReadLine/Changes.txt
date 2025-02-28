@@ -1,3 +1,31 @@
+### [2.4.1-beta1] - 2025-02-28
+
+#### Code Changes
+
+- Avoid querying for cursor position when it's not necessary (#4448)
+- Handle buffer changes made by an event handler (#4442)
+- Update `SelectCommandArgument` to properly handle POSIX style options for CLI commands (#4016)
+
+#### Build Changes
+
+- Update PSReadLine build to target `netstandard2.0` (#4584)
+- Update documentation about the building of PSReadLine (#4286) (Thanks @sangafabrice!)
+- Update `HelpInfoUri` for 7.5 (#4284)
+- Update the release pipeline to remove `AzFeed` from display name (#4204)
+- Update the OneBranch pipeline to keep it compliant and remove SBOM files from module (#4201)
+- Make sure the `CodeQL` result from release pipeline gets uploaded (#4082)
+- Add 'ob_restore_phase' for every task before the signing task to work around the signing issue (#4046)
+- Change the NuGet feed to use the governed PowerShell feed (#4044)
+- Update "Code of Conduct" and "Security Policy" (#4037)
+- Disable SBOM, signing, and codeQL for the publish job (#3986)
+- Update triage messages to use the latest stable version (#3985)
+- Fix the release stage and update the changelog for v2.3.5 servicing release (#3984)
+- Add the release stage to the pipeline and exclude test folders from Component Governance (#3982)
+- Change back to 'external_distribution' for nupkg signing (#3977)
+- Migrate PSReadLine release build pipeline to OneBranch (#3975)
+
+[2.4.1-beta1]: https://github.com/PowerShell/PSReadLine/compare/v2.4.0-beta0...v2.4.1-beta1
+
 ### [2.4.0-beta0] - 2024-03-01
 
 - Fix the null-reference exception when running `Debug-Job` on a thread job (#3957)
