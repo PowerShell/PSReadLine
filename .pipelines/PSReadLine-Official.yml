@@ -114,7 +114,7 @@ extends:
         - pwsh: |
             Write-Host "PS Version: $($($PSVersionTable.PSVersion))"
             Set-Location -Path '$(repoRoot)'
-            .\build.ps1 -Configuration Release -Framework net462
+            .\build.ps1 -Configuration Release
           displayName: Build
           env:
             # Set ob_restore_phase to run this step before '🔒 Setup Signing' step.
@@ -166,7 +166,7 @@ extends:
             TargetFolder: $(ob_outputDirectory)
 
         - pwsh: |
-            $versionInfo = Get-Item "$(signSrcPath)\Microsoft.PowerShell.PSReadLine2.dll" | ForEach-Object VersionInfo
+            $versionInfo = Get-Item "$(signSrcPath)\Microsoft.PowerShell.PSReadLine.dll" | ForEach-Object VersionInfo
             $moduleVersion = $versionInfo.ProductVersion.Split('+')[0]
             $vstsCommandString = "vso[task.setvariable variable=ob_sdl_sbom_packageversion]${moduleVersion}"
 

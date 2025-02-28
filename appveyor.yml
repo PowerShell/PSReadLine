@@ -17,10 +17,10 @@ install:
 
 build_script:
   - pwsh: |
-      ./build.ps1 -Configuration Release -Framework net462
+      ./build.ps1 -Configuration Release
 
 test_script:
-  - pwsh: ./build.ps1 -Test -Configuration Release -Framework net462
+  - pwsh: ./build.ps1 -Test -Configuration Release -Framework net472
 
 artifacts:
   - path: .\bin\Release\PSReadLine.zip
