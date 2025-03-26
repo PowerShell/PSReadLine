@@ -369,6 +369,15 @@ namespace Microsoft.PowerShell.PSReadLine {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Text objects functions.
+        /// </summary>
+        internal static string TextObjectsGrouping {
+            get {
+                return ResourceManager.GetString("TextObjectsGrouping", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to User defined functions.
         /// </summary>
         internal static string CustomGrouping {
@@ -1615,6 +1624,15 @@ namespace Microsoft.PowerShell.PSReadLine {
         internal static string ViDeleteGlobDescription {
             get {
                 return ResourceManager.GetString("ViDeleteGlobDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Delete the content inside the current word..
+        /// </summary>
+        internal static string ViDeleteInnerWordDescription {
+            get {
+                return ResourceManager.GetString("ViDeleteInnerWordDescription", resourceCulture);
             }
         }
         
