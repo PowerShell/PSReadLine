@@ -1175,7 +1175,7 @@ namespace Microsoft.PowerShell
 
                 var key = ReadKey();
                 _dispatchTable.TryGetValue(key, out var handlerOrChordDispatchTable);
-                if (handlerOrChordDispatchTable.TryGetKeyHandler(out var handler))
+                if (handlerOrChordDispatchTable?.TryGetKeyHandler(out var handler) == true)
                     function = handler.Action;
 
                 if (function == ReverseSearchHistory)

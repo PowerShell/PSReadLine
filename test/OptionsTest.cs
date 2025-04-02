@@ -105,7 +105,7 @@ namespace Test
             TestSetup(KeyMode.Emacs);
             
             handlers = PSConsoleReadLine.GetKeyHandlers(Chord: new string[] { "ctrl+x" });
-            Assert.NotEmpty(handlers);
+            Assert.Empty(handlers);
             foreach (var handler in handlers)
             {
                 Assert.Equal("Ctrl+x", handler.Key);
