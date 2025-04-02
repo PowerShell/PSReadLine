@@ -562,6 +562,9 @@ namespace Test
                 .GetField("_console", BindingFlags.Instance | BindingFlags.NonPublic)
                 .SetValue(instance, _console);
 
+            typeof(PSConsoleReadLine).GetMethod("Initialize", BindingFlags.Instance | BindingFlags.NonPublic)
+                .Invoke(instance, new object[] { /* Runspace */ null, /* EngineIntrinsics */ null, });
+
             _emptyLine ??= new string(' ', _console.BufferWidth);
 
             PSConsoleReadLine.ClearHistory();
