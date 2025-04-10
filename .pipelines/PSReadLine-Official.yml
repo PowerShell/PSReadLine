@@ -171,6 +171,7 @@ extends:
 
             Write-Host "Display files in the folder ..." -ForegroundColor Yellow
             Get-ChildItem -Path $(signSrcPath) -Recurse | Out-String -Width 120 -Stream
+          condition: ne('${{ parameters.Officialness }}', 'NonOfficial')
           displayName: 'Verify the signed files'
 
         - task: CopyFiles@2
