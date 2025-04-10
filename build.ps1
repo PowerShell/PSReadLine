@@ -54,7 +54,11 @@ param(
     [Parameter(ParameterSetName = 'default')]
     [Parameter(ParameterSetName = 'test')]
     [ValidateSet("Debug", "Release")]
-    [string] $Configuration = "Debug"
+    [string] $Configuration = "Debug",
+
+    [Parameter(ParameterSetName = 'bootstrap')]
+    [ValidateSet("Public","Internal")]
+    [string] $FeedSource = "Public"
 )
 
 # Clean step
@@ -71,7 +75,7 @@ if ($Clean) {
 
 Import-Module "$PSScriptRoot/tools/helper.psm1"
 
-if ($Bootstrap) {
+if ($Bootstrap -and $FeedSource -eq "Public") {
     Write-Log "Validate and install missing prerequisites for building ..."
 
     Install-Dotnet
