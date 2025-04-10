@@ -102,7 +102,7 @@ extends:
           inputs:
             packageType: sdk
 
-        - pwsh: ./tools/installPSResources.ps1 -PSRepository CFS
+        - pwsh: $(repoRoot)/tools/installPSResources.ps1 -PSRepository CFS
           displayName: Install PSResources
 
         - pwsh: |
