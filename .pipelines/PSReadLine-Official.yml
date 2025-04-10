@@ -119,9 +119,6 @@ extends:
             Set-Location -Path '$(repoRoot)'
             .\build.ps1 -Bootstrap -FeedSource Internal
           displayName: Bootstrap
-          env:
-            # Set ob_restore_phase to run this step before '🔒 Setup Signing' step.
-            ob_restore_phase: true
 
         # Add CodeQL Init task right before your 'Build' step.
         - task: CodeQL3000Init@0
@@ -137,9 +134,6 @@ extends:
             Set-Location -Path '$(repoRoot)'
             .\build.ps1 -Configuration Release
           displayName: Build
-          env:
-            # Set ob_restore_phase to run this step before '🔒 Setup Signing' step.
-            ob_restore_phase: true
 
         # Add CodeQL Finalize task right after your 'Build' step.
         - task: CodeQL3000Finalize@0
