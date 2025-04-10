@@ -37,7 +37,7 @@ resources:
       ref: refs/heads/main
 
 extends:
-  template: v2/OneBranch.{{ parameters.Officialness }}.CrossPlat.yml@templates
+  template: v2/OneBranch.${{ parameters.Officialness }}.CrossPlat.yml@templates
   parameters:
     release:
       category: NonAzure
@@ -314,7 +314,7 @@ extends:
           displayName: Find signed Nupkg
 
         - task: NuGetCommand@2
-          condition: {{ parameters.release }}
+          condition: ${{ parameters.release }}
           displayName: Push PSReadLine module to PSGallery feed
           inputs:
             command: push
