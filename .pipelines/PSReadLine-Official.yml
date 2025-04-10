@@ -28,9 +28,12 @@ resources:
 extends:
   template: v2/OneBranch.Official.CrossPlat.yml@templates
   parameters:
+    release:
+      category: NonAzure
     featureFlags:
       WindowsHostVersion:
         Version: 2022
+        Network: Netlock
     globalSdl:
       disableLegacyManifest: true
       cg: # Component Governance parameters. Ignore test components.
@@ -95,6 +98,8 @@ extends:
 
         - pwsh: |
             Write-Host "PS Version: $($PSVersionTable.PSVersion)"
+            Register-PSResourceRepository -Name CFS -Uri "https://pkgs.dev.azure.com/powershell/PowerShell/_packaging/powershell/nuget/v3/index.json" -Trusted
+            Install-PSResource -Repository CFS -Name InvokeBuild -Version 5.11.3 -Verbose
             Set-Location -Path '$(repoRoot)'
             .\build.ps1 -Bootstrap
           displayName: Bootstrap
@@ -254,6 +259,8 @@ extends:
     - stage: release
       dependsOn: buildstage
       displayName: Release PSReadLine
+      variables:
+        ob_release_environment: Production
 
       jobs:
       - job: validation
@@ -272,11 +279,16 @@ extends:
       - job: publish
         dependsOn: validation
         displayName: Publish to PSGallery
+        pool:
+          type: release
+          os: windows
+        templateContext:
+          inputs:
+            - input: pipelineArtifact
+              artifactName: drop_buildstage_nupkg
         variables:
           - name: ob_outputDirectory
             value: '$(Build.ArtifactStagingDirectory)/ONEBRANCH_ARTIFACT'
-          - name: nugetPath
-            value: $(Pipeline.Workspace)\NuGetPackage
           # Disable SBOM, signing, and codeQL for this job
           - name: ob_sdl_sbom_enabled
             value: false
@@ -284,24 +296,19 @@ extends:
             value: false
           - name: ob_sdl_codeql_compiled_enabled
             value: false
-        pool:
-          type: windows
 
         steps:
-        - task: DownloadPipelineArtifact@2
-          displayName: 'Download nupkg artifact'
+        - task: PowerShell@2
           inputs:
-            targetPath: $(nugetPath)
-            artifact: drop_buildstage_nupkg
-
-        - pwsh: |
-            Get-ChildItem $(nugetPath) -Recurse | Out-String -Width 120 -Stream
+            targetType: 'inline'
+            script: |
+              Get-ChildItem $(Pipeline.Workspace) -Recurse | Out-String -Width 120 -Stream
           displayName: Find signed Nupkg
 
         - task: NuGetCommand@2
           displayName: Push PSReadLine module to PSGallery feed
           inputs:
             command: push
-            packagesToPush: $(nugetPath)\PSReadLine.*.nupkg
+            packagesToPush: $(Pipeline.Workspace)\PSReadLine.*.nupkg
             nuGetFeedType: external
             publishFeedCredentials: PowerShellGalleryFeed
