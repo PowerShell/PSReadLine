@@ -301,14 +301,12 @@ extends:
         pool:
           type: release
           os: windows
+        templateContext:
+          inputs:
+            - input: pipelineArtifact
+              artifactName: drop_buildstage_nupkg
 
         steps:
-        - task: DownloadPipelineArtifact@2
-          displayName: 'Download nupkg artifact'
-          inputs:
-            targetPath: $(nugetPath)
-            artifact: drop_buildstage_nupkg
-
         - pwsh: |
             Get-ChildItem $(nugetPath) -Recurse | Out-String -Width 120 -Stream
           displayName: Find signed Nupkg
