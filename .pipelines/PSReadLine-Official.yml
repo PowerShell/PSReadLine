@@ -273,7 +273,7 @@ extends:
       - job: validation
         displayName: Manual validation
         pool:
-          type: agentless
+          type: server
         timeoutInMinutes: 1440
 
         steps:
