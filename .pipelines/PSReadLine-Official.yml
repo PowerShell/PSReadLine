@@ -268,7 +268,7 @@ extends:
       dependsOn: buildstage
       displayName: Release PSReadLine
       variables:
-        ob_release_environment: {{ parameters.ob_release_environment }}
+        ob_release_environment: ${{ parameters.ob_release_environment }}
       jobs:
       - job: validation
         displayName: Manual validation
