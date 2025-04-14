@@ -12,6 +12,11 @@ name: PSReadLine-ModuleBuild-$(Build.BuildId)
 trigger: none
 pr: none
 
+parameters:
+  - name: Release
+    type: boolean
+    default: true # Set false to skip release stage
+
 variables:
   DOTNET_CLI_TELEMETRY_OPTOUT: 1
   POWERSHELL_TELEMETRY_OPTOUT: 1
@@ -28,9 +33,12 @@ resources:
 extends:
   template: v2/OneBranch.Official.CrossPlat.yml@templates
   parameters:
+    release:
+      category: NonAzure
     featureFlags:
       WindowsHostVersion:
         Version: 2022
+        Network: Netlock
     globalSdl:
       disableLegacyManifest: true
       cg: # Component Governance parameters. Ignore test components.
@@ -93,11 +101,19 @@ extends:
             # Set ob_restore_phase to run this step before '🔒 Setup Signing' step.
             ob_restore_phase: true
 
+        - task: UseDotNet@2
+          displayName: Bootstrap - install .NET
+          env:
+            # Set ob_restore_phase to run this step before '🔒 Setup Signing' step.
+            ob_restore_phase: true
+          inputs:
+            packageType: sdk
+
         - pwsh: |
             Write-Host "PS Version: $($PSVersionTable.PSVersion)"
-            Set-Location -Path '$(repoRoot)'
-            .\build.ps1 -Bootstrap
-          displayName: Bootstrap
+            Register-PSResourceRepository -Name CFS -Uri "https://pkgs.dev.azure.com/powershell/PowerShell/_packaging/PowerShellGalleryMirror/nuget/v3/index.json" -Trusted
+            Install-PSResource -Repository CFS -Name InvokeBuild -Version 5.12.1 -Verbose
+          displayName: Bootstrap - install InvokeBuild
           env:
             # Set ob_restore_phase to run this step before '🔒 Setup Signing' step.
             ob_restore_phase: true
@@ -184,9 +200,8 @@ extends:
             value: $(Build.SourcesDirectory)\PSReadLine
           - name: ob_sdl_tsa_configFile
             value: $(repoRoot)\.config\tsaoptions.json
-          # Disable because SBOM was already built in the previous job
           - name: ob_sdl_sbom_enabled
-            value: false
+            value: true
           - name: signOutPath
             value: $(repoRoot)\signed\PSReadLine
           - name: nugetPath
@@ -254,12 +269,14 @@ extends:
     - stage: release
       dependsOn: buildstage
       displayName: Release PSReadLine
+      variables:
+        ob_release_environment: Production
 
       jobs:
       - job: validation
         displayName: Manual validation
         pool:
-          type: agentless
+          type: server
         timeoutInMinutes: 1440
 
         steps:
@@ -272,11 +289,16 @@ extends:
       - job: publish
         dependsOn: validation
         displayName: Publish to PSGallery
+        pool:
+          type: release
+          os: windows
+        templateContext:
+          inputs:
+            - input: pipelineArtifact
+              artifactName: drop_buildstage_nupkg
         variables:
           - name: ob_outputDirectory
             value: '$(Build.ArtifactStagingDirectory)/ONEBRANCH_ARTIFACT'
-          - name: nugetPath
-            value: $(Pipeline.Workspace)\NuGetPackage
           # Disable SBOM, signing, and codeQL for this job
           - name: ob_sdl_sbom_enabled
             value: false
@@ -284,24 +306,20 @@ extends:
             value: false
           - name: ob_sdl_codeql_compiled_enabled
             value: false
-        pool:
-          type: windows
 
         steps:
-        - task: DownloadPipelineArtifact@2
-          displayName: 'Download nupkg artifact'
+        - task: PowerShell@2
           inputs:
-            targetPath: $(nugetPath)
-            artifact: drop_buildstage_nupkg
-
-        - pwsh: |
-            Get-ChildItem $(nugetPath) -Recurse | Out-String -Width 120 -Stream
+            targetType: 'inline'
+            script: |
+              Get-ChildItem $(Pipeline.Workspace) -Recurse | Out-String -Width 120 -Stream
           displayName: Find signed Nupkg
 
         - task: NuGetCommand@2
+          condition: ${{ parameters.Release }}
           displayName: Push PSReadLine module to PSGallery feed
           inputs:
             command: push
-            packagesToPush: $(nugetPath)\PSReadLine.*.nupkg
+            packagesToPush: $(Pipeline.Workspace)\PSReadLine.*.nupkg
             nuGetFeedType: external
             publishFeedCredentials: PowerShellGalleryFeed
