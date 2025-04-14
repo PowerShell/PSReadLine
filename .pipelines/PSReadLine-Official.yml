@@ -200,9 +200,8 @@ extends:
             value: $(Build.SourcesDirectory)\PSReadLine
           - name: ob_sdl_tsa_configFile
             value: $(repoRoot)\.config\tsaoptions.json
-          # Disable because SBOM was already built in the previous job
           - name: ob_sdl_sbom_enabled
-            value: false
+            value: true
           - name: signOutPath
             value: $(repoRoot)\signed\PSReadLine
           - name: nugetPath
