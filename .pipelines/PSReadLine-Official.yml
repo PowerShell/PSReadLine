@@ -12,6 +12,11 @@ name: PSReadLine-ModuleBuild-$(Build.BuildId)
 trigger: none
 pr: none
 
+parameters:
+  - name: Release
+    type: boolean
+    default: true # Set false to skip release stage
+
 variables:
   DOTNET_CLI_TELEMETRY_OPTOUT: 1
   POWERSHELL_TELEMETRY_OPTOUT: 1
@@ -96,13 +101,19 @@ extends:
             # Set ob_restore_phase to run this step before '🔒 Setup Signing' step.
             ob_restore_phase: true
 
+        - task: UseDotNet@2
+          displayName: Bootstrap - install .NET
+          env:
+            # Set ob_restore_phase to run this step before '🔒 Setup Signing' step.
+            ob_restore_phase: true
+          inputs:
+            packageType: sdk
+
         - pwsh: |
             Write-Host "PS Version: $($PSVersionTable.PSVersion)"
-            Register-PSResourceRepository -Name CFS -Uri "https://pkgs.dev.azure.com/powershell/PowerShell/_packaging/powershell/nuget/v3/index.json" -Trusted
-            Install-PSResource -Repository CFS -Name InvokeBuild -Version 5.11.3 -Verbose
-            Set-Location -Path '$(repoRoot)'
-            .\build.ps1 -Bootstrap
-          displayName: Bootstrap
+            Register-PSResourceRepository -Name CFS -Uri "https://pkgs.dev.azure.com/powershell/PowerShell/_packaging/PowerShellGalleryMirror/nuget/v3/index.json" -Trusted
+            Install-PSResource -Repository CFS -Name InvokeBuild -Version 5.12.1 -Verbose
+          displayName: Bootstrap - install InvokeBuild
           env:
             # Set ob_restore_phase to run this step before '🔒 Setup Signing' step.
             ob_restore_phase: true
@@ -266,7 +277,7 @@ extends:
       - job: validation
         displayName: Manual validation
         pool:
-          type: agentless
+          type: server
         timeoutInMinutes: 1440
 
         steps:
@@ -306,6 +317,7 @@ extends:
           displayName: Find signed Nupkg
 
         - task: NuGetCommand@2
+          condition: ${{ parameters.Release }}
           displayName: Push PSReadLine module to PSGallery feed
           inputs:
             command: push
