@@ -43,6 +43,8 @@ namespace Microsoft.PowerShell
         #pragma warning restore CS0649
 
         private bool _delayedOneTimeInitCompleted;
+        // This is used by AIShell to check if PSReadLine is initialized and ready to render.
+        private bool _readLineReady;
 
         private IPSConsoleReadLineMockableMethods _mockableMethods;
         private IConsole _console;
@@ -400,6 +402,7 @@ namespace Microsoft.PowerShell
                         _singleton.Initialize(runspace, engineIntrinsics);
                     }
 
+                    _singleton._readLineReady = true;
                     _singleton._cancelReadCancellationToken = cancellationToken;
                     return _singleton.InputLoop();
                 }
@@ -472,6 +475,8 @@ namespace Microsoft.PowerShell
                 }
                 finally
                 {
+                    _singleton._readLineReady = false;
+
                     try
                     {
                         // If we are closing, restoring the old console settings isn't needed,
