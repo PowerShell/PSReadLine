@@ -5,9 +5,9 @@
     <RootNamespace>Microsoft.PowerShell.PSReadLine</RootNamespace>
     <AssemblyName>Microsoft.PowerShell.PSReadLine</AssemblyName>
     <NoWarn>$(NoWarn);CA1416</NoWarn>
-    <AssemblyVersion>2.4.1.0</AssemblyVersion>
-    <FileVersion>2.4.1</FileVersion>
-    <InformationalVersion>2.4.1-beta1</InformationalVersion>
+    <AssemblyVersion>2.4.2.0</AssemblyVersion>
+    <FileVersion>2.4.2</FileVersion>
+    <InformationalVersion>2.4.2-beta2</InformationalVersion>
     <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
     <TargetFramework>netstandard2.0</TargetFramework>
     <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>

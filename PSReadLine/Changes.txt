@@ -1,3 +1,10 @@
+### [2.4.2-beta2] - 2025-04-16
+
+- Add a private field to indicate if PSReadLine is initialized and ready (#4706)
+- Use CFS for installing module and deploy box for module publish (#4700)
+
+[2.4.2-beta2]: https://github.com/PowerShell/PSReadLine/compare/v2.4.1-beta1...v2.4.2-beta2
+
 ### [2.4.1-beta1] - 2025-02-28
 
 #### Code Changes
