@@ -43,6 +43,7 @@ namespace Microsoft.PowerShell
         #pragma warning restore CS0649
 
         private bool _delayedOneTimeInitCompleted;
+        // This is used by AIShell to check if PSReadLine has done with initialization and ready to render.
         private bool _readLineReady;
 
         private IPSConsoleReadLineMockableMethods _mockableMethods;
