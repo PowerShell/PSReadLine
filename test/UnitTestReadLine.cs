@@ -537,6 +537,7 @@ namespace Test
         private string _emptyLine;
         private TestConsole _console;
         private MockedMethods _mockedMethods;
+        private bool _oneTimeInitCompleted;
 
         private static string MakeCombinedColor(ConsoleColor fg, ConsoleColor bg)
             => VTColorUtils.AsEscapeSequence(fg) + VTColorUtils.AsEscapeSequence(bg, isBackground: true);
@@ -561,9 +562,6 @@ namespace Test
             typeof(PSConsoleReadLine)
                 .GetField("_console", BindingFlags.Instance | BindingFlags.NonPublic)
                 .SetValue(instance, _console);
-
-            typeof(PSConsoleReadLine).GetMethod("Initialize", BindingFlags.Instance | BindingFlags.NonPublic)
-                .Invoke(instance, new object[] { /* Runspace */ null, /* EngineIntrinsics */ null, });
 
             _emptyLine ??= new string(' ', _console.BufferWidth);
 
@@ -629,6 +627,13 @@ namespace Test
             }
             var colorOptions = new SetPSReadLineOption {Colors = colors};
             PSConsoleReadLine.SetOptions(colorOptions);
+
+            if (!_oneTimeInitCompleted)
+            {
+                typeof(PSConsoleReadLine).GetMethod("Initialize", BindingFlags.Instance | BindingFlags.NonPublic)
+                    .Invoke(instance, new object[] { /* Runspace */ null, /* EngineIntrinsics */ null, });
+                _oneTimeInitCompleted = true;
+            }
         }
     }
 
