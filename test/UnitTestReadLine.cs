@@ -538,6 +538,8 @@ namespace Test
         private TestConsole _console;
         private MockedMethods _mockedMethods;
         private bool _oneTimeInitCompleted;
+        private object _psrlInstance;
+        private FieldInfo _psrlConsole, _psrlMockableMethods;
 
         private static string MakeCombinedColor(ConsoleColor fg, ConsoleColor bg)
             => VTColorUtils.AsEscapeSequence(fg) + VTColorUtils.AsEscapeSequence(bg, isBackground: true);
@@ -554,14 +556,17 @@ namespace Test
 
             _console = console ?? new TestConsole(_);
             _mockedMethods = new MockedMethods();
-            var instance = (PSConsoleReadLine)typeof(PSConsoleReadLine)
-                .GetField("_singleton", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
-            typeof(PSConsoleReadLine)
-                .GetField("_mockableMethods", BindingFlags.Instance | BindingFlags.NonPublic)
-                .SetValue(instance, _mockedMethods);
-            typeof(PSConsoleReadLine)
-                .GetField("_console", BindingFlags.Instance | BindingFlags.NonPublic)
-                .SetValue(instance, _console);
+
+            if (_psrlInstance is null)
+            {
+                Type psrlType = typeof(PSConsoleReadLine);
+                _psrlInstance = psrlType.GetField("_singleton", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
+                _psrlConsole = psrlType.GetField("_console", BindingFlags.Instance | BindingFlags.NonPublic);
+                _psrlMockableMethods = psrlType.GetField("_mockableMethods", BindingFlags.Instance | BindingFlags.NonPublic);
+            }
+
+            _psrlConsole.SetValue(_psrlInstance, _console);
+            _psrlMockableMethods.SetValue(_psrlInstance, _mockedMethods);
 
             _emptyLine ??= new string(' ', _console.BufferWidth);
 
@@ -631,7 +636,7 @@ namespace Test
             if (!_oneTimeInitCompleted)
             {
                 typeof(PSConsoleReadLine).GetMethod("Initialize", BindingFlags.Instance | BindingFlags.NonPublic)
-                    .Invoke(instance, new object[] { /* Runspace */ null, /* EngineIntrinsics */ null, });
+                    .Invoke(_psrlInstance, new object[] { /* Runspace */ null, /* EngineIntrinsics */ null, });
                 _oneTimeInitCompleted = true;
             }
         }
