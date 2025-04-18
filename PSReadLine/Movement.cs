@@ -338,6 +338,36 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
+        /// Move the cursor forward to the end of the current hump, or if between words,
+        /// to the end of the next word.  Word boundaries are defined by a configurable
+        /// set of characters.
+        /// </summary>
+        public static void ForwardHump(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            if (!TryGetArgAsInt(arg, out var numericArg, 1))
+            {
+                return;
+            }
+
+            if (_singleton._current == _singleton._buffer.Length && numericArg > 0)
+            {
+                AcceptNextSuggestionWord(numericArg);
+                return;
+            }
+
+            if (numericArg < 0)
+            {
+                BackwardHump(key, -numericArg);
+                return;
+            }
+
+            while (numericArg-- > 0)
+            {
+                _singleton.MoveCursor(_singleton.FindForwardHumpPoint(_singleton.Options.WordDelimiters));
+            }
+        }
+
+        /// <summary>
         /// Move the cursor forward to the start of the next word.
         /// Word boundaries are defined by PowerShell tokens.
         /// </summary>
@@ -404,6 +434,37 @@ namespace Microsoft.PowerShell
             while (numericArg-- > 0)
             {
                 _singleton.MoveCursor(_singleton.FindBackwardWordPoint(_singleton.Options.WordDelimiters));
+            }
+        }
+
+        /// <summary>
+        /// Move the cursor back to the start of the current hump, or if between words,
+        /// the start of the previous word.  Word boundaries are defined by a configurable
+        /// set of characters.
+        /// </summary>
+        public static void BackwardHump(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            if (!TryGetArgAsInt(arg, out var numericArg, 1))
+            {
+                return;
+            }
+
+            if (numericArg < 0)
+            {
+                if (CheckIsBound(ForwardWord))
+                {
+                    ForwardHump(key, -numericArg);
+                }
+                else
+                {
+                    ForwardHump(key, -numericArg);
+                }
+                return;
+            }
+
+            while (numericArg-- > 0)
+            {
+                _singleton.MoveCursor(_singleton.FindBackwardHumpPoint(_singleton.Options.WordDelimiters));
             }
         }
 
