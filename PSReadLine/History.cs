@@ -1171,9 +1171,13 @@ namespace Microsoft.PowerShell
             var toMatch = new StringBuilder(64);
             while (true)
             {
+                Action<ConsoleKeyInfo?, object> function = null;
+
                 var key = ReadKey();
-                _dispatchTable.TryGetValue(key, out var handler);
-                var function = handler?.Action;
+                _dispatchTable.TryGetValue(key, out var handlerOrChordDispatchTable);
+                if (handlerOrChordDispatchTable?.TryGetKeyHandler(out var handler) == true)
+                    function = handler.Action;
+
                 if (function == ReverseSearchHistory)
                 {
                     UpdateHistoryDuringInteractiveSearch(toMatch.ToString(), -1, ref searchFromPoint);
