@@ -522,7 +522,7 @@ Set-PSReadLineKeyHandler -Key F1 `
 
 #
 # Ctrl+Shift+j then type a key to mark the current directory.
-# Ctrj+j then the same key will change back to that directory without
+# Ctrl+j then the same key will change back to that directory without
 # needing to type cd and won't change the command line.
 
 #
