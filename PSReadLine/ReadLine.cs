@@ -1035,16 +1035,24 @@ namespace Microsoft.PowerShell
         public static void InvokePrompt(ConsoleKeyInfo? key = null, object arg = null)
         {
             var console = _singleton._console;
-            console.CursorVisible = false;
 
             if (arg is int newY)
             {
+                if (newY < 0 || newY >= console.BufferHeight)
+                    throw new ArgumentOutOfRangeException(nameof(arg));
+                    
+                console.CursorVisible = false;
                 console.SetCursorPosition(0, newY);
             }
             else
             {
                 newY = _singleton._initialY - _singleton._options.ExtraPromptLineCount;
 
+                // Silently return if user has implicitly requested an impossible prompt invocation.
+                if (newY < 0)
+                    return;
+
+                console.CursorVisible = false;
                 console.SetCursorPosition(0, newY);
 
                 // We need to rewrite the prompt, so blank out everything from a previous prompt invocation
