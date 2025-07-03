@@ -4,7 +4,24 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-
+        {
+            "name": "Launch PSReadLine",
+            "type": "coreclr",
+            "request": "launch",
+            "program": "pwsh",
+            "args": [
+                "-NonInteractive",
+                "-NoProfile",
+                "-NoExit",
+                "-Command",
+                "Import-Module '${workspaceFolder}/PSReadLine/bin/Debug/netstandard2.0/PSReadLine.psd1'"
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "suppressJITOptimizations": true,
+            "enableStepFiltering": false,
+            "preLaunchTask": "Build",
+        },
         {
             "name": ".NET Core Attach",
             "type": "coreclr",
