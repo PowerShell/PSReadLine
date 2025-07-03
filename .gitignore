@@ -9,9 +9,6 @@ PSReadline.zip
 [Oo]bj/
 .ionide/
 
-# VSCode directories that are not at the repository root
-/**/.vscode/
-
 # mstest test results
 TestResults
 FakesAssemblies/
