@@ -1,0 +1,90 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+        {
+            "label": "Bootstrap",
+            "type": "shell",
+            "command": "pwsh",
+            "args": [
+                "./build.ps1",
+                "-Bootstrap"
+            ],
+            "group": "build",
+            "detail": "Install build prerequisites (InvokeBuild, .NET SDK)"
+        },
+        {
+            "label": "Build",
+            "type": "shell",
+            "command": "pwsh",
+            "args": [
+                "./build.ps1",
+                "-Configuration",
+                "${input:configuration}"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [
+                "$msCompile"
+            ],
+            "detail": "Build with user-selected configuration"
+        },
+        {
+            "label": "Run Tests",
+            "type": "shell",
+            "command": "pwsh",
+            "args": [
+                "./build.ps1",
+                "-Test",
+                "-Configuration",
+                "${input:configuration}",
+                "-Framework",
+                "${input:framework}"
+            ],
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
+            "presentation": {
+                "focus": true,
+                "panel": "dedicated",
+                "clear": true
+            },
+            "detail": "Run unit tests with selected configuration and framework"
+        },
+        {
+            "label": "Clean",
+            "type": "shell",
+            "command": "pwsh",
+            "args": [
+                "./build.ps1",
+                "-Clean"
+            ],
+            "group": "build",
+            "detail": "Clean build artifacts"
+        }
+    ],
+    "inputs": [
+        {
+            "id": "configuration",
+            "description": "Build Configuration",
+            "type": "pickString",
+            "options": [
+                "Debug",
+                "Release"
+            ],
+            "default": "Debug"
+        },
+        {
+            "id": "framework",
+            "description": "Target Framework",
+            "type": "pickString",
+            "options": [
+                "net472",
+                "net6.0"
+            ],
+            "default": "net6.0"
+        }
+    ]
+}
