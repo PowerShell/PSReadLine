@@ -1039,8 +1039,10 @@ namespace Microsoft.PowerShell
             if (arg is int newY)
             {
                 if (newY < 0 || newY >= console.BufferHeight)
+                {
                     throw new ArgumentOutOfRangeException(nameof(arg));
-                    
+                }
+
                 console.CursorVisible = false;
                 console.SetCursorPosition(0, newY);
             }
@@ -1050,7 +1052,9 @@ namespace Microsoft.PowerShell
 
                 // Silently return if user has implicitly requested an impossible prompt invocation.
                 if (newY < 0)
+                {
                     return;
+                }
 
                 console.CursorVisible = false;
                 console.SetCursorPosition(0, newY);
