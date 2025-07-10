@@ -26,6 +26,7 @@ using Microsoft.PowerShell.PSReadLine;
 namespace Microsoft.PowerShell
 {
     class ExitException : Exception { }
+    class LineAcceptedException : Exception { }
 
     public partial class PSConsoleReadLine : IPSConsoleReadLineMockableMethods
     {
@@ -44,7 +45,10 @@ namespace Microsoft.PowerShell
 
         private bool _delayedOneTimeInitCompleted;
         // This is used by AIShell to check if PSReadLine is initialized and ready to render.
+        #pragma warning disable CS0414
         private bool _readLineReady;
+        #pragma warning restore CS0414
+        private bool _lineAcceptedExceptionThrown;
 
         private IPSConsoleReadLineMockableMethods _mockableMethods;
         private IConsole _console;
@@ -175,9 +179,18 @@ namespace Microsoft.PowerShell
             // By waiting for a key on a different thread, our pipeline execution thread
             // (the thread ReadLine is called from) avoid being blocked in code that can't
             // be unblocked and instead blocks on events we control.
-
-            // First, set an event so the thread to read a key actually attempts to read a key.
-            _singleton._readKeyWaitHandle.Set();
+            if (_singleton._lineAcceptedExceptionThrown)
+            {
+                // If we threw a 'LineAcceptedException', it means that "AcceptLine" was called within an 'OnIdle' handler the last time
+                // this method was called, and thus we didn't wait for '_keyReadWaitHandle' to be signalled by the 'readkey thread'.
+                // In this case, we don't want to signal '_readKeyWaitHandle' again as the 'readkey thread' already got a chance to run.
+                _singleton._lineAcceptedExceptionThrown = false;
+            }
+            else
+            {
+                // Set an event so the 'readkey thread' actually attempts to read a key.
+                _singleton._readKeyWaitHandle.Set();
+            }
 
             int handleId;
             System.Management.Automation.PowerShell ps = null;
@@ -276,6 +289,16 @@ namespace Microsoft.PowerShell
                                 {
                                     _singleton.Render();
                                 }
+                            }
+
+                            if (_singleton._inputAccepted && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                            {
+                                // 'AcceptLine' was called by an 'OnIdle' handler.
+                                // In this case, we only want to break out of the loop and accept the current input on Windows,
+                                // because the 'read-key' thread will still be waiting on the 'ReadKey()' call, and that will cause
+                                // all subsequent terminal operations to be blocked on Linux and macOS until a key is pressed.
+                                _singleton._lineAcceptedExceptionThrown = true;
+                                throw new LineAcceptedException();
                             }
                         }
                     }
@@ -531,8 +554,16 @@ namespace Microsoft.PowerShell
                 // window resizing cannot and shouldn't happen within the processing of a given keybinding.
                 _handlePotentialResizing = true;
 
-                var key = ReadKey();
-                ProcessOneKey(key, _dispatchTable, ignoreIfNoAction: false, arg: null);
+                try
+                {
+                    var key = ReadKey();
+                    ProcessOneKey(key, _dispatchTable, ignoreIfNoAction: false, arg: null);
+                }
+                catch (LineAcceptedException)
+                {
+                    Debug.Assert(_inputAccepted, "LineAcceptedException should only be thrown when input was accepted within an 'OnIdle' handler.");
+                }
+
                 if (_inputAccepted)
                 {
                     _acceptedCommandLine = _buffer.ToString();
