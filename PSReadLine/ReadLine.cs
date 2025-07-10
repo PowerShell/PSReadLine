@@ -294,9 +294,9 @@ namespace Microsoft.PowerShell
                             if (_singleton._inputAccepted && RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                             {
                                 // 'AcceptLine' was called by an 'OnIdle' handler.
-                                // In this case, we only want to break out of the loop and accept the current input on Windows,
-                                // because the 'read-key' thread will still be waiting on the 'ReadKey()' call, and that will cause
-                                // all subsequent terminal operations to be blocked on Linux and macOS until a key is pressed.
+                                // In this case, we only want to break out of the loop and accept the current input on Windows, because
+                                // accepting input without a keystroke would leave the 'readkey thread' blocked on the 'ReadKey()' call,
+                                // and that will make all subsequent writes to console blocked on Linux and macOS until a key is pressed.
                                 _singleton._lineAcceptedExceptionThrown = true;
                                 throw new LineAcceptedException();
                             }
