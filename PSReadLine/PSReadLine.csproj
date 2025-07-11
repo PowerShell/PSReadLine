@@ -13,6 +13,8 @@
     <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
     <LangVersion>9.0</LangVersion>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
   </PropertyGroup>
 
   <ItemGroup>
@@ -20,7 +22,9 @@
       <ExcludeAssets>contentFiles</ExcludeAssets>
       <PrivateAssets>All</PrivateAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="9.0.4" />
     <PackageReference Include="Microsoft.PowerShell.Pager" Version="1.0.0" />
+    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.1.11" />
   </ItemGroup>
 
   <ItemGroup>
@@ -29,5 +33,6 @@
     <None Include="PSReadLine.format.ps1xml" CopyToOutputDirectory="PreserveNewest" />
     <None Include="SamplePSReadLineProfile.ps1" />
     <None Include="Changes.txt" />
+    <None Update="runtimes/**" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>
