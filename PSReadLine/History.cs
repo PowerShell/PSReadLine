@@ -13,7 +13,9 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Management.Automation.Language;
+using System.Management.Automation.Runspaces;
 using Microsoft.PowerShell.PSReadLine;
+using Microsoft.Data.Sqlite;
 
 namespace Microsoft.PowerShell
 {
@@ -81,6 +83,11 @@ namespace Microsoft.PowerShell
             /// True if the command was read in from the history file at startup.
             /// </summary>
             public bool FromHistoryFile { get; internal set; }
+
+            /// <summary>
+            /// The location where the command was run, if available.
+            /// </summary>
+            public string Location { get; internal set; }
 
             internal bool _saved;
             internal bool _sensitive;
@@ -155,6 +162,12 @@ namespace Microsoft.PowerShell
                 return AddToHistoryOption.SkipAdding;
             }
 
+            if (Options.HistoryType is HistoryType.SQLite)
+            {
+                InitializeSQLiteDatabase();
+                return AddToHistoryOption.SQLite; 
+            }
+
             if (!fromHistoryFile && Options.AddToHistoryHandler != null)
             {
                 if (Options.AddToHistoryHandler == PSConsoleReadLineOptions.DefaultAddToHistoryHandler)
@@ -197,10 +210,69 @@ namespace Microsoft.PowerShell
             return AddToHistoryOption.MemoryAndFile;
         }
 
+        private void InitializeSQLiteDatabase()
+        {
+            // Path to the SQLite database file
+            string baseConnectionString = $"Data Source={_options.HistorySavePath}";
+            var connectionString = new SqliteConnectionStringBuilder(baseConnectionString)
+            {
+                Mode = SqliteOpenMode.ReadWriteCreate
+            }.ToString();
+
+            try
+            {
+                using var connection = new SqliteConnection(connectionString);
+                connection.Open();
+
+                // Check if the "History" table exists
+                using var command = connection.CreateCommand();
+                command.CommandText = @"
+                            SELECT name
+                            FROM sqlite_master
+                            WHERE type='table' AND name=@TableName";
+                command.Parameters.AddWithValue("@TableName", "History");
+
+                var result = command.ExecuteScalar();
+
+                // If the table doesn't exist, create it
+                if (result == null)
+                {
+                    using var createTableCommand = connection.CreateCommand();
+                    createTableCommand.CommandText = @"
+                                    CREATE TABLE IF NOT EXISTS History (
+                                        Id INTEGER PRIMARY KEY AUTOINCREMENT,
+                                        CommandLine TEXT NOT NULL,
+                                        StartTime DATETIME NOT NULL,
+                                        ElapsedTime INTEGER NOT NULL,
+                                        Location TEXT NOT NULL
+                                    )";
+                    createTableCommand.ExecuteNonQuery();
+                }
+            }
+            catch (SqliteException ex)
+            {
+                // Handle SQLite-specific exceptions
+                Console.WriteLine($"SQLite error initializing database: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error initializing SQLite database: {ex.Message}");
+
+                Console.WriteLine($"Stack Trace: {ex.StackTrace}");
+
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
+                    Console.WriteLine($"Inner Exception Stack Trace: {ex.InnerException.StackTrace}");
+                }
+            }
+        }
+
         private string MaybeAddToHistory(
             string result,
             List<EditItem> edits,
             int undoEditIndex,
+            string location = null,
             bool fromDifferentSession = false,
             bool fromInitialRead = false)
         {
@@ -216,6 +288,7 @@ namespace Microsoft.PowerShell
                     _undoEditIndex = undoEditIndex,
                     _editGroupStart = -1,
                     _saved = fromHistoryFile,
+                    Location = location ?? _engineIntrinsics?.SessionState?.Path?.CurrentLocation?.Path ?? "Unknown",
                     FromOtherSession = fromDifferentSession,
                     FromHistoryFile = fromInitialRead,
                 };
@@ -277,7 +350,69 @@ namespace Microsoft.PowerShell
                 i -= 1;
             }
 
-            WriteHistoryRange(i + 1, _history.Count - 1, overwritten: false);
+            if (_options.HistoryType == HistoryType.Text)
+            {
+                WriteHistoryRange(i + 1, _history.Count - 1, overwritten: false);
+            }
+
+            if (_options.HistoryType == HistoryType.SQLite)
+            {
+                WriteHistoryToSQLite(i + 1, _history.Count - 1);
+            }
+        }
+
+        private void WriteHistoryToSQLite(int start, int end)
+        {
+            if (_historyFileMutex == null)
+            {
+                _historyFileMutex = new Mutex(false, GetHistorySaveFileMutexName());
+            }
+
+            WithHistoryFileMutexDo(1000, () =>
+            {
+                try
+                {
+                    string baseConnectionString = $"Data Source={_options.HistorySavePath}";
+                    var connectionString = new SqliteConnectionStringBuilder(baseConnectionString)
+                    {
+                        Mode = SqliteOpenMode.ReadWrite
+                    }.ToString();
+
+                    using var connection = new SqliteConnection(connectionString);
+                    connection.Open();
+
+                    using var transaction = connection.BeginTransaction();
+                    using var command = connection.CreateCommand();
+                    command.CommandText = "INSERT INTO History (CommandLine, StartTime, ElapsedTime, Location) VALUES (@CommandLine, @StartTime, @ElapsedTime, @Location)";
+                    command.Parameters.Add(new SqliteParameter("@CommandLine", string.Empty));
+                    command.Parameters.Add(new SqliteParameter("@StartTime", string.Empty));
+                    command.Parameters.Add(new SqliteParameter("@ElapsedTime", 0L));
+                    command.Parameters.Add(new SqliteParameter("@Location", string.Empty));
+
+                    for (var i = start; i <= end; i++)
+                    {
+                        var item = _history[i];
+                        item._saved = true;
+
+                        if (item._sensitive)
+                        {
+                            continue;
+                        }
+
+                        command.Parameters["@CommandLine"].Value = item.CommandLine;
+                        command.Parameters["@StartTime"].Value = item.StartTime.ToString("o");
+                        command.Parameters["@ElapsedTime"].Value = item.ApproximateElapsedTime.Ticks;
+                        command.Parameters["@Location"].Value = _engineIntrinsics?.SessionState?.Path?.CurrentLocation?.Path ?? "Unknown";
+                        command.ExecuteNonQuery();
+                    }
+
+                    transaction.Commit();
+                }
+                catch (Exception e)
+                {
+                    ReportHistoryFileError(e);
+                }
+            });
         }
 
         private void SaveHistoryAtExit()
@@ -411,6 +546,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         private List<string> ReadHistoryFileIncrementally()
         {
+            // Read history from a text file
             var fileInfo = new FileInfo(Options.HistorySavePath);
             if (fileInfo.Exists && fileInfo.Length != _historyFileLastSavedSize)
             {
@@ -433,22 +569,173 @@ namespace Microsoft.PowerShell
             return null;
         }
 
+        private List<HistoryItem> ReadHistorySQLiteIncrementally()
+        {
+            var historyItems = new List<HistoryItem>();
+            try
+            {
+                string baseConnectionString = $"Data Source={_options.HistorySavePath}";
+                var connectionString = new SqliteConnectionStringBuilder(baseConnectionString)
+                {
+                    Mode = SqliteOpenMode.ReadOnly
+                }.ToString();
+
+                using var connection = new SqliteConnection(connectionString);
+                connection.Open();
+
+                using (var command = connection.CreateCommand())
+                {
+                    command.CommandText = @"
+                SELECT CommandLine, StartTime, ElapsedTime, Location
+                FROM History
+                WHERE Id > @LastId
+                ORDER BY Id ASC";
+                    command.Parameters.AddWithValue("@LastId", _historyFileLastSavedSize);
+
+                    using var reader = command.ExecuteReader();
+                    while (reader.Read())
+                    {
+                        var item = new HistoryItem
+                        {
+                            CommandLine = reader.GetString(0),
+                            StartTime = DateTime.Parse(reader.GetString(1)),
+                            ApproximateElapsedTime = TimeSpan.FromTicks(reader.GetInt64(2)),
+                            Location = reader.GetString(3),
+                            FromHistoryFile = true,
+                            FromOtherSession = true,
+                            _edits = new List<EditItem> { EditItemInsertString.Create(reader.GetString(0), 0) },
+                            _undoEditIndex = 1,
+                            _editGroupStart = -1
+                        };
+                        historyItems.Add(item);
+                    }
+                }
+
+                // Update the last saved size to the latest ID in the database
+                using (var command = connection.CreateCommand())
+                {
+                    command.CommandText = "SELECT MAX(Id) FROM History";
+                    var result = command.ExecuteScalar();
+                    if (result != DBNull.Value)
+                    {
+                        _historyFileLastSavedSize = Convert.ToInt64(result);
+                    }
+                }
+            }
+            catch (SqliteException ex)
+            {
+                Console.WriteLine($"SQLite error reading history: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error reading history from SQLite: {ex.Message}");
+            }
+
+            return historyItems.Count > 0 ? historyItems : null;
+        }
+
         private bool MaybeReadHistoryFile()
         {
             if (Options.HistorySaveStyle == HistorySaveStyle.SaveIncrementally)
             {
                 return WithHistoryFileMutexDo(1000, () =>
                 {
-                    List<string> historyLines = ReadHistoryFileIncrementally();
-                    if (historyLines != null)
+                    if (_options.HistoryType == HistoryType.SQLite)
                     {
-                        UpdateHistoryFromFile(historyLines, fromDifferentSession: true, fromInitialRead: false);
+                        List<HistoryItem> historyItems = ReadHistorySQLiteIncrementally();
+                        if (historyItems != null)
+                        {
+                            foreach (var item in historyItems)
+                            {
+                                // Use the full metadata from SQLite
+                                MaybeAddToHistory(
+                                    item.CommandLine,
+                                    item._edits ?? new List<EditItem> { EditItemInsertString.Create(item.CommandLine, 0) },
+                                    item._undoEditIndex,
+                                    item.Location,
+                                    fromDifferentSession: true,
+                                    fromInitialRead: false);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        List<string> historyLines = ReadHistoryFileIncrementally();
+                        if (historyLines != null)
+                        {
+                            UpdateHistoryFromFile(historyLines, fromDifferentSession: true, fromInitialRead: false);
+                        }
                     }
                 });
             }
 
             // true means no errors, not that we actually read the file
             return true;
+}
+
+        private void ReadSQLiteHistory(bool fromOtherSession)
+        {
+            _historyFileMutex ??= new Mutex(false, GetHistorySaveFileMutexName());
+
+            WithHistoryFileMutexDo(1000, () =>
+            {
+                try
+                {
+                    string baseConnectionString = $"Data Source={_options.HistorySavePath}";
+                    var connectionString = new SqliteConnectionStringBuilder(baseConnectionString)
+                    {
+                        Mode = SqliteOpenMode.ReadOnly
+                    }.ToString();
+
+                    using var connection = new SqliteConnection(connectionString);
+                    connection.Open();
+
+                    using var command = connection.CreateCommand();
+                    command.CommandText = @"
+                                SELECT CommandLine, StartTime, ElapsedTime, Location 
+                                FROM History 
+                                ORDER BY Id ASC";
+
+                    using var reader = command.ExecuteReader();
+                    while (reader.Read())
+                    {
+                        var item = new HistoryItem
+                        {
+                            CommandLine = reader.GetString(0),
+                            StartTime = DateTime.Parse(reader.GetString(1)),
+                            ApproximateElapsedTime = TimeSpan.FromTicks(reader.GetInt64(2)),
+                            Location = reader.GetString(3),
+                            FromHistoryFile = true,
+                            FromOtherSession = fromOtherSession,
+                            _edits = new List<EditItem> { EditItemInsertString.Create(reader.GetString(0), 0) },
+                            _undoEditIndex = 1,
+                            _editGroupStart = -1
+                        };
+
+                        // Add to the history queue.
+                        _history.Enqueue(item);
+                    }
+
+                    // Update the last saved size to the latest ID in the database
+                    using (var idCommand = connection.CreateCommand())
+                    {
+                        idCommand.CommandText = "SELECT MAX(Id) FROM History";
+                        var result = idCommand.ExecuteScalar();
+                        if (result != DBNull.Value)
+                        {
+                            _historyFileLastSavedSize = Convert.ToInt64(result);
+                        }
+                    }
+                }
+                catch (SqliteException ex)
+                {
+                    ReportHistoryFileError(ex);
+                }
+                catch (Exception ex)
+                {
+                    ReportHistoryFileError(ex);
+                }
+            });
         }
 
         private void ReadHistoryFile()
@@ -529,13 +816,13 @@ namespace Microsoft.PowerShell
                     sb.Append(line);
                     var l = sb.ToString();
                     var editItems = new List<EditItem> {EditItemInsertString.Create(l, 0)};
-                    MaybeAddToHistory(l, editItems, 1, fromDifferentSession, fromInitialRead);
+                    MaybeAddToHistory(l, editItems, 1, null, fromDifferentSession, fromInitialRead);
                     sb.Clear();
                 }
                 else
                 {
                     var editItems = new List<EditItem> {EditItemInsertString.Create(line, 0)};
-                    MaybeAddToHistory(line, editItems, 1, fromDifferentSession, fromInitialRead);
+                    MaybeAddToHistory(line, editItems, 1, null, fromDifferentSession, fromInitialRead);
                 }
             }
         }
@@ -883,6 +1170,21 @@ namespace Microsoft.PowerShell
             }
         }
 
+        private int FindHistoryIndexByLocation(int startIndex, int direction)
+        {
+            int index = startIndex;
+            while (index >= 0 && index < _history.Count)
+            {
+                var currentLocation = _engineIntrinsics?.SessionState.Path.CurrentLocation.Path;
+                if (string.Equals(_history[index].Location, currentLocation, StringComparison.OrdinalIgnoreCase))
+                {
+                    return index;
+                }
+                index += direction;
+            }
+            return -1; // Not found
+        }
+
         private void HistoryRecall(int direction)
         {
             if (_recallHistoryCommandCount == 0 && LineIsMultiLine())
@@ -901,7 +1203,14 @@ namespace Microsoft.PowerShell
             int newHistoryIndex = _currentHistoryIndex;
             while (count > 0)
             {
-                newHistoryIndex += direction;
+                if (_options.HistoryType == HistoryType.SQLite)
+                {
+                    newHistoryIndex = FindHistoryIndexByLocation(newHistoryIndex + direction, direction);
+                }
+                else
+                {
+                    newHistoryIndex += direction;
+                }
                 if (newHistoryIndex < 0 || newHistoryIndex >= _history.Count)
                 {
                     break;
@@ -931,7 +1240,18 @@ namespace Microsoft.PowerShell
                 }
             }
             _recallHistoryCommandCount += 1;
-            if (newHistoryIndex >= 0 && newHistoryIndex <= _history.Count)
+
+            // For SQLite/location-filtered history, allow returning to the current line
+            if (_options.HistoryType == HistoryType.SQLite &&
+                (newHistoryIndex < 0 || newHistoryIndex >= _history.Count))
+            {
+                _currentHistoryIndex = _history.Count;
+                var moveCursor = InViCommandMode() && !_options.HistorySearchCursorMovesToEnd
+                    ? HistoryMoveCursor.ToBeginning
+                    : HistoryMoveCursor.ToEnd;
+                UpdateFromHistory(moveCursor);
+            }
+            else if (newHistoryIndex >= 0 && newHistoryIndex <= _history.Count)
             {
                 _currentHistoryIndex = newHistoryIndex;
                 var moveCursor = InViCommandMode() && !_options.HistorySearchCursorMovesToEnd
