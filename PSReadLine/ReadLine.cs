@@ -896,10 +896,6 @@ namespace Microsoft.PowerShell
             {
                 ReadHistoryFile();
             }
-            else if (readHistoryFile && _options.HistoryType == HistoryType.SQLite)
-            {
-                ReadSQLiteHistory(fromOtherSession: false);
-            }
 
             _killIndex = -1; // So first add indexes 0.
             _killRing = new List<string>(Options.MaximumKillRingCount);

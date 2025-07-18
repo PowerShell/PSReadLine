@@ -43,6 +43,7 @@ namespace Microsoft.PowerShell
                     // For now remove all text history
                     _singleton._history?.Clear();
                     _singleton._currentHistoryIndex = 0;
+
                     ReadSQLiteHistory(fromOtherSession: false);
                 }
             }

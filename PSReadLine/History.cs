@@ -164,7 +164,6 @@ namespace Microsoft.PowerShell
 
             if (Options.HistoryType is HistoryType.SQLite)
             {
-                InitializeSQLiteDatabase();
                 return AddToHistoryOption.SQLite; 
             }
 
@@ -212,7 +211,6 @@ namespace Microsoft.PowerShell
 
         private void InitializeSQLiteDatabase()
         {
-            // Path to the SQLite database file
             string baseConnectionString = $"Data Source={_options.HistorySavePath}";
             var connectionString = new SqliteConnectionStringBuilder(baseConnectionString)
             {
@@ -224,47 +222,188 @@ namespace Microsoft.PowerShell
                 using var connection = new SqliteConnection(connectionString);
                 connection.Open();
 
-                // Check if the "History" table exists
+                // Check if the "Commands" table exists (our primary table for new schema)
                 using var command = connection.CreateCommand();
                 command.CommandText = @"
-                            SELECT name
-                            FROM sqlite_master
-                            WHERE type='table' AND name=@TableName";
-                command.Parameters.AddWithValue("@TableName", "History");
+SELECT name
+FROM sqlite_master
+WHERE type='table' AND name=@TableName";
+                command.Parameters.AddWithValue("@TableName", "Commands");
 
                 var result = command.ExecuteScalar();
+                bool isNewDatabase = result == null;
 
-                // If the table doesn't exist, create it
-                if (result == null)
+                // If the table doesn't exist, create the normalized schema
+                if (isNewDatabase)
                 {
-                    using var createTableCommand = connection.CreateCommand();
-                    createTableCommand.CommandText = @"
-                                    CREATE TABLE IF NOT EXISTS History (
-                                        Id INTEGER PRIMARY KEY AUTOINCREMENT,
-                                        CommandLine TEXT NOT NULL,
-                                        StartTime DATETIME NOT NULL,
-                                        ElapsedTime INTEGER NOT NULL,
-                                        Location TEXT NOT NULL
-                                    )";
-                    createTableCommand.ExecuteNonQuery();
+                    using var createTablesCommand = connection.CreateCommand();
+                    createTablesCommand.CommandText = @"
+-- Table for storing unique command lines
+CREATE TABLE Commands (
+    Id INTEGER PRIMARY KEY AUTOINCREMENT,
+    CommandLine TEXT NOT NULL UNIQUE,
+    CommandHash TEXT NOT NULL UNIQUE
+);
+
+-- Table for storing unique locations
+CREATE TABLE Locations (
+    Id INTEGER PRIMARY KEY AUTOINCREMENT,
+    Path TEXT NOT NULL UNIQUE
+);
+
+-- Table for storing execution history with foreign keys
+CREATE TABLE ExecutionHistory (
+    Id INTEGER PRIMARY KEY AUTOINCREMENT,
+    CommandId INTEGER NOT NULL,
+    LocationId INTEGER NOT NULL,
+    StartTime INTEGER NOT NULL,
+    ElapsedTime INTEGER NOT NULL,
+    ExecutionCount INTEGER DEFAULT 1,
+    LastExecuted INTEGER NOT NULL,
+    FOREIGN KEY (CommandId) REFERENCES Commands(Id),
+    FOREIGN KEY (LocationId) REFERENCES Locations(Id),
+    UNIQUE(CommandId, LocationId)
+);
+
+-- Create indexes for optimal performance
+CREATE INDEX idx_commands_hash ON Commands(CommandHash);
+CREATE INDEX idx_locations_path ON Locations(Path);
+CREATE INDEX idx_execution_last_executed ON ExecutionHistory(LastExecuted DESC);
+CREATE INDEX idx_execution_count ON ExecutionHistory(ExecutionCount DESC);
+CREATE INDEX idx_execution_location_time ON ExecutionHistory(LocationId, LastExecuted DESC);
+
+-- Create a view for easy querying (mimics the old single-table structure)
+CREATE VIEW HistoryView AS
+SELECT 
+    eh.Id,
+    c.CommandLine,
+    c.CommandHash,
+    l.Path as Location,
+    eh.StartTime,
+    eh.ElapsedTime,
+    eh.ExecutionCount,
+    eh.LastExecuted
+FROM ExecutionHistory eh
+JOIN Commands c ON eh.CommandId = c.Id
+JOIN Locations l ON eh.LocationId = l.Id;";
+                    createTablesCommand.ExecuteNonQuery();
+
+                    // Migrate existing text file history if it exists
+                    // MigrateTextHistoryToSQLite(connection);
                 }
             }
             catch (SqliteException ex)
             {
-                // Handle SQLite-specific exceptions
                 Console.WriteLine($"SQLite error initializing database: {ex.Message}");
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error initializing SQLite database: {ex.Message}");
+            }
+        }
 
-                Console.WriteLine($"Stack Trace: {ex.StackTrace}");
-
-                if (ex.InnerException != null)
+        private void MigrateTextHistoryToSQLite(SqliteConnection connection)
+        {
+            // Check if text history file exists
+            string textHistoryPath = _options.HistorySavePath.Replace(".sqlite", ".txt");
+            if (!File.Exists(textHistoryPath))
+            {
+                // Try default history path pattern
+                textHistoryPath = Path.ChangeExtension(_options.HistorySavePath, ".txt");
+                if (!File.Exists(textHistoryPath))
                 {
-                    Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
-                    Console.WriteLine($"Inner Exception Stack Trace: {ex.InnerException.StackTrace}");
+                    return; // No text history to migrate
                 }
+            }
+
+            try
+            {
+                // Read existing text history using the existing connection (don't open a new one)
+                var historyLines = ReadHistoryLinesImpl(textHistoryPath, int.MaxValue);
+                var historyItems = new List<HistoryItem>();
+
+                // Convert text lines to HistoryItems
+                var sb = new StringBuilder();
+                foreach (var line in historyLines)
+                {
+                    if (line.EndsWith("`", StringComparison.Ordinal))
+                    {
+                        sb.Append(line, 0, line.Length - 1);
+                        sb.Append('\n');
+                    }
+                    else if (sb.Length > 0)
+                    {
+                        sb.Append(line);
+                        historyItems.Add(new HistoryItem
+                        {
+                            CommandLine = sb.ToString(),
+                            StartTime = DateTime.UtcNow.AddMinutes(-historyItems.Count), // Approximate timestamps
+                            ApproximateElapsedTime = TimeSpan.Zero,
+                            Location = "Unknown"
+                        });
+                        sb.Clear();
+                    }
+                    else
+                    {
+                        historyItems.Add(new HistoryItem
+                        {
+                            CommandLine = line,
+                            StartTime = DateTime.UtcNow.AddMinutes(-historyItems.Count), // Approximate timestamps
+                            ApproximateElapsedTime = TimeSpan.Zero,
+                            Location = "Unknown"
+                        });
+                    }
+                }
+
+                // Insert into SQLite database using the new normalized schema
+                using var transaction = connection.BeginTransaction();
+
+                foreach (var item in historyItems)
+                {
+                    try
+                    {
+                        // Generate command hash using SHA256
+                        string commandHash = ComputeCommandHash(item.CommandLine);
+                        string location = item.Location ?? "Unknown";
+
+                        // Get or create command and location IDs
+                        long commandId = GetOrCreateCommandId(connection, item.CommandLine, commandHash);
+                        long locationId = GetOrCreateLocationId(connection, location);
+
+                        // Convert DateTime to Unix timestamp (INTEGER)
+                        long startTimeUnix = ((DateTimeOffset)item.StartTime).ToUnixTimeSeconds();
+                        long lastExecutedUnix = startTimeUnix;
+
+                        // Insert or update execution history using the new schema
+                        using var command = connection.CreateCommand();
+                        command.Transaction = transaction;
+                        command.CommandText = @"
+INSERT INTO ExecutionHistory (CommandId, LocationId, StartTime, ElapsedTime, ExecutionCount, LastExecuted)
+VALUES (@CommandId, @LocationId, @StartTime, @ElapsedTime, 1, @LastExecuted)
+ON CONFLICT(CommandId, LocationId) DO UPDATE SET
+    ExecutionCount = ExecutionCount + 1,
+    LastExecuted = excluded.LastExecuted";
+
+                        command.Parameters.AddWithValue("@CommandId", commandId);
+                        command.Parameters.AddWithValue("@LocationId", locationId);
+                        command.Parameters.AddWithValue("@StartTime", startTimeUnix);
+                        command.Parameters.AddWithValue("@ElapsedTime", item.ApproximateElapsedTime.Ticks);
+                        command.Parameters.AddWithValue("@LastExecuted", lastExecutedUnix);
+                        command.ExecuteNonQuery();
+                    }
+                    catch (Exception itemEx)
+                    {
+                        Console.WriteLine($"Error migrating history item: {itemEx.Message}");
+                        // Continue with next item
+                    }
+                }
+
+                transaction.Commit();
+                Console.WriteLine($"Migrated {historyItems.Count} history items from text file to SQLite");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error migrating text history: {ex.Message}");
             }
         }
 
@@ -361,12 +500,60 @@ namespace Microsoft.PowerShell
             }
         }
 
+        // Helper method to get or create a command ID
+        private long GetOrCreateCommandId(SqliteConnection connection, string commandLine, string commandHash)
+        {
+            // First try to get existing command
+            using var selectCommand = connection.CreateCommand();
+            selectCommand.CommandText = "SELECT Id FROM Commands WHERE CommandHash = @CommandHash";
+            selectCommand.Parameters.AddWithValue("@CommandHash", commandHash);
+
+            var existingId = selectCommand.ExecuteScalar();
+            if (existingId != null)
+            {
+                return Convert.ToInt64(existingId);
+            }
+
+            // Insert new command
+            using var insertCommand = connection.CreateCommand();
+            insertCommand.CommandText = @"
+INSERT INTO Commands (CommandLine, CommandHash) 
+VALUES (@CommandLine, @CommandHash)
+RETURNING Id";
+            insertCommand.Parameters.AddWithValue("@CommandLine", commandLine);
+            insertCommand.Parameters.AddWithValue("@CommandHash", commandHash);
+
+            return Convert.ToInt64(insertCommand.ExecuteScalar());
+        }
+
+        // Helper method to get or create a location ID
+        private long GetOrCreateLocationId(SqliteConnection connection, string location)
+        {
+            // First try to get existing location
+            using var selectCommand = connection.CreateCommand();
+            selectCommand.CommandText = "SELECT Id FROM Locations WHERE Path = @Path";
+            selectCommand.Parameters.AddWithValue("@Path", location);
+
+            var existingId = selectCommand.ExecuteScalar();
+            if (existingId != null)
+            {
+                return Convert.ToInt64(existingId);
+            }
+
+            // Insert new location
+            using var insertCommand = connection.CreateCommand();
+            insertCommand.CommandText = @"
+INSERT INTO Locations (Path) 
+VALUES (@Path)
+RETURNING Id";
+            insertCommand.Parameters.AddWithValue("@Path", location);
+
+            return Convert.ToInt64(insertCommand.ExecuteScalar());
+        }
+
         private void WriteHistoryToSQLite(int start, int end)
         {
-            if (_historyFileMutex == null)
-            {
-                _historyFileMutex = new Mutex(false, GetHistorySaveFileMutexName());
-            }
+            _historyFileMutex ??= new Mutex(false, GetHistorySaveFileMutexName());
 
             WithHistoryFileMutexDo(1000, () =>
             {
@@ -382,12 +569,6 @@ namespace Microsoft.PowerShell
                     connection.Open();
 
                     using var transaction = connection.BeginTransaction();
-                    using var command = connection.CreateCommand();
-                    command.CommandText = "INSERT INTO History (CommandLine, StartTime, ElapsedTime, Location) VALUES (@CommandLine, @StartTime, @ElapsedTime, @Location)";
-                    command.Parameters.Add(new SqliteParameter("@CommandLine", string.Empty));
-                    command.Parameters.Add(new SqliteParameter("@StartTime", string.Empty));
-                    command.Parameters.Add(new SqliteParameter("@ElapsedTime", 0L));
-                    command.Parameters.Add(new SqliteParameter("@Location", string.Empty));
 
                     for (var i = start; i <= end; i++)
                     {
@@ -399,10 +580,33 @@ namespace Microsoft.PowerShell
                             continue;
                         }
 
-                        command.Parameters["@CommandLine"].Value = item.CommandLine;
-                        command.Parameters["@StartTime"].Value = item.StartTime.ToString("o");
-                        command.Parameters["@ElapsedTime"].Value = item.ApproximateElapsedTime.Ticks;
-                        command.Parameters["@Location"].Value = _engineIntrinsics?.SessionState?.Path?.CurrentLocation?.Path ?? "Unknown";
+                        // Generate command hash using SHA256
+                        string commandHash = ComputeCommandHash(item.CommandLine);
+                        string location = item.Location ?? _engineIntrinsics?.SessionState?.Path?.CurrentLocation?.Path ?? "Unknown";
+
+                        // Get or create command and location IDs
+                        long commandId = GetOrCreateCommandId(connection, item.CommandLine, commandHash);
+                        long locationId = GetOrCreateLocationId(connection, location);
+
+                        // Convert DateTime to Unix timestamp (INTEGER)
+                        long startTimeUnix = ((DateTimeOffset)item.StartTime).ToUnixTimeSeconds();
+                        long lastExecutedUnix = ((DateTimeOffset)DateTime.UtcNow).ToUnixTimeSeconds();
+
+                        // Insert or update execution history
+                        using var command = connection.CreateCommand();
+                        command.CommandText = @"
+INSERT INTO ExecutionHistory (CommandId, LocationId, StartTime, ElapsedTime, ExecutionCount, LastExecuted)
+VALUES (@CommandId, @LocationId, @StartTime, @ElapsedTime, 1, @LastExecuted)
+ON CONFLICT(CommandId, LocationId) DO UPDATE SET
+    ExecutionCount = ExecutionCount + 1,
+    LastExecuted = excluded.LastExecuted,
+    ElapsedTime = excluded.ElapsedTime";
+
+                        command.Parameters.AddWithValue("@CommandId", commandId);
+                        command.Parameters.AddWithValue("@LocationId", locationId);
+                        command.Parameters.AddWithValue("@StartTime", startTimeUnix);
+                        command.Parameters.AddWithValue("@ElapsedTime", item.ApproximateElapsedTime.Ticks);
+                        command.Parameters.AddWithValue("@LastExecuted", lastExecutedUnix);
                         command.ExecuteNonQuery();
                     }
 
@@ -413,6 +617,13 @@ namespace Microsoft.PowerShell
                     ReportHistoryFileError(e);
                 }
             });
+        }
+
+        private static string ComputeCommandHash(string command)
+        {
+            using var sha256 = System.Security.Cryptography.SHA256.Create();
+            byte[] hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(command));
+            return BitConverter.ToString(hashBytes).Replace("-", "");
         }
 
         private void SaveHistoryAtExit()
@@ -585,11 +796,12 @@ namespace Microsoft.PowerShell
 
                 using (var command = connection.CreateCommand())
                 {
+                    // Use the HistoryView to get all the joined data, filtering by ExecutionHistory.Id
                     command.CommandText = @"
-                SELECT CommandLine, StartTime, ElapsedTime, Location
-                FROM History
-                WHERE Id > @LastId
-                ORDER BY Id ASC";
+SELECT CommandLine, StartTime, ElapsedTime, Location
+FROM HistoryView
+WHERE Id > @LastId
+ORDER BY Id ASC";
                     command.Parameters.AddWithValue("@LastId", _historyFileLastSavedSize);
 
                     using var reader = command.ExecuteReader();
@@ -598,7 +810,7 @@ namespace Microsoft.PowerShell
                         var item = new HistoryItem
                         {
                             CommandLine = reader.GetString(0),
-                            StartTime = DateTime.Parse(reader.GetString(1)),
+                            StartTime = DateTimeOffset.FromUnixTimeSeconds(reader.GetInt64(1)).DateTime,
                             ApproximateElapsedTime = TimeSpan.FromTicks(reader.GetInt64(2)),
                             Location = reader.GetString(3),
                             FromHistoryFile = true,
@@ -611,10 +823,10 @@ namespace Microsoft.PowerShell
                     }
                 }
 
-                // Update the last saved size to the latest ID in the database
+                // Update the last saved size to the latest ID in the ExecutionHistory table
                 using (var command = connection.CreateCommand())
                 {
-                    command.CommandText = "SELECT MAX(Id) FROM History";
+                    command.CommandText = "SELECT MAX(Id) FROM ExecutionHistory";
                     var result = command.ExecuteScalar();
                     if (result != DBNull.Value)
                     {
@@ -647,14 +859,8 @@ namespace Microsoft.PowerShell
                         {
                             foreach (var item in historyItems)
                             {
-                                // Use the full metadata from SQLite
-                                MaybeAddToHistory(
-                                    item.CommandLine,
-                                    item._edits ?? new List<EditItem> { EditItemInsertString.Create(item.CommandLine, 0) },
-                                    item._undoEditIndex,
-                                    item.Location,
-                                    fromDifferentSession: true,
-                                    fromInitialRead: false);
+                                _history.Enqueue(item);
+                                _currentHistoryIndex = _history.Count;
                             }
                         }
                     }
@@ -691,18 +897,30 @@ namespace Microsoft.PowerShell
                     connection.Open();
 
                     using var command = connection.CreateCommand();
-                    command.CommandText = @"
-                                SELECT CommandLine, StartTime, ElapsedTime, Location 
-                                FROM History 
-                                ORDER BY Id ASC";
 
+                    int limit = Options.MaximumHistoryCount switch
+                    {
+                        <= 10000 => 10000,   // Similar to 0.5MB text optimization
+                        <= 20000 => 20000,   // Similar to 1MB text optimization  
+                        _ => Options.MaximumHistoryCount
+                    };
+
+                    // Use the view for easy querying
+                    command.CommandText = @"
+SELECT CommandLine, StartTime, ElapsedTime, Location 
+FROM HistoryView 
+ORDER BY LastExecuted DESC
+LIMIT @Limit";
+                    command.Parameters.AddWithValue("@Limit", limit);
+
+                    var historyItems = new List<HistoryItem>();
                     using var reader = command.ExecuteReader();
                     while (reader.Read())
                     {
                         var item = new HistoryItem
                         {
                             CommandLine = reader.GetString(0),
-                            StartTime = DateTime.Parse(reader.GetString(1)),
+                            StartTime = DateTimeOffset.FromUnixTimeSeconds(reader.GetInt64(1)).DateTime,
                             ApproximateElapsedTime = TimeSpan.FromTicks(reader.GetInt64(2)),
                             Location = reader.GetString(3),
                             FromHistoryFile = true,
@@ -712,19 +930,23 @@ namespace Microsoft.PowerShell
                             _editGroupStart = -1
                         };
 
-                        // Add to the history queue.
+                        historyItems.Add(item);
+                    }
+
+                    historyItems.Reverse();
+
+                    foreach (var item in historyItems)
+                    {
                         _history.Enqueue(item);
                     }
 
                     // Update the last saved size to the latest ID in the database
-                    using (var idCommand = connection.CreateCommand())
+                    using var idCommand = connection.CreateCommand();
+                    idCommand.CommandText = "SELECT MAX(Id) FROM ExecutionHistory";
+                    var result = idCommand.ExecuteScalar();
+                    if (result != DBNull.Value)
                     {
-                        idCommand.CommandText = "SELECT MAX(Id) FROM History";
-                        var result = idCommand.ExecuteScalar();
-                        if (result != DBNull.Value)
-                        {
-                            _historyFileLastSavedSize = Convert.ToInt64(result);
-                        }
+                        _historyFileLastSavedSize = Convert.ToInt64(result);
                     }
                 }
                 catch (SqliteException ex)
@@ -750,54 +972,54 @@ namespace Microsoft.PowerShell
                     _historyFileLastSavedSize = fileInfo.Length;
                 });
             }
+        }
 
-            static IEnumerable<string> ReadHistoryLinesImpl(string path, int historyCount)
+        private IEnumerable<string> ReadHistoryLinesImpl(string path, int historyCount)
+        {
+            const long offset_1mb = 1048576;
+            const long offset_05mb = 524288;
+
+            // 1mb content contains more than 34,000 history lines for a typical usage, which should be
+            // more than enough to cover 20,000 history records (a history record could be a multi-line
+            // command). Similarly, 0.5mb content should be enough to cover 10,000 history records.
+            // We optimize the file reading when the history count falls in those ranges. If the history
+            // count is even larger, which should be very rare, we just read all lines.
+            long offset = historyCount switch
             {
-                const long offset_1mb = 1048576;
-                const long offset_05mb = 524288;
+                <= 10000 => offset_05mb,
+                <= 20000 => offset_1mb,
+                _ => 0,
+            };
 
-                // 1mb content contains more than 34,000 history lines for a typical usage, which should be
-                // more than enough to cover 20,000 history records (a history record could be a multi-line
-                // command). Similarly, 0.5mb content should be enough to cover 10,000 history records.
-                // We optimize the file reading when the history count falls in those ranges. If the history
-                // count is even larger, which should be very rare, we just read all lines.
-                long offset = historyCount switch
+            using var fs = new FileStream(path, FileMode.Open);
+            using var sr = new StreamReader(fs);
+
+            if (offset > 0 && fs.Length > offset)
+            {
+                // When the file size is larger than the offset, we only read that amount of content from the end.
+                fs.Seek(-offset, SeekOrigin.End);
+
+                // After seeking, the current position may point at the middle of a history record, or even at a
+                // byte within a UTF-8 character (history file is saved with UTF-8 encoding). So, let's ignore the
+                // first line read from that position.
+                sr.ReadLine();
+
+                string line;
+                while ((line = sr.ReadLine()) is not null)
                 {
-                    <= 10000 => offset_05mb,
-                    <= 20000 => offset_1mb,
-                    _ => 0,
-                };
-
-                using var fs = new FileStream(path, FileMode.Open);
-                using var sr = new StreamReader(fs);
-
-                if (offset > 0 && fs.Length > offset)
-                {
-                    // When the file size is larger than the offset, we only read that amount of content from the end.
-                    fs.Seek(-offset, SeekOrigin.End);
-
-                    // After seeking, the current position may point at the middle of a history record, or even at a
-                    // byte within a UTF-8 character (history file is saved with UTF-8 encoding). So, let's ignore the
-                    // first line read from that position.
-                    sr.ReadLine();
-
-                    string line;
-                    while ((line = sr.ReadLine()) is not null)
+                    if (!line.EndsWith("`", StringComparison.Ordinal))
                     {
-                        if (!line.EndsWith("`", StringComparison.Ordinal))
-                        {
-                            // A complete history record is guaranteed to start from the next line.
-                            break;
-                        }
+                        // A complete history record is guaranteed to start from the next line.
+                        break;
                     }
                 }
+            }
 
-                // Read lines in the streaming way, so it won't consume to much memory even if we have to
-                // read all lines from a large history file.
-                while (!sr.EndOfStream)
-                {
-                    yield return sr.ReadLine();
-                }
+            // Read lines in the streaming way, so it won't consume to much memory even if we have to
+            // read all lines from a large history file.
+            while (!sr.EndOfStream)
+            {
+                yield return sr.ReadLine();
             }
         }
 
@@ -1170,21 +1392,6 @@ namespace Microsoft.PowerShell
             }
         }
 
-        private int FindHistoryIndexByLocation(int startIndex, int direction)
-        {
-            int index = startIndex;
-            while (index >= 0 && index < _history.Count)
-            {
-                var currentLocation = _engineIntrinsics?.SessionState.Path.CurrentLocation.Path;
-                if (string.Equals(_history[index].Location, currentLocation, StringComparison.OrdinalIgnoreCase))
-                {
-                    return index;
-                }
-                index += direction;
-            }
-            return -1; // Not found
-        }
-
         private void HistoryRecall(int direction)
         {
             if (_recallHistoryCommandCount == 0 && LineIsMultiLine())
@@ -1203,14 +1410,8 @@ namespace Microsoft.PowerShell
             int newHistoryIndex = _currentHistoryIndex;
             while (count > 0)
             {
-                if (_options.HistoryType == HistoryType.SQLite)
-                {
-                    newHistoryIndex = FindHistoryIndexByLocation(newHistoryIndex + direction, direction);
-                }
-                else
-                {
-                    newHistoryIndex += direction;
-                }
+                newHistoryIndex += direction;
+
                 if (newHistoryIndex < 0 || newHistoryIndex >= _history.Count)
                 {
                     break;
