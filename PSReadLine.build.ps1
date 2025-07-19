@@ -125,7 +125,7 @@ task LayoutModule BuildPolyfiller, BuildMainModule, {
     Copy-Item "Polyfill/bin/$Configuration/netstandard2.0/Microsoft.PowerShell.PSReadLine.Polyfiller.dll" "$targetDir/netstd" -Force
     Copy-Item "Polyfill/bin/$Configuration/net6.0/Microsoft.PowerShell.PSReadLine.Polyfiller.dll" "$targetDir/net6plus" -Force
 
-    $binPath = "PSReadLine/bin/$Configuration/netstandard2.0/win-x64/publish"
+    $binPath = "PSReadLine/bin/$Configuration/netstandard2.0/publish"
     Copy-Item $binPath/Microsoft.PowerShell.PSReadLine.dll $targetDir
     Copy-Item $binPath/Microsoft.PowerShell.Pager.dll $targetDir
 
