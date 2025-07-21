@@ -1,6 +1,6 @@
 {
-	"version": "2.0.0",
-	"tasks": [
+    "version": "2.0.0",
+    "tasks": [
         {
             "label": "Bootstrap",
             "type": "shell",
@@ -17,9 +17,7 @@
             "type": "shell",
             "command": "pwsh",
             "args": [
-                "./build.ps1",
-                "-Configuration",
-                "${input:configuration}"
+                "./build.ps1"
             ],
             "group": {
                 "kind": "build",
@@ -37,8 +35,6 @@
             "args": [
                 "./build.ps1",
                 "-Test",
-                "-Configuration",
-                "${input:configuration}",
                 "-Framework",
                 "${input:framework}"
             ],
@@ -51,7 +47,7 @@
                 "panel": "dedicated",
                 "clear": true
             },
-            "detail": "Run unit tests with selected configuration and framework"
+            "detail": "Run unit tests with selected framework"
         },
         {
             "label": "Clean",
@@ -66,16 +62,6 @@
         }
     ],
     "inputs": [
-        {
-            "id": "configuration",
-            "description": "Build Configuration",
-            "type": "pickString",
-            "options": [
-                "Debug",
-                "Release"
-            ],
-            "default": "Debug"
-        },
         {
             "id": "framework",
             "description": "Target Framework",
