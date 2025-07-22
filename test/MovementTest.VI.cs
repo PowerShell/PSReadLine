@@ -1,4 +1,5 @@
-﻿using Xunit;
+﻿using System.Collections.Generic;
+using Xunit;
 
 namespace Test
 {
@@ -370,7 +371,7 @@ namespace Test
             TestSetup(KeyMode.Vi);
 
             TestMustDing("", Keys(
-                _.Escape, "W" 
+                _.Escape, "W"
             ));
         }
 
@@ -452,6 +453,53 @@ namespace Test
                     CheckThat(() => AssertCursorLeftIs(4)),
                     "ddi"
                     ));
+            }
+
+            // tests when cursor not on any paren
+            foreach (var (opening, closing) in new[] { ('(', ')'), ('{', '}'), ('[', ']') })
+            {
+                // closing paren with backward match
+                string input1 = $"0{opening}2{opening}4foo{closing}";
+                Test(input1, Keys(
+                    input1,
+                    CheckThat(() => AssertCursorLeftIs(9)),
+                    _.Escape, CheckThat(() => AssertCursorLeftIs(8)),
+                    "0ff", CheckThat(() => AssertCursorLeftIs(5)),
+                    _.Percent, CheckThat(() => AssertCursorLeftIs(3)),
+                    _.Percent, CheckThat(() => AssertCursorLeftIs(8))
+                ));
+
+                // closing paren without backward match
+                string input2 = $"0]2)4foo{closing}";
+                Test(input2, Keys(
+                    input2,
+                    CheckThat(() => AssertCursorLeftIs(9)),
+                    _.Escape, CheckThat(() => AssertCursorLeftIs(8)),
+                    "0ff", CheckThat(() => AssertCursorLeftIs(5)),
+                    _.Percent, CheckThat(() => AssertCursorLeftIs(5)), // stay still
+                    _.Percent, CheckThat(() => AssertCursorLeftIs(5))
+                ));
+
+                // opening paren with forward match
+                string input3 = $"0{opening}2foo6{closing}";
+                Test(input3, Keys(
+                    input3,
+                    CheckThat(() => AssertCursorLeftIs(8)),
+                    _.Escape, CheckThat(() => AssertCursorLeftIs(7)),
+                    "0ff", CheckThat(() => AssertCursorLeftIs(3)),
+                    _.Percent, CheckThat(() => AssertCursorLeftIs(1)),
+                    _.Percent, CheckThat(() => AssertCursorLeftIs(7))
+                ));
+                // opening paren without forward match
+                string input4 = $"0)2]4foo{opening}(";
+                Test(input4, Keys(
+                    input4,
+                    CheckThat(() => AssertCursorLeftIs(10)),
+                    _.Escape, CheckThat(() => AssertCursorLeftIs(9)),
+                    "0ff", CheckThat(() => AssertCursorLeftIs(5)),
+                    _.Percent, CheckThat(() => AssertCursorLeftIs(5)), // stay still
+                    _.Percent, CheckThat(() => AssertCursorLeftIs(5))
+                ));
             }
 
             // <%> with empty text buffer should work fine.
