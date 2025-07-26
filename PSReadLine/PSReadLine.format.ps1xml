@@ -90,6 +90,9 @@ $d = [Microsoft.PowerShell.KeyHandler]::GetGroupingDescription($_.Group)
               <ListItem>
                 <PropertyName>EditMode</PropertyName>
               </ListItem>
+			  <ListItem>
+				<PropertyName>HistoryType</PropertyName>
+			  </ListItem>
               <ListItem>
                 <PropertyName>AddToHistoryHandler</PropertyName>
               </ListItem>
