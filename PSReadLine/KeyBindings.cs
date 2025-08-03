@@ -3,7 +3,9 @@ Copyright (c) Microsoft Corporation.  All rights reserved.
 --********************************************************************/
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
 using System.Management.Automation;
@@ -34,6 +36,8 @@ namespace Microsoft.PowerShell
         Selection,
         /// <summary>Search functions</summary>
         Search,
+        /// <summary>Text objects functions</summary>
+        TextObjects,
         /// <summary>User defined functions</summary>
         Custom
     }
@@ -99,6 +103,8 @@ namespace Microsoft.PowerShell
                 return PSReadLineResources.SelectionGrouping;
             case KeyHandlerGroup.Search:
                 return PSReadLineResources.SearchGrouping;
+            case KeyHandlerGroup.TextObjects:
+                return PSReadLineResources.TextObjectsGrouping;
             case KeyHandlerGroup.Custom:
                 return PSReadLineResources.CustomGrouping;
             default: return "";
@@ -152,8 +158,150 @@ namespace Microsoft.PowerShell
             };
         }
 
-        private Dictionary<PSKeyInfo, KeyHandler> _dispatchTable;
-        private Dictionary<PSKeyInfo, Dictionary<PSKeyInfo, KeyHandler>> _chordDispatchTable;
+        static ChordDispatchTable MakeChordDispatchTable(IEnumerable<KeyValuePair<PSKeyInfo, KeyHandlerOrChordDispatchTable>> chordDispatchTable)
+            => new(chordDispatchTable);
+        static ChordDispatchTable MakeViChordDispatchTable(IEnumerable<KeyValuePair<PSKeyInfo, KeyHandlerOrChordDispatchTable>> chordDispatchTable)
+            => new ViChordDispatchTable(chordDispatchTable);
+
+        private ChordDispatchTable _dispatchTable;
+
+        private class ChordDispatchTable : IDictionary<PSKeyInfo, KeyHandlerOrChordDispatchTable>
+        {
+            private readonly IDictionary<PSKeyInfo, KeyHandlerOrChordDispatchTable> _dispatchTable;
+            private readonly bool _viMode;
+
+            public ChordDispatchTable(IEnumerable<KeyValuePair<PSKeyInfo, KeyHandlerOrChordDispatchTable>> dispatchTable)
+                : this(dispatchTable, false)
+            { }
+
+            protected ChordDispatchTable(IEnumerable<KeyValuePair<PSKeyInfo, KeyHandlerOrChordDispatchTable>> dispatchTable, bool viMode)
+            {
+                _dispatchTable = dispatchTable.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+                _viMode = viMode;
+            }
+
+            public bool InViMode
+                => _viMode;
+
+            public KeyHandlerOrChordDispatchTable this[PSKeyInfo key]
+            {
+                get => _dispatchTable[key];
+                set => _dispatchTable[key] = value;
+            }
+
+            public ICollection<PSKeyInfo> Keys
+                => _dispatchTable.Keys;
+
+            public ICollection<KeyHandlerOrChordDispatchTable> Values
+                => _dispatchTable.Values;
+
+            public int Count
+                => _dispatchTable.Count;
+
+            public bool IsReadOnly
+                => _dispatchTable.IsReadOnly;
+
+            public void Add(PSKeyInfo key, KeyHandlerOrChordDispatchTable value)
+                => _dispatchTable.Add(key, value);
+
+            public void Add(KeyValuePair<PSKeyInfo, KeyHandlerOrChordDispatchTable> item)
+                => _dispatchTable.Add(item);
+
+            public void Clear()
+                => _dispatchTable.Clear();
+
+            public bool Contains(KeyValuePair<PSKeyInfo, KeyHandlerOrChordDispatchTable> item)
+                => _dispatchTable.Contains(item);
+
+            public bool ContainsKey(PSKeyInfo key)
+                => _dispatchTable.ContainsKey(key);
+
+            public void CopyTo(KeyValuePair<PSKeyInfo, KeyHandlerOrChordDispatchTable>[] array, int arrayIndex)
+                => _dispatchTable.CopyTo(array, arrayIndex);
+
+            public IEnumerator<KeyValuePair<PSKeyInfo, KeyHandlerOrChordDispatchTable>> GetEnumerator()
+                => _dispatchTable.GetEnumerator();
+
+            public bool Remove(PSKeyInfo key)
+                => _dispatchTable.Remove(key);
+
+            public bool Remove(KeyValuePair<PSKeyInfo, KeyHandlerOrChordDispatchTable> item)
+                => _dispatchTable.Remove(item);
+
+            public bool TryGetValue(
+                PSKeyInfo key,
+#if NET6_0_OR_GREATER
+                [MaybeNullWhen(false)]
+#endif
+                out KeyHandlerOrChordDispatchTable value
+                )
+                => _dispatchTable.TryGetValue(key, out value);
+
+            IEnumerator IEnumerable.GetEnumerator()
+                => ((IEnumerable)_dispatchTable).GetEnumerator();
+        }
+
+        /// <summary>
+        /// Represents a <cee cref="ChordDispatchTable" /> that
+        /// handles vi-specific key bindings like handling digit
+        /// arguments after the first key.
+        /// </summary>
+        private sealed class ViChordDispatchTable : ChordDispatchTable
+        {
+            public ViChordDispatchTable(IEnumerable<KeyValuePair<PSKeyInfo, KeyHandlerOrChordDispatchTable>> dispatchTable)
+                : base(dispatchTable, viMode: true)
+            {
+            }
+        }
+
+        private sealed class KeyHandlerOrChordDispatchTable
+        {
+            private readonly KeyHandler _keyHandler = null;
+            private readonly ChordDispatchTable _chordDispatchTable = null;
+
+            /// <summary>
+            /// Initialize a new instance of the <see cref="KeyHandlerOrChordDispatchTable"/> class
+            /// that acts as a key handler.
+            /// </summary>
+            /// <param name="keyHandler"></param>
+            public KeyHandlerOrChordDispatchTable(KeyHandler keyHandler)
+            {
+                _keyHandler = keyHandler;
+            }
+
+            /// <summary>
+            /// Initialize a new instance of the <see cref="KeyHandlerOrChordDispatchTable"/> class
+            /// that acts as a chord dispatch table.
+            /// </summary>
+            /// <param name="chordDispatchTable"></param>
+            public KeyHandlerOrChordDispatchTable(IEnumerable<KeyValuePair<PSKeyInfo, KeyHandlerOrChordDispatchTable>> chordDispatchTable)
+            {
+                _chordDispatchTable = new ChordDispatchTable(chordDispatchTable);
+            }
+            public KeyHandlerOrChordDispatchTable(ChordDispatchTable chordDispatchTable)
+            {
+                _chordDispatchTable = chordDispatchTable;
+            }
+
+            public static implicit operator KeyHandlerOrChordDispatchTable(KeyHandler handler)
+                => new KeyHandlerOrChordDispatchTable(handler);
+
+            public static implicit operator KeyHandlerOrChordDispatchTable(ChordDispatchTable chordDispatchTable)
+                => new KeyHandlerOrChordDispatchTable(chordDispatchTable);
+
+            public bool TryGetKeyHandler(out KeyHandler keyHandler)
+            {
+                keyHandler = _keyHandler;
+                return (_keyHandler != null);
+            }
+
+            public static explicit operator ChordDispatchTable(KeyHandlerOrChordDispatchTable handlerOrChordDispatchTable)
+            {
+                if (handlerOrChordDispatchTable._chordDispatchTable == null)
+                    throw new InvalidCastException();
+                return handlerOrChordDispatchTable._chordDispatchTable;
+            }
+        }
 
         /// <summary>
         /// Helper to set bindings based on EditMode
@@ -176,7 +324,7 @@ namespace Microsoft.PowerShell
 
         void SetDefaultWindowsBindings()
         {
-            _dispatchTable = new Dictionary<PSKeyInfo, KeyHandler>
+            _dispatchTable = MakeChordDispatchTable(new Dictionary<PSKeyInfo, KeyHandlerOrChordDispatchTable>
             {
                 { Keys.Enter,                  MakeKeyHandler(AcceptLine,                "AcceptLine") },
                 { Keys.ShiftEnter,             MakeKeyHandler(AddLine,                   "AddLine") },
@@ -242,7 +390,7 @@ namespace Microsoft.PowerShell
                 { Keys.AltD,                   MakeKeyHandler(KillWord,                  "KillWord") },
                 { Keys.CtrlAt,                 MakeKeyHandler(MenuComplete,              "MenuComplete") },
                 { Keys.CtrlW,                  MakeKeyHandler(BackwardKillWord,          "BackwardKillWord") },
-            };
+            });
 
             // Some bindings are not available on certain platforms
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -260,13 +408,11 @@ namespace Microsoft.PowerShell
                 _dispatchTable.Add(Keys.CtrlPageUp,   MakeKeyHandler(ScrollDisplayUpLine,   "ScrollDisplayUpLine"));
                 _dispatchTable.Add(Keys.CtrlPageDown, MakeKeyHandler(ScrollDisplayDownLine, "ScrollDisplayDownLine"));
             }
-
-            _chordDispatchTable = new Dictionary<PSKeyInfo, Dictionary<PSKeyInfo, KeyHandler>>();
         }
 
         void SetDefaultEmacsBindings()
         {
-            _dispatchTable = new Dictionary<PSKeyInfo, KeyHandler>
+            _dispatchTable = MakeChordDispatchTable(new Dictionary<PSKeyInfo, KeyHandlerOrChordDispatchTable>
             {
                 { Keys.Backspace,              MakeKeyHandler(BackwardDeleteChar,        "BackwardDeleteChar") },
                 { Keys.Enter,                  MakeKeyHandler(AcceptLine,                "AcceptLine") },
@@ -283,7 +429,23 @@ namespace Microsoft.PowerShell
                 { Keys.End,                    MakeKeyHandler(EndOfLine,                 "EndOfLine") },
                 { Keys.ShiftHome,              MakeKeyHandler(SelectBackwardsLine,       "SelectBackwardsLine") },
                 { Keys.ShiftEnd,               MakeKeyHandler(SelectLine,                "SelectLine") },
-                { Keys.Escape,                 MakeKeyHandler(Chord,                     "ChordFirstKey") },
+                { Keys.Escape,                 MakeChordDispatchTable(new Dictionary<PSKeyInfo, PSConsoleReadLine.KeyHandlerOrChordDispatchTable>{
+
+                    // Escape,<key> table (meta key)
+                    { Keys.B,         MakeKeyHandler(BackwardWord,     "BackwardWord") },
+                    { Keys.D,         MakeKeyHandler(KillWord,         "KillWord")},
+                    { Keys.F,         MakeKeyHandler(ForwardWord,      "ForwardWord")},
+                    { Keys.R,         MakeKeyHandler(RevertLine,       "RevertLine")},
+                    { Keys.Y,         MakeKeyHandler(YankPop,          "YankPop")},
+                    { Keys.U,         MakeKeyHandler(UpcaseWord,       "UpcaseWord") },
+                    { Keys.L,         MakeKeyHandler(DowncaseWord,     "DowncaseWord") },
+                    { Keys.C,         MakeKeyHandler(CapitalizeWord,   "CapitalizeWord") },
+                    { Keys.CtrlY,     MakeKeyHandler(YankNthArg,       "YankNthArg")},
+                    { Keys.Backspace, MakeKeyHandler(BackwardKillWord, "BackwardKillWord")},
+                    { Keys.Period,    MakeKeyHandler(YankLastArg,      "YankLastArg")},
+                    { Keys.Underbar,  MakeKeyHandler(YankLastArg,      "YankLastArg")},
+                }) },
+
                 { Keys.Delete,                 MakeKeyHandler(DeleteChar,                "DeleteChar") },
                 { Keys.Tab,                    MakeKeyHandler(Complete,                  "Complete") },
                 { Keys.CtrlA,                  MakeKeyHandler(BeginningOfLine,           "BeginningOfLine") },
@@ -303,7 +465,15 @@ namespace Microsoft.PowerShell
                 { Keys.CtrlS,                  MakeKeyHandler(ForwardSearchHistory,      "ForwardSearchHistory") },
                 { Keys.CtrlT,                  MakeKeyHandler(SwapCharacters,            "SwapCharacters") },
                 { Keys.CtrlU,                  MakeKeyHandler(BackwardKillInput,         "BackwardKillInput") },
-                { Keys.CtrlX,                  MakeKeyHandler(Chord,                     "ChordFirstKey") },
+                { Keys.CtrlX,                  MakeChordDispatchTable(new Dictionary<PSKeyInfo, KeyHandlerOrChordDispatchTable>{
+
+                    // Ctrl+X,<key> table (meta key)
+                    { Keys.Backspace, MakeKeyHandler(BackwardKillInput,    "BackwardKillInput") },
+                    { Keys.CtrlE,     MakeKeyHandler(ViEditVisually,       "ViEditVisually") },
+                    { Keys.CtrlU,     MakeKeyHandler(Undo,                 "Undo") },
+                    { Keys.CtrlX,     MakeKeyHandler(ExchangePointAndMark, "ExchangePointAndMark") },
+                }) },
+
                 { Keys.CtrlW,                  MakeKeyHandler(UnixWordRubout,            "UnixWordRubout") },
                 { Keys.CtrlY,                  MakeKeyHandler(Yank,                      "Yank") },
                 { Keys.CtrlAt,                 MakeKeyHandler(SetMark,                   "SetMark") },
@@ -344,7 +514,7 @@ namespace Microsoft.PowerShell
                 { Keys.AltU,                   MakeKeyHandler(UpcaseWord,                "UpcaseWord") },
                 { Keys.AltL,                   MakeKeyHandler(DowncaseWord,              "DowncaseWord") },
                 { Keys.AltC,                   MakeKeyHandler(CapitalizeWord,            "CapitalizeWord") },
-            };
+            });
 
             // Some bindings are not available on certain platforms
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -365,35 +535,6 @@ namespace Microsoft.PowerShell
             {
                 _dispatchTable.Add(Keys.AltSpace,     MakeKeyHandler(SetMark,               "SetMark"));
             }
-
-            _chordDispatchTable = new Dictionary<PSKeyInfo, Dictionary<PSKeyInfo, KeyHandler>>
-            {
-                // Escape,<key> table (meta key)
-                [Keys.Escape] = new Dictionary<PSKeyInfo, KeyHandler>
-                {
-                    { Keys.B,         MakeKeyHandler(BackwardWord,     "BackwardWord") },
-                    { Keys.D,         MakeKeyHandler(KillWord,         "KillWord")},
-                    { Keys.F,         MakeKeyHandler(ForwardWord,      "ForwardWord")},
-                    { Keys.R,         MakeKeyHandler(RevertLine,       "RevertLine")},
-                    { Keys.Y,         MakeKeyHandler(YankPop,          "YankPop")},
-                    { Keys.U,         MakeKeyHandler(UpcaseWord,       "UpcaseWord") },
-                    { Keys.L,         MakeKeyHandler(DowncaseWord,     "DowncaseWord") },
-                    { Keys.C,         MakeKeyHandler(CapitalizeWord,   "CapitalizeWord") },
-                    { Keys.CtrlY,     MakeKeyHandler(YankNthArg,       "YankNthArg")},
-                    { Keys.Backspace, MakeKeyHandler(BackwardKillWord, "BackwardKillWord")},
-                    { Keys.Period,    MakeKeyHandler(YankLastArg,      "YankLastArg")},
-                    { Keys.Underbar,  MakeKeyHandler(YankLastArg,      "YankLastArg")},
-                },
-
-                // Ctrl+X,<key> table
-                [Keys.CtrlX] = new Dictionary<PSKeyInfo, KeyHandler>
-                {
-                    { Keys.Backspace, MakeKeyHandler(BackwardKillInput,    "BackwardKillInput") },
-                    { Keys.CtrlE,     MakeKeyHandler(ViEditVisually,       "ViEditVisually") },
-                    { Keys.CtrlU,     MakeKeyHandler(Undo,                 "Undo") },
-                    { Keys.CtrlX,     MakeKeyHandler(ExchangePointAndMark, "ExchangePointAndMark") },
-                }
-            };
         }
 
         /// <summary>
@@ -429,7 +570,6 @@ namespace Microsoft.PowerShell
             case nameof(DeletePreviousLines):
             case nameof(DeleteRelativeLines):
             case nameof(DeleteToEnd):
-            case nameof(DeleteWord):
             case nameof(DowncaseWord):
             case nameof(ForwardDeleteInput):
             case nameof(ForwardDeleteLine):
@@ -588,7 +728,6 @@ namespace Microsoft.PowerShell
             case nameof(ViEditVisually):
             case nameof(ViExit):
             case nameof(ViInsertMode):
-            case nameof(ViDGChord):
             case nameof(WhatIsKey):
             case nameof(ShowCommandHelp):
             case nameof(ShowParameterHelp):
@@ -622,6 +761,10 @@ namespace Microsoft.PowerShell
             case nameof(SelectShellNextWord):
             case nameof(SelectCommandArgument):
                 return KeyHandlerGroup.Selection;
+
+            case nameof(ViDeleteInnerWord):
+            case nameof(DeleteWord):
+                return KeyHandlerGroup.TextObjects;
 
             default:
                 return KeyHandlerGroup.Custom;
@@ -682,43 +825,8 @@ namespace Microsoft.PowerShell
         {
             _singleton._statusLinePrompt = "what-is-key: ";
             _singleton.Render();
-            var toLookup = ReadKey();
-            var buffer = new StringBuilder();
-            _singleton._dispatchTable.TryGetValue(toLookup, out var keyHandler);
-            buffer.Append(toLookup.KeyStr);
-            if (keyHandler != null)
-            {
-                if (keyHandler.BriefDescription == "ChordFirstKey")
-                {
-                    if (_singleton._chordDispatchTable.TryGetValue(toLookup, out var secondKeyDispatchTable))
-                    {
-                        toLookup = ReadKey();
-                        secondKeyDispatchTable.TryGetValue(toLookup, out keyHandler);
-                        buffer.Append(",");
-                        buffer.Append(toLookup.KeyStr);
-                    }
-                }
-            }
-            buffer.Append(": ");
-            if (keyHandler != null)
-            {
-                buffer.Append(keyHandler.BriefDescription);
-                if (!string.IsNullOrWhiteSpace(keyHandler.LongDescription))
-                {
-                    buffer.Append(" - ");
-                    buffer.Append(keyHandler.LongDescription);
-                }
-            }
-            else if (toLookup.KeyChar != 0)
-            {
-                buffer.Append("SelfInsert");
-                buffer.Append(" - ");
-                buffer.Append(PSReadLineResources.SelfInsertDescription);
-            }
-            else
-            {
-                buffer.Append(PSReadLineResources.KeyIsUnbound);
-            }
+
+            var buffer = ReadKeyChord();
 
             _singleton.ClearStatusMessage(render: false);
 
@@ -730,6 +838,61 @@ namespace Microsoft.PowerShell
 
             console.WriteLine(buffer.ToString());
             InvokePrompt(key: null, arg: console.CursorTop);
+        }
+
+        private static StringBuilder ReadKeyChord()
+        {
+            var buffer = new StringBuilder();
+
+            var toLookup = ReadKey();
+
+            buffer.Append(toLookup.KeyStr);
+
+            if (_singleton._dispatchTable.TryGetValue(toLookup, out var handlerOrChordDispatchTable))
+            {
+                KeyHandler keyHandler = null;
+
+                while (handlerOrChordDispatchTable != null && !handlerOrChordDispatchTable.TryGetKeyHandler(out keyHandler))
+                {
+                    toLookup = ReadKey();
+
+                    buffer.Append(",");
+                    buffer.Append(toLookup.KeyStr);
+
+                    var secondKeyDispatchTable = (ChordDispatchTable)handlerOrChordDispatchTable;
+                    secondKeyDispatchTable.TryGetValue(toLookup, out handlerOrChordDispatchTable);
+                }
+
+                if (keyHandler != null)
+                {
+                    buffer.Append(": ");
+                    buffer.Append(keyHandler.BriefDescription);
+                    if (!string.IsNullOrWhiteSpace(keyHandler.LongDescription))
+                    {
+                        buffer.Append(" - ");
+                        buffer.Append(keyHandler.LongDescription);
+                    }
+                }
+                else
+                {
+                    buffer.Append(": ");
+                    buffer.Append(PSReadLineResources.KeyIsUnbound);
+                }
+            }
+            else if (toLookup.KeyChar != 0)
+            {
+                buffer.Append(": ");
+                buffer.Append("SelfInsert");
+                buffer.Append(" - ");
+                buffer.Append(PSReadLineResources.SelfInsertDescription);
+            }
+            else
+            {
+                buffer.Append(": ");
+                buffer.Append(PSReadLineResources.KeyIsUnbound);
+            }
+
+            return buffer;
         }
     }
 }

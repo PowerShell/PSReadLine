@@ -1,98 +1,13 @@
 using System;
-using System.Collections.Generic;
 
 namespace Microsoft.PowerShell
 {
     public partial class PSConsoleReadLine
     {
-        internal enum TextObjectOperation
-        {
-            None,
-            Change,
-            Delete,
-        }
-
-        internal enum TextObjectSpan
-        {
-            None,
-            Around,
-            Inner,
-        }
-
-        private TextObjectOperation _textObjectOperation = TextObjectOperation.None;
-        private TextObjectSpan _textObjectSpan = TextObjectSpan.None;
-
-        private readonly Dictionary<TextObjectOperation, Dictionary<TextObjectSpan, KeyHandler>> _textObjectHandlers = new()
-        {
-            [TextObjectOperation.Delete] = new() { [TextObjectSpan.Inner] = MakeKeyHandler(ViDeleteInnerWord, "ViDeleteInnerWord") },
-        };
-
-        private void ViChordDeleteTextObject(ConsoleKeyInfo? key = null, object arg = null)
-        {
-            _textObjectOperation = TextObjectOperation.Delete;
-            ViChordTextObject(key, arg);
-        }
-
-        private void ViChordTextObject(ConsoleKeyInfo? key = null, object arg = null)
-        {
-            if (!key.HasValue)
-            {
-                ResetTextObjectState();
-                throw new ArgumentNullException(nameof(key));
-            }
-
-            _textObjectSpan = GetRequestedTextObjectSpan(key.Value);
-
-            // Handle text object
-            var textObjectKey = ReadKey();
-            if (_viChordTextObjectsTable.TryGetValue(textObjectKey, out _))
-            {
-                _singleton.ProcessOneKey(textObjectKey, _viChordTextObjectsTable, ignoreIfNoAction: true, arg: arg);
-            }
-            else
-            {
-                ResetTextObjectState();
-                Ding();
-            }
-        }
-
-        private TextObjectSpan GetRequestedTextObjectSpan(ConsoleKeyInfo key)
-        {
-            if (key.KeyChar == 'i')
-            {
-                return TextObjectSpan.Inner;
-            }
-            else if (key.KeyChar == 'a')
-            {
-                return TextObjectSpan.Around;
-            }
-            else
-            {
-                System.Diagnostics.Debug.Assert(false);
-                throw new NotSupportedException();
-            }
-        }
-
-        private static void ViHandleTextObject(ConsoleKeyInfo? key = null, object arg = null)
-        {
-            if (!_singleton._textObjectHandlers.TryGetValue(_singleton._textObjectOperation, out var textObjectHandler) ||
-                !textObjectHandler.TryGetValue(_singleton._textObjectSpan, out var handler))
-            {
-                ResetTextObjectState();
-                Ding();
-                return;
-            }
-
-            handler.Action(key, arg);
-        }
-
-        private static void ResetTextObjectState()
-        {
-            _singleton._textObjectOperation = TextObjectOperation.None;
-            _singleton._textObjectSpan = TextObjectSpan.None;
-        }
-
-        private static void ViDeleteInnerWord(ConsoleKeyInfo? key = null, object arg = null)
+        /// <summary>
+        /// Delete the content inside and including the current word
+        /// </summary>
+        public static void ViDeleteInnerWord(ConsoleKeyInfo? key = null, object arg = null)
         {
             var delimiters = _singleton.Options.WordDelimiters;
 
