@@ -5,7 +5,7 @@
     <OutputType>library</OutputType>
     <RootNamespace>UnitTestPSReadLine</RootNamespace>
     <AssemblyName>PSReadLine.Tests</AssemblyName>
-    <TargetFrameworks>net472;net6.0</TargetFrameworks>
+    <TargetFrameworks>net472;net8.0</TargetFrameworks>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <IsCodedUITest>False</IsCodedUITest>
@@ -19,8 +19,8 @@
     <PackageReference Include="PowerShellStandard.Library" version="5.1.0" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
-    <PackageReference Include="Microsoft.PowerShell.SDK" Version="7.2.24" />
+  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
+    <PackageReference Include="Microsoft.PowerShell.SDK" Version="7.4.11" />
   </ItemGroup>
 
   <ItemGroup>

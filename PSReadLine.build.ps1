@@ -19,7 +19,7 @@ param(
     [ValidateSet("Debug", "Release")]
     [string]$Configuration = (property Configuration Release),
 
-    [ValidateSet("net472", "net6.0")]
+    [ValidateSet("net472", "net8.0")]
     [string]$TestFramework,
 
     [switch]$CheckHelpContent
@@ -31,7 +31,7 @@ Import-Module "$PSScriptRoot/tools/helper.psm1"
 $targetDir = "bin/$Configuration/PSReadLine"
 
 if (-not $TestFramework) {
-    $TestFramework = $IsWindows ? "net472" : "net6.0"
+    $TestFramework = $IsWindows ? "net472" : "net8.0"
 }
 
 function ConvertTo-CRLF([string] $text) {
@@ -58,7 +58,7 @@ Synopsis: Build the Polyfiller assembly
 #>
 task BuildPolyfiller @polyFillerParams {
     exec { dotnet publish -c $Configuration -f 'netstandard2.0' Polyfill }
-    exec { dotnet publish -c $Configuration -f 'net6.0'  Polyfill }
+    exec { dotnet publish -c $Configuration -f 'net8.0'  Polyfill }
 }
 
 <#
@@ -123,7 +123,7 @@ task LayoutModule BuildPolyfiller, BuildMainModule, {
     }
 
     Copy-Item "Polyfill/bin/$Configuration/netstandard2.0/Microsoft.PowerShell.PSReadLine.Polyfiller.dll" "$targetDir/netstd" -Force
-    Copy-Item "Polyfill/bin/$Configuration/net6.0/Microsoft.PowerShell.PSReadLine.Polyfiller.dll" "$targetDir/net6plus" -Force
+    Copy-Item "Polyfill/bin/$Configuration/net8.0/Microsoft.PowerShell.PSReadLine.Polyfiller.dll" "$targetDir/net6plus" -Force
 
     $binPath = "PSReadLine/bin/$Configuration/netstandard2.0/publish"
     Copy-Item $binPath/Microsoft.PowerShell.PSReadLine.dll $targetDir

@@ -52,6 +52,15 @@ namespace Test
 
         public static string GetKeyboardLayout()
         {
+            // In CI environments like GitHub Actions, keyboard layout detection can fail
+            // or return incorrect results. Default to en-US in these cases.
+            if (Environment.GetEnvironmentVariable("GITHUB_ACTIONS") == "true" ||
+                Environment.GetEnvironmentVariable("TF_BUILD") == "true" ||
+                !RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                return "en-US";
+            }
+
             var layout = GetKeyboardLayout(GetWindowThreadProcessId(GetForegroundWindow(), out var processId));
             return GetLayoutNameFromHKL(layout);
         }
@@ -100,4 +109,3 @@ namespace Test
         }
     }
 }
-

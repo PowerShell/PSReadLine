@@ -16,7 +16,7 @@
     Build the main module with the default configuration (Debug) targeting 'netstandard2.0'.
 .EXAMPLE
     PS > .\build.ps1 -Test
-    Run xUnit tests with the default configuration (Debug) and the default target framework (net472 on Windows or net6.0 otherwise).
+    Run xUnit tests with the default configuration (Debug) and the default target framework (net472 on Windows or net8.0 otherwise).
 .PARAMETER Clean
     Clean the local repo, but keep untracked files.
 .PARAMETER Bootstrap
@@ -28,10 +28,10 @@
 .PARAMETER Framework
     The target framework when testing:
       - net472: run tests with .NET Framework
-      - net6.0: run tests with .NET 6.0
+      - net8.0: run tests with .NET 6.0
     When not specified, the target framework is determined by the current OS platform:
       - use 'net472' on Windows
-      - use 'net6.0' on Unix platforms
+      - use 'net8.0' on Unix platforms
 #>
 [CmdletBinding(DefaultParameterSetName = 'default')]
 param(
@@ -48,7 +48,7 @@ param(
     [switch] $CheckHelpContent,
 
     [Parameter(ParameterSetName = 'test')]
-    [ValidateSet("net472", "net6.0")]
+    [ValidateSet("net472", "net8.0")]
     [string] $Framework,
 
     [Parameter(ParameterSetName = 'default')]

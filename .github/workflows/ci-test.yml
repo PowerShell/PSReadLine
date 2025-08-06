@@ -1,0 +1,50 @@
+name: CI Tests
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  ci:
+    name: dotnet
+    strategy:
+      matrix:
+        os: [ windows-latest, macos-latest, ubuntu-latest ]
+    runs-on: ${{ matrix.os }}
+    env:
+      DOTNET_NOLOGO: true
+      DOTNET_GENERATE_ASPNET_CERTIFICATE: false
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dotnet
+        uses: actions/setup-dotnet@v4
+        with:
+          cache: true
+          cache-dependency-path: '**/*.csproj'
+          global-json-file: ./global.json
+
+      - name: Install PSResources
+        shell: pwsh
+        run: ./tools/installPSResources.ps1
+
+      - name: Build, test, and package
+        shell: pwsh
+        run: Invoke-Build -Configuration Release -TestFramework net8.0 RunTests, ZipRelease
+
+      - name: Upload build artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PSReadLine-module-${{ matrix.os }}
+          path: bin/Release/PSReadLine.zip
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: PSReadLine-test-results-${{ matrix.os }}
+          path: test/TestResults/xUnitTestResults.en-US.xml

@@ -215,7 +215,7 @@ function Start-TestRun
         $testResultFile = Join-Path $testResultFolder $testResultFile
 
         $stdOutput, $stdError = @(New-TemporaryFile; New-TemporaryFile)
-        $arguments = 'test', '--no-build', '-c', $Configuration, '-f', $Framework, '--filter', $filter, '--logger', "xunit;LogFilePath=$testResultFile"
+        $arguments = 'test', '--no-build', '-c', $Configuration, '-f', $Framework, '--filter', $filter, '--logger', "xunit;LogFilePath=$testResultFile", '--logger', 'console;verbosity=normal'
 
         Start-Process -FilePath dotnet -Wait -RedirectStandardOutput $stdOutput -RedirectStandardError $stdError -ArgumentList $arguments
         Get-Content $stdOutput, $stdError
@@ -224,15 +224,14 @@ function Start-TestRun
 
     try
     {
-        $env:PSREADLINE_TESTRUN = 1
         Push-Location "$RepoRoot/test"
 
         $xUnitTestExecuted = $true
         if ($IsWindowsEnv)
         {
-            if ($env:APPVEYOR -or $env:TF_BUILD)
+            if ($env:GITHUB_ACTIONS -or $env:TF_BUILD)
             {
-                # AppVeyor CI builder only has en-US keyboard layout installed.
+                # GitHub Actions CI builder only has en-US keyboard layout installed.
                 # We have to run tests from a new process because `GetCurrentKeyboardLayout` simply fails when called from
                 # the `pwsh` process started by AppVeyor. Our xUnit tests depends on `GetCurrentKeyboardLayout` to tell if
                 # a test case should run.
@@ -298,7 +297,6 @@ function Start-TestRun
     finally
     {
         Pop-Location
-        Remove-Item env:PSREADLINE_TESTRUN
     }
 }
 

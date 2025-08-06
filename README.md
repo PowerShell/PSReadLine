@@ -160,7 +160,7 @@ The build script `build.ps1` can be used to bootstrap, build and test the projec
 * Build: `./build.ps1 -Configuration Debug`
 * Test:
     * Targeting .NET 4.7.2 (Windows only): `./build.ps1 -Test -Configuration Debug -Framework net472`
-    * Targeting .NET 6.0: `./build.ps1 -Test -Configuration Debug -Framework net6.0`
+    * Targeting .NET 6.0: `./build.ps1 -Test -Configuration Debug -Framework net8.0`
 
 After build, the produced artifacts can be found at `<your-local-repo-root>/bin/Debug`.
 
