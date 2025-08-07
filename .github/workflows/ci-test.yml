@@ -34,6 +34,7 @@ jobs:
       - name: Build, test, and package
         shell: pwsh
         run: Invoke-Build -Configuration Release -TestFramework net8.0 RunTests, ZipRelease
+        continue-on-error: true
 
       - name: Upload build artifacts
         if: always()

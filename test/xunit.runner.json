@@ -1,0 +1,6 @@
+{
+  "$schema": "https://xunit.net/schema/current/xunit.runner.schema.json",
+  "appDomain": "denied",
+  "parallelizeTestCollections": false,
+  "methodDisplay": "method"
+}

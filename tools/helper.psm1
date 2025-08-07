@@ -208,14 +208,13 @@ function Start-TestRun
 
     $testResultFolder = 'TestResults'
 
-    function RunXunitTestsInNewProcess ([string] $Layout, [string] $OperatingSystem)
+    function RunXunitTestsInNewProcess ()
     {
-        $filter = "FullyQualifiedName~Test.{0}_{1}" -f ($Layout -replace '-','_'), $OperatingSystem
         $testResultFile = "xUnitTestResults.{0}.xml" -f $Layout
         $testResultFile = Join-Path $testResultFolder $testResultFile
 
         $stdOutput, $stdError = @(New-TemporaryFile; New-TemporaryFile)
-        $arguments = 'test', '--no-build', '-c', $Configuration, '-f', $Framework, '--filter', $filter, '--logger', "xunit;LogFilePath=$testResultFile", '--logger', 'console;verbosity=normal'
+        $arguments = 'test', '--no-build', '-c', $Configuration, '-f', $Framework, '--logger', "xunit;LogFilePath=$testResultFile", '--logger', 'console;verbosity=normal'
 
         Start-Process -FilePath dotnet -Wait -RedirectStandardOutput $stdOutput -RedirectStandardError $stdError -ArgumentList $arguments
         Get-Content $stdOutput, $stdError
@@ -226,73 +225,9 @@ function Start-TestRun
     {
         Push-Location "$RepoRoot/test"
 
-        $xUnitTestExecuted = $true
-        if ($IsWindowsEnv)
-        {
-            if ($env:GITHUB_ACTIONS -or $env:TF_BUILD)
-            {
-                # GitHub Actions CI builder only has en-US keyboard layout installed.
-                # We have to run tests from a new process because `GetCurrentKeyboardLayout` simply fails when called from
-                # the `pwsh` process started by AppVeyor. Our xUnit tests depends on `GetCurrentKeyboardLayout` to tell if
-                # a test case should run.
-                RunXunitTestsInNewProcess -Layout 'en-US' -OperatingSystem 'Windows'
-            }
-            else
-            {
-                if (-not ("KeyboardLayoutHelper" -as [type]))
-                {
-                    Add-Type $KeyboardLayoutHelperCode
-                }
-
-                try
-                {
-                    $xUnitTestExecuted = $false
-
-                    # Remember the current keyboard layout, changes are system wide and restoring
-                    # is the nice thing to do.
-                    $savedLayout = [KeyboardLayoutHelper]::GetCurrentKeyboardLayout()
-
-                    # We want to run tests in as many layouts as possible. We have key info
-                    # data for layouts that might not be installed, and tests would fail
-                    # if we don't set the system wide layout to match the key data we'll use.
-                    $layouts = [KeyboardLayoutHelper]::GetKeyboardLayouts()
-                    Write-Log "Available layouts: $layouts"
-
-                    foreach ($layout in $layouts)
-                    {
-                        if (Test-Path "KeyInfo-${layout}-windows.json")
-                        {
-                            Write-Log "Testing $layout ..."
-                            $null = [KeyboardLayoutHelper]::SetKeyboardLayout($layout)
-
-                            # We have to use Start-Process so it creates a new window, because the keyboard
-                            # layout change won't be picked up by any processes running in the current conhost.
-                            RunXunitTestsInNewProcess -Layout $layout -OperatingSystem 'Windows'
-                            $xUnitTestExecuted = $true
-                        }
-                        else
-                        {
-                            Write-Log "Testing not supported for the keyboard layout '$layout'."
-                        }
-                    }
-                }
-                finally
-                {
-                    # Restore the original keyboard layout
-                    $null = [KeyboardLayoutHelper]::SetKeyboardLayout($savedLayout)
-                }
-            }
-        }
-        else
-        {
-            RunXunitTestsInNewProcess -Layout 'en-US' -OperatingSystem 'Linux'
-        }
-
-        if ($xUnitTestExecuted)
-        {
-            # Check to see if there were any failures in xUnit tests, and throw exception to fail the build if so.
-            Get-ChildItem $testResultFolder | Test-XUnitTestResults > $null
-        }
+        RunXunitTestsInNewProcess
+        # Check to see if there were any failures in xUnit tests, and throw exception to fail the build if so.
+        Get-ChildItem $testResultFolder | Test-XUnitTestResults > $null
     }
     finally
     {

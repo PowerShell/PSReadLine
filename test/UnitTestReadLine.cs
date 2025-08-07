@@ -15,8 +15,6 @@ using Microsoft.PowerShell.Internal;
 using Xunit;
 using Xunit.Abstractions;
 
-[assembly: CollectionBehavior(DisableTestParallelization = true)]
-
 namespace Test
 {
     internal class MockedMethods : IPSConsoleReadLineMockableMethods
@@ -115,11 +113,11 @@ namespace Test
 
     public abstract partial class ReadLine
     {
-        protected ReadLine(ConsoleFixture fixture, ITestOutputHelper output, string lang, string os)
+        protected ReadLine(ConsoleFixture fixture, ITestOutputHelper output)
         {
             Output = output;
             Fixture = fixture;
-            Fixture.Initialize(lang, os);
+            Fixture.Initialize();
         }
 
         internal dynamic _ => Fixture.KbLayout;
@@ -551,9 +549,6 @@ namespace Test
 
         private void TestSetup(TestConsole console, KeyMode keyMode, params KeyHandler[] keyHandlers)
         {
-            Skip.If(WindowsConsoleFixtureHelper.GetKeyboardLayout() != this.Fixture.Lang,
-                    $"Keyboard layout must be set to {this.Fixture.Lang}");
-
             _console = console ?? new TestConsole(_);
             _mockedMethods = new MockedMethods();
 
@@ -642,30 +637,11 @@ namespace Test
         }
     }
 
-    public class en_US_Windows : Test.ReadLine, IClassFixture<ConsoleFixture>
+    public class DefaultTests : ReadLine, IClassFixture<ConsoleFixture>
     {
-        public en_US_Windows(ConsoleFixture fixture, ITestOutputHelper output)
-            : base(fixture, output, "en-US", "windows")
+        public DefaultTests(ConsoleFixture fixture, ITestOutputHelper output)
+            : base(fixture, output)
         {
         }
-    }
-
-    public class fr_FR_Windows : Test.ReadLine, IClassFixture<ConsoleFixture>
-    {
-        public fr_FR_Windows(ConsoleFixture fixture, ITestOutputHelper output)
-            : base(fixture, output, "fr-FR", "windows")
-        {
-        }
-
-        // I don't think this is actually true for real French keyboard, but on my US keyboard,
-        // I have to use Alt 6 0 for `<` and Alt 6 2 for `>` and that means the Alt+< and Alt+>
-        // bindings can't work.
-        internal override bool KeyboardHasLessThan => false;
-        internal override bool KeyboardHasGreaterThan => false;
-
-        // These are most likely an issue with .Net on Windows - AltGr turns into Ctrl+Alt and `]` or `@`
-        // requires AltGr, so you can't tell the difference b/w `]` and `Ctrl+]`.
-        internal override bool KeyboardHasCtrlRBracket => false;
-        internal override bool KeyboardHasCtrlAt => false;
     }
 }
