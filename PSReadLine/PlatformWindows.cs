@@ -139,7 +139,7 @@ static class PlatformWindows
         _singleton = singleton;
         var breakHandlerGcHandle = GCHandle.Alloc(new BreakHandler(OnBreak));
         SetConsoleCtrlHandler((BreakHandler)breakHandlerGcHandle.Target, true);
-        _enableVtOutput = !Console.IsOutputRedirected && SetConsoleOutputVirtualTerminalProcessing();
+        _enableVtOutput = true; // !Console.IsOutputRedirected && SetConsoleOutputVirtualTerminalProcessing();
         _terminalOwnerThreadId = GetTerminalOwnerThreadId();
 
         return _enableVtOutput ? new VirtualTerminal() : new LegacyWin32Console();
