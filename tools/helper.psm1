@@ -210,7 +210,14 @@ function Start-TestRun
 
     function RunXunitTestsInNewProcess ([string] $Layout, [string] $OperatingSystem)
     {
-        $filter = "FullyQualifiedName~Test.{0}_{1}" -f ($Layout -replace '-','_'), $OperatingSystem
+        $filter = if ($Layout) {
+            Write-Log "Testing $Layout on $OperatingSystem...`n"
+            "FullyQualifiedName~Test.{0}_{1}" -f ($Layout -replace '-','_'), $OperatingSystem
+        } else {
+            ## Today, tests for screen-reader mode only run on Windows with the 'en-US' layout.
+            Write-Log "Testing screen reader mode...`n"
+            "FullyQualifiedName~Test.ScreenReader"
+        }
         $testResultFile = "xUnitTestResults.{0}.xml" -f $Layout
         $testResultFile = Join-Path $testResultFolder $testResultFile
 
@@ -263,7 +270,6 @@ function Start-TestRun
                     {
                         if (Test-Path "KeyInfo-${layout}-windows.json")
                         {
-                            Write-Log "Testing $layout ..."
                             $null = [KeyboardLayoutHelper]::SetKeyboardLayout($layout)
 
                             # We have to use Start-Process so it creates a new window, because the keyboard
@@ -283,6 +289,7 @@ function Start-TestRun
                     $null = [KeyboardLayoutHelper]::SetKeyboardLayout($savedLayout)
                 }
             }
+            RunXunitTestsInNewProcess
         }
         else
         {

@@ -96,6 +96,8 @@ namespace Test
         [SkippableFact]
         public void List_RenderSuggestion_ListUpdatesWhileTyping()
         {
+            Skip.If(ScreenReaderModeEnabled, "List view is not supported in screen reader mode.");
+
             TestSetup(KeyMode.Cmd);
             int listWidth = CheckWindowSize();
             // The font effect sequences of the dimmed color used in list view metadata line
@@ -184,6 +186,8 @@ namespace Test
         [SkippableFact]
         public void List_RenderSuggestion_NavigateInList_DefaultUpArrowDownArrow()
         {
+            Skip.If(ScreenReaderModeEnabled, "List view is not supported in screen reader mode.");
+
             TestSetup(KeyMode.Cmd);
             int listWidth = CheckWindowSize();
             var dimmedColors = Tuple.Create(ConsoleColor.White, _console.BackgroundColor);
@@ -401,6 +405,8 @@ namespace Test
         [SkippableFact]
         public void List_RenderSuggestion_NavigateInList_HistorySearchBackwardForward()
         {
+            Skip.If(ScreenReaderModeEnabled, "List view is not supported in screen reader mode.");
+
             TestSetup(KeyMode.Cmd,
                       new KeyHandler("Ctrl+p", PSConsoleReadLine.HistorySearchBackward),
                       new KeyHandler("Ctrl+l", PSConsoleReadLine.HistorySearchForward));
@@ -620,6 +626,8 @@ namespace Test
         [SkippableFact]
         public void List_RenderSuggestion_Escape()
         {
+            Skip.If(ScreenReaderModeEnabled, "List view is not supported in screen reader mode.");
+
             TestSetup(KeyMode.Cmd);
             int listWidth = CheckWindowSize();
             var dimmedColors = Tuple.Create(ConsoleColor.White, _console.BackgroundColor);
@@ -783,6 +791,8 @@ namespace Test
         [SkippableFact]
         public void List_RenderSuggestion_DigitArgument()
         {
+            Skip.If(ScreenReaderModeEnabled, "List view is not supported in screen reader mode.");
+
             TestSetup(KeyMode.Cmd);
             int listWidth = CheckWindowSize();
             var dimmedColors = Tuple.Create(ConsoleColor.White, _console.BackgroundColor);
@@ -943,6 +953,8 @@ namespace Test
         [SkippableFact]
         public void List_RenderSuggestion_CtrlZ()
         {
+            Skip.If(ScreenReaderModeEnabled, "List view is not supported in screen reader mode.");
+
             TestSetup(KeyMode.Cmd);
             int listWidth = CheckWindowSize();
             var dimmedColors = Tuple.Create(ConsoleColor.White, _console.BackgroundColor);
@@ -1076,6 +1088,8 @@ namespace Test
         [SkippableFact]
         public void List_RenderSuggestion_Selection()
         {
+            Skip.If(ScreenReaderModeEnabled, "List view is not supported in screen reader mode.");
+
             TestSetup(KeyMode.Cmd);
             int listWidth = CheckWindowSize();
             var dimmedColors = Tuple.Create(ConsoleColor.White, _console.BackgroundColor);
@@ -1276,6 +1290,8 @@ namespace Test
         [SkippableFact]
         public void List_HistorySource_NoAcceptanceCallback()
         {
+            Skip.If(ScreenReaderModeEnabled, "List view is not supported in screen reader mode.");
+
             TestSetup(KeyMode.Cmd);
             int listWidth = CheckWindowSize();
             var dimmedColors = Tuple.Create(ConsoleColor.White, _console.BackgroundColor);
@@ -1340,6 +1356,8 @@ namespace Test
         [SkippableFact]
         public void List_PluginSource_Acceptance()
         {
+            Skip.If(ScreenReaderModeEnabled, "List view is not supported in screen reader mode.");
+
             TestSetup(KeyMode.Cmd);
             int listWidth = CheckWindowSize();
             var dimmedColors = Tuple.Create(ConsoleColor.White, _console.BackgroundColor);
@@ -1661,6 +1679,8 @@ namespace Test
         [SkippableFact]
         public void List_HistoryAndPluginSource_Acceptance()
         {
+            Skip.If(ScreenReaderModeEnabled, "List view is not supported in screen reader mode.");
+
             TestSetup(KeyMode.Cmd);
             int listWidth = CheckWindowSize();
             var dimmedColors = Tuple.Create(ConsoleColor.White, _console.BackgroundColor);
@@ -1994,6 +2014,8 @@ namespace Test
         [SkippableFact]
         public void List_HistoryAndPluginSource_Deduplication()
         {
+            Skip.If(ScreenReaderModeEnabled, "List view is not supported in screen reader mode.");
+
             TestSetup(KeyMode.Cmd);
             int listWidth = CheckWindowSize();
             var dimmedColors = Tuple.Create(ConsoleColor.White, _console.BackgroundColor);

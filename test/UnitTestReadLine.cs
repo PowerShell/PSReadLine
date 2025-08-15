@@ -130,6 +130,7 @@ namespace Test
         internal virtual bool KeyboardHasGreaterThan => true;
         internal virtual bool KeyboardHasCtrlRBracket => true;
         internal virtual bool KeyboardHasCtrlAt => true;
+        internal virtual bool ScreenReaderModeEnabled => false;
 
         internal int ContinuationPromptLength => _continuationPromptLength;
 
@@ -446,8 +447,13 @@ namespace Test
                 // that shouldn't be and aren't ever set by any code in PSReadLine, so we'll
                 // ignore those bits and just check the stuff we do set.
                 Assert.Equal(expectedBuffer[i].UnicodeChar, consoleBuffer[i].UnicodeChar);
-                Assert.Equal(expectedBuffer[i].ForegroundColor, consoleBuffer[i].ForegroundColor);
-                Assert.Equal(expectedBuffer[i].BackgroundColor, consoleBuffer[i].BackgroundColor);
+                if (!ScreenReaderModeEnabled)
+                {
+                    // Changing colors is not supported in screen reader mode,
+                    // and this is the simplest way to disable checking that in all the tests.
+                    Assert.Equal(expectedBuffer[i].ForegroundColor, consoleBuffer[i].ForegroundColor);
+                    Assert.Equal(expectedBuffer[i].BackgroundColor, consoleBuffer[i].BackgroundColor);
+                }
             }
         }
 
@@ -585,6 +591,7 @@ namespace Test
                 ContinuationPrompt                = PSConsoleReadLineOptions.DefaultContinuationPrompt,
                 DingDuration                      = 1,  // Make tests virtually silent when they ding
                 DingTone                          = 37, // Make tests virtually silent when they ding
+                EnableScreenReaderMode            = ScreenReaderModeEnabled,
                 ExtraPromptLineCount              = PSConsoleReadLineOptions.DefaultExtraPromptLineCount,
                 HistoryNoDuplicates               = PSConsoleReadLineOptions.DefaultHistoryNoDuplicates,
                 HistorySaveStyle                  = HistorySaveStyle.SaveNothing,
@@ -637,7 +644,9 @@ namespace Test
             PSConsoleReadLine.SetOptions(colorOptions);
 
             // Cache the continuation prompt length for use in tests
-            _continuationPromptLength = PSConsoleReadLine.GetOptions().ContinuationPrompt.Length;
+            _continuationPromptLength = ScreenReaderModeEnabled
+                ? 0
+                : PSConsoleReadLine.GetOptions().ContinuationPrompt.Length;
 
             if (!_oneTimeInitCompleted)
             {
@@ -673,5 +682,15 @@ namespace Test
         // requires AltGr, so you can't tell the difference b/w `]` and `Ctrl+]`.
         internal override bool KeyboardHasCtrlRBracket => false;
         internal override bool KeyboardHasCtrlAt => false;
+    }
+    
+    public class ScreenReader : Test.ReadLine, IClassFixture<ConsoleFixture>
+    {
+        public ScreenReader(ConsoleFixture fixture, ITestOutputHelper output)
+            : base(fixture, output, "en-US", "windows")
+        {
+        }
+        
+        internal override bool ScreenReaderModeEnabled => true;
     }
 }

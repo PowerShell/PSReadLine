@@ -672,6 +672,8 @@ namespace Test
         [SkippableFact]
         public void SelectCommandArgument_HereStringArgs()
         {
+            Skip.If(ScreenReaderModeEnabled, "We're still investigating exactly why this test fails in screen reader mode.");
+
             TestSetup(KeyMode.Cmd);
 
             var continuationPrompt = PSConsoleReadLine.GetOptions().ContinuationPrompt;

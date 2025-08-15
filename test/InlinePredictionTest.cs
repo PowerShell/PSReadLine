@@ -14,6 +14,8 @@ namespace Test
         [SkippableFact]
         public void Inline_RenderSuggestion()
         {
+            Skip.If(ScreenReaderModeEnabled, "Inline predictions are not supported in screen reader mode.");
+
             TestSetup(KeyMode.Cmd,
                       new KeyHandler("Ctrl+f", PSConsoleReadLine.ForwardWord));
             using var disp = SetPrediction(PredictionSource.History, PredictionViewStyle.InlineView);
@@ -92,6 +94,8 @@ namespace Test
         [SkippableFact]
         public void Inline_CustomKeyBindingsToAcceptSuggestion()
         {
+            Skip.If(ScreenReaderModeEnabled, "Inline predictions are not supported in screen reader mode.");
+
             TestSetup(KeyMode.Cmd,
                       new KeyHandler("Alt+g", PSConsoleReadLine.AcceptSuggestion),
                       new KeyHandler("Alt+f", PSConsoleReadLine.AcceptNextSuggestionWord));
@@ -156,6 +160,8 @@ namespace Test
         [SkippableFact]
         public void Inline_AcceptNextSuggestionWordCanAcceptMoreThanOneWords()
         {
+            Skip.If(ScreenReaderModeEnabled, "Inline predictions are not supported in screen reader mode.");
+
             TestSetup(KeyMode.Cmd,
                       new KeyHandler("Ctrl+f", PSConsoleReadLine.ForwardWord),
                       new KeyHandler("Alt+f", PSConsoleReadLine.AcceptNextSuggestionWord));
@@ -192,6 +198,8 @@ namespace Test
         [SkippableFact]
         public void Inline_AcceptSuggestionWithSelection()
         {
+            Skip.If(ScreenReaderModeEnabled, "Inline predictions are not supported in screen reader mode.");
+
             TestSetup(KeyMode.Cmd,
                       new KeyHandler("Ctrl+f", PSConsoleReadLine.ForwardWord));
             using var disp = SetPrediction(PredictionSource.History, PredictionViewStyle.InlineView);
@@ -261,6 +269,8 @@ namespace Test
         [SkippableFact]
         public void Inline_SetPredictionColor()
         {
+            Skip.If(ScreenReaderModeEnabled, "Inline predictions are not supported in screen reader mode.");
+
             TestSetup(KeyMode.Cmd);
             var predictionColor = MakeCombinedColor(ConsoleColor.DarkYellow, ConsoleColor.Yellow);
             var predictionColorToCheck = Tuple.Create(ConsoleColor.DarkYellow, ConsoleColor.Yellow);
@@ -288,6 +298,8 @@ namespace Test
         [SkippableFact]
         public void Inline_HistoryEditsCanUndoProperly()
         {
+            Skip.If(ScreenReaderModeEnabled, "Inline predictions are not supported in screen reader mode.");
+
             TestSetup(KeyMode.Cmd,
                       new KeyHandler("Ctrl+f", PSConsoleReadLine.ForwardWord));
             SetHistory("git checkout -b branch origin/bbbb");
@@ -320,6 +332,8 @@ namespace Test
         [SkippableFact]
         public void Inline_AcceptSuggestionInVIMode()
         {
+            Skip.If(ScreenReaderModeEnabled, "Inline predictions are not supported in screen reader mode.");
+
             TestSetup(KeyMode.Vi);
             using var disp = SetPrediction(PredictionSource.History, PredictionViewStyle.InlineView);
 
@@ -367,6 +381,8 @@ namespace Test
         [SkippableFact]
         public void ViDefect2408()
         {
+            Skip.If(ScreenReaderModeEnabled, "Inline predictions are not supported in screen reader mode.");
+
             TestSetup(KeyMode.Vi);
             using var disp = SetPrediction(PredictionSource.History, PredictionViewStyle.InlineView);
 
@@ -460,6 +476,8 @@ namespace Test
         [SkippableFact]
         public void Inline_PluginSource_Acceptance()
         {
+            Skip.If(ScreenReaderModeEnabled, "Inline predictions are not supported in screen reader mode.");
+
             // Using the 'Plugin' source will make PSReadLine get prediction from the plugin only.
             TestSetup(KeyMode.Cmd,
                       new KeyHandler("Ctrl+f", PSConsoleReadLine.ForwardWord));
@@ -534,6 +552,8 @@ namespace Test
         [SkippableFact]
         public void Inline_HistoryAndPluginSource_Acceptance()
         {
+            Skip.If(ScreenReaderModeEnabled, "Inline predictions are not supported in screen reader mode.");
+
             // Using the 'HistoryAndPlugin' source will make PSReadLine get prediction from the plugin and history,
             // and plugin takes precedence.
             TestSetup(KeyMode.Cmd,
@@ -798,6 +818,8 @@ namespace Test
         [SkippableFact]
         public void Inline_TruncateVeryLongSuggestion()
         {
+            Skip.If(ScreenReaderModeEnabled, "Inline predictions are not supported in screen reader mode.");
+
             TestSetup(new TestConsole(keyboardLayout: _, width: 10, height: 2), KeyMode.Cmd);
             using var disp = SetPrediction(PredictionSource.History, PredictionViewStyle.InlineView);
 

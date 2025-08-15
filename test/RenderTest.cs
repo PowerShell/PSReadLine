@@ -205,6 +205,8 @@ namespace Test
         [SkippableFact]
         public void MultiLine_ScreenCheck()
         {
+            Skip.If(ScreenReaderModeEnabled, "Continuation prompt is not supported in screen reader mode.");
+
             TestSetup(KeyMode.Cmd);
 
             var defaultContinuationPrompt = PSConsoleReadLineOptions.DefaultContinuationPrompt;
@@ -305,6 +307,14 @@ namespace Test
                 CheckThat(() => AssertScreenIs(1,
                     Tuple.Create(_console.ForegroundColor, _console.BackgroundColor), "PSREADLINE> ",
                     TokenClassification.Command, "dir"))));
+        }
+
+        [SkippableFact]
+        public void InvokeTrickyPrompt()
+        {
+            Skip.If(ScreenReaderModeEnabled, "We can't test the colors written in this prompt in screen reader mode.");
+
+            TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+z", PSConsoleReadLine.InvokePrompt));
 
             // Tricky prompt - writes to console directly with colors, uses ^H trick to eliminate trailing space.
             using (var ps = PowerShell.Create(RunspaceMode.CurrentRunspace))
