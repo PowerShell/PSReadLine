@@ -131,6 +131,8 @@ namespace Test
         internal virtual bool KeyboardHasCtrlRBracket => true;
         internal virtual bool KeyboardHasCtrlAt => true;
 
+        internal int ContinuationPromptLength => _continuationPromptLength;
+
         static ReadLine()
         {
             var iss = InitialSessionState.CreateDefault();
@@ -540,6 +542,7 @@ namespace Test
         private bool _oneTimeInitCompleted;
         private object _psrlInstance;
         private FieldInfo _psrlConsole, _psrlMockableMethods;
+        private int _continuationPromptLength;
 
         private static string MakeCombinedColor(ConsoleColor fg, ConsoleColor bg)
             => VTColorUtils.AsEscapeSequence(fg) + VTColorUtils.AsEscapeSequence(bg, isBackground: true);
@@ -632,6 +635,9 @@ namespace Test
             }
             var colorOptions = new SetPSReadLineOption {Colors = colors};
             PSConsoleReadLine.SetOptions(colorOptions);
+
+            // Cache the continuation prompt length for use in tests
+            _continuationPromptLength = PSConsoleReadLine.GetOptions().ContinuationPrompt.Length;
 
             if (!_oneTimeInitCompleted)
             {

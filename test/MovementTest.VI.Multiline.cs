@@ -12,8 +12,6 @@ namespace Test
 
             const string buffer = "\"\n12345\n1234\n123\n12\n1\n\"";
 
-            var continuationPrefixLength = PSConsoleReadLineOptions.DefaultContinuationPrompt.Length;
-
             Test(buffer, Keys(
                 _.DQuote, _.Enter,
                 "12345", _.Enter,
@@ -25,22 +23,22 @@ namespace Test
                 _.Escape,
 
                 // move to second line at column 4
-                "ggj3l", CheckThat(() => AssertCursorLeftIs(continuationPrefixLength + 3)),
+                "ggj3l", CheckThat(() => AssertCursorLeftIs(ContinuationPromptLength + 3)),
                 // moving down on shorter lines will position the cursor at the end of each logical line
-                _.j, CheckThat(() => AssertCursorLeftIs(continuationPrefixLength + 3)),
-                _.j, CheckThat(() => AssertCursorLeftIs(continuationPrefixLength + 2)),
+                _.j, CheckThat(() => AssertCursorLeftIs(ContinuationPromptLength + 3)),
+                _.j, CheckThat(() => AssertCursorLeftIs(ContinuationPromptLength + 2)),
                 // moving back up will position the cursor at the end of shorter lines or at the desired column number
-                _.k, CheckThat(() => AssertCursorLeftIs(continuationPrefixLength + 3)),
-                _.k, CheckThat(() => AssertCursorLeftIs(continuationPrefixLength + 3)),
+                _.k, CheckThat(() => AssertCursorLeftIs(ContinuationPromptLength + 3)),
+                _.k, CheckThat(() => AssertCursorLeftIs(ContinuationPromptLength + 3)),
 
                 // move at end of line (column 5)
-                _.Dollar, CheckThat(() => AssertCursorLeftIs(continuationPrefixLength + 4)),
+                _.Dollar, CheckThat(() => AssertCursorLeftIs(ContinuationPromptLength + 4)),
                 // moving down on shorter lines will position the cursor at the end of each logical line
-                _.j, CheckThat(() => AssertCursorLeftIs(continuationPrefixLength + 3)),
-                _.j, CheckThat(() => AssertCursorLeftIs(continuationPrefixLength + 2)),
+                _.j, CheckThat(() => AssertCursorLeftIs(ContinuationPromptLength + 3)),
+                _.j, CheckThat(() => AssertCursorLeftIs(ContinuationPromptLength + 2)),
                 // moving back up will position the cursor at the end of each logical line
-                _.k, CheckThat(() => AssertCursorLeftIs(continuationPrefixLength + 3)),
-                _.k, CheckThat(() => AssertCursorLeftIs(continuationPrefixLength + 4))
+                _.k, CheckThat(() => AssertCursorLeftIs(ContinuationPromptLength + 3)),
+                _.k, CheckThat(() => AssertCursorLeftIs(ContinuationPromptLength + 4))
             ));
         }
 
@@ -52,19 +50,17 @@ namespace Test
 
             const string buffer = "\"\nline2\nline3\n\"";
 
-            var continuationPrefixLength = PSConsoleReadLineOptions.DefaultContinuationPrompt.Length;
-
             Test(buffer, Keys(
                 _.DQuote, _.Enter,
                 "line2", _.Enter,
                 "line3", _.Enter,
                 _.DQuote,
                 _.Escape,
-                _.k, CheckThat(() => AssertCursorLeftIs(continuationPrefixLength + 0)),
+                _.k, CheckThat(() => AssertCursorLeftIs(ContinuationPromptLength + 0)),
                 // move left
-                _.h, CheckThat(() => AssertCursorLeftIs(continuationPrefixLength + 0)),
-                _.l, CheckThat(() => AssertCursorLeftIs(continuationPrefixLength + 1)),
-                "2h", CheckThat(() => AssertCursorLeftIs(continuationPrefixLength + 0))
+                _.h, CheckThat(() => AssertCursorLeftIs(ContinuationPromptLength + 0)),
+                _.l, CheckThat(() => AssertCursorLeftIs(ContinuationPromptLength + 1)),
+                "2h", CheckThat(() => AssertCursorLeftIs(ContinuationPromptLength + 0))
             ));
         }
 
@@ -75,18 +71,16 @@ namespace Test
 
             const string buffer = "\"\nline2\nline3\n\"";
 
-            var continuationPrefixLength = PSConsoleReadLineOptions.DefaultContinuationPrompt.Length;
-
             Test(buffer, Keys(
                 _.DQuote, _.Enter,
                 "line2", _.Enter,
                 "line3", _.Enter,
                 _.DQuote,
                 _.Escape,
-                _.k, _.k, CheckThat(() => AssertCursorLeftIs(continuationPrefixLength + 0)),
+                _.k, _.k, CheckThat(() => AssertCursorLeftIs(ContinuationPromptLength + 0)),
                 // move right
-                _.l, CheckThat(() => AssertCursorLeftIs(continuationPrefixLength + 1)),
-                "10l", CheckThat(() => AssertCursorLeftIs(continuationPrefixLength + 4))
+                _.l, CheckThat(() => AssertCursorLeftIs(ContinuationPromptLength + 1)),
+                "10l", CheckThat(() => AssertCursorLeftIs(ContinuationPromptLength + 4))
             ));
         }
 
@@ -97,8 +91,6 @@ namespace Test
 
             const string buffer = "\"Multiline buffer\n containing an empty line\n\nand text aligned on the left\n\"";
 
-            var continuationPrefixLength = PSConsoleReadLineOptions.DefaultContinuationPrompt.Length;
-
             Test(buffer, Keys(
                 _.DQuote, "Multiline buffer", _.Enter,
                 " containing an empty line", _.Enter,
@@ -107,7 +99,7 @@ namespace Test
                 _.DQuote,
                 _.Escape, CheckThat(() => AssertCursorTopIs(4)),
                 "gg", CheckThat(() => AssertCursorLeftTopIs(0, 0)),
-                'G', CheckThat(() => AssertCursorLeftTopIs(continuationPrefixLength, 4))
+                'G', CheckThat(() => AssertCursorLeftTopIs(ContinuationPromptLength, 4))
             ));
         }
 
@@ -148,17 +140,15 @@ namespace Test
         {
             TestSetup(KeyMode.Vi);
 
-            var continuationPrefixLength = PSConsoleReadLineOptions.DefaultContinuationPrompt.Length;
-
             const string buffer = "\"\n  line\"";
 
             Test(buffer, Keys(
-                _.DQuote, _.Enter, "  line", _.DQuote, _.Escape, CheckThat(() => AssertCursorLeftIs(continuationPrefixLength + 6)),
-                _.Underbar, CheckThat(() => AssertCursorLeftTopIs(continuationPrefixLength + 2, 1)),
-                _.Dollar, CheckThat(() => AssertCursorLeftTopIs(continuationPrefixLength + 6, 1)),
+                _.DQuote, _.Enter, "  line", _.DQuote, _.Escape, CheckThat(() => AssertCursorLeftIs(ContinuationPromptLength + 6)),
+                _.Underbar, CheckThat(() => AssertCursorLeftTopIs(ContinuationPromptLength + 2, 1)),
+                _.Dollar, CheckThat(() => AssertCursorLeftTopIs(ContinuationPromptLength + 6, 1)),
                 // also works forward
-                '0', CheckThat(() => AssertCursorLeftTopIs(continuationPrefixLength, 1)),
-                _.Underbar, CheckThat(() => AssertCursorLeftTopIs(continuationPrefixLength + 2, 1))
+                '0', CheckThat(() => AssertCursorLeftTopIs(ContinuationPromptLength, 1)),
+                _.Underbar, CheckThat(() => AssertCursorLeftTopIs(ContinuationPromptLength + 2, 1))
                 ));
         }
 
@@ -167,14 +157,12 @@ namespace Test
         {
             TestSetup(KeyMode.Vi);
 
-            var continuationPrefixLength = PSConsoleReadLineOptions.DefaultContinuationPrompt.Length;
-
             const string buffer = "\"\n\n\"";
 
             Test(buffer, Keys(
                 _.DQuote, _.Enter, _.Enter, _.DQuote, _.Escape, _.k,
-                CheckThat(() => AssertCursorLeftTopIs(continuationPrefixLength + 0, 1)),
-                _.Underbar, CheckThat(() => AssertCursorLeftTopIs(continuationPrefixLength + 0, 1))
+                CheckThat(() => AssertCursorLeftTopIs(ContinuationPromptLength + 0, 1)),
+                _.Underbar, CheckThat(() => AssertCursorLeftTopIs(ContinuationPromptLength + 0, 1))
             ));
         }
 
@@ -193,14 +181,12 @@ namespace Test
         {
             TestSetup(KeyMode.Vi);
 
-            var continuationPrefixLength = PSConsoleReadLineOptions.DefaultContinuationPrompt.Length;
-
             const string buffer = "\"\n\n\"";
 
             Test(buffer, Keys(
                 _.DQuote, _.Enter, _.Enter, _.DQuote, _.Escape, _.k,
-                CheckThat(() => AssertCursorLeftTopIs(continuationPrefixLength + 0, 1)),
-                _.Dollar, CheckThat(() => AssertCursorLeftTopIs(continuationPrefixLength + 0, 1))
+                CheckThat(() => AssertCursorLeftTopIs(ContinuationPromptLength + 0, 1)),
+                _.Dollar, CheckThat(() => AssertCursorLeftTopIs(ContinuationPromptLength + 0, 1))
             ));
         }
 
