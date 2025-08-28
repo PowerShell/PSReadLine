@@ -86,7 +86,7 @@ namespace Microsoft.PowerShell
             _singleton._current = _singleton._buffer.Length;
 
             using var _ = _singleton._prediction.DisableScoped();
-            _singleton.ForceRender();
+            _singleton.Render(force: true);
 
             _singleton._console.Write("\x1b[91m^C\x1b[0m");
 
@@ -335,7 +335,7 @@ namespace Microsoft.PowerShell
 
             if (renderNeeded)
             {
-                ForceRender();
+                Render(force: true);
             }
 
             // Only run validation if we haven't before.  If we have and status line shows an error,

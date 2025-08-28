@@ -15,6 +15,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.PowerShell.PSReadLine;
+using Microsoft.PowerShell.Internal;
 using AllowNull = System.Management.Automation.AllowNullAttribute;
 
 namespace Microsoft.PowerShell
@@ -150,11 +151,6 @@ namespace Microsoft.PowerShell
 
         public const HistorySaveStyle DefaultHistorySaveStyle = HistorySaveStyle.SaveIncrementally;
 
-        /// <summary>
-        /// The predictive suggestion feature is disabled by default.
-        /// </summary>
-        public const PredictionSource DefaultPredictionSource = PredictionSource.None;
-
         public const PredictionViewStyle DefaultPredictionViewStyle = PredictionViewStyle.InlineView;
 
         /// <summary>
@@ -201,6 +197,7 @@ namespace Microsoft.PowerShell
         {
             ResetColors();
             EditMode = DefaultEditMode;
+            ScreenReaderModeEnabled = Accessibility.IsScreenReaderActive();
             ContinuationPrompt = DefaultContinuationPrompt;
             ContinuationPromptColor = Console.ForegroundColor;
             ExtraPromptLineCount = DefaultExtraPromptLineCount;
@@ -533,6 +530,8 @@ namespace Microsoft.PowerShell
 
         public bool TerminateOrphanedConsoleApps { get; set; }
 
+        public bool ScreenReaderModeEnabled { get; set; }
+
         internal string _defaultTokenColor;
         internal string _commentColor;
         internal string _keywordColor;
@@ -846,6 +845,14 @@ namespace Microsoft.PowerShell
             set => _terminateOrphanedConsoleApps = value;
         }
         internal SwitchParameter? _terminateOrphanedConsoleApps;
+
+        [Parameter]
+        public SwitchParameter EnableScreenReaderMode
+        {
+            get => _enableScreenReaderMode.GetValueOrDefault();
+            set => _enableScreenReaderMode = value;
+        }
+        internal SwitchParameter? _enableScreenReaderMode;
 
         [ExcludeFromCodeCoverage]
         protected override void EndProcessing()

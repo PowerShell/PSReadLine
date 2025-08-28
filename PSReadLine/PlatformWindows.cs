@@ -79,6 +79,21 @@ static class PlatformWindows
     [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
     internal static extern IntPtr GetStdHandle(uint handleId);
 
+    internal const int ERROR_ALREADY_EXISTS = 0xB7;
+
+    internal static bool IsMutexPresent(string name)
+    {
+        try
+        {
+            using var mutex = new System.Threading.Mutex(false, name);
+            return Marshal.GetLastWin32Error() == ERROR_ALREADY_EXISTS;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
     [DllImport("kernel32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
     static extern bool SetConsoleCtrlHandler(BreakHandler handlerRoutine, bool add);
 

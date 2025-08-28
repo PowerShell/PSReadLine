@@ -11,6 +11,8 @@ namespace Test
         [SkippableFact]
         public void ContinuationPrompt()
         {
+            Skip.If(ScreenReaderModeEnabled, "Continuation prompt is not supported in screen reader mode.");
+
             TestSetup(KeyMode.Cmd);
 
             Test("", Keys(
@@ -50,6 +52,20 @@ namespace Test
                         Tuple.Create(ConsoleColor.Magenta, ConsoleColor.DarkYellow),
                         continuationPrompt,
                         TokenClassification.None, '}')),
+                _.Ctrl_c,
+                InputAcceptedNow
+                ));
+        }
+
+        [SkippableFact]
+        public void ContinuationPromptForScreenReader()
+        {
+            Skip.IfNot(ScreenReaderModeEnabled);
+            TestSetup(KeyMode.Cmd);
+
+            Test("", Keys(
+                "{\n}",
+                CheckThat(() => AssertScreenIs(2, TokenClassification.None, '{', NextLine, '}' )),
                 _.Ctrl_c,
                 InputAcceptedNow
                 ));
