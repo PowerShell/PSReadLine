@@ -1,3 +1,10 @@
+### [2.4.4-beta4] - 2025-08-28
+
+- Fix `IsMutexPresent()` to avoid incorrect use of `GetLastWin32Error()` (#4910)
+- Add screen reader support to PSReadLine (#4854)
+
+[2.4.4-beta4]: https://github.com/PowerShell/PSReadLine/compare/v2.4.3-beta3...v2.4.4-beta4
+
 ### [2.4.3-beta3] - 2025-07-23
 
 - Allow accepting the current input automatically from within an `OnIdle` event handler (#4830)
