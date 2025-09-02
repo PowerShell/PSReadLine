@@ -3,8 +3,7 @@ image: Visual Studio 2022
 
 environment:
   POWERSHELL_TELEMETRY_OPTOUT: 1
-  # Avoid expensive initialization of dotnet cli, see: http://donovanbrown.com/post/Stop-wasting-time-during-NET-Core-builds
-  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
+  DOTNET_NOLOGO: 1
   PSREADLINE_TESTRUN: 1
 
 cache:
