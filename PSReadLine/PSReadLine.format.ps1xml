@@ -145,6 +145,9 @@ $d = [Microsoft.PowerShell.KeyHandler]::GetGroupingDescription($_.Group)
                 <PropertyName>ShowToolTips</PropertyName>
               </ListItem>
               <ListItem>
+                <PropertyName>ScreenReaderModeEnabled</PropertyName>
+              </ListItem>
+              <ListItem>
                 <PropertyName>ViModeIndicator</PropertyName>
               </ListItem>
               <ListItem>
