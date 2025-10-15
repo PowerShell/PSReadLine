@@ -191,6 +191,8 @@ namespace Microsoft.PowerShell
 
         private void WriteParameterHelp(dynamic helpContent)
         {
+            System.Diagnostics.Debug.Assert(helpContent is not null);
+
             Collection<string> helpBlock;
 
             if (helpContent.Description is not string descriptionText)
