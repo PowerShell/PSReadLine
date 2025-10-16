@@ -67,7 +67,6 @@ namespace Microsoft.PowerShell
                     .AddParameter("Parameter", parameterName)
                     .Invoke<PSObject>()
                     .FirstOrDefault();
-
             }
             catch (Exception)
             {
@@ -192,11 +191,13 @@ namespace Microsoft.PowerShell
 
         private void WriteParameterHelp(dynamic helpContent)
         {
+            System.Diagnostics.Debug.Assert(helpContent is not null);
+
             Collection<string> helpBlock;
 
-            if (helpContent?.Description is not string descriptionText)
+            if (helpContent.Description is not string descriptionText)
             {
-                descriptionText = helpContent?.Description?[0]?.Text;
+                descriptionText = helpContent.Description?[0]?.Text;
             }
 
             if (descriptionText is null)
@@ -209,7 +210,7 @@ namespace Microsoft.PowerShell
             }
             else
             {
-                string syntax = $"-{helpContent.name} <{helpContent.type.name}>";
+                string syntax = $"-{helpContent.name} <{helpContent.type?.name}>";
                 helpBlock = new Collection<string>
                 {
                     string.Empty,
