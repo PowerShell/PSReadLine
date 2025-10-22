@@ -1,3 +1,11 @@
+### [2.4.5] - 2025-10-22
+
+- Replace `DOTNET_SKIP_FIRST_TIME_EXPERIENCE` with `DOTNET_NOLOGO` (#4916) (Thanks @xtqqczze!)
+- Add the `ScreenReaderModeEnabled` property to formatting (#4970)
+- Fix a null reference exception when showing parameter help (#4971)
+
+[2.4.5]: https://github.com/PowerShell/PSReadLine/compare/v2.4.4-beta4...v2.4.5
+
 ### [2.4.4-beta4] - 2025-08-28
 
 - Fix `IsMutexPresent()` to avoid incorrect use of `GetLastWin32Error()` (#4910)
