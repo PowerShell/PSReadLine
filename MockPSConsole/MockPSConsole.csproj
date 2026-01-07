@@ -4,18 +4,14 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>MockPSConsole</RootNamespace>
     <AssemblyName>MockPSConsole</AssemblyName>
-    <TargetFrameworks>net472;net6.0</TargetFrameworks>
+    <TargetFramework>net8.0</TargetFramework>
     <FileAlignment>512</FileAlignment>
     <ApplicationManifest>Program.manifest</ApplicationManifest>
     <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net472'">
-    <PackageReference Include="PowerShellStandard.Library" version="5.1.0" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
-    <PackageReference Include="Microsoft.PowerShell.SDK" version="7.2.24" />
+  <ItemGroup>
+    <PackageReference Include="Microsoft.PowerShell.SDK" version="7.4.0" />
   </ItemGroup>
 
   <ItemGroup>
