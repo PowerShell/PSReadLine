@@ -19,46 +19,38 @@ param(
     [ValidateSet("Debug", "Release")]
     [string]$Configuration = (property Configuration Release),
 
-    [ValidateSet("net472", "net6.0")]
-    [string]$TestFramework,
-
     [switch]$CheckHelpContent
 )
 
 Import-Module "$PSScriptRoot/tools/helper.psm1"
 
+# Dynamically read target framework from project file
+$csprojPath = "$PSScriptRoot/PSReadLine/PSReadLine.csproj"
+[xml]$csproj = Get-Content $csprojPath
+$targetFramework = $csproj.Project.PropertyGroup.TargetFramework | Where-Object { $_ } | Select-Object -First 1
+
+if (-not $targetFramework) {
+    throw "Could not determine TargetFramework from $csprojPath"
+}
+
+Write-Verbose "Target framework: $targetFramework"
+
 # Final bits to release go here
 $targetDir = "bin/$Configuration/PSReadLine"
-
-if (-not $TestFramework) {
-    $TestFramework = $IsWindows ? "net472" : "net6.0"
-}
+$TestFramework = $targetFramework
 
 function ConvertTo-CRLF([string] $text) {
     $text.Replace("`r`n","`n").Replace("`n","`r`n")
 }
 
-$polyFillerParams = @{
-    Inputs = { Get-ChildItem Polyfill/*.cs, Polyfill/Polyfill.csproj }
-    Outputs = "Polyfill/bin/$Configuration/netstandard2.0/Microsoft.PowerShell.PSReadLine.Polyfiller.dll"
-}
-
 $binaryModuleParams = @{
-    Inputs  = { Get-ChildItem PSReadLine/*.cs, PSReadLine/PSReadLine.csproj, PSReadLine/PSReadLineResources.resx, Polyfill/*.cs, Polyfill/Polyfill.csproj }
-    Outputs = "PSReadLine/bin/$Configuration/netstandard2.0/Microsoft.PowerShell.PSReadLine.dll"
+    Inputs  = { Get-ChildItem PSReadLine/*.cs, PSReadLine/PSReadLine.csproj, PSReadLine/PSReadLineResources.resx }
+    Outputs = "PSReadLine/bin/$Configuration/$targetFramework/Microsoft.PowerShell.PSReadLine.dll"
 }
 
 $xUnitTestParams = @{
     Inputs = { Get-ChildItem test/*.cs, test/*.json, test/PSReadLine.Tests.csproj }
     Outputs = "test/bin/$Configuration/$TestFramework/PSReadLine.Tests.dll"
-}
-
-<#
-Synopsis: Build the Polyfiller assembly
-#>
-task BuildPolyfiller @polyFillerParams {
-    exec { dotnet publish -c $Configuration -f 'netstandard2.0' Polyfill }
-    exec { dotnet publish -c $Configuration -f 'net6.0'  Polyfill }
 }
 
 <#
@@ -79,7 +71,7 @@ task BuildXUnitTests @xUnitTestParams {
 Synopsis: Run the unit tests
 #>
 task RunTests BuildMainModule, BuildXUnitTests, {
-    Write-Verbose "Run tests targeting '$TestFramework' ..."
+    Write-Verbose "Run tests targeting $targetFramework ..."
     Start-TestRun -Configuration $Configuration -Framework $TestFramework
 }
 
@@ -97,7 +89,7 @@ task CheckHelpContent -If $CheckHelpContent {
 <#
 Synopsis: Copy all of the files that belong in the module to one place in the layout for installation
 #>
-task LayoutModule BuildPolyfiller, BuildMainModule, {
+task LayoutModule BuildMainModule, {
     if (-not (Test-Path $targetDir -PathType Container)) {
         New-Item $targetDir -ItemType Directory -Force > $null
     }
@@ -115,17 +107,7 @@ task LayoutModule BuildPolyfiller, BuildMainModule, {
         Set-Content -Path (Join-Path $targetDir (Split-Path $file -Leaf)) -Value (ConvertTo-CRLF $content) -Force
     }
 
-    if (-not (Test-Path "$targetDir/netstd")) {
-        New-Item "$targetDir/netstd" -ItemType Directory -Force > $null
-    }
-    if (-not (Test-Path "$targetDir/net6plus")) {
-        New-Item "$targetDir/net6plus" -ItemType Directory -Force > $null
-    }
-
-    Copy-Item "Polyfill/bin/$Configuration/netstandard2.0/Microsoft.PowerShell.PSReadLine.Polyfiller.dll" "$targetDir/netstd" -Force
-    Copy-Item "Polyfill/bin/$Configuration/net6.0/Microsoft.PowerShell.PSReadLine.Polyfiller.dll" "$targetDir/net6plus" -Force
-
-    $binPath = "PSReadLine/bin/$Configuration/netstandard2.0/publish"
+    $binPath = "PSReadLine/bin/$Configuration/$targetFramework/publish"
     Copy-Item $binPath/Microsoft.PowerShell.PSReadLine.dll $targetDir
     Copy-Item $binPath/Microsoft.PowerShell.Pager.dll $targetDir
 

@@ -9,19 +9,18 @@
     <FileVersion>2.4.5</FileVersion>
     <InformationalVersion>2.4.5</InformationalVersion>
     <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
     <LangVersion>9.0</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="PowerShellStandard.Library" version="5.1.0" />
-    <PackageReference Include="Microsoft.CSharp" version="4.7.0" />
-    <PackageReference Include="Microsoft.PowerShell.Pager" version="1.0.0" />
-    <ProjectReference Include="..\Polyfill\Polyfill.csproj" />
+    <PackageReference Include="Microsoft.PowerShell.SDK" Version="7.4.0" />
+    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
+    <PackageReference Include="Microsoft.PowerShell.Pager" Version="1.0.0" />
   </ItemGroup>
-
+ 
   <ItemGroup>
     <None Include="PSReadLine.psd1" CopyToOutputDirectory="PreserveNewest" />
     <None Include="PSReadLine.psm1" CopyToOutputDirectory="PreserveNewest" />
