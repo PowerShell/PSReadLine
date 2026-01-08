@@ -153,7 +153,7 @@ namespace Test
         // so the tests aren't sensitive to tweaks to the default colors.
         internal static readonly ConsoleColor[] Colors = new []
         {
-        /*None*/      ConsoleColor.DarkRed,
+        /*None*/      ConsoleColor.White,
         /*Comment*/   ConsoleColor.Blue,
         /*Keyword*/   ConsoleColor.Cyan,
         /*String*/    ConsoleColor.Gray,

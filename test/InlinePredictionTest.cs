@@ -638,7 +638,7 @@ namespace Test
             Assert.Equal(Guid.Empty, _mockedMethods.acceptedPredictorId);
             Assert.Null(_mockedMethods.acceptedSuggestion);
             Assert.NotNull(_mockedMethods.commandHistory);
-            Assert.Equal(1, _mockedMethods.commandHistory.Count);
+            Assert.Single(_mockedMethods.commandHistory);
             Assert.Equal("netsh show me", _mockedMethods.commandHistory[0]);
 
             _mockedMethods.ClearPredictionFields();
@@ -839,5 +839,15 @@ namespace Test
                         TokenClassification.Command, "vv"))
             ));
         }
+
+        // Example: How to validate 256-color emission for predictions
+        // When PSReadLine emits ANSI escape codes like \x1b[38;5;238m (256-color),
+        // the test console now tracks them in Emitted256Colors list.
+        //
+        // Usage in tests:
+        //   CheckThat(() => {
+        //       // Verify PSReadLine emitted color 238 for prediction text
+        //       Assert.Contains(_console.Emitted256Colors, c => c.ColorIndex == 238);
+        //   })
     }
 }
