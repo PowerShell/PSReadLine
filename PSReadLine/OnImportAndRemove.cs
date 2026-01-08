@@ -9,29 +9,12 @@ namespace Microsoft.PowerShell.PSReadLine
     {
         public void OnImport()
         {
-            AppDomain.CurrentDomain.AssemblyResolve += ResolveAssembly;
+            // Module initialization - reserved for future use
         }
 
         public void OnRemove(PSModuleInfo module)
         {
-            AppDomain.CurrentDomain.AssemblyResolve -= ResolveAssembly;
-        }
-
-        /// <summary>
-        /// Load the correct 'Polyfiller' assembly based on the runtime.
-        /// </summary>
-        private static Assembly ResolveAssembly(object sender, ResolveEventArgs args)
-        {
-            if (args.Name != "Microsoft.PowerShell.PSReadLine.Polyfiller, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null")
-            {
-                return null;
-            }
-
-            string root = Path.GetDirectoryName(typeof(OnModuleImportAndRemove).Assembly.Location);
-            string subd = (Environment.Version.Major >= 6) ? "net6plus" : "netstd";
-            string path = Path.Combine(root, subd, "Microsoft.PowerShell.PSReadLine.Polyfiller.dll");
-
-            return Assembly.LoadFrom(path);
+            // Module cleanup - reserved for future use
         }
     }
 }

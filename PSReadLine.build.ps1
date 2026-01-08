@@ -37,7 +37,6 @@ Write-Verbose "Target framework: $targetFramework"
 
 # Final bits to release go here
 $targetDir = "bin/$Configuration/PSReadLine"
-$TestFramework = $targetFramework
 
 function ConvertTo-CRLF([string] $text) {
     $text.Replace("`r`n","`n").Replace("`n","`r`n")
@@ -50,7 +49,7 @@ $binaryModuleParams = @{
 
 $xUnitTestParams = @{
     Inputs = { Get-ChildItem test/*.cs, test/*.json, test/PSReadLine.Tests.csproj }
-    Outputs = "test/bin/$Configuration/$TestFramework/PSReadLine.Tests.dll"
+    Outputs = "test/bin/$Configuration/$targetFramework/PSReadLine.Tests.dll"
 }
 
 <#
@@ -64,7 +63,7 @@ task BuildMainModule @binaryModuleParams {
 Synopsis: Build xUnit tests
 #>
 task BuildXUnitTests @xUnitTestParams {
-    exec { dotnet publish -f $TestFramework -c $Configuration test }
+    exec { dotnet publish -f $targetFramework -c $Configuration test }
 }
 
 <#
@@ -72,7 +71,7 @@ Synopsis: Run the unit tests
 #>
 task RunTests BuildMainModule, BuildXUnitTests, {
     Write-Verbose "Run tests targeting $targetFramework ..."
-    Start-TestRun -Configuration $Configuration -Framework $TestFramework
+    Start-TestRun -Configuration $Configuration -Framework $targetFramework
 }
 
 <#

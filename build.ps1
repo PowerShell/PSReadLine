@@ -10,13 +10,13 @@
     Check and install prerequisites for the build.
 .EXAMPLE
     PS > .\build.ps1 -Configuration Release
-    Build the main module with 'Release' configuration targeting 'netstandard2.0'.
+    Build the main module with 'Release' configuration targeting 'net8.0'.
 .EXAMPLE
     PS > .\build.ps1
-    Build the main module with the default configuration (Debug) targeting 'netstandard2.0'.
+    Build the main module with the default configuration (Debug) targeting 'net8.0'.
 .EXAMPLE
     PS > .\build.ps1 -Test
-    Run xUnit tests with the default configuration (Debug) and the default target framework (net472 on Windows or net6.0 otherwise).
+    Run xUnit tests with the default configuration (Debug) targeting 'net8.0'.
 .PARAMETER Clean
     Clean the local repo, but keep untracked files.
 .PARAMETER Bootstrap
@@ -25,13 +25,6 @@
     Run tests.
 .PARAMETER Configuration
     The configuration setting for the build. The default value is 'Debug'.
-.PARAMETER Framework
-    The target framework when testing:
-      - net472: run tests with .NET Framework
-      - net6.0: run tests with .NET 6.0
-    When not specified, the target framework is determined by the current OS platform:
-      - use 'net472' on Windows
-      - use 'net6.0' on Unix platforms
 #>
 [CmdletBinding(DefaultParameterSetName = 'default')]
 param(
@@ -46,10 +39,6 @@ param(
 
     [Parameter(ParameterSetName = 'test')]
     [switch] $CheckHelpContent,
-
-    [Parameter(ParameterSetName = 'test')]
-    [ValidateSet("net472", "net6.0")]
-    [string] $Framework,
 
     [Parameter(ParameterSetName = 'default')]
     [Parameter(ParameterSetName = 'test')]
@@ -93,7 +82,6 @@ if (-not (Get-Module -Name InvokeBuild -ListAvailable)) {
 $buildTask = if ($Test) { "RunTests" } else { "ZipRelease" }
 $arguments = @{ Task = $buildTask; Configuration = $Configuration }
 
-if ($Framework) { $arguments.Add("TestFramework", $Framework) }
 if ($CheckHelpContent) { $arguments.Add("CheckHelpContent", $true) }
 
 Invoke-Build @arguments
