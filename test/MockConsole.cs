@@ -178,9 +178,6 @@ namespace Test
 
         public virtual int WindowTop { get; set; }
 
-        // Track 256-color/RGB escape sequences emitted by PSReadLine
-        public List<(int Position, bool IsForeground, int ColorIndex)> Emitted256Colors { get; } = new();
-
         public virtual ConsoleColor BackgroundColor
         {
             get => _backgroundColor;
@@ -251,19 +248,14 @@ namespace Test
 
                         // Handle 256-color/RGB sequences: 38 (FG) or 48 (BG)
                         // PSReadLine uses \x1b[38;5;238m and \x1b[48;5;238m for predictions
-                        // Track these sequences without changing color state
+                        // Skip these sequences without changing color state
                         if (subsequence is "38" or "48")
                         {
-                            bool isForeground = subsequence == "38";
                             if (j + 2 < parts.Length)
                             {
                                 var mode = parts[j + 1];
                                 if (mode == "5")
                                 {
-                                    if (int.TryParse(parts[j + 2], out var colorIndex))
-                                    {
-                                        Emitted256Colors.Add((writePos, isForeground, colorIndex));
-                                    }
                                     j += 2; // Skip mode and color index
                                 }
                                 else if (mode == "2" && j + 4 < parts.Length)
@@ -498,7 +490,7 @@ namespace Test
                     var len = endSequence - i - (s[endSequence] != 'm' ? 1 : 2);
                     var escapeSequence = s.Substring(i + 2, len);
                     var parts = escapeSequence.Split(';');
-                    
+
                     for (int j = 0; j < parts.Length; j++)
                     {
                         var subsequence = parts[j];
@@ -512,19 +504,14 @@ namespace Test
 
                         // Handle 256-color/RGB sequences: 38 (FG) or 48 (BG)
                         // PSReadLine uses \x1b[38;5;238m and \x1b[48;5;238m for predictions
-                        // Track these sequences without changing color state
+                        // Skip these sequences without changing color state
                         if (subsequence is "38" or "48")
                         {
-                            bool isForeground = subsequence == "38";
                             if (j + 2 < parts.Length)
                             {
                                 var mode = parts[j + 1];
                                 if (mode == "5")
                                 {
-                                    if (int.TryParse(parts[j + 2], out var colorIndex))
-                                    {
-                                        Emitted256Colors.Add((writePos, isForeground, colorIndex));
-                                    }
                                     j += 2; // Skip mode and color index
                                 }
                                 else if (mode == "2" && j + 4 < parts.Length)
