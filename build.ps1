@@ -5,18 +5,17 @@
     A script that provides simple entry points for bootstrapping, building and testing.
 .DESCRIPTION
     A script to make it easy to bootstrap, build and run tests.
+    This build targets .NET 8.0, which is the runtime for PowerShell 7.4 LTS.
+    PowerShell 7.4 LTS is supported until November 2026.
 .EXAMPLE
     PS > .\build.ps1 -Bootstrap
     Check and install prerequisites for the build.
 .EXAMPLE
     PS > .\build.ps1 -Configuration Release
-    Build the main module with 'Release' configuration targeting 'net8.0'.
 .EXAMPLE
     PS > .\build.ps1
-    Build the main module with the default configuration (Debug) targeting 'net8.0'.
 .EXAMPLE
     PS > .\build.ps1 -Test
-    Run xUnit tests with the default configuration (Debug) targeting 'net8.0'.
 .PARAMETER Clean
     Clean the local repo, but keep untracked files.
 .PARAMETER Bootstrap
