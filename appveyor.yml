@@ -11,8 +11,6 @@ cache:
 
 install:
   - pwsh: |
-      dotnet nuget remove source PowerShell_PublicPackages
-      dotnet nuget add source https://api.nuget.org/v3/index.json --name nuget.org
       Write-Host "PS Version: $($PSVersionTable.PSVersion)"
       ./build.ps1 -Bootstrap
 
