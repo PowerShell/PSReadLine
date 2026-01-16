@@ -1,8 +1,12 @@
 
-$MinimalSDKVersion = '6.0.425'
 $IsWindowsEnv = [System.Environment]::OSVersion.Platform -eq "Win32NT"
 $RepoRoot = (Resolve-Path "$PSScriptRoot/..").Path
 $LocalDotnetDirPath = if ($IsWindowsEnv) { "$env:LocalAppData\Microsoft\dotnet" } else { "$env:HOME/.dotnet" }
+
+# Read the required SDK version from global.json
+$globalJsonPath = Join-Path $RepoRoot "global.json"
+$globalJson = Get-Content -Path $globalJsonPath -Raw | ConvertFrom-Json
+$MinimalSDKVersion = $globalJson.sdk.version
 
 <#
 .SYNOPSIS

@@ -12,10 +12,13 @@
     Check and install prerequisites for the build.
 .EXAMPLE
     PS > .\build.ps1 -Configuration Release
+    Build the project in Release configuration.
 .EXAMPLE
     PS > .\build.ps1
+    Build the main module with the default configuration (Debug) configuration.
 .EXAMPLE
     PS > .\build.ps1 -Test
+    Run xUnit tests with the default configuration.
 .PARAMETER Clean
     Clean the local repo, but keep untracked files.
 .PARAMETER Bootstrap
