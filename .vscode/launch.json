@@ -14,7 +14,7 @@
                 "-NoProfile",
                 "-NoExit",
                 "-Command",
-                "Import-Module '${workspaceFolder}/PSReadLine/bin/Debug/netstandard2.0/PSReadLine.psd1'"
+                "Import-Module '${workspaceFolder}/PSReadLine/bin/Debug/net8.0/PSReadLine.psd1'"
             ],
             "console": "integratedTerminal",
             "justMyCode": false,

@@ -638,7 +638,7 @@ namespace Test
             Assert.Equal(Guid.Empty, _mockedMethods.acceptedPredictorId);
             Assert.Null(_mockedMethods.acceptedSuggestion);
             Assert.NotNull(_mockedMethods.commandHistory);
-            Assert.Equal(1, _mockedMethods.commandHistory.Count);
+            Assert.Single(_mockedMethods.commandHistory);
             Assert.Equal("netsh show me", _mockedMethods.commandHistory[0]);
 
             _mockedMethods.ClearPredictionFields();

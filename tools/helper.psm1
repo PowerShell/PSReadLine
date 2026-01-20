@@ -1,8 +1,12 @@
 
-$MinimalSDKVersion = '6.0.425'
 $IsWindowsEnv = [System.Environment]::OSVersion.Platform -eq "Win32NT"
 $RepoRoot = (Resolve-Path "$PSScriptRoot/..").Path
 $LocalDotnetDirPath = if ($IsWindowsEnv) { "$env:LocalAppData\Microsoft\dotnet" } else { "$env:HOME/.dotnet" }
+
+# Read the required SDK version from global.json
+$globalJsonPath = Join-Path $RepoRoot "global.json"
+$globalJson = Get-Content -Path $globalJsonPath -Raw | ConvertFrom-Json
+$MinimalSDKVersion = $globalJson.sdk.version
 
 <#
 .SYNOPSIS
@@ -54,7 +58,7 @@ function Test-DotnetSDK
 
     if (Test-Path $dotnetExePath) {
         $installedVersion = & $dotnetExePath --version
-        return $installedVersion -ge $MinimalSDKVersion
+        return [Version]::new($installedVersion) -ge [Version]::new($MinimalSDKVersion)
     }
     return $false
 }
@@ -211,13 +215,15 @@ function Start-TestRun
     function RunXunitTestsInNewProcess ([string] $Layout, [string] $OperatingSystem)
     {
         $filter = if ($Layout) {
-            Write-Log "Testing $Layout on $OperatingSystem...`n"
+            Write-Log "`nTesting $Layout on $OperatingSystem..."
             "FullyQualifiedName~Test.{0}_{1}" -f ($Layout -replace '-','_'), $OperatingSystem
         } else {
             ## Today, tests for screen-reader mode only run on Windows with the 'en-US' layout.
-            Write-Log "Testing screen reader mode...`n"
+            $Layout = "screen-reader"
+            Write-Log "`nTesting $Layout mode..."
             "FullyQualifiedName~Test.ScreenReader"
         }
+
         $testResultFile = "xUnitTestResults.{0}.xml" -f $Layout
         $testResultFile = Join-Path $testResultFolder $testResultFile
 
@@ -279,7 +285,7 @@ function Start-TestRun
                         }
                         else
                         {
-                            Write-Log "Testing not supported for the keyboard layout '$layout'."
+                            Write-Log "`nTesting not supported for the keyboard layout '$layout'."
                         }
                     }
                 }
@@ -289,6 +295,7 @@ function Start-TestRun
                     $null = [KeyboardLayoutHelper]::SetKeyboardLayout($savedLayout)
                 }
             }
+
             RunXunitTestsInNewProcess
         }
         else
