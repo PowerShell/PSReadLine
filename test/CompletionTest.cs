@@ -177,6 +177,8 @@ namespace Test
         [SkippableFact]
         public void MenuCompletions_Navigation1()
         {
+            Skip.If(ScreenReaderModeEnabled, "Menu completions are not supported in screen reader mode.");
+
             // Test 'RightArrow' and 'LeftArrow' with the following menu:
             //   Get-Many0   Get-Many3   Get-Many6   Get-Many9   Get-Many12
             //   Get-Many1   Get-Many4   Get-Many7   Get-Many10  Get-Many13
@@ -304,6 +306,8 @@ namespace Test
         [SkippableFact]
         public void MenuCompletions_Navigation2()
         {
+            Skip.If(ScreenReaderModeEnabled, "Menu completions are not supported in screen reader mode.");
+
             // Test 'RightArrow' with the following menu:
             //   Get-Less0   Get-Less3   Get-Less6   Get-Less9   Get-Less12
             //   Get-Less1   Get-Less4   Get-Less7   Get-Less10
@@ -387,6 +391,8 @@ namespace Test
         [SkippableFact]
         public void MenuCompletions_Navigation3()
         {
+            Skip.If(ScreenReaderModeEnabled, "Menu completions are not supported in screen reader mode.");
+
             // Test 'LeftArrow' with the following menu:
             //   Get-Less0   Get-Less3   Get-Less6   Get-Less9   Get-Less12
             //   Get-Less1   Get-Less4   Get-Less7   Get-Less10
@@ -462,6 +468,8 @@ namespace Test
         [SkippableFact]
         public void MenuCompletions_Navigation4()
         {
+            Skip.If(ScreenReaderModeEnabled, "Menu completions are not supported in screen reader mode.");
+
             // Test 'UpArrow' and 'DownArrow' with the following menu:
             //   Get-Less0   Get-Less3   Get-Less6   Get-Less9   Get-Less12
             //   Get-Less1   Get-Less4   Get-Less7   Get-Less10
@@ -633,6 +641,8 @@ namespace Test
         [SkippableFact]
         public void MenuCompletions_Navigation6()
         {
+            Skip.If(ScreenReaderModeEnabled, "Menu completions are not supported in screen reader mode.");
+
             // Test 'UpArrow', 'DownArrow', 'LeftArrow', and 'RightArrow' with the following menu:
             //   Get-NewDynamicParameters  Get-NewStyle
             //   Get-NewIdea
@@ -736,6 +746,8 @@ namespace Test
         [SkippableFact]
         public void MenuCompletions_Navigation7()
         {
+            Skip.If(ScreenReaderModeEnabled, "Menu completions are not supported in screen reader mode.");
+
             // Trigger the menu completion from the last line in the screen buffer, which will cause the screen
             // to scroll up. Then test 'DownArrow' and 'UpArrow' with the following menu to verify if scrolling
             // was handled correctly:
@@ -968,6 +980,8 @@ namespace Test
         [SkippableFact]
         public void MenuCompletions_WorkWithListView()
         {
+            Skip.If(ScreenReaderModeEnabled, "List view is not supported in screen reader mode.");
+
             TestSetup(KeyMode.Cmd, new KeyHandler("Ctrl+Spacebar", PSConsoleReadLine.MenuComplete));
 
             int listWidth = CheckWindowSize();
@@ -1032,6 +1046,8 @@ namespace Test
         [SkippableFact]
         public void MenuCompletions_HandleScrolling1()
         {
+            Skip.If(ScreenReaderModeEnabled, "Menu completions are not supported in screen reader mode.");
+
             // This test case covers the fix to https://github.com/PowerShell/PSReadLine/issues/2928.
             var basicScrollingConsole = new BasicScrollingConsole(keyboardLayout: _, width: 133, height: 10);
             TestSetup(basicScrollingConsole, KeyMode.Cmd, new KeyHandler("Ctrl+Spacebar", PSConsoleReadLine.MenuComplete));
@@ -1127,6 +1143,8 @@ namespace Test
         [SkippableFact]
         public void MenuCompletions_HandleScrolling2()
         {
+            Skip.If(ScreenReaderModeEnabled, "Menu completions are not supported in screen reader mode.");
+
             // This test case covers the fix to https://github.com/PowerShell/PSReadLine/issues/2948.
             var basicScrollingConsole = new BasicScrollingConsole(keyboardLayout: _, width: 133, height: 10);
             TestSetup(basicScrollingConsole, KeyMode.Cmd, new KeyHandler("Ctrl+Spacebar", PSConsoleReadLine.MenuComplete));

@@ -9,6 +9,8 @@ namespace Test
         [SkippableFact]
         public void List_MetaLine_And_Paging_Navigation()
         {
+            Skip.If(ScreenReaderModeEnabled, "List view is not supported in screen reader mode.");
+
             int listWidth = 100;
             TestSetup(new TestConsole(keyboardLayout: _, width: listWidth, height: 15), KeyMode.Cmd);
 
@@ -514,6 +516,8 @@ namespace Test
         [SkippableFact]
         public void ListView_AdapteTo_ConsoleSize()
         {
+            Skip.If(ScreenReaderModeEnabled, "List view is not supported in screen reader mode.");
+
             // Console size is very small (h: 6, w: 50), and thus the list view will adjust to use 3-line height,
             // and the metadata line will be reduced to only show the (index/total) info.
             int listWidth = 50;
@@ -850,6 +854,8 @@ namespace Test
         [SkippableFact]
         public void ListView_TermSize_Warning()
         {
+            Skip.If(ScreenReaderModeEnabled, "List view is not supported in screen reader mode.");
+
             // Console size is very small (h: 6, w: 50), and thus the list view will adjust to use 3-line height,
             // and the metadata line will be reduced to only show the (index/total) info.
             int listWidth = 40;

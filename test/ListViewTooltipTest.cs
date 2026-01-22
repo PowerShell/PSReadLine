@@ -9,6 +9,8 @@ namespace Test
         [SkippableFact]
         public void List_Item_Tooltip_4_Lines()
         {
+            Skip.If(ScreenReaderModeEnabled, "List view is not supported in screen reader mode.");
+
             // Set the terminal height to 22 and width to 60, so the metadata line will be fully rendered
             // and maximum 4 lines can be used for tooltip for a selected list item.
             int listWidth = 60;
@@ -134,7 +136,7 @@ namespace Test
                         dimmedColors, "   >> Hello",  NextLine,
                         dimmedColors, "      Binary", NextLine,
                         dimmedColors, "      World",  NextLine,
-                        dimmedColors, "      PowerShell is a task automation an… ",
+                        dimmedColors, "      PowerShell is a task automation anâ€¦ ",
                         TokenClassification.ListPrediction, "(<F4> to view all)",
                         NextLine,
                         TokenClassification.ListPrediction, '>',
@@ -206,6 +208,8 @@ namespace Test
         [SkippableFact]
         public void List_Item_Tooltip_2_Lines()
         {
+            Skip.If(ScreenReaderModeEnabled, "List view is not supported in screen reader mode.");
+
             // Set the terminal height to 15 and width to 60, so the metadata line will be fully rendered
             // and maximum 2 lines can be used for tooltip for a selected list item.
             int listWidth = 60;
@@ -287,7 +291,7 @@ namespace Test
                         TokenClassification.ListPredictionSelected, ']',
                         NextLine,
                         dimmedColors, "   >> Hello", NextLine,
-                        dimmedColors, "      Binary … ",
+                        dimmedColors, "      Binary â€¦ ",
                         TokenClassification.ListPrediction, "(<F4> to view all)",
                         NextLine,
                         TokenClassification.ListPrediction, '>',
@@ -363,6 +367,8 @@ namespace Test
         [SkippableFact]
         public void List_Item_Tooltip_1_Line()
         {
+            Skip.If(ScreenReaderModeEnabled, "List view is not supported in screen reader mode.");
+
             // Set the terminal height to 6 and width to 60, so the metadata line will be fully rendered
             // and maximum 2 lines can be used for tooltip for a selected list item.
             int listWidth = 60;
@@ -406,7 +412,7 @@ namespace Test
                         TokenClassification.ListPrediction, "Tooltip",
                         TokenClassification.ListPredictionSelected, ']',
                         NextLine,
-                        dimmedColors, "   >> Hello … ",
+                        dimmedColors, "   >> Hello â€¦ ",
                         TokenClassification.ListPrediction, "(<F4> to view all)",
                         NextLine,
                         TokenClassification.ListPrediction, '>',
@@ -462,7 +468,7 @@ namespace Test
                         TokenClassification.ListPrediction, "Tooltip",
                         TokenClassification.ListPredictionSelected, ']',
                         NextLine,
-                        dimmedColors, "   >> Hello … ",
+                        dimmedColors, "   >> Hello â€¦ ",
                         TokenClassification.ListPrediction, "(<F4> to view all)",
                         // List view is done, no more list item following.
                         NextLine

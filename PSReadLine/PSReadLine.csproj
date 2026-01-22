@@ -5,11 +5,11 @@
     <RootNamespace>Microsoft.PowerShell.PSReadLine</RootNamespace>
     <AssemblyName>Microsoft.PowerShell.PSReadLine</AssemblyName>
     <NoWarn>$(NoWarn);CA1416</NoWarn>
-    <AssemblyVersion>2.4.2.0</AssemblyVersion>
-    <FileVersion>2.4.2</FileVersion>
-    <InformationalVersion>2.4.2-beta2</InformationalVersion>
+    <AssemblyVersion>3.0.0.0</AssemblyVersion>
+    <FileVersion>3.0.0</FileVersion>
+    <InformationalVersion>3.0.0</InformationalVersion>
     <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <SuppressNETCoreSdkPreviewMessage>true</SuppressNETCoreSdkPreviewMessage>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
     <LangVersion>9.0</LangVersion>
@@ -18,17 +18,11 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Data.Sqlite" Version="9.0.4" />
-    <PackageReference Include="PowerShellStandard.Library" Version="5.1.0" />
-    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
+    <PackageReference Include="System.Management.Automation" Version="7.4.13">
+      <ExcludeAssets>contentFiles</ExcludeAssets>
+      <PrivateAssets>All</PrivateAssets>
+    </PackageReference>
     <PackageReference Include="Microsoft.PowerShell.Pager" Version="1.0.0" />
-    
-    <!-- Platform-specific SQLite bundles -->
-    <!-- Use Windows system SQLite on Windows -->
-    <PackageReference Include="SQLitePCLRaw.bundle_winsqlite3" Version="2.1.11" Condition="$([MSBuild]::IsOSPlatform('Windows'))" />
-    <!-- Use embedded SQLite with all native libraries for Linux/macOS -->
-    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.1.11" Condition="!$([MSBuild]::IsOSPlatform('Windows'))" />
-    
-    <ProjectReference Include="..\Polyfill\Polyfill.csproj" />
   </ItemGroup>
 
   <ItemGroup>

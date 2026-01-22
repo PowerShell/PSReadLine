@@ -300,6 +300,17 @@ namespace Test
                 buffer[writePos + i].ForegroundColor = ForegroundColor;
             }
         }
+        
+        public virtual void BlankRestOfBuffer()
+        {
+            var writePos = CursorTop * BufferWidth + CursorLeft;
+            for (; writePos < buffer.Length; writePos++)
+            {
+                buffer[writePos].UnicodeChar = ' ';
+                buffer[writePos].BackgroundColor = BackgroundColor;
+                buffer[writePos].ForegroundColor = ForegroundColor;
+            }
+        }
 
         public virtual void Clear()
         {
@@ -334,6 +345,7 @@ namespace Test
             c.BackgroundColor = (ConsoleColor)((int)c.BackgroundColor ^ 7);
             c._negative = b;
         }
+        
         protected static readonly Dictionary<string, Action<TestConsole>> EscapeSequenceActions = new()
         {
             {"7", c => ToggleNegative(c, true) },
@@ -376,7 +388,8 @@ namespace Test
                 c.ForegroundColor = DefaultForeground;
                 c.BackgroundColor = DefaultBackground;
             }},
-            {"2J", c => c.SetCursorPosition(0, 0) }
+            { "0J", c => c.BlankRestOfBuffer() },
+            { "2J", c => c.SetCursorPosition(0, 0) },
         };
     }
 
@@ -517,6 +530,17 @@ namespace Test
                 buffer[writePos + i].UnicodeChar = ' ';
                 buffer[writePos + i].BackgroundColor = BackgroundColor;
                 buffer[writePos + i].ForegroundColor = ForegroundColor;
+            }
+        }
+
+        public override void BlankRestOfBuffer()
+        {
+            var writePos = (_offset + CursorTop) * BufferWidth + CursorLeft;
+            for (; writePos < buffer.Length; writePos++)
+            {
+                buffer[writePos].UnicodeChar = ' ';
+                buffer[writePos].BackgroundColor = BackgroundColor;
+                buffer[writePos].ForegroundColor = ForegroundColor;
             }
         }
 

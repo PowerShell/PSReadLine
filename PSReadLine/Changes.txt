@@ -1,3 +1,29 @@
+### [2.4.5] - 2025-10-22
+
+- Replace `DOTNET_SKIP_FIRST_TIME_EXPERIENCE` with `DOTNET_NOLOGO` (#4916) (Thanks @xtqqczze!)
+- Add the `ScreenReaderModeEnabled` property to formatting (#4970)
+- Fix a null reference exception when showing parameter help (#4971)
+
+[2.4.5]: https://github.com/PowerShell/PSReadLine/compare/v2.4.4-beta4...v2.4.5
+
+### [2.4.4-beta4] - 2025-08-28
+
+- Fix `IsMutexPresent()` to avoid incorrect use of `GetLastWin32Error()` (#4910)
+- Add screen reader support to PSReadLine (#4854)
+
+[2.4.4-beta4]: https://github.com/PowerShell/PSReadLine/compare/v2.4.3-beta3...v2.4.4-beta4
+
+### [2.4.3-beta3] - 2025-07-23
+
+- Allow accepting the current input automatically from within an `OnIdle` event handler (#4830)
+- Add VS Code tasks and debug config (#4834, #4855)
+- Add bound check for the cursor top value to `InvokePrompt` (#4791) (Thanks @jftkcs!)
+- Fix typo in `SamplePSReadLineProfile.ps1` (#4725) (Thanks @mahir-cadirci!)
+- Fix line ending and cache some reflection operations (#4709)
+- Improve test reliability by making sure the PSReadLine one-time initialization is done (#4686) (Thanks @springcomp!)
+
+[2.4.3-beta3]: https://github.com/PowerShell/PSReadLine/compare/v2.4.2-beta2...v2.4.3-beta3
+
 ### [2.4.2-beta2] - 2025-04-16
 
 - Add a private field to indicate if PSReadLine is initialized and ready (#4706)

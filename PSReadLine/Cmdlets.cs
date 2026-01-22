@@ -15,6 +15,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.PowerShell.PSReadLine;
+using Microsoft.PowerShell.Internal;
 using AllowNull = System.Management.Automation.AllowNullAttribute;
 
 namespace Microsoft.PowerShell
@@ -163,11 +164,6 @@ namespace Microsoft.PowerShell
 
         public const HistorySaveStyle DefaultHistorySaveStyle = HistorySaveStyle.SaveIncrementally;
 
-        /// <summary>
-        /// The predictive suggestion feature is disabled by default.
-        /// </summary>
-        public const PredictionSource DefaultPredictionSource = PredictionSource.None;
-
         public const PredictionViewStyle DefaultPredictionViewStyle = PredictionViewStyle.InlineView;
 
         /// <summary>
@@ -195,7 +191,7 @@ namespace Microsoft.PowerShell
 
                 // Our tests expect that the default inline-view color is set to the new color, so we configure
                 // the color based on system environment only if we are not in test runs.
-                if (AppDomain.CurrentDomain.FriendlyName is not "PSReadLine.Tests")
+                if (AppDomain.CurrentDomain.FriendlyName is not "testhost")
                 {
                     DefaultInlinePredictionColor =
                         Environment.OSVersion.Version.Build >= 22621 // on Windows 11 22H2 or newer versions
@@ -215,6 +211,7 @@ namespace Microsoft.PowerShell
             ResetColors();
             EditMode = DefaultEditMode;
             HistoryType = DefaultHistoryType;
+            ScreenReaderModeEnabled = Accessibility.IsScreenReaderActive();
             ContinuationPrompt = DefaultContinuationPrompt;
             ContinuationPromptColor = Console.ForegroundColor;
             ExtraPromptLineCount = DefaultExtraPromptLineCount;
@@ -560,6 +557,8 @@ namespace Microsoft.PowerShell
 
         public bool TerminateOrphanedConsoleApps { get; set; }
 
+        public bool ScreenReaderModeEnabled { get; set; }
+
         internal string _defaultTokenColor;
         internal string _commentColor;
         internal string _keywordColor;
@@ -887,6 +886,14 @@ namespace Microsoft.PowerShell
             set => _terminateOrphanedConsoleApps = value;
         }
         internal SwitchParameter? _terminateOrphanedConsoleApps;
+
+        [Parameter]
+        public SwitchParameter EnableScreenReaderMode
+        {
+            get => _enableScreenReaderMode.GetValueOrDefault();
+            set => _enableScreenReaderMode = value;
+        }
+        internal SwitchParameter? _enableScreenReaderMode;
 
         [ExcludeFromCodeCoverage]
         protected override void EndProcessing()

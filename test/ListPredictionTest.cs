@@ -96,6 +96,8 @@ namespace Test
         [SkippableFact]
         public void List_RenderSuggestion_ListUpdatesWhileTyping()
         {
+            Skip.If(ScreenReaderModeEnabled, "List view is not supported in screen reader mode.");
+
             TestSetup(KeyMode.Cmd);
             int listWidth = CheckWindowSize();
             // The font effect sequences of the dimmed color used in list view metadata line
@@ -184,6 +186,8 @@ namespace Test
         [SkippableFact]
         public void List_RenderSuggestion_NavigateInList_DefaultUpArrowDownArrow()
         {
+            Skip.If(ScreenReaderModeEnabled, "List view is not supported in screen reader mode.");
+
             TestSetup(KeyMode.Cmd);
             int listWidth = CheckWindowSize();
             var dimmedColors = Tuple.Create(ConsoleColor.White, _console.BackgroundColor);
@@ -401,6 +405,8 @@ namespace Test
         [SkippableFact]
         public void List_RenderSuggestion_NavigateInList_HistorySearchBackwardForward()
         {
+            Skip.If(ScreenReaderModeEnabled, "List view is not supported in screen reader mode.");
+
             TestSetup(KeyMode.Cmd,
                       new KeyHandler("Ctrl+p", PSConsoleReadLine.HistorySearchBackward),
                       new KeyHandler("Ctrl+l", PSConsoleReadLine.HistorySearchForward));
@@ -620,6 +626,8 @@ namespace Test
         [SkippableFact]
         public void List_RenderSuggestion_Escape()
         {
+            Skip.If(ScreenReaderModeEnabled, "List view is not supported in screen reader mode.");
+
             TestSetup(KeyMode.Cmd);
             int listWidth = CheckWindowSize();
             var dimmedColors = Tuple.Create(ConsoleColor.White, _console.BackgroundColor);
@@ -783,6 +791,8 @@ namespace Test
         [SkippableFact]
         public void List_RenderSuggestion_DigitArgument()
         {
+            Skip.If(ScreenReaderModeEnabled, "List view is not supported in screen reader mode.");
+
             TestSetup(KeyMode.Cmd);
             int listWidth = CheckWindowSize();
             var dimmedColors = Tuple.Create(ConsoleColor.White, _console.BackgroundColor);
@@ -943,6 +953,8 @@ namespace Test
         [SkippableFact]
         public void List_RenderSuggestion_CtrlZ()
         {
+            Skip.If(ScreenReaderModeEnabled, "List view is not supported in screen reader mode.");
+
             TestSetup(KeyMode.Cmd);
             int listWidth = CheckWindowSize();
             var dimmedColors = Tuple.Create(ConsoleColor.White, _console.BackgroundColor);
@@ -1076,6 +1088,8 @@ namespace Test
         [SkippableFact]
         public void List_RenderSuggestion_Selection()
         {
+            Skip.If(ScreenReaderModeEnabled, "List view is not supported in screen reader mode.");
+
             TestSetup(KeyMode.Cmd);
             int listWidth = CheckWindowSize();
             var dimmedColors = Tuple.Create(ConsoleColor.White, _console.BackgroundColor);
@@ -1276,6 +1290,8 @@ namespace Test
         [SkippableFact]
         public void List_HistorySource_NoAcceptanceCallback()
         {
+            Skip.If(ScreenReaderModeEnabled, "List view is not supported in screen reader mode.");
+
             TestSetup(KeyMode.Cmd);
             int listWidth = CheckWindowSize();
             var dimmedColors = Tuple.Create(ConsoleColor.White, _console.BackgroundColor);
@@ -1340,6 +1356,8 @@ namespace Test
         [SkippableFact]
         public void List_PluginSource_Acceptance()
         {
+            Skip.If(ScreenReaderModeEnabled, "List view is not supported in screen reader mode.");
+
             TestSetup(KeyMode.Cmd);
             int listWidth = CheckWindowSize();
             var dimmedColors = Tuple.Create(ConsoleColor.White, _console.BackgroundColor);
@@ -1355,8 +1373,8 @@ namespace Test
                         TokenClassification.Command, "ec",
                         NextLine,
                         TokenClassification.ListPrediction, "<-/3>",
-                        TokenClassification.None, new string(' ', listWidth - 42), // 42 is the length of '<-/3>' plus '<TestPredictor(2) LongNamePredic…(1)>'.
-                        dimmedColors, "<TestPredictor(2) LongNamePredic…(1)>",
+                        TokenClassification.None, new string(' ', listWidth - 42), // 42 is the length of '<-/3>' plus '<TestPredictor(2) LongNamePredicâ€¦(1)>'.
+                        dimmedColors, "<TestPredictor(2) LongNamePredicâ€¦(1)>",
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.None, " SOME TEXT BEFORE ",
@@ -1377,9 +1395,9 @@ namespace Test
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.None, " SOME NEW TEXT",
-                        TokenClassification.None, new string(' ', listWidth - 32), // 32 is the length of '> SOME NEW TEXT' plus '[LongNamePredic…]'
+                        TokenClassification.None, new string(' ', listWidth - 32), // 32 is the length of '> SOME NEW TEXT' plus '[LongNamePredicâ€¦]'
                         TokenClassification.None, '[',
-                        TokenClassification.ListPrediction, "LongNamePredic…",
+                        TokenClassification.ListPrediction, "LongNamePredicâ€¦",
                         TokenClassification.None, ']',
                         // List view is done, no more list item following.
                         NextLine,
@@ -1395,10 +1413,10 @@ namespace Test
                         TokenClassification.None, " TEXT BEFORE ec",
                         NextLine,
                         TokenClassification.ListPrediction, "<1/3>",
-                        TokenClassification.None, new string(' ', listWidth - 44), // 44 is the length of '<1/3>' plus '<TestPredictor(1/2) LongNamePredic…(1)>'.
+                        TokenClassification.None, new string(' ', listWidth - 44), // 44 is the length of '<1/3>' plus '<TestPredictor(1/2) LongNamePredicâ€¦(1)>'.
                         dimmedColors, '<',
                         TokenClassification.ListPrediction, "TestPredictor(1/2) ",
-                        dimmedColors, "LongNamePredic…(1)>",
+                        dimmedColors, "LongNamePredicâ€¦(1)>",
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.ListPredictionSelected, " SOME TEXT BEFORE ",
@@ -1419,9 +1437,9 @@ namespace Test
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.None, " SOME NEW TEXT",
-                        TokenClassification.None, new string(' ', listWidth - 32), // 32 is the length of '> SOME NEW TEXT' plus '[LongNamePredic…]'
+                        TokenClassification.None, new string(' ', listWidth - 32), // 32 is the length of '> SOME NEW TEXT' plus '[LongNamePredicâ€¦]'
                         TokenClassification.None, '[',
-                        TokenClassification.ListPrediction, "LongNamePredic…",
+                        TokenClassification.ListPrediction, "LongNamePredicâ€¦",
                         TokenClassification.None, ']',
                         // List view is done, no more list item following.
                         NextLine,
@@ -1434,10 +1452,10 @@ namespace Test
                         TokenClassification.Selection, "SOME TEXT BEFORE ec",
                         NextLine,
                         TokenClassification.ListPrediction, "<1/3>",
-                        TokenClassification.None, new string(' ', listWidth - 44), // 44 is the length of '<1/3>' plus '<TestPredictor(1/2) LongNamePredic…(1)>'.
+                        TokenClassification.None, new string(' ', listWidth - 44), // 44 is the length of '<1/3>' plus '<TestPredictor(1/2) LongNamePredicâ€¦(1)>'.
                         dimmedColors, '<',
                         TokenClassification.ListPrediction, "TestPredictor(1/2) ",
-                        dimmedColors, "LongNamePredic…(1)>",
+                        dimmedColors, "LongNamePredicâ€¦(1)>",
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.ListPredictionSelected, " SOME TEXT BEFORE ",
@@ -1458,9 +1476,9 @@ namespace Test
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.None, " SOME NEW TEXT",
-                        TokenClassification.None, new string(' ', listWidth - 32), // 32 is the length of '> SOME NEW TEXT' plus '[LongNamePredic…]'
+                        TokenClassification.None, new string(' ', listWidth - 32), // 32 is the length of '> SOME NEW TEXT' plus '[LongNamePredicâ€¦]'
                         TokenClassification.None, '[',
-                        TokenClassification.ListPrediction, "LongNamePredic…",
+                        TokenClassification.ListPrediction, "LongNamePredicâ€¦",
                         TokenClassification.None, ']',
                         // List view is done, no more list item following.
                         NextLine,
@@ -1473,8 +1491,8 @@ namespace Test
                         TokenClassification.Command, "j",
                         NextLine,
                         TokenClassification.ListPrediction, "<-/3>",
-                        TokenClassification.None, new string(' ', listWidth - 42), // 42 is the length of '<-/3>' plus '<TestPredictor(2) LongNamePredic…(1)>'.
-                        dimmedColors, "<TestPredictor(2) LongNamePredic…(1)>",
+                        TokenClassification.None, new string(' ', listWidth - 42), // 42 is the length of '<-/3>' plus '<TestPredictor(2) LongNamePredicâ€¦(1)>'.
+                        dimmedColors, "<TestPredictor(2) LongNamePredicâ€¦(1)>",
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.None, " SOME TEXT BEFORE ",
@@ -1495,9 +1513,9 @@ namespace Test
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.None, " SOME NEW TEXT",
-                        TokenClassification.None, new string(' ', listWidth - 32), // 32 is the length of '> SOME NEW TEXT' plus '[LongNamePredic…]'
+                        TokenClassification.None, new string(' ', listWidth - 32), // 32 is the length of '> SOME NEW TEXT' plus '[LongNamePredicâ€¦]'
                         TokenClassification.None, '[',
-                        TokenClassification.ListPrediction, "LongNamePredic…",
+                        TokenClassification.ListPrediction, "LongNamePredicâ€¦",
                         TokenClassification.None, ']',
                         // List view is done, no more list item following.
                         NextLine,
@@ -1518,9 +1536,9 @@ namespace Test
                         TokenClassification.None, " NEW TEXT",
                         NextLine,
                         TokenClassification.ListPrediction, "<3/3>",
-                        TokenClassification.None, new string(' ', listWidth - 44), // 44 is the length of '<1/3>' plus '<TestPredictor(2) LongNamePredic…(1/1)>'.
+                        TokenClassification.None, new string(' ', listWidth - 44), // 44 is the length of '<1/3>' plus '<TestPredictor(2) LongNamePredicâ€¦(1/1)>'.
                         dimmedColors, "<TestPredictor(2) ",
-                        TokenClassification.ListPrediction, "LongNamePredic…(1/1)",
+                        TokenClassification.ListPrediction, "LongNamePredicâ€¦(1/1)",
                         dimmedColors, '>',
                         NextLine,
                         TokenClassification.ListPrediction, '>',
@@ -1542,9 +1560,9 @@ namespace Test
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.ListPredictionSelected, " SOME NEW TEXT",
-                        TokenClassification.ListPredictionSelected, new string(' ', listWidth - 32), // 32 is the length of '> SOME NEW TEXT' plus '[LongNamePredic…]'
+                        TokenClassification.ListPredictionSelected, new string(' ', listWidth - 32), // 32 is the length of '> SOME NEW TEXT' plus '[LongNamePredicâ€¦]'
                         TokenClassification.ListPredictionSelected, '[',
-                        TokenClassification.ListPrediction, "LongNamePredic…",
+                        TokenClassification.ListPrediction, "LongNamePredicâ€¦",
                         TokenClassification.ListPredictionSelected, ']',
                         // List view is done, no more list item following.
                         NextLine,
@@ -1558,8 +1576,8 @@ namespace Test
                         TokenClassification.None, " NEW TEX",
                         NextLine,
                         TokenClassification.ListPrediction, "<-/3>",
-                        TokenClassification.None, new string(' ', listWidth - 42), // 42 is the length of '<-/3>' plus '<TestPredictor(2) LongNamePredic…(1)>'.
-                        dimmedColors, "<TestPredictor(2) LongNamePredic…(1)>",
+                        TokenClassification.None, new string(' ', listWidth - 42), // 42 is the length of '<-/3>' plus '<TestPredictor(2) LongNamePredicâ€¦(1)>'.
+                        dimmedColors, "<TestPredictor(2) LongNamePredicâ€¦(1)>",
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.None, " SOME TEXT BEFORE ",
@@ -1582,9 +1600,9 @@ namespace Test
                         TokenClassification.None, ' ',
                         emphasisColors, "SOME NEW TEX",
                         TokenClassification.None, 'T',
-                        TokenClassification.None, new string(' ', listWidth - 32), // 32 is the length of '> SOME NEW TEXT' plus '[LongNamePredic…]'
+                        TokenClassification.None, new string(' ', listWidth - 32), // 32 is the length of '> SOME NEW TEXT' plus '[LongNamePredicâ€¦]'
                         TokenClassification.None, '[',
-                        TokenClassification.ListPrediction, "LongNamePredic…",
+                        TokenClassification.ListPrediction, "LongNamePredicâ€¦",
                         TokenClassification.None, ']',
                         // List view is done, no more list item following.
                         NextLine,
@@ -1604,10 +1622,10 @@ namespace Test
                         TokenClassification.None, " NEW TEX SOME TEXT AFTER",
                         NextLine,
                         TokenClassification.ListPrediction, "<2/3>",
-                        TokenClassification.None, new string(' ', listWidth - 44), // 44 is the length of '<2/3>' plus '<TestPredictor(2/2) LongNamePredic…(1)>'.
+                        TokenClassification.None, new string(' ', listWidth - 44), // 44 is the length of '<2/3>' plus '<TestPredictor(2/2) LongNamePredicâ€¦(1)>'.
                         dimmedColors, '<',
                         TokenClassification.ListPrediction, "TestPredictor(2/2) ",
-                        dimmedColors, "LongNamePredic…(1)>",
+                        dimmedColors, "LongNamePredicâ€¦(1)>",
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.None, " SOME TEXT BEFORE ",
@@ -1630,9 +1648,9 @@ namespace Test
                         TokenClassification.None, ' ',
                         emphasisColors, "SOME NEW TEX",
                         TokenClassification.None, 'T',
-                        TokenClassification.None, new string(' ', listWidth - 32), // 32 is the length of '> SOME NEW TEXT' plus '[LongNamePredic…]'
+                        TokenClassification.None, new string(' ', listWidth - 32), // 32 is the length of '> SOME NEW TEXT' plus '[LongNamePredicâ€¦]'
                         TokenClassification.None, '[',
-                        TokenClassification.ListPrediction, "LongNamePredic…",
+                        TokenClassification.ListPrediction, "LongNamePredicâ€¦",
                         TokenClassification.None, ']',
                         // List view is done, no more list item following.
                         NextLine,
@@ -1661,6 +1679,8 @@ namespace Test
         [SkippableFact]
         public void List_HistoryAndPluginSource_Acceptance()
         {
+            Skip.If(ScreenReaderModeEnabled, "List view is not supported in screen reader mode.");
+
             TestSetup(KeyMode.Cmd);
             int listWidth = CheckWindowSize();
             var dimmedColors = Tuple.Create(ConsoleColor.White, _console.BackgroundColor);
@@ -1676,8 +1696,8 @@ namespace Test
                         TokenClassification.Command, "ec",
                         NextLine,
                         TokenClassification.ListPrediction, "<-/5>",
-                        TokenClassification.None, new string(' ', listWidth - 36), // 36 is the length of '<-/5>' plus '<History(2) TestPredictor(2) …>'.
-                        dimmedColors, "<History(2) TestPredictor(2) …>",
+                        TokenClassification.None, new string(' ', listWidth - 36), // 36 is the length of '<-/5>' plus '<History(2) TestPredictor(2) â€¦>'.
+                        dimmedColors, "<History(2) TestPredictor(2) â€¦>",
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.None, ' ',
@@ -1716,9 +1736,9 @@ namespace Test
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.None, " SOME NEW TEXT",
-                        TokenClassification.None, new string(' ', listWidth - 32), // 32 is the length of '> SOME NEW TEXT' plus '[LongNamePredic…]'
+                        TokenClassification.None, new string(' ', listWidth - 32), // 32 is the length of '> SOME NEW TEXT' plus '[LongNamePredicâ€¦]'
                         TokenClassification.None, '[',
-                        TokenClassification.ListPrediction, "LongNamePredic…",
+                        TokenClassification.ListPrediction, "LongNamePredicâ€¦",
                         TokenClassification.None, ']',
                         // List view is done, no more list item following.
                         NextLine,
@@ -1733,10 +1753,10 @@ namespace Test
                         TokenClassification.Selection, "eca -zoo",
                         NextLine,
                         TokenClassification.ListPrediction, "<1/5>",
-                        TokenClassification.None, new string(' ', listWidth - 38), // 38 is the length of '<1/5>' plus '<History(1/2) TestPredictor(2) …>'.
+                        TokenClassification.None, new string(' ', listWidth - 38), // 38 is the length of '<1/5>' plus '<History(1/2) TestPredictor(2) â€¦>'.
                         dimmedColors, '<',
                         TokenClassification.ListPrediction, "History(1/2) ",
-                        dimmedColors, "TestPredictor(2) …>",
+                        dimmedColors, "TestPredictor(2) â€¦>",
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.ListPredictionSelected, ' ',
@@ -1775,9 +1795,9 @@ namespace Test
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.None, " SOME NEW TEXT",
-                        TokenClassification.None, new string(' ', listWidth - 32), // 32 is the length of '> SOME NEW TEXT' plus '[LongNamePredic…]'
+                        TokenClassification.None, new string(' ', listWidth - 32), // 32 is the length of '> SOME NEW TEXT' plus '[LongNamePredicâ€¦]'
                         TokenClassification.None, '[',
-                        TokenClassification.ListPrediction, "LongNamePredic…",
+                        TokenClassification.ListPrediction, "LongNamePredicâ€¦",
                         TokenClassification.None, ']',
                         // List view is done, no more list item following.
                         NextLine,
@@ -1789,8 +1809,8 @@ namespace Test
                         TokenClassification.Command, "j",
                         NextLine,
                         TokenClassification.ListPrediction, "<-/4>",
-                        TokenClassification.None, new string(' ', listWidth - 36), // 36 is the length of '<-/4>' plus '<History(1) TestPredictor(2) …>'.
-                        dimmedColors, "<History(1) TestPredictor(2) …>",
+                        TokenClassification.None, new string(' ', listWidth - 36), // 36 is the length of '<-/4>' plus '<History(1) TestPredictor(2) â€¦>'.
+                        dimmedColors, "<History(1) TestPredictor(2) â€¦>",
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.None, ' ',
@@ -1820,9 +1840,9 @@ namespace Test
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.None, " SOME NEW TEXT",
-                        TokenClassification.None, new string(' ', listWidth - 32), // 32 is the length of '> SOME NEW TEXT' plus '[LongNamePredic…]'
+                        TokenClassification.None, new string(' ', listWidth - 32), // 32 is the length of '> SOME NEW TEXT' plus '[LongNamePredicâ€¦]'
                         TokenClassification.None, '[',
-                        TokenClassification.ListPrediction, "LongNamePredic…",
+                        TokenClassification.ListPrediction, "LongNamePredicâ€¦",
                         TokenClassification.None, ']',
                         // List view is done, no more list item following.
                         NextLine,
@@ -1842,9 +1862,9 @@ namespace Test
                         TokenClassification.None, " NEW TEXT",
                         NextLine,
                         TokenClassification.ListPrediction, "<4/4>",
-                        TokenClassification.None, new string(' ', listWidth - 46), // 46 is the length of '<4/4>' plus '<… TestPredictor(2) LongNamePredic…(1/1)>'.
-                        dimmedColors, "<… TestPredictor(2) ",
-                        TokenClassification.ListPrediction, "LongNamePredic…(1/1)",
+                        TokenClassification.None, new string(' ', listWidth - 46), // 46 is the length of '<4/4>' plus '<â€¦ TestPredictor(2) LongNamePredicâ€¦(1/1)>'.
+                        dimmedColors, "<â€¦ TestPredictor(2) ",
+                        TokenClassification.ListPrediction, "LongNamePredicâ€¦(1/1)",
                         dimmedColors, '>',
                         NextLine,
                         TokenClassification.ListPrediction, '>',
@@ -1875,9 +1895,9 @@ namespace Test
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.ListPredictionSelected, " SOME NEW TEXT",
-                        TokenClassification.ListPredictionSelected, new string(' ', listWidth - 32), // 32 is the length of '> SOME NEW TEXT' plus '[LongNamePredic…]'
+                        TokenClassification.ListPredictionSelected, new string(' ', listWidth - 32), // 32 is the length of '> SOME NEW TEXT' plus '[LongNamePredicâ€¦]'
                         TokenClassification.ListPredictionSelected, '[',
-                        TokenClassification.ListPrediction, "LongNamePredic…",
+                        TokenClassification.ListPrediction, "LongNamePredicâ€¦",
                         TokenClassification.ListPredictionSelected, ']',
                         // List view is done, no more list item following.
                         NextLine,
@@ -1891,8 +1911,8 @@ namespace Test
                         TokenClassification.None, " NEW TEX",
                         NextLine,
                         TokenClassification.ListPrediction, "<-/3>",
-                        TokenClassification.None, new string(' ', listWidth - 42), // 42 is the length of '<-/3>' plus '<TestPredictor(2) LongNamePredic…(1)>'.
-                        dimmedColors, "<TestPredictor(2) LongNamePredic…(1)>",
+                        TokenClassification.None, new string(' ', listWidth - 42), // 42 is the length of '<-/3>' plus '<TestPredictor(2) LongNamePredicâ€¦(1)>'.
+                        dimmedColors, "<TestPredictor(2) LongNamePredicâ€¦(1)>",
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.None, " SOME TEXT BEFORE ",
@@ -1915,9 +1935,9 @@ namespace Test
                         TokenClassification.None, ' ',
                         emphasisColors, "SOME NEW TEX",
                         TokenClassification.None, 'T',
-                        TokenClassification.None, new string(' ', listWidth - 32), // 32 is the length of '> SOME NEW TEXT' plus '[LongNamePredic…]'
+                        TokenClassification.None, new string(' ', listWidth - 32), // 32 is the length of '> SOME NEW TEXT' plus '[LongNamePredicâ€¦]'
                         TokenClassification.None, '[',
-                        TokenClassification.ListPrediction, "LongNamePredic…",
+                        TokenClassification.ListPrediction, "LongNamePredicâ€¦",
                         TokenClassification.None, ']',
                         // List view is done, no more list item following.
                         NextLine,
@@ -1937,10 +1957,10 @@ namespace Test
                         TokenClassification.None, " NEW TEX SOME TEXT AFTER",
                         NextLine,
                         TokenClassification.ListPrediction, "<2/3>",
-                        TokenClassification.None, new string(' ', listWidth - 44), // 44 is the length of '<2/3>' plus '<TestPredictor(2/2) LongNamePredic…(1)>'.
+                        TokenClassification.None, new string(' ', listWidth - 44), // 44 is the length of '<2/3>' plus '<TestPredictor(2/2) LongNamePredicâ€¦(1)>'.
                         dimmedColors, '<',
                         TokenClassification.ListPrediction, "TestPredictor(2/2) ",
-                        dimmedColors, "LongNamePredic…(1)>",
+                        dimmedColors, "LongNamePredicâ€¦(1)>",
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.None, " SOME TEXT BEFORE ",
@@ -1963,9 +1983,9 @@ namespace Test
                         TokenClassification.None, ' ',
                         emphasisColors, "SOME NEW TEX",
                         TokenClassification.None, 'T',
-                        TokenClassification.None, new string(' ', listWidth - 32), // 32 is the length of '> SOME NEW TEXT' plus '[LongNamePredic…]'
+                        TokenClassification.None, new string(' ', listWidth - 32), // 32 is the length of '> SOME NEW TEXT' plus '[LongNamePredicâ€¦]'
                         TokenClassification.None, '[',
-                        TokenClassification.ListPrediction, "LongNamePredic…",
+                        TokenClassification.ListPrediction, "LongNamePredicâ€¦",
                         TokenClassification.None, ']',
                         // List view is done, no more list item following.
                         NextLine,
@@ -1994,6 +2014,8 @@ namespace Test
         [SkippableFact]
         public void List_HistoryAndPluginSource_Deduplication()
         {
+            Skip.If(ScreenReaderModeEnabled, "List view is not supported in screen reader mode.");
+
             TestSetup(KeyMode.Cmd);
             int listWidth = CheckWindowSize();
             var dimmedColors = Tuple.Create(ConsoleColor.White, _console.BackgroundColor);
@@ -2011,8 +2033,8 @@ namespace Test
                         TokenClassification.Command, "de-dup",
                         NextLine,
                         TokenClassification.ListPrediction, "<-/4>",
-                        TokenClassification.None, new string(' ', listWidth - 36), // 36 is the length of '<-/4>' plus '<History(2) TestPredictor(1) …>'.
-                        dimmedColors, "<History(2) TestPredictor(1) …>",
+                        TokenClassification.None, new string(' ', listWidth - 36), // 36 is the length of '<-/4>' plus '<History(2) TestPredictor(1) â€¦>'.
+                        dimmedColors, "<History(2) TestPredictor(1) â€¦>",
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.None, ' ',
@@ -2042,9 +2064,9 @@ namespace Test
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.None, " SOME NEW TEXT",
-                        TokenClassification.None, new string(' ', listWidth - 32), // 32 is the length of '> SOME NEW TEXT' plus '[LongNamePredic…]'
+                        TokenClassification.None, new string(' ', listWidth - 32), // 32 is the length of '> SOME NEW TEXT' plus '[LongNamePredicâ€¦]'
                         TokenClassification.None, '[',
-                        TokenClassification.ListPrediction, "LongNamePredic…",
+                        TokenClassification.ListPrediction, "LongNamePredicâ€¦",
                         TokenClassification.None, ']',
                         // List view is done, no more list item following.
                         NextLine,
@@ -2075,8 +2097,8 @@ namespace Test
                         TokenClassification.Command, "de-dup",
                         NextLine,
                         TokenClassification.ListPrediction, "<-/4>",
-                        TokenClassification.None, new string(' ', listWidth - 36), // 36 is the length of '<-/4>' plus '<History(2) TestPredictor(1) …>'.
-                        dimmedColors, "<History(2) TestPredictor(1) …>",
+                        TokenClassification.None, new string(' ', listWidth - 36), // 36 is the length of '<-/4>' plus '<History(2) TestPredictor(1) â€¦>'.
+                        dimmedColors, "<History(2) TestPredictor(1) â€¦>",
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.None, ' ',
@@ -2105,9 +2127,9 @@ namespace Test
                         NextLine,
                         TokenClassification.ListPrediction, '>',
                         TokenClassification.None, " SOME NEW TEXT",
-                        TokenClassification.None, new string(' ', listWidth - 32), // 32 is the length of '> SOME NEW TEXT' plus '[LongNamePredic…]'
+                        TokenClassification.None, new string(' ', listWidth - 32), // 32 is the length of '> SOME NEW TEXT' plus '[LongNamePredicâ€¦]'
                         TokenClassification.None, '[',
-                        TokenClassification.ListPrediction, "LongNamePredic…",
+                        TokenClassification.ListPrediction, "LongNamePredicâ€¦",
                         TokenClassification.None, ']',
                         // List view is done, no more list item following.
                         NextLine,
