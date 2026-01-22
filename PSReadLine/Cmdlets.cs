@@ -62,7 +62,14 @@ namespace Microsoft.PowerShell
     {
         SkipAdding,
         MemoryOnly,
-        MemoryAndFile
+        MemoryAndFile,
+        SQLite
+    }
+
+    public enum HistoryType
+    {
+        Text,
+        SQLite
     }
 
     public enum PredictionSource
@@ -106,6 +113,12 @@ namespace Microsoft.PowerShell
         public static readonly EditMode DefaultEditMode;
 
         public const string DefaultContinuationPrompt = ">> ";
+
+        /// <summary>
+        /// The default history format is text.  The SQLite is experimental.
+        /// It is not recommended to use it for production yet.
+        /// </summary>
+        public const HistoryType DefaultHistoryType = HistoryType.Text;
 
         /// <summary>
         /// The maximum number of commands to store in the history.
@@ -197,6 +210,7 @@ namespace Microsoft.PowerShell
         {
             ResetColors();
             EditMode = DefaultEditMode;
+            HistoryType = DefaultHistoryType;
             ScreenReaderModeEnabled = Accessibility.IsScreenReaderActive();
             ContinuationPrompt = DefaultContinuationPrompt;
             ContinuationPromptColor = Console.ForegroundColor;
@@ -232,6 +246,13 @@ namespace Microsoft.PowerShell
                     "PowerShell",
                     "PSReadLine",
                     historyFileName);
+                SqliteHistorySavePath = System.IO.Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                    "Microsoft",
+                    "Windows",
+                    "PowerShell",
+                    "PSReadLine",
+                    hostName + "_history.db");
             }
             else
             {
@@ -333,6 +354,7 @@ namespace Microsoft.PowerShell
         /// that do invoke the script block - this covers the most useful cases.
         /// </summary>
         public HashSet<string> CommandsToValidateScriptBlockArguments { get; set; }
+        public HistoryType HistoryType { get; set; } = HistoryType.Text;
 
         /// <summary>
         /// When true, duplicates will not be recalled from history more than once.
@@ -372,6 +394,11 @@ namespace Microsoft.PowerShell
         /// The path to the saved history.
         /// </summary>
         public string HistorySavePath { get; set; }
+
+        /// <summary>
+        /// The path to the SQLite history database.
+        /// </summary>
+        public string SqliteHistorySavePath { get; set; }
         public HistorySaveStyle HistorySaveStyle { get; set; }
 
         /// <summary>
@@ -654,6 +681,20 @@ namespace Microsoft.PowerShell
         [Parameter]
         [AllowEmptyString]
         public string ContinuationPrompt { get; set; }
+
+        [Parameter]
+        public HistoryType HistoryType
+        {
+            get => _historyType.GetValueOrDefault();
+            set
+            {
+                _historyType = value;
+                _historyTypeSpecified = true;
+            }
+        }
+
+        public HistoryType? _historyType = HistoryType.Text;
+        internal bool _historyTypeSpecified;
 
         [Parameter]
         public SwitchParameter HistoryNoDuplicates
