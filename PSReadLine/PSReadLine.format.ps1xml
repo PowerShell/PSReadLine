@@ -156,6 +156,9 @@ $d = [Microsoft.PowerShell.KeyHandler]::GetGroupingDescription($_.Group)
                   <PropertyName>ViModeChangeHandler</PropertyName>
               </ListItem>
               <ListItem>
+                  <PropertyName>ViClipboardMode</PropertyName>
+              </ListItem>
+              <ListItem>
                 <PropertyName>WordDelimiters</PropertyName>
               </ListItem>
               <ListItem>
