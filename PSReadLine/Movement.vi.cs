@@ -254,7 +254,32 @@ namespace Microsoft.PowerShell
                 case ')':
                     return ViFindBackward(i, '(', withoutPassing: ')');
                 default:
-                    return i;
+                    int l1 = ViFindForward(i, '{', withoutPassing: '}') is var x && x > i ? x : int.MaxValue;
+                    int l2 = ViFindForward(i, '[', withoutPassing: ']') is var y && y > i ? y : int.MaxValue;
+                    int l3 = ViFindForward(i, '(', withoutPassing: ')') is var z && z > i ? z : int.MaxValue;
+                    int r1 = ViFindForward(i, '}', withoutPassing: '{') is var a && a > i ? a : int.MaxValue;
+                    int r2 = ViFindForward(i, ']', withoutPassing: '[') is var b && b > i ? b : int.MaxValue;
+                    int r3 = ViFindForward(i, ')', withoutPassing: '(') is var c && c > i ? c : int.MaxValue;
+                    int closestLeft = Math.Min(Math.Min(l1, l2), l3);
+                    int closestRight = Math.Min(Math.Min(r1, r2), r3);
+
+                    if (closestRight <= closestLeft && closestRight != int.MaxValue)
+                    {
+                        return closestRight;
+                    }
+
+                    closestLeft = closestLeft == int.MaxValue ? i : closestLeft;
+                    switch (_buffer[closestLeft])
+                    {
+                        case '{':
+                            return ViFindForward(closestLeft, '}', withoutPassing: '{');
+                        case '[':
+                            return ViFindForward(closestLeft, ']', withoutPassing: '[');
+                        case '(':
+                            return ViFindForward(closestLeft, ')', withoutPassing: '(');
+                        default:
+                            return i;
+                    }
             }
         }
 
