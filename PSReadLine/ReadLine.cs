@@ -567,7 +567,15 @@ namespace Microsoft.PowerShell
                 if (_inputAccepted)
                 {
                     _acceptedCommandLine = _buffer.ToString();
-                    MaybeAddToHistory(_acceptedCommandLine, _edits, _undoEditIndex);
+                    if (_options.HistoryType == HistoryType.SQLite)
+                    {
+                        string location = _engineIntrinsics?.SessionState?.Path?.CurrentLocation?.Path;
+                        MaybeAddToHistory(_acceptedCommandLine, _edits, _undoEditIndex, location);
+                    }
+                    else
+                    {
+                        MaybeAddToHistory(_acceptedCommandLine, _edits, _undoEditIndex);
+                    }
 
                     _prediction.OnCommandLineAccepted(_acceptedCommandLine);
                     return _acceptedCommandLine;
@@ -915,7 +923,7 @@ namespace Microsoft.PowerShell
             {
             }
 
-            if (readHistoryFile)
+            if (readHistoryFile && _options.HistoryType == HistoryType.Text)
             {
                 ReadHistoryFile();
             }

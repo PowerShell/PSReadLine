@@ -26,6 +26,27 @@ namespace Microsoft.PowerShell
             {
                 Options.ContinuationPrompt = options.ContinuationPrompt;
             }
+            if (options._historyTypeSpecified)
+            {
+                Options.HistoryType = options.HistoryType;
+                if (Options.HistoryType is HistoryType.SQLite)
+                {
+                    Options.HistorySavePath = Options.SqliteHistorySavePath;
+                    // Check if the SQLite history file exists
+                    if (!string.IsNullOrEmpty(Options.HistorySavePath) && !System.IO.File.Exists(Options.HistorySavePath))
+                    {
+                        _historyFileMutex?.Dispose();
+                        _historyFileMutex = new Mutex(false, GetHistorySaveFileMutexName());
+                        InitializeSQLiteDatabase();
+                        _historyFileLastSavedSize = 0;
+                    }
+                    // For now remove all text history
+                    _singleton._history?.Clear();
+                    _singleton._currentHistoryIndex = 0;
+
+                    ReadSQLiteHistory(fromOtherSession: false);
+                }
+            }
             if (options._historyNoDuplicates.HasValue)
             {
                 Options.HistoryNoDuplicates = options.HistoryNoDuplicates;
@@ -127,7 +148,7 @@ namespace Microsoft.PowerShell
                 Options.HistorySavePath = options.HistorySavePath;
                 _historyFileMutex?.Dispose();
                 _historyFileMutex = new Mutex(false, GetHistorySaveFileMutexName());
-                _historyFileLastSavedSize = 0;
+                _historyFileLastSavedSize = 0;   
             }
             if (options._ansiEscapeTimeout.HasValue)
             {
