@@ -1,4 +1,5 @@
 using Microsoft.PowerShell;
+using Microsoft.PowerShell.Internal;
 using Xunit;
 
 namespace Test
@@ -570,5 +571,58 @@ namespace Test
                 "2dd", 'P', CheckThat(() => AssertCursorLeftTopIs(0, 0))
                 ));
         }
+
+        [SkippableFact]
+        public void ViYankToBlackHoleRegister()
+        {
+            TestSetup(KeyMode.Vi);
+
+            Test("text\n", Keys(
+                "text", _.Escape, "dd",
+                "iline", _.Escape,
+                "\"_dd", CheckThat(() => AssertLineIs("")),
+                "P", CheckThat(() => AssertLineIs("text\n"))
+                ));
+        }
+
+        [SkippableFact]
+        public void ViYankToSystemClipboard()
+        {
+            TestSetup(KeyMode.Vi);
+
+            Clipboard.SetText("some text");
+
+            Test("text\n", Keys(
+                "text", _.Escape, "dd",
+                "iline", _.Escape,
+                "\"+dd", CheckThat(() => AssertLineIs("")),
+                "P", CheckThat(() => AssertLineIs("text\n"))
+                ));
+
+            // ensure text ends up in the system clipboard
+
+            var text = Clipboard.GetText();
+            Assert.Equal("line", text);
+        }
+
+        [SkippableFact]
+        public void ViYankToInternalClipboard()
+        {
+            TestSetup(KeyMode.Vi);
+
+            Clipboard.SetText("some text");
+
+            Test("line\n", Keys(
+                "text", _.Escape, "dd",
+                "iline", _.Escape,
+                "dd", CheckThat(() => AssertLineIs("")),
+                "P", CheckThat(() => AssertLineIs("line\n"))
+                ));
+
+            // ensure the system clipboard was not affected
+            var text = Clipboard.GetText();
+            Assert.Equal("some text", text);
+        }
+
     }
 }
