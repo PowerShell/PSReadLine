@@ -18,9 +18,19 @@ namespace Microsoft.PowerShell
         /// If the input has multiple lines, move to the end of the current line,
         /// or if already at the end of the line, move to the end of the input.
         /// If the input has a single line, move to the end of the input.
+        /// If already at the end of input, accept edit suggestion.
         /// </summary>
         public static void EndOfLine(ConsoleKeyInfo? key = null, object arg = null)
         {
+            if (TryGetArgAsInt(arg, out var numericArg, 1))
+            {
+                if (_singleton._current == _singleton._buffer.Length && numericArg > 0)
+                {
+                    AcceptSuggestion(key, arg);
+                    return;
+                }
+            }
+
             int i = _singleton._current;
             for (; i < _singleton._buffer.Length; i++)
             {
