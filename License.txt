@@ -1,4 +1,4 @@
-Copyright (c) 2013, Jason Shirk
+Copyright (c) 2025, Jason Shirk
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
