@@ -289,7 +289,7 @@ JOIN Locations l ON eh.LocationId = l.Id;";
                     createTablesCommand.ExecuteNonQuery();
 
                     // Migrate existing text file history if it exists
-                    // MigrateTextHistoryToSQLite(connection);
+                    MigrateTextHistoryToSQLite(connection);
                 }
             }
             catch (SqliteException ex)
@@ -304,16 +304,15 @@ JOIN Locations l ON eh.LocationId = l.Id;";
 
         private void MigrateTextHistoryToSQLite(SqliteConnection connection)
         {
-            // Check if text history file exists
-            string textHistoryPath = _options.HistorySavePath.Replace(".sqlite", ".txt");
+            // Derive the text history path from the SQLite path.
+            // Both files share the same directory and host prefix:
+            //   ConsoleHost_history.txt  (text)
+            //   ConsoleHost_history.db   (SQLite)
+            // By the time this runs, HistorySavePath is already the .db path.
+            string textHistoryPath = Path.ChangeExtension(_options.HistorySavePath, ".txt");
             if (!File.Exists(textHistoryPath))
             {
-                // Try default history path pattern
-                textHistoryPath = Path.ChangeExtension(_options.HistorySavePath, ".txt");
-                if (!File.Exists(textHistoryPath))
-                {
-                    return; // No text history to migrate
-                }
+                return; // No text history to migrate
             }
 
             try
@@ -518,12 +517,15 @@ ON CONFLICT(CommandId, LocationId) DO UPDATE SET
             using var insertCommand = connection.CreateCommand();
             insertCommand.CommandText = @"
 INSERT INTO Commands (CommandLine, CommandHash) 
-VALUES (@CommandLine, @CommandHash)
-RETURNING Id";
+VALUES (@CommandLine, @CommandHash)";
             insertCommand.Parameters.AddWithValue("@CommandLine", commandLine);
             insertCommand.Parameters.AddWithValue("@CommandHash", commandHash);
+            insertCommand.ExecuteNonQuery();
 
-            return Convert.ToInt64(insertCommand.ExecuteScalar());
+            // Get the inserted row ID
+            using var lastIdCommand = connection.CreateCommand();
+            lastIdCommand.CommandText = "SELECT last_insert_rowid()";
+            return Convert.ToInt64(lastIdCommand.ExecuteScalar());
         }
 
         // Helper method to get or create a location ID
@@ -544,11 +546,14 @@ RETURNING Id";
             using var insertCommand = connection.CreateCommand();
             insertCommand.CommandText = @"
 INSERT INTO Locations (Path) 
-VALUES (@Path)
-RETURNING Id";
+VALUES (@Path)";
             insertCommand.Parameters.AddWithValue("@Path", location);
+            insertCommand.ExecuteNonQuery();
 
-            return Convert.ToInt64(insertCommand.ExecuteScalar());
+            // Get the inserted row ID
+            using var lastIdCommand = connection.CreateCommand();
+            lastIdCommand.CommandText = "SELECT last_insert_rowid()";
+            return Convert.ToInt64(lastIdCommand.ExecuteScalar());
         }
 
         private void WriteHistoryToSQLite(int start, int end)
@@ -1442,17 +1447,7 @@ LIMIT @Limit";
             }
             _recallHistoryCommandCount += 1;
 
-            // For SQLite/location-filtered history, allow returning to the current line
-            if (_options.HistoryType == HistoryType.SQLite &&
-                (newHistoryIndex < 0 || newHistoryIndex >= _history.Count))
-            {
-                _currentHistoryIndex = _history.Count;
-                var moveCursor = InViCommandMode() && !_options.HistorySearchCursorMovesToEnd
-                    ? HistoryMoveCursor.ToBeginning
-                    : HistoryMoveCursor.ToEnd;
-                UpdateFromHistory(moveCursor);
-            }
-            else if (newHistoryIndex >= 0 && newHistoryIndex <= _history.Count)
+            if (newHistoryIndex >= 0 && newHistoryIndex <= _history.Count)
             {
                 _currentHistoryIndex = newHistoryIndex;
                 var moveCursor = InViCommandMode() && !_options.HistorySearchCursorMovesToEnd

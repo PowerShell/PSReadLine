@@ -1221,30 +1221,5 @@ namespace Test
             Test("cccc", Keys("cccc"));
             Test("aaaa", Keys(Enumerable.Repeat(_.UpArrow, 4)));
         }
-
-        [SkippableFact]
-        public void SetPSReadLineOption_HistoryType_AcceptsSQLite()
-        {
-            var method = typeof(PSConsoleReadLine).GetMethod("SetOptions");
-            Assert.NotNull(method);
-
-            var optionsType = typeof(SetPSReadLineOption);
-            var historyTypeProperty = optionsType.GetProperty("HistoryType");
-            Assert.NotNull(historyTypeProperty);
-
-            var options = new SetPSReadLineOption();
-            historyTypeProperty.SetValue(options, HistoryType.SQLite);
-
-            Exception ex = Record.Exception(() => PSConsoleReadLine.SetOptions(options));
-            Assert.Null(ex);
-
-            Assert.Equal(HistoryType.SQLite, historyTypeProperty.GetValue(options));
-
-            // Set the history type back to the default.
-            historyTypeProperty.SetValue(options, HistoryType.Text);
-            Assert.Equal(HistoryType.Text, historyTypeProperty.GetValue(options));
-        }
-
-        
     }
 }

@@ -24,14 +24,6 @@
     <PackageReference Include="Microsoft.Data.Sqlite" Version="9.0.4" />
     <PackageReference Include="Microsoft.PowerShell.Pager" Version="1.0.0" />
     <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.1.11" />
-    
-    <!-- Platform-specific SQLite bundles -->
-    <!-- Use Windows system SQLite on Windows -->
-    <PackageReference Include="SQLitePCLRaw.bundle_winsqlite3" Version="2.1.11" Condition="$([MSBuild]::IsOSPlatform('Windows'))" />
-    <!-- Use embedded SQLite with all native libraries for Linux/macOS -->
-    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.1.11" Condition="!$([MSBuild]::IsOSPlatform('Windows'))" />
-    
-    <ProjectReference Include="..\Polyfill\Polyfill.csproj" />
   </ItemGroup>
 
   <ItemGroup>
