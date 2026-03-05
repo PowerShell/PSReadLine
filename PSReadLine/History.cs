@@ -209,7 +209,7 @@ namespace Microsoft.PowerShell
             return AddToHistoryOption.MemoryAndFile;
         }
 
-        private void InitializeSQLiteDatabase()
+        private void InitializeSQLiteDatabase(bool migrateTextHistory = false)
         {
             string baseConnectionString = $"Data Source={_options.HistorySavePath}";
             var connectionString = new SqliteConnectionStringBuilder(baseConnectionString)
@@ -288,8 +288,12 @@ JOIN Commands c ON eh.CommandId = c.Id
 JOIN Locations l ON eh.LocationId = l.Id;";
                     createTablesCommand.ExecuteNonQuery();
 
-                    // Migrate existing text file history if it exists
-                    MigrateTextHistoryToSQLite(connection);
+                    // Only migrate text history on initial Text -> SQLite switch,
+                    // not when relocating an existing SQLite database.
+                    if (migrateTextHistory)
+                    {
+                        MigrateTextHistoryToSQLite(connection);
+                    }
                 }
             }
             catch (SqliteException ex)
@@ -304,13 +308,9 @@ JOIN Locations l ON eh.LocationId = l.Id;";
 
         private void MigrateTextHistoryToSQLite(SqliteConnection connection)
         {
-            // Derive the text history path from the SQLite path.
-            // Both files share the same directory and host prefix:
-            //   ConsoleHost_history.txt  (text)
-            //   ConsoleHost_history.db   (SQLite)
-            // By the time this runs, HistorySavePath is already the .db path.
-            string textHistoryPath = Path.ChangeExtension(_options.HistorySavePath, ".txt");
-            if (!File.Exists(textHistoryPath))
+            // Use the dedicated text history path — no need to derive it from the SQLite path.
+            string textHistoryPath = _options.HistorySavePathText;
+            if (string.IsNullOrEmpty(textHistoryPath) || !File.Exists(textHistoryPath))
             {
                 return; // No text history to migrate
             }

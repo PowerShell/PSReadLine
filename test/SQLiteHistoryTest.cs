@@ -20,16 +20,20 @@ namespace Test
             var options = PSConsoleReadLine.GetOptions();
             var ctx = new SQLiteTestContext
             {
-                OriginalHistorySavePath = options.HistorySavePath,
-                OriginalSqliteHistorySavePath = options.SqliteHistorySavePath,
+                OriginalHistorySavePathText = options.HistorySavePathText,
+                OriginalHistorySavePathSQLite = options.HistorySavePathSQLite,
                 OriginalHistorySaveStyle = options.HistorySaveStyle,
                 OriginalHistoryType = options.HistoryType,
                 TempDbPath = Path.Combine(Path.GetTempPath(), $"PSReadLineTest_{Guid.NewGuid():N}.db"),
             };
 
-            // Point SqliteHistorySavePath to our temp DB before switching mode,
-            // because SetOptionsInternal reads SqliteHistorySavePath when HistoryType is set to SQLite.
-            options.SqliteHistorySavePath = ctx.TempDbPath;
+            // Point HistorySavePathSQLite to our temp DB before switching mode,
+            // because SetOptionsInternal reads HistorySavePathSQLite when HistoryType is set to SQLite.
+            options.HistorySavePathSQLite = ctx.TempDbPath;
+
+            // Point HistorySavePathText to a non-existent file so migration doesn't
+            // accidentally pull from the real production text history.
+            options.HistorySavePathText = Path.ChangeExtension(ctx.TempDbPath, ".txt");
 
             // Switch to SQLite mode — this creates the DB and clears in-memory history.
             var setOptions = new SetPSReadLineOption
@@ -47,8 +51,8 @@ namespace Test
         /// </summary>
         private class SQLiteTestContext : IDisposable
         {
-            public string OriginalHistorySavePath;
-            public string OriginalSqliteHistorySavePath;
+            public string OriginalHistorySavePathText;
+            public string OriginalHistorySavePathSQLite;
             public HistorySaveStyle OriginalHistorySaveStyle;
             public HistoryType OriginalHistoryType;
             public string TempDbPath;
@@ -58,8 +62,8 @@ namespace Test
                 var options = PSConsoleReadLine.GetOptions();
 
                 // Restore original settings
-                options.SqliteHistorySavePath = OriginalSqliteHistorySavePath;
-                options.HistorySavePath = OriginalHistorySavePath;
+                options.HistorySavePathSQLite = OriginalHistorySavePathSQLite;
+                options.HistorySavePathText = OriginalHistorySavePathText;
                 options.HistorySaveStyle = OriginalHistorySaveStyle;
                 options.HistoryType = OriginalHistoryType;
 
@@ -223,8 +227,8 @@ namespace Test
             TestSetup(KeyMode.Cmd);
 
             var options = PSConsoleReadLine.GetOptions();
-            var originalHistorySavePath = options.HistorySavePath;
-            var originalSqliteHistorySavePath = options.SqliteHistorySavePath;
+            var originalHistorySavePathText = options.HistorySavePathText;
+            var originalHistorySavePathSQLite = options.HistorySavePathSQLite;
             var originalHistorySaveStyle = options.HistorySaveStyle;
             var originalHistoryType = options.HistoryType;
 
@@ -241,8 +245,9 @@ namespace Test
                     "echo hello"
                 });
 
-                // Set up SQLite mode pointing at the temp path
-                options.SqliteHistorySavePath = tempDbPath;
+                // Point both paths so migration can find the text file
+                options.HistorySavePathText = tempTxtPath;
+                options.HistorySavePathSQLite = tempDbPath;
 
                 var setOptions = new SetPSReadLineOption
                 {
@@ -264,8 +269,8 @@ namespace Test
             finally
             {
                 // Restore original settings
-                options.SqliteHistorySavePath = originalSqliteHistorySavePath;
-                options.HistorySavePath = originalHistorySavePath;
+                options.HistorySavePathSQLite = originalHistorySavePathSQLite;
+                options.HistorySavePathText = originalHistorySavePathText;
                 options.HistorySaveStyle = originalHistorySaveStyle;
                 options.HistoryType = originalHistoryType;
                 PSConsoleReadLine.ClearHistory();
@@ -281,8 +286,8 @@ namespace Test
             TestSetup(KeyMode.Cmd);
 
             var options = PSConsoleReadLine.GetOptions();
-            var originalHistorySavePath = options.HistorySavePath;
-            var originalSqliteHistorySavePath = options.SqliteHistorySavePath;
+            var originalHistorySavePathText = options.HistorySavePathText;
+            var originalHistorySavePathSQLite = options.HistorySavePathSQLite;
             var originalHistorySaveStyle = options.HistorySaveStyle;
             var originalHistoryType = options.HistoryType;
 
@@ -291,7 +296,9 @@ namespace Test
 
             try
             {
-                options.SqliteHistorySavePath = tempDbPath;
+                options.HistorySavePathSQLite = tempDbPath;
+                // Point text path to a non-existent file so migration won't import from the real history.
+                options.HistorySavePathText = Path.ChangeExtension(tempDbPath, ".txt");
 
                 var setOptions = new SetPSReadLineOption
                 {
@@ -310,8 +317,8 @@ namespace Test
             }
             finally
             {
-                options.SqliteHistorySavePath = originalSqliteHistorySavePath;
-                options.HistorySavePath = originalHistorySavePath;
+                options.HistorySavePathSQLite = originalHistorySavePathSQLite;
+                options.HistorySavePathText = originalHistorySavePathText;
                 options.HistorySaveStyle = originalHistorySaveStyle;
                 options.HistoryType = originalHistoryType;
                 PSConsoleReadLine.ClearHistory();
@@ -326,8 +333,8 @@ namespace Test
             TestSetup(KeyMode.Cmd);
 
             var options = PSConsoleReadLine.GetOptions();
-            var originalHistorySavePath = options.HistorySavePath;
-            var originalSqliteHistorySavePath = options.SqliteHistorySavePath;
+            var originalHistorySavePathText = options.HistorySavePathText;
+            var originalHistorySavePathSQLite = options.HistorySavePathSQLite;
             var originalHistorySaveStyle = options.HistorySaveStyle;
             var originalHistoryType = options.HistoryType;
 
@@ -340,7 +347,8 @@ namespace Test
                 File.WriteAllLines(tempTxtPath, new[] { "cmd1", "cmd2" });
 
                 // First switch to SQLite - should migrate
-                options.SqliteHistorySavePath = tempDbPath;
+                options.HistorySavePathText = tempTxtPath;
+                options.HistorySavePathSQLite = tempDbPath;
                 var setOptions = new SetPSReadLineOption
                 {
                     HistoryType = HistoryType.SQLite,
@@ -367,8 +375,8 @@ namespace Test
             }
             finally
             {
-                options.SqliteHistorySavePath = originalSqliteHistorySavePath;
-                options.HistorySavePath = originalHistorySavePath;
+                options.HistorySavePathSQLite = originalHistorySavePathSQLite;
+                options.HistorySavePathText = originalHistorySavePathText;
                 options.HistorySaveStyle = originalHistorySaveStyle;
                 options.HistoryType = originalHistoryType;
                 PSConsoleReadLine.ClearHistory();
@@ -411,14 +419,14 @@ namespace Test
             TestSetup(KeyMode.Cmd);
 
             var psrlOptions = PSConsoleReadLine.GetOptions();
-            var originalSqlitePath = psrlOptions.SqliteHistorySavePath;
-            var originalHistorySavePath = psrlOptions.HistorySavePath;
+            var originalSqlitePath = psrlOptions.HistorySavePathSQLite;
+            var originalHistorySavePathText = psrlOptions.HistorySavePathText;
             var originalHistoryType = psrlOptions.HistoryType;
             var tempDbPath = Path.Combine(Path.GetTempPath(), $"PSReadLineTest_{Guid.NewGuid():N}.db");
 
             try
             {
-                psrlOptions.SqliteHistorySavePath = tempDbPath;
+                psrlOptions.HistorySavePathSQLite = tempDbPath;
 
                 var optionsType = typeof(SetPSReadLineOption);
                 var historyTypeProperty = optionsType.GetProperty("HistoryType");
@@ -438,8 +446,8 @@ namespace Test
             }
             finally
             {
-                psrlOptions.SqliteHistorySavePath = originalSqlitePath;
-                psrlOptions.HistorySavePath = originalHistorySavePath;
+                psrlOptions.HistorySavePathSQLite = originalSqlitePath;
+                psrlOptions.HistorySavePathText = originalHistorySavePathText;
                 psrlOptions.HistoryType = originalHistoryType;
                 PSConsoleReadLine.ClearHistory();
                 try { if (File.Exists(tempDbPath)) File.Delete(tempDbPath); } catch { }

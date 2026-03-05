@@ -100,7 +100,10 @@ $d = [Microsoft.PowerShell.KeyHandler]::GetGroupingDescription($_.Group)
                 <PropertyName>HistoryNoDuplicates</PropertyName>
               </ListItem>
               <ListItem>
-                <PropertyName>HistorySavePath</PropertyName>
+                <PropertyName>HistorySavePathText</PropertyName>
+              </ListItem>
+              <ListItem>
+                <PropertyName>HistorySavePathSQLite</PropertyName>
               </ListItem>
               <ListItem>
                 <PropertyName>HistorySaveStyle</PropertyName>

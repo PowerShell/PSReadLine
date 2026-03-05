@@ -47,7 +47,7 @@ namespace Test
             };
 
             typeof(SetPSReadLineOption)
-                .GetField("_historySavePath", BindingFlags.Instance | BindingFlags.NonPublic)
+                .GetField("_historySavePathText", BindingFlags.Instance | BindingFlags.NonPublic)
                 .SetValue(options, historySavingFile);
 
             PSConsoleReadLine.SetOptions(options);
@@ -99,7 +99,7 @@ namespace Test
             Test("", Keys(_.UpArrow, _.DownArrow));
 
             var options = PSConsoleReadLine.GetOptions();
-            var oldHistoryFilePath = options.HistorySavePath;
+            var oldHistoryFilePath = options.HistorySavePathText;
             var oldHistorySaveStyle = options.HistorySaveStyle;
 
             // AddToHistoryHandler should be set to the default handler.
@@ -136,7 +136,7 @@ namespace Test
 
             try
             {
-                options.HistorySavePath = newHistoryFilePath;
+                options.HistorySavePathText = newHistoryFilePath;
                 options.HistorySaveStyle = newHistorySaveStyle;
                 SetHistory(expectedHistoryItems);
 
@@ -158,7 +158,7 @@ namespace Test
             }
             finally
             {
-                options.HistorySavePath = oldHistoryFilePath;
+                options.HistorySavePathText = oldHistoryFilePath;
                 options.HistorySaveStyle = oldHistorySaveStyle;
                 File.Delete(newHistoryFilePath);
             }
@@ -173,7 +173,7 @@ namespace Test
             SetHistory();
 
             var options = PSConsoleReadLine.GetOptions();
-            var oldHistoryFilePath = options.HistorySavePath;
+            var oldHistoryFilePath = options.HistorySavePathText;
             var oldHistorySaveStyle = options.HistorySaveStyle;
 
             // AddToHistoryHandler should be set to the default handler.
@@ -253,7 +253,7 @@ namespace Test
 
             try
             {
-                options.HistorySavePath = newHistoryFilePath;
+                options.HistorySavePathText = newHistoryFilePath;
                 options.HistorySaveStyle = newHistorySaveStyle;
                 SetHistory(expectedHistoryItems);
 
@@ -275,7 +275,7 @@ namespace Test
             }
             finally
             {
-                options.HistorySavePath = oldHistoryFilePath;
+                options.HistorySavePathText = oldHistoryFilePath;
                 options.HistorySaveStyle = oldHistorySaveStyle;
                 File.Delete(newHistoryFilePath);
             }
@@ -291,7 +291,7 @@ namespace Test
             Test("", Keys(_.UpArrow, _.DownArrow));
 
             var options = PSConsoleReadLine.GetOptions();
-            var oldHistoryFilePath = options.HistorySavePath;
+            var oldHistoryFilePath = options.HistorySavePathText;
             var oldHistorySaveStyle = options.HistorySaveStyle;
 
             // AddToHistoryHandler should be set to the default handler.
@@ -328,7 +328,7 @@ namespace Test
 
             try
             {
-                options.HistorySavePath = newHistoryFilePath;
+                options.HistorySavePathText = newHistoryFilePath;
                 options.HistorySaveStyle = newHistorySaveStyle;
 
                 //
@@ -417,7 +417,7 @@ namespace Test
             }
             finally
             {
-                options.HistorySavePath = oldHistoryFilePath;
+                options.HistorySavePathText = oldHistoryFilePath;
                 options.HistorySaveStyle = oldHistorySaveStyle;
                 options.AddToHistoryHandler = PSConsoleReadLineOptions.DefaultAddToHistoryHandler;
                 File.Delete(newHistoryFilePath);
@@ -434,7 +434,7 @@ namespace Test
             Test("", Keys(_.UpArrow, _.DownArrow));
 
             var options = PSConsoleReadLine.GetOptions();
-            var oldHistoryFilePath = options.HistorySavePath;
+            var oldHistoryFilePath = options.HistorySavePathText;
             var oldHistorySaveStyle = options.HistorySaveStyle;
 
             // AddToHistoryHandler should be set to the default handler.
@@ -481,7 +481,7 @@ namespace Test
 
             try
             {
-                options.HistorySavePath = newHistoryFilePath;
+                options.HistorySavePathText = newHistoryFilePath;
                 options.HistorySaveStyle = newHistorySaveStyle;
 
                 //
@@ -570,7 +570,7 @@ namespace Test
             }
             finally
             {
-                options.HistorySavePath = oldHistoryFilePath;
+                options.HistorySavePathText = oldHistoryFilePath;
                 options.HistorySaveStyle = oldHistorySaveStyle;
                 options.AddToHistoryHandler = PSConsoleReadLineOptions.DefaultAddToHistoryHandler;
                 File.Delete(newHistoryFilePath);

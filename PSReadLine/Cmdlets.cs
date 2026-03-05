@@ -239,14 +239,14 @@ namespace Microsoft.PowerShell
             var historyFileName = hostName + "_history.txt";
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                HistorySavePath = System.IO.Path.Combine(
+                HistorySavePathText = System.IO.Path.Combine(
                     Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                     "Microsoft",
                     "Windows",
                     "PowerShell",
                     "PSReadLine",
                     historyFileName);
-                SqliteHistorySavePath = System.IO.Path.Combine(
+                HistorySavePathSQLite = System.IO.Path.Combine(
                     Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                     "Microsoft",
                     "Windows",
@@ -261,11 +261,16 @@ namespace Microsoft.PowerShell
 
                 if (!String.IsNullOrEmpty(historyPath))
                 {
-                    HistorySavePath = System.IO.Path.Combine(
+                    HistorySavePathText = System.IO.Path.Combine(
                         historyPath,
                         "powershell",
                         "PSReadLine",
                         historyFileName);
+                    HistorySavePathSQLite = System.IO.Path.Combine(
+                        historyPath,
+                        "powershell",
+                        "PSReadLine",
+                        hostName + "_history.db");
                 }
                 else
                 {
@@ -274,18 +279,26 @@ namespace Microsoft.PowerShell
 
                     if (!String.IsNullOrEmpty(home))
                     {
-                        HistorySavePath = System.IO.Path.Combine(
+                        HistorySavePathText = System.IO.Path.Combine(
                             home,
                             ".local",
                             "share",
                             "powershell",
                             "PSReadLine",
                             historyFileName);
+                        HistorySavePathSQLite = System.IO.Path.Combine(
+                            home,
+                            ".local",
+                            "share",
+                            "powershell",
+                            "PSReadLine",
+                            hostName + "_history.db");
                     }
                     else
                     {
                         // No HOME, then don't save anything
-                        HistorySavePath = "/dev/null";
+                        HistorySavePathText = "/dev/null";
+                        HistorySavePathSQLite = "/dev/null";
                     }
                 }
             }
@@ -391,14 +404,23 @@ namespace Microsoft.PowerShell
         public ScriptBlock ViModeChangeHandler { get; set; }
 
         /// <summary>
-        /// The path to the saved history.
+        /// The path to the text history file.
         /// </summary>
-        public string HistorySavePath { get; set; }
+        public string HistorySavePathText { get; set; }
 
         /// <summary>
         /// The path to the SQLite history database.
         /// </summary>
-        public string SqliteHistorySavePath { get; set; }
+        public string HistorySavePathSQLite { get; set; }
+
+        /// <summary>
+        /// Returns the active history save path based on the current <see cref="HistoryType"/>.
+        /// </summary>
+        public string HistorySavePath => HistoryType switch
+        {
+            HistoryType.SQLite => HistorySavePathSQLite,
+            _ => HistorySavePathText,
+        };
         public HistorySaveStyle HistorySaveStyle { get; set; }
 
         /// <summary>
@@ -826,15 +848,27 @@ namespace Microsoft.PowerShell
 
         [Parameter]
         [ValidateNotNullOrEmpty]
-        public string HistorySavePath
+        public string HistorySavePathText
         {
-            get => _historySavePath;
+            get => _historySavePathText;
             set
             {
-                _historySavePath = GetUnresolvedProviderPathFromPSPath(value);
+                _historySavePathText = GetUnresolvedProviderPathFromPSPath(value);
             }
         }
-        private string _historySavePath;
+        private string _historySavePathText;
+
+        [Parameter]
+        [ValidateNotNullOrEmpty]
+        public string HistorySavePathSQLite
+        {
+            get => _historySavePathSQLite;
+            set
+            {
+                _historySavePathSQLite = GetUnresolvedProviderPathFromPSPath(value);
+            }
+        }
+        private string _historySavePathSQLite;
 
         [Parameter]
         [ValidateRange(25, 1000)]
