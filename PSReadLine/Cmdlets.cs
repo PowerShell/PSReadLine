@@ -115,8 +115,8 @@ namespace Microsoft.PowerShell
         public const string DefaultContinuationPrompt = ">> ";
 
         /// <summary>
-        /// The default history format is text.  The SQLite is experimental.
-        /// It is not recommended to use it for production yet.
+        /// The default history type is text-based history.
+        /// Users can change default behavior by setting this to SQLite in their profile.
         /// </summary>
         public const HistoryType DefaultHistoryType = HistoryType.Text;
 
