@@ -119,6 +119,8 @@ namespace Test
             PSConsoleReadLine.SetKeyHandler(new[] { "Shift+Tab" }, PSConsoleReadLine.BackwardKillLine, "", "");
 
             Test("", Keys("dir", _.Shift_Tab));
+
+            Test("abc\n123", Keys("abc", _.Shift_Enter, "123", _.Shift_Tab, _.Ctrl_y));
         }
 
         [SkippableFact]

@@ -135,7 +135,7 @@ namespace Microsoft.PowerShell
         public static void BackwardKillLine(ConsoleKeyInfo? key = null, object arg = null)
         {
             var start = GetBeginningOfLinePos(_singleton._current);
-            _singleton.Kill(start, _singleton._current, true);
+            _singleton.Kill(start, _singleton._current - start, true);
         }
 
         /// <summary>
