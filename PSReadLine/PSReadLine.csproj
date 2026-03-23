@@ -32,6 +32,5 @@
     <None Include="PSReadLine.format.ps1xml" CopyToOutputDirectory="PreserveNewest" />
     <None Include="SamplePSReadLineProfile.ps1" />
     <None Include="Changes.txt" />
-    <None Update="runtimes/**" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>
