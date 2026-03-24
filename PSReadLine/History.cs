@@ -633,7 +633,14 @@ ON CONFLICT(CommandId, LocationId) DO UPDATE SET
 
         private void SaveHistoryAtExit()
         {
-            WriteHistoryRange(0, _history.Count - 1, overwritten: true);
+            if (_options.HistoryType == HistoryType.SQLite)
+            {
+                WriteHistoryToSQLite(0, _history.Count - 1);
+            }
+            else
+            {
+                WriteHistoryRange(0, _history.Count - 1, overwritten: true);
+            }
         }
 
         private int historyErrorReportedCount;

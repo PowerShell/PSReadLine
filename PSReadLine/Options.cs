@@ -40,11 +40,17 @@ namespace Microsoft.PowerShell
                         InitializeSQLiteDatabase(migrateTextHistory: true);
                         _historyFileLastSavedSize = 0;
                     }
-                    // Clear text history from memory and load SQLite history
-                    _singleton._history?.Clear();
-                    _singleton._currentHistoryIndex = 0;
 
-                    ReadSQLiteHistory(fromOtherSession: false);
+                    // _history is null when Set-PSReadLineOption runs from the profile before
+                    // the first ReadLine() call. In that case, skip loading here — ReadLine()
+                    // initialization will create _history and load SQLite history itself.
+                    // When _history already exists (interactive switch), reload immediately.
+                    if (_singleton._history != null)
+                    {
+                        _singleton._history.Clear();
+                        _singleton._currentHistoryIndex = 0;
+                        ReadSQLiteHistory(fromOtherSession: false);
+                    }
                 }
             }
             if (options._historyNoDuplicates.HasValue)
@@ -171,9 +177,12 @@ namespace Microsoft.PowerShell
                         InitializeSQLiteDatabase();
                     }
 
-                    _singleton._history?.Clear();
-                    _singleton._currentHistoryIndex = 0;
-                    ReadSQLiteHistory(fromOtherSession: false);
+                    if (_singleton._history != null)
+                    {
+                        _singleton._history.Clear();
+                        _singleton._currentHistoryIndex = 0;
+                        ReadSQLiteHistory(fromOtherSession: false);
+                    }
                 }
             }
             if (options._ansiEscapeTimeout.HasValue)
