@@ -544,6 +544,7 @@ namespace Microsoft.PowerShell
                 var tabCommandCount = _tabCommandCount;
                 var searchHistoryCommandCount = _searchHistoryCommandCount;
                 var recallHistoryCommandCount = _recallHistoryCommandCount;
+                var locationHistoryCommandCount = _locationHistoryCommandCount;
                 var anyHistoryCommandCount = _anyHistoryCommandCount;
                 var yankLastArgCommandCount = _yankLastArgCommandCount;
                 var visualSelectionCommandCount = _visualSelectionCommandCount;
@@ -617,6 +618,10 @@ namespace Microsoft.PowerShell
                 if (recallHistoryCommandCount == _recallHistoryCommandCount)
                 {
                     _recallHistoryCommandCount = 0;
+                }
+                if (locationHistoryCommandCount == _locationHistoryCommandCount)
+                {
+                    _locationHistoryCommandCount = 0;
                 }
                 if (anyHistoryCommandCount == _anyHistoryCommandCount)
                 {
@@ -820,6 +825,7 @@ namespace Microsoft.PowerShell
             _yankLastArgCommandCount = 0;
             _tabCommandCount = 0;
             _recallHistoryCommandCount = 0;
+            _locationHistoryCommandCount = 0;
             _anyHistoryCommandCount = 0;
             _visualSelectionCommandCount = 0;
             _hashedHistory = null;

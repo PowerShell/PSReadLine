@@ -598,6 +598,8 @@ namespace Microsoft.PowerShell
         public static PSKeyInfo ShiftPageDown       = Shift(ConsoleKey.PageDown);
         public static PSKeyInfo ShiftLeftArrow      = Shift(ConsoleKey.LeftArrow);
         public static PSKeyInfo ShiftRightArrow     = Shift(ConsoleKey.RightArrow);
+        public static PSKeyInfo AltUpArrow          = Alt(ConsoleKey.UpArrow);
+        public static PSKeyInfo AltDownArrow        = Alt(ConsoleKey.DownArrow);
         public static PSKeyInfo ShiftUpArrow        = Shift(ConsoleKey.UpArrow);
         public static PSKeyInfo ShiftDownArrow      = Shift(ConsoleKey.DownArrow);
         public static PSKeyInfo ShiftTab            = Shift(ConsoleKey.Tab); // !Linux, same as Tab
@@ -608,6 +610,7 @@ namespace Microsoft.PowerShell
         public static PSKeyInfo CtrlShiftLeftArrow  = CtrlShift(ConsoleKey.LeftArrow);
         public static PSKeyInfo CtrlShiftRightArrow = CtrlShift(ConsoleKey.RightArrow);
 
+        public static PSKeyInfo CtrlAltR             = CtrlAlt('r');
         public static PSKeyInfo CtrlAltY            = CtrlAlt('y');
         public static PSKeyInfo CtrlAltRBracket     = CtrlAlt(']');
         public static PSKeyInfo CtrlAltQuestion     = CtrlAlt('?');

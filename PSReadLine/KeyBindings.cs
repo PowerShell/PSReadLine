@@ -207,6 +207,7 @@ namespace Microsoft.PowerShell
                 { Keys.CtrlL,                  MakeKeyHandler(ClearScreen,               "ClearScreen") },
                 { Keys.CtrlR,                  MakeKeyHandler(ReverseSearchHistory,      "ReverseSearchHistory") },
                 { Keys.CtrlS,                  MakeKeyHandler(ForwardSearchHistory,      "ForwardSearchHistory") },
+                { Keys.CtrlAltR,               MakeKeyHandler(ReverseLocationSearchHistory, "ReverseLocationSearchHistory") },
                 { Keys.CtrlV,                  MakeKeyHandler(Paste,                     "Paste") },
                 { Keys.ShiftInsert,            MakeKeyHandler(Paste,                     "Paste") },
                 { Keys.CtrlX,                  MakeKeyHandler(Cut,                       "Cut") },
@@ -238,6 +239,8 @@ namespace Microsoft.PowerShell
                 { Keys.F4,                     MakeKeyHandler(ShowFullPredictionTooltip, "ShowFullPredictionTooltip") },
                 { Keys.F8,                     MakeKeyHandler(HistorySearchBackward,     "HistorySearchBackward") },
                 { Keys.ShiftF8,                MakeKeyHandler(HistorySearchForward,      "HistorySearchForward") },
+                { Keys.AltUpArrow,             MakeKeyHandler(PreviousLocationHistory,   "PreviousLocationHistory") },
+                { Keys.AltDownArrow,           MakeKeyHandler(NextLocationHistory,       "NextLocationHistory") },
                 // Added for xtermjs-based terminals that send different key combinations.
                 { Keys.AltD,                   MakeKeyHandler(KillWord,                  "KillWord") },
                 { Keys.CtrlAt,                 MakeKeyHandler(MenuComplete,              "MenuComplete") },
@@ -279,6 +282,8 @@ namespace Microsoft.PowerShell
                 { Keys.DownArrow,              MakeKeyHandler(NextHistory,               "NextHistory") },
                 { Keys.AltLess,                MakeKeyHandler(BeginningOfHistory,        "BeginningOfHistory") },
                 { Keys.AltGreater,             MakeKeyHandler(EndOfHistory,              "EndOfHistory") },
+                { Keys.AltUpArrow,             MakeKeyHandler(PreviousLocationHistory,   "PreviousLocationHistory") },
+                { Keys.AltDownArrow,           MakeKeyHandler(NextLocationHistory,       "NextLocationHistory") },
                 { Keys.Home,                   MakeKeyHandler(BeginningOfLine,           "BeginningOfLine") },
                 { Keys.End,                    MakeKeyHandler(EndOfLine,                 "EndOfLine") },
                 { Keys.ShiftHome,              MakeKeyHandler(SelectBackwardsLine,       "SelectBackwardsLine") },
@@ -301,6 +306,7 @@ namespace Microsoft.PowerShell
                 { Keys.CtrlP,                  MakeKeyHandler(PreviousHistory,           "PreviousHistory") },
                 { Keys.CtrlR,                  MakeKeyHandler(ReverseSearchHistory,      "ReverseSearchHistory") },
                 { Keys.CtrlS,                  MakeKeyHandler(ForwardSearchHistory,      "ForwardSearchHistory") },
+                { Keys.CtrlAltR,               MakeKeyHandler(ReverseLocationSearchHistory, "ReverseLocationSearchHistory") },
                 { Keys.CtrlT,                  MakeKeyHandler(SwapCharacters,            "SwapCharacters") },
                 { Keys.CtrlU,                  MakeKeyHandler(BackwardKillInput,         "BackwardKillInput") },
                 { Keys.CtrlX,                  MakeKeyHandler(Chord,                     "ChordFirstKey") },
@@ -549,8 +555,12 @@ namespace Microsoft.PowerShell
             case nameof(HistorySearchBackward):
             case nameof(HistorySearchForward):
             case nameof(NextHistory):
+            case nameof(NextLocationHistory):
             case nameof(PreviousHistory):
+            case nameof(PreviousLocationHistory):
             case nameof(ReverseSearchHistory):
+            case nameof(ReverseLocationSearchHistory):
+            case nameof(ForwardLocationSearchHistory):
             case nameof(ViSearchHistoryBackward):
                 return KeyHandlerGroup.History;
 

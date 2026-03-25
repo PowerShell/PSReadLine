@@ -105,6 +105,7 @@ namespace Microsoft.PowerShell
         private int _getNextHistoryIndex;
         private int _searchHistoryCommandCount;
         private int _recallHistoryCommandCount;
+        private int _locationHistoryCommandCount;
         private int _anyHistoryCommandCount;
         private string _searchHistoryPrefix;
         // When cycling through history, the current line (not yet added to history)
@@ -118,6 +119,11 @@ namespace Microsoft.PowerShell
         private const string _backwardISearchPrompt = "bck-i-search: ";
         private const string _failedForwardISearchPrompt = "failed-fwd-i-search: ";
         private const string _failedBackwardISearchPrompt = "failed-bck-i-search: ";
+
+        private const string _forwardLocationISearchPrompt = "fwd-i-search (location): ";
+        private const string _backwardLocationISearchPrompt = "bck-i-search (location): ";
+        private const string _failedForwardLocationISearchPrompt = "failed-fwd-i-search (location): ";
+        private const string _failedBackwardLocationISearchPrompt = "failed-bck-i-search (location): ";
 
         // Pattern used to check for sensitive inputs.
         private static readonly Regex s_sensitivePattern = new Regex(
@@ -1499,6 +1505,122 @@ LIMIT @Limit";
             _singleton.HistoryRecall(numericArg);
         }
 
+        /// <summary>
+        /// Replace the current input with the 'previous' item from PSReadLine history
+        /// that was executed from the same location (directory).
+        /// </summary>
+        public static void PreviousLocationHistory(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            TryGetArgAsInt(arg, out var numericArg, -1);
+            if (numericArg > 0)
+            {
+                numericArg = -numericArg;
+            }
+
+            if (UpdateListSelection(numericArg))
+            {
+                return;
+            }
+
+            _singleton.SaveCurrentLine();
+            _singleton.LocationHistoryRecall(numericArg);
+        }
+
+        /// <summary>
+        /// Replace the current input with the 'next' item from PSReadLine history
+        /// that was executed from the same location (directory).
+        /// </summary>
+        public static void NextLocationHistory(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            TryGetArgAsInt(arg, out var numericArg, +1);
+            if (UpdateListSelection(numericArg))
+            {
+                return;
+            }
+
+            _singleton.SaveCurrentLine();
+            _singleton.LocationHistoryRecall(numericArg);
+        }
+
+        private string GetCurrentLocation()
+        {
+            return _engineIntrinsics?.SessionState?.Path?.CurrentLocation?.Path;
+        }
+
+        private void LocationHistoryRecall(int direction)
+        {
+            if (_locationHistoryCommandCount == 0 && LineIsMultiLine())
+            {
+                MoveToLine(direction);
+                return;
+            }
+
+            var currentLocation = GetCurrentLocation();
+            if (string.IsNullOrEmpty(currentLocation))
+            {
+                // Fall back to normal recall if we can't determine location
+                HistoryRecall(direction);
+                return;
+            }
+
+            if (Options.HistoryNoDuplicates && _locationHistoryCommandCount == 0)
+            {
+                _hashedHistory = new Dictionary<string, int>();
+            }
+
+            int count = Math.Abs(direction);
+            direction = direction < 0 ? -1 : +1;
+            int newHistoryIndex = _currentHistoryIndex;
+            while (count > 0)
+            {
+                newHistoryIndex += direction;
+
+                if (newHistoryIndex < 0 || newHistoryIndex >= _history.Count)
+                {
+                    break;
+                }
+
+                if (_history[newHistoryIndex].FromOtherSession)
+                {
+                    continue;
+                }
+
+                // Filter by location
+                if (!string.Equals(_history[newHistoryIndex].Location, currentLocation, StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                if (Options.HistoryNoDuplicates)
+                {
+                    var line = _history[newHistoryIndex].CommandLine;
+                    if (!_hashedHistory.TryGetValue(line, out var index))
+                    {
+                        _hashedHistory.Add(line, newHistoryIndex);
+                        --count;
+                    }
+                    else if (newHistoryIndex == index)
+                    {
+                        --count;
+                    }
+                }
+                else
+                {
+                    --count;
+                }
+            }
+            _locationHistoryCommandCount += 1;
+
+            if (newHistoryIndex >= 0 && newHistoryIndex <= _history.Count)
+            {
+                _currentHistoryIndex = newHistoryIndex;
+                var moveCursor = InViCommandMode() && !_options.HistorySearchCursorMovesToEnd
+                    ? HistoryMoveCursor.ToBeginning
+                    : HistoryMoveCursor.ToEnd;
+                UpdateFromHistory(moveCursor);
+            }
+        }
+
         private void HistorySearch(int direction)
         {
             if (_searchHistoryCommandCount == 0)
@@ -1824,6 +1946,202 @@ LIMIT @Limit";
         public static void ReverseSearchHistory(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.InteractiveHistorySearch(-1);
+        }
+
+        private void UpdateLocationHistoryDuringInteractiveSearch(string toMatch, int direction, string currentLocation, ref int searchFromPoint)
+        {
+            searchFromPoint += direction;
+            for (; searchFromPoint >= 0 && searchFromPoint < _history.Count; searchFromPoint += direction)
+            {
+                // Filter by location
+                if (!string.Equals(_history[searchFromPoint].Location, currentLocation, StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                var line = _history[searchFromPoint].CommandLine;
+                var startIndex = line.IndexOf(toMatch, Options.HistoryStringComparison);
+                if (startIndex >= 0)
+                {
+                    if (Options.HistoryNoDuplicates)
+                    {
+                        if (!_hashedHistory.TryGetValue(line, out var index))
+                        {
+                            _hashedHistory.Add(line, searchFromPoint);
+                        }
+                        else if (index != searchFromPoint)
+                        {
+                            continue;
+                        }
+                    }
+                    _statusLinePrompt = direction > 0 ? _forwardLocationISearchPrompt : _backwardLocationISearchPrompt;
+                    _current = startIndex;
+                    _emphasisStart = startIndex;
+                    _emphasisLength = toMatch.Length;
+                    _currentHistoryIndex = searchFromPoint;
+                    var moveCursor = Options.HistorySearchCursorMovesToEnd
+                        ? HistoryMoveCursor.ToEnd
+                        : HistoryMoveCursor.DontMove;
+                    UpdateFromHistory(moveCursor);
+                    return;
+                }
+            }
+
+            if (searchFromPoint < 0)
+                searchFromPoint = -1;
+            else if (searchFromPoint >= _history.Count)
+                searchFromPoint = _history.Count;
+
+            _emphasisStart = -1;
+            _emphasisLength = 0;
+            _statusLinePrompt = direction > 0 ? _failedForwardLocationISearchPrompt : _failedBackwardLocationISearchPrompt;
+            Render();
+        }
+
+        private void InteractiveLocationHistorySearchLoop(int direction, string currentLocation)
+        {
+            var searchFromPoint = _currentHistoryIndex;
+            var searchPositions = new Stack<int>();
+            searchPositions.Push(_currentHistoryIndex);
+
+            if (Options.HistoryNoDuplicates)
+            {
+                _hashedHistory = new Dictionary<string, int>();
+            }
+
+            var toMatch = new StringBuilder(64);
+            while (true)
+            {
+                var key = ReadKey();
+                _dispatchTable.TryGetValue(key, out var handler);
+                var function = handler?.Action;
+                if (function == ReverseLocationSearchHistory)
+                {
+                    UpdateLocationHistoryDuringInteractiveSearch(toMatch.ToString(), -1, currentLocation, ref searchFromPoint);
+                }
+                else if (function == ForwardLocationSearchHistory)
+                {
+                    UpdateLocationHistoryDuringInteractiveSearch(toMatch.ToString(), +1, currentLocation, ref searchFromPoint);
+                }
+                else if (function == BackwardDeleteChar
+                    || key == Keys.Backspace
+                    || key == Keys.CtrlH)
+                {
+                    if (toMatch.Length > 0)
+                    {
+                        toMatch.Remove(toMatch.Length - 1, 1);
+                        _statusBuffer.Remove(_statusBuffer.Length - 2, 1);
+                        searchPositions.Pop();
+                        searchFromPoint = _currentHistoryIndex = searchPositions.Peek();
+                        var moveCursor = Options.HistorySearchCursorMovesToEnd
+                            ? HistoryMoveCursor.ToEnd
+                            : HistoryMoveCursor.DontMove;
+                        UpdateFromHistory(moveCursor);
+
+                        if (_hashedHistory != null)
+                        {
+                            foreach (var pair in _hashedHistory.ToArray())
+                            {
+                                if (pair.Value < searchFromPoint)
+                                {
+                                    _hashedHistory.Remove(pair.Key);
+                                }
+                            }
+                        }
+
+                        var toMatchStr = toMatch.ToString();
+                        var startIndex = _buffer.ToString().IndexOf(toMatchStr, Options.HistoryStringComparison);
+                        if (startIndex >= 0)
+                        {
+                            _statusLinePrompt = direction > 0 ? _forwardLocationISearchPrompt : _backwardLocationISearchPrompt;
+                            _current = startIndex;
+                            _emphasisStart = startIndex;
+                            _emphasisLength = toMatch.Length;
+                            Render();
+                        }
+                    }
+                    else
+                    {
+                        Ding();
+                    }
+                }
+                else if (key == Keys.Escape)
+                {
+                    break;
+                }
+                else if (function == Abort)
+                {
+                    GoToEndOfHistory();
+                    break;
+                }
+                else
+                {
+                    char toAppend = key.KeyChar;
+                    if (char.IsControl(toAppend))
+                    {
+                        PrependQueuedKeys(key);
+                        break;
+                    }
+                    toMatch.Append(toAppend);
+                    _statusBuffer.Insert(_statusBuffer.Length - 1, toAppend);
+
+                    var toMatchStr = toMatch.ToString();
+                    var startIndex = _buffer.ToString().IndexOf(toMatchStr, Options.HistoryStringComparison);
+                    if (startIndex < 0)
+                    {
+                        UpdateLocationHistoryDuringInteractiveSearch(toMatchStr, direction, currentLocation, ref searchFromPoint);
+                    }
+                    else
+                    {
+                        _current = startIndex;
+                        _emphasisStart = startIndex;
+                        _emphasisLength = toMatch.Length;
+                        Render();
+                    }
+                    searchPositions.Push(_currentHistoryIndex);
+                }
+            }
+        }
+
+        private void InteractiveLocationHistorySearch(int direction)
+        {
+            var currentLocation = GetCurrentLocation();
+            if (string.IsNullOrEmpty(currentLocation))
+            {
+                // Fall back to regular interactive search if location unavailable
+                InteractiveHistorySearch(direction);
+                return;
+            }
+
+            using var _ = _prediction.DisableScoped();
+            SaveCurrentLine();
+
+            _statusLinePrompt = direction > 0 ? _forwardLocationISearchPrompt : _backwardLocationISearchPrompt;
+            _statusBuffer.Append("_");
+
+            Render();
+            InteractiveLocationHistorySearchLoop(direction, currentLocation);
+
+            _emphasisStart = -1;
+            _emphasisLength = 0;
+
+            ClearStatusMessage(render: true);
+        }
+
+        /// <summary>
+        /// Perform an incremental forward search through history, filtered to commands executed from the current location.
+        /// </summary>
+        public static void ForwardLocationSearchHistory(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            _singleton.InteractiveLocationHistorySearch(+1);
+        }
+
+        /// <summary>
+        /// Perform an incremental backward search through history, filtered to commands executed from the current location.
+        /// </summary>
+        public static void ReverseLocationSearchHistory(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            _singleton.InteractiveLocationHistorySearch(-1);
         }
     }
 }
