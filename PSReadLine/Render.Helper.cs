@@ -57,7 +57,7 @@ namespace Microsoft.PowerShell
             for (var i = start; i < end; i++)
             {
                 var c = str[i];
-                if (char.IsHighSurrogate(c) && (i + 1) < end && char.IsLowSurrogate(str[i + 1]))
+                if ((i + 1) < end && char.IsSurrogatePair(c, str[i + 1]))
                 {
                     sum++;
                     i++; // Skip the low surrogate
@@ -83,7 +83,7 @@ namespace Microsoft.PowerShell
             for (var i = start; i < end; i++)
             {
                 var c = sb[i];
-                if (char.IsHighSurrogate(c) && (i + 1) < end && char.IsLowSurrogate(sb[i + 1]))
+                if ((i + 1) < end && char.IsSurrogatePair(c, sb[i + 1]))
                 {
                     sum++;
                     i++; // Skip the low surrogate
