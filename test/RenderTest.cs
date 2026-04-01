@@ -331,5 +331,73 @@ function prompt {
                     Tuple.Create(ConsoleColor.Blue, ConsoleColor.Magenta), "PSREADLINE>",
                     TokenClassification.Command, "dir"))));
         }
+
+        [SkippableFact]
+        public void LengthInBufferCells_SurrogatePair()
+        {
+            // 👉 is U+1F449, encoded as surrogate pair \uD83D\uDC49
+            // A surrogate pair should count as 1 buffer cell.
+            Assert.Equal(1, PSConsoleReadLine.LengthInBufferCells("\uD83D\uDC49"));
+        }
+
+        [SkippableFact]
+        public void LengthInBufferCells_MultipleSurrogatePairs()
+        {
+            // "👉❌" = two surrogate pairs, should be 2 buffer cells
+            Assert.Equal(2, PSConsoleReadLine.LengthInBufferCells("👉❌"));
+        }
+
+        [SkippableFact]
+        public void LengthInBufferCells_SurrogatePairWithText()
+        {
+            // "👉 " = surrogate pair + space = 2 buffer cells
+            Assert.Equal(2, PSConsoleReadLine.LengthInBufferCells("👉 "));
+            // "❌ " = surrogate pair + space = 2 buffer cells
+            Assert.Equal(2, PSConsoleReadLine.LengthInBufferCells("❌ "));
+            // "abc👉def" = 3 + 1 + 3 = 7
+            Assert.Equal(7, PSConsoleReadLine.LengthInBufferCells("abc👉def"));
+        }
+
+        [SkippableFact]
+        public void LengthInBufferCells_SurrogatePairWithEscapeSequence()
+        {
+            // ESC[31m (red color) + surrogate pair + ESC[0m (reset)
+            // Only the surrogate pair should count: 1 buffer cell
+            Assert.Equal(1, PSConsoleReadLine.LengthInBufferCells("\x1b[31m\uD83D\uDC49\x1b[0m"));
+        }
+
+        [SkippableFact]
+        public void LengthInBufferCells_NerdFontGlyph()
+        {
+            // U+F015A (nf-md-home) = \uDB80\uDD5A - a supplementary character in the private use area
+            // "╰󰅚 " = 1 + 1 + 1 = 3 buffer cells (the issue reported this as 4 before the fix)
+            Assert.Equal(3, PSConsoleReadLine.LengthInBufferCells("╰\uDB80\uDD5A "));
+        }
+
+        [SkippableFact]
+        public void LengthInBufferCells_LoneHighSurrogate()
+        {
+            // A lone high surrogate without a following low surrogate should still
+            // be handled without error (falls through to LengthInBufferCells(char))
+            var str = "a\uD83Db";
+            int expected = 1 + PSConsoleReadLine.LengthInBufferCells('\uD83D') + 1;
+            Assert.Equal(expected, PSConsoleReadLine.LengthInBufferCells(str));
+        }
+
+        [SkippableFact]
+        public void LengthInBufferCells_StringBuilder_SurrogatePair()
+        {
+            var sb = new StringBuilder("👉 ");
+            // surrogate pair + space = 2 buffer cells
+            Assert.Equal(2, PSConsoleReadLine.LengthInBufferCells(sb, 0, sb.Length));
+        }
+
+        [SkippableFact]
+        public void LengthInBufferCells_StringBuilder_SurrogatePairSubstring()
+        {
+            var sb = new StringBuilder("abc👉def");
+            // Just the surrogate pair portion (indices 3 and 4) = 1 buffer cell
+            Assert.Equal(1, PSConsoleReadLine.LengthInBufferCells(sb, 3, 5));
+        }
     }
 }
