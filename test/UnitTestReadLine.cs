@@ -130,6 +130,9 @@ namespace Test
         internal virtual bool KeyboardHasGreaterThan => true;
         internal virtual bool KeyboardHasCtrlRBracket => true;
         internal virtual bool KeyboardHasCtrlAt => true;
+        internal virtual bool ScreenReaderModeEnabled => false;
+
+        internal int ContinuationPromptLength => _continuationPromptLength;
 
         static ReadLine()
         {
@@ -444,8 +447,13 @@ namespace Test
                 // that shouldn't be and aren't ever set by any code in PSReadLine, so we'll
                 // ignore those bits and just check the stuff we do set.
                 Assert.Equal(expectedBuffer[i].UnicodeChar, consoleBuffer[i].UnicodeChar);
-                Assert.Equal(expectedBuffer[i].ForegroundColor, consoleBuffer[i].ForegroundColor);
-                Assert.Equal(expectedBuffer[i].BackgroundColor, consoleBuffer[i].BackgroundColor);
+                if (!ScreenReaderModeEnabled)
+                {
+                    // Changing colors is not supported in screen reader mode,
+                    // and this is the simplest way to disable checking that in all the tests.
+                    Assert.Equal(expectedBuffer[i].ForegroundColor, consoleBuffer[i].ForegroundColor);
+                    Assert.Equal(expectedBuffer[i].BackgroundColor, consoleBuffer[i].BackgroundColor);
+                }
             }
         }
 
@@ -537,6 +545,10 @@ namespace Test
         private string _emptyLine;
         private TestConsole _console;
         private MockedMethods _mockedMethods;
+        private bool _oneTimeInitCompleted;
+        private object _psrlInstance;
+        private FieldInfo _psrlConsole, _psrlMockableMethods;
+        private int _continuationPromptLength;
 
         private static string MakeCombinedColor(ConsoleColor fg, ConsoleColor bg)
             => VTColorUtils.AsEscapeSequence(fg) + VTColorUtils.AsEscapeSequence(bg, isBackground: true);
@@ -553,14 +565,17 @@ namespace Test
 
             _console = console ?? new TestConsole(_);
             _mockedMethods = new MockedMethods();
-            var instance = (PSConsoleReadLine)typeof(PSConsoleReadLine)
-                .GetField("_singleton", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
-            typeof(PSConsoleReadLine)
-                .GetField("_mockableMethods", BindingFlags.Instance | BindingFlags.NonPublic)
-                .SetValue(instance, _mockedMethods);
-            typeof(PSConsoleReadLine)
-                .GetField("_console", BindingFlags.Instance | BindingFlags.NonPublic)
-                .SetValue(instance, _console);
+
+            if (_psrlInstance is null)
+            {
+                Type psrlType = typeof(PSConsoleReadLine);
+                _psrlInstance = psrlType.GetField("_singleton", BindingFlags.Static | BindingFlags.NonPublic).GetValue(null);
+                _psrlConsole = psrlType.GetField("_console", BindingFlags.Instance | BindingFlags.NonPublic);
+                _psrlMockableMethods = psrlType.GetField("_mockableMethods", BindingFlags.Instance | BindingFlags.NonPublic);
+            }
+
+            _psrlConsole.SetValue(_psrlInstance, _console);
+            _psrlMockableMethods.SetValue(_psrlInstance, _mockedMethods);
 
             _emptyLine ??= new string(' ', _console.BufferWidth);
 
@@ -576,6 +591,7 @@ namespace Test
                 ContinuationPrompt                = PSConsoleReadLineOptions.DefaultContinuationPrompt,
                 DingDuration                      = 1,  // Make tests virtually silent when they ding
                 DingTone                          = 37, // Make tests virtually silent when they ding
+                EnableScreenReaderMode            = ScreenReaderModeEnabled,
                 ExtraPromptLineCount              = PSConsoleReadLineOptions.DefaultExtraPromptLineCount,
                 HistoryNoDuplicates               = PSConsoleReadLineOptions.DefaultHistoryNoDuplicates,
                 HistorySaveStyle                  = HistorySaveStyle.SaveNothing,
@@ -626,6 +642,18 @@ namespace Test
             }
             var colorOptions = new SetPSReadLineOption {Colors = colors};
             PSConsoleReadLine.SetOptions(colorOptions);
+
+            // Cache the continuation prompt length for use in tests
+            _continuationPromptLength = ScreenReaderModeEnabled
+                ? 0
+                : PSConsoleReadLine.GetOptions().ContinuationPrompt.Length;
+
+            if (!_oneTimeInitCompleted)
+            {
+                typeof(PSConsoleReadLine).GetMethod("Initialize", BindingFlags.Instance | BindingFlags.NonPublic)
+                    .Invoke(_psrlInstance, new object[] { /* Runspace */ null, /* EngineIntrinsics */ null, });
+                _oneTimeInitCompleted = true;
+            }
         }
     }
 
@@ -654,5 +682,15 @@ namespace Test
         // requires AltGr, so you can't tell the difference b/w `]` and `Ctrl+]`.
         internal override bool KeyboardHasCtrlRBracket => false;
         internal override bool KeyboardHasCtrlAt => false;
+    }
+    
+    public class ScreenReader : Test.ReadLine, IClassFixture<ConsoleFixture>
+    {
+        public ScreenReader(ConsoleFixture fixture, ITestOutputHelper output)
+            : base(fixture, output, "en-US", "windows")
+        {
+        }
+        
+        internal override bool ScreenReaderModeEnabled => true;
     }
 }

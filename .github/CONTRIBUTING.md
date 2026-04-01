@@ -65,23 +65,7 @@ Additional references:
 
 ### Bootstrap, Build and Test
 
-To build `PSReadLine` on Windows, Linux, or macOS,
-you must have the following installed:
-
-* .NET Core SDK 2.1.802 or [a newer version](https://www.microsoft.com/net/download)
-* The PowerShell modules `InvokeBuild` and `platyPS`
-
-The build script `build.ps1` can be used to bootstrap, build and test the project.
-
-* Bootstrap: `./build.ps1 -Bootstrap`
-* Build:
-    * Targeting .NET 4.6.2 (Windows only): `./build.ps1 -Configuration Debug -Framework net462`
-    * Targeting .NET Core: `./build.ps1 -Configuration Debug -Framework net6.0`
-* Test:
-    * Targeting .NET 4.6.2 (Windows only): `./build.ps1 -Test -Configuration Debug -Framework net462`
-    * Targeting .NET Core: `./build.ps1 -Test -Configuration Debug -Framework net6.0`
-
-After build, the produced artifacts can be found at `<your-local-repo-root>/bin/Debug`.
+See the [Building](../README.md#building) section in README for details.
 
 ### Submitting Pull Request
 

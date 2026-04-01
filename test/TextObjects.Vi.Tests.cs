@@ -82,8 +82,6 @@ namespace Test
         {
             TestSetup(KeyMode.Vi);
 
-            var continuationPrefixLength = PSConsoleReadLineOptions.DefaultContinuationPrompt.Length;
-
             Test("\"\nhello, world!\n\noh, bitter world!\n\"", Keys(
                 _.DQuote, _.Enter, 
                 "hello, world!", _.Enter,
@@ -104,8 +102,6 @@ namespace Test
         public void ViTextObject_diw_end_of_buffer()
         {
             TestSetup(KeyMode.Vi);
-
-            var continuationPrefixLength = PSConsoleReadLineOptions.DefaultContinuationPrompt.Length;
 
             Test("", Keys(
                 _.DQuote, 
@@ -142,8 +138,6 @@ namespace Test
         public void ViTextObject_diw_new_lines()
         {
             TestSetup(KeyMode.Vi);
-
-            var continuationPrefixLength = PSConsoleReadLineOptions.DefaultContinuationPrompt.Length;
 
             Test("\"\ntwo\n\"", Keys(
                 _.DQuote, _.Enter,

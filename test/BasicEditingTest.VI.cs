@@ -494,8 +494,6 @@ namespace Test
         {
             TestSetup(KeyMode.Vi);
 
-            int continuationPrefixLength = PSConsoleReadLineOptions.DefaultContinuationPrompt.Length;
-
             Test("\"\n\"", Keys(
                  _.DQuote, _.Enter,
                  "one", _.Enter,
@@ -503,7 +501,7 @@ namespace Test
                  "three", _.Enter,
                  _.DQuote, _.Escape,
                  "kl", // go to the 'hree' portion of "three"
-                 "2dk", CheckThat(() => AssertCursorLeftIs(continuationPrefixLength + 0))
+                 "2dk", CheckThat(() => AssertCursorLeftIs(ContinuationPromptLength + 0))
                 ));
         }
 
@@ -512,8 +510,6 @@ namespace Test
         {
             TestSetup(KeyMode.Vi);
 
-            int continuationPrefixLength = PSConsoleReadLineOptions.DefaultContinuationPrompt.Length;
-
             Test("\"\none\ntwo\n\"", Keys(
                  _.DQuote, _.Enter,
                  "one", _.Enter,
@@ -521,7 +517,7 @@ namespace Test
                  "three", _.Enter,
                  _.DQuote, _.Escape,
                  "dk",
-                 CheckThat(() => AssertCursorLeftIs(continuationPrefixLength + 0)),
+                 CheckThat(() => AssertCursorLeftIs(ContinuationPromptLength + 0)),
                  CheckThat(() => AssertCursorTopIs(2)),
                  CheckThat(() => AssertLineIs("\"\none\ntwo")),
                  // finish the buffer to close the multiline string
@@ -571,8 +567,6 @@ namespace Test
         {
             TestSetup(KeyMode.Vi);
 
-            int continuationPrefixLength = PSConsoleReadLineOptions.DefaultContinuationPrompt.Length;
-
             Test("\"\no\nthree\n\"", Keys(
                 _.DQuote, _.Enter,
                 "one", _.Enter,
@@ -582,7 +576,7 @@ namespace Test
                 "kkkl", // go to the 'ne' portion of "one"
                 // delete to the end of the next line
                 "2d$",
-                CheckThat(() => AssertCursorLeftIs(continuationPrefixLength + 0))
+                CheckThat(() => AssertCursorLeftIs(ContinuationPromptLength + 0))
                 ));
         }
 
@@ -591,18 +585,16 @@ namespace Test
         {
             TestSetup(KeyMode.Vi);
 
-            int continuationPrefixLength = PSConsoleReadLineOptions.DefaultContinuationPrompt.Length;
-
             Test("\"\nsome words\n\"", Keys(
 
                 _.DQuote, _.Enter,
                 "   this is a line with some words", _.Enter,
                 _.DQuote, _.Escape,
                 "k6W",
-                CheckThat(() => AssertCursorLeftIs(continuationPrefixLength + 23)),
+                CheckThat(() => AssertCursorLeftIs(ContinuationPromptLength + 23)),
                 // delete from first non blank of line
                 "d0",
-                CheckThat(() => AssertCursorLeftIs(continuationPrefixLength))
+                CheckThat(() => AssertCursorLeftIs(ContinuationPromptLength))
             ));
         }
 
@@ -611,17 +603,15 @@ namespace Test
         {
             TestSetup(KeyMode.Vi);
 
-            int continuationPrefixLength = PSConsoleReadLineOptions.DefaultContinuationPrompt.Length;
-
             Test("\"\n   some spaces\n\"", Keys(
                 _.DQuote, _.Enter,
                 "   this is a line with some spaces", _.Enter,
                 _.DQuote, _.Escape,
                 "k6W",
-                CheckThat(() => AssertCursorLeftIs(continuationPrefixLength + 23)),
+                CheckThat(() => AssertCursorLeftIs(ContinuationPromptLength + 23)),
                 // delete from first non blank of line
                 "d^",
-                CheckThat(() => AssertCursorLeftIs(continuationPrefixLength + 3))
+                CheckThat(() => AssertCursorLeftIs(ContinuationPromptLength + 3))
             ));
         }
 
@@ -630,8 +620,6 @@ namespace Test
         {
             TestSetup(KeyMode.Vi);
 
-            int continuationPrefixLength = PSConsoleReadLineOptions.DefaultContinuationPrompt.Length;
-
             Test("\"\n\"", Keys(
                  _.DQuote, _.Enter,
                  "one", _.Enter,
@@ -639,7 +627,7 @@ namespace Test
                  "three", _.Enter,
                  _.DQuote, _.Escape,
                  "kkkl", // go to the 'ne' portion of "one"
-                 "2dj", CheckThat(() => AssertCursorLeftIs(continuationPrefixLength + 0))
+                 "2dj", CheckThat(() => AssertCursorLeftIs(ContinuationPromptLength + 0))
                 ));
         }
 
@@ -647,8 +635,6 @@ namespace Test
         public void ViDeleteRelativeLines()
         {
             TestSetup(KeyMode.Vi);
-
-            var continuationPrefixLength = PSConsoleReadLineOptions.DefaultContinuationPrompt.Length;
 
             Test("\"\nthree\n\"", Keys(
                 _.DQuote, _.Enter,
@@ -659,7 +645,7 @@ namespace Test
                 "kkl", // go to the 'wo' portion of "two"
                 // delete from line 2 to the current line (3)
                 "2dgg",
-                CheckThat(() => AssertCursorLeftIs(continuationPrefixLength + 0))
+                CheckThat(() => AssertCursorLeftIs(ContinuationPromptLength + 0))
                 ));
 
             Test("\"\none\nthree\n\"", Keys(
@@ -671,7 +657,7 @@ namespace Test
                 "kkl", // go to the 'wo' portion of "two"
                 // delete the current line (3)
                 "3dgg",
-                CheckThat(() => AssertCursorLeftIs(continuationPrefixLength + 0))
+                CheckThat(() => AssertCursorLeftIs(ContinuationPromptLength + 0))
                 ));
 
             Test("\"\none\n\"", Keys(
@@ -683,7 +669,7 @@ namespace Test
                 "kkl", // go to the 'wo' portion of "two"
                 // delete from the current line (3) to line 4
                 "4dgg",
-                CheckThat(() => AssertCursorLeftIs(continuationPrefixLength + 0))
+                CheckThat(() => AssertCursorLeftIs(ContinuationPromptLength + 0))
                 ));
         }
 
@@ -977,7 +963,6 @@ namespace Test
         [SkippableFact]
         public void ViInsertLine()
         {
-            int adder = PSConsoleReadLineOptions.DefaultContinuationPrompt.Length;
             TestSetup(KeyMode.Vi);
 
             Test("line1\n", Keys(
@@ -985,8 +970,8 @@ namespace Test
                 ));
 
             Test("\nline1", Keys(
-                _.Escape, "oline1", CheckThat(() => AssertCursorLeftIs(5 + adder)), CheckThat(() => AssertLineIs("\nline1")),
-                _.Escape, CheckThat(() => AssertCursorLeftIs(4 + adder))
+                _.Escape, "oline1", CheckThat(() => AssertCursorLeftIs(5 + ContinuationPromptLength)), CheckThat(() => AssertLineIs("\nline1")),
+                _.Escape, CheckThat(() => AssertCursorLeftIs(4 + ContinuationPromptLength))
                 ));
 
             Test("", Keys(
@@ -1010,10 +995,10 @@ namespace Test
                 ));
 
             Test("", Keys(
-                _.Escape, "oline4", CheckThat(() => AssertLineIs("\nline4")), CheckThat(() => AssertCursorLeftIs(5 + adder)),
-                _.Escape, "Oline2", CheckThat(() => AssertLineIs("\nline2\nline4")), CheckThat(() => AssertCursorLeftIs(5 + adder)),
+                _.Escape, "oline4", CheckThat(() => AssertLineIs("\nline4")), CheckThat(() => AssertCursorLeftIs(5 + ContinuationPromptLength)),
+                _.Escape, "Oline2", CheckThat(() => AssertLineIs("\nline2\nline4")), CheckThat(() => AssertCursorLeftIs(5 + ContinuationPromptLength)),
                 _.Escape, "oline3", CheckThat(() => AssertLineIs("\nline2\nline3\nline4")),
-                _.Escape, CheckThat(() => AssertLineIs("\nline2\nline3\nline4")), CheckThat(() => AssertCursorLeftIs(4 + adder)),
+                _.Escape, CheckThat(() => AssertLineIs("\nline2\nline3\nline4")), CheckThat(() => AssertCursorLeftIs(4 + ContinuationPromptLength)),
                 'u', CheckThat(() => AssertLineIs("\nline2\nline4")),
                 'u', CheckThat(() => AssertLineIs("\nline4")),
                 'u'

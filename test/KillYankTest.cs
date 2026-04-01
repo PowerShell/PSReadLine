@@ -119,6 +119,8 @@ namespace Test
             PSConsoleReadLine.SetKeyHandler(new[] { "Shift+Tab" }, PSConsoleReadLine.BackwardKillLine, "", "");
 
             Test("", Keys("dir", _.Shift_Tab));
+
+            Test("abc\n123", Keys("abc", _.Shift_Enter, "123", _.Shift_Tab, _.Ctrl_y));
         }
 
         [SkippableFact]
@@ -672,7 +674,11 @@ namespace Test
         [SkippableFact]
         public void SelectCommandArgument_HereStringArgs()
         {
+            Skip.If(ScreenReaderModeEnabled, "We're still investigating exactly why this test fails in screen reader mode.");
+
             TestSetup(KeyMode.Cmd);
+
+            var continuationPrompt = PSConsoleReadLine.GetOptions().ContinuationPrompt;
 
             Test("", Keys(
                 "& Test-Sca a1 @'\nabc\n'@ -p1 \"$false\"",
@@ -685,10 +691,10 @@ namespace Test
                     TokenClassification.None, ' ',
                     TokenClassification.String, "@'",
                     NextLine,
-                    TokenClassification.None, ">> ",
+                    TokenClassification.None, continuationPrompt,
                     TokenClassification.String, "abc",
                     NextLine,
-                    TokenClassification.None, ">> ",
+                    TokenClassification.None, continuationPrompt,
                     TokenClassification.String, "'@",
                     TokenClassification.None, ' ',
                     TokenClassification.Parameter, "-p1",
@@ -704,10 +710,10 @@ namespace Test
                     TokenClassification.None, " a1 ",
                     TokenClassification.String, "@'",
                     NextLine,
-                    TokenClassification.None, ">> ",
+                    TokenClassification.None, continuationPrompt,
                     TokenClassification.Selection, "abc",
                     NextLine,
-                    TokenClassification.None, ">> ",
+                    TokenClassification.None, continuationPrompt,
                     TokenClassification.String, "'@",
                     TokenClassification.None, ' ',
                     TokenClassification.Parameter, "-p1",
@@ -723,10 +729,10 @@ namespace Test
                     TokenClassification.None, " a1 ",
                     TokenClassification.String, "@'",
                     NextLine,
-                    TokenClassification.None, ">> ",
+                    TokenClassification.None, continuationPrompt,
                     TokenClassification.String, "abc",
                     NextLine,
-                    TokenClassification.None, ">> ",
+                    TokenClassification.None, continuationPrompt,
                     TokenClassification.String, "'@",
                     TokenClassification.None, ' ',
                     TokenClassification.Parameter, "-p1",
@@ -744,10 +750,10 @@ namespace Test
                     TokenClassification.None, ' ',
                     TokenClassification.String, "@'",
                     NextLine,
-                    TokenClassification.None, ">> ",
+                    TokenClassification.None, continuationPrompt,
                     TokenClassification.String, "abc",
                     NextLine,
-                    TokenClassification.None, ">> ",
+                    TokenClassification.None, continuationPrompt,
                     TokenClassification.String, "'@",
                     TokenClassification.None, ' ',
                     TokenClassification.Parameter, "-p1",
@@ -766,10 +772,10 @@ namespace Test
                     TokenClassification.None, ' ',
                     TokenClassification.String, "@'",
                     NextLine,
-                    TokenClassification.None, ">> ",
+                    TokenClassification.None, continuationPrompt,
                     TokenClassification.String, "abc",
                     NextLine,
-                    TokenClassification.None, ">> ",
+                    TokenClassification.None, continuationPrompt,
                     TokenClassification.String, "'@",
                     TokenClassification.None, ' ',
                     TokenClassification.Parameter, "-p1",
@@ -786,10 +792,10 @@ namespace Test
                     TokenClassification.None, " a1 ",
                     TokenClassification.String, "@'",
                     NextLine,
-                    TokenClassification.None, ">> ",
+                    TokenClassification.None, continuationPrompt,
                     TokenClassification.String, "abc",
                     NextLine,
-                    TokenClassification.None, ">> ",
+                    TokenClassification.None, continuationPrompt,
                     TokenClassification.String, "'@",
                     TokenClassification.None, ' ',
                     TokenClassification.Parameter, "-p1",

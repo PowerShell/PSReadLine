@@ -19,82 +19,60 @@ param(
     [ValidateSet("Debug", "Release")]
     [string]$Configuration = (property Configuration Release),
 
-    [ValidateSet("net462", "net6.0")]
-    [string]$Framework,
-
     [switch]$CheckHelpContent
 )
 
 Import-Module "$PSScriptRoot/tools/helper.psm1"
 
-# Final bits to release go here
-$targetDir = "bin/$Configuration/PSReadLine"
+# Dynamically read target framework from project file
+$csprojPath = "$PSScriptRoot/PSReadLine/PSReadLine.csproj"
+[xml]$csproj = Get-Content $csprojPath
+$targetFramework = $csproj.Project.PropertyGroup.TargetFramework | Where-Object { $_ } | Select-Object -First 1
 
-if (-not $Framework)
-{
-    $Framework = if ($PSVersionTable.PSEdition -eq "Core") { "net6.0" } else { "net462" }
+if (-not $targetFramework) {
+    throw "Could not determine TargetFramework from $csprojPath"
 }
 
-Write-Verbose "Building for '$Framework'" -Verbose
+Write-Verbose "Target framework: $targetFramework"
+
+# Final bits to release go here
+$targetDir = "bin/$Configuration/PSReadLine"
 
 function ConvertTo-CRLF([string] $text) {
     $text.Replace("`r`n","`n").Replace("`n","`r`n")
 }
 
-$polyFillerParams = @{
-    Inputs = { Get-ChildItem Polyfill/*.cs, Polyfill/Polyfill.csproj }
-    Outputs = "Polyfill/bin/$Configuration/$Framework/Microsoft.PowerShell.PSReadLine.Polyfiller.dll"
-}
-
 $binaryModuleParams = @{
-    Inputs  = { Get-ChildItem PSReadLine/*.cs, PSReadLine/PSReadLine.csproj, PSReadLine/PSReadLineResources.resx, Polyfill/*.cs, Polyfill/Polyfill.csproj }
-    Outputs = "PSReadLine/bin/$Configuration/$Framework/Microsoft.PowerShell.PSReadLine2.dll"
+    Inputs  = { Get-ChildItem PSReadLine/*.cs, PSReadLine/PSReadLine.csproj, PSReadLine/PSReadLineResources.resx }
+    Outputs = "PSReadLine/bin/$Configuration/$targetFramework/Microsoft.PowerShell.PSReadLine.dll"
 }
 
 $xUnitTestParams = @{
     Inputs = { Get-ChildItem test/*.cs, test/*.json, test/PSReadLine.Tests.csproj }
-    Outputs = "test/bin/$Configuration/$Framework/PSReadLine.Tests.dll"
-}
-
-$mockPSConsoleParams = @{
-    Inputs = { Get-ChildItem MockPSConsole/*.cs, MockPSConsole/Program.manifest, MockPSConsole/MockPSConsole.csproj }
-    Outputs = "MockPSConsole/bin/$Configuration/$Framework/MockPSConsole.dll"
-}
-
-<#
-Synopsis: Build the Polyfiller assembly
-#>
-task BuildPolyfiller @polyFillerParams -If ($Framework -eq "net462") {
-    ## Build both "net462" and "net6.0"
-    exec { dotnet publish -f "net462" -c $Configuration Polyfill }
-    exec { dotnet publish -f "net6.0" -c $Configuration Polyfill }
+    Outputs = "test/bin/$Configuration/$targetFramework/PSReadLine.Tests.dll"
 }
 
 <#
 Synopsis: Build main binary module
 #>
 task BuildMainModule @binaryModuleParams {
-    exec { dotnet publish -f $Framework -c $Configuration PSReadLine }
+    exec { dotnet publish -c $Configuration PSReadLine\PSReadLine.csproj }
 }
 
 <#
 Synopsis: Build xUnit tests
 #>
 task BuildXUnitTests @xUnitTestParams {
-    exec { dotnet publish -f $Framework -c $Configuration test }
-}
-
-<#
-Synopsis: Build the mock powershell console.
-#>
-task BuildMockPSConsole @mockPSConsoleParams {
-    exec { dotnet publish -f $Framework -c $Configuration MockPSConsole }
+    exec { dotnet publish -f $targetFramework -c $Configuration test }
 }
 
 <#
 Synopsis: Run the unit tests
 #>
-task RunTests BuildMainModule, BuildXUnitTests, { Start-TestRun -Configuration $Configuration -Framework $Framework }
+task RunTests BuildMainModule, BuildXUnitTests, {
+    Write-Verbose "Run tests targeting $targetFramework ..."
+    Start-TestRun -Configuration $Configuration -Framework $targetFramework
+}
 
 <#
 Synopsis: Check if the help content is in sync.
@@ -110,7 +88,7 @@ task CheckHelpContent -If $CheckHelpContent {
 <#
 Synopsis: Copy all of the files that belong in the module to one place in the layout for installation
 #>
-task LayoutModule BuildPolyfiller, BuildMainModule, {
+task LayoutModule BuildMainModule, {
     if (-not (Test-Path $targetDir -PathType Container)) {
         New-Item $targetDir -ItemType Directory -Force > $null
     }
@@ -128,35 +106,17 @@ task LayoutModule BuildPolyfiller, BuildMainModule, {
         Set-Content -Path (Join-Path $targetDir (Split-Path $file -Leaf)) -Value (ConvertTo-CRLF $content) -Force
     }
 
-    if ($Framework -eq "net462") {
-        if (-not (Test-Path "$targetDir/net462")) {
-            New-Item "$targetDir/net462" -ItemType Directory -Force > $null
-        }
-        if (-not (Test-Path "$targetDir/net6plus")) {
-            New-Item "$targetDir/net6plus" -ItemType Directory -Force > $null
-        }
-
-        Copy-Item "Polyfill/bin/$Configuration/net462/Microsoft.PowerShell.PSReadLine.Polyfiller.dll" "$targetDir/net462" -Force
-        Copy-Item "Polyfill/bin/$Configuration/net6.0/Microsoft.PowerShell.PSReadLine.Polyfiller.dll" "$targetDir/net6plus" -Force
-    }
-
-    $binPath = "PSReadLine/bin/$Configuration/$Framework/publish"
-    Copy-Item $binPath/Microsoft.PowerShell.PSReadLine2.dll $targetDir
+    $binPath = "PSReadLine/bin/$Configuration/$targetFramework/publish"
+    Copy-Item $binPath/Microsoft.PowerShell.PSReadLine.dll $targetDir
     Copy-Item $binPath/Microsoft.PowerShell.Pager.dll $targetDir
 
     if ($Configuration -eq 'Debug') {
         Copy-Item $binPath/*.pdb $targetDir
     }
 
-    if (Test-Path $binPath/System.Runtime.InteropServices.RuntimeInformation.dll) {
-        Copy-Item $binPath/System.Runtime.InteropServices.RuntimeInformation.dll $targetDir
-    } else {
-        Write-Warning "Build using $Framework is not sufficient to be downlevel compatible"
-    }
-
     # Copy module manifest, but fix the version to match what we've specified in the binary module.
     $moduleManifestContent = ConvertTo-CRLF (Get-Content -Path 'PSReadLine/PSReadLine.psd1' -Raw)
-    $versionInfo = (Get-ChildItem -Path $targetDir/Microsoft.PowerShell.PSReadLine2.dll).VersionInfo
+    $versionInfo = (Get-ChildItem -Path $targetDir/Microsoft.PowerShell.PSReadLine.dll).VersionInfo
     $version = $versionInfo.FileVersion
     $semVer = $versionInfo.ProductVersion
 

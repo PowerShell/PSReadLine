@@ -218,36 +218,197 @@ namespace Microsoft.PowerShell
             Render();
         }
 
-        private void Render()
+        private void Render(bool force = false)
         {
-            // If there are a bunch of keys queued up, skip rendering if we've rendered very recently.
-            long elapsedMs = _lastRenderTime.ElapsedMilliseconds;
-            if (_queuedKeys.Count > 10 && elapsedMs < 50)
+            if (!force)
             {
-                // We won't render, but most likely the tokens will be different, so make
-                // sure we don't use old tokens, also allow garbage to get collected.
-                _tokens = null;
-                _ast = null;
-                _parseErrors = null;
-                _waitingToRender = true;
-                return;
+                // If there are a bunch of keys queued up, skip rendering if we've rendered very recently.
+                long elapsedMs = _lastRenderTime.ElapsedMilliseconds;
+                if (_queuedKeys.Count > 10 && elapsedMs < 50)
+                {
+                    // We won't render, but most likely the tokens will be different, so make
+                    // sure we don't use old tokens, also allow garbage to get collected.
+                    _tokens = null;
+                    _ast = null;
+                    _parseErrors = null;
+                    _waitingToRender = true;
+                    return;
+                }
+
+                // If we've rendered very recently, skip the terminal window resizing check as it's unlikely
+                // to happen in such a short time interval.
+                // We try to avoid unnecessary resizing check because it requires getting the cursor position
+                // which would force a network round trip in an environment where front-end xtermjs talking to
+                // a server-side PTY via websocket. Without querying for cursor position, content written on
+                // the server side could be buffered, which is much more performant.
+                // See the following 2 GitHub issues for more context:
+                //  - https://github.com/PowerShell/PSReadLine/issues/3879#issuecomment-2573996070
+                //  - https://github.com/PowerShell/PowerShell/issues/24696
+                if (elapsedMs < 50)
+                {
+                    _handlePotentialResizing = false;
+                }
             }
 
-            // If we've rendered very recently, skip the terminal window resizing check as it's unlikely
-            // to happen in such a short time interval.
-            // We try to avoid unnecessary resizing check because it requires getting the cursor position
-            // which would force a network round trip in an environment where front-end xtermjs talking to
-            // a server-side PTY via websocket. Without querying for cursor position, content written on
-            // the server side could be buffered, which is much more performant.
-            // See the following 2 GitHub issues for more context:
-            //  - https://github.com/PowerShell/PSReadLine/issues/3879#issuecomment-2573996070
-            //  - https://github.com/PowerShell/PowerShell/issues/24696
-            if (elapsedMs < 50)
+            // Use simplified rendering for screen readers
+            if (Options.ScreenReaderModeEnabled)
             {
-                _handlePotentialResizing = false;
+                RenderForScreenReader();
+            }
+            else
+            {
+                ForceRender();
+            }
+        }
+        
+        private void RenderForScreenReader()
+        {
+            int bufferWidth = _console.BufferWidth;
+            int bufferHeight = _console.BufferHeight;
+
+            static int FindCommonPrefixLength(string leftStr, string rightStr)
+            {
+                if (string.IsNullOrEmpty(leftStr) || string.IsNullOrEmpty(rightStr))
+                {
+                    return 0;
+                }
+
+                int i = 0;
+                int minLength = Math.Min(leftStr.Length, rightStr.Length);
+
+                while (i < minLength && leftStr[i] == rightStr[i])
+                {
+                    i++;
+                }
+
+                return i;
             }
 
-            ForceRender();
+            // For screen readers, we are just comparing the previous and current buffer text
+            // (without colors) and only writing the differences.
+            //
+            // Note that we don't call QueryForSuggestion() which is the only
+            // entry into the prediction logic, so while it could be enabled, it
+            // won't do anything in this rendering implementation.
+            string parsedInput = ParseInput();
+            StringBuilder buffer = new(parsedInput);
+
+            // Really simple handling of a status line: append it!
+            if (!string.IsNullOrEmpty(_statusLinePrompt))
+            {
+                buffer.Append("\n");
+                buffer.Append(_statusLinePrompt);
+                buffer.Append(_statusBuffer);
+            }
+
+            string currentBuffer = buffer.ToString();
+            string previousBuffer = _previousRender.lines[0].Line;
+
+            // In case the buffer was resized.
+            RecomputeInitialCoords(isTextBufferUnchanged: false);
+
+            // Make cursor invisible while we're rendering.
+            _console.CursorVisible = false;
+
+            if (currentBuffer == previousBuffer)
+            {
+                // No-op, such as when selecting text or otherwise re-entering.
+            }
+            else if (previousBuffer.Length == 0)
+            {
+                // Previous buffer was empty so we just render the current buffer,
+                // and we don't need to move the cursor.
+                _console.Write(currentBuffer);
+            }
+            else
+            {
+                // Calculate what to render and where to start the rendering.
+                int commonPrefixLength = FindCommonPrefixLength(previousBuffer, currentBuffer);
+
+                // If we're scrolling through history we always want to re-render.
+                // Writing only the diff in this scenario is a weird UX.
+                if (commonPrefixLength > 0 && _anyHistoryCommandCount == 0)
+                {
+                    // We need to differentially render, possibly with a partial rewrite.
+                    if (commonPrefixLength != previousBuffer.Length)
+                    {
+                        // The buffers share a common prefix but the previous buffer has additional content.
+                        // Move cursor to where the difference starts and clear so we can rewrite.
+                        var diffPoint = ConvertOffsetToPoint(commonPrefixLength, buffer);
+                        _console.SetCursorPosition(diffPoint.X, diffPoint.Y);
+                        _console.Write("\x1b[0J");
+                    } // Otherwise the previous buffer is a complete prefix and we just write.
+
+                    // TODO: There is a rare edge case where the common prefix can be incorrectly
+                    // calculated because the incoming replacement text matches the text at the current
+                    // cursor position. Unfortunately we don't have a solution yet. For example:
+                    //
+                    // 1. Previous line is "abcdef" and cursor is at (before) the letter "d"
+                    // 2. Paste "defghi" so currentBuffer is "abcdefghidef"
+                    // 3. The diff is "ghidef" and because commonPrefixLength == previousBuffer.Length
+                    // 4. The terminal will incorrectly display "abcghidef" instead of "abcdefghidef"
+
+                    // Finally, write the diff.
+                    var diffData = currentBuffer.Substring(commonPrefixLength);
+                    _console.Write(diffData);
+                }
+                else
+                {
+                    // The buffers are completely different so we need to rewrite from the start.
+                    _console.SetCursorPosition(_initialX, _initialY);
+                    _console.Write("\x1b[0J");
+                    _console.Write(currentBuffer);
+                }
+            }
+            
+            // If we had to wrap to render everything, update _initialY
+            var endPoint = ConvertOffsetToPoint(currentBuffer.Length, buffer);
+            if (endPoint.Y >= bufferHeight)
+            {
+                // We had to scroll to render everything, update _initialY.
+                int offset = 1; // Base case to handle zero-indexing.
+                if (endPoint.X == 0 && !currentBuffer.EndsWith("\n"))
+                {
+                    // The line hasn't actually wrapped yet because we have exactly filled the line.
+                    offset -= 1;
+                }
+                int scrolledLines = endPoint.Y - bufferHeight + offset;
+                _initialY -= scrolledLines;
+            }
+
+            // Calculate the coord to place the cursor for the next input.
+            var point = ConvertOffsetToPoint(_current, buffer);
+
+            if (point.Y == bufferHeight)
+            {
+                // The cursor top exceeds the buffer height and it hasn't already wrapped,
+                // (because we have exactly filled the line) so we need to scroll up the buffer by 1 line.
+                if (point.X == 0)
+                {
+                    _console.Write("\n");
+                }
+
+                // Adjust the initial cursor position and the to-be-set cursor position
+                // after scrolling up the buffer.
+                _initialY -= 1;
+                point.Y -= 1;
+            }
+
+            _console.SetCursorPosition(point.X, point.Y);
+            _console.CursorVisible = true;
+
+            // Preserve the current render data.
+            var renderData = new RenderData
+            {
+                lines = new RenderedLineData[] { new(currentBuffer, isFirstLogicalLine: true) },
+                errorPrompt = (_parseErrors != null && _parseErrors.Length > 0) // Not yet used.
+            };
+            _previousRender = renderData;
+            _previousRender.UpdateConsoleInfo(bufferWidth, bufferHeight, point.X, point.Y);
+            _previousRender.initialY = _initialY;
+
+            _lastRenderTime.Restart();
+            _waitingToRender = false;
         }
 
         private void ForceRender()
@@ -261,7 +422,7 @@ namespace Microsoft.PowerShell
             // and minimize writing more than necessary on the next render.)
 
             var renderLines = new RenderedLineData[logicalLineCount];
-            var renderData = new RenderData {lines = renderLines};
+            var renderData = new RenderData { lines = renderLines };
             for (var i = 0; i < logicalLineCount; i++)
             {
                 var line = _consoleBufferLines[i].ToString();
@@ -872,9 +1033,6 @@ namespace Microsoft.PowerShell
                 WriteBlankLines(lineCount);
             }
 
-            // Preserve the current render data.
-            _previousRender = renderData;
-
             // If we counted pseudo physical lines, deduct them to get the real physical line counts
             // before updating '_initialY'.
             physicalLine -= pseudoPhysicalLineOffset;
@@ -950,6 +1108,8 @@ namespace Microsoft.PowerShell
             _console.SetCursorPosition(point.X, point.Y);
             _console.CursorVisible = true;
 
+            // Preserve the current render data.
+            _previousRender = renderData;
             _previousRender.UpdateConsoleInfo(bufferWidth, bufferHeight, point.X, point.Y);
             _previousRender.initialY = _initialY;
 
@@ -1201,17 +1361,23 @@ namespace Microsoft.PowerShell
             return ConvertOffsetToPoint(_buffer.Length);
         }
 
-        internal Point ConvertOffsetToPoint(int offset)
+        internal Point ConvertOffsetToPoint(int offset, StringBuilder buffer = null)
         {
+            // This lets us re-use the logic in the screen reader rendering implementation
+            // where the status line is added to the buffer without modifying the local state.
+            buffer ??= _buffer;
+
             int x = _initialX;
             int y = _initialY;
 
             int bufferWidth = _console.BufferWidth;
-            var continuationPromptLength = LengthInBufferCells(Options.ContinuationPrompt);
+            var continuationPromptLength = Options.ScreenReaderModeEnabled
+                ? 0
+                : LengthInBufferCells(Options.ContinuationPrompt);
 
             for (int i = 0; i < offset; i++)
             {
-                char c = _buffer[i];
+                char c = buffer[i];
                 if (c == '\n')
                 {
                     y += 1;
@@ -1229,7 +1395,7 @@ namespace Microsoft.PowerShell
 
                         // If cursor is at column 0 and the next character is newline, let the next loop
                         // iteration increment y.
-                        if (x != 0 || !(i + 1 < offset && _buffer[i + 1] == '\n'))
+                        if (x != 0 || !(i + 1 < offset && buffer[i + 1] == '\n'))
                         {
                             y += 1;
                         }
@@ -1238,9 +1404,9 @@ namespace Microsoft.PowerShell
             }
 
             // If next character actually exists, and isn't newline, check if wider than the space left on the current line.
-            if (_buffer.Length > offset && _buffer[offset] != '\n')
+            if (buffer.Length > offset && buffer[offset] != '\n')
             {
-                int size = LengthInBufferCells(_buffer[offset]);
+                int size = LengthInBufferCells(buffer[offset]);
                 if (x + size > bufferWidth)
                 {
                     // Character was wider than remaining space, so character, and cursor, appear on next line.
@@ -1259,7 +1425,10 @@ namespace Microsoft.PowerShell
             int y = _initialY;
 
             int bufferWidth = _console.BufferWidth;
-            var continuationPromptLength = LengthInBufferCells(Options.ContinuationPrompt);
+            var continuationPromptLength = Options.ScreenReaderModeEnabled
+                ? 0
+                : LengthInBufferCells(Options.ContinuationPrompt);
+
             for (offset = 0; offset < _buffer.Length; offset++)
             {
                 // If we are on the correct line, return when we find
