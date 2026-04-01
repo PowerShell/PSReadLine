@@ -1,4 +1,5 @@
-﻿using Xunit;
+﻿using System.Collections.Generic;
+using Xunit;
 
 namespace Test
 {
@@ -370,7 +371,7 @@ namespace Test
             TestSetup(KeyMode.Vi);
 
             TestMustDing("", Keys(
-                _.Escape, "W" 
+                _.Escape, "W"
             ));
         }
 
@@ -423,6 +424,11 @@ namespace Test
         [SkippableFact]
         public void ViGotoBrace()
         {
+            // NOTE: When the input has unmatched braces, in order to avoid an
+            // exception caused by AcceptLineImpl waiting for incomplete input,
+            // the test needs to end with the Vi command "ddi" and assert that
+            // the result is an empty string.
+
             TestSetup(KeyMode.Vi);
 
             Test("0[2(4{6]8)a}c", Keys(
@@ -450,8 +456,58 @@ namespace Test
                     CheckThat(() => AssertCursorLeftIs(4)),
                     _.Percent,
                     CheckThat(() => AssertCursorLeftIs(4)),
-                    "ddi"
+                    "ddi" // Unmatched brace
                     ));
+            }
+
+            // Tests when the cursor is not on any paren
+            foreach (var (opening, closing) in new[] { ('(', ')'), ('{', '}'), ('[', ']') })
+            {
+                // Closing paren with backward match
+                string input1 = $"0{opening}2{opening}4foo{closing}";
+                Test("", Keys(
+                    input1,
+                    CheckThat(() => AssertCursorLeftIs(9)),
+                    _.Escape, CheckThat(() => AssertCursorLeftIs(8)),
+                    "0ff", CheckThat(() => AssertCursorLeftIs(5)),
+                    _.Percent, CheckThat(() => AssertCursorLeftIs(3)),
+                    _.Percent, CheckThat(() => AssertCursorLeftIs(8)),
+                    "ddi" // Unmatched closing brace
+                ));
+
+                // Closing paren without backward match
+                string input2 = $"0]2)4foo{closing}";
+                Test(input2, Keys(
+                    input2,
+                    CheckThat(() => AssertCursorLeftIs(9)),
+                    _.Escape, CheckThat(() => AssertCursorLeftIs(8)),
+                    "0ff", CheckThat(() => AssertCursorLeftIs(5)),
+                    _.Percent, CheckThat(() => AssertCursorLeftIs(5)), // stay still
+                    _.Percent, CheckThat(() => AssertCursorLeftIs(5))
+                ));
+
+                // Opening paren with forward match
+                string input3 = $"0{opening}2foo6{closing}";
+                Test(input3, Keys(
+                    input3,
+                    CheckThat(() => AssertCursorLeftIs(8)),
+                    _.Escape, CheckThat(() => AssertCursorLeftIs(7)),
+                    "0ff", CheckThat(() => AssertCursorLeftIs(3)),
+                    _.Percent, CheckThat(() => AssertCursorLeftIs(1)),
+                    _.Percent, CheckThat(() => AssertCursorLeftIs(7))
+                ));
+
+                // Opening paren without forward match
+                string input4 = $"0)2]4foo{opening}(";
+                TestMustDing("", Keys(
+                    input4,
+                    CheckThat(() => AssertCursorLeftIs(10)),
+                    _.Escape, CheckThat(() => AssertCursorLeftIs(9)),
+                    "0ff", CheckThat(() => AssertCursorLeftIs(5)),
+                    _.Percent, CheckThat(() => AssertCursorLeftIs(5)), // stay still
+                    _.Percent, CheckThat(() => AssertCursorLeftIs(5)),
+                    "ddi" // Unmatched brace
+                ));
             }
 
             // <%> with empty text buffer should work fine.
