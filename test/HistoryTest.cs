@@ -40,13 +40,14 @@ namespace Test
             TestSetup(KeyMode.Cmd);
 
             string historySavingFile = Path.GetTempFileName();
-            var options = new SetPSReadLineOption {
+            var options = new SetPSReadLineOption
+            {
                 HistorySaveStyle = HistorySaveStyle.SaveIncrementally,
                 MaximumHistoryCount = 3,
             };
 
             typeof(SetPSReadLineOption)
-                .GetField("_historySavePath", BindingFlags.Instance | BindingFlags.NonPublic)
+                .GetField("_historySavePathText", BindingFlags.Instance | BindingFlags.NonPublic)
                 .SetValue(options, historySavingFile);
 
             PSConsoleReadLine.SetOptions(options);
@@ -98,7 +99,7 @@ namespace Test
             Test("", Keys(_.UpArrow, _.DownArrow));
 
             var options = PSConsoleReadLine.GetOptions();
-            var oldHistoryFilePath = options.HistorySavePath;
+            var oldHistoryFilePath = options.HistorySavePathText;
             var oldHistorySaveStyle = options.HistorySaveStyle;
 
             // AddToHistoryHandler should be set to the default handler.
@@ -135,7 +136,7 @@ namespace Test
 
             try
             {
-                options.HistorySavePath = newHistoryFilePath;
+                options.HistorySavePathText = newHistoryFilePath;
                 options.HistorySaveStyle = newHistorySaveStyle;
                 SetHistory(expectedHistoryItems);
 
@@ -157,7 +158,7 @@ namespace Test
             }
             finally
             {
-                options.HistorySavePath = oldHistoryFilePath;
+                options.HistorySavePathText = oldHistoryFilePath;
                 options.HistorySaveStyle = oldHistorySaveStyle;
                 File.Delete(newHistoryFilePath);
             }
@@ -172,7 +173,7 @@ namespace Test
             SetHistory();
 
             var options = PSConsoleReadLine.GetOptions();
-            var oldHistoryFilePath = options.HistorySavePath;
+            var oldHistoryFilePath = options.HistorySavePathText;
             var oldHistorySaveStyle = options.HistorySaveStyle;
 
             // AddToHistoryHandler should be set to the default handler.
@@ -252,7 +253,7 @@ namespace Test
 
             try
             {
-                options.HistorySavePath = newHistoryFilePath;
+                options.HistorySavePathText = newHistoryFilePath;
                 options.HistorySaveStyle = newHistorySaveStyle;
                 SetHistory(expectedHistoryItems);
 
@@ -274,7 +275,7 @@ namespace Test
             }
             finally
             {
-                options.HistorySavePath = oldHistoryFilePath;
+                options.HistorySavePathText = oldHistoryFilePath;
                 options.HistorySaveStyle = oldHistorySaveStyle;
                 File.Delete(newHistoryFilePath);
             }
@@ -290,7 +291,7 @@ namespace Test
             Test("", Keys(_.UpArrow, _.DownArrow));
 
             var options = PSConsoleReadLine.GetOptions();
-            var oldHistoryFilePath = options.HistorySavePath;
+            var oldHistoryFilePath = options.HistorySavePathText;
             var oldHistorySaveStyle = options.HistorySaveStyle;
 
             // AddToHistoryHandler should be set to the default handler.
@@ -327,7 +328,7 @@ namespace Test
 
             try
             {
-                options.HistorySavePath = newHistoryFilePath;
+                options.HistorySavePathText = newHistoryFilePath;
                 options.HistorySaveStyle = newHistorySaveStyle;
 
                 //
@@ -416,7 +417,7 @@ namespace Test
             }
             finally
             {
-                options.HistorySavePath = oldHistoryFilePath;
+                options.HistorySavePathText = oldHistoryFilePath;
                 options.HistorySaveStyle = oldHistorySaveStyle;
                 options.AddToHistoryHandler = PSConsoleReadLineOptions.DefaultAddToHistoryHandler;
                 File.Delete(newHistoryFilePath);
@@ -433,7 +434,7 @@ namespace Test
             Test("", Keys(_.UpArrow, _.DownArrow));
 
             var options = PSConsoleReadLine.GetOptions();
-            var oldHistoryFilePath = options.HistorySavePath;
+            var oldHistoryFilePath = options.HistorySavePathText;
             var oldHistorySaveStyle = options.HistorySaveStyle;
 
             // AddToHistoryHandler should be set to the default handler.
@@ -480,7 +481,7 @@ namespace Test
 
             try
             {
-                options.HistorySavePath = newHistoryFilePath;
+                options.HistorySavePathText = newHistoryFilePath;
                 options.HistorySaveStyle = newHistorySaveStyle;
 
                 //
@@ -569,7 +570,7 @@ namespace Test
             }
             finally
             {
-                options.HistorySavePath = oldHistoryFilePath;
+                options.HistorySavePathText = oldHistoryFilePath;
                 options.HistorySaveStyle = oldHistorySaveStyle;
                 options.AddToHistoryHandler = PSConsoleReadLineOptions.DefaultAddToHistoryHandler;
                 File.Delete(newHistoryFilePath);
@@ -756,48 +757,53 @@ namespace Test
             SetHistory();
             Test(" ", Keys(' ', _.UpArrow, _.DownArrow));
 
-            PSConsoleReadLine.SetOptions(new SetPSReadLineOption {HistorySearchCursorMovesToEnd = false});
+            PSConsoleReadLine.SetOptions(new SetPSReadLineOption { HistorySearchCursorMovesToEnd = false });
             var emphasisColors = Tuple.Create(PSConsoleReadLineOptions.DefaultEmphasisColor, _console.BackgroundColor);
 
             SetHistory("dosomething", "ps p*", "dir", "echo zzz");
             Test("dosomething", Keys(
                 "d",
-                _.UpArrow,   CheckThat(() => {
+                _.UpArrow, CheckThat(() =>
+                {
                     AssertScreenIs(1,
                         emphasisColors, 'd',
                         TokenClassification.Command, "ir");
                     AssertCursorLeftIs(1);
                 }),
-                _.UpArrow,   CheckThat(() => {
+                _.UpArrow, CheckThat(() =>
+                {
                     AssertScreenIs(1,
                         emphasisColors, 'd',
                         TokenClassification.Command, "osomething");
                     AssertCursorLeftIs(1);
-            })));
+                })));
 
-            PSConsoleReadLine.SetOptions(new SetPSReadLineOption {HistorySearchCursorMovesToEnd = true});
+            PSConsoleReadLine.SetOptions(new SetPSReadLineOption { HistorySearchCursorMovesToEnd = true });
             SetHistory("dosomething", "ps p*", "dir", "echo zzz");
             Test("dosomething", Keys(
                 "d",
-                _.UpArrow,   CheckThat(() => {
+                _.UpArrow, CheckThat(() =>
+                {
                     AssertScreenIs(1,
                         emphasisColors, 'd',
                         TokenClassification.Command, "ir");
                     AssertCursorLeftIs(3);
                 }),
-                _.UpArrow,   CheckThat(() => {
+                _.UpArrow, CheckThat(() =>
+                {
                     AssertScreenIs(1,
                         emphasisColors, 'd',
                         TokenClassification.Command, "osomething");
                     AssertCursorLeftIs(11);
                 }),
-                _.DownArrow, CheckThat(() => {
+                _.DownArrow, CheckThat(() =>
+                {
                     AssertScreenIs(1,
                         emphasisColors, 'd',
                         TokenClassification.Command, "ir");
                     AssertCursorLeftIs(3);
                 }),
-                _.UpArrow,   CheckThat(() =>
+                _.UpArrow, CheckThat(() =>
                 {
                     AssertScreenIs(1,
                         emphasisColors, 'd',
@@ -813,31 +819,34 @@ namespace Test
                       new KeyHandler("UpArrow", PSConsoleReadLine.HistorySearchBackward),
                       new KeyHandler("DownArrow", PSConsoleReadLine.HistorySearchForward));
 
-            PSConsoleReadLine.SetOptions(new SetPSReadLineOption {HistorySearchCursorMovesToEnd = true});
+            PSConsoleReadLine.SetOptions(new SetPSReadLineOption { HistorySearchCursorMovesToEnd = true });
             var emphasisColors = Tuple.Create(PSConsoleReadLineOptions.DefaultEmphasisColor, _console.BackgroundColor);
 
             SetHistory("dosomething", "ps p*", "dir", "echo zzz");
             Test("dosomething", Keys(
                 "d",
-                _.UpArrow,   CheckThat(() => {
+                _.UpArrow, CheckThat(() =>
+                {
                     AssertScreenIs(1,
                         emphasisColors, 'd',
                         TokenClassification.Command, "ir");
                     AssertCursorLeftIs(3);
                 }),
-                _.UpArrow,   CheckThat(() => {
+                _.UpArrow, CheckThat(() =>
+                {
                     AssertScreenIs(1,
                         emphasisColors, 'd',
                         TokenClassification.Command, "osomething");
                     AssertCursorLeftIs(11);
                 }),
-                _.DownArrow, CheckThat(() => {
+                _.DownArrow, CheckThat(() =>
+                {
                     AssertScreenIs(1,
                         emphasisColors, 'd',
                         TokenClassification.Command, "ir");
                     AssertCursorLeftIs(3);
                 }),
-                _.UpArrow,   CheckThat(() =>
+                _.UpArrow, CheckThat(() =>
                 {
                     AssertScreenIs(1,
                         emphasisColors, 'd',
@@ -1122,7 +1131,7 @@ namespace Test
         public void AddToHistoryHandler()
         {
             TestSetup(KeyMode.Cmd);
-            PSConsoleReadLine.SetOptions(new SetPSReadLineOption {AddToHistoryHandler = s => s.StartsWith("z")});
+            PSConsoleReadLine.SetOptions(new SetPSReadLineOption { AddToHistoryHandler = s => s.StartsWith("z") });
 
             SetHistory("zzzz", "azzz");
             Test("zzzz", Keys(_.UpArrow));
@@ -1132,14 +1141,14 @@ namespace Test
         public void HistoryNoDuplicates()
         {
             TestSetup(KeyMode.Cmd);
-            PSConsoleReadLine.SetOptions(new SetPSReadLineOption {HistoryNoDuplicates = false});
+            PSConsoleReadLine.SetOptions(new SetPSReadLineOption { HistoryNoDuplicates = false });
 
             SetHistory("zzzz", "aaaa", "bbbb", "bbbb", "cccc");
             Assert.Equal(5, PSConsoleReadLine.GetHistoryItems().Length);
             Test("aaaa", Keys(Enumerable.Repeat(_.UpArrow, 4)));
 
             // Changing the option should affect existing history.
-            PSConsoleReadLine.SetOptions(new SetPSReadLineOption {HistoryNoDuplicates = true});
+            PSConsoleReadLine.SetOptions(new SetPSReadLineOption { HistoryNoDuplicates = true });
             Test("zzzz", Keys(Enumerable.Repeat(_.UpArrow, 4)));
 
             SetHistory("aaaa", "bbbb", "bbbb", "cccc");
@@ -1164,7 +1173,7 @@ namespace Test
                       new KeyHandler("UpArrow", PSConsoleReadLine.HistorySearchBackward),
                       new KeyHandler("DownArrow", PSConsoleReadLine.HistorySearchForward));
 
-            PSConsoleReadLine.SetOptions(new SetPSReadLineOption {HistoryNoDuplicates = true});
+            PSConsoleReadLine.SetOptions(new SetPSReadLineOption { HistoryNoDuplicates = true });
             SetHistory("0000", "echo aaaa", "1111", "echo bbbb", "2222", "echo bbbb", "3333", "echo cccc", "4444");
             Test("echo aaaa", Keys("echo", Enumerable.Repeat(_.UpArrow, 3)));
 
@@ -1180,7 +1189,7 @@ namespace Test
         {
             TestSetup(KeyMode.Emacs);
 
-            PSConsoleReadLine.SetOptions(new SetPSReadLineOption {HistoryNoDuplicates = true});
+            PSConsoleReadLine.SetOptions(new SetPSReadLineOption { HistoryNoDuplicates = true });
             SetHistory("0000", "echo aaaa", "1111", "echo bbbb", "2222", "echo bbbb", "3333", "echo cccc", "4444");
             Test("echo aaaa", Keys(
                 _.Ctrl_r, "echo", _.Ctrl_r, _.Ctrl_r));
@@ -1203,7 +1212,7 @@ namespace Test
 
             // There should be 4 items in history, the following should remove the
             // oldest history item.
-            PSConsoleReadLine.SetOptions(new SetPSReadLineOption {MaximumHistoryCount = 3});
+            PSConsoleReadLine.SetOptions(new SetPSReadLineOption { MaximumHistoryCount = 3 });
             Test("aaaa", Keys(Enumerable.Repeat(_.UpArrow, 4)));
 
             Test("zzzz", Keys("zzzz"));

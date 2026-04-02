@@ -26,6 +26,33 @@ namespace Microsoft.PowerShell
             {
                 Options.ContinuationPrompt = options.ContinuationPrompt;
             }
+            if (options._historyTypeSpecified)
+            {
+                Options.HistoryType = options.HistoryType;
+                if (Options.HistoryType is HistoryType.SQLite)
+                {
+                    // HistorySavePath is now computed from HistoryType, so it already
+                    // points at HistorySavePathSQLite after the type switch above.
+                    if (!string.IsNullOrEmpty(Options.HistorySavePath) && !System.IO.File.Exists(Options.HistorySavePath))
+                    {
+                        _historyFileMutex?.Dispose();
+                        _historyFileMutex = new Mutex(false, GetHistorySaveFileMutexName());
+                        InitializeSQLiteDatabase(migrateTextHistory: true);
+                        _historyFileLastSavedSize = 0;
+                    }
+
+                    // _history is null when Set-PSReadLineOption runs from the profile before
+                    // the first ReadLine() call. In that case, skip loading here — ReadLine()
+                    // initialization will create _history and load SQLite history itself.
+                    // When _history already exists (interactive switch), reload immediately.
+                    if (_singleton._history != null)
+                    {
+                        _singleton._history.Clear();
+                        _singleton._currentHistoryIndex = 0;
+                        ReadSQLiteHistory(fromOtherSession: false);
+                    }
+                }
+            }
             if (options._historyNoDuplicates.HasValue)
             {
                 Options.HistoryNoDuplicates = options.HistoryNoDuplicates;
@@ -122,12 +149,41 @@ namespace Microsoft.PowerShell
                 }
                 Options.ViModeChangeHandler = options.ViModeChangeHandler;
             }
-            if (options.HistorySavePath != null)
+            if (options.HistorySavePathText != null)
             {
-                Options.HistorySavePath = options.HistorySavePath;
-                _historyFileMutex?.Dispose();
-                _historyFileMutex = new Mutex(false, GetHistorySaveFileMutexName());
-                _historyFileLastSavedSize = 0;
+                Options.HistorySavePathText = options.HistorySavePathText;
+
+                // If currently in Text mode, reset the mutex for the new active path.
+                if (Options.HistoryType is HistoryType.Text)
+                {
+                    _historyFileMutex?.Dispose();
+                    _historyFileMutex = new Mutex(false, GetHistorySaveFileMutexName());
+                    _historyFileLastSavedSize = 0;
+                }
+            }
+            if (options.HistorySavePathSQLite != null)
+            {
+                Options.HistorySavePathSQLite = options.HistorySavePathSQLite;
+
+                // If currently in SQLite mode, reconnect to the new database.
+                if (Options.HistoryType is HistoryType.SQLite)
+                {
+                    _historyFileMutex?.Dispose();
+                    _historyFileMutex = new Mutex(false, GetHistorySaveFileMutexName());
+                    _historyFileLastSavedSize = 0;
+
+                    if (!System.IO.File.Exists(Options.HistorySavePath))
+                    {
+                        InitializeSQLiteDatabase();
+                    }
+
+                    if (_singleton._history != null)
+                    {
+                        _singleton._history.Clear();
+                        _singleton._currentHistoryIndex = 0;
+                        ReadSQLiteHistory(fromOtherSession: false);
+                    }
+                }
             }
             if (options._ansiEscapeTimeout.HasValue)
             {
