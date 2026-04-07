@@ -34,9 +34,7 @@
             "command": "pwsh",
             "args": [
                 "./build.ps1",
-                "-Test",
-                "-Framework",
-                "${input:framework}"
+                "-Test"
             ],
             "group": {
                 "kind": "test",
@@ -47,7 +45,7 @@
                 "panel": "dedicated",
                 "clear": true
             },
-            "detail": "Run unit tests with selected framework"
+            "detail": "Run unit tests"
         },
         {
             "label": "Clean",
@@ -59,18 +57,6 @@
             ],
             "group": "build",
             "detail": "Clean build artifacts"
-        }
-    ],
-    "inputs": [
-        {
-            "id": "framework",
-            "description": "Target Framework",
-            "type": "pickString",
-            "options": [
-                "net472",
-                "net6.0"
-            ],
-            "default": "net6.0"
         }
     ]
 }
