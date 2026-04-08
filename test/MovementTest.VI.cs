@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using Xunit;
+﻿using Xunit;
 
 namespace Test
 {
@@ -477,7 +476,7 @@ namespace Test
 
                 // Closing paren without backward match
                 string input2 = $"0]2)4foo{closing}";
-                Test(input2, Keys(
+                TestMustDing(input2, Keys(
                     input2,
                     CheckThat(() => AssertCursorLeftIs(9)),
                     _.Escape, CheckThat(() => AssertCursorLeftIs(8)),
