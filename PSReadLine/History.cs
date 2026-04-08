@@ -1589,6 +1589,65 @@ LIMIT @Limit";
         }
 
         /// <summary>
+        /// Remove the currently displayed history item from history (both in-memory and SQLite if applicable).
+        /// Works when browsing history with Up/Down arrows or when an item is selected in the F2 list view.
+        /// </summary>
+        public static void RemoveFromHistory(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            var history = _singleton._history;
+            if (history == null || history.Count == 0)
+            {
+                Ding();
+                return;
+            }
+
+            string commandToRemove = null;
+
+            // Check if we're in the F2 list prediction view with a selected item
+            if (_singleton._prediction.ActiveView is PredictionListView listView
+                && listView.HasActiveSuggestion
+                && listView.SelectedItemIndex >= 0)
+            {
+                commandToRemove = listView.SelectedItemText;
+            }
+            // Otherwise check if we're browsing history with Up/Down
+            else if (_singleton._currentHistoryIndex < history.Count)
+            {
+                commandToRemove = history[_singleton._currentHistoryIndex].CommandLine;
+            }
+
+            if (commandToRemove == null)
+            {
+                Ding();
+                return;
+            }
+
+            RemoveHistoryItem(commandToRemove);
+
+            // If in list view, revert to the user input and refresh the list
+            if (_singleton._prediction.ActiveView is PredictionListView)
+            {
+                RevertLine();
+                return;
+            }
+
+            // In normal history browsing: adjust index and show previous entry or revert
+            if (history.Count == 0)
+            {
+                _singleton._currentHistoryIndex = 0;
+                RevertLine();
+            }
+            else
+            {
+                if (_singleton._currentHistoryIndex >= history.Count)
+                {
+                    _singleton._currentHistoryIndex = history.Count - 1;
+                }
+                _singleton.UpdateFromHistory(HistoryMoveCursor.ToEnd);
+            }
+        }
+
+        /// <summary>
         /// Replace the current input with the 'previous' item from PSReadLine history.
         /// </summary>
         public static void PreviousHistory(ConsoleKeyInfo? key = null, object arg = null)

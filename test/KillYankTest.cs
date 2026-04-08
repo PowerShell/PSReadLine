@@ -22,6 +22,33 @@ namespace Test
         }
 
         [SkippableFact]
+        public void KillWordWithAltDelete_Emacs()
+        {
+            TestSetup(KeyMode.Emacs);
+
+            // Alt+Delete should behave identically to Alt+d (KillWord)
+            Test("echo  defabc", Keys(
+                _.Alt_Delete, // Test on empty input
+                "echo abc def",
+                Enumerable.Repeat(_.LeftArrow, 7),
+                _.Alt_Delete, // Kill 'abc'
+                _.End, _.Ctrl_y)); // Yank 'abc' at end of line
+        }
+
+        [SkippableFact]
+        public void KillWordWithAltDelete_Windows()
+        {
+            TestSetup(KeyMode.Cmd);
+
+            // Alt+Delete bound to KillWord in Windows mode
+            Test("echo  def", Keys(
+                _.Alt_Delete, // Test on empty input
+                "echo abc def",
+                Enumerable.Repeat(_.LeftArrow, 7),
+                _.Alt_Delete)); // Kill 'abc'
+        }
+
+        [SkippableFact]
         public void BackwardKillWord()
         {
             TestSetup(KeyMode.Emacs);

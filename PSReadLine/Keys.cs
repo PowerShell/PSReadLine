@@ -457,6 +457,7 @@ namespace Microsoft.PowerShell
         public static PSKeyInfo Space               = Key(ConsoleKey.Spacebar);
         public static PSKeyInfo Backspace           = Key(ConsoleKey.Backspace);
         public static PSKeyInfo Delete              = Key(ConsoleKey.Delete);
+        public static PSKeyInfo AltDelete            = Alt(ConsoleKey.Delete);
         public static PSKeyInfo DownArrow           = Key(ConsoleKey.DownArrow);
         public static PSKeyInfo End                 = Key(ConsoleKey.End);
         public static PSKeyInfo Enter               = Key(ConsoleKey.Enter);
