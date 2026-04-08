@@ -89,6 +89,12 @@ namespace Microsoft.PowerShell
             /// </summary>
             public string Location { get; internal set; }
 
+            /// <summary>
+            /// The number of times this command has been executed (from SQLite history).
+            /// Defaults to 1 for text-based or in-session history.
+            /// </summary>
+            public int ExecutionCount { get; internal set; } = 1;
+
             internal bool _saved;
             internal bool _sensitive;
             internal List<EditItem> _edits;
@@ -816,7 +822,7 @@ ON CONFLICT(CommandId, LocationId) DO UPDATE SET
                 {
                     // Use the HistoryView to get all the joined data, filtering by ExecutionHistory.Id
                     command.CommandText = @"
-SELECT CommandLine, StartTime, ElapsedTime, Location
+SELECT CommandLine, StartTime, ElapsedTime, Location, ExecutionCount
 FROM HistoryView
 WHERE Id > @LastId
 ORDER BY Id ASC";
@@ -831,6 +837,7 @@ ORDER BY Id ASC";
                             StartTime = DateTimeOffset.FromUnixTimeSeconds(reader.GetInt64(1)).DateTime,
                             ApproximateElapsedTime = TimeSpan.FromTicks(reader.GetInt64(2)),
                             Location = reader.GetString(3),
+                            ExecutionCount = reader.GetInt32(4),
                             FromHistoryFile = true,
                             FromOtherSession = true,
                             _edits = new List<EditItem> { EditItemInsertString.Create(reader.GetString(0), 0) },
@@ -923,11 +930,15 @@ ORDER BY Id ASC";
                         _ => Options.MaximumHistoryCount
                     };
 
-                    // Use the view for easy querying
+                    // Use the view for easy querying.
+                    // Order by a weighted combination of recency and frequency so that
+                    // frequently-used commands rank higher than one-off typos.
+                    // Each additional execution gives a 30-minute bonus (capped at 100),
+                    // ensuring frequent commands surface first during backward search.
                     command.CommandText = @"
-SELECT CommandLine, StartTime, ElapsedTime, Location 
+SELECT CommandLine, StartTime, ElapsedTime, Location, ExecutionCount 
 FROM HistoryView 
-ORDER BY LastExecuted DESC
+ORDER BY (LastExecuted + MIN(ExecutionCount, 100) * 1800) DESC
 LIMIT @Limit";
                     command.Parameters.AddWithValue("@Limit", limit);
 
@@ -941,6 +952,7 @@ LIMIT @Limit";
                             StartTime = DateTimeOffset.FromUnixTimeSeconds(reader.GetInt64(1)).DateTime,
                             ApproximateElapsedTime = TimeSpan.FromTicks(reader.GetInt64(2)),
                             Location = reader.GetString(3),
+                            ExecutionCount = reader.GetInt32(4),
                             FromHistoryFile = true,
                             FromOtherSession = fromOtherSession,
                             _edits = new List<EditItem> { EditItemInsertString.Create(reader.GetString(0), 0) },
@@ -1335,6 +1347,112 @@ LIMIT @Limit";
         }
 
         /// <summary>
+        /// Add a command to the history with a specified location.
+        /// </summary>
+        internal static void AddToHistory(string command, string location)
+        {
+            command = command.Replace("\r\n", "\n");
+            var editItems = new List<EditItem> {EditItemInsertString.Create(command, 0)};
+            _singleton.MaybeAddToHistory(command, editItems, 1, location: location);
+        }
+
+        /// <summary>
+        /// Remove a specific command from history (both in-memory and SQLite if applicable).
+        /// Returns true if any items were removed.
+        /// </summary>
+        public static bool RemoveHistoryItem(string commandLine)
+        {
+            if (string.IsNullOrEmpty(commandLine))
+                return false;
+
+            bool removed = false;
+
+            // Remove from in-memory history
+            var history = _singleton._history;
+            if (history != null)
+            {
+                var itemsToKeep = new List<HistoryItem>();
+                for (int i = 0; i < history.Count; i++)
+                {
+                    if (!string.Equals(history[i].CommandLine, commandLine, StringComparison.Ordinal))
+                    {
+                        itemsToKeep.Add(history[i]);
+                    }
+                    else
+                    {
+                        removed = true;
+                    }
+                }
+
+                if (removed)
+                {
+                    history.Clear();
+                    foreach (var item in itemsToKeep)
+                    {
+                        history.Enqueue(item);
+                    }
+                    _singleton._currentHistoryIndex = history.Count;
+                }
+            }
+
+            // Remove from SQLite database if using SQLite history
+            if (_singleton._options?.HistoryType == HistoryType.SQLite &&
+                !string.IsNullOrEmpty(_singleton._options.HistorySavePath))
+            {
+                removed |= _singleton.RemoveFromSQLiteHistory(commandLine);
+            }
+
+            return removed;
+        }
+
+        private bool RemoveFromSQLiteHistory(string commandLine)
+        {
+            try
+            {
+                string baseConnectionString = $"Data Source={_options.HistorySavePath}";
+                var connectionString = new SqliteConnectionStringBuilder(baseConnectionString)
+                {
+                    Mode = SqliteOpenMode.ReadWrite
+                }.ToString();
+
+                using var connection = new SqliteConnection(connectionString);
+                connection.Open();
+
+                // Find the command ID
+                using var findCmd = connection.CreateCommand();
+                findCmd.CommandText = "SELECT Id FROM Commands WHERE CommandLine = @CommandLine";
+                findCmd.Parameters.AddWithValue("@CommandLine", commandLine);
+                var commandIdObj = findCmd.ExecuteScalar();
+
+                if (commandIdObj == null)
+                    return false;
+
+                long commandId = Convert.ToInt64(commandIdObj);
+
+                using var transaction = connection.BeginTransaction();
+
+                // Delete execution history entries first (foreign key constraint)
+                using var deleteEH = connection.CreateCommand();
+                deleteEH.CommandText = "DELETE FROM ExecutionHistory WHERE CommandId = @CommandId";
+                deleteEH.Parameters.AddWithValue("@CommandId", commandId);
+                deleteEH.ExecuteNonQuery();
+
+                // Delete the command itself
+                using var deleteCmd = connection.CreateCommand();
+                deleteCmd.CommandText = "DELETE FROM Commands WHERE Id = @CommandId";
+                deleteCmd.Parameters.AddWithValue("@CommandId", commandId);
+                int deletedRows = deleteCmd.ExecuteNonQuery();
+
+                transaction.Commit();
+                return deletedRows > 0;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
         /// Clears history in PSReadLine.  This does not affect PowerShell history.
         /// </summary>
         public static void ClearHistory(ConsoleKeyInfo? key = null, object arg = null)
@@ -1544,8 +1662,11 @@ LIMIT @Limit";
 
         private string GetCurrentLocation()
         {
-            return _engineIntrinsics?.SessionState?.Path?.CurrentLocation?.Path;
+            return _testCurrentLocation ?? _engineIntrinsics?.SessionState?.Path?.CurrentLocation?.Path;
         }
+
+        // For unit testing: allows tests to simulate a current directory
+        internal static string _testCurrentLocation;
 
         private void LocationHistoryRecall(int direction)
         {
@@ -1580,10 +1701,9 @@ LIMIT @Limit";
                     break;
                 }
 
-                if (_history[newHistoryIndex].FromOtherSession)
-                {
-                    continue;
-                }
+                // Location-based recall includes cross-session items because
+                // commands run at the same directory are contextually relevant
+                // regardless of which session they came from.
 
                 // Filter by location
                 if (!string.Equals(_history[newHistoryIndex].Location, currentLocation, StringComparison.OrdinalIgnoreCase))

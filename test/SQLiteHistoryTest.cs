@@ -453,5 +453,435 @@ namespace Test
                 try { if (File.Exists(tempDbPath)) File.Delete(tempDbPath); } catch { }
             }
         }
+
+        // =====================================================================
+        // Location-Based History Recall Tests
+        // =====================================================================
+
+        /// <summary>
+        /// Helper to add history items with specific locations.
+        /// Uses the internal AddToHistory(string, string) overload via reflection.
+        /// </summary>
+        private void SetHistoryWithLocations(params (string command, string location)[] items)
+        {
+            PSConsoleReadLine.ClearHistory();
+            foreach (var (command, location) in items)
+            {
+                typeof(PSConsoleReadLine)
+                    .GetMethod("AddToHistory", BindingFlags.Static | BindingFlags.NonPublic,
+                        null, new[] { typeof(string), typeof(string) }, null)
+                    .Invoke(null, new object[] { command, location });
+            }
+        }
+
+        /// <summary>
+        /// Sets the mock current location for test purposes.
+        /// </summary>
+        private IDisposable SetTestLocation(string location)
+        {
+            typeof(PSConsoleReadLine)
+                .GetField("_testCurrentLocation", BindingFlags.Static | BindingFlags.NonPublic)
+                .SetValue(null, location);
+            return new TestLocationGuard();
+        }
+
+        private class TestLocationGuard : IDisposable
+        {
+            public void Dispose()
+            {
+                typeof(PSConsoleReadLine)
+                    .GetField("_testCurrentLocation", BindingFlags.Static | BindingFlags.NonPublic)
+                    .SetValue(null, null);
+            }
+        }
+
+        [SkippableFact]
+        public void SQLiteHistory_LocationRecall_MultipleItemsSameLocation()
+        {
+            TestSetup(KeyMode.Cmd,
+                new KeyHandler("UpArrow", PSConsoleReadLine.PreviousLocationHistory),
+                new KeyHandler("DownArrow", PSConsoleReadLine.NextLocationHistory));
+
+            using var location = SetTestLocation(@"C:\Projects\MyRepo");
+
+            // Add 8 commands at the target location and 3 at another location
+            SetHistoryWithLocations(
+                ("git status", @"C:\Projects\MyRepo"),
+                ("dotnet build", @"C:\Projects\MyRepo"),
+                ("ls -la", @"C:\Other"),
+                ("git log --oneline", @"C:\Projects\MyRepo"),
+                ("dotnet test", @"C:\Projects\MyRepo"),
+                ("cd ..", @"C:\Other"),
+                ("git diff", @"C:\Projects\MyRepo"),
+                ("dotnet publish", @"C:\Projects\MyRepo"),
+                ("pwd", @"C:\Other"),
+                ("git push", @"C:\Projects\MyRepo"),
+                ("git pull --rebase", @"C:\Projects\MyRepo")
+            );
+
+            // Alt+Up should walk through ALL 8 commands at C:\Projects\MyRepo,
+            // most recent first, skipping non-matching locations.
+            // We verify all 8 are reachable, then navigate back and submit.
+            Test("dotnet build", Keys(
+                _.UpArrow, CheckThat(() => AssertLineIs("git pull --rebase")),
+                _.UpArrow, CheckThat(() => AssertLineIs("git push")),
+                _.UpArrow, CheckThat(() => AssertLineIs("dotnet publish")),
+                _.UpArrow, CheckThat(() => AssertLineIs("git diff")),
+                _.UpArrow, CheckThat(() => AssertLineIs("dotnet test")),
+                _.UpArrow, CheckThat(() => AssertLineIs("git log --oneline")),
+                _.UpArrow, CheckThat(() => AssertLineIs("dotnet build")),
+                _.UpArrow, CheckThat(() => AssertLineIs("git status")),
+                // Should stay at the oldest item when pressing Up again
+                _.UpArrow, CheckThat(() => AssertLineIs("git status")),
+                // Navigate forward to verify Down also works correctly
+                _.DownArrow, CheckThat(() => AssertLineIs("dotnet build"))
+            ));
+        }
+
+        [SkippableFact]
+        public void SQLiteHistory_LocationRecall_NoLocationFallsBackToNormalRecall()
+        {
+            TestSetup(KeyMode.Cmd,
+                new KeyHandler("UpArrow", PSConsoleReadLine.PreviousLocationHistory),
+                new KeyHandler("DownArrow", PSConsoleReadLine.NextLocationHistory));
+
+            // Do NOT set test location - _testCurrentLocation is null, _engineIntrinsics is null
+            // This should fall back to normal HistoryRecall
+
+            SetHistory("cmd1", "cmd2", "cmd3");
+
+            // PreviousLocationHistory falls back to normal HistoryRecall when
+            // no location is available, so all 3 items should be reachable.
+            Test("cmd1", Keys(
+                _.UpArrow, CheckThat(() => AssertLineIs("cmd3")),
+                _.UpArrow, CheckThat(() => AssertLineIs("cmd2")),
+                _.UpArrow, CheckThat(() => AssertLineIs("cmd1"))
+            ));
+        }
+
+        [SkippableFact]
+        public void SQLiteHistory_LocationRecall_CaseInsensitivePaths()
+        {
+            TestSetup(KeyMode.Cmd,
+                new KeyHandler("UpArrow", PSConsoleReadLine.PreviousLocationHistory),
+                new KeyHandler("DownArrow", PSConsoleReadLine.NextLocationHistory));
+
+            using var location = SetTestLocation(@"C:\PROJECTS\myrepo");
+
+            // Add commands with different path casings - should all match
+            SetHistoryWithLocations(
+                ("git status", @"c:\projects\myrepo"),
+                ("git log", @"C:\Projects\MyRepo"),
+                ("git diff", @"C:\PROJECTS\MYREPO"),
+                ("unrelated", @"C:\Other")
+            );
+
+            // All three git commands should be accessible via location recall
+            // regardless of path casing
+            // All three git commands should be accessible via location recall
+            // regardless of path casing
+            Test("git status", Keys(
+                _.UpArrow, CheckThat(() => AssertLineIs("git diff")),
+                _.UpArrow, CheckThat(() => AssertLineIs("git log")),
+                _.UpArrow, CheckThat(() => AssertLineIs("git status")),
+                // Should stay at the oldest when pressing Up again
+                _.UpArrow, CheckThat(() => AssertLineIs("git status"))
+            ));
+        }
+
+        [SkippableFact]
+        public void SQLiteHistory_LocationRecall_DifferentLocationsFiltered()
+        {
+            TestSetup(KeyMode.Cmd,
+                new KeyHandler("UpArrow", PSConsoleReadLine.PreviousLocationHistory),
+                new KeyHandler("DownArrow", PSConsoleReadLine.NextLocationHistory));
+
+            using var location = SetTestLocation(@"C:\Projects\RepoA");
+
+            SetHistoryWithLocations(
+                ("cmd-a1", @"C:\Projects\RepoA"),
+                ("cmd-b1", @"C:\Projects\RepoB"),
+                ("cmd-a2", @"C:\Projects\RepoA"),
+                ("cmd-b2", @"C:\Projects\RepoB"),
+                ("cmd-a3", @"C:\Projects\RepoA")
+            );
+
+            // Only commands from RepoA should appear
+            // Only commands from RepoA should appear
+            Test("cmd-a1", Keys(
+                _.UpArrow, CheckThat(() => AssertLineIs("cmd-a3")),
+                _.UpArrow, CheckThat(() => AssertLineIs("cmd-a2")),
+                _.UpArrow, CheckThat(() => AssertLineIs("cmd-a1")),
+                // Should stay at the oldest when pressing Up again
+                _.UpArrow, CheckThat(() => AssertLineIs("cmd-a1"))
+            ));
+        }
+
+        // =====================================================================
+        // Frequency-Weighted History Ordering Tests
+        // =====================================================================
+
+        [SkippableFact]
+        public void SQLiteHistory_FrequentCommandRanksHigher()
+        {
+            TestSetup(KeyMode.Cmd);
+            using var ctx = SetupSQLiteHistory();
+
+            // Disable in-memory dedup so all writes reach SQLite
+            PSConsoleReadLine.SetOptions(new SetPSReadLineOption { HistoryNoDuplicates = false });
+
+            // Run an erroneous command once
+            Test("git log --one-line", Keys("git log --one-line"));
+
+            // Run the correct command many times to boost its ExecutionCount
+            for (int i = 0; i < 10; i++)
+            {
+                Test("git log --oneline", Keys("git log --oneline"));
+            }
+
+            // Verify ExecutionCount in the database
+            var connectionString = new SqliteConnectionStringBuilder($"Data Source={ctx.TempDbPath}")
+            {
+                Mode = SqliteOpenMode.ReadOnly
+            }.ToString();
+
+            using var connection = new SqliteConnection(connectionString);
+            connection.Open();
+
+            // Check ExecutionCount for the correct command
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = @"
+SELECT ExecutionCount FROM HistoryView 
+WHERE CommandLine = 'git log --oneline'";
+            var correctCount = Convert.ToInt64(cmd.ExecuteScalar());
+
+            using var cmd2 = connection.CreateCommand();
+            cmd2.CommandText = @"
+SELECT ExecutionCount FROM HistoryView 
+WHERE CommandLine = 'git log --one-line'";
+            var wrongCount = Convert.ToInt64(cmd2.ExecuteScalar());
+
+            Assert.True(correctCount >= 10,
+                $"Expected 'git log --oneline' ExecutionCount >= 10, got {correctCount}");
+            Assert.True(wrongCount <= 1,
+                $"Expected 'git log --one-line' ExecutionCount <= 1, got {wrongCount}");
+
+            // Verify weighted ordering: the frequent command should appear first
+            // (highest weighted score) so it's found first during backward search
+            using var orderCmd = connection.CreateCommand();
+            orderCmd.CommandText = @"
+SELECT CommandLine FROM HistoryView 
+WHERE CommandLine IN ('git log --oneline', 'git log --one-line')
+ORDER BY (LastExecuted + MIN(ExecutionCount, 100) * 1800) DESC";
+            using var reader = orderCmd.ExecuteReader();
+            reader.Read();
+            string firstResult = reader.GetString(0);
+            Assert.Equal("git log --oneline", firstResult);
+        }
+
+        [SkippableFact]
+        public void SQLiteHistory_ExecutionCountStoredOnHistoryItem()
+        {
+            TestSetup(KeyMode.Cmd);
+            using var ctx = SetupSQLiteHistory();
+
+            // Disable in-memory dedup
+            PSConsoleReadLine.SetOptions(new SetPSReadLineOption { HistoryNoDuplicates = false });
+
+            // Run a command 5 times
+            for (int i = 0; i < 5; i++)
+            {
+                Test("echo repeated", Keys("echo repeated"));
+            }
+
+            // Verify ExecutionCount is stored in the database
+            var connectionString = new SqliteConnectionStringBuilder($"Data Source={ctx.TempDbPath}")
+            {
+                Mode = SqliteOpenMode.ReadOnly
+            }.ToString();
+
+            using var connection = new SqliteConnection(connectionString);
+            connection.Open();
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = @"
+SELECT ExecutionCount FROM HistoryView 
+WHERE CommandLine = 'echo repeated'";
+            var count = Convert.ToInt64(cmd.ExecuteScalar());
+            Assert.True(count >= 5, $"Expected ExecutionCount >= 5, got {count}");
+        }
+
+        [SkippableFact]
+        public void SQLiteHistory_WeightedOrderPreservesChronologyForSingleUse()
+        {
+            TestSetup(KeyMode.Cmd);
+            using var ctx = SetupSQLiteHistory();
+
+            // When all commands have ExecutionCount=1, ordering should be purely chronological
+            Test("cmd1", Keys("cmd1"));
+            Test("cmd2", Keys("cmd2"));
+            Test("cmd3", Keys("cmd3"));
+
+            // Verify chronological order in DB
+            var connectionString = new SqliteConnectionStringBuilder($"Data Source={ctx.TempDbPath}")
+            {
+                Mode = SqliteOpenMode.ReadOnly
+            }.ToString();
+
+            using var connection = new SqliteConnection(connectionString);
+            connection.Open();
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = @"
+SELECT CommandLine FROM HistoryView 
+ORDER BY (LastExecuted + MIN(ExecutionCount, 100) * 1800) ASC";
+            using var reader = cmd.ExecuteReader();
+
+            var results = new System.Collections.Generic.List<string>();
+            while (reader.Read())
+                results.Add(reader.GetString(0));
+
+            Assert.Equal("cmd1", results[0]);
+            Assert.Equal("cmd2", results[1]);
+            Assert.Equal("cmd3", results[2]);
+        }
+
+        // =====================================================================
+        // History Item Removal Tests
+        // =====================================================================
+
+        [SkippableFact]
+        public void SQLiteHistory_RemoveHistoryItem_FromMemory()
+        {
+            TestSetup(KeyMode.Cmd);
+
+            SetHistory("good-command", "bad-typo", "another-good");
+
+            // Remove the typo from memory
+            bool removed = PSConsoleReadLine.RemoveHistoryItem("bad-typo");
+            Assert.True(removed, "RemoveHistoryItem should return true");
+
+            var items = PSConsoleReadLine.GetHistoryItems();
+            Assert.Equal(2, items.Length);
+            Assert.DoesNotContain(items, i => i.CommandLine == "bad-typo");
+            Assert.Contains(items, i => i.CommandLine == "good-command");
+            Assert.Contains(items, i => i.CommandLine == "another-good");
+        }
+
+        [SkippableFact]
+        public void SQLiteHistory_RemoveHistoryItem_FromSQLite()
+        {
+            TestSetup(KeyMode.Cmd);
+            using var ctx = SetupSQLiteHistory();
+
+            // Add commands
+            Test("git log --oneline", Keys("git log --oneline"));
+            Test("git log --one-line", Keys("git log --one-line"));
+            Test("git status", Keys("git status"));
+
+            // Verify all three are in the database
+            var commandsBefore = QuerySQLiteCommandLines(ctx.TempDbPath);
+            Assert.Contains("git log --one-line", commandsBefore);
+
+            // Remove the erroneous command
+            bool removed = PSConsoleReadLine.RemoveHistoryItem("git log --one-line");
+            Assert.True(removed, "RemoveHistoryItem should return true for SQLite removal");
+
+            // Verify it's removed from the database
+            var commandsAfter = QuerySQLiteCommandLines(ctx.TempDbPath);
+            Assert.DoesNotContain("git log --one-line", commandsAfter);
+            Assert.Contains("git log --oneline", commandsAfter);
+            Assert.Contains("git status", commandsAfter);
+
+            // Verify it's removed from memory too
+            var historyItems = PSConsoleReadLine.GetHistoryItems();
+            Assert.DoesNotContain(historyItems, i => i.CommandLine == "git log --one-line");
+        }
+
+        [SkippableFact]
+        public void SQLiteHistory_RemoveHistoryItem_NonExistent()
+        {
+            TestSetup(KeyMode.Cmd);
+
+            SetHistory("cmd1", "cmd2");
+
+            // Removing a non-existent command should return false
+            bool removed = PSConsoleReadLine.RemoveHistoryItem("does-not-exist");
+            Assert.False(removed);
+
+            // History should be unchanged
+            var items = PSConsoleReadLine.GetHistoryItems();
+            Assert.Equal(2, items.Length);
+        }
+
+        [SkippableFact]
+        public void SQLiteHistory_RemoveHistoryItem_NullOrEmpty()
+        {
+            TestSetup(KeyMode.Cmd);
+
+            SetHistory("cmd1");
+
+            Assert.False(PSConsoleReadLine.RemoveHistoryItem(null));
+            Assert.False(PSConsoleReadLine.RemoveHistoryItem(""));
+
+            // History should be unchanged
+            var items = PSConsoleReadLine.GetHistoryItems();
+            Assert.Single(items);
+        }
+
+        [SkippableFact]
+        public void SQLiteHistory_RemoveHistoryItem_ThenRecallWorks()
+        {
+            TestSetup(KeyMode.Cmd);
+
+            SetHistory("cmd1", "bad-command", "cmd3");
+
+            // Remove the bad command
+            PSConsoleReadLine.RemoveHistoryItem("bad-command");
+
+            // History recall should skip the removed item:
+            // Up → cmd3, Up → cmd1 (no bad-command in between)
+            Test("cmd1", Keys(
+                _.UpArrow, CheckThat(() => AssertLineIs("cmd3")),
+                _.UpArrow, CheckThat(() => AssertLineIs("cmd1"))
+            ));
+        }
+
+        [SkippableFact]
+        public void SQLiteHistory_RemoveHistoryItem_SQLitePersistence()
+        {
+            TestSetup(KeyMode.Cmd);
+            using var ctx = SetupSQLiteHistory();
+
+            // Add and then remove a command
+            Test("keep-this", Keys("keep-this"));
+            Test("remove-this", Keys("remove-this"));
+
+            PSConsoleReadLine.RemoveHistoryItem("remove-this");
+
+            // Verify the ExecutionHistory entry is also removed (not just Commands)
+            var connectionString = new SqliteConnectionStringBuilder($"Data Source={ctx.TempDbPath}")
+            {
+                Mode = SqliteOpenMode.ReadOnly
+            }.ToString();
+
+            using var connection = new SqliteConnection(connectionString);
+            connection.Open();
+
+            using var ehCmd = connection.CreateCommand();
+            ehCmd.CommandText = @"
+SELECT COUNT(*) FROM ExecutionHistory eh
+JOIN Commands c ON eh.CommandId = c.Id
+WHERE c.CommandLine = 'remove-this'";
+            long ehCount = (long)ehCmd.ExecuteScalar();
+            Assert.Equal(0, ehCount);
+
+            // But the kept command should still exist
+            using var keepCmd = connection.CreateCommand();
+            keepCmd.CommandText = @"
+SELECT COUNT(*) FROM ExecutionHistory eh
+JOIN Commands c ON eh.CommandId = c.Id
+WHERE c.CommandLine = 'keep-this'";
+            long keepCount = (long)keepCmd.ExecuteScalar();
+            Assert.True(keepCount >= 1);
+        }
     }
 }
