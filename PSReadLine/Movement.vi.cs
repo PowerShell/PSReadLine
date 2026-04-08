@@ -254,7 +254,32 @@ namespace Microsoft.PowerShell
                 case ')':
                     return ViFindBackward(i, '(', withoutPassing: ')');
                 default:
-                    return i;
+                    ReadOnlySpan<char> parentheses = stackalloc char[] { '{', '}', '(', ')', '[', ']' };
+                    int nextParen = i;
+                    // find next of any kind of paren
+                    for (; nextParen < _buffer.Length; nextParen++)
+                        for (int idx = 0; idx < parentheses.Length; idx++)
+                            if (parentheses[idx] == _buffer[nextParen]) goto Outer;
+
+                    // if not found, nextParen could exceed the range
+                    if (nextParen >= _buffer.Length)
+                        return i;
+
+                Outer:
+                    int match = _buffer[nextParen] switch
+                    {
+                        // if next is opening, find forward
+                        '{' => ViFindForward(nextParen, '}', withoutPassing: '{'),
+                        '[' => ViFindForward(nextParen, ']', withoutPassing: '['),
+                        '(' => ViFindForward(nextParen, ')', withoutPassing: '('),
+                        // if next is closing, find backward
+                        '}' => ViFindBackward(nextParen, '{', withoutPassing: '}'),
+                        ']' => ViFindBackward(nextParen, '[', withoutPassing: ']'),
+                        ')' => ViFindBackward(nextParen, '(', withoutPassing: ')'),
+                        _ => nextParen
+                    };
+
+                    return match == nextParen ? i : match;
             }
         }
 
