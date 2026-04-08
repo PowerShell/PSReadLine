@@ -250,7 +250,7 @@ namespace Microsoft.PowerShell
                     // ToUnicodeEx call which would return a layout-dependent character
                     // (e.g. Cyrillic 'с' instead of Latin 'c' on Russian layout), breaking
                     // key binding matching.
-                    if (!isDeadKey && !(c >= 1 && c <= 26))
+                    if (!isDeadKey && !(c >= '\x01' && c <= '\x1A'))
                     {
                         // A dead key could pass the above heuristic check, such as 'Shift+6' in US-INTL keyboard, which represents the
                         // diacritic '^' and generates 'D6' ConsoleKey, '\0' key char and 'Shift' modifier.
