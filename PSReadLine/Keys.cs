@@ -245,7 +245,12 @@ namespace Microsoft.PowerShell
                     //   another special key, such as 'Ctrl+?' and 'Ctrl+;'.
                     isDeadKey = (c == '\0') && (consoleKey >= ConsoleKey.Oem1 && consoleKey <= ConsoleKey.Oem102) && !isCtrl;
 
-                    if (!isDeadKey)
+                    // For standard Ctrl+letter combinations (KeyChar \x01-\x1A), the mapping
+                    // to letters a-z is well-defined and layout-independent, so we skip the
+                    // ToUnicodeEx call which would return a layout-dependent character
+                    // (e.g. Cyrillic 'с' instead of Latin 'c' on Russian layout), breaking
+                    // key binding matching.
+                    if (!isDeadKey && !(c >= '\x01' && c <= '\x1A'))
                     {
                         // A dead key could pass the above heuristic check, such as 'Shift+6' in US-INTL keyboard, which represents the
                         // diacritic '^' and generates 'D6' ConsoleKey, '\0' key char and 'Shift' modifier.
