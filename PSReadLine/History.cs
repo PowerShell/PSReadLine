@@ -321,7 +321,7 @@ JOIN Locations l ON eh.LocationId = l.Id;";
                 var historyLines = ReadHistoryLinesImpl(textHistoryPath, int.MaxValue);
                 var historyItems = new List<HistoryItem>();
 
-                // Convert text lines to HistoryItems
+                // Convert text lines to HistoryItems (collect without timestamps first)
                 var sb = new StringBuilder();
                 foreach (var line in historyLines)
                 {
@@ -336,7 +336,6 @@ JOIN Locations l ON eh.LocationId = l.Id;";
                         historyItems.Add(new HistoryItem
                         {
                             CommandLine = sb.ToString(),
-                            StartTime = DateTime.UtcNow.AddMinutes(-historyItems.Count), // Approximate timestamps
                             ApproximateElapsedTime = TimeSpan.Zero,
                             Location = "Unknown"
                         });
@@ -347,11 +346,20 @@ JOIN Locations l ON eh.LocationId = l.Id;";
                         historyItems.Add(new HistoryItem
                         {
                             CommandLine = line,
-                            StartTime = DateTime.UtcNow.AddMinutes(-historyItems.Count), // Approximate timestamps
                             ApproximateElapsedTime = TimeSpan.Zero,
                             Location = "Unknown"
                         });
                     }
+                }
+
+                // Assign timestamps AFTER collecting all items so that:
+                //   - oldest text line (index 0) gets the earliest timestamp
+                //   - newest text line (last index) gets the latest timestamp
+                //   - all migrated timestamps are older than "now"
+                var migrationBase = DateTime.UtcNow.AddMinutes(-(historyItems.Count + 1));
+                for (int idx = 0; idx < historyItems.Count; idx++)
+                {
+                    historyItems[idx].StartTime = migrationBase.AddMinutes(idx);
                 }
 
                 // Insert into SQLite database using the new normalized schema
@@ -827,6 +835,7 @@ ORDER BY Id ASC";
                             Location = reader.GetString(3),
                             FromHistoryFile = true,
                             FromOtherSession = true,
+                            _saved = true,
                             _edits = new List<EditItem> { EditItemInsertString.Create(reader.GetString(0), 0) },
                             _undoEditIndex = 1,
                             _editGroupStart = -1
@@ -937,6 +946,7 @@ LIMIT @Limit";
                             Location = reader.GetString(3),
                             FromHistoryFile = true,
                             FromOtherSession = fromOtherSession,
+                            _saved = true,
                             _edits = new List<EditItem> { EditItemInsertString.Create(reader.GetString(0), 0) },
                             _undoEditIndex = 1,
                             _editGroupStart = -1
