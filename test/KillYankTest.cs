@@ -27,12 +27,11 @@ namespace Test
             TestSetup(KeyMode.Emacs);
 
             // Alt+Delete is bound to RemoveFromHistory in Emacs mode.
-            // Add two items, recall the last one, then Alt+Delete to remove it.
+            // After deletion it advances to the next older item automatically.
             SetHistory("echo first", "echo second");
             Test("echo first", Keys(
                 _.UpArrow,          // recall "echo second"
-                _.Alt_Delete,       // remove "echo second" from history
-                _.UpArrow));        // now recalls "echo first"
+                _.Alt_Delete));     // remove "echo second", auto-shows "echo first"
         }
 
         [SkippableFact]
@@ -41,11 +40,82 @@ namespace Test
             TestSetup(KeyMode.Cmd);
 
             // Alt+Delete is bound to RemoveFromHistory in Windows mode.
+            // After deletion it advances to the next older item automatically.
             SetHistory("echo first", "echo second");
             Test("echo first", Keys(
                 _.UpArrow,          // recall "echo second"
-                _.Alt_Delete,       // remove "echo second" from history
-                _.UpArrow));        // now recalls "echo first"
+                _.Alt_Delete));     // remove "echo second", auto-shows "echo first"
+        }
+
+        [SkippableFact]
+        public void AltDeleteAdvancesToNextOlderItem()
+        {
+            TestSetup(KeyMode.Cmd);
+
+            // After Alt+Delete, the next older history item should be displayed
+            // so the user can continue navigating deeper into history.
+            SetHistory("cmd1", "cmd2", "cmd3", "cmd4");
+            Test("cmd2", Keys(
+                _.UpArrow,                                          // recall "cmd4"
+                CheckThat(() => AssertLineIs("cmd4")),
+                _.Alt_Delete,                                       // delete "cmd4", shows "cmd3"
+                CheckThat(() => AssertLineIs("cmd3")),
+                _.UpArrow,                                          // continue to "cmd2"
+                CheckThat(() => AssertLineIs("cmd2"))
+            ));
+        }
+
+        [SkippableFact]
+        public void AltDeleteConsecutiveDeletes()
+        {
+            TestSetup(KeyMode.Cmd);
+
+            // User should be able to press Alt+Delete multiple times in a row
+            // to delete consecutive history items, each time advancing to the
+            // next older item.
+            SetHistory("cmd1", "cmd2", "cmd3", "cmd4");
+            Test("cmd1", Keys(
+                _.UpArrow,                                          // recall "cmd4"
+                CheckThat(() => AssertLineIs("cmd4")),
+                _.Alt_Delete,                                       // delete "cmd4", shows "cmd3"
+                CheckThat(() => AssertLineIs("cmd3")),
+                _.Alt_Delete,                                       // delete "cmd3", shows "cmd2"
+                CheckThat(() => AssertLineIs("cmd2")),
+                _.Alt_Delete,                                       // delete "cmd2", shows "cmd1"
+                CheckThat(() => AssertLineIs("cmd1"))
+            ));
+        }
+
+        [SkippableFact]
+        public void AltDeleteLastRemainingItem()
+        {
+            TestSetup(KeyMode.Cmd);
+
+            // Deleting the only remaining history item should revert to empty line.
+            SetHistory("only-item");
+            Test("", Keys(
+                _.UpArrow,                                          // recall "only-item"
+                CheckThat(() => AssertLineIs("only-item")),
+                _.Alt_Delete                                        // delete it, reverts to empty
+            ));
+        }
+
+        [SkippableFact]
+        public void AltDeleteOldestItem()
+        {
+            TestSetup(KeyMode.Cmd);
+
+            // When at the oldest item, deleting it should show the next remaining
+            // item (which is now the new oldest, at index 0).
+            SetHistory("cmd1", "cmd2", "cmd3");
+            Test("cmd2", Keys(
+                _.UpArrow,                                          // "cmd3"
+                _.UpArrow,                                          // "cmd2"
+                _.UpArrow,                                          // "cmd1" (oldest)
+                CheckThat(() => AssertLineIs("cmd1")),
+                _.Alt_Delete,                                       // delete "cmd1", shows "cmd2" (new oldest)
+                CheckThat(() => AssertLineIs("cmd2"))
+            ));
         }
 
         [SkippableFact]

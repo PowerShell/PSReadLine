@@ -350,7 +350,6 @@ JOIN Locations l ON eh.LocationId = l.Id;";
                         historyItems.Add(new HistoryItem
                         {
                             CommandLine = sb.ToString(),
-                            StartTime = DateTime.UtcNow.AddMinutes(-historyItems.Count), // Approximate timestamps
                             ApproximateElapsedTime = TimeSpan.Zero,
                             Location = "Unknown"
                         });
@@ -361,11 +360,21 @@ JOIN Locations l ON eh.LocationId = l.Id;";
                         historyItems.Add(new HistoryItem
                         {
                             CommandLine = line,
-                            StartTime = DateTime.UtcNow.AddMinutes(-historyItems.Count), // Approximate timestamps
                             ApproximateElapsedTime = TimeSpan.Zero,
                             Location = "Unknown"
                         });
                     }
+                }
+
+                // Assign timestamps so that:
+                // 1. All migrated items are older than any future SQLite entry
+                // 2. The first text line (oldest) gets the earliest timestamp
+                // 3. The last text line (newest) gets the latest migrated timestamp
+                // Each item is spaced 1 minute apart, ending 2 minutes before "now".
+                var migrationBase = DateTime.UtcNow.AddMinutes(-(historyItems.Count + 1));
+                for (int idx = 0; idx < historyItems.Count; idx++)
+                {
+                    historyItems[idx].StartTime = migrationBase.AddMinutes(idx);
                 }
 
                 // Insert into SQLite database using the new normalized schema
@@ -842,6 +851,7 @@ ORDER BY Id ASC";
                             ExecutionCount = reader.GetInt32(4),
                             FromHistoryFile = true,
                             FromOtherSession = true,
+                            _saved = true,
                             _edits = new List<EditItem> { EditItemInsertString.Create(reader.GetString(0), 0) },
                             _undoEditIndex = 1,
                             _editGroupStart = -1
@@ -962,6 +972,7 @@ LIMIT @Limit";
                             ExecutionCount = reader.GetInt32(4),
                             FromHistoryFile = true,
                             FromOtherSession = fromOtherSession,
+                            _saved = true,
                             _edits = new List<EditItem> { EditItemInsertString.Create(reader.GetString(0), 0) },
                             _undoEditIndex = 1,
                             _editGroupStart = -1
@@ -1601,6 +1612,11 @@ LIMIT @Limit";
         /// </summary>
         public static void RemoveFromHistory(ConsoleKeyInfo? key = null, object arg = null)
         {
+            // Signal to the main ReadLine loop that this is a history command,
+            // so it doesn't reset _currentHistoryIndex after we set it.
+            _singleton._recallHistoryCommandCount += 1;
+            _singleton._anyHistoryCommandCount += 1;
+
             var history = _singleton._history;
             if (history == null || history.Count == 0)
             {
@@ -1629,6 +1645,9 @@ LIMIT @Limit";
                 return;
             }
 
+            // Save position before RemoveHistoryItem resets _currentHistoryIndex to Count
+            int savedIndex = _singleton._currentHistoryIndex;
+
             RemoveHistoryItem(commandToRemove);
 
             // If in list view, revert to the user input and refresh the list
@@ -1638,7 +1657,9 @@ LIMIT @Limit";
                 return;
             }
 
-            // In normal history browsing: adjust index and show previous entry or revert
+            // In normal history browsing: advance to the next older item
+            // (same direction as Up arrow) so the user can keep deleting
+            // consecutive items without bouncing back to the top.
             if (history.Count == 0)
             {
                 _singleton._currentHistoryIndex = 0;
@@ -1646,10 +1667,10 @@ LIMIT @Limit";
             }
             else
             {
-                if (_singleton._currentHistoryIndex >= history.Count)
-                {
-                    _singleton._currentHistoryIndex = history.Count - 1;
-                }
+                // Items below savedIndex didn't move, so the next older item
+                // is at savedIndex - 1. If we were at the oldest item already,
+                // show whatever is now at index 0 (the former next-newer item).
+                _singleton._currentHistoryIndex = Math.Max(savedIndex - 1, 0);
                 _singleton.UpdateFromHistory(HistoryMoveCursor.ToEnd);
             }
         }

@@ -883,5 +883,233 @@ WHERE c.CommandLine = 'keep-this'";
             long keepCount = (long)keepCmd.ExecuteScalar();
             Assert.True(keepCount >= 1);
         }
+
+        [SkippableFact]
+        public void SQLiteHistory_MigrationTimestampsAreChronologicalAndOlderThanNow()
+        {
+            TestSetup(KeyMode.Cmd);
+
+            var options = PSConsoleReadLine.GetOptions();
+            var originalHistorySavePathText = options.HistorySavePathText;
+            var originalHistorySavePathSQLite = options.HistorySavePathSQLite;
+            var originalHistorySaveStyle = options.HistorySaveStyle;
+            var originalHistoryType = options.HistoryType;
+
+            var tempDbPath = Path.Combine(Path.GetTempPath(), $"PSReadLineTest_{Guid.NewGuid():N}.db");
+            var tempTxtPath = Path.ChangeExtension(tempDbPath, ".txt");
+
+            try
+            {
+                // Create a text history file with known content (oldest first)
+                File.WriteAllLines(tempTxtPath, new[]
+                {
+                    "cmd-oldest",
+                    "cmd-middle",
+                    "cmd-newest"
+                });
+
+                var beforeMigration = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+
+                options.HistorySavePathText = tempTxtPath;
+                options.HistorySavePathSQLite = tempDbPath;
+
+                var setOptions = new SetPSReadLineOption
+                {
+                    HistoryType = HistoryType.SQLite,
+                    HistorySaveStyle = HistorySaveStyle.SaveIncrementally,
+                };
+                PSConsoleReadLine.SetOptions(setOptions);
+
+                // Query timestamps from the database in insertion order
+                var connectionString = new SqliteConnectionStringBuilder($"Data Source={tempDbPath}")
+                {
+                    Mode = SqliteOpenMode.ReadOnly
+                }.ToString();
+
+                using var connection = new SqliteConnection(connectionString);
+                connection.Open();
+
+                using var cmd = connection.CreateCommand();
+                cmd.CommandText = "SELECT CommandLine, LastExecuted FROM HistoryView ORDER BY LastExecuted ASC";
+                using var reader = cmd.ExecuteReader();
+
+                var entries = new System.Collections.Generic.List<(string command, long lastExecuted)>();
+                while (reader.Read())
+                {
+                    entries.Add((reader.GetString(0), reader.GetInt64(1)));
+                }
+
+                Assert.Equal(3, entries.Count);
+
+                // 1. Chronological order preserved: oldest text line has smallest timestamp
+                Assert.Equal("cmd-oldest", entries[0].command);
+                Assert.Equal("cmd-middle", entries[1].command);
+                Assert.Equal("cmd-newest", entries[2].command);
+
+                // 2. Timestamps are strictly increasing
+                Assert.True(entries[0].lastExecuted < entries[1].lastExecuted,
+                    "oldest should have smaller timestamp than middle");
+                Assert.True(entries[1].lastExecuted < entries[2].lastExecuted,
+                    "middle should have smaller timestamp than newest");
+
+                // 3. All migrated timestamps are older than "now"
+                foreach (var entry in entries)
+                {
+                    Assert.True(entry.lastExecuted < beforeMigration,
+                        $"Migrated entry '{entry.command}' has timestamp {entry.lastExecuted} which is not older than migration time {beforeMigration}");
+                }
+            }
+            finally
+            {
+                options.HistorySavePathSQLite = originalHistorySavePathSQLite;
+                options.HistorySavePathText = originalHistorySavePathText;
+                options.HistorySaveStyle = originalHistorySaveStyle;
+                options.HistoryType = originalHistoryType;
+                PSConsoleReadLine.ClearHistory();
+
+                try { if (File.Exists(tempDbPath)) File.Delete(tempDbPath); } catch { }
+                try { if (File.Exists(tempTxtPath)) File.Delete(tempTxtPath); } catch { }
+            }
+        }
+
+        [SkippableFact]
+        public void SQLiteHistory_MigratedTextHistoryOlderThanNewSQLiteEntries()
+        {
+            TestSetup(KeyMode.Cmd);
+
+            var options = PSConsoleReadLine.GetOptions();
+            var originalHistorySavePathText = options.HistorySavePathText;
+            var originalHistorySavePathSQLite = options.HistorySavePathSQLite;
+            var originalHistorySaveStyle = options.HistorySaveStyle;
+            var originalHistoryType = options.HistoryType;
+
+            var tempDbPath = Path.Combine(Path.GetTempPath(), $"PSReadLineTest_{Guid.NewGuid():N}.db");
+            var tempTxtPath = Path.ChangeExtension(tempDbPath, ".txt");
+
+            try
+            {
+                // Create text history (these are "old" commands)
+                File.WriteAllLines(tempTxtPath, new[]
+                {
+                    "old-cmd-1",
+                    "old-cmd-2"
+                });
+
+                options.HistorySavePathText = tempTxtPath;
+                options.HistorySavePathSQLite = tempDbPath;
+
+                var setOptions = new SetPSReadLineOption
+                {
+                    HistoryType = HistoryType.SQLite,
+                    HistorySaveStyle = HistorySaveStyle.SaveIncrementally,
+                };
+                PSConsoleReadLine.SetOptions(setOptions);
+
+                // Now add a new command via the normal path (simulates running a command after migration)
+                Test("new-cmd-after-migration", Keys("new-cmd-after-migration"));
+
+                // Query all entries ordered by LastExecuted
+                var connectionString = new SqliteConnectionStringBuilder($"Data Source={tempDbPath}")
+                {
+                    Mode = SqliteOpenMode.ReadOnly
+                }.ToString();
+
+                using var connection = new SqliteConnection(connectionString);
+                connection.Open();
+
+                using var cmd = connection.CreateCommand();
+                cmd.CommandText = "SELECT CommandLine, LastExecuted FROM HistoryView ORDER BY LastExecuted ASC";
+                using var reader = cmd.ExecuteReader();
+
+                var entries = new System.Collections.Generic.List<(string command, long lastExecuted)>();
+                while (reader.Read())
+                {
+                    entries.Add((reader.GetString(0), reader.GetInt64(1)));
+                }
+
+                Assert.Equal(3, entries.Count);
+
+                // Migrated items should be first (oldest), new item should be last (newest)
+                Assert.Equal("old-cmd-1", entries[0].command);
+                Assert.Equal("old-cmd-2", entries[1].command);
+                Assert.Equal("new-cmd-after-migration", entries[2].command);
+
+                // The new entry's timestamp must be strictly greater than all migrated ones
+                Assert.True(entries[2].lastExecuted > entries[1].lastExecuted,
+                    "New SQLite entry must be newer than migrated text history");
+                Assert.True(entries[2].lastExecuted > entries[0].lastExecuted,
+                    "New SQLite entry must be newer than migrated text history");
+            }
+            finally
+            {
+                options.HistorySavePathSQLite = originalHistorySavePathSQLite;
+                options.HistorySavePathText = originalHistorySavePathText;
+                options.HistorySaveStyle = originalHistorySaveStyle;
+                options.HistoryType = originalHistoryType;
+                PSConsoleReadLine.ClearHistory();
+
+                try { if (File.Exists(tempDbPath)) File.Delete(tempDbPath); } catch { }
+                try { if (File.Exists(tempTxtPath)) File.Delete(tempTxtPath); } catch { }
+            }
+        }
+
+        [SkippableFact]
+        public void SQLiteHistory_UpArrowShowsNewestFirstAfterMigration()
+        {
+            TestSetup(KeyMode.Cmd);
+
+            var options = PSConsoleReadLine.GetOptions();
+            var originalHistorySavePathText = options.HistorySavePathText;
+            var originalHistorySavePathSQLite = options.HistorySavePathSQLite;
+            var originalHistorySaveStyle = options.HistorySaveStyle;
+            var originalHistoryType = options.HistoryType;
+
+            var tempDbPath = Path.Combine(Path.GetTempPath(), $"PSReadLineTest_{Guid.NewGuid():N}.db");
+            var tempTxtPath = Path.ChangeExtension(tempDbPath, ".txt");
+
+            try
+            {
+                // Create text history (oldest first in the file)
+                File.WriteAllLines(tempTxtPath, new[]
+                {
+                    "old-text-cmd-1",
+                    "old-text-cmd-2",
+                    "old-text-cmd-3"
+                });
+
+                options.HistorySavePathText = tempTxtPath;
+                options.HistorySavePathSQLite = tempDbPath;
+
+                var setOptions = new SetPSReadLineOption
+                {
+                    HistoryType = HistoryType.SQLite,
+                    HistorySaveStyle = HistorySaveStyle.SaveIncrementally,
+                };
+                PSConsoleReadLine.SetOptions(setOptions);
+
+                // Add a new entry after migration
+                Test("new-sqlite-cmd", Keys("new-sqlite-cmd"));
+
+                // Up arrow should show entries newest-first:
+                // new-sqlite-cmd → old-text-cmd-3 → old-text-cmd-2 → old-text-cmd-1
+                Test("old-text-cmd-1", Keys(
+                    _.UpArrow, CheckThat(() => AssertLineIs("new-sqlite-cmd")),
+                    _.UpArrow, CheckThat(() => AssertLineIs("old-text-cmd-3")),
+                    _.UpArrow, CheckThat(() => AssertLineIs("old-text-cmd-2")),
+                    _.UpArrow, CheckThat(() => AssertLineIs("old-text-cmd-1"))
+                ));
+            }
+            finally
+            {
+                options.HistorySavePathSQLite = originalHistorySavePathSQLite;
+                options.HistorySavePathText = originalHistorySavePathText;
+                options.HistorySaveStyle = originalHistorySaveStyle;
+                options.HistoryType = originalHistoryType;
+                PSConsoleReadLine.ClearHistory();
+
+                try { if (File.Exists(tempDbPath)) File.Delete(tempDbPath); } catch { }
+                try { if (File.Exists(tempTxtPath)) File.Delete(tempTxtPath); } catch { }
+            }
+        }
     }
 }
