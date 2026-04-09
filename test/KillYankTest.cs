@@ -22,30 +22,30 @@ namespace Test
         }
 
         [SkippableFact]
-        public void KillWordWithAltDelete_Emacs()
+        public void AltDeleteBoundToRemoveFromHistory_Emacs()
         {
             TestSetup(KeyMode.Emacs);
 
-            // Alt+Delete should behave identically to Alt+d (KillWord)
-            Test("echo  defabc", Keys(
-                _.Alt_Delete, // Test on empty input
-                "echo abc def",
-                Enumerable.Repeat(_.LeftArrow, 7),
-                _.Alt_Delete, // Kill 'abc'
-                _.End, _.Ctrl_y)); // Yank 'abc' at end of line
+            // Alt+Delete is bound to RemoveFromHistory in Emacs mode.
+            // Add two items, recall the last one, then Alt+Delete to remove it.
+            SetHistory("echo first", "echo second");
+            Test("echo first", Keys(
+                _.UpArrow,          // recall "echo second"
+                _.Alt_Delete,       // remove "echo second" from history
+                _.UpArrow));        // now recalls "echo first"
         }
 
         [SkippableFact]
-        public void KillWordWithAltDelete_Windows()
+        public void AltDeleteBoundToRemoveFromHistory_Windows()
         {
             TestSetup(KeyMode.Cmd);
 
-            // Alt+Delete bound to KillWord in Windows mode
-            Test("echo  def", Keys(
-                _.Alt_Delete, // Test on empty input
-                "echo abc def",
-                Enumerable.Repeat(_.LeftArrow, 7),
-                _.Alt_Delete)); // Kill 'abc'
+            // Alt+Delete is bound to RemoveFromHistory in Windows mode.
+            SetHistory("echo first", "echo second");
+            Test("echo first", Keys(
+                _.UpArrow,          // recall "echo second"
+                _.Alt_Delete,       // remove "echo second" from history
+                _.UpArrow));        // now recalls "echo first"
         }
 
         [SkippableFact]

@@ -622,6 +622,8 @@ namespace Microsoft.PowerShell
                 if (locationHistoryCommandCount == _locationHistoryCommandCount)
                 {
                     _locationHistoryCommandCount = 0;
+                    _locationSortedIndices = null;
+                    _locationSortedPosition = -1;
                 }
                 if (anyHistoryCommandCount == _anyHistoryCommandCount)
                 {
@@ -826,6 +828,8 @@ namespace Microsoft.PowerShell
             _tabCommandCount = 0;
             _recallHistoryCommandCount = 0;
             _locationHistoryCommandCount = 0;
+            _locationSortedIndices = null;
+            _locationSortedPosition = -1;
             _anyHistoryCommandCount = 0;
             _visualSelectionCommandCount = 0;
             _hashedHistory = null;

@@ -112,6 +112,8 @@ namespace Microsoft.PowerShell
         private int _searchHistoryCommandCount;
         private int _recallHistoryCommandCount;
         private int _locationHistoryCommandCount;
+        private List<int> _locationSortedIndices;
+        private int _locationSortedPosition;
         private int _anyHistoryCommandCount;
         private string _searchHistoryPrefix;
         // When cycling through history, the current line (not yet added to history)
@@ -930,15 +932,20 @@ ORDER BY Id ASC";
                         _ => Options.MaximumHistoryCount
                     };
 
-                    // Use the view for easy querying.
-                    // Order by a weighted combination of recency and frequency so that
-                    // frequently-used commands rank higher than one-off typos.
-                    // Each additional execution gives a 30-minute bonus (capped at 100),
-                    // ensuring frequent commands surface first during backward search.
+                    // Load history in chronological order, deduplicated by CommandLine.
+                    // When the same command exists at multiple locations, keep the most
+                    // recently executed entry so that basic Up/Down recall is simple
+                    // reverse-chronological navigation with no duplicates.
                     command.CommandText = @"
-SELECT CommandLine, StartTime, ElapsedTime, Location, ExecutionCount 
-FROM HistoryView 
-ORDER BY (LastExecuted + MIN(ExecutionCount, 100) * 1800) DESC
+WITH Ranked AS (
+    SELECT CommandLine, StartTime, ElapsedTime, Location, ExecutionCount, LastExecuted,
+           ROW_NUMBER() OVER (PARTITION BY CommandLine ORDER BY LastExecuted DESC) AS rn
+    FROM HistoryView
+)
+SELECT CommandLine, StartTime, ElapsedTime, Location, ExecutionCount
+FROM Ranked
+WHERE rn = 1
+ORDER BY LastExecuted DESC
 LIMIT @Limit";
                     command.Parameters.AddWithValue("@Limit", limit);
 
@@ -1743,56 +1750,57 @@ LIMIT @Limit";
                 return;
             }
 
-            if (Options.HistoryNoDuplicates && _locationHistoryCommandCount == 0)
+            // On first press, build a weighted index of location-matching history items.
+            // Ordering: location match (primary), then frequency DESC, then recency DESC.
+            if (_locationHistoryCommandCount == 0)
             {
-                _hashedHistory = new Dictionary<string, int>();
+                var seen = new HashSet<string>(StringComparer.Ordinal);
+                _locationSortedIndices = new List<int>();
+
+                for (int i = 0; i < _history.Count; i++)
+                {
+                    if (string.Equals(_history[i].Location, currentLocation, StringComparison.OrdinalIgnoreCase))
+                    {
+                        if (seen.Add(_history[i].CommandLine))
+                        {
+                            _locationSortedIndices.Add(i);
+                        }
+                    }
+                }
+
+                // Sort by frequency DESC, then by position DESC (more recent first).
+                _locationSortedIndices.Sort((a, b) =>
+                {
+                    int freqCmp = _history[b].ExecutionCount.CompareTo(_history[a].ExecutionCount);
+                    if (freqCmp != 0) return freqCmp;
+                    return b.CompareTo(a);
+                });
+
+                _locationSortedPosition = -1;
             }
 
+            _locationHistoryCommandCount += 1;
+
+            // Navigate: Alt+Up (direction < 0) advances forward through sorted list,
+            // Alt+Down (direction > 0) goes back.
             int count = Math.Abs(direction);
-            direction = direction < 0 ? -1 : +1;
-            int newHistoryIndex = _currentHistoryIndex;
+            int step = direction < 0 ? 1 : -1;
+            int newPosition = _locationSortedPosition;
+
             while (count > 0)
             {
-                newHistoryIndex += direction;
-
-                if (newHistoryIndex < 0 || newHistoryIndex >= _history.Count)
+                newPosition += step;
+                if (newPosition < 0 || newPosition >= _locationSortedIndices.Count)
                 {
                     break;
                 }
-
-                // Location-based recall includes cross-session items because
-                // commands run at the same directory are contextually relevant
-                // regardless of which session they came from.
-
-                // Filter by location
-                if (!string.Equals(_history[newHistoryIndex].Location, currentLocation, StringComparison.OrdinalIgnoreCase))
-                {
-                    continue;
-                }
-
-                if (Options.HistoryNoDuplicates)
-                {
-                    var line = _history[newHistoryIndex].CommandLine;
-                    if (!_hashedHistory.TryGetValue(line, out var index))
-                    {
-                        _hashedHistory.Add(line, newHistoryIndex);
-                        --count;
-                    }
-                    else if (newHistoryIndex == index)
-                    {
-                        --count;
-                    }
-                }
-                else
-                {
-                    --count;
-                }
+                --count;
             }
-            _locationHistoryCommandCount += 1;
 
-            if (newHistoryIndex >= 0 && newHistoryIndex <= _history.Count)
+            if (newPosition >= 0 && newPosition < _locationSortedIndices.Count)
             {
-                _currentHistoryIndex = newHistoryIndex;
+                _locationSortedPosition = newPosition;
+                _currentHistoryIndex = _locationSortedIndices[newPosition];
                 var moveCursor = InViCommandMode() && !_options.HistorySearchCursorMovesToEnd
                     ? HistoryMoveCursor.ToBeginning
                     : HistoryMoveCursor.ToEnd;

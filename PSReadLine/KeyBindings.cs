@@ -243,7 +243,7 @@ namespace Microsoft.PowerShell
                 { Keys.AltDownArrow,           MakeKeyHandler(NextLocationHistory,       "NextLocationHistory") },
                 // Added for xtermjs-based terminals that send different key combinations.
                 { Keys.AltD,                   MakeKeyHandler(KillWord,                  "KillWord") },
-                { Keys.AltDelete,              MakeKeyHandler(KillWord,                  "KillWord") },
+                { Keys.AltDelete,              MakeKeyHandler(RemoveFromHistory,         "RemoveFromHistory") },
                 { Keys.CtrlAt,                 MakeKeyHandler(MenuComplete,              "MenuComplete") },
                 { Keys.CtrlW,                  MakeKeyHandler(BackwardKillWord,          "BackwardKillWord") },
             };
@@ -332,7 +332,7 @@ namespace Microsoft.PowerShell
                 { Keys.AltB,                   MakeKeyHandler(BackwardWord,              "BackwardWord") },
                 { Keys.AltShiftB,              MakeKeyHandler(SelectBackwardWord,        "SelectBackwardWord") },
                 { Keys.AltD,                   MakeKeyHandler(KillWord,                  "KillWord") },
-                { Keys.AltDelete,              MakeKeyHandler(KillWord,                  "KillWord") },
+                { Keys.AltDelete,              MakeKeyHandler(RemoveFromHistory,         "RemoveFromHistory") },
                 { Keys.AltF,                   MakeKeyHandler(ForwardWord,               "ForwardWord") },
                 { Keys.AltShiftF,              MakeKeyHandler(SelectForwardWord,         "SelectForwardWord") },
                 { Keys.AltR,                   MakeKeyHandler(RevertLine,                "RevertLine") },
