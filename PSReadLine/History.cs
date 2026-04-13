@@ -636,6 +636,17 @@ ON CONFLICT(CommandId, LocationId) DO UPDATE SET
                         command.Parameters.AddWithValue("@ElapsedTime", item.ApproximateElapsedTime.Ticks);
                         command.Parameters.AddWithValue("@LastExecuted", lastExecutedUnix);
                         command.ExecuteNonQuery();
+
+                        // Read back the total ExecutionCount across all locations so the in-memory item stays in sync
+                        using var countCmd = connection.CreateCommand();
+                        countCmd.Transaction = transaction;
+                        countCmd.CommandText = "SELECT SUM(ExecutionCount) FROM ExecutionHistory WHERE CommandId = @CommandId";
+                        countCmd.Parameters.AddWithValue("@CommandId", commandId);
+                        var count = countCmd.ExecuteScalar();
+                        if (count != null)
+                        {
+                            item.ExecutionCount = Convert.ToInt32(count);
+                        }
                     }
 
                     transaction.Commit();
@@ -831,12 +842,16 @@ ON CONFLICT(CommandId, LocationId) DO UPDATE SET
 
                 using (var command = connection.CreateCommand())
                 {
-                    // Use the HistoryView to get all the joined data, filtering by ExecutionHistory.Id
+                    // Use the HistoryView to get all the joined data, filtering by ExecutionHistory.Id.
+                    // ExecutionCount is the SUM across all locations (total runs).
                     command.CommandText = @"
-SELECT CommandLine, StartTime, ElapsedTime, Location, ExecutionCount
-FROM HistoryView
-WHERE Id > @LastId
-ORDER BY Id ASC";
+SELECT hv.CommandLine, hv.StartTime, hv.ElapsedTime, hv.Location,
+       (SELECT SUM(eh2.ExecutionCount) FROM ExecutionHistory eh2
+        JOIN Commands c2 ON eh2.CommandId = c2.Id
+        WHERE c2.CommandLine = hv.CommandLine) AS TotalExecutionCount
+FROM HistoryView hv
+WHERE hv.Id > @LastId
+ORDER BY hv.Id ASC";
                     command.Parameters.AddWithValue("@LastId", _historyFileLastSavedSize);
 
                     using var reader = command.ExecuteReader();
@@ -946,16 +961,24 @@ ORDER BY Id ASC";
                     // When the same command exists at multiple locations, keep the most
                     // recently executed entry so that basic Up/Down recall is simple
                     // reverse-chronological navigation with no duplicates.
+                    // ExecutionCount is the SUM across all locations (total runs).
                     command.CommandText = @"
 WITH Ranked AS (
     SELECT CommandLine, StartTime, ElapsedTime, Location, ExecutionCount, LastExecuted,
            ROW_NUMBER() OVER (PARTITION BY CommandLine ORDER BY LastExecuted DESC) AS rn
     FROM HistoryView
+),
+TotalCounts AS (
+    SELECT c.CommandLine, SUM(eh.ExecutionCount) AS TotalExecutionCount
+    FROM ExecutionHistory eh
+    JOIN Commands c ON eh.CommandId = c.Id
+    GROUP BY c.CommandLine
 )
-SELECT CommandLine, StartTime, ElapsedTime, Location, ExecutionCount
-FROM Ranked
-WHERE rn = 1
-ORDER BY LastExecuted DESC
+SELECT r.CommandLine, r.StartTime, r.ElapsedTime, r.Location, tc.TotalExecutionCount
+FROM Ranked r
+JOIN TotalCounts tc ON r.CommandLine = tc.CommandLine
+WHERE r.rn = 1
+ORDER BY r.LastExecuted DESC
 LIMIT @Limit";
                     command.Parameters.AddWithValue("@Limit", limit);
 
@@ -1554,7 +1577,7 @@ LIMIT @Limit";
                 return;
             }
 
-            if (Options.HistoryNoDuplicates && _recallHistoryCommandCount == 0)
+            if (Options.HistoryNoDuplicates && _hashedHistory == null)
             {
                 _hashedHistory = new Dictionary<string, int>();
             }
@@ -1612,11 +1635,6 @@ LIMIT @Limit";
         /// </summary>
         public static void RemoveFromHistory(ConsoleKeyInfo? key = null, object arg = null)
         {
-            // Signal to the main ReadLine loop that this is a history command,
-            // so it doesn't reset _currentHistoryIndex after we set it.
-            _singleton._recallHistoryCommandCount += 1;
-            _singleton._anyHistoryCommandCount += 1;
-
             var history = _singleton._history;
             if (history == null || history.Count == 0)
             {
@@ -1624,22 +1642,50 @@ LIMIT @Limit";
                 return;
             }
 
-            string commandToRemove = null;
-
-            // Check if we're in the F2 list prediction view with a selected item
+            // Check if we're in the F2 list prediction view with a selected item.
+            // Handle this path separately — no history recall counters needed since
+            // we stay in the list view, and incrementing them would leave _hashedHistory
+            // null for the next HistoryRecall call (causing NullReferenceException).
             if (_singleton._prediction.ActiveView is PredictionListView listView
                 && listView.HasActiveSuggestion
                 && listView.SelectedItemIndex >= 0)
             {
-                commandToRemove = listView.SelectedItemText;
-            }
-            // Otherwise check if we're browsing history with Up/Down
-            else if (_singleton._currentHistoryIndex < history.Count)
-            {
-                commandToRemove = history[_singleton._currentHistoryIndex].CommandLine;
+                string commandToRemove = listView.SelectedItemText;
+                if (commandToRemove == null)
+                {
+                    Ding();
+                    return;
+                }
+
+                RemoveHistoryItem(commandToRemove);
+
+                if (!listView.RemoveSelectedItem())
+                {
+                    // List became empty — close the list view
+                    RevertLine();
+                }
+                else
+                {
+                    // Re-render so the user sees the item disappear immediately.
+                    ReplaceSelection(listView.SelectedItemText);
+                }
+
+                return;
             }
 
-            if (commandToRemove == null)
+            // Normal history browsing path (Up/Down arrows).
+            // Signal to the main ReadLine loop that this is a history command,
+            // so it doesn't reset _currentHistoryIndex after we set it.
+            _singleton._recallHistoryCommandCount += 1;
+            _singleton._anyHistoryCommandCount += 1;
+
+            string commandLine = null;
+            if (_singleton._currentHistoryIndex < history.Count)
+            {
+                commandLine = history[_singleton._currentHistoryIndex].CommandLine;
+            }
+
+            if (commandLine == null)
             {
                 Ding();
                 return;
@@ -1648,14 +1694,7 @@ LIMIT @Limit";
             // Save position before RemoveHistoryItem resets _currentHistoryIndex to Count
             int savedIndex = _singleton._currentHistoryIndex;
 
-            RemoveHistoryItem(commandToRemove);
-
-            // If in list view, revert to the user input and refresh the list
-            if (_singleton._prediction.ActiveView is PredictionListView)
-            {
-                RevertLine();
-                return;
-            }
+            RemoveHistoryItem(commandLine);
 
             // In normal history browsing: advance to the next older item
             // (same direction as Up arrow) so the user can keep deleting

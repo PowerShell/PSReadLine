@@ -116,6 +116,37 @@ namespace Microsoft.PowerShell
             /// </summary>
             /// <param name="input">User input.</param>
             /// <param name="count">Maximum number of results to return.</param>
+            /// <summary>
+            /// Generate a tooltip string with statistics for a history item.
+            /// This returns a plain-text version used as the ToolTip value (non-null triggers tooltip rendering).
+            /// The actual colored rendering is done by <see cref="RenderHistoryStatsTooltip"/>.
+            /// </summary>
+            private static string FormatHistoryStatsTooltip(HistoryItem item)
+            {
+                var sb = new StringBuilder();
+                sb.Append("Runs: ").Append(item.ExecutionCount);
+
+                if (item.StartTime != default)
+                {
+                    var ago = DateTime.UtcNow - item.StartTime;
+                    if (ago.TotalMinutes < 1)
+                        sb.Append(" \u2502 Last: just now");
+                    else if (ago.TotalHours < 1)
+                        sb.Append(" \u2502 Last: ").Append((int)ago.TotalMinutes).Append("m ago");
+                    else if (ago.TotalDays < 1)
+                        sb.Append(" \u2502 Last: ").Append((int)ago.TotalHours).Append("h ago");
+                    else
+                        sb.Append(" \u2502 Last: ").Append((int)ago.TotalDays).Append("d ago");
+                }
+
+                if (!string.IsNullOrEmpty(item.Location) && !item.Location.Equals("Unknown", StringComparison.OrdinalIgnoreCase))
+                {
+                    sb.Append(" \u2502 Dir: ").Append(item.Location);
+                }
+
+                return sb.ToString();
+            }
+
             protected List<SuggestionEntry> GetHistorySuggestions(string input, int count)
             {
                 List<SuggestionEntry> results = null;
@@ -124,13 +155,15 @@ namespace Microsoft.PowerShell
                 var history = _singleton._history;
                 var comparison = _singleton._options.HistoryStringComparison;
                 var comparer = _singleton._options.HistoryStringComparer;
+                bool showStats = _singleton._options.HistoryType is HistoryType.SQLite;
 
                 _cacheHistorySet ??= new HashSet<string>(comparer);
                 _cacheHistoryList ??= new List<SuggestionEntry>();
 
                 for (int historyIndex = history.Count - 1; historyIndex >= 0; historyIndex--)
                 {
-                    var line = history[historyIndex].CommandLine.TrimEnd();
+                    var historyItem = history[historyIndex];
+                    var line = historyItem.CommandLine.TrimEnd();
 
                     // Skip the history command lines that are smaller in length than the user input,
                     // or contain multiple logical lines.
@@ -147,10 +180,11 @@ namespace Microsoft.PowerShell
 
                     _cacheHistorySet.Add(line);
                     results ??= new List<SuggestionEntry>(capacity: count);
+                    string tooltip = showStats ? FormatHistoryStatsTooltip(historyItem) : null;
 
                     if (matchIndex == 0)
                     {
-                        results.Add(new SuggestionEntry(line, matchIndex));
+                        results.Add(new SuggestionEntry(line, tooltip, matchIndex, showStats ? historyItem : null));
                         if (--remainingCount == 0)
                         {
                             break;
@@ -158,7 +192,7 @@ namespace Microsoft.PowerShell
                     }
                     else if (_cacheHistoryList.Count < remainingCount)
                     {
-                        _cacheHistoryList.Add(new SuggestionEntry(line, matchIndex));
+                        _cacheHistoryList.Add(new SuggestionEntry(line, tooltip, matchIndex, showStats ? historyItem : null));
                     }
                 }
 
@@ -686,6 +720,16 @@ namespace Microsoft.PowerShell
                     _tooltipHeight = 0;
                 }
 
+                // Clamp view window to the current list size.
+                // After item removal, _listViewEnd may exceed _listItems.Count when
+                // _selectedIndex is -1 (original input) and the recalculation above was skipped.
+                if (_listViewEnd > _listItems.Count)
+                {
+                    _listViewEnd = _listItems.Count;
+                    _listViewTop = Math.Max(0, _listViewEnd - _maxViewHeight);
+                    _listViewHeight = _listViewEnd - _listViewTop;
+                }
+
                 for (int i = _listViewTop; i < _listViewEnd; i++)
                 {
                     bool itemSelected = i == _selectedIndex;
@@ -700,7 +744,14 @@ namespace Microsoft.PowerShell
 
                     if (_singleton._options.ShowToolTips && itemSelected && !string.IsNullOrWhiteSpace(entry.ToolTip))
                     {
-                        _tooltipHeight = RenderTooltip(entry.ToolTip, consoleBufferLines, ref currentLogicalLine);
+                        if (entry.HistoryItemRef != null)
+                        {
+                            _tooltipHeight = RenderHistoryStatsTooltip(entry.HistoryItemRef, consoleBufferLines, ref currentLogicalLine);
+                        }
+                        else
+                        {
+                            _tooltipHeight = RenderTooltip(entry.ToolTip, consoleBufferLines, ref currentLogicalLine);
+                        }
                     }
                 }
             }
@@ -1058,6 +1109,65 @@ namespace Microsoft.PowerShell
             }
 
             /// <summary>
+            /// Render a colored history stats tooltip for a history item.
+            /// Uses icons with short labels for accessibility, values in the highlight color, separators dimmed.
+            /// </summary>
+            private int RenderHistoryStatsTooltip(HistoryItem item, List<StringBuilder> consoleBufferLines, ref int currentLogicalLine)
+            {
+                string tooltipColor = _singleton._options._listPredictionTooltipColor;
+                string dimItalicStyle = tooltipColor + "\x1b[2;3m";
+                // Icons must NOT be italic (causes emoji to lean/slant).
+                // Use explicit italic-off (\x1b[23m] to cancel italic inherited from tooltipColor.
+                const string italicOff = "\x1b[23m";
+                string valueStyle = _singleton._options._listPredictionColor;
+
+                var buff = NextBufferLine(consoleBufferLines, ref currentLogicalLine);
+                buff.Append(' ', 6);
+
+                // ⟳ Runs N
+                buff.Append(dimItalicStyle).Append(italicOff).Append("\u27f3 ")
+                    .Append("\x1b[3m").Append("Runs ")
+                    .Append(VTColorUtils.AnsiReset).Append(valueStyle).Append(item.ExecutionCount)
+                    .Append(VTColorUtils.AnsiReset);
+
+                // ⏱ Last relative-time
+                if (item.StartTime != default)
+                {
+                    var ago = DateTime.UtcNow - item.StartTime;
+                    string relativeTime;
+                    if (ago.TotalMinutes < 1)
+                        relativeTime = "just now";
+                    else if (ago.TotalHours < 1)
+                        relativeTime = $"{(int)ago.TotalMinutes}m ago";
+                    else if (ago.TotalDays < 1)
+                        relativeTime = $"{(int)ago.TotalHours}h ago";
+                    else if (ago.TotalDays < 30)
+                        relativeTime = $"{(int)ago.TotalDays}d ago";
+                    else
+                        relativeTime = item.StartTime.ToLocalTime().ToString("MMM d");
+
+                    buff.Append(dimItalicStyle).Append("  \u2502  ")
+                        .Append(italicOff).Append("\u23f1 ")
+                        .Append("\x1b[3m").Append("Last ")
+                        .Append(VTColorUtils.AnsiReset).Append(valueStyle).Append(relativeTime)
+                        .Append(VTColorUtils.AnsiReset);
+                }
+
+                // 📂 Dir path
+                if (!string.IsNullOrEmpty(item.Location) && !item.Location.Equals("Unknown", StringComparison.OrdinalIgnoreCase))
+                {
+                    buff.Append(dimItalicStyle).Append("  \u2502  ")
+                        .Append(italicOff).Append("\U0001F4C2 ")
+                        .Append("\x1b[3m").Append("Dir ")
+                        .Append(VTColorUtils.AnsiReset).Append(valueStyle).Append(item.Location)
+                        .Append(VTColorUtils.AnsiReset);
+                }
+
+                buff.Append(VTColorUtils.AnsiReset);
+                return 1;
+            }
+
+            /// <summary>
             /// Trigger the feedback about a suggestion was accepted.
             /// </summary>
             internal override void OnSuggestionAccepted()
@@ -1115,6 +1225,94 @@ namespace Microsoft.PowerShell
                 _listViewWidth = _listViewHeight = _tooltipHeight = -1;
                 _listViewTop = _listViewEnd = _selectedIndex = -1;
                 _warnAboutSize = _checkOnHeight = _updatePending = _renderFromSelected = false;
+            }
+
+            /// <summary>
+            /// Remove the currently selected item from the list view and re-query
+            /// history suggestions so the list repopulates to full capacity.
+            /// </summary>
+            /// <returns>True if the list still has items; false if it became empty (caller should close the view).</returns>
+            internal bool RemoveSelectedItem()
+            {
+                if (_listItems == null || _selectedIndex < 0 || _selectedIndex >= _listItems.Count)
+                    return false;
+
+                int savedPosition = _selectedIndex;
+
+                // Collect non-history (plugin) items to preserve them.
+                List<SuggestionEntry> pluginItems = null;
+                for (int i = 0; i < _listItems.Count; i++)
+                {
+                    if (_listItems[i].Source != SuggestionEntry.HistorySource)
+                    {
+                        pluginItems ??= new List<SuggestionEntry>();
+                        pluginItems.Add(_listItems[i]);
+                    }
+                }
+
+                // Rebuild the list from scratch — the deleted command is already
+                // gone from _history, so fresh results naturally exclude it.
+                _listItems.Clear();
+                _sources?.Clear();
+
+                if (UseHistory)
+                {
+                    var freshHistory = GetHistorySuggestions(_inputText, HistoryMaxCount);
+                    if (freshHistory != null)
+                    {
+                        _listItems.AddRange(freshHistory);
+                    }
+                }
+
+                if (pluginItems != null)
+                {
+                    _listItems.AddRange(pluginItems);
+                }
+
+                if (_listItems.Count == 0)
+                {
+                    Reset();
+                    return false;
+                }
+
+                // Rebuild _sources to reflect the updated indices.
+                RebuildSources();
+
+                // Restore selection at the same position, or move to the last item.
+                _selectedIndex = Math.Min(savedPosition, _listItems.Count - 1);
+
+                // Re-initialize view window from the selected item.
+                _listViewTop = 0;
+                _listViewEnd = Math.Min(_listItems.Count, _maxViewHeight);
+                _listViewHeight = _listViewEnd - _listViewTop;
+                _tooltipHeight = 0;
+                _renderFromSelected = true;
+                _updatePending = true;
+                return true;
+            }
+
+            /// <summary>
+            /// Rebuild the <see cref="_sources"/> list from the current <see cref="_listItems"/>.
+            /// </summary>
+            private void RebuildSources()
+            {
+                _sources ??= new List<SourceInfo>();
+                _sources.Clear();
+
+                if (_listItems == null || _listItems.Count == 0)
+                    return;
+
+                int prevEndIndex = -1;
+                int segStart = 0;
+                for (int i = 1; i <= _listItems.Count; i++)
+                {
+                    if (i == _listItems.Count || _listItems[i].Source != _listItems[segStart].Source)
+                    {
+                        _sources.Add(new SourceInfo(_listItems[segStart].Source, i - 1, prevEndIndex));
+                        prevEndIndex = i - 1;
+                        segStart = i;
+                    }
+                }
             }
 
             /// <summary>
