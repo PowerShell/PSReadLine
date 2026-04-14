@@ -1494,6 +1494,46 @@ LIMIT @Limit";
         }
 
         /// <summary>
+        /// Query per-location execution counts for all commands at the given location.
+        /// Returns a dictionary mapping CommandLine -> ExecutionCount for that location.
+        /// </summary>
+        private Dictionary<string, long> GetLocationExecutionCounts(string location)
+        {
+            var counts = new Dictionary<string, long>(StringComparer.Ordinal);
+            try
+            {
+                string baseConnectionString = $"Data Source={_options.HistorySavePath}";
+                var connectionString = new SqliteConnectionStringBuilder(baseConnectionString)
+                {
+                    Mode = SqliteOpenMode.ReadOnly
+                }.ToString();
+
+                using var connection = new SqliteConnection(connectionString);
+                connection.Open();
+
+                using var cmd = connection.CreateCommand();
+                cmd.CommandText = @"
+                    SELECT c.CommandLine, eh.ExecutionCount
+                    FROM ExecutionHistory eh
+                    JOIN Commands c ON eh.CommandId = c.Id
+                    JOIN Locations l ON eh.LocationId = l.Id
+                    WHERE l.Path = @Location";
+                cmd.Parameters.AddWithValue("@Location", location);
+
+                using var reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    counts[reader.GetString(0)] = reader.GetInt64(1);
+                }
+            }
+            catch (Exception)
+            {
+                // On failure, return empty — caller falls back to total ExecutionCount
+            }
+            return counts;
+        }
+
+        /// <summary>
         /// Clears history in PSReadLine.  This does not affect PowerShell history.
         /// </summary>
         public static void ClearHistory(ConsoleKeyInfo? key = null, object arg = null)
@@ -1828,10 +1868,32 @@ LIMIT @Limit";
                     }
                 }
 
-                // Sort by frequency DESC, then by position DESC (more recent first).
+                // In SQLite mode, query per-location execution counts so that sorting
+                // reflects how often each command was run *in this directory* rather than
+                // the total across all locations (which inflates commands like "code ."
+                // that were run once here but many times elsewhere).
+                Dictionary<string, long> localCounts = null;
+                if (_options.HistoryType == HistoryType.SQLite && !string.IsNullOrEmpty(_options.HistorySavePath))
+                {
+                    localCounts = GetLocationExecutionCounts(currentLocation);
+                }
+
+                // Sort by per-location frequency DESC (SQLite) or total frequency DESC (Text),
+                // then by position DESC (more recent first).
                 _locationSortedIndices.Sort((a, b) =>
                 {
-                    int freqCmp = _history[b].ExecutionCount.CompareTo(_history[a].ExecutionCount);
+                    long countA, countB;
+                    if (localCounts != null)
+                    {
+                        localCounts.TryGetValue(_history[a].CommandLine, out countA);
+                        localCounts.TryGetValue(_history[b].CommandLine, out countB);
+                    }
+                    else
+                    {
+                        countA = _history[a].ExecutionCount;
+                        countB = _history[b].ExecutionCount;
+                    }
+                    int freqCmp = countB.CompareTo(countA);
                     if (freqCmp != 0) return freqCmp;
                     return b.CompareTo(a);
                 });
