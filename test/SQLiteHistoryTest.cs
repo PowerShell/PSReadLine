@@ -1111,5 +1111,475 @@ WHERE c.CommandLine = 'keep-this'";
                 try { if (File.Exists(tempTxtPath)) File.Delete(tempTxtPath); } catch { }
             }
         }
+
+        // =====================================================================
+        // Location-Scoped History Removal Tests (RemoveHistoryItemAtLocation
+        // and the Alt+Delete -> RemoveFromHistoryAtCurrentLocation handler)
+        // =====================================================================
+
+        /// <summary>
+        /// Helper to count ExecutionHistory rows for a given (CommandLine, Location) pair.
+        /// </summary>
+        private long CountExecutionHistoryAt(string dbPath, string commandLine, string location)
+        {
+            var connectionString = new SqliteConnectionStringBuilder($"Data Source={dbPath}")
+            {
+                Mode = SqliteOpenMode.ReadOnly
+            }.ToString();
+
+            using var connection = new SqliteConnection(connectionString);
+            connection.Open();
+            using var cmd = connection.CreateCommand();
+            cmd.CommandText = @"
+SELECT COUNT(*) FROM ExecutionHistory eh
+JOIN Commands c ON eh.CommandId = c.Id
+JOIN Locations l ON eh.LocationId = l.Id
+WHERE c.CommandLine = @CommandLine AND l.Path = @Location";
+            cmd.Parameters.AddWithValue("@CommandLine", commandLine);
+            cmd.Parameters.AddWithValue("@Location", location);
+            return (long)cmd.ExecuteScalar();
+        }
+
+        [SkippableFact]
+        public void SQLiteHistory_RemoveHistoryItemAtLocation_RemovesOnlyMatchingLocation()
+        {
+            TestSetup(KeyMode.Cmd);
+            using var ctx = SetupSQLiteHistory();
+            using var loc = SetTestLocation(@"C:\Projects\A");
+
+            // Same command run at two locations.  An interleaved different command
+            // is required so HistoryNoDuplicates (on by default) doesn't skip the
+            // second "git status" entry as a consecutive dup.
+            SetHistoryWithLocations(
+                ("git status", @"C:\Projects\A"),
+                ("unrelated",  @"C:\Projects\A"),
+                ("git status", @"C:\Projects\B"));
+
+            // Sanity: both ExecutionHistory rows exist.
+            Assert.Equal(1, CountExecutionHistoryAt(ctx.TempDbPath, "git status", @"C:\Projects\A"));
+            Assert.Equal(1, CountExecutionHistoryAt(ctx.TempDbPath, "git status", @"C:\Projects\B"));
+
+            bool removed = PSConsoleReadLine.RemoveHistoryItemAtLocation("git status", @"C:\Projects\A");
+            Assert.True(removed);
+
+            // Only the A-location row should be gone; B-location row stays.
+            Assert.Equal(0, CountExecutionHistoryAt(ctx.TempDbPath, "git status", @"C:\Projects\A"));
+            Assert.Equal(1, CountExecutionHistoryAt(ctx.TempDbPath, "git status", @"C:\Projects\B"));
+
+            // Commands row must still exist because location B still references it.
+            var commands = QuerySQLiteCommandLines(ctx.TempDbPath);
+            Assert.Contains("git status", commands);
+        }
+
+        [SkippableFact]
+        public void SQLiteHistory_RemoveHistoryItemAtLocation_DropsOrphanedCommandRow()
+        {
+            TestSetup(KeyMode.Cmd);
+            using var ctx = SetupSQLiteHistory();
+            using var loc = SetTestLocation(@"C:\Only");
+
+            // Command run at exactly one location.
+            SetHistoryWithLocations(("only-here", @"C:\Only"));
+            Assert.Contains("only-here", QuerySQLiteCommandLines(ctx.TempDbPath));
+
+            bool removed = PSConsoleReadLine.RemoveHistoryItemAtLocation("only-here", @"C:\Only");
+            Assert.True(removed);
+
+            // Both ExecutionHistory and Commands rows should be gone (orphan cleanup).
+            Assert.Equal(0, CountExecutionHistoryAt(ctx.TempDbPath, "only-here", @"C:\Only"));
+            Assert.DoesNotContain("only-here", QuerySQLiteCommandLines(ctx.TempDbPath));
+        }
+
+        [SkippableFact]
+        public void SQLiteHistory_RemoveHistoryItemAtLocation_InMemoryRespectsLocation()
+        {
+            TestSetup(KeyMode.Cmd);
+            using var ctx = SetupSQLiteHistory();
+            using var loc = SetTestLocation(@"C:\Projects\A");
+
+            // Two in-memory items with the same command line but different locations.
+            // Interleave a different command so HistoryNoDuplicates doesn't skip
+            // the second "git pull" as a consecutive dup of the first.
+            SetHistoryWithLocations(
+                ("git pull", @"C:\Projects\A"),
+                ("sep",      @"C:\Projects\A"),
+                ("git pull", @"C:\Projects\B"));
+
+            PSConsoleReadLine.RemoveHistoryItemAtLocation("git pull", @"C:\Projects\A");
+
+            // The B-location "git pull" should still be in memory; the
+            // separator "sep" stays too. The A-location "git pull" is gone.
+            var items = PSConsoleReadLine.GetHistoryItems();
+            Assert.Equal(2, items.Length);
+            var pullItem = Assert.Single(items, i => i.CommandLine == "git pull");
+            Assert.Equal(@"C:\Projects\B", pullItem.Location);
+        }
+
+        [SkippableFact]
+        public void SQLiteHistory_RemoveHistoryItemAtLocation_NoMatchReturnsFalse()
+        {
+            TestSetup(KeyMode.Cmd);
+            using var ctx = SetupSQLiteHistory();
+            using var loc = SetTestLocation(@"C:\Projects\A");
+
+            SetHistoryWithLocations(("git status", @"C:\Projects\A"));
+
+            // Wrong location — should be a no-op.
+            bool removed = PSConsoleReadLine.RemoveHistoryItemAtLocation("git status", @"C:\Nowhere");
+            Assert.False(removed);
+
+            // Original row still intact.
+            Assert.Equal(1, CountExecutionHistoryAt(ctx.TempDbPath, "git status", @"C:\Projects\A"));
+            Assert.Single(PSConsoleReadLine.GetHistoryItems());
+        }
+
+        [SkippableFact]
+        public void SQLiteHistory_RemoveHistoryItemAtLocation_NullOrEmpty()
+        {
+            TestSetup(KeyMode.Cmd);
+
+            SetHistory("cmd1");
+
+            Assert.False(PSConsoleReadLine.RemoveHistoryItemAtLocation(null, "loc"));
+            Assert.False(PSConsoleReadLine.RemoveHistoryItemAtLocation("", "loc"));
+            Assert.False(PSConsoleReadLine.RemoveHistoryItemAtLocation("cmd1", null));
+            Assert.False(PSConsoleReadLine.RemoveHistoryItemAtLocation("cmd1", ""));
+
+            Assert.Single(PSConsoleReadLine.GetHistoryItems());
+        }
+
+        [SkippableFact]
+        public void SQLiteHistory_AltDelete_RemovesAtCurrentLocationOnly()
+        {
+            TestSetup(KeyMode.Cmd);
+            using var ctx = SetupSQLiteHistory();
+            using var loc = SetTestLocation(@"C:\Projects\A");
+
+            // Same command at current location and elsewhere; an interleaved entry
+            // is needed so HistoryNoDuplicates doesn't drop the second "git status".
+            // Up arrow surfaces the most-recently-added item first ("git status" at A).
+            SetHistoryWithLocations(
+                ("git status", @"C:\Projects\B"),
+                ("sep",        @"C:\Projects\B"),
+                ("git status", @"C:\Projects\A"));
+
+            // Up arrow surfaces "git status" (the A-location entry, most recent).
+            // Alt+Delete should remove only the A entry. After deletion, the
+            // separator "sep" is now the most recent in-memory item; the B-location
+            // "git status" is still further back. RemoveFromHistoryAtCurrentLocation
+            // advances to savedIndex-1 which is now the "sep" entry.
+            Test("sep", Keys(
+                _.UpArrow,
+                CheckThat(() => AssertLineIs("git status")),
+                _.Alt_Delete,
+                CheckThat(() => AssertLineIs("sep"))
+            ));
+
+            // DB: A-row deleted, B-row preserved, Commands row still present.
+            Assert.Equal(0, CountExecutionHistoryAt(ctx.TempDbPath, "git status", @"C:\Projects\A"));
+            Assert.Equal(1, CountExecutionHistoryAt(ctx.TempDbPath, "git status", @"C:\Projects\B"));
+            Assert.Contains("git status", QuerySQLiteCommandLines(ctx.TempDbPath));
+        }
+
+        [SkippableFact]
+        public void SQLiteHistory_AltDelete_DingsWhenItemNotAtCurrentLocation()
+        {
+            TestSetup(KeyMode.Cmd);
+            using var ctx = SetupSQLiteHistory();
+            using var loc = SetTestLocation(@"C:\Projects\Current");
+
+            // Item exists in history but was run at a different location.
+            SetHistoryWithLocations(("git status", @"C:\Projects\Other"));
+
+            // Up arrow shows it; Alt+Delete should NOT delete (not run here),
+            // and the line should remain unchanged.
+            Test("git status", Keys(
+                _.UpArrow,
+                CheckThat(() => AssertLineIs("git status")),
+                _.Alt_Delete,
+                CheckThat(() => AssertLineIs("git status"))
+            ));
+
+            // DB row at the other location must still exist.
+            Assert.Equal(1, CountExecutionHistoryAt(ctx.TempDbPath, "git status", @"C:\Projects\Other"));
+            Assert.Contains("git status", QuerySQLiteCommandLines(ctx.TempDbPath));
+        }
+
+        [SkippableFact]
+        public void SQLiteHistory_AltDelete_FallsBackToGlobalInTextMode()
+        {
+            // Text mode: no SQLite, no current location concept.
+            // Alt+Delete must still do something useful — falls back to global removal.
+            TestSetup(KeyMode.Cmd);
+
+            SetHistory("cmd1", "cmd2", "cmd3");
+
+            Test("cmd1", Keys(
+                _.UpArrow,                                  // recall cmd3
+                CheckThat(() => AssertLineIs("cmd3")),
+                _.Alt_Delete,                               // global fallback removes cmd3
+                CheckThat(() => AssertLineIs("cmd2")),
+                _.Alt_Delete,                               // and cmd2
+                CheckThat(() => AssertLineIs("cmd1"))
+            ));
+        }
+
+        [SkippableFact]
+        public void SQLiteHistory_GlobalRemove_StillWipesAllLocations()
+        {
+            // The global RemoveHistoryItem path (used by Ctrl+Shift+Delete) must
+            // continue to wipe every (Command, Location) pair — regression check.
+            TestSetup(KeyMode.Cmd);
+            using var ctx = SetupSQLiteHistory();
+            using var loc = SetTestLocation(@"C:\Projects\A");
+
+            SetHistoryWithLocations(
+                ("git status", @"C:\Projects\A"),
+                ("sep1",       @"C:\Projects\A"),
+                ("git status", @"C:\Projects\B"),
+                ("sep2",       @"C:\Projects\B"),
+                ("git status", @"C:\Projects\C"));
+
+            bool removed = PSConsoleReadLine.RemoveHistoryItem("git status");
+            Assert.True(removed);
+
+            Assert.Equal(0, CountExecutionHistoryAt(ctx.TempDbPath, "git status", @"C:\Projects\A"));
+            Assert.Equal(0, CountExecutionHistoryAt(ctx.TempDbPath, "git status", @"C:\Projects\B"));
+            Assert.Equal(0, CountExecutionHistoryAt(ctx.TempDbPath, "git status", @"C:\Projects\C"));
+            Assert.DoesNotContain("git status", QuerySQLiteCommandLines(ctx.TempDbPath));
+        }
+
+        // =====================================================================
+        // Sticky Location Mode Tests
+        //
+        // When the user enters location-filtered navigation via Alt+Up
+        // (PreviousLocationHistory), the sorted list and current position should
+        // remain "sticky" so that plain Up / Down (PreviousHistory / NextHistory)
+        // continue to navigate the same location-filtered set, instead of dropping
+        // the user back into raw chronological history at an unrelated index.
+        //
+        // The tests below bind:
+        //   UpArrow    -> PreviousLocationHistory  (simulates Alt+Up "enter mode")
+        //   DownArrow  -> NextLocationHistory      (simulates Alt+Down)
+        //   Ctrl+P     -> PreviousHistory          (simulates plain Up after Alt release)
+        //   Ctrl+N     -> NextHistory              (simulates plain Down after Alt release)
+        //   Ctrl+G     -> CancelLine               (used to break the sticky chain)
+        // =====================================================================
+
+        [SkippableFact]
+        public void SQLiteHistory_LocationRecall_StickyMode_PlainUpContinuesLocationList()
+        {
+            TestSetup(KeyMode.Cmd,
+                new KeyHandler("UpArrow", PSConsoleReadLine.PreviousLocationHistory),
+                new KeyHandler("DownArrow", PSConsoleReadLine.NextLocationHistory),
+                new KeyHandler("Ctrl+p", PSConsoleReadLine.PreviousHistory),
+                new KeyHandler("Ctrl+n", PSConsoleReadLine.NextHistory));
+
+            using var loc = SetTestLocation(@"C:\Projects\Sticky");
+
+            SetHistoryWithLocations(
+                ("loc-cmd-1", @"C:\Projects\Sticky"),
+                ("other-1",   @"C:\Other"),
+                ("loc-cmd-2", @"C:\Projects\Sticky"),
+                ("other-2",   @"C:\Other"),
+                ("loc-cmd-3", @"C:\Projects\Sticky"));
+
+            // UpArrow (location mode) lands on newest local entry, then plain
+            // Ctrl+P (regular Up) should KEEP filtering by location instead of
+            // jumping to "other-2" or some unrelated chronological neighbor.
+            Test("loc-cmd-3", Keys(
+                _.UpArrow,  CheckThat(() => AssertLineIs("loc-cmd-3")),
+                _.Ctrl_p,   CheckThat(() => AssertLineIs("loc-cmd-2")),
+                _.Ctrl_p,   CheckThat(() => AssertLineIs("loc-cmd-1")),
+                // Plain Ctrl+N (Down) also stays in sticky location mode.
+                _.Ctrl_n,   CheckThat(() => AssertLineIs("loc-cmd-2")),
+                _.Ctrl_n,   CheckThat(() => AssertLineIs("loc-cmd-3"))
+            ));
+        }
+
+        [SkippableFact]
+        public void SQLiteHistory_LocationRecall_StickyMode_ClearedOnNonHistoryAction()
+        {
+            TestSetup(KeyMode.Cmd,
+                new KeyHandler("UpArrow", PSConsoleReadLine.PreviousLocationHistory),
+                new KeyHandler("DownArrow", PSConsoleReadLine.NextLocationHistory),
+                new KeyHandler("Ctrl+p", PSConsoleReadLine.PreviousHistory),
+                new KeyHandler("Ctrl+n", PSConsoleReadLine.NextHistory));
+
+            using var loc = SetTestLocation(@"C:\Projects\Sticky");
+
+            SetHistoryWithLocations(
+                ("loc-cmd-1", @"C:\Projects\Sticky"),
+                ("other-1",   @"C:\Other"),
+                ("loc-cmd-2", @"C:\Projects\Sticky"),
+                ("other-2",   @"C:\Other"));
+
+            // Enter location mode, then perform a non-history action (typing a
+            // character). After that, plain Ctrl+P should walk regular
+            // chronological history (which includes "other-*" entries),
+            // NOT the location-filtered list.
+            // After 'x' is typed the main loop's anyHistoryCommandCount reset branch
+            // fires (no history command was issued for that key), which exits sticky
+            // mode AND resets _currentHistoryIndex back to _history.Count. The next
+            // Ctrl+P therefore replaces the buffer with the most-recent chronological
+            // entry ("other-2") — losing the typed 'x'. That's the same behavior the
+            // text-mode HistoryRecall has always had after editing a recalled line.
+            Test("other-2", Keys(
+                _.UpArrow,        CheckThat(() => AssertLineIs("loc-cmd-2")),
+                'x',              CheckThat(() => AssertLineIs("loc-cmd-2x")),
+                _.Ctrl_p,         CheckThat(() => AssertLineIs("other-2"))
+            ));
+        }
+
+        [SkippableFact]
+        public void SQLiteHistory_LocationRecall_StickyMode_AltUpStillAdvances()
+        {
+            // After plain Up has been used inside sticky mode, pressing Alt+Up
+            // (PreviousLocationHistory) again should keep advancing through the
+            // same sorted location list — not rebuild it from scratch.
+            TestSetup(KeyMode.Cmd,
+                new KeyHandler("UpArrow", PSConsoleReadLine.PreviousLocationHistory),
+                new KeyHandler("DownArrow", PSConsoleReadLine.NextLocationHistory),
+                new KeyHandler("Ctrl+p", PSConsoleReadLine.PreviousHistory),
+                new KeyHandler("Ctrl+n", PSConsoleReadLine.NextHistory));
+
+            using var loc = SetTestLocation(@"C:\Projects\Sticky");
+
+            SetHistoryWithLocations(
+                ("loc-a", @"C:\Projects\Sticky"),
+                ("nope",  @"C:\Other"),
+                ("loc-b", @"C:\Projects\Sticky"),
+                ("loc-c", @"C:\Projects\Sticky"));
+
+            Test("loc-b", Keys(
+                _.UpArrow,  CheckThat(() => AssertLineIs("loc-c")),
+                _.Ctrl_p,   CheckThat(() => AssertLineIs("loc-b")),
+                _.UpArrow,  CheckThat(() => AssertLineIs("loc-a")),
+                _.Ctrl_n,   CheckThat(() => AssertLineIs("loc-b"))
+            ));
+        }
+
+        [SkippableFact]
+        public void SQLiteHistory_LocationRecall_StickyMode_NotEnteredWhenJustPlainUp()
+        {
+            // Plain Up alone (without ever pressing Alt+Up) must not behave like
+            // location mode — it walks raw chronological history including items
+            // from other directories.
+            TestSetup(KeyMode.Cmd,
+                new KeyHandler("Ctrl+p", PSConsoleReadLine.PreviousHistory),
+                new KeyHandler("Ctrl+n", PSConsoleReadLine.NextHistory));
+
+            using var loc = SetTestLocation(@"C:\Projects\Sticky");
+
+            SetHistoryWithLocations(
+                ("loc-1",   @"C:\Projects\Sticky"),
+                ("other-1", @"C:\Other"),
+                ("loc-2",   @"C:\Projects\Sticky"),
+                ("other-2", @"C:\Other"));
+
+            Test("loc-1", Keys(
+                _.Ctrl_p, CheckThat(() => AssertLineIs("other-2")),
+                _.Ctrl_p, CheckThat(() => AssertLineIs("loc-2")),
+                _.Ctrl_p, CheckThat(() => AssertLineIs("other-1")),
+                _.Ctrl_p, CheckThat(() => AssertLineIs("loc-1"))
+            ));
+        }
+
+        // =====================================================================
+        // History Navigation Position Indicator Tests
+        //
+        // The "[BOOK pos/total]" indicator is rendered into _statusLinePrompt
+        // while the user is navigating history (chronological or location-mode).
+        // It is cleared once the user does any non-history action.
+        // =====================================================================
+
+        private static string GetStatusLinePromptForTest()
+        {
+            var fld = typeof(PSConsoleReadLine).GetField(
+                "_statusLinePrompt",
+                BindingFlags.Instance | BindingFlags.NonPublic);
+            var singletonFld = typeof(PSConsoleReadLine).GetField(
+                "_singleton",
+                BindingFlags.Static | BindingFlags.NonPublic);
+            var singleton = singletonFld.GetValue(null);
+            return (string)fld.GetValue(singleton);
+        }
+
+        private static string ExpectedNavStatus(int pos, int total, bool locationMode)
+        {
+            // Mirror ShowHistoryNavStatus: brackets default-colored, inner uses ListPredictionColor.
+            var color = (string)typeof(PSConsoleReadLineOptions)
+                .GetField("_listPredictionColor", BindingFlags.Instance | BindingFlags.NonPublic)
+                .GetValue(PSConsoleReadLine.GetOptions());
+            var inner = locationMode
+                ? $"\uD83D\uDCC2 {pos}/{total}"
+                : $"\u23F1 {pos}/{total}";
+            return $"[{color}{inner}\x1b[0m]";
+        }
+
+        [SkippableFact]
+        public void SQLiteHistory_HistoryNavStatus_ShownDuringChronologicalRecall()
+        {
+            TestSetup(KeyMode.Cmd,
+                new KeyHandler("Ctrl+p", PSConsoleReadLine.PreviousHistory),
+                new KeyHandler("Ctrl+n", PSConsoleReadLine.NextHistory));
+
+            SetHistory("a", "b", "c");
+
+            Test("a", Keys(
+                _.Ctrl_p, CheckThat(() => AssertLineIs("c")),
+                CheckThat(() => Assert.Equal(ExpectedNavStatus(1, 3, false), GetStatusLinePromptForTest())),
+                _.Ctrl_p, CheckThat(() => AssertLineIs("b")),
+                CheckThat(() => Assert.Equal(ExpectedNavStatus(2, 3, false), GetStatusLinePromptForTest())),
+                _.Ctrl_p, CheckThat(() => AssertLineIs("a")),
+                CheckThat(() => Assert.Equal(ExpectedNavStatus(3, 3, false), GetStatusLinePromptForTest()))
+            ));
+        }
+
+        [SkippableFact]
+        public void SQLiteHistory_HistoryNavStatus_ShownDuringLocationRecallWithLocLabel()
+        {
+            TestSetup(KeyMode.Cmd,
+                new KeyHandler("UpArrow", PSConsoleReadLine.PreviousLocationHistory),
+                new KeyHandler("DownArrow", PSConsoleReadLine.NextLocationHistory));
+
+            using var loc = SetTestLocation(@"C:\Projects\Status");
+
+            SetHistoryWithLocations(
+                ("local-1", @"C:\Projects\Status"),
+                ("other",   @"C:\Other"),
+                ("local-2", @"C:\Projects\Status"),
+                ("local-3", @"C:\Projects\Status"));
+
+            Test("local-1", Keys(
+                _.UpArrow,
+                CheckThat(() => AssertLineIs("local-3")),
+                CheckThat(() => Assert.Equal(ExpectedNavStatus(1, 3, true), GetStatusLinePromptForTest())),
+                _.UpArrow,
+                CheckThat(() => AssertLineIs("local-2")),
+                CheckThat(() => Assert.Equal(ExpectedNavStatus(2, 3, true), GetStatusLinePromptForTest())),
+                _.UpArrow,
+                CheckThat(() => AssertLineIs("local-1")),
+                CheckThat(() => Assert.Equal(ExpectedNavStatus(3, 3, true), GetStatusLinePromptForTest()))
+            ));
+        }
+
+        [SkippableFact]
+        public void SQLiteHistory_HistoryNavStatus_ClearedAfterEditing()
+        {
+            TestSetup(KeyMode.Cmd,
+                new KeyHandler("Ctrl+p", PSConsoleReadLine.PreviousHistory));
+
+            SetHistory("alpha", "bravo");
+
+            Test("bravox", Keys(
+                _.Ctrl_p,
+                CheckThat(() => AssertLineIs("bravo")),
+                CheckThat(() => Assert.Equal(ExpectedNavStatus(1, 2, false), GetStatusLinePromptForTest())),
+                'x',
+                // Typing a character is a non-history action: the indicator must clear.
+                CheckThat(() => Assert.Null(GetStatusLinePromptForTest()))
+            ));
+        }
     }
 }

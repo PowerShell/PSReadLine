@@ -114,6 +114,13 @@ namespace Microsoft.PowerShell
         private int _locationHistoryCommandCount;
         private List<int> _locationSortedIndices;
         private int _locationSortedPosition;
+        // True while location-mode (Alt+Up/Down) is "sticky" — plain Up/Down should
+        // continue to navigate the same sorted list. Cleared when the user does any
+        // non-history action (handled in the ReadLine main loop's anyHistory reset branch).
+        private bool _locationHistoryActive;
+        // True while we are showing the "[BOOK N/M]" history navigation status line.
+        // Used so the main loop knows to clear the status when the user stops navigating.
+        private bool _historyNavStatusActive;
         private int _anyHistoryCommandCount;
         private string _searchHistoryPrefix;
         // When cycling through history, the current line (not yet added to history)
@@ -1494,6 +1501,129 @@ LIMIT @Limit";
         }
 
         /// <summary>
+        /// Remove a specific command from history scoped to a single location (both in-memory and SQLite if applicable).
+        /// In-memory items are removed only when both <c>CommandLine</c> and <c>Location</c> match; in SQLite the
+        /// <c>ExecutionHistory</c> row for the matching <c>(Command, Location)</c> pair is deleted, and the
+        /// <c>Commands</c> row is dropped only when no other location still references it.
+        /// Returns true if any items were removed.
+        /// </summary>
+        public static bool RemoveHistoryItemAtLocation(string commandLine, string location)
+        {
+            if (string.IsNullOrEmpty(commandLine) || string.IsNullOrEmpty(location))
+                return false;
+
+            bool removed = false;
+
+            // Remove from in-memory history — only items whose Location matches.
+            var history = _singleton._history;
+            if (history != null)
+            {
+                var itemsToKeep = new List<HistoryItem>();
+                for (int i = 0; i < history.Count; i++)
+                {
+                    var item = history[i];
+                    if (string.Equals(item.CommandLine, commandLine, StringComparison.Ordinal) &&
+                        string.Equals(item.Location, location, StringComparison.Ordinal))
+                    {
+                        removed = true;
+                    }
+                    else
+                    {
+                        itemsToKeep.Add(item);
+                    }
+                }
+
+                if (removed)
+                {
+                    history.Clear();
+                    foreach (var item in itemsToKeep)
+                    {
+                        history.Enqueue(item);
+                    }
+                    _singleton._currentHistoryIndex = history.Count;
+                }
+            }
+
+            // Remove from SQLite database if using SQLite history
+            if (_singleton._options?.HistoryType == HistoryType.SQLite &&
+                !string.IsNullOrEmpty(_singleton._options.HistorySavePath))
+            {
+                removed |= _singleton.RemoveFromSQLiteHistoryAtLocation(commandLine, location);
+            }
+
+            return removed;
+        }
+
+        private bool RemoveFromSQLiteHistoryAtLocation(string commandLine, string location)
+        {
+            try
+            {
+                string baseConnectionString = $"Data Source={_options.HistorySavePath}";
+                var connectionString = new SqliteConnectionStringBuilder(baseConnectionString)
+                {
+                    Mode = SqliteOpenMode.ReadWrite
+                }.ToString();
+
+                using var connection = new SqliteConnection(connectionString);
+                connection.Open();
+
+                // Find the command ID
+                using var findCmd = connection.CreateCommand();
+                findCmd.CommandText = "SELECT Id FROM Commands WHERE CommandLine = @CommandLine";
+                findCmd.Parameters.AddWithValue("@CommandLine", commandLine);
+                var commandIdObj = findCmd.ExecuteScalar();
+                if (commandIdObj == null)
+                    return false;
+                long commandId = Convert.ToInt64(commandIdObj);
+
+                // Find the location ID. If the location doesn't exist in the DB, there's nothing to delete.
+                using var findLoc = connection.CreateCommand();
+                findLoc.CommandText = "SELECT Id FROM Locations WHERE Path = @Path";
+                findLoc.Parameters.AddWithValue("@Path", location);
+                var locationIdObj = findLoc.ExecuteScalar();
+                if (locationIdObj == null)
+                    return false;
+                long locationId = Convert.ToInt64(locationIdObj);
+
+                using var transaction = connection.BeginTransaction();
+
+                // Delete the ExecutionHistory row for this (Command, Location) only.
+                using var deleteEH = connection.CreateCommand();
+                deleteEH.CommandText = "DELETE FROM ExecutionHistory WHERE CommandId = @CommandId AND LocationId = @LocationId";
+                deleteEH.Parameters.AddWithValue("@CommandId", commandId);
+                deleteEH.Parameters.AddWithValue("@LocationId", locationId);
+                int deletedRows = deleteEH.ExecuteNonQuery();
+
+                if (deletedRows == 0)
+                {
+                    transaction.Rollback();
+                    return false;
+                }
+
+                // If no other location still references this command, drop the Commands row too
+                // so it stops appearing in global queries.
+                using var orphanCheck = connection.CreateCommand();
+                orphanCheck.CommandText = "SELECT COUNT(*) FROM ExecutionHistory WHERE CommandId = @CommandId";
+                orphanCheck.Parameters.AddWithValue("@CommandId", commandId);
+                long remaining = Convert.ToInt64(orphanCheck.ExecuteScalar());
+                if (remaining == 0)
+                {
+                    using var deleteCmd = connection.CreateCommand();
+                    deleteCmd.CommandText = "DELETE FROM Commands WHERE Id = @CommandId";
+                    deleteCmd.Parameters.AddWithValue("@CommandId", commandId);
+                    deleteCmd.ExecuteNonQuery();
+                }
+
+                transaction.Commit();
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
         /// Query per-location execution counts for all commands at the given location.
         /// Returns a dictionary mapping CommandLine -> ExecutionCount for that location.
         /// </summary>
@@ -1667,6 +1797,62 @@ LIMIT @Limit";
                     : HistoryMoveCursor.ToEnd;
                 UpdateFromHistory(moveCursor);
             }
+
+            // Show position indicator while navigating chronological history.
+            // Position 1 = newest navigable item; total = number of items reachable
+            // by Up/Down (i.e., excluding FromOtherSession entries, which HistoryRecall
+            // skips above). Counting raw _history slots would make the indicator jump
+            // by hundreds when many cross-session items sit between two in-session
+            // commands.
+            if (_history.Count > 0 && _currentHistoryIndex < _history.Count)
+            {
+                int navigableTotal = 0;
+                int navigableFromOldest = 0;
+                for (int i = 0; i < _history.Count; i++)
+                {
+                    if (_history[i].FromOtherSession)
+                    {
+                        continue;
+                    }
+                    navigableTotal++;
+                    if (i <= _currentHistoryIndex)
+                    {
+                        navigableFromOldest++;
+                    }
+                }
+
+                if (navigableTotal > 0 && navigableFromOldest > 0)
+                {
+                    int positionFromNewest = navigableTotal - navigableFromOldest + 1;
+                    ShowHistoryNavStatus(positionFromNewest, navigableTotal, locationMode: false);
+                }
+            }
+        }
+
+        // Renders a small "[<emoji> pos/total]" status line below the prompt while
+        // the user is navigating history. Cleared by the ReadLine main loop once
+        // any non-history key is pressed.
+        private void ShowHistoryNavStatus(int position, int total, bool locationMode)
+        {
+            if (total <= 0)
+            {
+                return;
+            }
+
+            // ⏱ (U+23F1, BMP, 1 char / 1 cell) for chronological recency-based recall,
+            // 📂 (U+1F4C2, surrogate pair = 2 chars / 2 cells) for location-filtered
+            // recall. Both fit the buffer-width math in Render.cs.
+            // Brackets stay in the status line's default color; inner text uses the
+            // ListPredictionColor (gold/yellow by default — matches F2 list metadata).
+            var color = _options?._listPredictionColor ?? "\x1b[33m";
+            var innerText = locationMode
+                ? $"\uD83D\uDCC2 {position}/{total}"
+                : $"\u23F1 {position}/{total}";
+            _statusLinePrompt = $"[{color}{innerText}\x1b[0m]";
+            _statusBuffer.Clear();
+            _statusIsErrorMessage = false;
+            _historyNavStatusActive = true;
+            RenderWithPredictionQueryPaused();
         }
 
         /// <summary>
@@ -1755,6 +1941,102 @@ LIMIT @Limit";
         }
 
         /// <summary>
+        /// Remove the currently displayed history item from history at the *current location only*.
+        /// In SQLite mode this deletes only the <c>ExecutionHistory</c> row for the current directory
+        /// (and the <c>Commands</c> row only if no other location still references it). In-memory items
+        /// run at other locations are preserved. In Text mode this falls back to a global removal because
+        /// per-location data isn't tracked.
+        /// </summary>
+        public static void RemoveFromHistoryAtCurrentLocation(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            var history = _singleton._history;
+            if (history == null || history.Count == 0)
+            {
+                Ding();
+                return;
+            }
+
+            string currentLocation = _singleton.GetCurrentLocation();
+
+            // Text mode (or no current location available): fall back to the global removal so the user
+            // still gets a useful action. Per-location semantics require SQLite.
+            if (string.IsNullOrEmpty(currentLocation) ||
+                _singleton._options?.HistoryType != HistoryType.SQLite)
+            {
+                RemoveFromHistory(key, arg);
+                return;
+            }
+
+            // F2 list view path — same handling as RemoveFromHistory but scoped to current location.
+            if (_singleton._prediction.ActiveView is PredictionListView listView
+                && listView.HasActiveSuggestion
+                && listView.SelectedItemIndex >= 0)
+            {
+                string commandToRemove = listView.SelectedItemText;
+                if (commandToRemove == null)
+                {
+                    Ding();
+                    return;
+                }
+
+                if (!RemoveHistoryItemAtLocation(commandToRemove, currentLocation))
+                {
+                    // Nothing was removed (item isn't recorded at this location). Don't disturb the list.
+                    Ding();
+                    return;
+                }
+
+                if (!listView.RemoveSelectedItem())
+                {
+                    RevertLine();
+                }
+                else
+                {
+                    ReplaceSelection(listView.SelectedItemText);
+                }
+
+                return;
+            }
+
+            // Normal history browsing path. See RemoveFromHistory for the counter-increment rationale.
+            _singleton._recallHistoryCommandCount += 1;
+            _singleton._anyHistoryCommandCount += 1;
+
+            string commandLine = null;
+            if (_singleton._currentHistoryIndex < history.Count)
+            {
+                commandLine = history[_singleton._currentHistoryIndex].CommandLine;
+            }
+
+            if (commandLine == null)
+            {
+                Ding();
+                return;
+            }
+
+            int savedIndex = _singleton._currentHistoryIndex;
+
+            if (!RemoveHistoryItemAtLocation(commandLine, currentLocation))
+            {
+                // The displayed item wasn't run at this location, so location-scoped delete is a no-op.
+                // Ding to signal "nothing happened" without falling through to a destructive global delete.
+                Ding();
+                return;
+            }
+
+            if (history.Count == 0)
+            {
+                _singleton._currentHistoryIndex = 0;
+                RevertLine();
+            }
+            else
+            {
+                _singleton._currentHistoryIndex = Math.Max(savedIndex - 1, 0);
+                _singleton.UpdateFromHistory(HistoryMoveCursor.ToEnd);
+            }
+        }
+
+        /// <summary>
         /// Replace the current input with the 'previous' item from PSReadLine history.
         /// </summary>
         public static void PreviousHistory(ConsoleKeyInfo? key = null, object arg = null)
@@ -1771,7 +2053,17 @@ LIMIT @Limit";
             }
 
             _singleton.SaveCurrentLine();
-            _singleton.HistoryRecall(numericArg);
+            // Sticky location mode: if the user entered location-filtered navigation
+            // (Alt+Up), keep filtering by location even when they release Alt and
+            // press plain Up/Down. They exit by editing or doing any non-history op.
+            if (_singleton._locationHistoryActive)
+            {
+                _singleton.LocationHistoryRecall(numericArg);
+            }
+            else
+            {
+                _singleton.HistoryRecall(numericArg);
+            }
         }
 
         /// <summary>
@@ -1786,7 +2078,14 @@ LIMIT @Limit";
             }
 
             _singleton.SaveCurrentLine();
-            _singleton.HistoryRecall(numericArg);
+            if (_singleton._locationHistoryActive)
+            {
+                _singleton.LocationHistoryRecall(numericArg);
+            }
+            else
+            {
+                _singleton.HistoryRecall(numericArg);
+            }
         }
 
         /// <summary>
@@ -1836,7 +2135,7 @@ LIMIT @Limit";
 
         private void LocationHistoryRecall(int direction)
         {
-            if (_locationHistoryCommandCount == 0 && LineIsMultiLine())
+            if (_locationHistoryCommandCount == 0 && !_locationHistoryActive && LineIsMultiLine())
             {
                 MoveToLine(direction);
                 return;
@@ -1850,9 +2149,10 @@ LIMIT @Limit";
                 return;
             }
 
-            // On first press, build a weighted index of location-matching history items.
+            // First entry into location mode (or after sorted list was cleared by exit):
+            // build a weighted index of location-matching history items.
             // Ordering: location match (primary), then frequency DESC, then recency DESC.
-            if (_locationHistoryCommandCount == 0)
+            if (_locationSortedIndices == null)
             {
                 var seen = new HashSet<string>(StringComparer.Ordinal);
                 _locationSortedIndices = new List<int>();
@@ -1901,6 +2201,7 @@ LIMIT @Limit";
                 _locationSortedPosition = -1;
             }
 
+            _locationHistoryActive = true;
             _locationHistoryCommandCount += 1;
 
             // Navigate: Alt+Up (direction < 0) advances forward through sorted list,
@@ -1928,6 +2229,9 @@ LIMIT @Limit";
                     : HistoryMoveCursor.ToEnd;
                 UpdateFromHistory(moveCursor);
             }
+
+            // Show position indicator: [BOOK pos/total] (location-filtered).
+            ShowHistoryNavStatus(_locationSortedPosition + 1, _locationSortedIndices.Count, locationMode: true);
         }
 
         private void HistorySearch(int direction)

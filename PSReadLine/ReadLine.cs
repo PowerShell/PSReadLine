@@ -621,9 +621,12 @@ namespace Microsoft.PowerShell
                 }
                 if (locationHistoryCommandCount == _locationHistoryCommandCount)
                 {
+                    // Reset only the per-keystroke counter. Keep _locationSortedIndices /
+                    // _locationSortedPosition / _locationHistoryActive alive so plain
+                    // Up/Down can stay in sticky location mode after the user releases Alt.
+                    // Full teardown happens below in the anyHistoryCommandCount branch
+                    // when the user actually does a non-history operation.
                     _locationHistoryCommandCount = 0;
-                    _locationSortedIndices = null;
-                    _locationSortedPosition = -1;
                 }
                 if (anyHistoryCommandCount == _anyHistoryCommandCount)
                 {
@@ -632,6 +635,16 @@ namespace Microsoft.PowerShell
                         ClearSavedCurrentLine();
                         _hashedHistory = null;
                         _currentHistoryIndex = _history.Count;
+                        // User did something other than history navigation — exit sticky
+                        // location mode and clear the position indicator.
+                        _locationHistoryActive = false;
+                        _locationSortedIndices = null;
+                        _locationSortedPosition = -1;
+                        if (_historyNavStatusActive)
+                        {
+                            _historyNavStatusActive = false;
+                            ClearStatusMessage(render: true);
+                        }
                     }
                     _anyHistoryCommandCount = 0;
                 }
@@ -830,6 +843,15 @@ namespace Microsoft.PowerShell
             _locationHistoryCommandCount = 0;
             _locationSortedIndices = null;
             _locationSortedPosition = -1;
+            _locationHistoryActive = false;
+            // Clear any leftover history-nav status indicator from the previous
+            // ReadLine() invocation so it doesn't shift cursor/render math.
+            if (_historyNavStatusActive)
+            {
+                _statusLinePrompt = null;
+                _statusBuffer.Clear();
+                _historyNavStatusActive = false;
+            }
             _anyHistoryCommandCount = 0;
             _visualSelectionCommandCount = 0;
             _hashedHistory = null;

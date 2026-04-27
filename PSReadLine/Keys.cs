@@ -582,6 +582,7 @@ namespace Microsoft.PowerShell
         public static PSKeyInfo CtrlUnderbar        = Ctrl('_');
         public static PSKeyInfo CtrlBackspace       = Ctrl(ConsoleKey.Backspace);
         public static PSKeyInfo CtrlDelete          = Ctrl(ConsoleKey.Delete); // !Linux
+        public static PSKeyInfo CtrlShiftDelete     = CtrlShift(ConsoleKey.Delete); // !Linux
         public static PSKeyInfo CtrlEnd             = Ctrl(ConsoleKey.End); // !Linux
         public static PSKeyInfo CtrlHome            = Ctrl(ConsoleKey.Home); // !Linux
         public static PSKeyInfo CtrlPageUp          = Ctrl(ConsoleKey.PageUp); // !Linux
