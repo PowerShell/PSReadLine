@@ -1581,5 +1581,106 @@ WHERE c.CommandLine = @CommandLine AND l.Path = @Location";
                 CheckThat(() => Assert.Null(GetStatusLinePromptForTest()))
             ));
         }
+
+        /// <summary>
+        /// Marks the in-memory _history items at the given indices as FromOtherSession
+        /// so they get skipped by HistoryRecall (mirroring cross-session SQLite items).
+        /// </summary>
+        private static void MarkHistoryItemsFromOtherSession(params int[] indices)
+        {
+            var singletonFld = typeof(PSConsoleReadLine).GetField(
+                "_singleton", BindingFlags.Static | BindingFlags.NonPublic);
+            var singleton = singletonFld.GetValue(null);
+            var historyFld = typeof(PSConsoleReadLine).GetField(
+                "_history", BindingFlags.Instance | BindingFlags.NonPublic);
+            var history = historyFld.GetValue(singleton);
+            // HistoryQueue<HistoryItem> exposes an indexer; use reflection to call it.
+            var indexer = history.GetType().GetProperty("Item");
+            var historyItemType = typeof(PSConsoleReadLine).GetNestedType(
+                "HistoryItem", BindingFlags.Public | BindingFlags.NonPublic);
+            var fromOtherProp = historyItemType.GetProperty(
+                "FromOtherSession", BindingFlags.Public | BindingFlags.Instance);
+            foreach (var i in indices)
+            {
+                var item = indexer.GetValue(history, new object[] { i });
+                fromOtherProp.SetValue(item, true);
+            }
+        }
+
+        [SkippableFact]
+        public void SQLiteHistory_HistoryNavStatus_CountsOnlyNavigableItems()        {
+            // Regression test: previously the indicator used the raw _history slot,
+            // so cross-session items between two in-session items caused the
+            // displayed position to "jump" by hundreds even though Up only moved
+            // by one navigable item.
+            TestSetup(KeyMode.Cmd,
+                new KeyHandler("Ctrl+p", PSConsoleReadLine.PreviousHistory));
+
+            // History layout (oldest -> newest):
+            //   [0] mine-old    (this session)
+            //   [1] other-1     (other session, skipped)
+            //   [2] other-2     (other session, skipped)
+            //   [3] other-3     (other session, skipped)
+            //   [4] mine-new    (this session)
+            // Navigable total = 2. Up #1 lands on "mine-new" => 1/2.
+            // Up #2 must skip the three other-session items and land on
+            // "mine-old" => 2/2 (NOT 5/5 or 4/5).
+            SetHistory("mine-old", "other-1", "other-2", "other-3", "mine-new");
+            MarkHistoryItemsFromOtherSession(1, 2, 3);
+
+            Test("", Keys(
+                _.Ctrl_p,
+                CheckThat(() => AssertLineIs("mine-new")),
+                CheckThat(() => Assert.Equal(ExpectedNavStatus(1, 2, false), GetStatusLinePromptForTest())),
+                _.Ctrl_p,
+                CheckThat(() => AssertLineIs("mine-old")),
+                CheckThat(() => Assert.Equal(ExpectedNavStatus(2, 2, false), GetStatusLinePromptForTest())),
+                _.Escape
+            ));
+        }
+
+        [SkippableFact]
+        public void SQLiteHistory_AltDelete_InLocationMode_RefreshesIndicatorAndAdvances()
+        {
+            // Regression test: previously Alt+Delete while navigating location-filtered
+            // history left _locationSortedIndices stale (built against pre-deletion
+            // _history) and never updated _locationSortedPosition. Result was the
+            // indicator stuck at e.g. 1/3 instead of 1/2, and the next Alt+Up landed
+            // on the wrong item because the cached indices were shifted.
+            TestSetup(KeyMode.Cmd,
+                new KeyHandler("UpArrow", PSConsoleReadLine.PreviousLocationHistory),
+                new KeyHandler("DownArrow", PSConsoleReadLine.NextLocationHistory));
+            using var ctx = SetupSQLiteHistory();
+            using var loc = SetTestLocation(@"C:\Projects\AltDel");
+
+            // Three unique commands at the current location, equal frequency.
+            // Sort = recency DESC: pos 0 = "gamma", pos 1 = "beta", pos 2 = "alpha".
+            SetHistoryWithLocations(
+                ("alpha", @"C:\Projects\AltDel"),
+                ("beta",  @"C:\Projects\AltDel"),
+                ("gamma", @"C:\Projects\AltDel"));
+
+            Test("beta", Keys(
+                _.UpArrow,                                  // pos 0 -> "gamma" (1/3)
+                CheckThat(() => AssertLineIs("gamma")),
+                CheckThat(() => Assert.Equal(ExpectedNavStatus(1, 3, true), GetStatusLinePromptForTest())),
+                _.Alt_Delete,                               // remove "gamma"
+                // Indicator must refresh: 1/2, line must advance to next location item.
+                CheckThat(() => AssertLineIs("beta")),
+                CheckThat(() => Assert.Equal(ExpectedNavStatus(1, 2, true), GetStatusLinePromptForTest())),
+                // Subsequent Alt+Up must use the rebuilt sorted list, not the stale one.
+                _.UpArrow,                                  // advance to next older
+                CheckThat(() => AssertLineIs("alpha")),
+                CheckThat(() => Assert.Equal(ExpectedNavStatus(2, 2, true), GetStatusLinePromptForTest())),
+                _.DownArrow,                                // back to "beta"
+                CheckThat(() => AssertLineIs("beta")),
+                CheckThat(() => Assert.Equal(ExpectedNavStatus(1, 2, true), GetStatusLinePromptForTest()))
+            ));
+
+            // DB sanity: "gamma" gone at this location, others intact.
+            Assert.Equal(0, CountExecutionHistoryAt(ctx.TempDbPath, "gamma", @"C:\Projects\AltDel"));
+            Assert.Equal(1, CountExecutionHistoryAt(ctx.TempDbPath, "beta",  @"C:\Projects\AltDel"));
+            Assert.Equal(1, CountExecutionHistoryAt(ctx.TempDbPath, "alpha", @"C:\Projects\AltDel"));
+        }
     }
 }

@@ -2015,6 +2015,8 @@ LIMIT @Limit";
             }
 
             int savedIndex = _singleton._currentHistoryIndex;
+            bool wasInLocationMode = _singleton._locationHistoryActive;
+            int savedLocationPos = _singleton._locationSortedPosition;
 
             if (!RemoveHistoryItemAtLocation(commandLine, currentLocation))
             {
@@ -2027,13 +2029,46 @@ LIMIT @Limit";
             if (history.Count == 0)
             {
                 _singleton._currentHistoryIndex = 0;
+                _singleton._locationSortedIndices = null;
+                _singleton._locationSortedPosition = -1;
                 RevertLine();
+                return;
             }
-            else
+
+            if (wasInLocationMode)
             {
-                _singleton._currentHistoryIndex = Math.Max(savedIndex - 1, 0);
+                // RemoveHistoryItemAtLocation rebuilt _history (Clear + Enqueue), so every
+                // index in _locationSortedIndices is now stale. Rebuild the sorted list against
+                // the new _history and reposition to the next item in the location list (clamped).
+                // Bump _locationHistoryCommandCount so the main loop's sticky-mode teardown
+                // doesn't fire on the next key press.
+                _singleton._locationHistoryCommandCount += 1;
+                _singleton._locationSortedIndices = null;
+                _singleton.BuildLocationSortedIndices(currentLocation);
+
+                if (_singleton._locationSortedIndices.Count == 0)
+                {
+                    // No more items at this location — exit location mode and clear the line.
+                    _singleton._locationSortedPosition = -1;
+                    _singleton._locationHistoryActive = false;
+                    _singleton._currentHistoryIndex = history.Count;
+                    RevertLine();
+                    _singleton.ClearStatusMessage(render: true);
+                    return;
+                }
+
+                // The item at savedLocationPos was just removed; whatever was at savedLocationPos+1
+                // now sits at savedLocationPos. Stay on that slot, clamped to the new end.
+                int newPos = Math.Min(Math.Max(savedLocationPos, 0), _singleton._locationSortedIndices.Count - 1);
+                _singleton._locationSortedPosition = newPos;
+                _singleton._currentHistoryIndex = _singleton._locationSortedIndices[newPos];
                 _singleton.UpdateFromHistory(HistoryMoveCursor.ToEnd);
+                _singleton.ShowHistoryNavStatus(newPos + 1, _singleton._locationSortedIndices.Count, locationMode: true);
+                return;
             }
+
+            _singleton._currentHistoryIndex = Math.Max(savedIndex - 1, 0);
+            _singleton.UpdateFromHistory(HistoryMoveCursor.ToEnd);
         }
 
         /// <summary>
@@ -2154,50 +2189,7 @@ LIMIT @Limit";
             // Ordering: location match (primary), then frequency DESC, then recency DESC.
             if (_locationSortedIndices == null)
             {
-                var seen = new HashSet<string>(StringComparer.Ordinal);
-                _locationSortedIndices = new List<int>();
-
-                for (int i = 0; i < _history.Count; i++)
-                {
-                    if (string.Equals(_history[i].Location, currentLocation, StringComparison.OrdinalIgnoreCase))
-                    {
-                        if (seen.Add(_history[i].CommandLine))
-                        {
-                            _locationSortedIndices.Add(i);
-                        }
-                    }
-                }
-
-                // In SQLite mode, query per-location execution counts so that sorting
-                // reflects how often each command was run *in this directory* rather than
-                // the total across all locations (which inflates commands like "code ."
-                // that were run once here but many times elsewhere).
-                Dictionary<string, long> localCounts = null;
-                if (_options.HistoryType == HistoryType.SQLite && !string.IsNullOrEmpty(_options.HistorySavePath))
-                {
-                    localCounts = GetLocationExecutionCounts(currentLocation);
-                }
-
-                // Sort by per-location frequency DESC (SQLite) or total frequency DESC (Text),
-                // then by position DESC (more recent first).
-                _locationSortedIndices.Sort((a, b) =>
-                {
-                    long countA, countB;
-                    if (localCounts != null)
-                    {
-                        localCounts.TryGetValue(_history[a].CommandLine, out countA);
-                        localCounts.TryGetValue(_history[b].CommandLine, out countB);
-                    }
-                    else
-                    {
-                        countA = _history[a].ExecutionCount;
-                        countB = _history[b].ExecutionCount;
-                    }
-                    int freqCmp = countB.CompareTo(countA);
-                    if (freqCmp != 0) return freqCmp;
-                    return b.CompareTo(a);
-                });
-
+                BuildLocationSortedIndices(currentLocation);
                 _locationSortedPosition = -1;
             }
 
@@ -2232,6 +2224,56 @@ LIMIT @Limit";
 
             // Show position indicator: [BOOK pos/total] (location-filtered).
             ShowHistoryNavStatus(_locationSortedPosition + 1, _locationSortedIndices.Count, locationMode: true);
+        }
+
+        // Builds _locationSortedIndices for the given location, applying the same
+        // dedup + frecency sort used by LocationHistoryRecall. Caller is responsible
+        // for resetting _locationSortedPosition.
+        private void BuildLocationSortedIndices(string currentLocation)
+        {
+            var seen = new HashSet<string>(StringComparer.Ordinal);
+            _locationSortedIndices = new List<int>();
+
+            for (int i = 0; i < _history.Count; i++)
+            {
+                if (string.Equals(_history[i].Location, currentLocation, StringComparison.OrdinalIgnoreCase))
+                {
+                    if (seen.Add(_history[i].CommandLine))
+                    {
+                        _locationSortedIndices.Add(i);
+                    }
+                }
+            }
+
+            // In SQLite mode, query per-location execution counts so that sorting
+            // reflects how often each command was run *in this directory* rather than
+            // the total across all locations (which inflates commands like "code ."
+            // that were run once here but many times elsewhere).
+            Dictionary<string, long> localCounts = null;
+            if (_options.HistoryType == HistoryType.SQLite && !string.IsNullOrEmpty(_options.HistorySavePath))
+            {
+                localCounts = GetLocationExecutionCounts(currentLocation);
+            }
+
+            // Sort by per-location frequency DESC (SQLite) or total frequency DESC (Text),
+            // then by position DESC (more recent first).
+            _locationSortedIndices.Sort((a, b) =>
+            {
+                long countA, countB;
+                if (localCounts != null)
+                {
+                    localCounts.TryGetValue(_history[a].CommandLine, out countA);
+                    localCounts.TryGetValue(_history[b].CommandLine, out countB);
+                }
+                else
+                {
+                    countA = _history[a].ExecutionCount;
+                    countB = _history[b].ExecutionCount;
+                }
+                int freqCmp = countB.CompareTo(countA);
+                if (freqCmp != 0) return freqCmp;
+                return b.CompareTo(a);
+            });
         }
 
         private void HistorySearch(int direction)
