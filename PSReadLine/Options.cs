@@ -245,6 +245,10 @@ namespace Microsoft.PowerShell
             {
                 Options.ScreenReaderModeEnabled = options.EnableScreenReaderMode;
             }
+            if (options._accessibleHistoryDisplay.HasValue)
+            {
+                Options.AccessibleHistoryDisplay = options.AccessibleHistoryDisplay;
+            }
         }
 
         private void SetKeyHandlerInternal(string[] keys, Action<ConsoleKeyInfo?, object> handler, string briefDescription, string longDescription, ScriptBlock scriptBlock)

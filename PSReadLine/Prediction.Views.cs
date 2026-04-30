@@ -1357,6 +1357,8 @@ namespace Microsoft.PowerShell
             /// <summary>
             /// Render a colored history stats tooltip for a history item.
             /// Uses icons with short labels for accessibility, values in the highlight color, separators dimmed.
+            /// When <see cref="PSConsoleReadLineOptions.AccessibleHistoryDisplay"/> is enabled,
+            /// emoji icons are omitted so screen readers read only the human-readable labels.
             /// </summary>
             private int RenderHistoryStatsTooltip(HistoryItem item, List<StringBuilder> consoleBufferLines, ref int currentLogicalLine)
             {
@@ -1366,13 +1368,15 @@ namespace Microsoft.PowerShell
                 // Use explicit italic-off (\x1b[23m] to cancel italic inherited from tooltipColor.
                 const string italicOff = "\x1b[23m";
                 string valueStyle = _singleton._options._listPredictionColor;
+                bool accessible = _singleton._options.AccessibleHistoryDisplay;
 
                 var buff = NextBufferLine(consoleBufferLines, ref currentLogicalLine);
                 buff.Append(' ', 6);
 
                 // ⟳ Runs N
-                buff.Append(dimItalicStyle).Append(italicOff).Append("\u27f3 ")
-                    .Append("\x1b[3m").Append("Runs ")
+                buff.Append(dimItalicStyle).Append(italicOff);
+                if (!accessible) buff.Append("\u27f3 ");
+                buff.Append("\x1b[3m").Append("Runs ")
                     .Append(VTColorUtils.AnsiReset).Append(valueStyle).Append(item.ExecutionCount)
                     .Append(VTColorUtils.AnsiReset);
 
@@ -1392,9 +1396,9 @@ namespace Microsoft.PowerShell
                     else
                         relativeTime = item.StartTime.ToLocalTime().ToString("MMM d");
 
-                    buff.Append(dimItalicStyle).Append("  \u2502  ")
-                        .Append(italicOff).Append("\u23f1 ")
-                        .Append("\x1b[3m").Append("Last ")
+                    buff.Append(dimItalicStyle).Append("  \u2502  ").Append(italicOff);
+                    if (!accessible) buff.Append("\u23f1 ");
+                    buff.Append("\x1b[3m").Append("Last ")
                         .Append(VTColorUtils.AnsiReset).Append(valueStyle).Append(relativeTime)
                         .Append(VTColorUtils.AnsiReset);
                 }
@@ -1402,9 +1406,9 @@ namespace Microsoft.PowerShell
                 // 📂 Dir path
                 if (!string.IsNullOrEmpty(item.Location) && !item.Location.Equals("Unknown", StringComparison.OrdinalIgnoreCase))
                 {
-                    buff.Append(dimItalicStyle).Append("  \u2502  ")
-                        .Append(italicOff).Append("\U0001F4C2 ")
-                        .Append("\x1b[3m").Append("Dir ")
+                    buff.Append(dimItalicStyle).Append("  \u2502  ").Append(italicOff);
+                    if (!accessible) buff.Append("\U0001F4C2 ");
+                    buff.Append("\x1b[3m").Append("Dir ")
                         .Append(VTColorUtils.AnsiReset).Append(valueStyle).Append(item.Location)
                         .Append(VTColorUtils.AnsiReset);
                 }

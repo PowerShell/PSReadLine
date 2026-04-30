@@ -1844,10 +1844,24 @@ LIMIT @Limit";
             // recall. Both fit the buffer-width math in Render.cs.
             // Brackets stay in the status line's default color; inner text uses the
             // ListPredictionColor (gold/yellow by default — matches F2 list metadata).
+            // When AccessibleHistoryDisplay is enabled, render plain-text labels so screen
+            // readers don't verbalize Unicode emoji names. ASCII labels keep cell-count ==
+            // char-count, so the buffer-width math in GetStatusLineCount() still works.
             var color = _options?._listPredictionColor ?? "\x1b[33m";
-            var innerText = locationMode
-                ? $"\uD83D\uDCC2 {position}/{total}"
-                : $"\u23F1 {position}/{total}";
+            bool accessible = _options?.AccessibleHistoryDisplay ?? false;
+            string innerText;
+            if (accessible)
+            {
+                innerText = locationMode
+                    ? $"Location {position}/{total}"
+                    : $"History {position}/{total}";
+            }
+            else
+            {
+                innerText = locationMode
+                    ? $"\uD83D\uDCC2 {position}/{total}"
+                    : $"\u23F1 {position}/{total}";
+            }
             _statusLinePrompt = $"[{color}{innerText}\x1b[0m]";
             _statusBuffer.Clear();
             _statusIsErrorMessage = false;

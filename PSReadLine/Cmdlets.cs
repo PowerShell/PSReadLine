@@ -164,6 +164,14 @@ namespace Microsoft.PowerShell
 
         public const HistorySaveStyle DefaultHistorySaveStyle = HistorySaveStyle.SaveIncrementally;
 
+        /// <summary>
+        /// When enabled, the SQLite-history-awareness UX (F2 list-view stats tooltip and
+        /// the in-prompt history navigation indicator) renders plain-text labels instead of
+        /// emoji icons, so screen readers don't verbalize Unicode character names like
+        /// "clockwise gapped circle arrow" or "card index dividers".
+        /// </summary>
+        public const bool DefaultAccessibleHistoryDisplay = false;
+
         public const PredictionViewStyle DefaultPredictionViewStyle = PredictionViewStyle.InlineView;
 
         /// <summary>
@@ -211,6 +219,11 @@ namespace Microsoft.PowerShell
             ResetColors();
             EditMode = DefaultEditMode;
             ScreenReaderModeEnabled = Accessibility.IsScreenReaderActive();
+            // Seed the accessible-history-display flag from the screen-reader state at
+            // construction time so screen-reader users get plain-text labels by default.
+            // After construction the two options are independent — toggling
+            // EnableScreenReaderMode later does NOT auto-flip AccessibleHistoryDisplay.
+            AccessibleHistoryDisplay = ScreenReaderModeEnabled;
             HistoryType = DefaultHistoryType;
             ContinuationPrompt = DefaultContinuationPrompt;
             ContinuationPromptColor = Console.ForegroundColor;
@@ -581,6 +594,16 @@ namespace Microsoft.PowerShell
 
         public bool ScreenReaderModeEnabled { get; set; }
 
+        /// <summary>
+        /// When true, the SQLite-history-awareness UX renders plain-text labels
+        /// (e.g., <c>Runs N | Last 2m ago | Dir &lt;path&gt;</c> in the F2 stats tooltip
+        /// and <c>[History 3/15]</c> / <c>[Location 2/5]</c> in the navigation indicator)
+        /// instead of emoji icons so screen readers can read them clearly.
+        /// Initialized at startup from <see cref="ScreenReaderModeEnabled"/>; thereafter
+        /// it is independent of the screen-reader option.
+        /// </summary>
+        public bool AccessibleHistoryDisplay { get; set; }
+
         internal string _defaultTokenColor;
         internal string _commentColor;
         internal string _keywordColor;
@@ -928,6 +951,14 @@ namespace Microsoft.PowerShell
             set => _enableScreenReaderMode = value;
         }
         internal SwitchParameter? _enableScreenReaderMode;
+
+        [Parameter]
+        public SwitchParameter AccessibleHistoryDisplay
+        {
+            get => _accessibleHistoryDisplay.GetValueOrDefault();
+            set => _accessibleHistoryDisplay = value;
+        }
+        internal SwitchParameter? _accessibleHistoryDisplay;
 
         [ExcludeFromCodeCoverage]
         protected override void EndProcessing()

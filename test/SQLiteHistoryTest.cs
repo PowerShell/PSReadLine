@@ -1682,5 +1682,374 @@ WHERE c.CommandLine = @CommandLine AND l.Path = @Location";
             Assert.Equal(1, CountExecutionHistoryAt(ctx.TempDbPath, "beta",  @"C:\Projects\AltDel"));
             Assert.Equal(1, CountExecutionHistoryAt(ctx.TempDbPath, "alpha", @"C:\Projects\AltDel"));
         }
+
+        // =====================================================================
+        // AccessibleHistoryDisplay option
+        //
+        // The SQLite-history-awareness UX uses emojis (⟳, ⏱, 📂) in two places:
+        //   1) The F2 list-view stats tooltip rendered by RenderHistoryStatsTooltip
+        //   2) The in-prompt navigation indicator rendered by ShowHistoryNavStatus
+        //
+        // Screen readers verbalize emoji as Unicode names ("clockwise gapped circle
+        // arrow", "card index dividers"). The AccessibleHistoryDisplay option, when
+        // enabled, swaps emoji for plain-text labels:
+        //   * Tooltip:  "⟳ Runs N | ⏱ Last 2m ago | 📂 Dir <path>"
+        //               -> "Runs N | Last 2m ago | Dir <path>"
+        //   * Indicator: "[⏱ 3/15]" / "[📂 2/5]"
+        //               -> "[History 3/15]" / "[Location 2/5]"
+        //
+        // Default value is seeded once at construction from ScreenReaderModeEnabled
+        // and is independent thereafter.
+        // =====================================================================
+
+        // Emoji code points used by the SQLite history awareness UX.
+        private const string TooltipRunsEmoji = "\u27f3";       // ⟳
+        private const string TooltipLastEmoji = "\u23f1";       // ⏱
+        private const string TooltipDirEmoji  = "\U0001F4C2";   // 📂
+        private const string NavStatusChronoEmoji = "\u23F1";   // ⏱ (BMP, used by ShowHistoryNavStatus)
+        private const string NavStatusLocEmoji    = "\uD83D\uDCC2"; // 📂 (surrogate pair)
+
+        /// <summary>
+        /// Renders the F2 stats tooltip into a fresh buffer and returns the resulting
+        /// line as a string. RenderHistoryStatsTooltip is a private method on the
+        /// nested PredictionListView class — invoke it via reflection.
+        /// </summary>
+        private static string CaptureRenderedHistoryStatsTooltip(string commandLine, int executionCount, DateTime startTime, string location)
+        {
+            // Build a HistoryItem with the requested fields. Setters are internal so
+            // we go through reflection to keep this resilient.
+            var historyItemType = typeof(PSConsoleReadLine).GetNestedType(
+                "HistoryItem", BindingFlags.Public | BindingFlags.NonPublic);
+            var historyItem = Activator.CreateInstance(historyItemType);
+            historyItemType.GetProperty("CommandLine").SetValue(historyItem, commandLine);
+            historyItemType.GetProperty("ExecutionCount").SetValue(historyItem, executionCount);
+            historyItemType.GetProperty("StartTime").SetValue(historyItem, startTime);
+            historyItemType.GetProperty("Location").SetValue(historyItem, location);
+
+            // Get the singleton and instantiate PredictionListView via its internal ctor.
+            var singletonFld = typeof(PSConsoleReadLine).GetField(
+                "_singleton", BindingFlags.Static | BindingFlags.NonPublic);
+            var singleton = singletonFld.GetValue(null);
+            var listViewType = typeof(PSConsoleReadLine).GetNestedType(
+                "PredictionListView", BindingFlags.NonPublic);
+            var listView = Activator.CreateInstance(
+                listViewType,
+                BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.CreateInstance,
+                binder: null,
+                args: new[] { singleton },
+                culture: null);
+
+            var renderMethod = listViewType.GetMethod(
+                "RenderHistoryStatsTooltip",
+                BindingFlags.Instance | BindingFlags.NonPublic);
+
+            // NextBufferLine pre-increments `current`, then creates a new StringBuilder
+            // when current == consoleBufferLines.Count. Start with an empty list and
+            // current = -1 so the first call advances to index 0 and writes there.
+            var buffer = new System.Collections.Generic.List<System.Text.StringBuilder>();
+            object[] args = new object[] { historyItem, buffer, -1 };
+            renderMethod.Invoke(listView, args);
+
+            return buffer.Count > 0 ? buffer[0].ToString() : string.Empty;
+        }
+
+        /// <summary>Mirror ExpectedNavStatus for the accessible-display variant.</summary>
+        private static string ExpectedAccessibleNavStatus(int pos, int total, bool locationMode)
+        {
+            var color = (string)typeof(PSConsoleReadLineOptions)
+                .GetField("_listPredictionColor", BindingFlags.Instance | BindingFlags.NonPublic)
+                .GetValue(PSConsoleReadLine.GetOptions());
+            var inner = locationMode
+                ? $"Location {pos}/{total}"
+                : $"History {pos}/{total}";
+            return $"[{color}{inner}\x1b[0m]";
+        }
+
+        [SkippableFact]
+        public void AccessibleHistoryDisplay_DefaultMatchesScreenReaderModeAtConstruction()
+        {
+            // Construct a fresh options object directly — the constructor seeds
+            // AccessibleHistoryDisplay from the screen-reader detection result.
+            // Verify the seeded value matches whatever ScreenReaderModeEnabled was set to.
+            var opts = new PSConsoleReadLineOptions("AccessibleDefaultHost", usingLegacyConsole: false);
+            Assert.Equal(opts.ScreenReaderModeEnabled, opts.AccessibleHistoryDisplay);
+        }
+
+        [SkippableFact]
+        public void AccessibleHistoryDisplay_RoundTripsViaSetPSReadLineOption()
+        {
+            TestSetup(KeyMode.Cmd);
+            var originalAccessibleValue = PSConsoleReadLine.GetOptions().AccessibleHistoryDisplay;
+            try
+            {
+                PSConsoleReadLine.SetOptions(new SetPSReadLineOption { AccessibleHistoryDisplay = true });
+                Assert.True(PSConsoleReadLine.GetOptions().AccessibleHistoryDisplay);
+
+                PSConsoleReadLine.SetOptions(new SetPSReadLineOption { AccessibleHistoryDisplay = false });
+                Assert.False(PSConsoleReadLine.GetOptions().AccessibleHistoryDisplay);
+            }
+            finally
+            {
+                PSConsoleReadLine.GetOptions().AccessibleHistoryDisplay = originalAccessibleValue;
+            }
+        }
+
+        [SkippableFact]
+        public void AccessibleHistoryDisplay_IndependentFromScreenReaderModeAfterInit()
+        {
+            // Toggling EnableScreenReaderMode after construction must NOT auto-flip
+            // AccessibleHistoryDisplay. Per design, the flag is only seeded once at
+            // construction and is independent thereafter.
+            TestSetup(KeyMode.Cmd);
+            var opts = PSConsoleReadLine.GetOptions();
+            var originalAccessible = opts.AccessibleHistoryDisplay;
+            var originalScreenReader = opts.ScreenReaderModeEnabled;
+
+            try
+            {
+                // Force AccessibleHistoryDisplay to a known-false state.
+                PSConsoleReadLine.SetOptions(new SetPSReadLineOption { AccessibleHistoryDisplay = false });
+                Assert.False(opts.AccessibleHistoryDisplay);
+
+                // Flip the screen-reader option — accessible flag must NOT follow.
+                PSConsoleReadLine.SetOptions(new SetPSReadLineOption { EnableScreenReaderMode = true });
+                Assert.True(opts.ScreenReaderModeEnabled);
+                Assert.False(opts.AccessibleHistoryDisplay);
+
+                // And the reverse — flipping screen reader off must not auto-disable.
+                PSConsoleReadLine.SetOptions(new SetPSReadLineOption { AccessibleHistoryDisplay = true });
+                PSConsoleReadLine.SetOptions(new SetPSReadLineOption { EnableScreenReaderMode = false });
+                Assert.False(opts.ScreenReaderModeEnabled);
+                Assert.True(opts.AccessibleHistoryDisplay);
+            }
+            finally
+            {
+                opts.AccessibleHistoryDisplay = originalAccessible;
+                opts.ScreenReaderModeEnabled = originalScreenReader;
+            }
+        }
+
+        [SkippableFact]
+        public void AccessibleHistoryDisplay_TooltipOmitsEmojiWhenEnabled()
+        {
+            TestSetup(KeyMode.Cmd);
+            var opts = PSConsoleReadLine.GetOptions();
+            var original = opts.AccessibleHistoryDisplay;
+            try
+            {
+                opts.AccessibleHistoryDisplay = true;
+                var rendered = CaptureRenderedHistoryStatsTooltip(
+                    commandLine: "git status",
+                    executionCount: 47,
+                    startTime: DateTime.UtcNow.AddMinutes(-2),
+                    location: @"C:\repos\PSReadline");
+
+                // Emoji icons must be absent.
+                Assert.DoesNotContain(TooltipRunsEmoji, rendered);
+                Assert.DoesNotContain(TooltipLastEmoji, rendered);
+                Assert.DoesNotContain(TooltipDirEmoji,  rendered);
+
+                // Plain-text labels and value must remain.
+                Assert.Contains("Runs ", rendered);
+                Assert.Contains("47",    rendered);
+                Assert.Contains("Last ", rendered);
+                Assert.Contains("Dir ",  rendered);
+                Assert.Contains(@"C:\repos\PSReadline", rendered);
+            }
+            finally
+            {
+                opts.AccessibleHistoryDisplay = original;
+            }
+        }
+
+        [SkippableFact]
+        public void AccessibleHistoryDisplay_TooltipKeepsEmojiWhenDisabled()
+        {
+            // Regression: with the option off, the existing emoji-decorated tooltip
+            // must be unchanged.
+            TestSetup(KeyMode.Cmd);
+            var opts = PSConsoleReadLine.GetOptions();
+            var original = opts.AccessibleHistoryDisplay;
+            try
+            {
+                opts.AccessibleHistoryDisplay = false;
+                var rendered = CaptureRenderedHistoryStatsTooltip(
+                    commandLine: "git status",
+                    executionCount: 5,
+                    startTime: DateTime.UtcNow.AddMinutes(-3),
+                    location: @"C:\repos\PSReadline");
+
+                Assert.Contains(TooltipRunsEmoji, rendered);
+                Assert.Contains(TooltipLastEmoji, rendered);
+                Assert.Contains(TooltipDirEmoji,  rendered);
+                Assert.Contains("Runs ", rendered);
+                Assert.Contains("Last ", rendered);
+                Assert.Contains("Dir ",  rendered);
+            }
+            finally
+            {
+                opts.AccessibleHistoryDisplay = original;
+            }
+        }
+
+        [SkippableFact]
+        public void AccessibleHistoryDisplay_TooltipOmitsAbsentFieldsWithoutStraySeparators()
+        {
+            // Edge case: an item with no StartTime and no Location must not leave
+            // separator characters or stray emoji in the rendered output.
+            TestSetup(KeyMode.Cmd);
+            var opts = PSConsoleReadLine.GetOptions();
+            var original = opts.AccessibleHistoryDisplay;
+            try
+            {
+                opts.AccessibleHistoryDisplay = true;
+                var rendered = CaptureRenderedHistoryStatsTooltip(
+                    commandLine: "alone",
+                    executionCount: 1,
+                    startTime: default,
+                    location: null);
+
+                Assert.Contains("Runs ", rendered);
+                Assert.Contains("1",      rendered);
+                // No Last / Dir labels.
+                Assert.DoesNotContain("Last ", rendered);
+                Assert.DoesNotContain("Dir ",  rendered);
+                // No separator characters between sections.
+                Assert.DoesNotContain("\u2502", rendered);
+                // No emoji at all.
+                Assert.DoesNotContain(TooltipRunsEmoji, rendered);
+                Assert.DoesNotContain(TooltipLastEmoji, rendered);
+                Assert.DoesNotContain(TooltipDirEmoji,  rendered);
+            }
+            finally
+            {
+                opts.AccessibleHistoryDisplay = original;
+            }
+        }
+
+        [SkippableFact]
+        public void AccessibleHistoryDisplay_TooltipOmitsLocationWhenUnknown()
+        {
+            // "Unknown" location entries (legacy text-history migrations) must not
+            // produce a Dir segment regardless of AccessibleHistoryDisplay.
+            TestSetup(KeyMode.Cmd);
+            var opts = PSConsoleReadLine.GetOptions();
+            var original = opts.AccessibleHistoryDisplay;
+            try
+            {
+                opts.AccessibleHistoryDisplay = true;
+                var rendered = CaptureRenderedHistoryStatsTooltip(
+                    commandLine: "legacy",
+                    executionCount: 3,
+                    startTime: DateTime.UtcNow.AddHours(-2),
+                    location: "Unknown");
+
+                Assert.Contains("Runs ", rendered);
+                Assert.Contains("Last ", rendered);
+                Assert.DoesNotContain("Dir ", rendered);
+            }
+            finally
+            {
+                opts.AccessibleHistoryDisplay = original;
+            }
+        }
+
+        [SkippableFact]
+        public void AccessibleHistoryDisplay_NavStatusUsesTextLabelsForChronologicalRecall()
+        {
+            TestSetup(KeyMode.Cmd,
+                new KeyHandler("Ctrl+p", PSConsoleReadLine.PreviousHistory));
+
+            var opts = PSConsoleReadLine.GetOptions();
+            var original = opts.AccessibleHistoryDisplay;
+            try
+            {
+                opts.AccessibleHistoryDisplay = true;
+
+                SetHistory("a", "b", "c");
+
+                Test("", Keys(
+                    _.Ctrl_p,
+                    CheckThat(() => AssertLineIs("c")),
+                    CheckThat(() => Assert.Equal(
+                        ExpectedAccessibleNavStatus(1, 3, locationMode: false),
+                        GetStatusLinePromptForTest())),
+                    // Status line must NOT contain the chronological emoji.
+                    CheckThat(() => Assert.DoesNotContain(NavStatusChronoEmoji, GetStatusLinePromptForTest())),
+                    _.Escape
+                ));
+            }
+            finally
+            {
+                opts.AccessibleHistoryDisplay = original;
+            }
+        }
+
+        [SkippableFact]
+        public void AccessibleHistoryDisplay_NavStatusUsesTextLabelsForLocationRecall()
+        {
+            TestSetup(KeyMode.Cmd,
+                new KeyHandler("UpArrow", PSConsoleReadLine.PreviousLocationHistory),
+                new KeyHandler("DownArrow", PSConsoleReadLine.NextLocationHistory));
+
+            var opts = PSConsoleReadLine.GetOptions();
+            var original = opts.AccessibleHistoryDisplay;
+            try
+            {
+                opts.AccessibleHistoryDisplay = true;
+
+                using var loc = SetTestLocation(@"C:\Projects\Accessible");
+
+                SetHistoryWithLocations(
+                    ("local-1", @"C:\Projects\Accessible"),
+                    ("other",   @"C:\Other"),
+                    ("local-2", @"C:\Projects\Accessible"));
+
+                Test("", Keys(
+                    _.UpArrow,
+                    CheckThat(() => AssertLineIs("local-2")),
+                    CheckThat(() => Assert.Equal(
+                        ExpectedAccessibleNavStatus(1, 2, locationMode: true),
+                        GetStatusLinePromptForTest())),
+                    // Status line must NOT contain the location emoji surrogate pair.
+                    CheckThat(() => Assert.DoesNotContain(NavStatusLocEmoji, GetStatusLinePromptForTest())),
+                    _.Escape
+                ));
+            }
+            finally
+            {
+                opts.AccessibleHistoryDisplay = original;
+            }
+        }
+
+        [SkippableFact]
+        public void AccessibleHistoryDisplay_NavStatusKeepsEmojiWhenDisabled()
+        {
+            // Regression: with the option off, the existing emoji indicator must
+            // continue to render as before.
+            TestSetup(KeyMode.Cmd,
+                new KeyHandler("Ctrl+p", PSConsoleReadLine.PreviousHistory));
+
+            var opts = PSConsoleReadLine.GetOptions();
+            var original = opts.AccessibleHistoryDisplay;
+            try
+            {
+                opts.AccessibleHistoryDisplay = false;
+
+                SetHistory("a", "b");
+
+                Test("", Keys(
+                    _.Ctrl_p,
+                    CheckThat(() => AssertLineIs("b")),
+                    CheckThat(() => Assert.Contains(NavStatusChronoEmoji, GetStatusLinePromptForTest())),
+                    CheckThat(() => Assert.DoesNotContain("History ", GetStatusLinePromptForTest())),
+                    _.Escape
+                ));
+            }
+            finally
+            {
+                opts.AccessibleHistoryDisplay = original;
+            }
+        }
     }
 }
