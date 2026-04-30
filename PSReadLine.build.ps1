@@ -57,6 +57,23 @@ Synopsis: Build main binary module
 #>
 task BuildMainModule @binaryModuleParams {
     exec { dotnet publish -c $Configuration PSReadLine\PSReadLine.csproj }
+
+    # Restructure native SQLite DLLs from NuGet runtimes/{rid}/native/ into flat {rid}/ layout
+    # that PowerShell's CorePsAssemblyLoadContext.NativeDllHandler expects.
+    $publishPath = "PSReadLine/bin/$Configuration/$targetFramework/publish"
+    $runtimesDir = Join-Path $publishPath 'runtimes'
+    if (Test-Path $runtimesDir) {
+        Get-ChildItem $runtimesDir -Directory | ForEach-Object {
+            $rid = $_.Name
+            $nativeDir = Join-Path $_.FullName 'native'
+            if (Test-Path $nativeDir) {
+                $dest = Join-Path $publishPath $rid
+                New-Item -Path $dest -ItemType Directory -Force > $null
+                Copy-Item (Join-Path $nativeDir '*') $dest -Force
+            }
+        }
+        Remove-Item $runtimesDir -Recurse -Force
+    }
 }
 
 <#
@@ -109,6 +126,31 @@ task LayoutModule BuildMainModule, {
     $binPath = "PSReadLine/bin/$Configuration/$targetFramework/publish"
     Copy-Item $binPath/Microsoft.PowerShell.PSReadLine.dll $targetDir
     Copy-Item $binPath/Microsoft.PowerShell.Pager.dll $targetDir
+
+    # Copy SQLite managed DLLs
+    foreach ($dll in @(
+        'Microsoft.Data.Sqlite.dll',
+        'SQLitePCLRaw.core.dll',
+        'SQLitePCLRaw.batteries_v2.dll',
+        'SQLitePCLRaw.provider.e_sqlite3.dll'
+    )) {
+        $dllPath = Join-Path $binPath $dll
+        if (Test-Path $dllPath) {
+            Copy-Item $dllPath $targetDir
+        }
+    }
+
+    # Copy native SQLite DLLs in flat {rid}/ layout for PowerShell's NativeDllHandler
+    foreach ($rid in @('win-x64','win-x86','win-arm','win-arm64','linux-x64','linux-x86','linux-arm','linux-arm64','linux-musl-x64','linux-musl-arm64','osx-x64','osx-arm64')) {
+        $ridSource = Join-Path $binPath $rid
+        if (Test-Path $ridSource) {
+            $ridDest = Join-Path $targetDir $rid
+            if (-not (Test-Path $ridDest)) {
+                New-Item $ridDest -ItemType Directory -Force > $null
+            }
+            Copy-Item "$ridSource/*" $ridDest -Force
+        }
+    }
 
     if ($Configuration -eq 'Debug') {
         Copy-Item $binPath/*.pdb $targetDir

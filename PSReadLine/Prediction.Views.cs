@@ -116,21 +116,62 @@ namespace Microsoft.PowerShell
             /// </summary>
             /// <param name="input">User input.</param>
             /// <param name="count">Maximum number of results to return.</param>
+            /// <summary>
+            /// Generate a tooltip string with statistics for a history item.
+            /// This returns a plain-text version used as the ToolTip value (non-null triggers tooltip rendering).
+            /// The actual colored rendering is done by <see cref="RenderHistoryStatsTooltip"/>.
+            /// </summary>
+            private static string FormatHistoryStatsTooltip(HistoryItem item)
+            {
+                var sb = new StringBuilder();
+                sb.Append("Runs: ").Append(item.ExecutionCount);
+
+                if (item.StartTime != default)
+                {
+                    var ago = DateTime.UtcNow - item.StartTime;
+                    if (ago.TotalMinutes < 1)
+                        sb.Append(" \u2502 Last: just now");
+                    else if (ago.TotalHours < 1)
+                        sb.Append(" \u2502 Last: ").Append((int)ago.TotalMinutes).Append("m ago");
+                    else if (ago.TotalDays < 1)
+                        sb.Append(" \u2502 Last: ").Append((int)ago.TotalHours).Append("h ago");
+                    else
+                        sb.Append(" \u2502 Last: ").Append((int)ago.TotalDays).Append("d ago");
+                }
+
+                if (!string.IsNullOrEmpty(item.Location) && !item.Location.Equals("Unknown", StringComparison.OrdinalIgnoreCase))
+                {
+                    sb.Append(" \u2502 Dir: ").Append(item.Location);
+                }
+
+                return sb.ToString();
+            }
+
             protected List<SuggestionEntry> GetHistorySuggestions(string input, int count)
             {
-                List<SuggestionEntry> results = null;
-                int remainingCount = count;
-
                 var history = _singleton._history;
                 var comparison = _singleton._options.HistoryStringComparison;
                 var comparer = _singleton._options.HistoryStringComparer;
+                bool isSQLite = _singleton._options.HistoryType is HistoryType.SQLite;
 
                 _cacheHistorySet ??= new HashSet<string>(comparer);
                 _cacheHistoryList ??= new List<SuggestionEntry>();
 
+                // In SQLite mode, use frecency-based ordering with optional location partitioning.
+                // In text mode, use existing recency-based logic (pure reverse-chronological).
+                if (isSQLite)
+                {
+                    return GetHistorySuggestionsSQLite(input, count, history, comparison, comparer);
+                }
+
+                // --- Text mode: original recency-based logic (unchanged) ---
+                List<SuggestionEntry> results = null;
+                int remainingCount = count;
+
                 for (int historyIndex = history.Count - 1; historyIndex >= 0; historyIndex--)
                 {
-                    var line = history[historyIndex].CommandLine.TrimEnd();
+                    var historyItem = history[historyIndex];
+                    var line = historyItem.CommandLine.TrimEnd();
 
                     // Skip the history command lines that are smaller in length than the user input,
                     // or contain multiple logical lines.
@@ -173,6 +214,245 @@ namespace Microsoft.PowerShell
                 _cacheHistorySet.Clear();
                 _cacheHistoryList.Clear();
                 return results;
+            }
+
+            /// <summary>
+            /// SQLite mode: collects matching history candidates, sorts by frecency
+            /// (frequency DESC, then recency DESC), and optionally partitions by location.
+            /// When plugins are active (few history slots), no location split is applied.
+            /// When plugins are not active, results are partitioned: top half from commands
+            /// matching the current directory, bottom half from global commands.
+            /// </summary>
+            private List<SuggestionEntry> GetHistorySuggestionsSQLite(
+                string input, int count,
+                HistoryQueue<HistoryItem> history,
+                StringComparison comparison,
+                StringComparer comparer)
+            {
+                // Collect all matching candidates with their history index (for recency sorting).
+                var prefixMatches = new List<(int historyIndex, HistoryItem item, string line)>();
+                var substringMatches = new List<(int historyIndex, HistoryItem item, string line)>();
+                var seen = new HashSet<string>(comparer);
+
+                for (int historyIndex = history.Count - 1; historyIndex >= 0; historyIndex--)
+                {
+                    var historyItem = history[historyIndex];
+                    var line = historyItem.CommandLine.TrimEnd();
+
+                    if (line.Length <= input.Length || seen.Contains(line) || line.IndexOf('\n') != -1)
+                    {
+                        continue;
+                    }
+
+                    int matchIndex = line.IndexOf(input, comparison);
+                    if (matchIndex == -1)
+                    {
+                        continue;
+                    }
+
+                    seen.Add(line);
+
+                    if (matchIndex == 0)
+                    {
+                        prefixMatches.Add((historyIndex, historyItem, line));
+                    }
+                    else
+                    {
+                        substringMatches.Add((historyIndex, historyItem, line));
+                    }
+                }
+
+                _cacheHistorySet.Clear();
+                _cacheHistoryList.Clear();
+
+                if (prefixMatches.Count == 0 && substringMatches.Count == 0)
+                {
+                    return null;
+                }
+
+                // Frecency comparer: frequency DESC (ExecutionCount), then recency DESC (historyIndex).
+                static int FrecencyCompare(
+                    (int historyIndex, HistoryItem item, string line) a,
+                    (int historyIndex, HistoryItem item, string line) b)
+                {
+                    int freqCmp = b.item.ExecutionCount.CompareTo(a.item.ExecutionCount);
+                    if (freqCmp != 0) return freqCmp;
+                    return b.historyIndex.CompareTo(a.historyIndex);
+                }
+
+                // Determine whether to apply location partitioning.
+                // With plugins active, history gets at most 3 slots — too few to split.
+                bool partitionByLocation = !UsePlugin;
+                string currentLocation = partitionByLocation ? _singleton.GetCurrentLocation() : null;
+                partitionByLocation = partitionByLocation
+                    && !string.IsNullOrEmpty(currentLocation)
+                    && !currentLocation.Equals("Unknown", StringComparison.OrdinalIgnoreCase);
+
+                var results = new List<SuggestionEntry>(capacity: count);
+
+                if (partitionByLocation)
+                {
+                    // Query per-location execution counts so local sorting reflects how
+                    // often each command was run *in this directory*, not globally.
+                    Dictionary<string, long> localCounts = null;
+                    if (_singleton._options.HistoryType == HistoryType.SQLite
+                        && !string.IsNullOrEmpty(_singleton._options.HistorySavePath))
+                    {
+                        localCounts = _singleton.GetLocationExecutionCounts(currentLocation);
+                    }
+
+                    int LocalFrecencyCompare(
+                        (int historyIndex, HistoryItem item, string line) a,
+                        (int historyIndex, HistoryItem item, string line) b)
+                    {
+                        long countA, countB;
+                        if (localCounts != null)
+                        {
+                            localCounts.TryGetValue(a.item.CommandLine, out countA);
+                            localCounts.TryGetValue(b.item.CommandLine, out countB);
+                        }
+                        else
+                        {
+                            countA = a.item.ExecutionCount;
+                            countB = b.item.ExecutionCount;
+                        }
+                        int freqCmp = countB.CompareTo(countA);
+                        if (freqCmp != 0) return freqCmp;
+                        return b.historyIndex.CompareTo(a.historyIndex);
+                    }
+
+                    // Split prefix matches into local (matching current dir) and global.
+                    var localPrefix = new List<(int historyIndex, HistoryItem item, string line)>();
+                    var globalPrefix = new List<(int historyIndex, HistoryItem item, string line)>();
+
+                    foreach (var m in prefixMatches)
+                    {
+                        if (string.Equals(m.item.Location, currentLocation, StringComparison.OrdinalIgnoreCase))
+                            localPrefix.Add(m);
+                        else
+                            globalPrefix.Add(m);
+                    }
+
+                    localPrefix.Sort(LocalFrecencyCompare);
+                    globalPrefix.Sort(FrecencyCompare);
+
+                    // Top half for local, bottom half for global. Backfill if local has fewer.
+                    int halfCount = count / 2;
+                    int localSlots = Math.Min(halfCount, localPrefix.Count);
+                    int globalSlots = count - localSlots;
+
+                    // Add local prefix matches (top half).
+                    for (int i = 0; i < localSlots; i++)
+                    {
+                        var m = localPrefix[i];
+                        results.Add(MakeSQLiteEntry(m.item, m.line, matchIndex: 0));
+                    }
+
+                    // Track how many local items were added for dedup.
+                    var addedLines = new HashSet<string>(comparer);
+                    foreach (var entry in results)
+                    {
+                        addedLines.Add(entry.SuggestionText);
+                    }
+
+                    // Add global prefix matches (bottom half), excluding already-added items.
+                    int globalAdded = 0;
+                    for (int i = 0; i < globalPrefix.Count && globalAdded < globalSlots; i++)
+                    {
+                        var m = globalPrefix[i];
+                        if (!addedLines.Contains(m.line))
+                        {
+                            results.Add(MakeSQLiteEntry(m.item, m.line, matchIndex: 0));
+                            addedLines.Add(m.line);
+                            globalAdded++;
+                        }
+                    }
+
+                    // If still room, backfill from remaining local prefix matches.
+                    for (int i = localSlots; i < localPrefix.Count && results.Count < count; i++)
+                    {
+                        var m = localPrefix[i];
+                        if (!addedLines.Contains(m.line))
+                        {
+                            results.Add(MakeSQLiteEntry(m.item, m.line, matchIndex: 0));
+                            addedLines.Add(m.line);
+                        }
+                    }
+
+                    // Fill remaining slots with substring matches sorted by frecency,
+                    // local first then global.
+                    if (results.Count < count && substringMatches.Count > 0)
+                    {
+                        var localSub = new List<(int historyIndex, HistoryItem item, string line)>();
+                        var globalSub = new List<(int historyIndex, HistoryItem item, string line)>();
+
+                        foreach (var m in substringMatches)
+                        {
+                            if (!addedLines.Contains(m.line))
+                            {
+                                if (string.Equals(m.item.Location, currentLocation, StringComparison.OrdinalIgnoreCase))
+                                    localSub.Add(m);
+                                else
+                                    globalSub.Add(m);
+                            }
+                        }
+
+                        localSub.Sort(LocalFrecencyCompare);
+                        globalSub.Sort(FrecencyCompare);
+
+                        int subRemaining = count - results.Count;
+                        int subHalf = subRemaining / 2;
+                        int localSubSlots = Math.Min(subHalf, localSub.Count);
+
+                        for (int i = 0; i < localSubSlots && results.Count < count; i++)
+                        {
+                            var m = localSub[i];
+                            results.Add(MakeSQLiteEntry(m.item, m.line, input.Length > 0 ? m.line.IndexOf(input, comparison) : 0));
+                        }
+
+                        for (int i = 0; i < globalSub.Count && results.Count < count; i++)
+                        {
+                            var m = globalSub[i];
+                            results.Add(MakeSQLiteEntry(m.item, m.line, input.Length > 0 ? m.line.IndexOf(input, comparison) : 0));
+                        }
+
+                        // Backfill from remaining local substring matches.
+                        for (int i = localSubSlots; i < localSub.Count && results.Count < count; i++)
+                        {
+                            var m = localSub[i];
+                            results.Add(MakeSQLiteEntry(m.item, m.line, input.Length > 0 ? m.line.IndexOf(input, comparison) : 0));
+                        }
+                    }
+                }
+                else
+                {
+                    // No location partitioning: sort all candidates by frecency.
+                    prefixMatches.Sort(FrecencyCompare);
+                    substringMatches.Sort(FrecencyCompare);
+
+                    for (int i = 0; i < prefixMatches.Count && results.Count < count; i++)
+                    {
+                        var m = prefixMatches[i];
+                        results.Add(MakeSQLiteEntry(m.item, m.line, matchIndex: 0));
+                    }
+
+                    for (int i = 0; i < substringMatches.Count && results.Count < count; i++)
+                    {
+                        var m = substringMatches[i];
+                        results.Add(MakeSQLiteEntry(m.item, m.line, input.Length > 0 ? m.line.IndexOf(input, comparison) : 0));
+                    }
+                }
+
+                return results.Count > 0 ? results : null;
+            }
+
+            /// <summary>
+            /// Creates a SuggestionEntry for a SQLite history item with stats tooltip.
+            /// </summary>
+            private static SuggestionEntry MakeSQLiteEntry(HistoryItem item, string line, int matchIndex)
+            {
+                string tooltip = FormatHistoryStatsTooltip(item);
+                return new SuggestionEntry(line, tooltip, matchIndex, item);
             }
 
             /// <summary>
@@ -686,6 +966,16 @@ namespace Microsoft.PowerShell
                     _tooltipHeight = 0;
                 }
 
+                // Clamp view window to the current list size.
+                // After item removal, _listViewEnd may exceed _listItems.Count when
+                // _selectedIndex is -1 (original input) and the recalculation above was skipped.
+                if (_listViewEnd > _listItems.Count)
+                {
+                    _listViewEnd = _listItems.Count;
+                    _listViewTop = Math.Max(0, _listViewEnd - _maxViewHeight);
+                    _listViewHeight = _listViewEnd - _listViewTop;
+                }
+
                 for (int i = _listViewTop; i < _listViewEnd; i++)
                 {
                     bool itemSelected = i == _selectedIndex;
@@ -700,7 +990,14 @@ namespace Microsoft.PowerShell
 
                     if (_singleton._options.ShowToolTips && itemSelected && !string.IsNullOrWhiteSpace(entry.ToolTip))
                     {
-                        _tooltipHeight = RenderTooltip(entry.ToolTip, consoleBufferLines, ref currentLogicalLine);
+                        if (entry.HistoryItemRef != null)
+                        {
+                            _tooltipHeight = RenderHistoryStatsTooltip(entry.HistoryItemRef, consoleBufferLines, ref currentLogicalLine);
+                        }
+                        else
+                        {
+                            _tooltipHeight = RenderTooltip(entry.ToolTip, consoleBufferLines, ref currentLogicalLine);
+                        }
                     }
                 }
             }
@@ -1058,6 +1355,69 @@ namespace Microsoft.PowerShell
             }
 
             /// <summary>
+            /// Render a colored history stats tooltip for a history item.
+            /// Uses icons with short labels for accessibility, values in the highlight color, separators dimmed.
+            /// When <see cref="PSConsoleReadLineOptions.AccessibleHistoryDisplay"/> is enabled,
+            /// emoji icons are omitted so screen readers read only the human-readable labels.
+            /// </summary>
+            private int RenderHistoryStatsTooltip(HistoryItem item, List<StringBuilder> consoleBufferLines, ref int currentLogicalLine)
+            {
+                string tooltipColor = _singleton._options._listPredictionTooltipColor;
+                string dimItalicStyle = tooltipColor + "\x1b[2;3m";
+                // Icons must NOT be italic (causes emoji to lean/slant).
+                // Use explicit italic-off (\x1b[23m] to cancel italic inherited from tooltipColor.
+                const string italicOff = "\x1b[23m";
+                string valueStyle = _singleton._options._listPredictionColor;
+                bool accessible = _singleton._options.AccessibleHistoryDisplay;
+
+                var buff = NextBufferLine(consoleBufferLines, ref currentLogicalLine);
+                buff.Append(' ', 6);
+
+                // ⟳ Runs N
+                buff.Append(dimItalicStyle).Append(italicOff);
+                if (!accessible) buff.Append("\u27f3 ");
+                buff.Append("\x1b[3m").Append("Runs ")
+                    .Append(VTColorUtils.AnsiReset).Append(valueStyle).Append(item.ExecutionCount)
+                    .Append(VTColorUtils.AnsiReset);
+
+                // ⏱ Last relative-time
+                if (item.StartTime != default)
+                {
+                    var ago = DateTime.UtcNow - item.StartTime;
+                    string relativeTime;
+                    if (ago.TotalMinutes < 1)
+                        relativeTime = "just now";
+                    else if (ago.TotalHours < 1)
+                        relativeTime = $"{(int)ago.TotalMinutes}m ago";
+                    else if (ago.TotalDays < 1)
+                        relativeTime = $"{(int)ago.TotalHours}h ago";
+                    else if (ago.TotalDays < 30)
+                        relativeTime = $"{(int)ago.TotalDays}d ago";
+                    else
+                        relativeTime = item.StartTime.ToLocalTime().ToString("MMM d");
+
+                    buff.Append(dimItalicStyle).Append("  \u2502  ").Append(italicOff);
+                    if (!accessible) buff.Append("\u23f1 ");
+                    buff.Append("\x1b[3m").Append("Last ")
+                        .Append(VTColorUtils.AnsiReset).Append(valueStyle).Append(relativeTime)
+                        .Append(VTColorUtils.AnsiReset);
+                }
+
+                // 📂 Dir path
+                if (!string.IsNullOrEmpty(item.Location) && !item.Location.Equals("Unknown", StringComparison.OrdinalIgnoreCase))
+                {
+                    buff.Append(dimItalicStyle).Append("  \u2502  ").Append(italicOff);
+                    if (!accessible) buff.Append("\U0001F4C2 ");
+                    buff.Append("\x1b[3m").Append("Dir ")
+                        .Append(VTColorUtils.AnsiReset).Append(valueStyle).Append(item.Location)
+                        .Append(VTColorUtils.AnsiReset);
+                }
+
+                buff.Append(VTColorUtils.AnsiReset);
+                return 1;
+            }
+
+            /// <summary>
             /// Trigger the feedback about a suggestion was accepted.
             /// </summary>
             internal override void OnSuggestionAccepted()
@@ -1115,6 +1475,94 @@ namespace Microsoft.PowerShell
                 _listViewWidth = _listViewHeight = _tooltipHeight = -1;
                 _listViewTop = _listViewEnd = _selectedIndex = -1;
                 _warnAboutSize = _checkOnHeight = _updatePending = _renderFromSelected = false;
+            }
+
+            /// <summary>
+            /// Remove the currently selected item from the list view and re-query
+            /// history suggestions so the list repopulates to full capacity.
+            /// </summary>
+            /// <returns>True if the list still has items; false if it became empty (caller should close the view).</returns>
+            internal bool RemoveSelectedItem()
+            {
+                if (_listItems == null || _selectedIndex < 0 || _selectedIndex >= _listItems.Count)
+                    return false;
+
+                int savedPosition = _selectedIndex;
+
+                // Collect non-history (plugin) items to preserve them.
+                List<SuggestionEntry> pluginItems = null;
+                for (int i = 0; i < _listItems.Count; i++)
+                {
+                    if (_listItems[i].Source != SuggestionEntry.HistorySource)
+                    {
+                        pluginItems ??= new List<SuggestionEntry>();
+                        pluginItems.Add(_listItems[i]);
+                    }
+                }
+
+                // Rebuild the list from scratch — the deleted command is already
+                // gone from _history, so fresh results naturally exclude it.
+                _listItems.Clear();
+                _sources?.Clear();
+
+                if (UseHistory)
+                {
+                    var freshHistory = GetHistorySuggestions(_inputText, HistoryMaxCount);
+                    if (freshHistory != null)
+                    {
+                        _listItems.AddRange(freshHistory);
+                    }
+                }
+
+                if (pluginItems != null)
+                {
+                    _listItems.AddRange(pluginItems);
+                }
+
+                if (_listItems.Count == 0)
+                {
+                    Reset();
+                    return false;
+                }
+
+                // Rebuild _sources to reflect the updated indices.
+                RebuildSources();
+
+                // Restore selection at the same position, or move to the last item.
+                _selectedIndex = Math.Min(savedPosition, _listItems.Count - 1);
+
+                // Re-initialize view window from the selected item.
+                _listViewTop = 0;
+                _listViewEnd = Math.Min(_listItems.Count, _maxViewHeight);
+                _listViewHeight = _listViewEnd - _listViewTop;
+                _tooltipHeight = 0;
+                _renderFromSelected = true;
+                _updatePending = true;
+                return true;
+            }
+
+            /// <summary>
+            /// Rebuild the <see cref="_sources"/> list from the current <see cref="_listItems"/>.
+            /// </summary>
+            private void RebuildSources()
+            {
+                _sources ??= new List<SourceInfo>();
+                _sources.Clear();
+
+                if (_listItems == null || _listItems.Count == 0)
+                    return;
+
+                int prevEndIndex = -1;
+                int segStart = 0;
+                for (int i = 1; i <= _listItems.Count; i++)
+                {
+                    if (i == _listItems.Count || _listItems[i].Source != _listItems[segStart].Source)
+                    {
+                        _sources.Add(new SourceInfo(_listItems[segStart].Source, i - 1, prevEndIndex));
+                        prevEndIndex = i - 1;
+                        segStart = i;
+                    }
+                }
             }
 
             /// <summary>

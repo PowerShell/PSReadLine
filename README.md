@@ -79,6 +79,8 @@ Get-PSReadLineKeyHandler
 There are many configuration options, see the options to `Set-PSReadLineOption`.
 `PSReadLine` has help for its cmdlets as well as an `about_PSReadLine` topic - see those topics for more detailed help.
 
+For the new SQLite-backed history available in PSReadLine 3.0+ — including the location-aware key chords (`Alt+Up` / `Alt+Down`, `Ctrl+Alt+R`, `Alt+Delete`), the F2 stats tooltip, and the `-AccessibleHistoryDisplay` accessibility option — see [docs/sqlite-history.md](docs/sqlite-history.md).
+
 To set your own custom keybindings, use the cmdlet `Set-PSReadLineKeyHandler`.
 For example, for a better history experience, try:
 

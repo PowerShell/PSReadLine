@@ -833,6 +833,13 @@
         "Investigate":  false
     },
     {
+        "Key":  "Alt+Delete",
+        "KeyChar":  "\u0000",
+        "ConsoleKey":  "Delete",
+        "Modifiers":  "Alt",
+        "Investigate":  false
+    },
+    {
         "Key":  "Ctrl+e",
         "KeyChar":  "\u0005",
         "ConsoleKey":  "E",

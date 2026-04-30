@@ -842,6 +842,15 @@ namespace Microsoft.PowerShell.PSReadLine {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Replace the input with the next item in the history that was executed from the current location.
+        /// </summary>
+        internal static string NextLocationHistoryDescription {
+            get {
+                return ResourceManager.GetString("NextLocationHistoryDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Move the cursor to the next line if the input has multiple lines..
         /// </summary>
         internal static string NextLineDescription {
@@ -975,6 +984,33 @@ namespace Microsoft.PowerShell.PSReadLine {
         internal static string PreviousHistoryDescription {
             get {
                 return ResourceManager.GetString("PreviousHistoryDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Replace the input with the previous item in the history that was executed from the current location.
+        /// </summary>
+        internal static string PreviousLocationHistoryDescription {
+            get {
+                return ResourceManager.GetString("PreviousLocationHistoryDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Perform an incremental backward search through history, filtered to commands executed from the current location.
+        /// </summary>
+        internal static string ReverseLocationSearchHistoryDescription {
+            get {
+                return ResourceManager.GetString("ReverseLocationSearchHistoryDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Perform an incremental forward search through history, filtered to commands executed from the current location.
+        /// </summary>
+        internal static string ForwardLocationSearchHistoryDescription {
+            get {
+                return ResourceManager.GetString("ForwardLocationSearchHistoryDescription", resourceCulture);
             }
         }
         

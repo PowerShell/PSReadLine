@@ -861,6 +861,13 @@
     "Investigate": false
   },
   {
+    "Key": "Alt+Delete",
+    "KeyChar": "\u0000",
+    "ConsoleKey": "Delete",
+    "Modifiers": "Alt",
+    "Investigate": false
+  },
+  {
     "Key": "Shift+PageDown",
     "KeyChar": "~",
     "ConsoleKey": "0",

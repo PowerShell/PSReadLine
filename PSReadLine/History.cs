@@ -13,7 +13,9 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Management.Automation.Language;
+using System.Management.Automation.Runspaces;
 using Microsoft.PowerShell.PSReadLine;
+using Microsoft.Data.Sqlite;
 
 namespace Microsoft.PowerShell
 {
@@ -82,6 +84,17 @@ namespace Microsoft.PowerShell
             /// </summary>
             public bool FromHistoryFile { get; internal set; }
 
+            /// <summary>
+            /// The location where the command was run, if available.
+            /// </summary>
+            public string Location { get; internal set; }
+
+            /// <summary>
+            /// The number of times this command has been executed (from SQLite history).
+            /// Defaults to 1 for text-based or in-session history.
+            /// </summary>
+            public int ExecutionCount { get; internal set; } = 1;
+
             internal bool _saved;
             internal bool _sensitive;
             internal List<EditItem> _edits;
@@ -98,6 +111,16 @@ namespace Microsoft.PowerShell
         private int _getNextHistoryIndex;
         private int _searchHistoryCommandCount;
         private int _recallHistoryCommandCount;
+        private int _locationHistoryCommandCount;
+        private List<int> _locationSortedIndices;
+        private int _locationSortedPosition;
+        // True while location-mode (Alt+Up/Down) is "sticky" — plain Up/Down should
+        // continue to navigate the same sorted list. Cleared when the user does any
+        // non-history action (handled in the ReadLine main loop's anyHistory reset branch).
+        private bool _locationHistoryActive;
+        // True while we are showing the "[BOOK N/M]" history navigation status line.
+        // Used so the main loop knows to clear the status when the user stops navigating.
+        private bool _historyNavStatusActive;
         private int _anyHistoryCommandCount;
         private string _searchHistoryPrefix;
         // When cycling through history, the current line (not yet added to history)
@@ -111,6 +134,11 @@ namespace Microsoft.PowerShell
         private const string _backwardISearchPrompt = "bck-i-search: ";
         private const string _failedForwardISearchPrompt = "failed-fwd-i-search: ";
         private const string _failedBackwardISearchPrompt = "failed-bck-i-search: ";
+
+        private const string _forwardLocationISearchPrompt = "fwd-i-search (location): ";
+        private const string _backwardLocationISearchPrompt = "bck-i-search (location): ";
+        private const string _failedForwardLocationISearchPrompt = "failed-fwd-i-search (location): ";
+        private const string _failedBackwardLocationISearchPrompt = "failed-bck-i-search (location): ";
 
         // Pattern used to check for sensitive inputs.
         private static readonly Regex s_sensitivePattern = new Regex(
@@ -155,6 +183,11 @@ namespace Microsoft.PowerShell
                 return AddToHistoryOption.SkipAdding;
             }
 
+            if (Options.HistoryType is HistoryType.SQLite)
+            {
+                return AddToHistoryOption.SQLite; 
+            }
+
             if (!fromHistoryFile && Options.AddToHistoryHandler != null)
             {
                 if (Options.AddToHistoryHandler == PSConsoleReadLineOptions.DefaultAddToHistoryHandler)
@@ -197,10 +230,217 @@ namespace Microsoft.PowerShell
             return AddToHistoryOption.MemoryAndFile;
         }
 
+        private void InitializeSQLiteDatabase(bool migrateTextHistory = false)
+        {
+            string baseConnectionString = $"Data Source={_options.HistorySavePath}";
+            var connectionString = new SqliteConnectionStringBuilder(baseConnectionString)
+            {
+                Mode = SqliteOpenMode.ReadWriteCreate
+            }.ToString();
+
+            try
+            {
+                using var connection = new SqliteConnection(connectionString);
+                connection.Open();
+
+                // Check if the "Commands" table exists (our primary table for new schema)
+                using var command = connection.CreateCommand();
+                command.CommandText = @"
+SELECT name
+FROM sqlite_master
+WHERE type='table' AND name=@TableName";
+                command.Parameters.AddWithValue("@TableName", "Commands");
+
+                var result = command.ExecuteScalar();
+                bool isNewDatabase = result == null;
+
+                // If the table doesn't exist, create the normalized schema
+                if (isNewDatabase)
+                {
+                    using var createTablesCommand = connection.CreateCommand();
+                    createTablesCommand.CommandText = @"
+-- Table for storing unique command lines
+CREATE TABLE Commands (
+    Id INTEGER PRIMARY KEY AUTOINCREMENT,
+    CommandLine TEXT NOT NULL UNIQUE,
+    CommandHash TEXT NOT NULL UNIQUE
+);
+
+-- Table for storing unique locations
+CREATE TABLE Locations (
+    Id INTEGER PRIMARY KEY AUTOINCREMENT,
+    Path TEXT NOT NULL UNIQUE
+);
+
+-- Table for storing execution history with foreign keys
+CREATE TABLE ExecutionHistory (
+    Id INTEGER PRIMARY KEY AUTOINCREMENT,
+    CommandId INTEGER NOT NULL,
+    LocationId INTEGER NOT NULL,
+    StartTime INTEGER NOT NULL,
+    ElapsedTime INTEGER NOT NULL,
+    ExecutionCount INTEGER DEFAULT 1,
+    LastExecuted INTEGER NOT NULL,
+    FOREIGN KEY (CommandId) REFERENCES Commands(Id),
+    FOREIGN KEY (LocationId) REFERENCES Locations(Id),
+    UNIQUE(CommandId, LocationId)
+);
+
+-- Create indexes for optimal performance
+CREATE INDEX idx_commands_hash ON Commands(CommandHash);
+CREATE INDEX idx_locations_path ON Locations(Path);
+CREATE INDEX idx_execution_last_executed ON ExecutionHistory(LastExecuted DESC);
+CREATE INDEX idx_execution_count ON ExecutionHistory(ExecutionCount DESC);
+CREATE INDEX idx_execution_location_time ON ExecutionHistory(LocationId, LastExecuted DESC);
+
+-- Create a view for easy querying (mimics the old single-table structure)
+CREATE VIEW HistoryView AS
+SELECT 
+    eh.Id,
+    c.CommandLine,
+    c.CommandHash,
+    l.Path as Location,
+    eh.StartTime,
+    eh.ElapsedTime,
+    eh.ExecutionCount,
+    eh.LastExecuted
+FROM ExecutionHistory eh
+JOIN Commands c ON eh.CommandId = c.Id
+JOIN Locations l ON eh.LocationId = l.Id;";
+                    createTablesCommand.ExecuteNonQuery();
+
+                    // Only migrate text history on initial Text -> SQLite switch,
+                    // not when relocating an existing SQLite database.
+                    if (migrateTextHistory)
+                    {
+                        MigrateTextHistoryToSQLite(connection);
+                    }
+                }
+            }
+            catch (SqliteException ex)
+            {
+                Console.WriteLine($"SQLite error initializing database: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error initializing SQLite database: {ex.Message}");
+            }
+        }
+
+        private void MigrateTextHistoryToSQLite(SqliteConnection connection)
+        {
+            // Use the dedicated text history path — no need to derive it from the SQLite path.
+            string textHistoryPath = _options.HistorySavePathText;
+            if (string.IsNullOrEmpty(textHistoryPath) || !File.Exists(textHistoryPath))
+            {
+                return; // No text history to migrate
+            }
+
+            try
+            {
+                // Read existing text history using the existing connection (don't open a new one)
+                var historyLines = ReadHistoryLinesImpl(textHistoryPath, int.MaxValue);
+                var historyItems = new List<HistoryItem>();
+
+                // Convert text lines to HistoryItems
+                var sb = new StringBuilder();
+                foreach (var line in historyLines)
+                {
+                    if (line.EndsWith("`", StringComparison.Ordinal))
+                    {
+                        sb.Append(line, 0, line.Length - 1);
+                        sb.Append('\n');
+                    }
+                    else if (sb.Length > 0)
+                    {
+                        sb.Append(line);
+                        historyItems.Add(new HistoryItem
+                        {
+                            CommandLine = sb.ToString(),
+                            ApproximateElapsedTime = TimeSpan.Zero,
+                            Location = "Unknown"
+                        });
+                        sb.Clear();
+                    }
+                    else
+                    {
+                        historyItems.Add(new HistoryItem
+                        {
+                            CommandLine = line,
+                            ApproximateElapsedTime = TimeSpan.Zero,
+                            Location = "Unknown"
+                        });
+                    }
+                }
+
+                // Assign timestamps so that:
+                // 1. All migrated items are older than any future SQLite entry
+                // 2. The first text line (oldest) gets the earliest timestamp
+                // 3. The last text line (newest) gets the latest migrated timestamp
+                // Each item is spaced 1 minute apart, ending 2 minutes before "now".
+                var migrationBase = DateTime.UtcNow.AddMinutes(-(historyItems.Count + 1));
+                for (int idx = 0; idx < historyItems.Count; idx++)
+                {
+                    historyItems[idx].StartTime = migrationBase.AddMinutes(idx);
+                }
+
+                // Insert into SQLite database using the new normalized schema
+                using var transaction = connection.BeginTransaction();
+
+                foreach (var item in historyItems)
+                {
+                    try
+                    {
+                        // Generate command hash using SHA256
+                        string commandHash = ComputeCommandHash(item.CommandLine);
+                        string location = item.Location ?? "Unknown";
+
+                        // Get or create command and location IDs
+                        long commandId = GetOrCreateCommandId(connection, item.CommandLine, commandHash);
+                        long locationId = GetOrCreateLocationId(connection, location);
+
+                        // Convert DateTime to Unix timestamp (INTEGER)
+                        long startTimeUnix = ((DateTimeOffset)item.StartTime).ToUnixTimeSeconds();
+                        long lastExecutedUnix = startTimeUnix;
+
+                        // Insert or update execution history using the new schema
+                        using var command = connection.CreateCommand();
+                        command.Transaction = transaction;
+                        command.CommandText = @"
+INSERT INTO ExecutionHistory (CommandId, LocationId, StartTime, ElapsedTime, ExecutionCount, LastExecuted)
+VALUES (@CommandId, @LocationId, @StartTime, @ElapsedTime, 1, @LastExecuted)
+ON CONFLICT(CommandId, LocationId) DO UPDATE SET
+    ExecutionCount = ExecutionCount + 1,
+    LastExecuted = excluded.LastExecuted";
+
+                        command.Parameters.AddWithValue("@CommandId", commandId);
+                        command.Parameters.AddWithValue("@LocationId", locationId);
+                        command.Parameters.AddWithValue("@StartTime", startTimeUnix);
+                        command.Parameters.AddWithValue("@ElapsedTime", item.ApproximateElapsedTime.Ticks);
+                        command.Parameters.AddWithValue("@LastExecuted", lastExecutedUnix);
+                        command.ExecuteNonQuery();
+                    }
+                    catch (Exception itemEx)
+                    {
+                        Console.WriteLine($"Error migrating history item: {itemEx.Message}");
+                        // Continue with next item
+                    }
+                }
+
+                transaction.Commit();
+                Console.WriteLine($"Migrated {historyItems.Count} history items from text file to SQLite");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error migrating text history: {ex.Message}");
+            }
+        }
+
         private string MaybeAddToHistory(
             string result,
             List<EditItem> edits,
             int undoEditIndex,
+            string location = null,
             bool fromDifferentSession = false,
             bool fromInitialRead = false)
         {
@@ -216,6 +456,7 @@ namespace Microsoft.PowerShell
                     _undoEditIndex = undoEditIndex,
                     _editGroupStart = -1,
                     _saved = fromHistoryFile,
+                    Location = location ?? _engineIntrinsics?.SessionState?.Path?.CurrentLocation?.Path ?? "Unknown",
                     FromOtherSession = fromDifferentSession,
                     FromHistoryFile = fromInitialRead,
                 };
@@ -277,12 +518,170 @@ namespace Microsoft.PowerShell
                 i -= 1;
             }
 
-            WriteHistoryRange(i + 1, _history.Count - 1, overwritten: false);
+            if (_options.HistoryType == HistoryType.Text)
+            {
+                WriteHistoryRange(i + 1, _history.Count - 1, overwritten: false);
+            }
+
+            if (_options.HistoryType == HistoryType.SQLite)
+            {
+                WriteHistoryToSQLite(i + 1, _history.Count - 1);
+            }
+        }
+
+        // Helper method to get or create a command ID
+        private long GetOrCreateCommandId(SqliteConnection connection, string commandLine, string commandHash)
+        {
+            // First try to get existing command
+            using var selectCommand = connection.CreateCommand();
+            selectCommand.CommandText = "SELECT Id FROM Commands WHERE CommandHash = @CommandHash";
+            selectCommand.Parameters.AddWithValue("@CommandHash", commandHash);
+
+            var existingId = selectCommand.ExecuteScalar();
+            if (existingId != null)
+            {
+                return Convert.ToInt64(existingId);
+            }
+
+            // Insert new command
+            using var insertCommand = connection.CreateCommand();
+            insertCommand.CommandText = @"
+INSERT INTO Commands (CommandLine, CommandHash) 
+VALUES (@CommandLine, @CommandHash)";
+            insertCommand.Parameters.AddWithValue("@CommandLine", commandLine);
+            insertCommand.Parameters.AddWithValue("@CommandHash", commandHash);
+            insertCommand.ExecuteNonQuery();
+
+            // Get the inserted row ID
+            using var lastIdCommand = connection.CreateCommand();
+            lastIdCommand.CommandText = "SELECT last_insert_rowid()";
+            return Convert.ToInt64(lastIdCommand.ExecuteScalar());
+        }
+
+        // Helper method to get or create a location ID
+        private long GetOrCreateLocationId(SqliteConnection connection, string location)
+        {
+            // First try to get existing location
+            using var selectCommand = connection.CreateCommand();
+            selectCommand.CommandText = "SELECT Id FROM Locations WHERE Path = @Path";
+            selectCommand.Parameters.AddWithValue("@Path", location);
+
+            var existingId = selectCommand.ExecuteScalar();
+            if (existingId != null)
+            {
+                return Convert.ToInt64(existingId);
+            }
+
+            // Insert new location
+            using var insertCommand = connection.CreateCommand();
+            insertCommand.CommandText = @"
+INSERT INTO Locations (Path) 
+VALUES (@Path)";
+            insertCommand.Parameters.AddWithValue("@Path", location);
+            insertCommand.ExecuteNonQuery();
+
+            // Get the inserted row ID
+            using var lastIdCommand = connection.CreateCommand();
+            lastIdCommand.CommandText = "SELECT last_insert_rowid()";
+            return Convert.ToInt64(lastIdCommand.ExecuteScalar());
+        }
+
+        private void WriteHistoryToSQLite(int start, int end)
+        {
+            _historyFileMutex ??= new Mutex(false, GetHistorySaveFileMutexName());
+
+            WithHistoryFileMutexDo(1000, () =>
+            {
+                try
+                {
+                    string baseConnectionString = $"Data Source={_options.HistorySavePath}";
+                    var connectionString = new SqliteConnectionStringBuilder(baseConnectionString)
+                    {
+                        Mode = SqliteOpenMode.ReadWrite
+                    }.ToString();
+
+                    using var connection = new SqliteConnection(connectionString);
+                    connection.Open();
+
+                    using var transaction = connection.BeginTransaction();
+
+                    for (var i = start; i <= end; i++)
+                    {
+                        var item = _history[i];
+                        item._saved = true;
+
+                        if (item._sensitive)
+                        {
+                            continue;
+                        }
+
+                        // Generate command hash using SHA256
+                        string commandHash = ComputeCommandHash(item.CommandLine);
+                        string location = item.Location ?? _engineIntrinsics?.SessionState?.Path?.CurrentLocation?.Path ?? "Unknown";
+
+                        // Get or create command and location IDs
+                        long commandId = GetOrCreateCommandId(connection, item.CommandLine, commandHash);
+                        long locationId = GetOrCreateLocationId(connection, location);
+
+                        // Convert DateTime to Unix timestamp (INTEGER)
+                        long startTimeUnix = ((DateTimeOffset)item.StartTime).ToUnixTimeSeconds();
+                        long lastExecutedUnix = ((DateTimeOffset)DateTime.UtcNow).ToUnixTimeSeconds();
+
+                        // Insert or update execution history
+                        using var command = connection.CreateCommand();
+                        command.CommandText = @"
+INSERT INTO ExecutionHistory (CommandId, LocationId, StartTime, ElapsedTime, ExecutionCount, LastExecuted)
+VALUES (@CommandId, @LocationId, @StartTime, @ElapsedTime, 1, @LastExecuted)
+ON CONFLICT(CommandId, LocationId) DO UPDATE SET
+    ExecutionCount = ExecutionCount + 1,
+    LastExecuted = excluded.LastExecuted,
+    ElapsedTime = excluded.ElapsedTime";
+
+                        command.Parameters.AddWithValue("@CommandId", commandId);
+                        command.Parameters.AddWithValue("@LocationId", locationId);
+                        command.Parameters.AddWithValue("@StartTime", startTimeUnix);
+                        command.Parameters.AddWithValue("@ElapsedTime", item.ApproximateElapsedTime.Ticks);
+                        command.Parameters.AddWithValue("@LastExecuted", lastExecutedUnix);
+                        command.ExecuteNonQuery();
+
+                        // Read back the total ExecutionCount across all locations so the in-memory item stays in sync
+                        using var countCmd = connection.CreateCommand();
+                        countCmd.Transaction = transaction;
+                        countCmd.CommandText = "SELECT SUM(ExecutionCount) FROM ExecutionHistory WHERE CommandId = @CommandId";
+                        countCmd.Parameters.AddWithValue("@CommandId", commandId);
+                        var count = countCmd.ExecuteScalar();
+                        if (count != null)
+                        {
+                            item.ExecutionCount = Convert.ToInt32(count);
+                        }
+                    }
+
+                    transaction.Commit();
+                }
+                catch (Exception e)
+                {
+                    ReportHistoryFileError(e);
+                }
+            });
+        }
+
+        private static string ComputeCommandHash(string command)
+        {
+            using var sha256 = System.Security.Cryptography.SHA256.Create();
+            byte[] hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(command));
+            return BitConverter.ToString(hashBytes).Replace("-", "");
         }
 
         private void SaveHistoryAtExit()
         {
-            WriteHistoryRange(0, _history.Count - 1, overwritten: true);
+            if (_options.HistoryType == HistoryType.SQLite)
+            {
+                WriteHistoryToSQLite(0, _history.Count - 1);
+            }
+            else
+            {
+                WriteHistoryRange(0, _history.Count - 1, overwritten: true);
+            }
         }
 
         private int historyErrorReportedCount;
@@ -411,6 +810,7 @@ namespace Microsoft.PowerShell
         /// </summary>
         private List<string> ReadHistoryFileIncrementally()
         {
+            // Read history from a text file
             var fileInfo = new FileInfo(Options.HistorySavePath);
             if (fileInfo.Exists && fileInfo.Length != _historyFileLastSavedSize)
             {
@@ -433,22 +833,209 @@ namespace Microsoft.PowerShell
             return null;
         }
 
+        private List<HistoryItem> ReadHistorySQLiteIncrementally()
+        {
+            var historyItems = new List<HistoryItem>();
+            try
+            {
+                string baseConnectionString = $"Data Source={_options.HistorySavePath}";
+                var connectionString = new SqliteConnectionStringBuilder(baseConnectionString)
+                {
+                    Mode = SqliteOpenMode.ReadOnly
+                }.ToString();
+
+                using var connection = new SqliteConnection(connectionString);
+                connection.Open();
+
+                using (var command = connection.CreateCommand())
+                {
+                    // Use the HistoryView to get all the joined data, filtering by ExecutionHistory.Id.
+                    // ExecutionCount is the SUM across all locations (total runs).
+                    command.CommandText = @"
+SELECT hv.CommandLine, hv.StartTime, hv.ElapsedTime, hv.Location,
+       (SELECT SUM(eh2.ExecutionCount) FROM ExecutionHistory eh2
+        JOIN Commands c2 ON eh2.CommandId = c2.Id
+        WHERE c2.CommandLine = hv.CommandLine) AS TotalExecutionCount
+FROM HistoryView hv
+WHERE hv.Id > @LastId
+ORDER BY hv.Id ASC";
+                    command.Parameters.AddWithValue("@LastId", _historyFileLastSavedSize);
+
+                    using var reader = command.ExecuteReader();
+                    while (reader.Read())
+                    {
+                        var item = new HistoryItem
+                        {
+                            CommandLine = reader.GetString(0),
+                            StartTime = DateTimeOffset.FromUnixTimeSeconds(reader.GetInt64(1)).DateTime,
+                            ApproximateElapsedTime = TimeSpan.FromTicks(reader.GetInt64(2)),
+                            Location = reader.GetString(3),
+                            ExecutionCount = reader.GetInt32(4),
+                            FromHistoryFile = true,
+                            FromOtherSession = true,
+                            _saved = true,
+                            _edits = new List<EditItem> { EditItemInsertString.Create(reader.GetString(0), 0) },
+                            _undoEditIndex = 1,
+                            _editGroupStart = -1
+                        };
+                        historyItems.Add(item);
+                    }
+                }
+
+                // Update the last saved size to the latest ID in the ExecutionHistory table
+                using (var command = connection.CreateCommand())
+                {
+                    command.CommandText = "SELECT MAX(Id) FROM ExecutionHistory";
+                    var result = command.ExecuteScalar();
+                    if (result != DBNull.Value)
+                    {
+                        _historyFileLastSavedSize = Convert.ToInt64(result);
+                    }
+                }
+            }
+            catch (SqliteException ex)
+            {
+                Console.WriteLine($"SQLite error reading history: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error reading history from SQLite: {ex.Message}");
+            }
+
+            return historyItems.Count > 0 ? historyItems : null;
+        }
+
         private bool MaybeReadHistoryFile()
         {
             if (Options.HistorySaveStyle == HistorySaveStyle.SaveIncrementally)
             {
                 return WithHistoryFileMutexDo(1000, () =>
                 {
-                    List<string> historyLines = ReadHistoryFileIncrementally();
-                    if (historyLines != null)
+                    if (_options.HistoryType == HistoryType.SQLite)
                     {
-                        UpdateHistoryFromFile(historyLines, fromDifferentSession: true, fromInitialRead: false);
+                        List<HistoryItem> historyItems = ReadHistorySQLiteIncrementally();
+                        if (historyItems != null)
+                        {
+                            foreach (var item in historyItems)
+                            {
+                                _history.Enqueue(item);
+                                _currentHistoryIndex = _history.Count;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        List<string> historyLines = ReadHistoryFileIncrementally();
+                        if (historyLines != null)
+                        {
+                            UpdateHistoryFromFile(historyLines, fromDifferentSession: true, fromInitialRead: false);
+                        }
                     }
                 });
             }
 
             // true means no errors, not that we actually read the file
             return true;
+}
+
+        private void ReadSQLiteHistory(bool fromOtherSession)
+        {
+            _historyFileMutex ??= new Mutex(false, GetHistorySaveFileMutexName());
+
+            WithHistoryFileMutexDo(1000, () =>
+            {
+                try
+                {
+                    string baseConnectionString = $"Data Source={_options.HistorySavePath}";
+                    var connectionString = new SqliteConnectionStringBuilder(baseConnectionString)
+                    {
+                        Mode = SqliteOpenMode.ReadOnly
+                    }.ToString();
+
+                    using var connection = new SqliteConnection(connectionString);
+                    connection.Open();
+
+                    using var command = connection.CreateCommand();
+
+                    int limit = Options.MaximumHistoryCount switch
+                    {
+                        <= 10000 => 10000,   // Similar to 0.5MB text optimization
+                        <= 20000 => 20000,   // Similar to 1MB text optimization  
+                        _ => Options.MaximumHistoryCount
+                    };
+
+                    // Load history in chronological order, deduplicated by CommandLine.
+                    // When the same command exists at multiple locations, keep the most
+                    // recently executed entry so that basic Up/Down recall is simple
+                    // reverse-chronological navigation with no duplicates.
+                    // ExecutionCount is the SUM across all locations (total runs).
+                    command.CommandText = @"
+WITH Ranked AS (
+    SELECT CommandLine, StartTime, ElapsedTime, Location, ExecutionCount, LastExecuted,
+           ROW_NUMBER() OVER (PARTITION BY CommandLine ORDER BY LastExecuted DESC) AS rn
+    FROM HistoryView
+),
+TotalCounts AS (
+    SELECT c.CommandLine, SUM(eh.ExecutionCount) AS TotalExecutionCount
+    FROM ExecutionHistory eh
+    JOIN Commands c ON eh.CommandId = c.Id
+    GROUP BY c.CommandLine
+)
+SELECT r.CommandLine, r.StartTime, r.ElapsedTime, r.Location, tc.TotalExecutionCount
+FROM Ranked r
+JOIN TotalCounts tc ON r.CommandLine = tc.CommandLine
+WHERE r.rn = 1
+ORDER BY r.LastExecuted DESC
+LIMIT @Limit";
+                    command.Parameters.AddWithValue("@Limit", limit);
+
+                    var historyItems = new List<HistoryItem>();
+                    using var reader = command.ExecuteReader();
+                    while (reader.Read())
+                    {
+                        var item = new HistoryItem
+                        {
+                            CommandLine = reader.GetString(0),
+                            StartTime = DateTimeOffset.FromUnixTimeSeconds(reader.GetInt64(1)).DateTime,
+                            ApproximateElapsedTime = TimeSpan.FromTicks(reader.GetInt64(2)),
+                            Location = reader.GetString(3),
+                            ExecutionCount = reader.GetInt32(4),
+                            FromHistoryFile = true,
+                            FromOtherSession = fromOtherSession,
+                            _saved = true,
+                            _edits = new List<EditItem> { EditItemInsertString.Create(reader.GetString(0), 0) },
+                            _undoEditIndex = 1,
+                            _editGroupStart = -1
+                        };
+
+                        historyItems.Add(item);
+                    }
+
+                    historyItems.Reverse();
+
+                    foreach (var item in historyItems)
+                    {
+                        _history.Enqueue(item);
+                    }
+
+                    // Update the last saved size to the latest ID in the database
+                    using var idCommand = connection.CreateCommand();
+                    idCommand.CommandText = "SELECT MAX(Id) FROM ExecutionHistory";
+                    var result = idCommand.ExecuteScalar();
+                    if (result != DBNull.Value)
+                    {
+                        _historyFileLastSavedSize = Convert.ToInt64(result);
+                    }
+                }
+                catch (SqliteException ex)
+                {
+                    ReportHistoryFileError(ex);
+                }
+                catch (Exception ex)
+                {
+                    ReportHistoryFileError(ex);
+                }
+            });
         }
 
         private void ReadHistoryFile()
@@ -463,54 +1050,54 @@ namespace Microsoft.PowerShell
                     _historyFileLastSavedSize = fileInfo.Length;
                 });
             }
+        }
 
-            static IEnumerable<string> ReadHistoryLinesImpl(string path, int historyCount)
+        private IEnumerable<string> ReadHistoryLinesImpl(string path, int historyCount)
+        {
+            const long offset_1mb = 1048576;
+            const long offset_05mb = 524288;
+
+            // 1mb content contains more than 34,000 history lines for a typical usage, which should be
+            // more than enough to cover 20,000 history records (a history record could be a multi-line
+            // command). Similarly, 0.5mb content should be enough to cover 10,000 history records.
+            // We optimize the file reading when the history count falls in those ranges. If the history
+            // count is even larger, which should be very rare, we just read all lines.
+            long offset = historyCount switch
             {
-                const long offset_1mb = 1048576;
-                const long offset_05mb = 524288;
+                <= 10000 => offset_05mb,
+                <= 20000 => offset_1mb,
+                _ => 0,
+            };
 
-                // 1mb content contains more than 34,000 history lines for a typical usage, which should be
-                // more than enough to cover 20,000 history records (a history record could be a multi-line
-                // command). Similarly, 0.5mb content should be enough to cover 10,000 history records.
-                // We optimize the file reading when the history count falls in those ranges. If the history
-                // count is even larger, which should be very rare, we just read all lines.
-                long offset = historyCount switch
+            using var fs = new FileStream(path, FileMode.Open);
+            using var sr = new StreamReader(fs);
+
+            if (offset > 0 && fs.Length > offset)
+            {
+                // When the file size is larger than the offset, we only read that amount of content from the end.
+                fs.Seek(-offset, SeekOrigin.End);
+
+                // After seeking, the current position may point at the middle of a history record, or even at a
+                // byte within a UTF-8 character (history file is saved with UTF-8 encoding). So, let's ignore the
+                // first line read from that position.
+                sr.ReadLine();
+
+                string line;
+                while ((line = sr.ReadLine()) is not null)
                 {
-                    <= 10000 => offset_05mb,
-                    <= 20000 => offset_1mb,
-                    _ => 0,
-                };
-
-                using var fs = new FileStream(path, FileMode.Open);
-                using var sr = new StreamReader(fs);
-
-                if (offset > 0 && fs.Length > offset)
-                {
-                    // When the file size is larger than the offset, we only read that amount of content from the end.
-                    fs.Seek(-offset, SeekOrigin.End);
-
-                    // After seeking, the current position may point at the middle of a history record, or even at a
-                    // byte within a UTF-8 character (history file is saved with UTF-8 encoding). So, let's ignore the
-                    // first line read from that position.
-                    sr.ReadLine();
-
-                    string line;
-                    while ((line = sr.ReadLine()) is not null)
+                    if (!line.EndsWith("`", StringComparison.Ordinal))
                     {
-                        if (!line.EndsWith("`", StringComparison.Ordinal))
-                        {
-                            // A complete history record is guaranteed to start from the next line.
-                            break;
-                        }
+                        // A complete history record is guaranteed to start from the next line.
+                        break;
                     }
                 }
+            }
 
-                // Read lines in the streaming way, so it won't consume to much memory even if we have to
-                // read all lines from a large history file.
-                while (!sr.EndOfStream)
-                {
-                    yield return sr.ReadLine();
-                }
+            // Read lines in the streaming way, so it won't consume to much memory even if we have to
+            // read all lines from a large history file.
+            while (!sr.EndOfStream)
+            {
+                yield return sr.ReadLine();
             }
         }
 
@@ -529,13 +1116,13 @@ namespace Microsoft.PowerShell
                     sb.Append(line);
                     var l = sb.ToString();
                     var editItems = new List<EditItem> {EditItemInsertString.Create(l, 0)};
-                    MaybeAddToHistory(l, editItems, 1, fromDifferentSession, fromInitialRead);
+                    MaybeAddToHistory(l, editItems, 1, null, fromDifferentSession, fromInitialRead);
                     sb.Clear();
                 }
                 else
                 {
                     var editItems = new List<EditItem> {EditItemInsertString.Create(line, 0)};
-                    MaybeAddToHistory(line, editItems, 1, fromDifferentSession, fromInitialRead);
+                    MaybeAddToHistory(line, editItems, 1, null, fromDifferentSession, fromInitialRead);
                 }
             }
         }
@@ -808,6 +1395,275 @@ namespace Microsoft.PowerShell
         }
 
         /// <summary>
+        /// Add a command to the history with a specified location.
+        /// </summary>
+        internal static void AddToHistory(string command, string location)
+        {
+            command = command.Replace("\r\n", "\n");
+            var editItems = new List<EditItem> {EditItemInsertString.Create(command, 0)};
+            _singleton.MaybeAddToHistory(command, editItems, 1, location: location);
+        }
+
+        /// <summary>
+        /// Remove a specific command from history (both in-memory and SQLite if applicable).
+        /// Returns true if any items were removed.
+        /// </summary>
+        public static bool RemoveHistoryItem(string commandLine)
+        {
+            if (string.IsNullOrEmpty(commandLine))
+                return false;
+
+            bool removed = false;
+
+            // Remove from in-memory history
+            var history = _singleton._history;
+            if (history != null)
+            {
+                var itemsToKeep = new List<HistoryItem>();
+                for (int i = 0; i < history.Count; i++)
+                {
+                    if (!string.Equals(history[i].CommandLine, commandLine, StringComparison.Ordinal))
+                    {
+                        itemsToKeep.Add(history[i]);
+                    }
+                    else
+                    {
+                        removed = true;
+                    }
+                }
+
+                if (removed)
+                {
+                    history.Clear();
+                    foreach (var item in itemsToKeep)
+                    {
+                        history.Enqueue(item);
+                    }
+                    _singleton._currentHistoryIndex = history.Count;
+                }
+            }
+
+            // Remove from SQLite database if using SQLite history
+            if (_singleton._options?.HistoryType == HistoryType.SQLite &&
+                !string.IsNullOrEmpty(_singleton._options.HistorySavePath))
+            {
+                removed |= _singleton.RemoveFromSQLiteHistory(commandLine);
+            }
+
+            return removed;
+        }
+
+        private bool RemoveFromSQLiteHistory(string commandLine)
+        {
+            try
+            {
+                string baseConnectionString = $"Data Source={_options.HistorySavePath}";
+                var connectionString = new SqliteConnectionStringBuilder(baseConnectionString)
+                {
+                    Mode = SqliteOpenMode.ReadWrite
+                }.ToString();
+
+                using var connection = new SqliteConnection(connectionString);
+                connection.Open();
+
+                // Find the command ID
+                using var findCmd = connection.CreateCommand();
+                findCmd.CommandText = "SELECT Id FROM Commands WHERE CommandLine = @CommandLine";
+                findCmd.Parameters.AddWithValue("@CommandLine", commandLine);
+                var commandIdObj = findCmd.ExecuteScalar();
+
+                if (commandIdObj == null)
+                    return false;
+
+                long commandId = Convert.ToInt64(commandIdObj);
+
+                using var transaction = connection.BeginTransaction();
+
+                // Delete execution history entries first (foreign key constraint)
+                using var deleteEH = connection.CreateCommand();
+                deleteEH.CommandText = "DELETE FROM ExecutionHistory WHERE CommandId = @CommandId";
+                deleteEH.Parameters.AddWithValue("@CommandId", commandId);
+                deleteEH.ExecuteNonQuery();
+
+                // Delete the command itself
+                using var deleteCmd = connection.CreateCommand();
+                deleteCmd.CommandText = "DELETE FROM Commands WHERE Id = @CommandId";
+                deleteCmd.Parameters.AddWithValue("@CommandId", commandId);
+                int deletedRows = deleteCmd.ExecuteNonQuery();
+
+                transaction.Commit();
+                return deletedRows > 0;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Remove a specific command from history scoped to a single location (both in-memory and SQLite if applicable).
+        /// In-memory items are removed only when both <c>CommandLine</c> and <c>Location</c> match; in SQLite the
+        /// <c>ExecutionHistory</c> row for the matching <c>(Command, Location)</c> pair is deleted, and the
+        /// <c>Commands</c> row is dropped only when no other location still references it.
+        /// Returns true if any items were removed.
+        /// </summary>
+        public static bool RemoveHistoryItemAtLocation(string commandLine, string location)
+        {
+            if (string.IsNullOrEmpty(commandLine) || string.IsNullOrEmpty(location))
+                return false;
+
+            bool removed = false;
+
+            // Remove from in-memory history — only items whose Location matches.
+            var history = _singleton._history;
+            if (history != null)
+            {
+                var itemsToKeep = new List<HistoryItem>();
+                for (int i = 0; i < history.Count; i++)
+                {
+                    var item = history[i];
+                    if (string.Equals(item.CommandLine, commandLine, StringComparison.Ordinal) &&
+                        string.Equals(item.Location, location, StringComparison.Ordinal))
+                    {
+                        removed = true;
+                    }
+                    else
+                    {
+                        itemsToKeep.Add(item);
+                    }
+                }
+
+                if (removed)
+                {
+                    history.Clear();
+                    foreach (var item in itemsToKeep)
+                    {
+                        history.Enqueue(item);
+                    }
+                    _singleton._currentHistoryIndex = history.Count;
+                }
+            }
+
+            // Remove from SQLite database if using SQLite history
+            if (_singleton._options?.HistoryType == HistoryType.SQLite &&
+                !string.IsNullOrEmpty(_singleton._options.HistorySavePath))
+            {
+                removed |= _singleton.RemoveFromSQLiteHistoryAtLocation(commandLine, location);
+            }
+
+            return removed;
+        }
+
+        private bool RemoveFromSQLiteHistoryAtLocation(string commandLine, string location)
+        {
+            try
+            {
+                string baseConnectionString = $"Data Source={_options.HistorySavePath}";
+                var connectionString = new SqliteConnectionStringBuilder(baseConnectionString)
+                {
+                    Mode = SqliteOpenMode.ReadWrite
+                }.ToString();
+
+                using var connection = new SqliteConnection(connectionString);
+                connection.Open();
+
+                // Find the command ID
+                using var findCmd = connection.CreateCommand();
+                findCmd.CommandText = "SELECT Id FROM Commands WHERE CommandLine = @CommandLine";
+                findCmd.Parameters.AddWithValue("@CommandLine", commandLine);
+                var commandIdObj = findCmd.ExecuteScalar();
+                if (commandIdObj == null)
+                    return false;
+                long commandId = Convert.ToInt64(commandIdObj);
+
+                // Find the location ID. If the location doesn't exist in the DB, there's nothing to delete.
+                using var findLoc = connection.CreateCommand();
+                findLoc.CommandText = "SELECT Id FROM Locations WHERE Path = @Path";
+                findLoc.Parameters.AddWithValue("@Path", location);
+                var locationIdObj = findLoc.ExecuteScalar();
+                if (locationIdObj == null)
+                    return false;
+                long locationId = Convert.ToInt64(locationIdObj);
+
+                using var transaction = connection.BeginTransaction();
+
+                // Delete the ExecutionHistory row for this (Command, Location) only.
+                using var deleteEH = connection.CreateCommand();
+                deleteEH.CommandText = "DELETE FROM ExecutionHistory WHERE CommandId = @CommandId AND LocationId = @LocationId";
+                deleteEH.Parameters.AddWithValue("@CommandId", commandId);
+                deleteEH.Parameters.AddWithValue("@LocationId", locationId);
+                int deletedRows = deleteEH.ExecuteNonQuery();
+
+                if (deletedRows == 0)
+                {
+                    transaction.Rollback();
+                    return false;
+                }
+
+                // If no other location still references this command, drop the Commands row too
+                // so it stops appearing in global queries.
+                using var orphanCheck = connection.CreateCommand();
+                orphanCheck.CommandText = "SELECT COUNT(*) FROM ExecutionHistory WHERE CommandId = @CommandId";
+                orphanCheck.Parameters.AddWithValue("@CommandId", commandId);
+                long remaining = Convert.ToInt64(orphanCheck.ExecuteScalar());
+                if (remaining == 0)
+                {
+                    using var deleteCmd = connection.CreateCommand();
+                    deleteCmd.CommandText = "DELETE FROM Commands WHERE Id = @CommandId";
+                    deleteCmd.Parameters.AddWithValue("@CommandId", commandId);
+                    deleteCmd.ExecuteNonQuery();
+                }
+
+                transaction.Commit();
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Query per-location execution counts for all commands at the given location.
+        /// Returns a dictionary mapping CommandLine -> ExecutionCount for that location.
+        /// </summary>
+        private Dictionary<string, long> GetLocationExecutionCounts(string location)
+        {
+            var counts = new Dictionary<string, long>(StringComparer.Ordinal);
+            try
+            {
+                string baseConnectionString = $"Data Source={_options.HistorySavePath}";
+                var connectionString = new SqliteConnectionStringBuilder(baseConnectionString)
+                {
+                    Mode = SqliteOpenMode.ReadOnly
+                }.ToString();
+
+                using var connection = new SqliteConnection(connectionString);
+                connection.Open();
+
+                using var cmd = connection.CreateCommand();
+                cmd.CommandText = @"
+                    SELECT c.CommandLine, eh.ExecutionCount
+                    FROM ExecutionHistory eh
+                    JOIN Commands c ON eh.CommandId = c.Id
+                    JOIN Locations l ON eh.LocationId = l.Id
+                    WHERE l.Path = @Location";
+                cmd.Parameters.AddWithValue("@Location", location);
+
+                using var reader = cmd.ExecuteReader();
+                while (reader.Read())
+                {
+                    counts[reader.GetString(0)] = reader.GetInt64(1);
+                }
+            }
+            catch (Exception)
+            {
+                // On failure, return empty — caller falls back to total ExecutionCount
+            }
+            return counts;
+        }
+
+        /// <summary>
         /// Clears history in PSReadLine.  This does not affect PowerShell history.
         /// </summary>
         public static void ClearHistory(ConsoleKeyInfo? key = null, object arg = null)
@@ -891,7 +1747,7 @@ namespace Microsoft.PowerShell
                 return;
             }
 
-            if (Options.HistoryNoDuplicates && _recallHistoryCommandCount == 0)
+            if (Options.HistoryNoDuplicates && _hashedHistory == null)
             {
                 _hashedHistory = new Dictionary<string, int>();
             }
@@ -902,6 +1758,7 @@ namespace Microsoft.PowerShell
             while (count > 0)
             {
                 newHistoryIndex += direction;
+
                 if (newHistoryIndex < 0 || newHistoryIndex >= _history.Count)
                 {
                     break;
@@ -931,6 +1788,7 @@ namespace Microsoft.PowerShell
                 }
             }
             _recallHistoryCommandCount += 1;
+
             if (newHistoryIndex >= 0 && newHistoryIndex <= _history.Count)
             {
                 _currentHistoryIndex = newHistoryIndex;
@@ -939,6 +1797,292 @@ namespace Microsoft.PowerShell
                     : HistoryMoveCursor.ToEnd;
                 UpdateFromHistory(moveCursor);
             }
+
+            // Show position indicator while navigating chronological history.
+            // Position 1 = newest navigable item; total = number of items reachable
+            // by Up/Down (i.e., excluding FromOtherSession entries, which HistoryRecall
+            // skips above). Counting raw _history slots would make the indicator jump
+            // by hundreds when many cross-session items sit between two in-session
+            // commands.
+            if (_history.Count > 0 && _currentHistoryIndex < _history.Count)
+            {
+                int navigableTotal = 0;
+                int navigableFromOldest = 0;
+                for (int i = 0; i < _history.Count; i++)
+                {
+                    if (_history[i].FromOtherSession)
+                    {
+                        continue;
+                    }
+                    navigableTotal++;
+                    if (i <= _currentHistoryIndex)
+                    {
+                        navigableFromOldest++;
+                    }
+                }
+
+                if (navigableTotal > 0 && navigableFromOldest > 0)
+                {
+                    int positionFromNewest = navigableTotal - navigableFromOldest + 1;
+                    ShowHistoryNavStatus(positionFromNewest, navigableTotal, locationMode: false);
+                }
+            }
+        }
+
+        // Renders a small "[<emoji> pos/total]" status line below the prompt while
+        // the user is navigating history. Cleared by the ReadLine main loop once
+        // any non-history key is pressed.
+        private void ShowHistoryNavStatus(int position, int total, bool locationMode)
+        {
+            if (total <= 0)
+            {
+                return;
+            }
+
+            // ⏱ (U+23F1, BMP, 1 char / 1 cell) for chronological recency-based recall,
+            // 📂 (U+1F4C2, surrogate pair = 2 chars / 2 cells) for location-filtered
+            // recall. Both fit the buffer-width math in Render.cs.
+            // Brackets stay in the status line's default color; inner text uses the
+            // ListPredictionColor (gold/yellow by default — matches F2 list metadata).
+            // When AccessibleHistoryDisplay is enabled, render plain-text labels so screen
+            // readers don't verbalize Unicode emoji names. ASCII labels keep cell-count ==
+            // char-count, so the buffer-width math in GetStatusLineCount() still works.
+            var color = _options?._listPredictionColor ?? "\x1b[33m";
+            bool accessible = _options?.AccessibleHistoryDisplay ?? false;
+            string innerText;
+            if (accessible)
+            {
+                innerText = locationMode
+                    ? $"Location {position}/{total}"
+                    : $"History {position}/{total}";
+            }
+            else
+            {
+                innerText = locationMode
+                    ? $"\uD83D\uDCC2 {position}/{total}"
+                    : $"\u23F1 {position}/{total}";
+            }
+            _statusLinePrompt = $"[{color}{innerText}\x1b[0m]";
+            _statusBuffer.Clear();
+            _statusIsErrorMessage = false;
+            _historyNavStatusActive = true;
+            RenderWithPredictionQueryPaused();
+        }
+
+        /// <summary>
+        /// Remove the currently displayed history item from history (both in-memory and SQLite if applicable).
+        /// Works when browsing history with Up/Down arrows or when an item is selected in the F2 list view.
+        /// </summary>
+        public static void RemoveFromHistory(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            var history = _singleton._history;
+            if (history == null || history.Count == 0)
+            {
+                Ding();
+                return;
+            }
+
+            // Check if we're in the F2 list prediction view with a selected item.
+            // Handle this path separately — no history recall counters needed since
+            // we stay in the list view, and incrementing them would leave _hashedHistory
+            // null for the next HistoryRecall call (causing NullReferenceException).
+            if (_singleton._prediction.ActiveView is PredictionListView listView
+                && listView.HasActiveSuggestion
+                && listView.SelectedItemIndex >= 0)
+            {
+                string commandToRemove = listView.SelectedItemText;
+                if (commandToRemove == null)
+                {
+                    Ding();
+                    return;
+                }
+
+                RemoveHistoryItem(commandToRemove);
+
+                if (!listView.RemoveSelectedItem())
+                {
+                    // List became empty — close the list view
+                    RevertLine();
+                }
+                else
+                {
+                    // Re-render so the user sees the item disappear immediately.
+                    ReplaceSelection(listView.SelectedItemText);
+                }
+
+                return;
+            }
+
+            // Normal history browsing path (Up/Down arrows).
+            // Signal to the main ReadLine loop that this is a history command,
+            // so it doesn't reset _currentHistoryIndex after we set it.
+            _singleton._recallHistoryCommandCount += 1;
+            _singleton._anyHistoryCommandCount += 1;
+
+            string commandLine = null;
+            if (_singleton._currentHistoryIndex < history.Count)
+            {
+                commandLine = history[_singleton._currentHistoryIndex].CommandLine;
+            }
+
+            if (commandLine == null)
+            {
+                Ding();
+                return;
+            }
+
+            // Save position before RemoveHistoryItem resets _currentHistoryIndex to Count
+            int savedIndex = _singleton._currentHistoryIndex;
+
+            RemoveHistoryItem(commandLine);
+
+            // In normal history browsing: advance to the next older item
+            // (same direction as Up arrow) so the user can keep deleting
+            // consecutive items without bouncing back to the top.
+            if (history.Count == 0)
+            {
+                _singleton._currentHistoryIndex = 0;
+                RevertLine();
+            }
+            else
+            {
+                // Items below savedIndex didn't move, so the next older item
+                // is at savedIndex - 1. If we were at the oldest item already,
+                // show whatever is now at index 0 (the former next-newer item).
+                _singleton._currentHistoryIndex = Math.Max(savedIndex - 1, 0);
+                _singleton.UpdateFromHistory(HistoryMoveCursor.ToEnd);
+            }
+        }
+
+        /// <summary>
+        /// Remove the currently displayed history item from history at the *current location only*.
+        /// In SQLite mode this deletes only the <c>ExecutionHistory</c> row for the current directory
+        /// (and the <c>Commands</c> row only if no other location still references it). In-memory items
+        /// run at other locations are preserved. In Text mode this falls back to a global removal because
+        /// per-location data isn't tracked.
+        /// </summary>
+        public static void RemoveFromHistoryAtCurrentLocation(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            var history = _singleton._history;
+            if (history == null || history.Count == 0)
+            {
+                Ding();
+                return;
+            }
+
+            string currentLocation = _singleton.GetCurrentLocation();
+
+            // Text mode (or no current location available): fall back to the global removal so the user
+            // still gets a useful action. Per-location semantics require SQLite.
+            if (string.IsNullOrEmpty(currentLocation) ||
+                _singleton._options?.HistoryType != HistoryType.SQLite)
+            {
+                RemoveFromHistory(key, arg);
+                return;
+            }
+
+            // F2 list view path — same handling as RemoveFromHistory but scoped to current location.
+            if (_singleton._prediction.ActiveView is PredictionListView listView
+                && listView.HasActiveSuggestion
+                && listView.SelectedItemIndex >= 0)
+            {
+                string commandToRemove = listView.SelectedItemText;
+                if (commandToRemove == null)
+                {
+                    Ding();
+                    return;
+                }
+
+                if (!RemoveHistoryItemAtLocation(commandToRemove, currentLocation))
+                {
+                    // Nothing was removed (item isn't recorded at this location). Don't disturb the list.
+                    Ding();
+                    return;
+                }
+
+                if (!listView.RemoveSelectedItem())
+                {
+                    RevertLine();
+                }
+                else
+                {
+                    ReplaceSelection(listView.SelectedItemText);
+                }
+
+                return;
+            }
+
+            // Normal history browsing path. See RemoveFromHistory for the counter-increment rationale.
+            _singleton._recallHistoryCommandCount += 1;
+            _singleton._anyHistoryCommandCount += 1;
+
+            string commandLine = null;
+            if (_singleton._currentHistoryIndex < history.Count)
+            {
+                commandLine = history[_singleton._currentHistoryIndex].CommandLine;
+            }
+
+            if (commandLine == null)
+            {
+                Ding();
+                return;
+            }
+
+            int savedIndex = _singleton._currentHistoryIndex;
+            bool wasInLocationMode = _singleton._locationHistoryActive;
+            int savedLocationPos = _singleton._locationSortedPosition;
+
+            if (!RemoveHistoryItemAtLocation(commandLine, currentLocation))
+            {
+                // The displayed item wasn't run at this location, so location-scoped delete is a no-op.
+                // Ding to signal "nothing happened" without falling through to a destructive global delete.
+                Ding();
+                return;
+            }
+
+            if (history.Count == 0)
+            {
+                _singleton._currentHistoryIndex = 0;
+                _singleton._locationSortedIndices = null;
+                _singleton._locationSortedPosition = -1;
+                RevertLine();
+                return;
+            }
+
+            if (wasInLocationMode)
+            {
+                // RemoveHistoryItemAtLocation rebuilt _history (Clear + Enqueue), so every
+                // index in _locationSortedIndices is now stale. Rebuild the sorted list against
+                // the new _history and reposition to the next item in the location list (clamped).
+                // Bump _locationHistoryCommandCount so the main loop's sticky-mode teardown
+                // doesn't fire on the next key press.
+                _singleton._locationHistoryCommandCount += 1;
+                _singleton._locationSortedIndices = null;
+                _singleton.BuildLocationSortedIndices(currentLocation);
+
+                if (_singleton._locationSortedIndices.Count == 0)
+                {
+                    // No more items at this location — exit location mode and clear the line.
+                    _singleton._locationSortedPosition = -1;
+                    _singleton._locationHistoryActive = false;
+                    _singleton._currentHistoryIndex = history.Count;
+                    RevertLine();
+                    _singleton.ClearStatusMessage(render: true);
+                    return;
+                }
+
+                // The item at savedLocationPos was just removed; whatever was at savedLocationPos+1
+                // now sits at savedLocationPos. Stay on that slot, clamped to the new end.
+                int newPos = Math.Min(Math.Max(savedLocationPos, 0), _singleton._locationSortedIndices.Count - 1);
+                _singleton._locationSortedPosition = newPos;
+                _singleton._currentHistoryIndex = _singleton._locationSortedIndices[newPos];
+                _singleton.UpdateFromHistory(HistoryMoveCursor.ToEnd);
+                _singleton.ShowHistoryNavStatus(newPos + 1, _singleton._locationSortedIndices.Count, locationMode: true);
+                return;
+            }
+
+            _singleton._currentHistoryIndex = Math.Max(savedIndex - 1, 0);
+            _singleton.UpdateFromHistory(HistoryMoveCursor.ToEnd);
         }
 
         /// <summary>
@@ -958,7 +2102,17 @@ namespace Microsoft.PowerShell
             }
 
             _singleton.SaveCurrentLine();
-            _singleton.HistoryRecall(numericArg);
+            // Sticky location mode: if the user entered location-filtered navigation
+            // (Alt+Up), keep filtering by location even when they release Alt and
+            // press plain Up/Down. They exit by editing or doing any non-history op.
+            if (_singleton._locationHistoryActive)
+            {
+                _singleton.LocationHistoryRecall(numericArg);
+            }
+            else
+            {
+                _singleton.HistoryRecall(numericArg);
+            }
         }
 
         /// <summary>
@@ -973,7 +2127,167 @@ namespace Microsoft.PowerShell
             }
 
             _singleton.SaveCurrentLine();
-            _singleton.HistoryRecall(numericArg);
+            if (_singleton._locationHistoryActive)
+            {
+                _singleton.LocationHistoryRecall(numericArg);
+            }
+            else
+            {
+                _singleton.HistoryRecall(numericArg);
+            }
+        }
+
+        /// <summary>
+        /// Replace the current input with the 'previous' item from PSReadLine history
+        /// that was executed from the same location (directory).
+        /// </summary>
+        public static void PreviousLocationHistory(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            TryGetArgAsInt(arg, out var numericArg, -1);
+            if (numericArg > 0)
+            {
+                numericArg = -numericArg;
+            }
+
+            if (UpdateListSelection(numericArg))
+            {
+                return;
+            }
+
+            _singleton.SaveCurrentLine();
+            _singleton.LocationHistoryRecall(numericArg);
+        }
+
+        /// <summary>
+        /// Replace the current input with the 'next' item from PSReadLine history
+        /// that was executed from the same location (directory).
+        /// </summary>
+        public static void NextLocationHistory(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            TryGetArgAsInt(arg, out var numericArg, +1);
+            if (UpdateListSelection(numericArg))
+            {
+                return;
+            }
+
+            _singleton.SaveCurrentLine();
+            _singleton.LocationHistoryRecall(numericArg);
+        }
+
+        private string GetCurrentLocation()
+        {
+            return _testCurrentLocation ?? _engineIntrinsics?.SessionState?.Path?.CurrentLocation?.Path;
+        }
+
+        // For unit testing: allows tests to simulate a current directory
+        internal static string _testCurrentLocation;
+
+        private void LocationHistoryRecall(int direction)
+        {
+            if (_locationHistoryCommandCount == 0 && !_locationHistoryActive && LineIsMultiLine())
+            {
+                MoveToLine(direction);
+                return;
+            }
+
+            var currentLocation = GetCurrentLocation();
+            if (string.IsNullOrEmpty(currentLocation))
+            {
+                // Fall back to normal recall if we can't determine location
+                HistoryRecall(direction);
+                return;
+            }
+
+            // First entry into location mode (or after sorted list was cleared by exit):
+            // build a weighted index of location-matching history items.
+            // Ordering: location match (primary), then frequency DESC, then recency DESC.
+            if (_locationSortedIndices == null)
+            {
+                BuildLocationSortedIndices(currentLocation);
+                _locationSortedPosition = -1;
+            }
+
+            _locationHistoryActive = true;
+            _locationHistoryCommandCount += 1;
+
+            // Navigate: Alt+Up (direction < 0) advances forward through sorted list,
+            // Alt+Down (direction > 0) goes back.
+            int count = Math.Abs(direction);
+            int step = direction < 0 ? 1 : -1;
+            int newPosition = _locationSortedPosition;
+
+            while (count > 0)
+            {
+                newPosition += step;
+                if (newPosition < 0 || newPosition >= _locationSortedIndices.Count)
+                {
+                    break;
+                }
+                --count;
+            }
+
+            if (newPosition >= 0 && newPosition < _locationSortedIndices.Count)
+            {
+                _locationSortedPosition = newPosition;
+                _currentHistoryIndex = _locationSortedIndices[newPosition];
+                var moveCursor = InViCommandMode() && !_options.HistorySearchCursorMovesToEnd
+                    ? HistoryMoveCursor.ToBeginning
+                    : HistoryMoveCursor.ToEnd;
+                UpdateFromHistory(moveCursor);
+            }
+
+            // Show position indicator: [BOOK pos/total] (location-filtered).
+            ShowHistoryNavStatus(_locationSortedPosition + 1, _locationSortedIndices.Count, locationMode: true);
+        }
+
+        // Builds _locationSortedIndices for the given location, applying the same
+        // dedup + frecency sort used by LocationHistoryRecall. Caller is responsible
+        // for resetting _locationSortedPosition.
+        private void BuildLocationSortedIndices(string currentLocation)
+        {
+            var seen = new HashSet<string>(StringComparer.Ordinal);
+            _locationSortedIndices = new List<int>();
+
+            for (int i = 0; i < _history.Count; i++)
+            {
+                if (string.Equals(_history[i].Location, currentLocation, StringComparison.OrdinalIgnoreCase))
+                {
+                    if (seen.Add(_history[i].CommandLine))
+                    {
+                        _locationSortedIndices.Add(i);
+                    }
+                }
+            }
+
+            // In SQLite mode, query per-location execution counts so that sorting
+            // reflects how often each command was run *in this directory* rather than
+            // the total across all locations (which inflates commands like "code ."
+            // that were run once here but many times elsewhere).
+            Dictionary<string, long> localCounts = null;
+            if (_options.HistoryType == HistoryType.SQLite && !string.IsNullOrEmpty(_options.HistorySavePath))
+            {
+                localCounts = GetLocationExecutionCounts(currentLocation);
+            }
+
+            // Sort by per-location frequency DESC (SQLite) or total frequency DESC (Text),
+            // then by position DESC (more recent first).
+            _locationSortedIndices.Sort((a, b) =>
+            {
+                long countA, countB;
+                if (localCounts != null)
+                {
+                    localCounts.TryGetValue(_history[a].CommandLine, out countA);
+                    localCounts.TryGetValue(_history[b].CommandLine, out countB);
+                }
+                else
+                {
+                    countA = _history[a].ExecutionCount;
+                    countB = _history[b].ExecutionCount;
+                }
+                int freqCmp = countB.CompareTo(countA);
+                if (freqCmp != 0) return freqCmp;
+                return b.CompareTo(a);
+            });
         }
 
         private void HistorySearch(int direction)
@@ -1301,6 +2615,202 @@ namespace Microsoft.PowerShell
         public static void ReverseSearchHistory(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton.InteractiveHistorySearch(-1);
+        }
+
+        private void UpdateLocationHistoryDuringInteractiveSearch(string toMatch, int direction, string currentLocation, ref int searchFromPoint)
+        {
+            searchFromPoint += direction;
+            for (; searchFromPoint >= 0 && searchFromPoint < _history.Count; searchFromPoint += direction)
+            {
+                // Filter by location
+                if (!string.Equals(_history[searchFromPoint].Location, currentLocation, StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                var line = _history[searchFromPoint].CommandLine;
+                var startIndex = line.IndexOf(toMatch, Options.HistoryStringComparison);
+                if (startIndex >= 0)
+                {
+                    if (Options.HistoryNoDuplicates)
+                    {
+                        if (!_hashedHistory.TryGetValue(line, out var index))
+                        {
+                            _hashedHistory.Add(line, searchFromPoint);
+                        }
+                        else if (index != searchFromPoint)
+                        {
+                            continue;
+                        }
+                    }
+                    _statusLinePrompt = direction > 0 ? _forwardLocationISearchPrompt : _backwardLocationISearchPrompt;
+                    _current = startIndex;
+                    _emphasisStart = startIndex;
+                    _emphasisLength = toMatch.Length;
+                    _currentHistoryIndex = searchFromPoint;
+                    var moveCursor = Options.HistorySearchCursorMovesToEnd
+                        ? HistoryMoveCursor.ToEnd
+                        : HistoryMoveCursor.DontMove;
+                    UpdateFromHistory(moveCursor);
+                    return;
+                }
+            }
+
+            if (searchFromPoint < 0)
+                searchFromPoint = -1;
+            else if (searchFromPoint >= _history.Count)
+                searchFromPoint = _history.Count;
+
+            _emphasisStart = -1;
+            _emphasisLength = 0;
+            _statusLinePrompt = direction > 0 ? _failedForwardLocationISearchPrompt : _failedBackwardLocationISearchPrompt;
+            Render();
+        }
+
+        private void InteractiveLocationHistorySearchLoop(int direction, string currentLocation)
+        {
+            var searchFromPoint = _currentHistoryIndex;
+            var searchPositions = new Stack<int>();
+            searchPositions.Push(_currentHistoryIndex);
+
+            if (Options.HistoryNoDuplicates)
+            {
+                _hashedHistory = new Dictionary<string, int>();
+            }
+
+            var toMatch = new StringBuilder(64);
+            while (true)
+            {
+                var key = ReadKey();
+                _dispatchTable.TryGetValue(key, out var handler);
+                var function = handler?.Action;
+                if (function == ReverseLocationSearchHistory)
+                {
+                    UpdateLocationHistoryDuringInteractiveSearch(toMatch.ToString(), -1, currentLocation, ref searchFromPoint);
+                }
+                else if (function == ForwardLocationSearchHistory)
+                {
+                    UpdateLocationHistoryDuringInteractiveSearch(toMatch.ToString(), +1, currentLocation, ref searchFromPoint);
+                }
+                else if (function == BackwardDeleteChar
+                    || key == Keys.Backspace
+                    || key == Keys.CtrlH)
+                {
+                    if (toMatch.Length > 0)
+                    {
+                        toMatch.Remove(toMatch.Length - 1, 1);
+                        _statusBuffer.Remove(_statusBuffer.Length - 2, 1);
+                        searchPositions.Pop();
+                        searchFromPoint = _currentHistoryIndex = searchPositions.Peek();
+                        var moveCursor = Options.HistorySearchCursorMovesToEnd
+                            ? HistoryMoveCursor.ToEnd
+                            : HistoryMoveCursor.DontMove;
+                        UpdateFromHistory(moveCursor);
+
+                        if (_hashedHistory != null)
+                        {
+                            foreach (var pair in _hashedHistory.ToArray())
+                            {
+                                if (pair.Value < searchFromPoint)
+                                {
+                                    _hashedHistory.Remove(pair.Key);
+                                }
+                            }
+                        }
+
+                        var toMatchStr = toMatch.ToString();
+                        var startIndex = _buffer.ToString().IndexOf(toMatchStr, Options.HistoryStringComparison);
+                        if (startIndex >= 0)
+                        {
+                            _statusLinePrompt = direction > 0 ? _forwardLocationISearchPrompt : _backwardLocationISearchPrompt;
+                            _current = startIndex;
+                            _emphasisStart = startIndex;
+                            _emphasisLength = toMatch.Length;
+                            Render();
+                        }
+                    }
+                    else
+                    {
+                        Ding();
+                    }
+                }
+                else if (key == Keys.Escape)
+                {
+                    break;
+                }
+                else if (function == Abort)
+                {
+                    GoToEndOfHistory();
+                    break;
+                }
+                else
+                {
+                    char toAppend = key.KeyChar;
+                    if (char.IsControl(toAppend))
+                    {
+                        PrependQueuedKeys(key);
+                        break;
+                    }
+                    toMatch.Append(toAppend);
+                    _statusBuffer.Insert(_statusBuffer.Length - 1, toAppend);
+
+                    var toMatchStr = toMatch.ToString();
+                    var startIndex = _buffer.ToString().IndexOf(toMatchStr, Options.HistoryStringComparison);
+                    if (startIndex < 0)
+                    {
+                        UpdateLocationHistoryDuringInteractiveSearch(toMatchStr, direction, currentLocation, ref searchFromPoint);
+                    }
+                    else
+                    {
+                        _current = startIndex;
+                        _emphasisStart = startIndex;
+                        _emphasisLength = toMatch.Length;
+                        Render();
+                    }
+                    searchPositions.Push(_currentHistoryIndex);
+                }
+            }
+        }
+
+        private void InteractiveLocationHistorySearch(int direction)
+        {
+            var currentLocation = GetCurrentLocation();
+            if (string.IsNullOrEmpty(currentLocation))
+            {
+                // Fall back to regular interactive search if location unavailable
+                InteractiveHistorySearch(direction);
+                return;
+            }
+
+            using var _ = _prediction.DisableScoped();
+            SaveCurrentLine();
+
+            _statusLinePrompt = direction > 0 ? _forwardLocationISearchPrompt : _backwardLocationISearchPrompt;
+            _statusBuffer.Append("_");
+
+            Render();
+            InteractiveLocationHistorySearchLoop(direction, currentLocation);
+
+            _emphasisStart = -1;
+            _emphasisLength = 0;
+
+            ClearStatusMessage(render: true);
+        }
+
+        /// <summary>
+        /// Perform an incremental forward search through history, filtered to commands executed from the current location.
+        /// </summary>
+        public static void ForwardLocationSearchHistory(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            _singleton.InteractiveLocationHistorySearch(+1);
+        }
+
+        /// <summary>
+        /// Perform an incremental backward search through history, filtered to commands executed from the current location.
+        /// </summary>
+        public static void ReverseLocationSearchHistory(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            _singleton.InteractiveLocationHistorySearch(-1);
         }
     }
 }

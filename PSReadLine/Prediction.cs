@@ -57,6 +57,11 @@ namespace Microsoft.PowerShell
             }
         }
 
+        private static string GetCurrentLocation(EngineIntrinsics engineIntrinsics)
+        {
+            return engineIntrinsics?.SessionState?.Path?.CurrentLocation?.Path ?? "Unknown";
+        }
+
         // Stub helper methods so prediction can be mocked
         [ExcludeFromCodeCoverage]
         Task<List<PredictionResult>> IPSConsoleReadLineMockableMethods.PredictInputAsync(Ast ast, Token[] tokens)
