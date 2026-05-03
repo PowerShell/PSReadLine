@@ -113,6 +113,21 @@ namespace Microsoft.PowerShell
         public const int DefaultMaximumHistoryCount = 4096;
 
         /// <summary>
+        /// The number of lines in prediction list;
+        /// </summary>
+        public const int DefaultPredictionListCount = 50;
+
+        /// <summary>
+        /// The number of lines in history prediction list;
+        /// </summary>
+        public const int DefaultPredictionHistoryCount = 10;
+
+        /// <summary>
+        /// The number of lines to show from prediction list;
+        /// </summary>
+        public const int DefaultPredictionViewHeight = 10;
+
+        /// <summary>
         /// The maximum number of items to store in the kill ring.
         /// </summary>
         public const int DefaultMaximumKillRingCount = 10;
@@ -202,6 +217,9 @@ namespace Microsoft.PowerShell
             ContinuationPromptColor = Console.ForegroundColor;
             ExtraPromptLineCount = DefaultExtraPromptLineCount;
             AddToHistoryHandler = DefaultAddToHistoryHandler;
+            PredictionListCount = DefaultPredictionListCount;
+            PredictionHistoryCount = DefaultPredictionHistoryCount;
+            PredictionViewHeight = DefaultPredictionViewHeight;
             HistoryNoDuplicates = DefaultHistoryNoDuplicates;
             MaximumKillRingCount = DefaultMaximumKillRingCount;
             HistorySearchCursorMovesToEnd = DefaultHistorySearchCursorMovesToEnd;
@@ -342,6 +360,9 @@ namespace Microsoft.PowerShell
 
         public int MaximumHistoryCount { get; set; }
         public int MaximumKillRingCount { get; set; }
+        public int PredictionListCount { get; set; }
+        public int PredictionHistoryCount { get; set; }
+        public int PredictionViewHeight { get; set; }
         public bool HistorySearchCursorMovesToEnd { get; set; }
         public bool ShowToolTips { get; set; }
         public int DingTone { get; set; }
@@ -654,6 +675,33 @@ namespace Microsoft.PowerShell
         [Parameter]
         [AllowEmptyString]
         public string ContinuationPrompt { get; set; }
+
+        [Parameter]
+        [ValidateRange(1, int.MaxValue)]
+        public int PredictionListCount
+        {
+            get => _predictionListCount.GetValueOrDefault();
+            set => _predictionListCount = value;
+        }
+        internal int? _predictionListCount;
+
+        [Parameter]
+        [ValidateRange(1, int.MaxValue)]
+        public int PredictionHistoryCount
+        {
+            get => _predictionHistoryCount.GetValueOrDefault();
+            set => _predictionHistoryCount = value;
+        }
+        internal int? _predictionHistoryCount;
+
+        [Parameter]
+        [ValidateRange(1, int.MaxValue)]
+        public int PredictionViewHeight
+        {
+            get => _predictionViewHeight.GetValueOrDefault();
+            set => _predictionViewHeight = value;
+        }
+        internal int? _predictionViewHeight;
 
         [Parameter]
         public SwitchParameter HistoryNoDuplicates

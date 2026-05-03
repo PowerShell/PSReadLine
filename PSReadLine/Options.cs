@@ -26,6 +26,18 @@ namespace Microsoft.PowerShell
             {
                 Options.ContinuationPrompt = options.ContinuationPrompt;
             }
+            if (options._predictionListCount.HasValue)
+            {
+                Options.PredictionListCount = options.PredictionListCount;
+            }
+            if (options._predictionHistoryCount.HasValue)
+            {
+                Options.PredictionHistoryCount = options.PredictionHistoryCount;
+            }
+            if (options._predictionViewHeight.HasValue)
+            {
+                Options.PredictionViewHeight = options.PredictionViewHeight;
+            }
             if (options._historyNoDuplicates.HasValue)
             {
                 Options.HistoryNoDuplicates = options.HistoryNoDuplicates;
