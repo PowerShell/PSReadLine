@@ -270,6 +270,7 @@ namespace Microsoft.PowerShell
             {
                 { Keys.Backspace,              MakeKeyHandler(BackwardDeleteChar,        "BackwardDeleteChar") },
                 { Keys.Enter,                  MakeKeyHandler(AcceptLine,                "AcceptLine") },
+                { Keys.CtrlEnter,              MakeKeyHandler(AcceptLine,                "AcceptLine") },
                 { Keys.ShiftEnter,             MakeKeyHandler(AddLine,                   "AddLine") },
                 { Keys.LeftArrow,              MakeKeyHandler(BackwardChar,              "BackwardChar") },
                 { Keys.RightArrow,             MakeKeyHandler(ForwardChar,               "ForwardChar") },
