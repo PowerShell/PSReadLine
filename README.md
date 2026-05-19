@@ -60,7 +60,9 @@ If you only want to get the latest stable version, run:
 Install-Module PSReadLine -Repository PSGallery -Scope CurrentUser -Force
 ```
 
->[!NOTE] Prerelease versions will have newer features and bug fixes, but may also introduce new issues.
+> [!NOTE]
+>
+> Prerelease versions will have newer features and bug fixes, but may also introduce new issues.
 
 ## Usage
 
