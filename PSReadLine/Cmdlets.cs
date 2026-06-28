@@ -82,14 +82,14 @@ namespace Microsoft.PowerShell
     public class PSConsoleReadLineOptions
     {
         public const ConsoleColor DefaultCommentColor   = ConsoleColor.DarkGreen;
-        public const ConsoleColor DefaultKeywordColor   = ConsoleColor.Green;
-        public const ConsoleColor DefaultStringColor    = ConsoleColor.DarkCyan;
-        public const ConsoleColor DefaultOperatorColor  = ConsoleColor.DarkGray;
+        public const ConsoleColor DefaultKeywordColor   = ConsoleColor.Magenta;
+        public const ConsoleColor DefaultStringColor    = ConsoleColor.Green;
+        public const ConsoleColor DefaultOperatorColor  = ConsoleColor.Cyan;
         public const ConsoleColor DefaultVariableColor  = ConsoleColor.Green;
-        public const ConsoleColor DefaultCommandColor   = ConsoleColor.Yellow;
-        public const ConsoleColor DefaultParameterColor = ConsoleColor.DarkGray;
-        public const ConsoleColor DefaultTypeColor      = ConsoleColor.Gray;
-        public const ConsoleColor DefaultNumberColor    = ConsoleColor.White;
+        public const ConsoleColor DefaultCommandColor   = ConsoleColor.Blue;
+        public const ConsoleColor DefaultParameterColor = ConsoleColor.Magenta;
+        public const ConsoleColor DefaultTypeColor      = ConsoleColor.Cyan;
+        public const ConsoleColor DefaultNumberColor    = ConsoleColor.Yellow;
         public const ConsoleColor DefaultMemberColor    = ConsoleColor.Gray;
         public const ConsoleColor DefaultEmphasisColor  = ConsoleColor.Cyan;
         public const ConsoleColor DefaultErrorColor     = ConsoleColor.Red;
