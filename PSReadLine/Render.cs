@@ -166,6 +166,18 @@ namespace Microsoft.PowerShell
         };
         private int _initialX;
         private int _initialY;
+
+        /// <summary>
+        /// The width, in buffer cells, of the last logical line of the prompt, measured from column 0
+        /// of the physical line where that logical line starts.
+        /// This does not depend on the buffer width, whereas '_initialX' is the column of the same
+        /// point at the current buffer width, and hence is only ever this value modulo that width.
+        /// We keep it so that '_initialX' can be recomputed after the buffer width changes: reducing
+        /// '_initialX' in place would discard how many physical lines the prompt spans, and the
+        /// column could then never be recovered when the buffer is made wider again.
+        /// </summary>
+        private int _initialPromptCells;
+
         private bool _waitingToRender;
         private bool _handlePotentialResizing;
 
@@ -885,6 +897,7 @@ namespace Microsoft.PowerShell
                     }
 
                     _initialX = _console.CursorLeft;
+                    _initialPromptCells = _initialX;
                     _initialY = _console.CursorTop;
                     _previousRender = _initialPrevRender;
                 }
@@ -1244,6 +1257,7 @@ namespace Microsoft.PowerShell
                     }
 
                     _initialX = _console.CursorLeft;
+                    _initialPromptCells = _initialX;
                     _initialY = _console.CursorTop;
                     _previousRender = _initialPrevRender;
                 }
@@ -1257,8 +1271,11 @@ namespace Microsoft.PowerShell
                 // The '_buffer' and '_current' still reflects what has been rendered on the screen,
                 // so we can use them to re-calculate the initial coordinates in this case.
 
-                // Recompute X from the buffer width:
-                _initialX %= _console.BufferWidth;
+                // Recompute X from the prompt's cell width, which doesn't change with the buffer width.
+                // Reducing '_initialX' in place instead gives the same result for the first narrowing,
+                // but loses how many physical lines the prompt spans, so the column could not be
+                // recovered when the buffer is made wider again.
+                _initialX = _initialPromptCells % _console.BufferWidth;
 
                 // Recompute Y from the cursor
                 _initialY = 0;
@@ -1293,8 +1310,11 @@ namespace Microsoft.PowerShell
                     throw new InvalidOperationException(message);
                 }
 
-                // Recompute X from the buffer width:
-                _initialX %= _console.BufferWidth;
+                // Recompute X from the prompt's cell width, which doesn't change with the buffer width.
+                // Reducing '_initialX' in place instead gives the same result for the first narrowing,
+                // but loses how many physical lines the prompt spans, so the column could not be
+                // recovered when the buffer is made wider again.
+                _initialX = _initialPromptCells % _console.BufferWidth;
 
                 // Recompute Y from the cursor
                 _initialY = 0;

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Text;
 using Microsoft.PowerShell;
 using Newtonsoft.Json;
 using Xunit;
@@ -180,6 +181,87 @@ namespace Test
                         context.LastLineLen == lastLinelen,
                         $"{test.Name}-context_{i}: calculated physical line count or length of last physical line is not what's expected [count: {lineCount}, lastLen: {lastLinelen}]");
                 }
+            }
+        }
+
+        private static FieldInfo GetInstanceField(string name)
+        {
+            return typeof(PSConsoleReadLine).GetField(name, BindingFlags.Instance | BindingFlags.NonPublic);
+        }
+
+        [Fact]
+        public void RecomputeInitialCoords_ShouldRecoverInitialXWhenBufferGetsWider()
+        {
+            // The column of the initial coordinates is the width of the prompt reduced modulo the
+            // buffer width, so a prompt of 36 cells walked through the buffer widths below has to
+            // give 36, 1, 36, 11 and 36 in turn. Reducing the column in place on each change gives
+            // the right answer only for the first one, because it discards how many physical lines
+            // the prompt spans and the column can then no longer be recovered.
+            //
+            // Only the column is checked here. Recovering the row relies on the terminal having
+            // reflowed the screen buffer, which the test console does not do.
+            const int promptCells = 36;
+            const int bufferHeight = 100;
+            int[] bufferWidths = { 100, 35, 60, 25, 100 };
+
+            PSConsoleReadLine instance = GetPSConsoleReadLineSingleton();
+            FieldInfo consoleField = GetInstanceField("_console");
+            FieldInfo bufferField = GetInstanceField("_buffer");
+            FieldInfo currentField = GetInstanceField("_current");
+            FieldInfo initialXField = GetInstanceField("_initialX");
+            FieldInfo initialYField = GetInstanceField("_initialY");
+            FieldInfo initialPromptCellsField = GetInstanceField("_initialPromptCells");
+            FieldInfo previousRenderField = GetInstanceField("_previousRender");
+            FieldInfo handlePotentialResizingField = GetInstanceField("_handlePotentialResizing");
+            MethodInfo recomputeInitialCoords = typeof(PSConsoleReadLine)
+                .GetMethod("RecomputeInitialCoords", BindingFlags.Instance | BindingFlags.NonPublic);
+
+            object savedConsole = consoleField.GetValue(instance);
+            object savedBuffer = bufferField.GetValue(instance);
+            object savedCurrent = currentField.GetValue(instance);
+            object savedPreviousRender = previousRenderField.GetValue(instance);
+
+            try
+            {
+                // An empty input keeps the initial row at 0 throughout, so a plain test console is
+                // all that is needed to report each new buffer width.
+                bufferField.SetValue(instance, new StringBuilder());
+                currentField.SetValue(instance, 0);
+                initialPromptCellsField.SetValue(instance, promptCells);
+                initialXField.SetValue(instance, promptCells % bufferWidths[0]);
+                initialYField.SetValue(instance, 0);
+
+                RenderData previousRender = new()
+                {
+                    lines = new[] { new RenderedLineData(line: "", isFirstLogicalLine: true) }
+                };
+
+                foreach (int bufferWidth in bufferWidths)
+                {
+                    TestConsole console = new(_, bufferWidth, bufferHeight);
+                    consoleField.SetValue(instance, console);
+
+                    previousRender.initialY = (int)initialYField.GetValue(instance);
+                    previousRenderField.SetValue(instance, previousRender);
+                    handlePotentialResizingField.SetValue(instance, true);
+
+                    recomputeInitialCoords.Invoke(instance, new object[] { true });
+
+                    int initialX = (int)initialXField.GetValue(instance);
+                    Assert.True(
+                        promptCells % bufferWidth == initialX,
+                        $"buffer width {bufferWidth}: initial column is {initialX} but should be {promptCells % bufferWidth}");
+
+                    // The render data now describes the buffer as it was before the next change.
+                    previousRender.UpdateConsoleInfo(console);
+                }
+            }
+            finally
+            {
+                consoleField.SetValue(instance, savedConsole);
+                bufferField.SetValue(instance, savedBuffer);
+                currentField.SetValue(instance, savedCurrent);
+                previousRenderField.SetValue(instance, savedPreviousRender);
             }
         }
     }
