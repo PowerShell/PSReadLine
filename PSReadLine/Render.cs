@@ -166,6 +166,20 @@ namespace Microsoft.PowerShell
         };
         private int _initialX;
         private int _initialY;
+
+        /// <summary>
+        /// The width, in buffer cells, of the last logical line of the prompt, measured from column 0
+        /// of the physical line where that logical line starts.
+        /// This does not depend on the buffer width, whereas '_initialX' is the column of the same
+        /// point at the current buffer width, and hence is only ever this value modulo that width.
+        /// It is what we believe the anchor's column to be after a buffer width change, and it is only
+        /// a belief: it is seeded from '_initialX', so it is itself already reduced whenever 'ReadLine'
+        /// starts on a buffer narrower than the prompt. 'RecomputeInitialCoordsFromCursor' checks it
+        /// against the physical cursor, takes a column the cursor agrees with when it disagrees, and
+        /// falls back to it when the cursor cannot tell the columns apart.
+        /// </summary>
+        private int _initialPromptCells;
+
         private bool _waitingToRender;
         private bool _handlePotentialResizing;
 
@@ -885,6 +899,7 @@ namespace Microsoft.PowerShell
                     }
 
                     _initialX = _console.CursorLeft;
+                    _initialPromptCells = _initialX;
                     _initialY = _console.CursorTop;
                     _previousRender = _initialPrevRender;
                 }
@@ -1244,6 +1259,7 @@ namespace Microsoft.PowerShell
                     }
 
                     _initialX = _console.CursorLeft;
+                    _initialPromptCells = _initialX;
                     _initialY = _console.CursorTop;
                     _previousRender = _initialPrevRender;
                 }
@@ -1257,15 +1273,16 @@ namespace Microsoft.PowerShell
                 // The '_buffer' and '_current' still reflects what has been rendered on the screen,
                 // so we can use them to re-calculate the initial coordinates in this case.
 
-                // Recompute X from the buffer width:
-                _initialX %= _console.BufferWidth;
-
-                // Recompute Y from the cursor
-                _initialY = 0;
-                // Calculate the new cursor position when assuming '_initialY' is at line 0.
-                var pt = ConvertOffsetToPoint(_current);
-                // Update '_initialY' based on the difference from the actual current cursor position after the resize.
-                _initialY = _console.CursorTop - pt.Y;
+                // Recompute both coordinates from the cursor. '_buffer' and '_current' say where the
+                // cursor is relative to the initial coordinates, and the console says where the cursor
+                // is on the screen; the difference between the two is the initial coordinates.
+                RecomputeInitialCoordsFromCursor(column =>
+                {
+                    // Put the anchor at 'column' of line 0 and render the input from there.
+                    _initialX = column;
+                    _initialY = 0;
+                    return ConvertOffsetToPoint(_current);
+                });
             }
             else
             {
@@ -1293,21 +1310,98 @@ namespace Microsoft.PowerShell
                     throw new InvalidOperationException(message);
                 }
 
-                // Recompute X from the buffer width:
-                _initialX %= _console.BufferWidth;
-
-                // Recompute Y from the cursor
-                _initialY = 0;
-                // Now, use the new initial coordinates, new buffer width, and the rendering data offset to calculate
-                // the new cursor position when assuming '_initialY' is at line 0.
-                Point pt = ConvertRenderDataOffsetToPoint(_initialX, _initialY, _console.BufferWidth, _previousRender, offset);
-                // Update '_initialY' based on the difference from the actual current cursor position after the resize.
+                // Recompute both coordinates from the cursor, the same way as above, except that the
+                // rendering data offset stands in for '_buffer' and '_current'.
                 // This is based on the assumption that the cursor is still pointing to the same character after resizing,
                 // or at least pointing to the physical line where the same character is located after resizing.
                 // However, that assumption is not always guaranteed in Windows Terminal, see the issue:
                 //    https://github.com/microsoft/terminal/issues/10848, and
                 //    https://github.com/microsoft/terminal/issues/10868
-                _initialY = _console.CursorTop - pt.Y;
+                RecomputeInitialCoordsFromCursor(
+                    column => ConvertRenderDataOffsetToPoint(column, 0, _console.BufferWidth, _previousRender, offset));
+            }
+        }
+
+        /// <summary>
+        /// Recompute the initial coordinates - the cell the edit line is anchored at - after the
+        /// buffer width changed, from where the console now says the cursor is.
+        /// </summary>
+        /// <param name="cursorPointFrom">
+        /// Where the cursor would be drawn if the anchor were at the given column of line 0. That is
+        /// the rendering of the current input, so its distance from the anchor is the display cell
+        /// offset from the anchor to the cursor.
+        /// </param>
+        /// <remarks>
+        /// The anchor cannot be observed after a resize: the terminal reflowed the screen and said
+        /// nothing about where it moved the prompt to. The cursor can be observed, and the terminal
+        /// moved the two together, so the anchor is at the column that would put the cursor where the
+        /// console says the cursor is, and at the row that many physical lines above the cursor's.
+        ///
+        /// With an empty input this makes the anchor the cursor, which is exactly what capturing the
+        /// initial coordinates at the start of 'ReadLine' would have given had 'ReadLine' been entered
+        /// at the new width - including the case where the prompt is wider than the buffer, which is
+        /// the case no arithmetic on '_initialX' can recover, because '_initialX' is by then already
+        /// the prompt's cell width reduced modulo the width it was captured at.
+        ///
+        /// The cursor does not always tell the columns apart. A newline in the input moves the
+        /// rendering to the continuation prompt's column no matter where the anchor is, so once the
+        /// cursor is past one, every column agrees with it; and a double width character pushed whole
+        /// onto the next physical line leaves a cell of slack, so two neighbouring columns can agree.
+        /// '_initialPromptCells' is the belief we already hold about the column, so it is where the
+        /// search starts and the answer whenever the cursor agrees with it - which makes this a strict
+        /// refinement of deriving the column from the prompt's cell width alone, and leaves the
+        /// behaviour of every input the cursor says nothing about unchanged.
+        /// </remarks>
+        private void RecomputeInitialCoordsFromCursor(Func<int, Point> cursorPointFrom)
+        {
+            int bufferWidth = _console.BufferWidth;
+            int cursorLeft = _console.CursorLeft;
+            int cursorTop = _console.CursorTop;
+
+            int believedX = _initialPromptCells % bufferWidth;
+            Point believed = cursorPointFrom(believedX);
+
+            int newX = believedX;
+            int newY = cursorTop - believed.Y;
+
+            if (believed.X != cursorLeft || newY < 0)
+            {
+                // The belief is not consistent with the cursor, so take the nearest column that is.
+                // A cursor above the anchor is not a state we can be in, so a column that implies one
+                // is no more of an answer than a column that puts the cursor elsewhere entirely.
+                for (int delta = 1; delta < bufferWidth; delta++)
+                {
+                    if (TryColumn(believedX - delta) || TryColumn(believedX + delta))
+                    {
+                        break;
+                    }
+                }
+            }
+
+            _initialX = newX;
+            _initialY = newY;
+
+            // '_initialPromptCells' is deliberately left as it is. What it holds over '_initialX' is
+            // how many physical lines the prompt spans at the width it was captured at, and the cursor
+            // never reveals that, so rewriting it here from a column observed at a different width
+            // would mix two units and lose the cases it does answer correctly today.
+
+            bool TryColumn(int column)
+            {
+                if (column < 0 || column >= bufferWidth)
+                {
+                    return false;
+                }
+
+                Point candidate = cursorPointFrom(column);
+                if (candidate.X != cursorLeft || cursorTop < candidate.Y)
+                {
+                    return false;
+                }
+
+                newX = column;
+                newY = cursorTop - candidate.Y;
+                return true;
             }
         }
 
