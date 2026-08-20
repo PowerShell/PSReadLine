@@ -1574,7 +1574,7 @@ namespace Microsoft.PowerShell.PSReadLine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Delete backward to the beginning of the previous word, as delimited by white space and common delimiters, and enter insert mode..
+        ///   Looks up a localized string similar to Move the cursor to the beginning of the current or previous word, as delimited by white space and common delimiters..
         /// </summary>
         internal static string ViBackwardWordDescription {
             get {

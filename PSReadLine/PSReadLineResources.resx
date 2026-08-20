@@ -601,7 +601,7 @@ If there are other parse errors, unresolved commands, or incorrect parameters, s
     <value>Replace the previous word.</value>
   </data>
   <data name="ViBackwardWordDescription" xml:space="preserve">
-    <value>Delete backward to the beginning of the previous word, as delimited by white space and common delimiters, and enter insert mode.</value>
+    <value>Move the cursor to the beginning of the current or previous word, as delimited by white space and common delimiters.</value>
   </data>
   <data name="ViBackwardCharDescription" xml:space="preserve">
     <value>Move the cursor back one character in the Vi edit mode.</value>
