@@ -553,7 +553,7 @@ If there are other parse errors, unresolved commands, or incorrect parameters, s
     <value>Replace the current character with only one character.</value>
   </data>
   <data name="ViReplaceLineDescription" xml:space="preserve">
-    <value>Repace the current line with the next set of characters typed.</value>
+    <value>Replace the current line with the next set of characters typed.</value>
   </data>
   <data name="ViReplaceToEndDescription" xml:space="preserve">
     <value>Replace the characters from the cursor position to the end of the line.</value>

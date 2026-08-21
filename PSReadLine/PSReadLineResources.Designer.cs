@@ -1826,7 +1826,7 @@ namespace Microsoft.PowerShell.PSReadLine {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Repace the current line with the next set of characters typed..
+        ///   Looks up a localized string similar to Replace the current line with the next set of characters typed..
         /// </summary>
         internal static string ViReplaceLineDescription {
             get {
