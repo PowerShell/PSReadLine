@@ -634,9 +634,7 @@ namespace Microsoft.PowerShell
         [ExcludeFromCodeCoverage]
         protected override void EndProcessing()
         {
-            var options = PSConsoleReadLine.GetOptions();
-            WriteObject(options);
-            PSConsoleReadLine.WarnWhenWindowSizeTooSmallForView(options.PredictionViewStyle, this);
+            WriteObject(PSConsoleReadLine.GetOptions());
         }
     }
 
