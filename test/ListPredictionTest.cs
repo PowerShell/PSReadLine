@@ -9,7 +9,7 @@ namespace Test
         // The source of truth is defined in 'Microsoft.PowerShell.PSConsoleReadLine+PredictionListView'.
         // Make sure the values are in sync.
         private const int MinWindowWidth = 50;
-        private const int MinWindowHeight = 15;
+        private const int MinWindowHeight = 5;
         private const int ListMaxWidth = 100;
         private const int SourceMaxWidth = 15;
 
