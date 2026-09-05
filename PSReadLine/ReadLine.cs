@@ -79,7 +79,7 @@ namespace Microsoft.PowerShell
         private static readonly Stopwatch _readkeyStopwatch = new Stopwatch();
 
         // Save a fixed # of keys so we can reconstruct a repro after a crash
-        private static readonly HistoryQueue<PSKeyInfo> _lastNKeys = new HistoryQueue<PSKeyInfo>(200);
+        private static readonly RingBuffer<PSKeyInfo> _lastNKeys = new RingBuffer<PSKeyInfo>(200);
 
         // Tokens etc.
         private Token[] _tokens;
@@ -818,7 +818,11 @@ namespace Microsoft.PowerShell
 
             if (_getNextHistoryIndex > 0)
             {
-                _currentHistoryIndex = _getNextHistoryIndex;
+                // This branch is specifically reached after AcceptAndGetNext and the command execution finished,
+                // a new history item will be enqueued into `_history`.
+                // If `_history` ring buffer is full, the original history item `_currentHistoryIndex` pointed to
+                // will be pushed forward after new item is enqueued, so we need to decrement the index by 1 here
+                _currentHistoryIndex = _getNextHistoryIndex - (_history.Count == _history.Capacity ? 1 : 0);
                 UpdateFromHistory(HistoryMoveCursor.ToEnd);
                 _getNextHistoryIndex = 0;
                 if (_searchHistoryCommandCount > 0)
@@ -891,8 +895,8 @@ namespace Microsoft.PowerShell
 
             _historyFileMutex = new Mutex(false, GetHistorySaveFileMutexName());
 
-            _history = new HistoryQueue<HistoryItem>(Options.MaximumHistoryCount);
-            _recentHistory = new HistoryQueue<string>(capacity: 5);
+            _history = new RingBuffer<HistoryItem>(Options.MaximumHistoryCount);
+            _recentHistory = new RingBuffer<string>(capacity: 5);
             _currentHistoryIndex = 0;
 
             bool readHistoryFile = true;
