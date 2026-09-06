@@ -312,6 +312,12 @@ namespace Test
             SetHistory("echo 1", "echo 2");
             Test("echo 1", Keys("e", _.UpArrow, _.UpArrow, _.Ctrl_o, InputAcceptedNow));
             Test("eee", Keys(_.DownArrow, _.DownArrow, "ee", _.Enter));
+
+            // if _history ring buffer is full, should work properly as well
+            PSConsoleReadLine.SetOptions(new() { MaximumHistoryCount = 3 });
+            SetHistory("echo 1", "echo 2", "echo 3");
+            Test("echo 1", Keys("e", _.UpArrow, _.UpArrow, _.UpArrow, _.Ctrl_o, InputAcceptedNow));
+            Test("echo 2", Keys(_.Enter));
         }
 
         [SkippableFact]

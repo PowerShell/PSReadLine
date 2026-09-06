@@ -90,8 +90,8 @@ namespace Microsoft.PowerShell
         }
 
         // History state
-        private HistoryQueue<HistoryItem> _history;
-        private HistoryQueue<string> _recentHistory;
+        private RingBuffer<HistoryItem> _history;
+        private RingBuffer<string> _recentHistory;
         private HistoryItem _previousHistoryItem;
         private Dictionary<string, int> _hashedHistory;
         private int _currentHistoryIndex;
@@ -827,6 +827,10 @@ namespace Microsoft.PowerShell
 
         enum HistoryMoveCursor { ToEnd, ToBeginning, DontMove }
 
+        /// <summary>
+        /// Set current line from the history item `_currentHistoryIndex` pointing to.
+        /// </summary>
+        /// <param name="moveCursor">How to move cursor after line being updated</param>
         private void UpdateFromHistory(HistoryMoveCursor moveCursor)
         {
             string line;
