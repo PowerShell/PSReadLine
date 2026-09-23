@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Management.Automation;
 using System.Text;
 using Microsoft.PowerShell;
@@ -8,6 +9,65 @@ namespace Test
 {
     public partial class ReadLine
     {
+        [SkippableFact]
+        public void TamilNonspacingCursorPosition()
+        {
+            TestSetup(KeyMode.Cmd);
+            const string text = "\u0bb5\u0ba3\u0b95\u0bcd\u0b95\u0bae\u0bcd \u0b87\u0baa\u0bcd\u0baa\u0b9f\u0bbf \u0b87\u0bb0\u0bc1\u0b95\u0bcd\u0b95\u0bc0\u0b99\u0bcd\u0b95 ?";
+            Test(text, Keys(
+                text.Select(c => new ConsoleKeyInfo(c, 0, false, false, false)),
+                CheckThat(() => AssertCursorLeftIs(25)),
+                _.Home,
+                CheckThat(() => AssertCursorLeftIs(4)),
+                _.End,
+                CheckThat(() => AssertCursorLeftIs(25))), prompt: "PS> ");
+        }
+
+        [SkippableFact]
+        public void TamilNonspacingCoordinateMappings()
+        {
+            TestSetup(KeyMode.Cmd);
+            const string text = "\u0b95\u0bcdX";
+            Test(text, Keys(text.Select(c => new ConsoleKeyInfo(c, 0, false, false, false)), CheckThat(() =>
+            {
+                var instance = (PSConsoleReadLine)_psrlInstance;
+                var map = typeof(PSConsoleReadLine).GetMethod(
+                    "ConvertLineAndColumnToOffset",
+                    System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+                Assert.Equal(2, (int)map.Invoke(instance, new object[] { new Point { X = 1, Y = 0 } }));
+
+                foreach (string line in new[] { text, "\u001b[31m\u0b95\u001b[0m\u0bcdX" })
+                {
+                    var data = new RenderData
+                    {
+                        bufferWidth = 60,
+                        cursorLeft = 1,
+                        cursorTop = 0,
+                        lines = new[] { new RenderedLineData(line, isFirstLogicalLine: true) }
+                    };
+                    var offset = instance.ConvertPointToRenderDataOffset(0, 0, data);
+                    Assert.Equal(0, offset.LogicalLineIndex);
+                    Assert.Equal(2, offset.VisibleCharIndex);
+                    var point = instance.ConvertRenderDataOffsetToPoint(0, 0, 60, data, offset);
+                    Assert.Equal(1, point.X);
+                    Assert.Equal(0, point.Y);
+                }
+            })));
+        }
+
+        [SkippableFact]
+        public void TamilNonspacingMarkBeforeWrappedNewline()
+        {
+            TestSetup(KeyMode.Cmd);
+            Test("X", Keys('X', CheckThat(() =>
+            {
+                var text = new StringBuilder(new string('a', _console.BufferWidth - 1) + "\u0b95\u0bcd\nX");
+                var point = ((PSConsoleReadLine)_psrlInstance).ConvertOffsetToPoint(text.Length, text);
+                Assert.Equal(ScreenReaderModeEnabled ? 1 : ContinuationPromptLength + 1, point.X);
+                Assert.Equal(1, point.Y);
+            })));
+        }
+
         [SkippableFact]
         public void ClearScreen()
         {
