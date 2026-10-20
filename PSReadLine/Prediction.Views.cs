@@ -208,9 +208,21 @@ namespace Microsoft.PowerShell
         /// </summary>
         private class PredictionListView : PredictionViewBase
         {
-            // Item count constants.
-            internal const int ListMaxCount = 50;
-            internal const int HistoryMaxCount = 10;
+            // Physical limit: What can actually fit on the screen?
+            // We use -2 for the cursor line and the "jitter buffer."
+            private int PhysicalMax => Math.Max(1, _singleton._console.BufferHeight - 2);
+
+            // Visible View: The smaller of (User Request) and (Physical Space)
+            internal int PredictionViewHeight => Math.Min(_singleton._options.PredictionViewHeight, PhysicalMax);
+
+            // Global Ceiling: Remains the total scrollable capacity
+            internal int ListMaxCount => _singleton._options.PredictionListCount;
+
+            // History Fetch: At least enough to fill the view, up to the total ListCount
+            internal int HistoryMaxCount => Math.Min(
+                Math.Max(_singleton._options.PredictionHistoryCount, PredictionViewHeight),
+                ListMaxCount
+            );
 
             // List view constants.
             internal const int ListViewMaxHeight = 10;
@@ -327,21 +339,31 @@ namespace Microsoft.PowerShell
             internal override bool HasActiveSuggestion => _listItems != null;
 
             /// <summary>
-            /// Calculate the max width and height of the list view based on the current terminal size.
+            /// Calculate the max width and height of the list view based on option value.
             /// </summary>
             private (int, int, int, bool) RefreshMaxViewSize()
             {
                 var console = _singleton._console;
                 int maxListWidth = Math.Min(console.BufferWidth, ListViewMaxWidth);
 
-                (int maxListHeight, int maxTooltipHeigth, bool moreCheck) = console.BufferHeight switch
-                {
-                    > ListViewMaxHeight * 2 => (ListViewMaxHeight, TooltipMaxHeight, false),
-                    > ListViewMaxHeight => (ListViewMaxHeight / 2, TooltipMaxHeight / 2, false),
-                    _ => (ListViewMaxHeight / 3, TooltipMaxHeight / 3, true)
-                };
+                if (HistoryMaxCount == 10) {
+                    // Don't change default behavior
+                    (int maxListHeight, int maxTooltipHeigth, bool moreCheck) = console.BufferHeight switch
+                    {
+                        > ListViewMaxHeight * 2 => (ListViewMaxHeight, TooltipMaxHeight, false),
+                        > ListViewMaxHeight => (ListViewMaxHeight / 2, TooltipMaxHeight / 2, false),
+                        _ => (ListViewMaxHeight / 3, TooltipMaxHeight / 3, true)
+                    };
 
-                return (maxListWidth, maxListHeight, maxTooltipHeigth, moreCheck);
+                    return (maxListWidth, maxListHeight, maxTooltipHeigth, moreCheck);
+                } else {
+                    int maxListHeight = HistoryMaxCount;
+                    int maxTooltipHeigth = TooltipMaxHeight;
+
+                    bool moreCheck = console.BufferHeight < maxListHeight + 2;
+
+                    return (maxListWidth, maxListHeight, maxTooltipHeigth, moreCheck);
+                }
             }
 
             /// <summary>
@@ -444,7 +466,7 @@ namespace Microsoft.PowerShell
                         _cacheList2 ??= new List<int>(); // This list holds the final number of suggestions that will be rendered for each of the predictors.
 
                         int pCount = 0;
-                        int hCount = Math.Min(3, _listItems.Count);
+                        int hCount = Math.Min(HistoryMaxCount, _listItems.Count);
                         int remRows = ListMaxCount - hCount;
 
                         // Calculate the number of plugins that we need to handle,
