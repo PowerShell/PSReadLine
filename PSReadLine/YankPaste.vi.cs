@@ -3,7 +3,7 @@ Copyright (c) Microsoft Corporation.  All rights reserved.
 --********************************************************************/
 
 using System;
-using System.Text;
+using System.Collections.Generic;
 
 namespace Microsoft.PowerShell
 {
@@ -12,7 +12,12 @@ namespace Microsoft.PowerShell
         // *must* be initialized in the static ctor
         // because it depends on static member _singleton
         // being initialized first.
-        private static readonly ViRegister _viRegister;
+        private static readonly IDictionary<string, ViRegister> _registers;
+
+        /// <summary>
+        /// The currently selected <see cref="ViRegister"/> object.
+        /// </summary>
+        private static ViRegister _viRegister;
 
         /// <summary>
         /// Paste the clipboard after the cursor, moving the cursor to the end of the pasted text.
@@ -44,18 +49,21 @@ namespace Microsoft.PowerShell
         private void PasteAfterImpl()
         {
             _current = _viRegister.PasteAfter(_buffer, _current);
+            ViSelectNamedRegister("");
             Render();
         }
 
         private void PasteBeforeImpl()
         {
             _current = _viRegister.PasteBefore(_buffer, _current);
+            ViSelectNamedRegister("");
             Render();
         }
 
         private void SaveToClipboard(int startIndex, int length)
         {
             _viRegister.Record(_buffer, startIndex, length);
+            ViSelectNamedRegister("");
         }
 
         /// <summary>
@@ -67,7 +75,17 @@ namespace Microsoft.PowerShell
         private void SaveLinesToClipboard(int lineIndex, int lineCount)
         {
             var range = _buffer.GetRange(lineIndex, lineCount);
-            _viRegister.LinewiseRecord(_buffer.ToString(range.Offset, range.Count));
+            SaveLinesToClipboard(_buffer.ToString(range.Offset, range.Count));
+        }
+
+        /// <summary>
+        /// Save the specified text as a linewise selection.
+        /// </summary>
+        /// <param name="text"></param>
+        private void SaveLinesToClipboard(string text)
+        {
+            _viRegister.LinewiseRecord(text);
+            ViSelectNamedRegister("");
         }
 
         /// <summary>
@@ -365,6 +383,40 @@ namespace Microsoft.PowerShell
                 end = _singleton.ViFindNextGlob(end);
             }
             _singleton.SaveToClipboard(_singleton._current, end - _singleton._current);
+        }
+
+        /// <summary>
+        /// Selects one the availabled named register for
+        /// subsequent yank/paste operations.
+        /// PSReadLine supports the following named registers:
+        ///
+        /// - "_" (underscore): void register
+        ///
+        /// In addition, PSReadLine supports an internal in-memory
+        /// unnamed register which is selected by default for all
+        /// yank/paste operations unless specifically overridden.
+        ///
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="arg"></param>
+        public static void ViSelectNamedRegister(ConsoleKeyInfo? key = null, object arg = null)
+        {
+            if (key != null)
+            {
+                var name = key.Value.KeyChar.ToString();
+                ViSelectNamedRegister(name);
+            }
+        }
+
+        private static void ViSelectNamedRegister(string name)
+        {
+            if (!_registers.ContainsKey(name))
+            {
+                Ding();
+                return;
+            }
+
+            _viRegister = _registers[name];
         }
     }
 }

@@ -711,7 +711,21 @@ namespace Microsoft.PowerShell
         static PSConsoleReadLine()
         {
             _singleton = new PSConsoleReadLine();
-            _viRegister = new ViRegister(_singleton);
+
+            _registers = new Dictionary<string, ViRegister> {
+                [""] = new ViRegister(_singleton, new InMemoryClipboard()),
+                ["_"] = new ViRegister(_singleton, new NoOpClipboard()),
+                ["\""] = new ViRegister(_singleton, new SystemClipboard()),
+            };
+
+            // '+' and '"' are synonyms
+
+            _registers["+"] = _registers["\""];
+
+            // default register is the unnamed local register
+
+            _viRegister = _registers[""];
+
             InitializePropertyInfo();
         }
 
