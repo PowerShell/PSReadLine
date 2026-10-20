@@ -62,7 +62,14 @@ namespace Microsoft.PowerShell
     {
         SkipAdding,
         MemoryOnly,
-        MemoryAndFile
+        MemoryAndFile,
+        SQLite
+    }
+
+    public enum HistoryType
+    {
+        Text,
+        SQLite
     }
 
     public enum PredictionSource
@@ -106,6 +113,12 @@ namespace Microsoft.PowerShell
         public static readonly EditMode DefaultEditMode;
 
         public const string DefaultContinuationPrompt = ">> ";
+
+        /// <summary>
+        /// The default history type is text-based history.
+        /// Users can change default behavior by setting this to SQLite in their profile.
+        /// </summary>
+        public const HistoryType DefaultHistoryType = HistoryType.Text;
 
         /// <summary>
         /// The maximum number of commands to store in the history.
@@ -198,6 +211,7 @@ namespace Microsoft.PowerShell
             ResetColors();
             EditMode = DefaultEditMode;
             ScreenReaderModeEnabled = Accessibility.IsScreenReaderActive();
+            HistoryType = DefaultHistoryType;
             ContinuationPrompt = DefaultContinuationPrompt;
             ContinuationPromptColor = Console.ForegroundColor;
             ExtraPromptLineCount = DefaultExtraPromptLineCount;
@@ -225,13 +239,20 @@ namespace Microsoft.PowerShell
             var historyFileName = hostName + "_history.txt";
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                HistorySavePath = System.IO.Path.Combine(
+                HistorySavePathText = System.IO.Path.Combine(
                     Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                     "Microsoft",
                     "Windows",
                     "PowerShell",
                     "PSReadLine",
                     historyFileName);
+                HistorySavePathSQLite = System.IO.Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                    "Microsoft",
+                    "Windows",
+                    "PowerShell",
+                    "PSReadLine",
+                    hostName + "_history.db");
             }
             else
             {
@@ -240,11 +261,16 @@ namespace Microsoft.PowerShell
 
                 if (!String.IsNullOrEmpty(historyPath))
                 {
-                    HistorySavePath = System.IO.Path.Combine(
+                    HistorySavePathText = System.IO.Path.Combine(
                         historyPath,
                         "powershell",
                         "PSReadLine",
                         historyFileName);
+                    HistorySavePathSQLite = System.IO.Path.Combine(
+                        historyPath,
+                        "powershell",
+                        "PSReadLine",
+                        hostName + "_history.db");
                 }
                 else
                 {
@@ -253,18 +279,26 @@ namespace Microsoft.PowerShell
 
                     if (!String.IsNullOrEmpty(home))
                     {
-                        HistorySavePath = System.IO.Path.Combine(
+                        HistorySavePathText = System.IO.Path.Combine(
                             home,
                             ".local",
                             "share",
                             "powershell",
                             "PSReadLine",
                             historyFileName);
+                        HistorySavePathSQLite = System.IO.Path.Combine(
+                            home,
+                            ".local",
+                            "share",
+                            "powershell",
+                            "PSReadLine",
+                            hostName + "_history.db");
                     }
                     else
                     {
                         // No HOME, then don't save anything
-                        HistorySavePath = "/dev/null";
+                        HistorySavePathText = "/dev/null";
+                        HistorySavePathSQLite = "/dev/null";
                     }
                 }
             }
@@ -333,6 +367,7 @@ namespace Microsoft.PowerShell
         /// that do invoke the script block - this covers the most useful cases.
         /// </summary>
         public HashSet<string> CommandsToValidateScriptBlockArguments { get; set; }
+        public HistoryType HistoryType { get; set; } = HistoryType.Text;
 
         /// <summary>
         /// When true, duplicates will not be recalled from history more than once.
@@ -369,9 +404,23 @@ namespace Microsoft.PowerShell
         public ScriptBlock ViModeChangeHandler { get; set; }
 
         /// <summary>
-        /// The path to the saved history.
+        /// The path to the text history file.
         /// </summary>
-        public string HistorySavePath { get; set; }
+        public string HistorySavePathText { get; set; }
+
+        /// <summary>
+        /// The path to the SQLite history database.
+        /// </summary>
+        public string HistorySavePathSQLite { get; set; }
+
+        /// <summary>
+        /// Returns the active history save path based on the current <see cref="HistoryType"/>.
+        /// </summary>
+        public string HistorySavePath => HistoryType switch
+        {
+            HistoryType.SQLite => HistorySavePathSQLite,
+            _ => HistorySavePathText,
+        };
         public HistorySaveStyle HistorySaveStyle { get; set; }
 
         /// <summary>
@@ -656,6 +705,20 @@ namespace Microsoft.PowerShell
         public string ContinuationPrompt { get; set; }
 
         [Parameter]
+        public HistoryType HistoryType
+        {
+            get => _historyType.GetValueOrDefault();
+            set
+            {
+                _historyType = value;
+                _historyTypeSpecified = true;
+            }
+        }
+
+        public HistoryType? _historyType = HistoryType.Text;
+        internal bool _historyTypeSpecified;
+
+        [Parameter]
         public SwitchParameter HistoryNoDuplicates
         {
             get => _historyNoDuplicates.GetValueOrDefault();
@@ -785,15 +848,27 @@ namespace Microsoft.PowerShell
 
         [Parameter]
         [ValidateNotNullOrEmpty]
-        public string HistorySavePath
+        public string HistorySavePathText
         {
-            get => _historySavePath;
+            get => _historySavePathText;
             set
             {
-                _historySavePath = GetUnresolvedProviderPathFromPSPath(value);
+                _historySavePathText = GetUnresolvedProviderPathFromPSPath(value);
             }
         }
-        private string _historySavePath;
+        private string _historySavePathText;
+
+        [Parameter]
+        [ValidateNotNullOrEmpty]
+        public string HistorySavePathSQLite
+        {
+            get => _historySavePathSQLite;
+            set
+            {
+                _historySavePathSQLite = GetUnresolvedProviderPathFromPSPath(value);
+            }
+        }
+        private string _historySavePathSQLite;
 
         [Parameter]
         [ValidateRange(25, 1000)]
