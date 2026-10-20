@@ -16,15 +16,51 @@ namespace Microsoft.PowerShell
         /// </summary>
         public static void ViEditVisually(ConsoleKeyInfo? key = null, object arg = null)
         {
-            string editor = GetPreferredEditor();
-            if (string.IsNullOrWhiteSpace(editor))
+            // EDITOR can be a cmd with args such as `emacsclient -c`
+            // each component of the cmd may only be quoted by " due to internal design, see doc for `ProcessStartInfo.Arguments`
+            string cmd = GetPreferredEditor().Trim();
+
+            if (string.IsNullOrEmpty(cmd))
             {
                 Ding();
                 return;
             }
 
-            if (!(_singleton._engineIntrinsics?.InvokeCommand.GetCommand(editor, CommandTypes.Application) is
-                ApplicationInfo editorCommand))
+            string exe = string.Empty;
+            string arguments = string.Empty;
+            bool exeQuoteUnmatched = false;
+
+            if (File.Exists(cmd)) // path/might contain space/foo.exe
+            {
+                exe = cmd;
+            }
+            else if (cmd.StartsWith('"')) // "path/with space/foo.exe" --args ...
+            {
+                int nextQuote = cmd.IndexOf('"', 1);
+
+                if (nextQuote != -1)
+                    (exe, arguments) = (cmd[1..nextQuote], cmd[(nextQuote + 1)..]);
+                else
+                    exeQuoteUnmatched = true;
+            }
+            else
+            {
+                // foo.exe
+                // foo.exe --args
+                // path/to/foo.exe --args
+                int firstSpace = cmd.IndexOf(' ');
+                (exe, arguments) = firstSpace != -1
+                    ? (cmd[..firstSpace], cmd[(firstSpace + 1)..])
+                    : (cmd, string.Empty);
+            }
+
+            if (string.IsNullOrEmpty(exe) || exeQuoteUnmatched)
+            {
+                Ding();
+                return;
+            }
+
+            if (_singleton._engineIntrinsics?.InvokeCommand.GetCommand(exe, CommandTypes.Application) is not ApplicationInfo editorCommand)
             {
                 Ding();
                 return;
@@ -39,8 +75,8 @@ namespace Microsoft.PowerShell
                 }
             }
 
-            editor = editorCommand.Path;
-            var si = new ProcessStartInfo(editor, $"\"{tempPowerShellFile}\"")
+            exe = editorCommand.Path;
+            var si = new ProcessStartInfo(exe, $"{arguments} \"{tempPowerShellFile}\"")
             {
                 UseShellExecute = false,
                 RedirectStandardError = false,
