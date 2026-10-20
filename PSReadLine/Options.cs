@@ -47,7 +47,7 @@ namespace Microsoft.PowerShell
                 Options.MaximumHistoryCount = options.MaximumHistoryCount;
                 if (_history != null)
                 {
-                    var newHistory = new HistoryQueue<HistoryItem>(Options.MaximumHistoryCount);
+                    var newHistory = new RingBuffer<HistoryItem>(Options.MaximumHistoryCount);
                     while (_history.Count > Options.MaximumHistoryCount)
                     {
                         _history.Dequeue();

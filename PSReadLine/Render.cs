@@ -171,6 +171,8 @@ namespace Microsoft.PowerShell
 
         private ConsoleColor _initialForeground;
         private ConsoleColor _initialBackground;
+
+        // Current cursor position
         private int _current;
         private int _emphasisStart;
         private int _emphasisLength;
