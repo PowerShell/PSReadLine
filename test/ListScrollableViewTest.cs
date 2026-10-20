@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Management.Automation.Runspaces;
 using Microsoft.PowerShell;
 using Xunit;
 
@@ -909,6 +910,32 @@ namespace Test
                         NextLine,
                         NextLine))
             ));
+        }
+
+        [SkippableFact]
+        public void ListView_TermSize_WarningOnlyFromSetOption()
+        {
+            Skip.If(ScreenReaderModeEnabled, "List view is not supported in screen reader mode.");
+
+            // The console is under the list view minimum. 'F2' switches the view without
+            // 'Set-PSReadLineOption', so the two cmdlets can be measured separately.
+            TestSetup(new TestConsole(keyboardLayout: _, width: 40, height: 4), KeyMode.Cmd);
+            using var disp = SetPrediction(PredictionSource.History, PredictionViewStyle.InlineView);
+            Test("", Keys(_.F2, _.Enter));
+
+            var iss = InitialSessionState.CreateDefault();
+            iss.Commands.Add(new SessionStateCmdletEntry("Get-PSReadLineOption", typeof(GetPSReadLineOption), helpFileName: null));
+            iss.Commands.Add(new SessionStateCmdletEntry("Set-PSReadLineOption", typeof(SetPSReadLineOption), helpFileName: null));
+            using var ps = System.Management.Automation.PowerShell.Create(iss);
+
+            var result = ps.AddCommand("Get-PSReadLineOption").Invoke();
+            var options = Assert.IsType<PSConsoleReadLineOptions>(Assert.Single(result).BaseObject);
+            Assert.Equal(PredictionViewStyle.ListView, options.PredictionViewStyle);
+            Assert.Empty(ps.Streams.Warning);
+
+            ps.Commands.Clear();
+            ps.AddCommand("Set-PSReadLineOption").AddParameter("PredictionViewStyle", PredictionViewStyle.ListView).Invoke();
+            Assert.Single(ps.Streams.Warning);
         }
     }
 }
