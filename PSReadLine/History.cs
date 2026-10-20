@@ -98,6 +98,8 @@ namespace Microsoft.PowerShell
         private int _getNextHistoryIndex;
         private int _searchHistoryCommandCount;
         private int _recallHistoryCommandCount;
+        // Indicating the count of history operation already executed,
+        // its value is incremented on SaveCurrentLine which is called on most history recall functions e.g. NextHistory
         private int _anyHistoryCommandCount;
         private string _searchHistoryPrefix;
         // When cycling through history, the current line (not yet added to history)
@@ -874,6 +876,8 @@ namespace Microsoft.PowerShell
             MaybeReadHistoryFile();
 
             _anyHistoryCommandCount += 1;
+            // can only have one drafted line instance
+            // if the drafted line isn't consumed, do not reassign
             if (_savedCurrentLine.CommandLine == null)
             {
                 _savedCurrentLine.CommandLine = _buffer.ToString();

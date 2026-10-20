@@ -328,6 +328,46 @@ namespace Test
         }
 
         [SkippableFact]
+        public void AcceptAndGetNextWithInteractiveHistorySearch()
+        {
+            TestSetup(KeyMode.Emacs);
+            // NOTE: this history didn't reach the default capacity
+            SetHistory("echo 1", "echo 2", "echo 3", "echo 4", "echo 5");
+
+            // AcceptAndGetNext during interactive search
+            // NOTE: this should cycle back to "echo 1" after "echo 5" executed
+            Test("echo 1", Keys(_.Ctrl_r,
+                "echo 1",
+                _.Ctrl_o,
+                CheckThat(() => AssertLineIs("echo 2")),
+                _.Ctrl_o,
+                CheckThat(() => AssertLineIs("echo 3")),
+                _.Ctrl_o,
+                CheckThat(() => AssertLineIs("echo 4")),
+                _.Ctrl_o,
+                CheckThat(() => AssertLineIs("echo 5")),
+                _.Ctrl_o, InputAcceptedNow
+            ));
+
+            // accept the result and AcceptAndGetNext
+            // NOTE: this should cycle back to "echo 1" after "echo 5" executed
+            Test("echo 1", Keys(_.Ctrl_r,
+                "echo 1",
+                _.RightArrow, // any key to accept the match and quit interactive search, see implementation of InteractiveHistorySearchLoop
+                CheckThat(() => AssertLineIs("echo 1")),
+                _.Ctrl_o,
+                CheckThat(() => AssertLineIs("echo 2")),
+                _.Ctrl_o,
+                CheckThat(() => AssertLineIs("echo 3")),
+                _.Ctrl_o,
+                CheckThat(() => AssertLineIs("echo 4")),
+                _.Ctrl_o,
+                CheckThat(() => AssertLineIs("echo 5")),
+                _.Ctrl_o, InputAcceptedNow
+            ));
+        }
+
+        [SkippableFact]
         public void AddLine()
         {
             TestSetup(KeyMode.Cmd);

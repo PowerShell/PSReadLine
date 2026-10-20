@@ -69,6 +69,7 @@ namespace Microsoft.PowerShell
         private bool _statusIsErrorMessage;
         private string _statusLinePrompt;
         private string _acceptedCommandLine;
+        // edits of current loaded line, this reference gets updated in UpdateFromHistory
         private List<EditItem> _edits;
         private int _editGroupStart;
         private int _undoEditIndex;
@@ -549,6 +550,8 @@ namespace Microsoft.PowerShell
                 var visualSelectionCommandCount = _visualSelectionCommandCount;
                 var moveToLineCommandCount = _moveToLineCommandCount;
                 var moveToEndOfLineCommandCount = _moveToEndOfLineCommandCount;
+                var currentHistoryIndex = _currentHistoryIndex;
+                var prevLine = _buffer.ToString();
 
                 // We attempt to handle window resizing only once per a keybinding processing, because we assume the
                 // window resizing cannot and shouldn't happen within the processing of a given keybinding.
@@ -610,15 +613,33 @@ namespace Microsoft.PowerShell
                 {
                     _recallHistoryCommandCount = 0;
                 }
+                // if the latest input didn't trigger a SaveCurrentLine call
                 if (anyHistoryCommandCount == _anyHistoryCommandCount)
                 {
                     if (_anyHistoryCommandCount > 0)
                     {
-                        ClearSavedCurrentLine();
-                        _hashedHistory = null;
+                        // _savedCurrentLine should be consumed only if current line has the same content
+                        if (_savedCurrentLine.CommandLine == _buffer.ToString())
+                        {
+                            ClearSavedCurrentLine();
+                            _hashedHistory = null;
+                            _currentHistoryIndex = _history.Count;
+                        }
+                    }
+                    // this might not be desired sometimes as non-editing inputs e.g. moving cursor also trigger this
+                    _anyHistoryCommandCount = 0;
+                }
+                // if any edit happened on same history
+                if (currentHistoryIndex == _currentHistoryIndex && prevLine != _buffer.ToString())
+                {
+                    // once edited, we should reset the _savedCurrentLine
+                    ClearSavedCurrentLine();
+                    // if the current line is recalled and edited,
+                    // it become effectively a new command, we should reset _currentHistoryIndex
+                    if (_currentHistoryIndex != _history.Count)
+                    {
                         _currentHistoryIndex = _history.Count;
                     }
-                    _anyHistoryCommandCount = 0;
                 }
                 if (visualSelectionCommandCount == _visualSelectionCommandCount && _visualSelectionCommandCount > 0)
                 {
