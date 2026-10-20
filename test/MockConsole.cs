@@ -1,6 +1,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
 using Microsoft.PowerShell.Internal;
 
@@ -200,6 +201,12 @@ namespace Test
         {
         }
 
+        protected static bool IsTamilNonspacingMark(char c)
+        {
+            return c >= '\u0b80' && c <= '\u0bff'
+                && char.GetUnicodeCategory(c) == UnicodeCategory.NonSpacingMark;
+        }
+
         public virtual void SetCursorPosition(int left, int top)
         {
             if (left != CursorLeft || top != CursorTop)
@@ -225,6 +232,11 @@ namespace Test
             var writePos = CursorTop * BufferWidth + CursorLeft;
             for (int i = 0; i < s.Length; i++)
             {
+                if (IsTamilNonspacingMark(s[i]))
+                {
+                    continue;
+                }
+
                 if (s[i] == (char) 0x1b)
                 {
                     // Escape sequence - limited support here, and assumed to be well formed.
@@ -454,6 +466,11 @@ namespace Test
             var writePos = (_offset + CursorTop) * BufferWidth + CursorLeft;
             for (int i = 0; i < s.Length; i++)
             {
+                if (IsTamilNonspacingMark(s[i]))
+                {
+                    continue;
+                }
+
                 if (s[i] == (char)0x1b)
                 {
                     // Escape sequence - limited support here, and assumed to be well formed.

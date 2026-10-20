@@ -99,6 +99,13 @@ namespace Microsoft.PowerShell
                 return Char.IsControl(c) ? 2 : 1;
             }
 
+            // Tamil anusvara, vowel sign II, and pulli are nonspacing marks.
+            // Spacing vowel signs still contribute a cell in Terminal's graphemes mode.
+            if (c is '\u0b82' or '\u0bc0' or '\u0bcd')
+            {
+                return 0;
+            }
+
             // The following is based on http://www.cl.cam.ac.uk/~mgk25/c/wcwidth.c
             // which is derived from http://www.unicode.org/Public/UCD/latest/ucd/EastAsianWidth.txt
 
@@ -125,6 +132,15 @@ namespace Microsoft.PowerShell
             return SubstringByCells(text, 0, countOfCells);
         }
 
+        private static int SkipZeroWidthCharacters(StringBuilder text, int start, int end)
+        {
+            while (start < end && LengthInBufferCells(text[start]) == 0)
+            {
+                start++;
+            }
+            return start;
+        }
+
         private static string SubstringByCells(string text, int start, int countOfCells)
         {
             int length = SubstringLengthByCells(text, start, countOfCells);
@@ -138,6 +154,11 @@ namespace Microsoft.PowerShell
 
         private static int SubstringLengthByCells(string text, int start, int countOfCells)
         {
+            if (countOfCells <= 0)
+            {
+                return 0;
+            }
+
             int cellLength = 0;
             int charLength = 0;
 
@@ -151,11 +172,6 @@ namespace Microsoft.PowerShell
                 }
 
                 charLength++;
-
-                if (cellLength == countOfCells)
-                {
-                    return charLength;
-                }
             }
 
             return charLength;
@@ -168,19 +184,34 @@ namespace Microsoft.PowerShell
 
         private static int SubstringLengthByCellsFromEnd(string text, int start, int countOfCells)
         {
+            if (countOfCells <= 0)
+            {
+                return 0;
+            }
+
             int cellLength = 0;
             int charLength = 0;
+            int pendingMarks = 0;
 
             for (int i = start; i >= 0; i--)
             {
-                cellLength += LengthInBufferCells(text[i]);
+                int width = LengthInBufferCells(text[i]);
+                if (width == 0)
+                {
+                    pendingMarks++;
+                    continue;
+                }
+
+                cellLength += width;
 
                 if (cellLength > countOfCells)
                 {
                     return charLength;
                 }
 
-                charLength++;
+                // Include trailing marks only when their base fits too.
+                charLength += pendingMarks + 1;
+                pendingMarks = 0;
 
                 if (cellLength == countOfCells)
                 {
@@ -188,7 +219,7 @@ namespace Microsoft.PowerShell
                 }
             }
 
-            return charLength;
+            return charLength + pendingMarks;
         }
 
         private static (int newStart, int newEnd) TrimSubstringInPlace(string text, int start, int end)

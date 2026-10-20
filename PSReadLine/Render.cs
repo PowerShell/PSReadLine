@@ -75,6 +75,11 @@ namespace Microsoft.PowerShell
                 }
 
                 int size = PSConsoleReadLine.LengthInBufferCells(c);
+                if (size == 0)
+                {
+                    continue;
+                }
+
                 if (x == 0 && lenLastPhysicalLine > 0)
                 {
                     y++;
@@ -1395,7 +1400,8 @@ namespace Microsoft.PowerShell
 
                         // If cursor is at column 0 and the next character is newline, let the next loop
                         // iteration increment y.
-                        if (x != 0 || !(i + 1 < offset && buffer[i + 1] == '\n'))
+                        int next = SkipZeroWidthCharacters(buffer, i + 1, offset);
+                        if (x != 0 || !(next < offset && buffer[next] == '\n'))
                         {
                             y += 1;
                         }
@@ -1435,7 +1441,7 @@ namespace Microsoft.PowerShell
                 // the correct column
                 if (point.Y == y && point.X <= x)
                 {
-                    return offset;
+                    return SkipZeroWidthCharacters(_buffer, offset, _buffer.Length);
                 }
                 char c = _buffer[offset];
                 if (c == '\n')
@@ -1461,7 +1467,8 @@ namespace Microsoft.PowerShell
 
                         // If cursor is at column 0 and the next character is newline, let the next loop
                         // iteration increment y.
-                        if (x != 0 || !(offset + 1 < _buffer.Length && _buffer[offset + 1] == '\n'))
+                        int next = SkipZeroWidthCharacters(_buffer, offset + 1, _buffer.Length);
+                        if (x != 0 || !(next < _buffer.Length && _buffer[next] == '\n'))
                         {
                             y += 1;
                         }
@@ -1752,7 +1759,28 @@ namespace Microsoft.PowerShell
                     }
                     else if (point.X == x)
                     {
-                        // 'x' is pointing to where the next visible character would be rendered.
+                        // Include attached marks before returning the offset
+                        // at this column, including across color sequences.
+                        int next = i + 1;
+                        while (next < line.Length)
+                        {
+                            if (line[next] == 0x1b && next + 1 < line.Length && line[next + 1] == '[')
+                            {
+                                next += 2;
+                                while (next < line.Length && line[next] != 'm')
+                                {
+                                    next++;
+                                }
+                                next++;
+                                continue;
+                            }
+                            if (LengthInBufferCells(line[next]) != 0)
+                            {
+                                break;
+                            }
+                            visibleCharIndex++;
+                            next++;
+                        }
                         return new RenderDataOffset(logicalLineIndex, visibleCharIndex + 1);
                     }
                 }

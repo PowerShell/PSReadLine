@@ -1,3 +1,9 @@
+### Unreleased
+
+- Correct cursor columns for Tamil nonspacing marks while keeping spacing vowel signs one cell wide.
+  Preserve attached marks when truncating text, mapping cursor positions, and counting wrapped lines.
+  This is a scoped Tamil correction, not general Unicode grapheme-cluster support.
+
 ### [2.4.5] - 2025-10-22
 
 - Replace `DOTNET_SKIP_FIRST_TIME_EXPERIENCE` with `DOTNET_NOLOGO` (#4916) (Thanks @xtqqczze!)
