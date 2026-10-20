@@ -207,6 +207,7 @@ namespace Microsoft.PowerShell
                 { Keys.CtrlL,                  MakeKeyHandler(ClearScreen,               "ClearScreen") },
                 { Keys.CtrlR,                  MakeKeyHandler(ReverseSearchHistory,      "ReverseSearchHistory") },
                 { Keys.CtrlS,                  MakeKeyHandler(ForwardSearchHistory,      "ForwardSearchHistory") },
+                { Keys.CtrlAltR,               MakeKeyHandler(ReverseLocationSearchHistory, "ReverseLocationSearchHistory") },
                 { Keys.CtrlV,                  MakeKeyHandler(Paste,                     "Paste") },
                 { Keys.ShiftInsert,            MakeKeyHandler(Paste,                     "Paste") },
                 { Keys.CtrlX,                  MakeKeyHandler(Cut,                       "Cut") },
@@ -238,8 +239,11 @@ namespace Microsoft.PowerShell
                 { Keys.F4,                     MakeKeyHandler(ShowFullPredictionTooltip, "ShowFullPredictionTooltip") },
                 { Keys.F8,                     MakeKeyHandler(HistorySearchBackward,     "HistorySearchBackward") },
                 { Keys.ShiftF8,                MakeKeyHandler(HistorySearchForward,      "HistorySearchForward") },
+                { Keys.AltUpArrow,             MakeKeyHandler(PreviousLocationHistory,   "PreviousLocationHistory") },
+                { Keys.AltDownArrow,           MakeKeyHandler(NextLocationHistory,       "NextLocationHistory") },
                 // Added for xtermjs-based terminals that send different key combinations.
                 { Keys.AltD,                   MakeKeyHandler(KillWord,                  "KillWord") },
+                { Keys.AltDelete,              MakeKeyHandler(RemoveFromHistoryAtCurrentLocation, "RemoveFromHistoryAtCurrentLocation") },
                 { Keys.CtrlAt,                 MakeKeyHandler(MenuComplete,              "MenuComplete") },
                 { Keys.CtrlW,                  MakeKeyHandler(BackwardKillWord,          "BackwardKillWord") },
             };
@@ -247,9 +251,10 @@ namespace Microsoft.PowerShell
             // Some bindings are not available on certain platforms
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                _dispatchTable.Add(Keys.CtrlSpace,  MakeKeyHandler(MenuComplete,      "MenuComplete"));
-                _dispatchTable.Add(Keys.AltF7,      MakeKeyHandler(ClearHistory,      "ClearHistory"));
-                _dispatchTable.Add(Keys.CtrlDelete, MakeKeyHandler(KillWord,          "KillWord"));
+                _dispatchTable.Add(Keys.CtrlSpace,       MakeKeyHandler(MenuComplete,      "MenuComplete"));
+                _dispatchTable.Add(Keys.AltF7,           MakeKeyHandler(ClearHistory,      "ClearHistory"));
+                _dispatchTable.Add(Keys.CtrlDelete,      MakeKeyHandler(KillWord,          "KillWord"));
+                _dispatchTable.Add(Keys.CtrlShiftDelete, MakeKeyHandler(RemoveFromHistory, "RemoveFromHistory"));
                 _dispatchTable.Add(Keys.CtrlEnd,    MakeKeyHandler(ForwardDeleteInput, "ForwardDeleteInput"));
                 _dispatchTable.Add(Keys.CtrlH,      MakeKeyHandler(BackwardDeleteChar,"BackwardDeleteChar"));
 
@@ -279,6 +284,8 @@ namespace Microsoft.PowerShell
                 { Keys.DownArrow,              MakeKeyHandler(NextHistory,               "NextHistory") },
                 { Keys.AltLess,                MakeKeyHandler(BeginningOfHistory,        "BeginningOfHistory") },
                 { Keys.AltGreater,             MakeKeyHandler(EndOfHistory,              "EndOfHistory") },
+                { Keys.AltUpArrow,             MakeKeyHandler(PreviousLocationHistory,   "PreviousLocationHistory") },
+                { Keys.AltDownArrow,           MakeKeyHandler(NextLocationHistory,       "NextLocationHistory") },
                 { Keys.Home,                   MakeKeyHandler(BeginningOfLine,           "BeginningOfLine") },
                 { Keys.End,                    MakeKeyHandler(EndOfLine,                 "EndOfLine") },
                 { Keys.ShiftHome,              MakeKeyHandler(SelectBackwardsLine,       "SelectBackwardsLine") },
@@ -301,6 +308,7 @@ namespace Microsoft.PowerShell
                 { Keys.CtrlP,                  MakeKeyHandler(PreviousHistory,           "PreviousHistory") },
                 { Keys.CtrlR,                  MakeKeyHandler(ReverseSearchHistory,      "ReverseSearchHistory") },
                 { Keys.CtrlS,                  MakeKeyHandler(ForwardSearchHistory,      "ForwardSearchHistory") },
+                { Keys.CtrlAltR,               MakeKeyHandler(ReverseLocationSearchHistory, "ReverseLocationSearchHistory") },
                 { Keys.CtrlT,                  MakeKeyHandler(SwapCharacters,            "SwapCharacters") },
                 { Keys.CtrlU,                  MakeKeyHandler(BackwardKillInput,         "BackwardKillInput") },
                 { Keys.CtrlX,                  MakeKeyHandler(Chord,                     "ChordFirstKey") },
@@ -325,6 +333,7 @@ namespace Microsoft.PowerShell
                 { Keys.AltB,                   MakeKeyHandler(BackwardWord,              "BackwardWord") },
                 { Keys.AltShiftB,              MakeKeyHandler(SelectBackwardWord,        "SelectBackwardWord") },
                 { Keys.AltD,                   MakeKeyHandler(KillWord,                  "KillWord") },
+                { Keys.AltDelete,              MakeKeyHandler(RemoveFromHistoryAtCurrentLocation, "RemoveFromHistoryAtCurrentLocation") },
                 { Keys.AltF,                   MakeKeyHandler(ForwardWord,               "ForwardWord") },
                 { Keys.AltShiftF,              MakeKeyHandler(SelectForwardWord,         "SelectForwardWord") },
                 { Keys.AltR,                   MakeKeyHandler(RevertLine,                "RevertLine") },
@@ -349,10 +358,11 @@ namespace Microsoft.PowerShell
             // Some bindings are not available on certain platforms
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                _dispatchTable.Add(Keys.CtrlH,        MakeKeyHandler(BackwardDeleteChar,    "BackwardDeleteChar"));
-                _dispatchTable.Add(Keys.CtrlSpace,    MakeKeyHandler(MenuComplete,          "MenuComplete"));
-                _dispatchTable.Add(Keys.CtrlEnd,      MakeKeyHandler(ScrollDisplayToCursor, "ScrollDisplayToCursor"));
-                _dispatchTable.Add(Keys.CtrlHome,     MakeKeyHandler(ScrollDisplayTop,      "ScrollDisplayTop"));
+                _dispatchTable.Add(Keys.CtrlH,           MakeKeyHandler(BackwardDeleteChar,    "BackwardDeleteChar"));
+                _dispatchTable.Add(Keys.CtrlSpace,       MakeKeyHandler(MenuComplete,          "MenuComplete"));
+                _dispatchTable.Add(Keys.CtrlEnd,         MakeKeyHandler(ScrollDisplayToCursor, "ScrollDisplayToCursor"));
+                _dispatchTable.Add(Keys.CtrlHome,        MakeKeyHandler(ScrollDisplayTop,      "ScrollDisplayTop"));
+                _dispatchTable.Add(Keys.CtrlShiftDelete, MakeKeyHandler(RemoveFromHistory,     "RemoveFromHistory"));
 
                 // PageUp/PageDown and CtrlPageUp/CtrlPageDown bindings are supported on Windows only because they depend on the
                 // API 'Console.SetWindowPosition', which throws 'PlatformNotSupportedException' on unix platforms.
@@ -549,9 +559,15 @@ namespace Microsoft.PowerShell
             case nameof(HistorySearchBackward):
             case nameof(HistorySearchForward):
             case nameof(NextHistory):
+            case nameof(NextLocationHistory):
             case nameof(PreviousHistory):
+            case nameof(PreviousLocationHistory):
             case nameof(ReverseSearchHistory):
+            case nameof(ReverseLocationSearchHistory):
+            case nameof(ForwardLocationSearchHistory):
             case nameof(ViSearchHistoryBackward):
+            case nameof(RemoveFromHistory):
+            case nameof(RemoveFromHistoryAtCurrentLocation):
                 return KeyHandlerGroup.History;
 
             case nameof(Complete):

@@ -1169,6 +1169,13 @@
         "Investigate":  false
     },
     {
+        "Key":  "Alt+Delete",
+        "KeyChar":  "\u0000",
+        "ConsoleKey":  "Delete",
+        "Modifiers":  "Alt",
+        "Investigate":  false
+    },
+    {
         "Key":  "\u003c",
         "KeyChar":  "\u003c",
         "ConsoleKey":  "OemComma",

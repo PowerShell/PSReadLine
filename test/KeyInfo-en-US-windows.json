@@ -726,6 +726,12 @@
         "Modifiers":  "Control"
     },
     {
+        "Key":  "Alt+Delete",
+        "KeyChar":  "\u0000",
+        "ConsoleKey":  "Delete",
+        "Modifiers":  "Alt"
+    },
+    {
         "Key":  "Ctrl+e",
         "KeyChar":  "\u0005",
         "ConsoleKey":  "E",

@@ -216,6 +216,9 @@
   <data name="NextHistoryDescription" xml:space="preserve">
     <value>Replace the input with the next item in the history</value>
   </data>
+  <data name="NextLocationHistoryDescription" xml:space="preserve">
+    <value>Replace the input with the next item in the history that was executed from the current location</value>
+  </data>
   <data name="PasteDescription" xml:space="preserve">
     <value>Paste text from the system clipboard</value>
   </data>
@@ -224,6 +227,15 @@
   </data>
   <data name="PreviousHistoryDescription" xml:space="preserve">
     <value>Replace the input with the previous item in the history</value>
+  </data>
+  <data name="PreviousLocationHistoryDescription" xml:space="preserve">
+    <value>Replace the input with the previous item in the history that was executed from the current location</value>
+  </data>
+  <data name="ReverseLocationSearchHistoryDescription" xml:space="preserve">
+    <value>Perform an incremental backward search through history, filtered to commands executed from the current location</value>
+  </data>
+  <data name="ForwardLocationSearchHistoryDescription" xml:space="preserve">
+    <value>Perform an incremental forward search through history, filtered to commands executed from the current location</value>
   </data>
   <data name="RedoDescription" xml:space="preserve">
     <value>Redo an undo</value>

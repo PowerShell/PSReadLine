@@ -457,6 +457,7 @@ namespace Microsoft.PowerShell
         public static PSKeyInfo Space               = Key(ConsoleKey.Spacebar);
         public static PSKeyInfo Backspace           = Key(ConsoleKey.Backspace);
         public static PSKeyInfo Delete              = Key(ConsoleKey.Delete);
+        public static PSKeyInfo AltDelete            = Alt(ConsoleKey.Delete);
         public static PSKeyInfo DownArrow           = Key(ConsoleKey.DownArrow);
         public static PSKeyInfo End                 = Key(ConsoleKey.End);
         public static PSKeyInfo Enter               = Key(ConsoleKey.Enter);
@@ -581,6 +582,7 @@ namespace Microsoft.PowerShell
         public static PSKeyInfo CtrlUnderbar        = Ctrl('_');
         public static PSKeyInfo CtrlBackspace       = Ctrl(ConsoleKey.Backspace);
         public static PSKeyInfo CtrlDelete          = Ctrl(ConsoleKey.Delete); // !Linux
+        public static PSKeyInfo CtrlShiftDelete     = CtrlShift(ConsoleKey.Delete); // !Linux
         public static PSKeyInfo CtrlEnd             = Ctrl(ConsoleKey.End); // !Linux
         public static PSKeyInfo CtrlHome            = Ctrl(ConsoleKey.Home); // !Linux
         public static PSKeyInfo CtrlPageUp          = Ctrl(ConsoleKey.PageUp); // !Linux
@@ -598,6 +600,8 @@ namespace Microsoft.PowerShell
         public static PSKeyInfo ShiftPageDown       = Shift(ConsoleKey.PageDown);
         public static PSKeyInfo ShiftLeftArrow      = Shift(ConsoleKey.LeftArrow);
         public static PSKeyInfo ShiftRightArrow     = Shift(ConsoleKey.RightArrow);
+        public static PSKeyInfo AltUpArrow          = Alt(ConsoleKey.UpArrow);
+        public static PSKeyInfo AltDownArrow        = Alt(ConsoleKey.DownArrow);
         public static PSKeyInfo ShiftUpArrow        = Shift(ConsoleKey.UpArrow);
         public static PSKeyInfo ShiftDownArrow      = Shift(ConsoleKey.DownArrow);
         public static PSKeyInfo ShiftTab            = Shift(ConsoleKey.Tab); // !Linux, same as Tab
@@ -608,6 +612,7 @@ namespace Microsoft.PowerShell
         public static PSKeyInfo CtrlShiftLeftArrow  = CtrlShift(ConsoleKey.LeftArrow);
         public static PSKeyInfo CtrlShiftRightArrow = CtrlShift(ConsoleKey.RightArrow);
 
+        public static PSKeyInfo CtrlAltR             = CtrlAlt('r');
         public static PSKeyInfo CtrlAltY            = CtrlAlt('y');
         public static PSKeyInfo CtrlAltRBracket     = CtrlAlt(']');
         public static PSKeyInfo CtrlAltQuestion     = CtrlAlt('?');
