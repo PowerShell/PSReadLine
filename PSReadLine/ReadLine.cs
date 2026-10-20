@@ -784,6 +784,7 @@ namespace Microsoft.PowerShell
             _parseErrors = null;
             _inputAccepted = false;
             _initialX = _console.CursorLeft;
+            _initialPromptCells = _initialX;
             _initialY = _console.CursorTop;
             _initialForeground = _console.ForegroundColor;
             _initialBackground = _console.BackgroundColor;
@@ -1105,6 +1106,7 @@ namespace Microsoft.PowerShell
 
             console.Write(newPrompt);
             _singleton._initialX = console.CursorLeft;
+            _singleton._initialPromptCells = _singleton._initialX;
             _singleton._initialY = console.CursorTop;
             _singleton._previousRender = _initialPrevRender;
             _singleton._previousRender.UpdateConsoleInfo(console);
