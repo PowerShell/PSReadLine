@@ -151,16 +151,16 @@ Please see the [Contribution Guide][] for how to develop and contribute.
 To build `PSReadLine` on Windows, Linux, or macOS,
 you must have the following installed:
 
-* .NET 6.0 or [a newer version](https://www.microsoft.com/net/download)
+* A dotnet version satisfying what `global.json` requires, see: [global.json Matching Rules][]
 * The PowerShell modules `InvokeBuild` and `platyPS`
 
 The build script `build.ps1` can be used to bootstrap, build and test the project.
 
 * Bootstrap: `./build.ps1 -Bootstrap`
 * Build: `./build.ps1 -Configuration Debug`
-* Test:
-    * Targeting .NET 4.7.2 (Windows only): `./build.ps1 -Test -Configuration Debug -Framework net472`
-    * Targeting .NET 6.0: `./build.ps1 -Test -Configuration Debug -Framework net6.0`
+* Test: `./build.ps1 -Test -Configuration Debug`, currently tests are only available to run on Windows.
+    <!-- * Targeting .NET 4.7.2 (Windows only): `./build.ps1 -Test -Configuration Debug -Framework net472` -->
+    <!-- * Targeting .NET 6.0: `./build.ps1 -Test -Configuration Debug -Framework net6.0` -->
 
 After build, the produced artifacts can be found at `<your-local-repo-root>/bin/Debug`.
 
@@ -186,3 +186,4 @@ For any security issues, please see our [Security Policy](.github/SECURITY.md).
 
 [Contribution Guide]: https://github.com/PowerShell/PSReadLine/blob/master/.github/CONTRIBUTING.md
 [2-Clause BSD License]: https://github.com/PowerShell/PSReadLine/blob/master/License.txt
+[global.json Matching Rules]: https://learn.microsoft.com/en-us/dotnet/core/tools/global-json#matching-rules
