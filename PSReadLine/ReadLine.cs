@@ -340,6 +340,24 @@ namespace Microsoft.PowerShell
             return key;
         }
 
+        /// <summary>
+        /// Reads a key, discarding the key if the PSKeyInfo returned does not
+        /// have a valid character. Will loop until a valid character is read.
+        /// The purpose of this method is to handle cases such as dead keys on
+        /// Windows on layouts such as US-International.
+        /// </summary>
+        /// <returns> The valid character read. </returns>
+        internal static char ReadKeyChar()
+        {
+            PSKeyInfo key;
+            do
+            {
+                key = ReadKey();
+            }
+            while (key.KeyChar == '\0');
+            return key.KeyChar;
+        }
+
         private void PrependQueuedKeys(PSKeyInfo key)
         {
             if (_queuedKeys.Count > 0)
