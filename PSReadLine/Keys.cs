@@ -608,6 +608,7 @@ namespace Microsoft.PowerShell
         public static PSKeyInfo CtrlShiftLeftArrow  = CtrlShift(ConsoleKey.LeftArrow);
         public static PSKeyInfo CtrlShiftRightArrow = CtrlShift(ConsoleKey.RightArrow);
 
+        public static PSKeyInfo CtrlAltH            = CtrlAlt('h');
         public static PSKeyInfo CtrlAltY            = CtrlAlt('y');
         public static PSKeyInfo CtrlAltRBracket     = CtrlAlt(']');
         public static PSKeyInfo CtrlAltQuestion     = CtrlAlt('?');
