@@ -178,10 +178,10 @@ namespace Microsoft.PowerShell
             }
             if (replacementText.Length == 0)
             {
-                replacementText = firstResult.ListItemText;
+                replacementText = firstResult.CompletionText;
                 foreach (var match in matches.Skip(1))
                 {
-                    var matchText = match.ListItemText;
+                    var matchText = match.CompletionText;
                     for (int i = 0; i < replacementText.Length; i++)
                     {
                         if (i == matchText.Length
