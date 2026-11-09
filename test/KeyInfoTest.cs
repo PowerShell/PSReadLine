@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Microsoft.PowerShell;
 using Xunit;
 
@@ -7,6 +8,7 @@ namespace Test
     public class KeyInfo
     {
         private const ConsoleModifiers NoModifiers = 0;
+        private const ConsoleModifiers CtrlShift = ConsoleModifiers.Control | ConsoleModifiers.Shift;
 
         [Fact]
         public void KeyInfoConverterSimpleCharLiteral()
@@ -107,6 +109,22 @@ namespace Test
             {
                 TestOne(c);
             }
+        }
+
+        [Fact]
+        public void KeyInfoConverter_ThreeKeyChords()
+        {
+            var chord = ConsoleKeyChordConverter.Convert("Ctrl+K,Ctrl+P,x");
+            Assert.Equal(3, chord.Length);
+
+            Assert.Equal(CtrlShift, chord[0].Modifiers);
+            Assert.Equal(Enum.Parse(typeof(ConsoleKey), "K"), chord[0].Key);
+
+            Assert.Equal(CtrlShift, chord[1].Modifiers);
+            Assert.Equal(Enum.Parse(typeof(ConsoleKey), "P"), chord[1].Key);
+
+            Assert.Equal(NoModifiers, chord[2].Modifiers);
+            Assert.Equal(Enum.Parse(typeof(ConsoleKey), "X"), chord[2].Key);
         }
 
         [Fact]

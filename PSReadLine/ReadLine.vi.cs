@@ -443,7 +443,6 @@ namespace Microsoft.PowerShell
                 _singleton._groupUndoHelper.EndGroup();
             }
             _singleton._dispatchTable = _viCmdKeyMap;
-            _singleton._chordDispatchTable = _viCmdChordTable;
             ViBackwardChar();
             _singleton.ViIndicateCommandMode();
         }
@@ -454,7 +453,6 @@ namespace Microsoft.PowerShell
         public static void ViInsertMode(ConsoleKeyInfo? key = null, object arg = null)
         {
             _singleton._dispatchTable = _viInsKeyMap;
-            _singleton._chordDispatchTable = _viInsChordTable;
             _singleton.ViIndicateInsertMode();
         }
 
@@ -479,15 +477,12 @@ namespace Microsoft.PowerShell
         internal static IDisposable UseViCommandModeTables()
         {
             var oldDispatchTable = _singleton._dispatchTable;
-            var oldChordDispatchTable = _singleton._chordDispatchTable;
 
             _singleton._dispatchTable = _viCmdKeyMap;
-            _singleton._chordDispatchTable = _viCmdChordTable;
 
             return new Disposable(() =>
            {
                _singleton._dispatchTable = oldDispatchTable;
-               _singleton._chordDispatchTable = oldChordDispatchTable;
            });
         }
 
@@ -497,15 +492,12 @@ namespace Microsoft.PowerShell
         internal static IDisposable UseViInsertModeTables()
         {
             var oldDispatchTable = _singleton._dispatchTable;
-            var oldChordDispatchTable = _singleton._chordDispatchTable;
 
             _singleton._dispatchTable = _viInsKeyMap;
-            _singleton._chordDispatchTable = _viInsChordTable;
 
             return new Disposable(() =>
            {
                _singleton._dispatchTable = oldDispatchTable;
-               _singleton._chordDispatchTable = oldChordDispatchTable;
            });
         }
 
@@ -1089,73 +1081,6 @@ namespace Microsoft.PowerShell
             Ding();
         }
 
-        /// <summary>
-        /// Chords in vi needs special handling because a numeric argument can be input between the 1st and 2nd key.
-        /// </summary>
-        private static void ViChord(ConsoleKeyInfo? key = null, object arg = null)
-        {
-            if (!key.HasValue)
-            {
-                throw new ArgumentNullException(nameof(key));
-            }
-            if (arg != null)
-            {
-                Chord(key, arg);
-                return;
-            }
-
-            if (_singleton._chordDispatchTable.TryGetValue(PSKeyInfo.FromConsoleKeyInfo(key.Value), out var secondKeyDispatchTable))
-            {
-                ViChordHandler(secondKeyDispatchTable, arg);
-            }
-        }
-
-        private static void ViChordHandler(Dictionary<PSKeyInfo, KeyHandler> secondKeyDispatchTable, object arg = null)
-        {
-            var secondKey = ReadKey();
-            if (secondKeyDispatchTable.TryGetValue(secondKey, out var handler))
-            {
-                _singleton.ProcessOneKey(secondKey, secondKeyDispatchTable, ignoreIfNoAction: true, arg: arg);
-            }
-            else if (!IsNumeric(secondKey))
-            {
-                _singleton.ProcessOneKey(secondKey, secondKeyDispatchTable, ignoreIfNoAction: true, arg: arg);
-            }
-            else
-            {
-                var argBuffer = _singleton._statusBuffer;
-                argBuffer.Clear();
-                _singleton._statusLinePrompt = "digit-argument: ";
-                while (IsNumeric(secondKey))
-                {
-                    argBuffer.Append(secondKey.KeyChar);
-                    _singleton.Render();
-                    secondKey = ReadKey();
-                }
-                int numericArg = int.Parse(argBuffer.ToString());
-                if (secondKeyDispatchTable.TryGetValue(secondKey, out handler))
-                {
-                    _singleton.ProcessOneKey(secondKey, secondKeyDispatchTable, ignoreIfNoAction: true, arg: numericArg);
-                }
-                else
-                {
-                    Ding();
-                }
-                argBuffer.Clear();
-                _singleton.ClearStatusMessage(render: true);
-            }
-        }
-
-        private static void ViDGChord(ConsoleKeyInfo? key = null, object arg = null)
-        {
-            if (!key.HasValue)
-            {
-                throw new ArgumentNullException(nameof(key));
-            }
-
-            ViChordHandler(_viChordDGTable, arg);
-        }
-
         private static bool IsNumeric(PSKeyInfo key)
         {
             return key.KeyChar >= '0' && key.KeyChar <= '9' && !key.Control && !key.Alt;
@@ -1195,7 +1120,11 @@ namespace Microsoft.PowerShell
             while (true)
             {
                 var nextKey = ReadKey();
-                if (_singleton._dispatchTable.TryGetValue(nextKey, out var handler) && handler.Action == DigitArgument)
+                if (
+                    _singleton._dispatchTable.TryGetValue(nextKey, out var handlerOrChordDispatchTable) &&
+                    handlerOrChordDispatchTable.TryGetKeyHandler(out var handler) &&
+                    handler.Action == DigitArgument
+                )
                 {
                     if (nextKey == Keys.Minus)
                     {

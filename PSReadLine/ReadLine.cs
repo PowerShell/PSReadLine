@@ -474,7 +474,8 @@ namespace Microsoft.PowerShell
                         sb.Append(' ');
                         sb.Append(_lastNKeys[i].KeyStr);
 
-                        if (_singleton._dispatchTable.TryGetValue(_lastNKeys[i], out var handler) &&
+                        if (_singleton._dispatchTable.TryGetValue(_lastNKeys[i], out var handlerOrChordDispatchTable) &&
+                            handlerOrChordDispatchTable.TryGetKeyHandler(out var handler) &&
                             "AcceptLine".Equals(handler.BriefDescription, StringComparison.OrdinalIgnoreCase))
                         {
                             // Make it a little easier to see the keys
@@ -665,47 +666,114 @@ namespace Microsoft.PowerShell
             CallPossibleExternalApplication<object>(() => { action(); return null; });
         }
 
-        void ProcessOneKey(PSKeyInfo key, Dictionary<PSKeyInfo, KeyHandler> dispatchTable, bool ignoreIfNoAction, object arg)
+        void ProcessOneKey(PSKeyInfo key, ChordDispatchTable dispatchTable, bool ignoreIfNoAction, object arg)
+            => ProcessKeyChord(key, dispatchTable, ignoreIfNoAction, arg);
+        void ProcessKeyChord(PSKeyInfo key, ChordDispatchTable dispatchTable, bool ignoreIfNoAction, object arg)
         {
-            var consoleKey = key.AsConsoleKeyInfo();
+            KeyHandlerOrChordDispatchTable handlerOrChordDispatchTable = null;
 
-            // Our dispatch tables are built as much as possible in a portable way, so for example,
-            // we avoid depending on scan codes like ConsoleKey.Oem6 and instead look at the
-            // PSKeyInfo.Key. We also want to ignore the shift state as that may differ on
-            // different keyboard layouts.
-            //
-            // That said, we first look up exactly what we get from Console.ReadKey - that will fail
-            // most of the time, and when it does, we normalize the key.
-            if (!dispatchTable.TryGetValue(key, out var handler))
+            do
             {
-                // If we see a control character where Ctrl wasn't used but shift was, treat that like
-                // shift hadn't be pressed.  This cleanly allows Shift+Backspace without adding a key binding.
-                if (key.Shift && !key.Control && !key.Alt)
+                var consoleKey = key.AsConsoleKeyInfo();
+
+                // Our dispatch tables are built as much as possible in a portable way, so for example,
+                // we avoid depending on scan codes like ConsoleKey.Oem6 and instead look at the
+                // PSKeyInfo.Key. We also want to ignore the shift state as that may differ on
+                // different keyboard layouts.
+                //
+                // That said, we first look up exactly what we get from Console.ReadKey - that will fail
+                // most of the time, and when it does, we normalize the key.
+                if (!dispatchTable.TryGetValue(key, out handlerOrChordDispatchTable))
                 {
-                    var c = consoleKey.KeyChar;
-                    if (c != '\0' && char.IsControl(c))
+                    // If we see a control character where Ctrl wasn't used but shift was, treat that like
+                    // shift hadn't been pressed. This cleanly allows Shift+Backspace without adding a key binding.
+                    if (key.Shift && !key.Control && !key.Alt)
                     {
-                        key = PSKeyInfo.From(consoleKey.Key);
-                        dispatchTable.TryGetValue(key, out handler);
+                        var c = consoleKey.KeyChar;
+                        if (c != '\0' && char.IsControl(c))
+                        {
+                            key = PSKeyInfo.From(consoleKey.Key);
+                            dispatchTable.TryGetValue(key, out handlerOrChordDispatchTable);
+                        }
                     }
                 }
-            }
 
-            if (handler != null)
-            {
-                if (handler.ScriptBlock != null)
+                if (handlerOrChordDispatchTable != null && handlerOrChordDispatchTable.TryGetKeyHandler(out var handler))
                 {
-                    CallPossibleExternalApplication(() => handler.Action(consoleKey, arg));
+                    // invoke key handler
+
+                    if (handler.ScriptBlock != null)
+                    {
+                        CallPossibleExternalApplication(() => handler.Action(consoleKey, arg));
+                    }
+                    else
+                    {
+                        handler.Action(consoleKey, arg);
+                    }
+
+                    // key chords are processed mostly by looping over each key
+                    // in a loop and identifying their dispatch tables until
+                    // the dispatch table is null.
+                    //
+                    // nullify dispatch table to prevent infinite looping
+
+                    handlerOrChordDispatchTable = null;
                 }
+
+                // the current key is part of a key chord
+                // read the next key and select the dispatch
+                // table for the next iteration of the loop
+
+                else if (handlerOrChordDispatchTable != null)
+                {
+                    key = ReadKey();
+
+                    dispatchTable = (ChordDispatchTable)handlerOrChordDispatchTable;
+                    ignoreIfNoAction = true;
+                }
+
+                else if (handlerOrChordDispatchTable == null && dispatchTable.InViMode && IsNumeric(key) && arg == null)
+                {
+                    var argBuffer = _singleton._statusBuffer;
+                    argBuffer.Clear();
+                    _singleton._statusLinePrompt = "digit-argument: ";
+
+                    while (IsNumeric(key))
+                    {
+                        argBuffer.Append(key.KeyChar);
+                        _singleton.Render();
+                        key = ReadKey();
+                    }
+                    var numericArg = int.Parse(argBuffer.ToString());
+                    if (dispatchTable.TryGetValue(key, out var keyHhandler))
+                    {
+                        ProcessOneKey(key, dispatchTable, ignoreIfNoAction: true, arg: numericArg);
+                    }
+                    else
+                    {
+                        Ding();
+                    }
+                    argBuffer.Clear();
+                    _singleton.ClearStatusMessage(render: true);
+
+                    // MUST exit from recursive call
+
+                    return;
+                }
+
+                // insert unmapped keys
+
+                else if (!ignoreIfNoAction)
+                {
+                    SelfInsert(consoleKey, arg);
+                }
+
                 else
                 {
-                    handler.Action(consoleKey, arg);
+                    Ding(key.AsConsoleKeyInfo(), arg);
                 }
-            }
-            else if (!ignoreIfNoAction)
-            {
-                SelfInsert(consoleKey, arg);
-            }
+
+            } while (handlerOrChordDispatchTable != null);
         }
 
         static PSConsoleReadLine()
@@ -946,20 +1014,6 @@ namespace Microsoft.PowerShell
             _readKeyThread.Start();
         }
 
-        private static void Chord(ConsoleKeyInfo? key = null, object arg = null)
-        {
-            if (!key.HasValue)
-            {
-                throw new ArgumentNullException(nameof(key));
-            }
-
-            if (_singleton._chordDispatchTable.TryGetValue(PSKeyInfo.FromConsoleKeyInfo(key.Value), out var secondKeyDispatchTable))
-            {
-                var secondKey = ReadKey();
-                _singleton.ProcessOneKey(secondKey, secondKeyDispatchTable, ignoreIfNoAction: true, arg: arg);
-            }
-        }
-
         /// <summary>
         /// Abort current action, e.g. incremental history search.
         /// </summary>
@@ -1001,7 +1055,9 @@ namespace Microsoft.PowerShell
             while (true)
             {
                 var nextKey = ReadKey();
-                if (_singleton._dispatchTable.TryGetValue(nextKey, out var handler))
+                if (_singleton._dispatchTable.TryGetValue(nextKey, out var handlerOrChordDispatchTable) &&
+                    handlerOrChordDispatchTable.TryGetKeyHandler(out var handler)
+                )
                 {
                     if (handler.Action == DigitArgument)
                     {
