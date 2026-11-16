@@ -216,7 +216,7 @@ function Start-TestRun
     {
         $filter = if ($Layout) {
             Write-Log "`nTesting $Layout on $OperatingSystem..."
-            "FullyQualifiedName~Test.{0}_{1}" -f ($Layout -replace '-','_'), $OperatingSystem
+            "FullyQualifiedName~Test.{0}_{1}|FullyQualifiedName~Test.ControlCharacterTests" -f ($Layout -replace '-','_'), $OperatingSystem
         } else {
             ## Today, tests for screen-reader mode only run on Windows with the 'en-US' layout.
             $Layout = "screen-reader"
