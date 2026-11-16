@@ -245,7 +245,12 @@ namespace Microsoft.PowerShell
                     //   another special key, such as 'Ctrl+?' and 'Ctrl+;'.
                     isDeadKey = (c == '\0') && (consoleKey >= ConsoleKey.Oem1 && consoleKey <= ConsoleKey.Oem102) && !isCtrl;
 
-                    if (!isDeadKey)
+                    // Ctrl+A through Ctrl+Z already carry an unambiguous control character.
+                    // Translating the virtual key without Ctrl can replace it with a letter
+                    // from a stale input-thread layout (for example Ctrl+V becomes Ctrl+м).
+                    // Keep Alt combinations on the layout-dependent path for AltGr handling.
+                    bool isControlLetter = isCtrl && !isAlt && c >= '\x01' && c <= '\x1a';
+                    if (!isDeadKey && !isControlLetter)
                     {
                         // A dead key could pass the above heuristic check, such as 'Shift+6' in US-INTL keyboard, which represents the
                         // diacritic '^' and generates 'D6' ConsoleKey, '\0' key char and 'Shift' modifier.
